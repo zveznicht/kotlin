@@ -289,6 +289,10 @@ fun main(args: Array<String>) {
             model("codegen/bytecodeText")
         }
 
+        testClass<AbstractJsGenTest> {
+            model("ir/irText")
+        }
+
         testClass<AbstractIrTextTestCase> {
             model("ir/irText")
         }
