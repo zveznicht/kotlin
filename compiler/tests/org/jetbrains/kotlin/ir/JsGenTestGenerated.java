@@ -202,6 +202,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("fileWithAnnotations.kt")
+        public void testFileWithAnnotations() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/fileWithAnnotations.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("localDelegatedProperties.kt")
         public void testLocalDelegatedProperties() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/localDelegatedProperties.kt");
@@ -280,6 +286,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("badBreakContinue.kt")
+        public void testBadBreakContinue() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/badBreakContinue.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("bangbang.kt")
         public void testBangbang() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/bangbang.kt");
@@ -289,6 +301,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
         @TestMetadata("booleanOperators.kt")
         public void testBooleanOperators() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/booleanOperators.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("boundCallableReferences.kt")
+        public void testBoundCallableReferences() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/boundCallableReferences.kt");
             doTest(fileName);
         }
 
