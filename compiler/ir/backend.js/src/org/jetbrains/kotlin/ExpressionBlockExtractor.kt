@@ -17,15 +17,20 @@
 package org.jetbrains.kotlin
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.detach
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrCompositeImpl
 import org.jetbrains.kotlin.ir.replaceWith
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.types.KotlinType
 
-class ExpressionBlockExtractor : IrElementVisitorVoid {
+class ExpressionBlockExtractor(private val irBuiltIns: IrBuiltIns) : IrElementVisitorVoid {
+    var changed = false
+
     override fun visitElement(element: IrElement) {
         element.acceptChildrenVoid(this)
 //        TODO("not implemented")
@@ -53,29 +58,7 @@ class ExpressionBlockExtractor : IrElementVisitorVoid {
 
     override fun visitVariable(declaration: IrVariable) {
         super.visitVariable(declaration)
-//        var tmp = {}
-//        var foo = tmp
-        // TODO
-        val initializer = declaration.initializer
-        if (initializer !is IrBlock) return
-
-        initializer.statements.forEach { it.detach() }
-
-        initializer.replaceWith(initializer.statements.last())
-
-        val oldParent = declaration.parent
-        val oldSlot = declaration.slot
-
-        declaration.detach()
-
-        val newEl = IrCompositeImpl(
-                declaration.startOffset,
-                declaration.endOffset,
-                declaration.descriptor.type,
-                null,
-                initializer.statements.subList(0, initializer.statements.lastIndex) + listOf(declaration))
-
-        oldParent?.replaceChild(oldSlot, newEl)
+        extractIrBlockIfNeed(declaration, declaration.initializer, declaration.descriptor.type)
     }
 
     override fun visitExpressionBody(body: IrExpressionBody) {
@@ -147,29 +130,44 @@ class ExpressionBlockExtractor : IrElementVisitorVoid {
 //        super.visitDoWhileLoop(loop)
 //    }
 
-    private fun extractBlockIfNeed(expression: IrExpression, value: IrExpression?) {
-        if (value is IrBlock) {
-            val lastChild = value.statements.last()
-            val lastChildSlot = lastChild.slot
-            value.replaceWith(lastChild)
-            expression.replaceWith(value)
-            value.replaceChild(lastChildSlot, expression)
-        }
-    }
-
     override fun visitReturn(expression: IrReturn) {
         super.visitReturn(expression)
-        extractBlockIfNeed(expression, expression.value)
+        // TODO try to reuse block?
+        extractIrBlockIfNeed(expression, expression.value)
     }
 
     override fun visitThrow(expression: IrThrow) {
         super.visitThrow(expression)
-        extractBlockIfNeed(expression, expression.value)
+        extractIrBlockIfNeed(expression, expression.value)
+    }
+
+    private fun extractIrBlockIfNeed(expression: IrStatement, elementToReplace: IrExpression?, type: KotlinType = irBuiltIns.nothing) {
+        if (elementToReplace is IrBlock) {
+            changed = true
+
+            extractIrBlock(expression, elementToReplace)
+        }
+    }
+
+    private fun extractIrBlock(declaration: IrStatement, elementToReplace: IrBlock, type: KotlinType = irBuiltIns.nothing) {
+        val oldParent = declaration.parent
+        val oldSlot = declaration.slot
+
+        declaration.detach()
+        elementToReplace.statements.forEach { it.detach() }
+
+        val last = elementToReplace.statements.last()
+        last.detach()
+        elementToReplace.replaceWith(last)
+
+        val newEl = IrCompositeImpl(
+                declaration.startOffset,
+                declaration.endOffset,
+                type,
+                null,
+                elementToReplace.statements.subList(0, elementToReplace.statements.lastIndex) + listOf(declaration))
+
+        oldParent?.replaceChild(oldSlot, newEl)
+        declaration.setTreeLocation(newEl, newEl.statements.lastIndex)
     }
 }
-
-//ISSUE: inline typealias intention
-
-// IrBlock
-// endVisit
-

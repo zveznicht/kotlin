@@ -22,8 +22,6 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
-import org.jetbrains.kotlin.js.translate.utils.JsAstUtils.equality
-import org.jetbrains.kotlin.js.translate.utils.JsAstUtils.not
 
 private val program = JsProgram("<ir2js>")
 
@@ -56,52 +54,59 @@ fun ir2js(module: IrModuleFragment): JsNode {
 }
 
 fun extractBlockExpressions(module: IrModuleFragment) {
-    module.accept(ExpressionBlockExtractor(), null)
+    do {
+        val extractor = ExpressionBlockExtractor(module.irBuiltins)
+        module.accept(extractor, null)
+    } while (extractor.changed)
 }
 
 typealias Data = Nothing?
 
-interface DummyGenerator<T> : IrElementVisitor<T, Data> {
-    override fun visitElement(element: IrElement, data: Data): T {
+interface BaseGenerator<out R : JsNode, in D> : IrElementVisitor<R, D> {
+    override fun visitElement(element: IrElement, data: D): R {
         TODO(element.dump())
+    }
+
+    override fun visitTypeAlias(declaration: IrTypeAlias, data: D): R {
+        return JsEmpty as R
     }
 }
 
-class FileGenerator : IrElementVisitor<JsNode, Data>, DummyGenerator<JsNode>
-class DeclarationGenerator : IrElementVisitor<JsNode, Data>, DummyGenerator<JsNode> {
+private fun generateFunction(declaration: IrFunction, data: Data): JsVars {
+    val funName = declaration.descriptor.name.asString()
+    val body = declaration.body?.accept(StatementGenerator(), data) as? JsBlock ?: JsBlock()
+    val function = JsFunction(JsFunctionScope(program.scope, "scope for $funName"), body, "function $funName")
+
+    fun JsFunction.addParameter(parameterName: String) {
+        val parameter = function.scope.declareName(parameterName)
+        parameters.add(JsParameter(parameter))
+    }
+
+    val descriptor = declaration.descriptor
+    descriptor.valueParameters.forEach {
+        function.addParameter(it.name.asString())
+    }
+    descriptor.extensionReceiverParameter?.let { function.addParameter(RECEIVER) }
+
+    // TODO
+    return _var(program.scope.declareName(funName), function)
+}
+
+class FileGenerator : BaseGenerator<JsNode, Data>
+class DeclarationGenerator : BaseGenerator<JsNode, Data> {
     // TODO
     override fun visitDeclaration(declaration: IrDeclaration, data: Data) = JsEmpty
 
     override fun visitFunction(declaration: IrFunction, data: Nothing?): JsNode {
-        val funName = declaration.descriptor.name.asString()
-        val body = declaration.body?.accept(this, data) as JsBlock? ?: JsBlock()
-        val function = JsFunction(JsFunctionScope(program.scope, "scope for $funName"), body, "function $funName")
-
-        fun JsFunction.addParameter(parameterName: String) {
-            val parameter = function.scope.declareName(parameterName)
-            parameters.add(JsParameter(parameter))
-        }
-
-        val descriptor = declaration.descriptor
-        descriptor.valueParameters.forEach {
-            function.addParameter(it.name.asString())
-        }
-        descriptor.extensionReceiverParameter?.let { function.addParameter(RECEIVER) }
-
-        // TODO
-        return JsVars(JsVars.JsVar(program.scope.declareName(funName), function))
+        return generateFunction(declaration, data)
     }
 
-    override fun visitBlockBody(body: IrBlockBody, data: Nothing?): JsNode {
-        val block = JsBlock()
-        for (s in body.statements) {
-            block.statements.add(s.accept(StatementGenerator(), data))
-        }
-        return block
+    override fun visitSimpleProperty(declaration: IrSimpleProperty, data: Data): JsNode {
+        return _var(program.scope.declareName(declaration.descriptor.name.asString()), declaration.initializer?.accept(ExpressionGenerator(), data))
     }
 }
 
-class StatementGenerator : IrElementVisitor<JsStatement, Data>, DummyGenerator<JsStatement> {
+class StatementGenerator : BaseGenerator<JsStatement, Data> {
 //    fun visitElement(element: IrElement, data: D): R
 //    fun visitModule(declaration: IrModule, data: D) = visitElement(declaration, data)
 //    fun visitFile(declaration: IrFile, data: D) = visitElement(declaration, data)
@@ -110,7 +115,9 @@ class StatementGenerator : IrElementVisitor<JsStatement, Data>, DummyGenerator<J
 //    fun visitClass(declaration: IrClass, data: D) = visitDeclaration(declaration, data)
 //    fun visitTypeAlias(declaration: IrTypeAlias, data: D) = visitDeclaration(declaration, data)
 //    fun visitGeneralFunction(declaration: IrGeneralFunction, data: D) = visitDeclaration(declaration, data)
-//    fun visitFunction(declaration: IrFunction, data: D) = visitGeneralFunction(declaration, data)
+    override fun visitFunction(declaration: IrFunction, data: Data): JsStatement {
+        return generateFunction(declaration, data)
+    }
 //    fun visitPropertyGetter(declaration: IrPropertyGetter, data: D) = visitGeneralFunction(declaration, data)
 //    fun visitPropertySetter(declaration: IrPropertySetter, data: D) = visitGeneralFunction(declaration, data)
 //    fun visitConstructor(declaration: IrConstructor, data: D) = visitGeneralFunction(declaration, data)
@@ -121,14 +128,16 @@ class StatementGenerator : IrElementVisitor<JsStatement, Data>, DummyGenerator<J
 //    fun visitLocalPropertyAccessor(declaration: IrLocalPropertyAccessor, data: D) = visitGeneralFunction(declaration, data)
     override fun visitVariable(declaration: IrVariable, data: Data): JsStatement {
         // TODO mark tmps
-        return JsVars(JsVars.JsVar(program.scope.declareName(declaration.descriptor.name.asString()), declaration.initializer?.accept(ExpressionGenerator(), data)))
+        return _var(program.scope.declareName(declaration.descriptor.name.asString()), declaration.initializer?.accept(ExpressionGenerator(), data))
     }
 //    fun visitEnumEntry(declaration: IrEnumEntry, data: D) = visitDeclaration(declaration, data)
 //    fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: D) = visitDeclaration(declaration, data)
 //
 //    fun visitBody(body: IrBody, data: D) = visitElement(body, data)
 //    fun visitExpressionBody(body: IrExpressionBody, data: D) = visitBody(body, data)
-//    fun visitBlockBody(body: IrBlockBody, data: D) = visitBody(body, data)
+    override fun visitBlockBody(body: IrBlockBody, data: Nothing?): JsStatement {
+        return JsBlock(body.statements.map { it.accept(this, data) })
+    }
 //    fun visitSyntheticBody(body: IrSyntheticBody, data: D) = visitBody(body, data)
 //
     override fun visitExpression(expression: IrExpression, data: Data): JsStatement {
@@ -234,7 +243,7 @@ class StatementGenerator : IrElementVisitor<JsStatement, Data>, DummyGenerator<J
 
 }
 
-class ExpressionGenerator : IrElementVisitor<JsExpression, Data>, DummyGenerator<JsExpression> {
+class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
 //    fun visitElement(element: IrElement, data: D): R
 //    fun visitModule(declaration: IrModule, data: D) = visitElement(declaration, data)
 //    fun visitFile(declaration: IrFile, data: D) = visitElement(declaration, data)
@@ -257,23 +266,26 @@ class ExpressionGenerator : IrElementVisitor<JsExpression, Data>, DummyGenerator
 //    fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: D) = visitDeclaration(declaration, data)
 //
 //    fun visitBody(body: IrBody, data: D) = visitElement(body, data)
-//    fun visitExpressionBody(body: IrExpressionBody, data: D) = visitBody(body, data)
+    override fun visitExpressionBody(body: IrExpressionBody, data: Data): JsExpression {
+        return body.expression.accept(this, data)
+    }
 //    fun visitBlockBody(body: IrBlockBody, data: D) = visitBody(body, data)
 //    fun visitSyntheticBody(body: IrSyntheticBody, data: D) = visitBody(body, data)
 //
 //    fun visitExpression(expression: IrExpression, data: D) = visitElement(expression, data)
     override fun <T> visitConst(expression: IrConst<T>, data: Data): JsExpression {
-        return when (expression.kind) {
-            IrConstKind.String -> program.getStringLiteral(expression.value as String)
-            IrConstKind.Null -> JsLiteral.NULL
-            IrConstKind.Boolean -> if (expression.value as Boolean) JsLiteral.TRUE else JsLiteral.FALSE
-            IrConstKind.Char -> program.getNumberLiteral((expression.value as Char).toInt()) // TODO
-            IrConstKind.Byte -> program.getNumberLiteral((expression.value as Byte).toInt())
-            IrConstKind.Short -> program.getNumberLiteral((expression.value as Short).toInt())
-            IrConstKind.Int -> program.getNumberLiteral(expression.value as Int)
-            IrConstKind.Long -> program.getNumberLiteral((expression.value as Long).toDouble()) // TODO
-            IrConstKind.Float -> program.getNumberLiteral((expression.value as Float).toDouble())
-            IrConstKind.Double -> program.getNumberLiteral((expression.value as Float).toDouble())
+    val kind = expression.kind
+    return when (kind) {
+            is IrConstKind.String -> program.getStringLiteral(kind.valueOf(expression))
+            is IrConstKind.Null -> JsLiteral.NULL
+            is IrConstKind.Boolean -> if (kind.valueOf(expression)) JsLiteral.TRUE else JsLiteral.FALSE
+            is IrConstKind.Char -> program.getNumberLiteral(kind.valueOf(expression).toInt()) // TODO
+            is IrConstKind.Byte -> program.getNumberLiteral(kind.valueOf(expression).toInt())
+            is IrConstKind.Short -> program.getNumberLiteral(kind.valueOf(expression).toInt())
+            is IrConstKind.Int -> program.getNumberLiteral(kind.valueOf(expression))
+            is IrConstKind.Long -> program.getNumberLiteral(kind.valueOf(expression).toDouble()) // TODO
+            is IrConstKind.Float -> program.getNumberLiteral(kind.valueOf(expression).toDouble())
+            is IrConstKind.Double -> program.getNumberLiteral(kind.valueOf(expression))
         }
     }
     override fun visitVararg(expression: IrVararg, data: Data): JsExpression {
@@ -288,7 +300,10 @@ class ExpressionGenerator : IrElementVisitor<JsExpression, Data>, DummyGenerator
     }
 //
 //    fun visitBlock(expression: IrBlock, data: D) = visitExpression(expression, data)
-//    fun visitStringConcatenation(expression: IrStringConcatenation, data: D) = visitExpression(expression, data)
+    override fun visitStringConcatenation(expression: IrStringConcatenation, data: Data): JsExpression {
+        // TODO revisit
+        return expression.arguments.fold<IrExpression, JsExpression>(program.getStringLiteral("")) { jsExpr, irExpr -> _plus(jsExpr, irExpr.accept(this, data)) }
+    }
 //    fun visitThisReference(expression: IrThisReference, data: D) = visitExpression(expression, data)
 //
 //    fun visitDeclarationReference(expression: IrDeclarationReference, data: D) = visitExpression(expression, data)
@@ -347,19 +362,14 @@ class ExpressionGenerator : IrElementVisitor<JsExpression, Data>, DummyGenerator
         val type = JsNameRef(expression.typeOperand.constructor.declarationDescriptor!!.name.asString())
 
         // kotlin.isType ?
-        fun instanceOf(a: JsExpression, b: JsExpression): JsBinaryOperation {
-            return JsBinaryOperation(JsBinaryOperator.INSTANCEOF, a, b)
-        }
-        fun throwCCE() = JsInvocation(JsNameRef("kotlin.throwCCE"))//JsThrow(JsNew(JsNameRef("kotlin.CCE")))
-
         // TODO review
         return when(expression.operator) {
-            IrTypeOperator.CAST -> JsConditional(instanceOf(argument, type), argument, throwCCE())
-            IrTypeOperator.IMPLICIT_CAST -> JsConditional(instanceOf(argument, type), argument, throwCCE()) // TODO what should we do in JS here?
-            IrTypeOperator.IMPLICIT_NOTNULL -> JsConditional(equality(argument, JsLiteral.NULL), argument, throwCCE()) // TODO what should we do in JS here?
-            IrTypeOperator.SAFE_CAST -> JsConditional(instanceOf(argument, type), argument, JsLiteral.NULL)
-            IrTypeOperator.INSTANCEOF -> instanceOf(argument, type)
-            IrTypeOperator.NOT_INSTANCEOF -> not(instanceOf(argument, type))
+            IrTypeOperator.CAST -> JsConditional(_instanceOf(argument, type), argument, throwCCE())
+            IrTypeOperator.IMPLICIT_CAST -> JsConditional(_instanceOf(argument, type), argument, throwCCE()) // TODO what should we do in JS here?
+            IrTypeOperator.IMPLICIT_NOTNULL -> JsConditional(_identityEquals(argument, JsLiteral.NULL), argument, throwCCE()) // TODO what should we do in JS here?
+            IrTypeOperator.SAFE_CAST -> JsConditional(_instanceOf(argument, type), argument, JsLiteral.NULL)
+            IrTypeOperator.INSTANCEOF -> _instanceOf(argument, type)
+            IrTypeOperator.NOT_INSTANCEOF -> _not(_instanceOf(argument, type))
         }
    }
 
