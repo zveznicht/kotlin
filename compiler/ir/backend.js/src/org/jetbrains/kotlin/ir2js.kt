@@ -18,13 +18,12 @@ package org.jetbrains.kotlin
 
 import com.google.dart.compiler.backend.js.ast.*
 import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.declarations.IrFunction
-import org.jetbrains.kotlin.ir.declarations.IrModule
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
+import org.jetbrains.kotlin.js.translate.utils.JsAstUtils.equality
+import org.jetbrains.kotlin.js.translate.utils.JsAstUtils.not
 
 private val program = JsProgram("<ir2js>")
 
@@ -32,13 +31,14 @@ val RECEIVER = "\$receiver"
 
 private fun TODO(element: IrElement): Nothing = TODO(element.dump())
 
-fun ir2js(module: IrModule): JsNode {
+fun ir2js(module: IrModuleFragment): JsNode {
+    extractBlockExpressions(module)
     return module.accept(object : IrElementVisitor<JsNode, Nothing?> {
         override fun visitElement(element: IrElement, data: Nothing?): JsNode {
             TODO(element)
         }
 
-        override fun visitModule(declaration: IrModule, data: Nothing?): JsNode {
+        override fun visitModuleFragment(declaration: IrModuleFragment, data: Nothing?): JsNode {
             // TODO
             return declaration.files.first().accept(this, data)
         }
@@ -53,6 +53,10 @@ fun ir2js(module: IrModule): JsNode {
         }
 
     }, null)
+}
+
+fun extractBlockExpressions(module: IrModuleFragment) {
+    module.accept(ExpressionBlockExtractor(), null)
 }
 
 typealias Data = Nothing?
@@ -115,7 +119,10 @@ class StatementGenerator : IrElementVisitor<JsStatement, Data>, DummyGenerator<J
 //    fun visitDelegatedProperty(declaration: IrDelegatedProperty, data: D) = visitProperty(declaration, data)
 //    fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty, data: D) = visitDeclaration(declaration, data)
 //    fun visitLocalPropertyAccessor(declaration: IrLocalPropertyAccessor, data: D) = visitGeneralFunction(declaration, data)
-//    fun visitVariable(declaration: IrVariable, data: D) = visitDeclaration(declaration, data)
+    override fun visitVariable(declaration: IrVariable, data: Data): JsStatement {
+        // TODO mark tmps
+        return JsVars(JsVars.JsVar(program.scope.declareName(declaration.descriptor.name.asString()), declaration.initializer?.accept(ExpressionGenerator(), data)))
+    }
 //    fun visitEnumEntry(declaration: IrEnumEntry, data: D) = visitDeclaration(declaration, data)
 //    fun visitAnonymousInitializer(declaration: IrAnonymousInitializer, data: D) = visitDeclaration(declaration, data)
 //
@@ -127,11 +134,14 @@ class StatementGenerator : IrElementVisitor<JsStatement, Data>, DummyGenerator<J
     override fun visitExpression(expression: IrExpression, data: Data): JsStatement {
         return JsExpressionStatement(expression.accept(ExpressionGenerator(), data))
     }
-//    override fun <T> visitConst(expression: IrConst<T>, data: Nothing?): JsExpression {
-//    fun visitVararg(expression: IrVararg, data: D) = visitExpression(expression, data)
-//    fun visitSpreadElement(spread: IrSpreadElement, data: D) = visitElement(spread, data)
-//
+
+
     override fun visitBlock(expression: IrBlock, data: Data): JsBlock {
+        return JsBlock(expression.statements.map { it.accept(this, data) })
+    }
+
+    override fun visitComposite(expression: IrComposite, data: Data): JsStatement {
+        // TODO introduce JsCompositeBlock?
         return JsBlock(expression.statements.map { it.accept(this, data) })
     }
 
@@ -173,8 +183,16 @@ class StatementGenerator : IrElementVisitor<JsStatement, Data>, DummyGenerator<J
     }
 
 //    fun visitLoop(loop: IrLoop, data: D) = visitExpression(loop, data)
-//    fun visitWhileLoop(loop: IrWhileLoop, data: D) = visitLoop(loop, data)
-//    fun visitDoWhileLoop(loop: IrDoWhileLoop, data: D) = visitLoop(loop, data)
+    override fun visitWhileLoop(loop: IrWhileLoop, data: Data): JsStatement {
+        //TODO what if body null?
+        return JsWhile(loop.condition.accept(ExpressionGenerator(), data), loop.body?.accept(this, data))
+    }
+
+    override fun visitDoWhileLoop(loop: IrDoWhileLoop, data: Data): JsStatement {
+        //TODO what if body null?
+        return JsDoWhile(loop.condition.accept(ExpressionGenerator(), data), loop.body?.accept(this, data))
+    }
+
 
     override fun visitTryCatch(tryCatch: IrTryCatch, data: Data): JsStatement {
         val tryBlock = tryCatch.tryResult.accept(this, data)
@@ -258,8 +276,16 @@ class ExpressionGenerator : IrElementVisitor<JsExpression, Data>, DummyGenerator
             IrConstKind.Double -> program.getNumberLiteral((expression.value as Float).toDouble())
         }
     }
-//    fun visitVararg(expression: IrVararg, data: D) = visitExpression(expression, data)
-//    fun visitSpreadElement(spread: IrSpreadElement, data: D) = visitElement(spread, data)
+    override fun visitVararg(expression: IrVararg, data: Data): JsExpression {
+        //TODO native
+        val hasSpread = expression.elements.any { it is IrSpreadElement }
+        val elements = expression.elements.map { it.accept(this, data) }
+        // TODO use a.slice() when it possible
+        return if (!hasSpread) JsArrayLiteral(elements) else JsInvocation(JsNameRef("concat", JsArrayLiteral()), elements)
+    }
+    override fun visitSpreadElement(spread: IrSpreadElement, data: Data): JsExpression {
+        return spread.expression.accept(this, data)
+    }
 //
 //    fun visitBlock(expression: IrBlock, data: D) = visitExpression(expression, data)
 //    fun visitStringConcatenation(expression: IrStringConcatenation, data: D) = visitExpression(expression, data)
@@ -267,8 +293,14 @@ class ExpressionGenerator : IrElementVisitor<JsExpression, Data>, DummyGenerator
 //
 //    fun visitDeclarationReference(expression: IrDeclarationReference, data: D) = visitExpression(expression, data)
 //    fun visitSingletonReference(expression: IrGetSingletonValue, data: D) = visitDeclarationReference(expression, data)
-//    fun visitGetObjectValue(expression: IrGetObjectValue, data: D) = visitSingletonReference(expression, data)
-//    fun visitGetEnumValue(expression: IrGetEnumValue, data: D) = visitSingletonReference(expression, data)
+    override fun visitGetObjectValue(expression: IrGetObjectValue, data: Data): JsExpression {
+        // TODO implement
+        return JsNameRef("TODO")
+    }
+    override fun visitGetEnumValue(expression: IrGetEnumValue, data: Data): JsExpression {
+        // TODO implement
+        return JsNameRef("TODO")
+    }
 //    fun visitVariableAccess(expression: IrVariableAccessExpression, data: D) = visitDeclarationReference(expression, data)
     override fun visitGetVariable(expression: IrGetVariable, data: Data): JsExpression {
         return JsNameRef(expression.descriptor.name.asString())
@@ -308,17 +340,38 @@ class ExpressionGenerator : IrElementVisitor<JsExpression, Data>, DummyGenerator
 //
 //    fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall, data: D) = visitExpression(expression, data)
 //
-//    fun visitTypeOperator(expression: IrTypeOperatorCall, data: D) = visitExpression(expression, data)
-//
-//    fun visitWhen(expression: IrWhen, data: D) = visitExpression(expression, data)
-//    fun visitLoop(loop: IrLoop, data: D) = visitExpression(loop, data)
-//    fun visitWhileLoop(loop: IrWhileLoop, data: D) = visitLoop(loop, data)
-//    fun visitDoWhileLoop(loop: IrDoWhileLoop, data: D) = visitLoop(loop, data)
-//    fun visitTryCatch(tryCatch: IrTryCatch, data: D) = visitExpression(tryCatch, data)
-//
-//    fun visitErrorDeclaration(declaration: IrErrorDeclaration, data: D) = visitDeclaration(declaration, data)
-//    fun visitErrorExpression(expression: IrErrorExpression, data: D) = visitExpression(expression, data)
-//    fun visitErrorCallExpression(expression: IrErrorCallExpression, data: D) = visitErrorExpression(expression, data)
+   override fun visitTypeOperator(expression: IrTypeOperatorCall, data: Data): JsExpression {
+        // TODO better name
+        val argument = expression.argument.accept(this, data)
+        //  TODO fix
+        val type = JsNameRef(expression.typeOperand.constructor.declarationDescriptor!!.name.asString())
+
+        // kotlin.isType ?
+        fun instanceOf(a: JsExpression, b: JsExpression): JsBinaryOperation {
+            return JsBinaryOperation(JsBinaryOperator.INSTANCEOF, a, b)
+        }
+        fun throwCCE() = JsInvocation(JsNameRef("kotlin.throwCCE"))//JsThrow(JsNew(JsNameRef("kotlin.CCE")))
+
+        // TODO review
+        return when(expression.operator) {
+            IrTypeOperator.CAST -> JsConditional(instanceOf(argument, type), argument, throwCCE())
+            IrTypeOperator.IMPLICIT_CAST -> JsConditional(instanceOf(argument, type), argument, throwCCE()) // TODO what should we do in JS here?
+            IrTypeOperator.IMPLICIT_NOTNULL -> JsConditional(equality(argument, JsLiteral.NULL), argument, throwCCE()) // TODO what should we do in JS here?
+            IrTypeOperator.SAFE_CAST -> JsConditional(instanceOf(argument, type), argument, JsLiteral.NULL)
+            IrTypeOperator.INSTANCEOF -> instanceOf(argument, type)
+            IrTypeOperator.NOT_INSTANCEOF -> not(instanceOf(argument, type))
+        }
+   }
+
+
+    override fun visitWhen(expression: IrWhen, data: Data): JsExpression {
+        return (0 until expression.branchesCount).reversed().fold(expression.elseBranch?.accept(this, data)) { st, i ->
+            JsConditional(
+                    expression.getNthCondition(i)!!.accept(ExpressionGenerator(), data),
+                    expression.getNthResult(i)!!.accept(this, data),
+                    st)
+        }!!
+    }
 }
 
 /*
