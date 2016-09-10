@@ -5,5 +5,5 @@ fun testScalar(a: Any): IntArray {
 
 fun testSpread(a: Any): IntArray {
     if (a !is IntArray) return intArrayOf()
-    return intArrayOf(*a)
+    return intArrayOf(*a, *a)
 }
