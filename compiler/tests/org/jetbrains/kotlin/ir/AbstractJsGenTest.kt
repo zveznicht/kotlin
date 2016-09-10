@@ -24,6 +24,9 @@ abstract class AbstractJsGenTest : AbstractIrTextTestCase() {
         super.doTest(wholeFile, testFiles)
         val ignoreErrors = shouldIgnoreErrors(wholeFile)
         val module = generateIrModule(ignoreErrors)
+
+        if (ignoreErrors) return
+
         val jsAst = ir2js(module)
 
         println(jsAst.toString())
