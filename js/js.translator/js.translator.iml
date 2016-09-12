@@ -15,5 +15,7 @@
     <orderEntry type="module" module-name="js.parser" />
     <orderEntry type="module" module-name="js.serializer" />
     <orderEntry type="module" module-name="util" />
+    <orderEntry type="module" module-name="ir.psi2ir" />
+    <orderEntry type="module" module-name="backend.js" />
   </component>
 </module>

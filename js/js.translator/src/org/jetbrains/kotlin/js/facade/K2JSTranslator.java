@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.js.facade;
 
+import org.jetbrains.kotlin.js.backend.ast.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor;
@@ -36,6 +37,7 @@ import org.jetbrains.kotlin.js.sourceMap.SourceFilePathResolver;
 import org.jetbrains.kotlin.js.translate.general.AstGenerationResult;
 import org.jetbrains.kotlin.js.translate.general.FileTranslationResult;
 import org.jetbrains.kotlin.js.translate.general.Translation;
+import org.jetbrains.kotlin.js.translate.utils.JsDescriptorUtils;
 import org.jetbrains.kotlin.js.translate.utils.ExpandIsCallsKt;
 import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus;
 import org.jetbrains.kotlin.psi.KtFile;
@@ -49,6 +51,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,6 +150,26 @@ public final class K2JSTranslator {
 
         ExpandIsCallsKt.expandIsCalls(newFragments);
         ProgressIndicatorAndCompilationCanceledStatus.checkCanceled();
+
+        /** TODO
+         JsNode node = TranslateWithIrKt.translateWithIr(moduleDescriptor, files, bindingTrace.getBindingContext());
+         program = new JsProgram("new");
+         List<JsStatement> statements = program.getGlobalBlock().getStatements();
+         statements.addAll(((JsBlock) node).getStatements());
+         statements.add(new JsVars(new JsVars.JsVar(program.getScope().declareName(JsDescriptorUtils.getModuleName(moduleDescriptor)),
+         new JsObjectLiteral(
+         Arrays.asList(new JsPropertyInitializer(program.getStringLiteral("foo"), new JsNameRef("foo")))))));
+         //statements.add(new JsVars(new JsVars.JsVar(program.getScope().declareName(JsDescriptorUtils.getModuleName(moduleDescriptor)),
+         //                                           new JsObjectLiteral(
+         //                                                   Arrays.asList(new JsPropertyInitializer(program.getStringLiteral("foo"),
+         //                                                                                           new JsObjectLiteral(Arrays.asList(new JsPropertyInitializer(program.getStringLiteral("box"),
+         //                                                                                                                                       new JsNameRef("box"))))))))));
+
+         List<String> importedModules = new ArrayList<String>(context.getImportedModules().keySet());
+         return new TranslationResult.Success(config, files, program, diagnostics, importedModules, moduleDescriptor);
+
+         */
+
 
         List<File> sourceRoots = config.getSourceMapRoots().stream().map(File::new).collect(Collectors.toList());
         SourceFilePathResolver pathResolver = new SourceFilePathResolver(sourceRoots);

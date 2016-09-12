@@ -17,11 +17,15 @@
 package org.jetbrains.kotlin
 
 import com.google.dart.compiler.backend.js.ast.*
+import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
+import org.jetbrains.kotlin.ir.expressions.impl.IrBinaryPrimitiveImpl
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
+import org.jetbrains.kotlin.js.resolve.diagnostics.JsCallChecker
+import org.jetbrains.kotlin.transformers.StringMemberTransformer
 
 private val program = JsProgram("<ir2js>")
 
@@ -31,6 +35,8 @@ private fun TODO(element: IrElement): Nothing = TODO(element.dump())
 
 fun ir2js(module: IrModuleFragment): JsNode {
     extractBlockExpressions(module)
+    module.accept(StringMemberTransformer(module.irBuiltins), null)
+
     return module.accept(object : IrElementVisitor<JsNode, Nothing?> {
         override fun visitElement(element: IrElement, data: Nothing?): JsNode {
             TODO(element)
@@ -38,14 +44,38 @@ fun ir2js(module: IrModuleFragment): JsNode {
 
         override fun visitModuleFragment(declaration: IrModuleFragment, data: Nothing?): JsNode {
             // TODO
-            return declaration.files.first().accept(this, data)
+            val block = JsBlock()
+            declaration.files.forEach { block.statements.add(it.accept(this, data) as JsStatement) }
+            return block
         }
 
         override fun visitFile(declaration: IrFile, data: Nothing?): JsNode {
             val block = JsBlock()
+            val segments = declaration.packageFragmentDescriptor.fqName.pathSegments()
+
+            val packageRef: JsExpression = if (segments.isNotEmpty()) {
+                val name = segments.first().asString()
+                block.statements.add(_var(program.scope.declareName(name), _or(JsNameRef(name), _object())))
+
+                for (i in 1..segments.lastIndex) {
+                    val part = segments.subList(1, i + 1).fold(JsNameRef(name)) { r, n -> JsNameRef(n.asString(), r) }
+                    block.statements.add(_assignment(part, _or(part, _object())))
+                }
+
+                segments.subList(1, segments.size).fold(JsNameRef(name)) { r, n -> JsNameRef(n.asString(), r) }
+            }
+            else {
+                JsLiteral.THIS
+            }
+
+            // var foo = foo || {}
+            // foo.bar = foo.bar || {}
+            val generator = DeclarationGenerator(packageRef)
+
             for (d in declaration.declarations) {
                 // TODO
-                block.statements.add(d.accept(DeclarationGenerator(), data) as JsStatement)
+
+                block.statements.add(d.accept(generator, data) as JsStatement)
             }
             return block
         }
@@ -72,7 +102,7 @@ interface BaseGenerator<out R : JsNode, in D> : IrElementVisitor<R, D> {
     }
 }
 
-private fun generateFunction(declaration: IrFunction, data: Data): JsVars {
+private fun generateFunction(declaration: IrFunction, data: Data?, packageRef: JsExpression? = null): JsStatement {
     val funName = declaration.descriptor.name.asString()
     val body = declaration.body?.accept(StatementGenerator(), data) as? JsBlock ?: JsBlock()
     val function = JsFunction(JsFunctionScope(program.scope, "scope for $funName"), body, "function $funName")
@@ -89,20 +119,20 @@ private fun generateFunction(declaration: IrFunction, data: Data): JsVars {
     descriptor.extensionReceiverParameter?.let { function.addParameter(RECEIVER) }
 
     // TODO
-    return _var(program.scope.declareName(funName), function)
+    return if (packageRef != null) _assignment(_ref(declaration.descriptor.name.asString(), packageRef), function) else _var(program.scope.declareName(funName), function)
 }
 
 class FileGenerator : BaseGenerator<JsNode, Data>
-class DeclarationGenerator : BaseGenerator<JsNode, Data> {
+class DeclarationGenerator(val packageRef: JsExpression) : BaseGenerator<JsNode, Data> {
     // TODO
     override fun visitDeclaration(declaration: IrDeclaration, data: Data) = JsEmpty
 
     override fun visitFunction(declaration: IrFunction, data: Nothing?): JsNode {
-        return generateFunction(declaration, data)
+        return generateFunction(declaration, data, packageRef)
     }
 
     override fun visitSimpleProperty(declaration: IrSimpleProperty, data: Data): JsNode {
-        return _var(program.scope.declareName(declaration.descriptor.name.asString()), declaration.initializer?.accept(ExpressionGenerator(), data))
+        return _assignment(_ref(declaration.descriptor.name.asString(), packageRef), declaration.initializer?.accept(ExpressionGenerator(), data) ?: _object()/*TODO Object.defineProperty?*/)
     }
 }
 
@@ -335,14 +365,49 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
     }
 //    fun visitGeneralCall(expression: IrGeneralCall, data: D) = visitDeclarationReference(expression, data)
     override fun visitCall(expression: IrCall, data: Data): JsExpression {
+        when (expression) {
+            is IrBinaryPrimitiveImpl -> {
+                val op = when (expression.operator) {
+                    IrOperator.PLUS -> JsBinaryOperator.ADD
+                    IrOperator.MINUS -> JsBinaryOperator.SUB
+                    IrOperator.MUL -> JsBinaryOperator.MUL
+                    IrOperator.DIV -> JsBinaryOperator.DIV
+                    IrOperator.EQEQ -> JsBinaryOperator.EQ
+                    IrOperator.EQEQEQ -> JsBinaryOperator.REF_EQ
+                    IrOperator.EXCLEQ -> JsBinaryOperator.NEQ
+                    IrOperator.EXCLEQEQ -> JsBinaryOperator.REF_NEQ
+                // TODO map all
+                    else -> null
+                }
+                if (op != null) return JsBinaryOperation(op, expression.argument0.accept(this, data), expression.argument1.accept(this, data))
+            }
+//            is IrUnaryPrimitiveImpl ->
+        }
+
+        val descriptor = expression.descriptor
+        if (descriptor is SimpleFunctionDescriptor && JsCallChecker.JS_PATTERN.apply(descriptor)) {
+            // TODO it can be non-expression
+            val jsCode = translateJsCode(expression, program.scope)
+            if (jsCode is JsExpression) return jsCode
+            return JsInvocation(JsFunction(program.scope, JsBlock(jsCode as JsStatement), ""))
+        }
+
         val dispatchReceiver = expression.dispatchReceiver?.accept(this, data)
         val extensionReceiver = expression.extensionReceiver?.accept(this, data)
-        val ref = JsNameRef(expression.descriptor.name.asString(), dispatchReceiver)
+        val ref = JsNameRef(descriptor.name.asString(), dispatchReceiver)
+        var latestProvidedArgumentIndex = 0
         val arguments =
                 // TODO mapTo
-                expression.descriptor.valueParameters.map {
-                    expression.getArgument(it.index)?.accept(this, data) ?: JsPrefixOperation(JsUnaryOperator.VOID, program.getNumberLiteral(1))
-                }
+                descriptor.valueParameters.map {
+                    val argument = expression.getArgument(it.index)
+                    if (argument != null) {
+                        latestProvidedArgumentIndex = it.index
+                        argument.accept(this, data)
+                    }
+                    else {
+                        JsPrefixOperation(JsUnaryOperator.VOID, program.getNumberLiteral(1))
+                    }
+                }.take(latestProvidedArgumentIndex + 1)
 
         return JsInvocation(ref, extensionReceiver?.let { listOf(extensionReceiver) + arguments } ?: arguments)
     }
