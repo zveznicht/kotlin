@@ -131,8 +131,8 @@ class DeclarationGenerator(val packageRef: JsExpression) : BaseGenerator<JsNode,
         return generateFunction(declaration, data, packageRef)
     }
 
-    override fun visitSimpleProperty(declaration: IrSimpleProperty, data: Data): JsNode {
-        return _assignment(_ref(declaration.descriptor.name.asString(), packageRef), declaration.initializer?.accept(ExpressionGenerator(), data) ?: _object()/*TODO Object.defineProperty?*/)
+    override fun visitProperty(declaration: IrProperty, data: Data): JsNode {
+        return _assignment(_ref(declaration.descriptor.name.asString(), packageRef), declaration.backingField?.initializer?.accept(ExpressionGenerator(), data) ?: _object()/*TODO Object.defineProperty?*/)
     }
 }
 

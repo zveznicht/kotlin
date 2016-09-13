@@ -18,7 +18,10 @@ package org.jetbrains.kotlin
 
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.declarations.IrFunction
+import org.jetbrains.kotlin.ir.declarations.IrLocalDelegatedProperty
+import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.detach
 import org.jetbrains.kotlin.ir.expressions.*
@@ -41,14 +44,9 @@ class ExpressionBlockExtractor(private val irBuiltIns: IrBuiltIns) : IrElementVi
         super.visitFunction(declaration)
     }
 
-    override fun visitSimpleProperty(declaration: IrSimpleProperty) {
+    override fun visitProperty(declaration: IrProperty) {
         // TODO initializer
-        super.visitSimpleProperty(declaration)
-    }
-
-    override fun visitDelegatedProperty(declaration: IrDelegatedProperty) {
-        // TODO ?
-        super.visitDelegatedProperty(declaration)
+        super.visitProperty(declaration)
     }
 
     override fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty) {
@@ -86,9 +84,9 @@ class ExpressionBlockExtractor(private val irBuiltIns: IrBuiltIns) : IrElementVi
         super.visitSetVariable(expression)
     }
 
-    override fun visitSetBackingField(expression: IrSetBackingField) {
+    override fun visitSetField(expression: IrSetField) {
         // expression.value
-        super.visitSetBackingField(expression)
+        super.visitSetField(expression)
     }
 
     override fun visitGeneralCall(expression: IrGeneralCall) {
