@@ -316,7 +316,7 @@ public class DirectiveTestUtils {
 
     public static void processDirectives(@NotNull JsNode ast, @NotNull String sourceCode) throws Exception {
         for (DirectiveHandler handler : DIRECTIVE_HANDLERS) {
-            handler.process(ast, sourceCode);
+//            handler.process(ast, sourceCode);
         }
     }
 
