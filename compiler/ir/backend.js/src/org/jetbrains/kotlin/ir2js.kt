@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin
 
 import com.google.dart.compiler.backend.js.ast.*
+import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
@@ -25,6 +26,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrBinaryPrimitiveImpl
 import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.js.resolve.diagnostics.JsCallChecker
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 import org.jetbrains.kotlin.transformers.StringMemberTransformer
 
 private val program = JsProgram("<ir2js>")
@@ -35,7 +37,7 @@ private fun TODO(element: IrElement): Nothing = TODO(element.dump())
 
 fun ir2js(module: IrModuleFragment): JsNode {
     extractBlockExpressions(module)
-    module.accept(StringMemberTransformer(module.irBuiltins), null)
+    module.transform(StringMemberTransformer(module.irBuiltins), null)
 
     return module.accept(object : IrElementVisitor<JsNode, Nothing?> {
         override fun visitElement(element: IrElement, data: Nothing?): JsNode {
@@ -233,19 +235,18 @@ class StatementGenerator : BaseGenerator<JsStatement, Data> {
     }
 
 
-    override fun visitTryCatch(tryCatch: IrTryCatch, data: Data): JsStatement {
-        val tryBlock = tryCatch.tryResult.accept(this, data)
+    override fun visitTry(aTry: IrTry, data: Data): JsStatement {
+        val tryBlock = aTry.tryResult.accept(this, data)
 
-        val catchBlocks = (0 until tryCatch.catchClausesCount).map {
-            // why nullable?
-            val catchParameter = tryCatch.getNthCatchParameter(it)!!
-            val catchBody = tryCatch.getNthCatchResult(it)?.accept(this, data)!!
+        val catchBlocks = aTry.catches.map {
+            val catchParameter = it.parameter
+            val catchBody = it.result.accept(this, data)
 
             // TODO set condition
             JsCatch(program.scope, catchParameter.name.asString(), catchBody)
         }
 
-        val finallyBlock = tryCatch.finallyExpression?.accept(this, data)
+        val finallyBlock = aTry.finallyExpression?.accept(this, data)
 
         return JsTry(/*TODO*/ tryBlock as JsBlock, catchBlocks, /*TODO*/finallyBlock as JsBlock)
     }
@@ -367,15 +368,15 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
     override fun visitCall(expression: IrCall, data: Data): JsExpression {
         when (expression) {
             is IrBinaryPrimitiveImpl -> {
-                val op = when (expression.operator) {
-                    IrOperator.PLUS -> JsBinaryOperator.ADD
-                    IrOperator.MINUS -> JsBinaryOperator.SUB
-                    IrOperator.MUL -> JsBinaryOperator.MUL
-                    IrOperator.DIV -> JsBinaryOperator.DIV
-                    IrOperator.EQEQ -> JsBinaryOperator.EQ
-                    IrOperator.EQEQEQ -> JsBinaryOperator.REF_EQ
-                    IrOperator.EXCLEQ -> JsBinaryOperator.NEQ
-                    IrOperator.EXCLEQEQ -> JsBinaryOperator.REF_NEQ
+                val op = when (expression.origin) {
+                    IrStatementOrigin.PLUS -> JsBinaryOperator.ADD
+                    IrStatementOrigin.MINUS -> JsBinaryOperator.SUB
+                    IrStatementOrigin.MUL -> JsBinaryOperator.MUL
+                    IrStatementOrigin.DIV -> JsBinaryOperator.DIV
+                    IrStatementOrigin.EQEQ -> JsBinaryOperator.EQ
+                    IrStatementOrigin.EQEQEQ -> JsBinaryOperator.REF_EQ
+                    IrStatementOrigin.EXCLEQ -> JsBinaryOperator.NEQ
+                    IrStatementOrigin.EXCLEQEQ -> JsBinaryOperator.REF_NEQ
                 // TODO map all
                     else -> null
                 }
@@ -385,6 +386,7 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
         }
 
         val descriptor = expression.descriptor
+        //  JS-code
         if (descriptor is SimpleFunctionDescriptor && JsCallChecker.JS_PATTERN.apply(descriptor)) {
             // TODO it can be non-expression
             val jsCode = translateJsCode(expression, program.scope)
@@ -394,7 +396,13 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
 
         val dispatchReceiver = expression.dispatchReceiver?.accept(this, data)
         val extensionReceiver = expression.extensionReceiver?.accept(this, data)
-        val ref = JsNameRef(descriptor.name.asString(), dispatchReceiver)
+        val d = dispatchReceiver ?: run {
+            val segments = descriptor.fqNameUnsafe.pathSegments()
+            // TODO ISSUE
+            segments.joinToString { it.asString() }
+//            segments.subList(0, segments.lastIndex).fold()
+        }
+        val ref = if (dispatchReceiver != null) JsNameRef(descriptor.name.asString(), dispatchReceiver) else JsNameRef(descriptor.fqNameUnsafe.pathSegments().joinToString(".") { it.asString() })
         var latestProvidedArgumentIndex = 0
         val arguments =
                 // TODO mapTo
@@ -408,6 +416,12 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
                         JsPrefixOperation(JsUnaryOperator.VOID, program.getNumberLiteral(1))
                     }
                 }.take(latestProvidedArgumentIndex + 1)
+
+
+        //TODO
+        if (descriptor is ConstructorDescriptor && descriptor.isPrimary) {
+            return JsNew(JsNameRef(ref.toString().substringBeforeLast('.')), arguments)
+        }
 
         return JsInvocation(ref, extensionReceiver?.let { listOf(extensionReceiver) + arguments } ?: arguments)
     }

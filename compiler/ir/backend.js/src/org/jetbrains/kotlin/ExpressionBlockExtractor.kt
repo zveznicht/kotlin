@@ -16,156 +16,149 @@
 
 package org.jetbrains.kotlin
 
-import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrLocalDelegatedProperty
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
-import org.jetbrains.kotlin.ir.detach
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrCompositeImpl
-import org.jetbrains.kotlin.ir.replaceWith
-import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
-import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.types.KotlinType
 
-class ExpressionBlockExtractor(private val irBuiltIns: IrBuiltIns) : IrElementVisitorVoid {
+class ExpressionBlockExtractor(private val irBuiltIns: IrBuiltIns) : IrElementTransformer<Nothing?> {
     var changed = false
 
-    override fun visitElement(element: IrElement) {
-        element.acceptChildrenVoid(this)
-//        TODO("not implemented")
-    }
-
-    override fun visitFunction(declaration: IrFunction) {
+    override fun visitFunction(declaration: IrFunction, data: Nothing?): IrStatement {
         //TODO default
-        super.visitFunction(declaration)
+        return super.visitFunction(declaration, data)
     }
 
-    override fun visitProperty(declaration: IrProperty) {
+    override fun visitProperty(declaration: IrProperty, data: Nothing?): IrStatement {
         // TODO initializer
-        super.visitProperty(declaration)
+        return super.visitProperty(declaration, data)
     }
 
-    override fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty) {
+    override fun visitLocalDelegatedProperty(declaration: IrLocalDelegatedProperty, data: Nothing?): IrStatement {
         // TODO ?
-        super.visitLocalDelegatedProperty(declaration)
+        return super.visitLocalDelegatedProperty(declaration, data)
     }
 
-    override fun visitVariable(declaration: IrVariable) {
-        super.visitVariable(declaration)
-        extractIrBlockIfNeed(declaration, declaration.initializer, declaration.descriptor.type)
-    }
-
-    override fun visitExpressionBody(body: IrExpressionBody) {
-        //TODO ?
-        super.visitExpressionBody(body)
-    }
-
-    override fun visitVararg(expression: IrVararg) {
-        // TODO ?
-        super.visitVararg(expression)
-    }
-
-    override fun visitSpreadElement(spread: IrSpreadElement) {
-        // TODO ?
-        super.visitSpreadElement(spread)
-    }
-
-    override fun visitStringConcatenation(expression: IrStringConcatenation) {
-        //
-        super.visitStringConcatenation(expression)
-    }
-
-    override fun visitSetVariable(expression: IrSetVariable) {
-        // expression.value
-        super.visitSetVariable(expression)
-    }
-
-    override fun visitSetField(expression: IrSetField) {
-        // expression.value
-        super.visitSetField(expression)
-    }
-
-    override fun visitGeneralCall(expression: IrGeneralCall) {
-        //expression.arguments
-        super.visitGeneralCall(expression)
-    }
-
-//    override fun visitCall(expression: IrCall) {
-//        super.visitCall(expression)
-//    }
-//
-//    override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall) {
-//        super.visitDelegatingConstructorCall(expression)
-//    }
-//
-//    override fun visitEnumConstructorCall(expression: IrEnumConstructorCall) {
-//        super.visitEnumConstructorCall(expression)
-//    }
-
-    override fun visitTypeOperator(expression: IrTypeOperatorCall) {
-        //TODO ?
-        super.visitTypeOperator(expression)
-    }
-
-    override fun visitWhen(expression: IrWhen) {
-        super.visitWhen(expression)
-    }
-
-    override fun visitLoop(loop: IrLoop) {
-        // condition
-        super.visitLoop(loop)
-    }
-
-//    override fun visitWhileLoop(loop: IrWhileLoop) {
-//        super.visitWhileLoop(loop)
-//    }
-//
-//    override fun visitDoWhileLoop(loop: IrDoWhileLoop) {
-//        super.visitDoWhileLoop(loop)
-//    }
-
-    override fun visitReturn(expression: IrReturn) {
-        super.visitReturn(expression)
-        // TODO try to reuse block?
-        extractIrBlockIfNeed(expression, expression.value)
-    }
-
-    override fun visitThrow(expression: IrThrow) {
-        super.visitThrow(expression)
-        extractIrBlockIfNeed(expression, expression.value)
-    }
-
-    private fun extractIrBlockIfNeed(expression: IrStatement, elementToReplace: IrExpression?, type: KotlinType = irBuiltIns.nothing) {
-        if (elementToReplace is IrBlock) {
-            changed = true
-
-            extractIrBlock(expression, elementToReplace)
+    override fun visitVariable(declaration: IrVariable, data: Nothing?): IrStatement {
+        return super.visitVariable(declaration, data).let {
+            /// TODO is this cast ok?
+            extractIrBlockIfNeed(it as IrVariable, declaration.initializer, declaration.descriptor.type) { initializer = it }
         }
     }
 
-    private fun extractIrBlock(declaration: IrStatement, elementToReplace: IrBlock, type: KotlinType = irBuiltIns.nothing) {
-        val oldParent = declaration.parent
-        val oldSlot = declaration.slot
+    override fun visitExpressionBody(body: IrExpressionBody, data: Nothing?): IrBody {
+        //TODO ?
+        return super.visitExpressionBody(body, data)
+    }
 
-        declaration.detach()
-        elementToReplace.statements.forEach { it.detach() }
+    override fun visitVararg(expression: IrVararg, data: Nothing?): IrExpression {
+        // TODO ?
+        return super.visitVararg(expression, data)
+    }
 
-        val last = elementToReplace.statements.last()
-        last.detach()
-        elementToReplace.replaceWith(last)
+    override fun visitSpreadElement(spread: IrSpreadElement, data: Nothing?): IrSpreadElement {
+        // TODO ?
+        return super.visitSpreadElement(spread, data)
+    }
 
-        val newEl = IrCompositeImpl(
+    override fun visitStringConcatenation(expression: IrStringConcatenation, data: Nothing?): IrExpression {
+        //
+        return super.visitStringConcatenation(expression, data)
+    }
+
+    override fun visitSetVariable(expression: IrSetVariable, data: Nothing?): IrExpression {
+        // expression.value
+        return super.visitSetVariable(expression, data)
+    }
+
+    override fun visitSetField(expression: IrSetField, data: Nothing?): IrExpression {
+        // expression.value
+        return super.visitSetField(expression, data)
+    }
+
+    override fun visitGeneralCall(expression: IrGeneralCall, data: Nothing?): IrExpression {
+        //expression.arguments
+        return super.visitGeneralCall(expression, data)
+    }
+
+//    override fun visitCall(expression: IrCall, data: Nothing?): org.jetbrains.kotlin.ir.expressions.IrExpression {
+//        return super.visitCall(expression, data)
+//    }
+//
+//    override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall, data: Nothing?): org.jetbrains.kotlin.ir.expressions.IrExpression {
+//        return super.visitDelegatingConstructorCall(expression, data)
+//    }
+//
+//    override fun visitEnumConstructorCall(expression: IrEnumConstructorCall, data: Nothing?): org.jetbrains.kotlin.ir.expressions.IrExpression {
+//        return super.visitEnumConstructorCall(expression, data)
+//    }
+
+    override fun visitTypeOperator(expression: IrTypeOperatorCall, data: Nothing?): IrExpression {
+        //TODO ?
+        return super.visitTypeOperator(expression, data)
+    }
+
+    override fun visitWhen(expression: IrWhen, data: Nothing?): IrExpression {
+        return super.visitWhen(expression, data)
+    }
+
+    override fun visitLoop(loop: IrLoop, data: Nothing?): IrExpression {
+        // condition
+        return super.visitLoop(loop, data)
+    }
+
+//    override fun visitWhileLoop(loop: IrWhileLoop, data: Nothing?): org.jetbrains.kotlin.ir.expressions.IrExpression {
+//        return super.visitWhileLoop(loop, data)
+//    }
+//
+//    override fun visitDoWhileLoop(loop: IrDoWhileLoop, data: Nothing?): org.jetbrains.kotlin.ir.expressions.IrExpression {
+//        return super.visitDoWhileLoop(loop, data)
+//    }
+
+    override fun visitReturn(expression: IrReturn, data: Nothing?): IrExpression {
+        // TODO try to reuse block?
+        return super.visitReturn(expression, data).let {
+            /// TODO is this cast ok?
+            extractIrBlockIfNeed(it as IrReturn, expression.value) { value = it }
+        }
+    }
+
+    override fun visitThrow(expression: IrThrow, data: Nothing?): IrExpression {
+        return super.visitThrow(expression, data).let {
+            extractIrBlockIfNeed(expression, expression.value) { value = it}
+        }
+    }
+
+    private fun <T : IrStatement, R : IrStatement> extractIrBlockIfNeed(expression: T, elementToReplace: IrExpression?, type: KotlinType = irBuiltIns.nothing, replace: T.(IrExpression) -> Unit): R {
+        if (elementToReplace is IrBlock) {
+            changed = true
+
+            return extractIrBlock(expression, elementToReplace, type, replace)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        return expression as R
+    }
+
+
+    private fun <T : IrStatement, R : IrStatement> extractIrBlock(declaration: T, block: IrBlock, type: KotlinType = irBuiltIns.nothing, replace: T.(IrExpression) -> Unit): R {
+        val statements = block.statements
+        val last = block.statements[statements.lastIndex]
+        declaration.replace(last as IrExpression)
+        statements[statements.lastIndex] = declaration
+
+        @Suppress("UNCHECKED_CAST")
+        return IrCompositeImpl(
                 declaration.startOffset,
                 declaration.endOffset,
                 type,
                 null,
-                elementToReplace.statements.subList(0, elementToReplace.statements.lastIndex) + listOf(declaration))
-
-        oldParent?.replaceChild(oldSlot, newEl)
-        declaration.setTreeLocation(newEl, newEl.statements.lastIndex)
+                statements) as R
     }
 }

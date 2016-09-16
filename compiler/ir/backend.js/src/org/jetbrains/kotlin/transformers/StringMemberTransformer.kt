@@ -16,31 +16,27 @@
 
 package org.jetbrains.kotlin.transformers
 
-import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
-import org.jetbrains.kotlin.ir.detach
 import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.IrOperator
+import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.impl.IrBinaryPrimitiveImpl
-import org.jetbrains.kotlin.ir.replaceWith
-import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
-import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 
-class StringMemberTransformer(private val irBuiltIns: IrBuiltIns) : IrElementVisitorVoid {
-    override fun visitElement(element: IrElement) {
-        element.acceptChildrenVoid(this)
-    }
-
-    override fun visitCall(expression: IrCall) {
+class StringMemberTransformer(private val irBuiltIns: IrBuiltIns) : IrElementTransformerVoid {
+    override fun visitCall(expression: IrCall): IrExpression {
         if (expression.descriptor.containingDeclaration == irBuiltIns.builtIns.string && expression.descriptor.name.asString() == "plus") {
             val argument0 = expression.dispatchReceiver!!
             val argument1 = expression.getArgument(0)!!
-            argument0.detach()
-            argument1.detach()
-            expression.replaceWith(IrBinaryPrimitiveImpl(expression.startOffset, expression.endOffset, expression.operator ?: IrOperator.PLUS, expression.descriptor, argument0, argument1))
+
+            return IrBinaryPrimitiveImpl(expression.startOffset, expression.endOffset, expression.origin ?: IrStatementOrigin.PLUS, expression.descriptor, argument0, argument1)
         }
 
-        super.visitCall(expression)
+        if (expression.descriptor == irBuiltIns.booleanNot) {
+            return expression.getArgument(0)!!
+        }
+
+        return super.visitCall(expression)
     }
 
 }
