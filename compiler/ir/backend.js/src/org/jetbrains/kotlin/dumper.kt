@@ -26,7 +26,8 @@ import org.jetbrains.kotlin.utils.Printer
 
 class Dumper(val p: Printer) : IrElementVisitorVoid {
     override fun visitElement(element: IrElement) {
-        //element.acceptChildrenVoid(this)
+        val e = "/*element: " + element.javaClass.simpleName + "*/"
+        if (element is IrExpression) p.printWithNoIndent(e) else p.print(e)
     }
 
     override fun visitModuleFragment(declaration: IrModuleFragment) {
@@ -48,15 +49,9 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
         declaration.declarations.forEach { it.acceptVoid(this) }
     }
 
-
     override fun visitFunction(declaration: IrFunction) {
-        p.println("fun ${declaration.descriptor.name.asString()}(...) {")
-        p.pushIndent()
-
+        p.print("fun ${declaration.descriptor.name.asString()}(...)")
         declaration.body?.acceptVoid(this)
-
-        p.popIndent()
-        p.println("}")
         p.printlnWithNoIndent()
     }
 
@@ -84,17 +79,36 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     private fun IrFunction.printAccessor(s: String) {
         p.print(s)
         if (origin != IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR) {
-            p.printlnWithNoIndent("() {")
-            p.pushIndent()
+            p.printlnWithNoIndent("() ")
             body?.acceptVoid(this@Dumper)
-            p.popIndent()
-            p.print("}")
         }
         p.println()
     }
 
-    override fun visitBody(body: IrBody) {
-        body.acceptChildrenVoid(this)
+    override fun visitExpressionBody(body: IrExpressionBody) {
+        body.expression.acceptVoid(this)
+    }
+
+    override fun visitBlockBody(body: IrBlockBody) {
+        printStatementContainer(body, "{", "}")
+        p.println()
+    }
+
+    private fun printStatementContainer(body: IrStatementContainer, before: String, after: String, withIndentation: Boolean = true) {
+        p.printlnWithNoIndent(before)
+        if (withIndentation) p.pushIndent()
+
+        body.statements.forEach {
+            if (it is IrExpression) p.printIndent()
+            it.acceptVoid(this)
+            p.printlnWithNoIndent()
+        }
+
+        if (withIndentation) p.popIndent()
+        p.print(after)
+    }
+
+    override fun visitSyntheticBody(body: IrSyntheticBody) {
     }
 
     override fun visitGetField(expression: IrGetField) {
@@ -102,45 +116,33 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitReturn(expression: IrReturn) {
-        p.print("return")
+        p.printWithNoIndent("return")
         expression.value?.let {
             p.printWithNoIndent(" ")
             it.acceptVoid(this)
         }
-        p.println()
     }
 
     override fun visitThrow(expression: IrThrow) {
-        p.print("throw ")
+        p.printWithNoIndent("throw ")
         expression.value.acceptVoid(this)
-        p.println()
     }
 
     override fun visitComposite(expression: IrComposite) {
-        p.println("// Composite {")
-        expression.statements.forEach { it.acceptVoid(this) }
-        p.println("// }")
+        printStatementContainer(expression, "// COMPOSITE {", "// }", withIndentation = false)
     }
 
     override fun visitBlock(expression: IrBlock) {
-        p.printlnWithNoIndent("{")
-        p.pushIndent()
-
-        expression.statements.forEach { it.acceptVoid(this) }
-
-        p.popIndent()
-        p.print("}()")
+        printStatementContainer(expression, "{ //BLOCK", "}")
     }
 
     override fun visitStringConcatenation(expression: IrStringConcatenation) {
         expression.arguments.forEachIndexed { i, e ->
-            if (i == 0) {
-                p.printlnWithNoIndent("\"\"")
+            if (i > 0) {
+                p.printlnWithNoIndent(" + ")
             }
-            p.printlnWithNoIndent(" + ")
             e.acceptVoid(this)
         }
-        super.visitStringConcatenation(expression)
     }
 
     override fun <T> visitConst(expression: IrConst<T>) {
@@ -183,7 +185,7 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitVariable(declaration: IrVariable) {
-        super.visitVariable(declaration)
+        p.print("var/val " + declaration.descriptor.name.asString())
     }
 
     override fun visitEnumEntry(declaration: IrEnumEntry) {
@@ -227,17 +229,12 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitSetVariable(expression: IrSetVariable) {
-        p.print(expression.descriptor.name.asString() +  " = ")
+        p.printWithNoIndent(expression.descriptor.name.asString() +  " = ")
         expression.value.acceptVoid(this)
-        p.println()
     }
 
     override fun visitSetField(expression: IrSetField) {
         super.visitSetField(expression)
-    }
-
-    override fun visitGeneralCall(expression: IrGeneralCall) {
-        super.visitGeneralCall(expression)
     }
 
     override fun visitGetClass(expression: IrGetClass) {
@@ -257,59 +254,43 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitTypeOperator(expression: IrTypeOperatorCall) {
-        p.printlnWithNoIndent("/*TYPE_OP*/")
+        p.printWithNoIndent("/* TYPE_OP */ ")
         expression.argument.acceptVoid(this)
     }
 
     override fun visitWhen(expression: IrWhen) {
-        p.println("when {")
+        p.printlnWithNoIndent("when {")
         p.pushIndent()
 
-        for (i in 0 until expression.branchesCount) {
+        for (b in expression.branches) {
             p.printIndent()
-            expression.getNthCondition(i)!!.acceptVoid(this)
+            b.condition.acceptVoid(this)
 
-            p.printlnWithNoIndent(" -> {")
-            p.pushIndent()
-            p.printIndent()
+            p.printWithNoIndent(" -> ")
 
-            expression.getNthResult(i)!!.acceptVoid(this)
+            b.result.acceptVoid(this)
 
-            p.popIndent()
             p.println()
-            p.println("}")
-        }
-
-        expression.elseBranch?.let {
-            p.println("else -> {")
-            p.pushIndent()
-            p.printIndent()
-
-            it.acceptVoid(this)
-
-            p.popIndent()
-            p.println("}")
         }
 
         p.popIndent()
-        p.println("}")
+        p.print("}")
     }
 
     override fun visitWhileLoop(loop: IrWhileLoop) {
         p.print("while (")
         loop.condition.acceptVoid(this)
 
-        p.printWithNoIndent(") {")
+        p.printWithNoIndent(") ")
         p.pushIndent()
 
         loop.body?.acceptVoid(this)
 
         p.popIndent()
-        p.println("}")
     }
 
     override fun visitDoWhileLoop(loop: IrDoWhileLoop) {
-        p.printWithNoIndent("do {")
+        p.printWithNoIndent("do")
         p.pushIndent()
 
         loop.body?.acceptVoid(this)
@@ -318,43 +299,27 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
 
         p.print("while (")
         loop.condition.acceptVoid(this)
-        p.println(")")
+        p.printWithNoIndent(")")
 
     }
 
     override fun visitTry(aTry: IrTry) {
-        p.println("try {")
-        p.pushIndent()
-
+        p.printWithNoIndent("try ")
         aTry.tryResult.acceptVoid(this)
-
-        p.popIndent()
-        p.println("}")
+        p.printlnWithNoIndent()
 
         aTry.catches.forEach { it.acceptVoid(this) }
 
         aTry.finallyExpression?.let {
-            p.println("finally {")
-            p.pushIndent()
-
+            p.print("finally ")
             it.acceptVoid(this)
-
-            p.popIndent()
-            p.println("}")
         }
-
-        super.visitTry(aTry)
     }
 
     override fun visitCatch(aCatch: IrCatch) {
-        p.println("catch (...) {")
-        p.pushIndent()
-
+        p.print("catch (...) ")
         aCatch.result.acceptVoid(this)
-
-        p.popIndent()
-        p.println("}")
-
+        p.printlnWithNoIndent()
     }
 
     override fun visitBreak(jump: IrBreak) {
