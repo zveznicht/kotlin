@@ -16,12 +16,15 @@
 
 package org.jetbrains.kotlin
 
+import org.jetbrains.kotlin.descriptors.VariableDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
+import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.Printer
 
 class Dumper(val p: Printer) : IrElementVisitorVoid {
@@ -50,16 +53,13 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitFunction(declaration: IrFunction) {
-        p.print("fun ${declaration.descriptor.name.asString()}(...)")
+        p.print("fun ${declaration.descriptor.name.asString()}(...) ")
         declaration.body?.acceptVoid(this)
         p.printlnWithNoIndent()
     }
 
     override fun visitProperty(declaration: IrProperty) {
-        val descriptor = declaration.descriptor
-        val kind = if (descriptor.isVar) "var" else "val"
-
-        p.print("$kind ${descriptor.name.asString()}")
+        p.print(declaration.descriptor.headerAsString())
 
         declaration.backingField?.initializer?.let {
             p.printWithNoIndent(" = ")
@@ -76,10 +76,16 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
         p.printlnWithNoIndent()
     }
 
+    private fun VariableDescriptor.headerAsString() = "${kindAsString()} ${name.asString()}"
+
+    private fun VariableDescriptor.kindAsString() = if (isVar) "var" else "val"
+
+    private fun KotlinType.asString() = DescriptorRenderer.ONLY_NAMES_WITH_SHORT_TYPES.renderType(this)
+
     private fun IrFunction.printAccessor(s: String) {
         p.print(s)
         if (origin != IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR) {
-            p.printlnWithNoIndent("() ")
+            p.printWithNoIndent("() ")
             body?.acceptVoid(this@Dumper)
         }
         p.println()
@@ -111,6 +117,42 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     override fun visitSyntheticBody(body: IrSyntheticBody) {
     }
 
+    override fun visitCall(expression: IrCall) {
+        val descriptor = expression.descriptor
+
+        expression.dispatchReceiver?.let {
+            it.acceptVoid(this)
+            p.printWithNoIndent(".")
+        }
+
+        p.printWithNoIndent(descriptor.name.asString())
+
+        if (descriptor.original.typeParameters.isNotEmpty()) {
+            p.printWithNoIndent("<")
+            descriptor.original.typeParameters.forEach {
+                p.printWithNoIndent(expression.getTypeArgument(it)!!.asString())
+            }
+            p.printWithNoIndent(">")
+        }
+
+        p.printWithNoIndent("(")
+        expression.extensionReceiver?.let {
+            p.printWithNoIndent("\$receiver = ")
+            it.acceptVoid(this)
+            if (descriptor.valueParameters.isNotEmpty()) p.printWithNoIndent(", ")
+        }
+
+        descriptor.valueParameters.forEachIndexed { i, pd ->
+            expression.getValueArgument(pd)?.let {
+                if (i > 0) p.printWithNoIndent(", ")
+                p.printWithNoIndent(pd.name.asString() + " = ")
+                it.acceptVoid(this)
+            }
+        }
+
+        p.printWithNoIndent(")")
+    }
+
     override fun visitGetField(expression: IrGetField) {
         p.printWithNoIndent("$" + expression.descriptor.name.asString())
     }
@@ -137,6 +179,7 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitStringConcatenation(expression: IrStringConcatenation) {
+        // TODO escape? see IrTextTestCaseGenerated.Expressions#testStringTemplates
         expression.arguments.forEachIndexed { i, e ->
             if (i > 0) {
                 p.printlnWithNoIndent(" + ")
@@ -185,7 +228,11 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitVariable(declaration: IrVariable) {
-        p.print("var/val " + declaration.descriptor.name.asString())
+        p.print(declaration.descriptor.headerAsString())
+        declaration.initializer?.let {
+            p.printWithNoIndent(" = ")
+            it.acceptVoid(this)
+        }
     }
 
     override fun visitEnumEntry(declaration: IrEnumEntry) {
@@ -197,15 +244,25 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitVararg(expression: IrVararg) {
-        super.visitVararg(expression)
+        p.printWithNoIndent("[")
+        expression.elements.forEachIndexed { i, e ->
+            if (i > 0) p.printWithNoIndent(", ")
+            e.acceptVoid(this)
+        }
+        p.printWithNoIndent("]")
     }
 
     override fun visitSpreadElement(spread: IrSpreadElement) {
-        super.visitSpreadElement(spread)
+        p.printWithNoIndent("*")
+        spread.expression.acceptVoid(this)
     }
 
     override fun visitThisReference(expression: IrThisReference) {
         p.printWithNoIndent("this")
+    }
+
+    override fun visitGetExtensionReceiver(expression: IrGetExtensionReceiver) {
+        p.printWithNoIndent("^this")
     }
 
     override fun visitDeclarationReference(expression: IrDeclarationReference) {
@@ -254,8 +311,21 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitTypeOperator(expression: IrTypeOperatorCall) {
-        p.printWithNoIndent("/* TYPE_OP */ ")
+        val (operator, after) = when (expression.operator) {
+            IrTypeOperator.CAST -> "as" to ""
+            IrTypeOperator.IMPLICIT_CAST -> "/*as" to " */"
+            IrTypeOperator.IMPLICIT_NOTNULL -> "/*!!" to " */"
+            IrTypeOperator.IMPLICIT_COERCION_TO_UNIT -> "/*as" to " */"
+            IrTypeOperator.SAFE_CAST -> "as?" to ""
+            IrTypeOperator.INSTANCEOF -> "is" to ""
+            IrTypeOperator.NOT_INSTANCEOF -> "!is" to ""
+        }
+
         expression.argument.acceptVoid(this)
+        p.printWithNoIndent(" $operator ")
+        p.printWithNoIndent(expression.typeOperand.asString())
+        p.printWithNoIndent(after)
+
     }
 
     override fun visitWhen(expression: IrWhen) {
@@ -278,24 +348,18 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitWhileLoop(loop: IrWhileLoop) {
-        p.print("while (")
+        p.printWithNoIndent("while (")
         loop.condition.acceptVoid(this)
 
         p.printWithNoIndent(") ")
-        p.pushIndent()
 
         loop.body?.acceptVoid(this)
-
-        p.popIndent()
     }
 
     override fun visitDoWhileLoop(loop: IrDoWhileLoop) {
         p.printWithNoIndent("do")
-        p.pushIndent()
 
         loop.body?.acceptVoid(this)
-
-        p.popIndent()
 
         p.print("while (")
         loop.condition.acceptVoid(this)
@@ -323,11 +387,12 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitBreak(jump: IrBreak) {
-        p.println("break")
+        // TODO label
+        p.printWithNoIndent("break")
     }
 
     override fun visitContinue(jump: IrContinue) {
-        p.println("continue")
+        p.printWithNoIndent("continue")
     }
 
     override fun visitErrorDeclaration(declaration: IrErrorDeclaration) {
