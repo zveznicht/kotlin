@@ -82,11 +82,6 @@ class ExpressionBlockExtractor(private val irBuiltIns: IrBuiltIns) : IrElementTr
         return super.visitSetField(expression, data)
     }
 
-    override fun visitGeneralCall(expression: IrGeneralCall, data: Nothing?): IrExpression {
-        //expression.arguments
-        return super.visitGeneralCall(expression, data)
-    }
-
 //    override fun visitCall(expression: IrCall, data: Nothing?): org.jetbrains.kotlin.ir.expressions.IrExpression {
 //        return super.visitCall(expression, data)
 //    }

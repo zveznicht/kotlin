@@ -27,13 +27,13 @@ class StringMemberTransformer(private val irBuiltIns: IrBuiltIns) : IrElementTra
     override fun visitCall(expression: IrCall): IrExpression {
         if (expression.descriptor.containingDeclaration == irBuiltIns.builtIns.string && expression.descriptor.name.asString() == "plus") {
             val argument0 = expression.dispatchReceiver!!
-            val argument1 = expression.getArgument(0)!!
+            val argument1 = expression.getValueArgument(0)!!
 
             return IrBinaryPrimitiveImpl(expression.startOffset, expression.endOffset, expression.origin ?: IrStatementOrigin.PLUS, expression.descriptor, argument0, argument1)
         }
 
         if (expression.descriptor == irBuiltIns.booleanNot) {
-            return expression.getArgument(0)!!
+            return expression.getValueArgument(0)!!
         }
 
         return super.visitCall(expression)

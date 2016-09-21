@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.js.parser.parse
 
 fun translateJsCode(call: IrCall, scope: JsScope): JsNode {
-    val statements = parseJsCode(call.getArgument(0)!!, JsFunctionScope(scope, "tmp"))
+    val statements = parseJsCode(call.getValueArgument(0)!!, JsFunctionScope(scope, "tmp"))
     val size = statements.size
 
     if (size == 0) {

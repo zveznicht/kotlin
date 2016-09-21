@@ -92,6 +92,11 @@ fun extractBlockExpressions(module: IrModuleFragment) {
     } while (extractor.changed)
 }
 
+fun IrBranch.isElse(): Boolean {
+    val c = condition
+    return c is IrConst<*> && c.value == true && c.startOffset == result.startOffset && c.endOffset == result.endOffset
+}
+
 typealias Data = Nothing?
 
 interface BaseGenerator<out R : JsNode, in D> : IrElementVisitor<R, D> {
@@ -213,13 +218,11 @@ class StatementGenerator : BaseGenerator<JsStatement, Data> {
 //
 //    fun visitTypeOperator(expression: IrTypeOperatorCall, data: D) = visitExpression(expression, data)
 
-
     override fun visitWhen(expression: IrWhen, data: Data): JsStatement {
-        return (0 until expression.branchesCount).reversed().fold(expression.elseBranch?.accept(this, data)) { st, i ->
-            JsIf(
-                    expression.getNthCondition(i)!!.accept(ExpressionGenerator(), data),
-                    expression.getNthResult(i)!!.accept(this, data),
-                    st)
+        // TODO check empty when
+        return expression.branches.foldRight<IrBranch, JsStatement?>(null) { br, n ->
+            if (br.isElse()) br.result.accept(this, data)
+            else JsIf(br.condition.accept(ExpressionGenerator(), data), br.result.accept(this, data), n)
         }!!
     }
 
@@ -407,7 +410,7 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
         val arguments =
                 // TODO mapTo
                 descriptor.valueParameters.map {
-                    val argument = expression.getArgument(it.index)
+                    val argument = expression.getValueArgument(it.index)
                     if (argument != null) {
                         latestProvidedArgumentIndex = it.index
                         argument.accept(this, data)
@@ -449,16 +452,16 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
             IrTypeOperator.SAFE_CAST -> JsConditional(_instanceOf(argument, type), argument, JsLiteral.NULL)
             IrTypeOperator.INSTANCEOF -> _instanceOf(argument, type)
             IrTypeOperator.NOT_INSTANCEOF -> _not(_instanceOf(argument, type))
+            IrTypeOperator.IMPLICIT_COERCION_TO_UNIT -> TODO()
         }
    }
 
 
     override fun visitWhen(expression: IrWhen, data: Data): JsExpression {
-        return (0 until expression.branchesCount).reversed().fold(expression.elseBranch?.accept(this, data)) { st, i ->
-            JsConditional(
-                    expression.getNthCondition(i)!!.accept(ExpressionGenerator(), data),
-                    expression.getNthResult(i)!!.accept(this, data),
-                    st)
+        // TODO check empty when
+        return expression.branches.foldRight<IrBranch, JsExpression?>(null) { br, n ->
+            if (br.isElse()) br.result.accept(this, data)
+            else JsConditional(br.condition.accept(this, data), br.result.accept(this, data), n)
         }!!
     }
 }
