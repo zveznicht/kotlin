@@ -28,4 +28,7 @@ FILE /varargWithImplicitCast.kt
             SPREAD_ELEMENT
               TYPE_OP type=kotlin.IntArray origin=IMPLICIT_CAST typeOperand=kotlin.IntArray
                 GET_VAR 'value-parameter a: Any' type=kotlin.Any origin=null
+            SPREAD_ELEMENT
+              TYPE_OP origin=IMPLICIT_CAST typeOperand=kotlin.IntArray
+                GET_VAR 'value-parameter a: Any' type=kotlin.Any origin=null
 

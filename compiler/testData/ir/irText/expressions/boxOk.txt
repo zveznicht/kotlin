@@ -5,42 +5,48 @@ FILE /boxOk.kt
         CONST String type=kotlin.String value='OK'
   FUN public operator fun kotlin.Throwable.inc(): kotlin.Throwable
     BLOCK_BODY
-      BLOCK type=kotlin.Nothing operator=EXCLEXCL
-        VAR val tmp0_notnull: kotlin.Nothing?
+      BLOCK type=kotlin.Nothing origin=EXCLEXCL
+        VAR IR_TEMPORARY_VARIABLE val tmp0_notnull: kotlin.Nothing?
           CONST Null type=kotlin.Nothing? value='null'
-        WHEN type=kotlin.Nothing operator=null
-          if: CALL 'EQEQ(Any?, Any?): Boolean' type=kotlin.Boolean operator=EQEQ
-            arg0: GET_VAR 'tmp0_notnull: Nothing?' type=kotlin.Nothing? operator=null
-            arg1: CONST Null type=kotlin.Nothing? value='null'
-          then: CALL 'THROW_NPE(): Nothing' type=kotlin.Nothing operator=EXCLEXCL
-          else: GET_VAR 'tmp0_notnull: Nothing?' type=kotlin.Nothing? operator=null
+        WHEN type=kotlin.Nothing origin=null
+          BRANCH
+            if: CALL 'EQEQ(Any?, Any?): Boolean' type=kotlin.Boolean origin=EQEQ
+              arg0: GET_VAR 'tmp0_notnull: Nothing?' type=kotlin.Nothing? origin=null
+              arg1: CONST Null type=kotlin.Nothing? value='null'
+            then: CALL 'THROW_NPE(): Nothing' type=kotlin.Nothing origin=EXCLEXCL
+          BRANCH
+            if: CONST Boolean type=kotlin.Boolean value='true'
+            then: GET_VAR 'tmp0_notnull: Nothing?' type=kotlin.Nothing? origin=null
   FUN public fun boo(): kotlin.Any
     BLOCK_BODY
       VAR var i: kotlin.Int
         CONST Int type=kotlin.Int value='0'
       VAR val e: kotlin.Throwable
-        BLOCK type=kotlin.Nothing operator=EXCLEXCL
-          VAR val tmp0_notnull: kotlin.Nothing?
+        BLOCK type=kotlin.Nothing origin=EXCLEXCL
+          VAR IR_TEMPORARY_VARIABLE val tmp0_notnull: kotlin.Nothing?
             CONST Null type=kotlin.Nothing? value='null'
-          WHEN type=kotlin.Nothing operator=null
-            if: CALL 'EQEQ(Any?, Any?): Boolean' type=kotlin.Boolean operator=EQEQ
-              arg0: GET_VAR 'tmp0_notnull: Nothing?' type=kotlin.Nothing? operator=null
-              arg1: CONST Null type=kotlin.Nothing? value='null'
-            then: CALL 'THROW_NPE(): Nothing' type=kotlin.Nothing operator=EXCLEXCL
-            else: GET_VAR 'tmp0_notnull: Nothing?' type=kotlin.Nothing? operator=null
+          WHEN type=kotlin.Nothing origin=null
+            BRANCH
+              if: CALL 'EQEQ(Any?, Any?): Boolean' type=kotlin.Boolean origin=EQEQ
+                arg0: GET_VAR 'tmp0_notnull: Nothing?' type=kotlin.Nothing? origin=null
+                arg1: CONST Null type=kotlin.Nothing? value='null'
+              then: CALL 'THROW_NPE(): Nothing' type=kotlin.Nothing origin=EXCLEXCL
+            BRANCH
+              if: CONST Boolean type=kotlin.Boolean value='true'
+              then: GET_VAR 'tmp0_notnull: Nothing?' type=kotlin.Nothing? origin=null
       THROW type=kotlin.Nothing
-        BLOCK type=kotlin.Throwable operator=POSTFIX_INCR
-          VAR val tmp1: kotlin.Throwable
-            GET_VAR 'e: Throwable' type=kotlin.Throwable operator=POSTFIX_INCR
-          SET_VAR 'e: Throwable' type=kotlin.Unit operator=POSTFIX_INCR
-            CALL 'inc() on Throwable: Throwable' type=kotlin.Throwable operator=POSTFIX_INCR
-              $receiver: GET_VAR 'tmp1: Throwable' type=kotlin.Throwable operator=null
-          GET_VAR 'tmp1: Throwable' type=kotlin.Throwable operator=null
+        BLOCK type=kotlin.Throwable origin=POSTFIX_INCR
+          VAR IR_TEMPORARY_VARIABLE val tmp1: kotlin.Throwable
+            GET_VAR 'e: Throwable' type=kotlin.Throwable origin=POSTFIX_INCR
+          SET_VAR 'e: Throwable' type=kotlin.Unit origin=POSTFIX_INCR
+            CALL 'inc() on Throwable: Throwable' type=kotlin.Throwable origin=POSTFIX_INCR
+              $receiver: GET_VAR 'tmp1: Throwable' type=kotlin.Throwable origin=null
+          GET_VAR 'tmp1: Throwable' type=kotlin.Throwable origin=null
       RETURN type=kotlin.Nothing from='boo(): Any'
-        BLOCK type=kotlin.Int operator=POSTFIX_INCR
-          VAR val tmp2: kotlin.Int
-            GET_VAR 'i: Int' type=kotlin.Int operator=POSTFIX_INCR
-          SET_VAR 'i: Int' type=kotlin.Unit operator=POSTFIX_INCR
-            CALL 'inc(): Int' type=kotlin.Int operator=POSTFIX_INCR
-              $this: GET_VAR 'tmp2: Int' type=kotlin.Int operator=null
-          GET_VAR 'tmp2: Int' type=kotlin.Int operator=null
+        BLOCK type=kotlin.Int origin=POSTFIX_INCR
+          VAR IR_TEMPORARY_VARIABLE val tmp2: kotlin.Int
+            GET_VAR 'i: Int' type=kotlin.Int origin=POSTFIX_INCR
+          SET_VAR 'i: Int' type=kotlin.Unit origin=POSTFIX_INCR
+            CALL 'inc(): Int' type=kotlin.Int origin=POSTFIX_INCR
+              $this: GET_VAR 'tmp2: Int' type=kotlin.Int origin=null
+          GET_VAR 'tmp2: Int' type=kotlin.Int origin=null

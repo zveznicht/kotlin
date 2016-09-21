@@ -4,7 +4,7 @@ FILE /stringPlus.kt
     VALUE_PARAMETER value-parameter b: kotlin.Any
     BLOCK_BODY
       RETURN type=kotlin.Nothing from='test1(String, Any): String'
-        CALL 'plus(Any?): String' type=kotlin.String origin=PLUS
+        CALL 'plus(Any?): String' type=kotlin.String origin=null
           $this: GET_VAR 'value-parameter a: String' type=kotlin.String origin=null
           other: GET_VAR 'value-parameter b: Any' type=kotlin.Any origin=null
   FUN public fun test2(a: kotlin.String, b: kotlin.Int): kotlin.String

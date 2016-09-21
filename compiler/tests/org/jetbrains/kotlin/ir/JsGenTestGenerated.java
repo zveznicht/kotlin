@@ -190,6 +190,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/declarations"), Pattern.compile("^(.+)\\.kt$"), true);
         }
 
+        @TestMetadata("classLevelProperties.kt")
+        public void testClassLevelProperties() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/classLevelProperties.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("defaultArguments.kt")
         public void testDefaultArguments() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/defaultArguments.kt");
@@ -214,6 +220,24 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("packageLevelProperties.kt")
+        public void testPackageLevelProperties() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/packageLevelProperties.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("primaryCtorDefaultArguments.kt")
+        public void testPrimaryCtorDefaultArguments() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/primaryCtorDefaultArguments.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("primaryCtorProperties.kt")
+        public void testPrimaryCtorProperties() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/primaryCtorProperties.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("typeAlias.kt")
         public void testTypeAlias() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/typeAlias.kt");
@@ -227,6 +251,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
     public static class Errors extends AbstractJsGenTest {
         public void testAllFilesPresentInErrors() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/errors"), Pattern.compile("^(.+)\\.kt$"), true);
+        }
+
+        @TestMetadata("suppressedNonPublicCall.kt")
+        public void testSuppressedNonPublicCall() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/errors/suppressedNonPublicCall.kt");
+            doTest(fileName);
         }
 
         @TestMetadata("unresolvedReference.kt")
@@ -283,6 +313,18 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
         @TestMetadata("augmentedAssignment2.kt")
         public void testAugmentedAssignment2() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/augmentedAssignment2.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("augmentedAssignmentWithExpression.kt")
+        public void testAugmentedAssignmentWithExpression() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/augmentedAssignmentWithExpression.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("augmentedAssignmentWithThis.kt")
+        public void testAugmentedAssignmentWithThis() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/augmentedAssignmentWithThis.kt");
             doTest(fileName);
         }
 
@@ -343,6 +385,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
         @TestMetadata("chainOfSafeCalls.kt")
         public void testChainOfSafeCalls() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/chainOfSafeCalls.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("coercionToUnit.kt")
+        public void testCoercionToUnit() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/coercionToUnit.kt");
             doTest(fileName);
         }
 
@@ -478,6 +526,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("safeAssignment.kt")
+        public void testSafeAssignment() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/safeAssignment.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("safeCallWithIncrementDecrement.kt")
         public void testSafeCallWithIncrementDecrement() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/safeCallWithIncrementDecrement.kt");
@@ -559,6 +613,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
         @TestMetadata("tryCatchWithImplicitCast.kt")
         public void testTryCatchWithImplicitCast() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/tryCatchWithImplicitCast.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("typeArguments.kt")
+        public void testTypeArguments() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/typeArguments.kt");
             doTest(fileName);
         }
 
@@ -658,6 +718,21 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
         @TestMetadata("samAdapter.kt")
         public void testSamAdapter() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/lambdas/samAdapter.kt");
+            doTest(fileName);
+        }
+    }
+
+    @TestMetadata("compiler/testData/ir/irText/regressions")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Regressions extends AbstractJsGenTest {
+        public void testAllFilesPresentInRegressions() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/regressions"), Pattern.compile("^(.+)\\.kt$"), true);
+        }
+
+        @TestMetadata("coercionInLoop.kt")
+        public void testCoercionInLoop() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/regressions/coercionInLoop.kt");
             doTest(fileName);
         }
     }
