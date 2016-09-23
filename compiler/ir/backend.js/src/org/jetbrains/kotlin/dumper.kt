@@ -115,6 +115,7 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitSyntheticBody(body: IrSyntheticBody) {
+        p.printlnWithNoIndent("/* SYNTHETIC BODY */")
     }
 
     override fun visitCall(expression: IrCall) {
@@ -158,11 +159,8 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitReturn(expression: IrReturn) {
-        p.printWithNoIndent("return")
-        expression.value?.let {
-            p.printWithNoIndent(" ")
-            it.acceptVoid(this)
-        }
+        p.printWithNoIndent("return ")
+        expression.value.acceptVoid(this)
     }
 
     override fun visitThrow(expression: IrThrow) {
@@ -208,7 +206,17 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitClass(declaration: IrClass) {
-        p.println("class " + declaration.descriptor.name.asString())
+        val descriptor = declaration.descriptor
+
+        val kind = DescriptorRenderer.getClassKindPrefix(descriptor)
+
+        p.println(kind + " " + descriptor.name.asString() + " {")
+        p.pushIndent()
+
+        declaration.declarations.forEach { it.acceptVoid(this) }
+
+        p.popIndent()
+        p.println("}")
     }
 
     override fun visitTypeAlias(declaration: IrTypeAlias) {
@@ -216,7 +224,9 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitConstructor(declaration: IrConstructor) {
-        p.println("constructor " + declaration.descriptor.name.asString())
+        // TODO render signature
+        p.print("constructor() ")
+        declaration.body?.acceptVoid(this)
     }
 
     override fun visitField(declaration: IrField) {
@@ -270,15 +280,7 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitSingletonReference(expression: IrGetSingletonValue) {
-        super.visitSingletonReference(expression)
-    }
-
-    override fun visitGetObjectValue(expression: IrGetObjectValue) {
-        super.visitGetObjectValue(expression)
-    }
-
-    override fun visitGetEnumValue(expression: IrGetEnumValue) {
-        super.visitGetEnumValue(expression)
+        p.printWithNoIndent(expression.descriptor.defaultType.asString())
     }
 
     override fun visitGetVariable(expression: IrGetVariable) {
@@ -295,19 +297,23 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitGetClass(expression: IrGetClass) {
-        super.visitGetClass(expression)
+        expression.argument.acceptVoid(this)
+        p.printWithNoIndent("::class")
     }
 
     override fun visitCallableReference(expression: IrCallableReference) {
-        super.visitCallableReference(expression)
+        // TODO
+        p.printWithNoIndent("::")
+        p.printWithNoIndent(expression.descriptor.name.asString())
     }
 
     override fun visitClassReference(expression: IrClassReference) {
-        super.visitClassReference(expression)
+        p.printWithNoIndent(expression.descriptor.defaultType.asString())
+        p.printWithNoIndent("::class")
     }
 
     override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall) {
-        super.visitInstanceInitializerCall(expression)
+        p.println("/* InstanceInitializerCall */")
     }
 
     override fun visitTypeOperator(expression: IrTypeOperatorCall) {
@@ -396,14 +402,14 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     }
 
     override fun visitErrorDeclaration(declaration: IrErrorDeclaration) {
-        super.visitErrorDeclaration(declaration)
+        p.println("/* ERROR DECLARATION */")
     }
 
     override fun visitErrorExpression(expression: IrErrorExpression) {
-        super.visitErrorExpression(expression)
+        p.println("/* ERROR EXPRESSION */")
     }
 
     override fun visitErrorCallExpression(expression: IrErrorCallExpression) {
-        super.visitErrorCallExpression(expression)
+        p.println("/* ERROR CALL */")
     }
 }
