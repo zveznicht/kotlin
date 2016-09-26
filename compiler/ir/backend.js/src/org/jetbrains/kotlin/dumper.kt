@@ -27,6 +27,12 @@ import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.Printer
 
+fun IrElement.dumpKotlinLike(): String {
+    val sb = StringBuilder()
+    acceptVoid(Dumper(Printer(sb, "  ")))
+    return sb.toString()
+}
+
 class Dumper(val p: Printer) : IrElementVisitorVoid {
     override fun visitElement(element: IrElement) {
         val e = "/*element: " + element.javaClass.simpleName + "*/"
