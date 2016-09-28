@@ -97,6 +97,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("enumWithSecondaryCtor.kt")
+        public void testEnumWithSecondaryCtor() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/enumWithSecondaryCtor.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("initBlock.kt")
         public void testInitBlock() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/initBlock.kt");
@@ -214,6 +220,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("interfaceProperties.kt")
+        public void testInterfaceProperties() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/interfaceProperties.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("localDelegatedProperties.kt")
         public void testLocalDelegatedProperties() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/localDelegatedProperties.kt");
@@ -319,12 +331,6 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
         @TestMetadata("augmentedAssignmentWithExpression.kt")
         public void testAugmentedAssignmentWithExpression() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/augmentedAssignmentWithExpression.kt");
-            doTest(fileName);
-        }
-
-        @TestMetadata("augmentedAssignmentWithThis.kt")
-        public void testAugmentedAssignmentWithThis() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/augmentedAssignmentWithThis.kt");
             doTest(fileName);
         }
 
@@ -661,6 +667,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
         @TestMetadata("whenElse.kt")
         public void testWhenElse() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/whenElse.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("whenReturn.kt")
+        public void testWhenReturn() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/whenReturn.kt");
             doTest(fileName);
         }
 
