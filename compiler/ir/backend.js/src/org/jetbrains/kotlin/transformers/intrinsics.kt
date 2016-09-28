@@ -50,7 +50,7 @@ class Intrinsics(val irBuiltIns: IrBuiltIns) {
     private val KOTLIN_JS = FqName("kotlin.js")
 
     // TODO
-    val packageFragment = IrBuiltinsPackageFragmentDescriptorImpl(irBuiltIns.builtIns.builtInsModule)
+    val packageFragment = IrBuiltinsPackageFragmentDescriptorImpl(irBuiltIns.builtIns.builtInsModule, FqName("foo.bar"))
 
     private val KOTLIN_D = object : VariableDescriptorImpl(packageFragment, Annotations.EMPTY, Name.identifier("kotlin"), irBuiltIns.builtIns.anyType, org.jetbrains.kotlin.descriptors.SourceElement.NO_SOURCE) {
         override fun getCompileTimeInitializer(): ConstantValue<*>? {
