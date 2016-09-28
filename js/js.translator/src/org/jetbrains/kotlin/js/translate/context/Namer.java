@@ -253,7 +253,7 @@ public final class Namer {
 
     @NotNull
     public static JsNameRef kotlinObject() {
-        return pureFqn(KOTLIN_NAME, null);
+        return pureFqn(KOTLIN_LOWER_NAME, null);
     }
 
     @NotNull

@@ -37,3 +37,4 @@ fun _ref(name: String, qualifier: JsExpression? = null) = JsNameRef(name, qualif
 
 fun _instanceOf(a: JsExpression, b: JsExpression) = JsBinaryOperation(JsBinaryOperator.INSTANCEOF, a, b)
 fun throwCCE() = JsInvocation(_ref("kotlin.throwCCE"))//JsThrow(JsNew(JsNameRef("kotlin.CCE")))
+fun throwNPE() = JsInvocation(_ref("kotlin.throwNPE"))//JsThrow(JsNew(JsNameRef("kotlin.CCE")))

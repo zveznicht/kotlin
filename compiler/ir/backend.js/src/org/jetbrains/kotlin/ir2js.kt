@@ -17,41 +17,55 @@
 package org.jetbrains.kotlin
 
 import com.google.dart.compiler.backend.js.ast.*
+import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.SimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrBinaryPrimitiveImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.util.dump
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
+import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.js.resolve.diagnostics.JsCallChecker
+import org.jetbrains.kotlin.js.translate.context.Namer
+import org.jetbrains.kotlin.js.translate.context.StandardClasses
+import org.jetbrains.kotlin.js.translate.context.StaticContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
-import org.jetbrains.kotlin.transformers.StringMemberTransformer
+import org.jetbrains.kotlin.transformers.Intrinsics
+import org.jetbrains.kotlin.transformers.propertyAccessToFieldAccess
+import org.jetbrains.kotlin.types.isDynamic
 
 private val program = JsProgram("<ir2js>")
+private val staticCtx = StaticContext(program, Namer.newInstance(program.rootScope), StandardClasses.bindImplementations(JsObjectScope(program.rootScope, "")), program.rootScope)
 
 val RECEIVER = "\$receiver"
 
 private fun TODO(element: IrElement): Nothing = TODO(element.dump())
 
+class JsBackendContext(val irBuiltIns: IrBuiltIns)
+
 fun ir2js(module: IrModuleFragment): JsNode {
     extractBlockExpressions(module)
-    module.transform(StringMemberTransformer(module.irBuiltins), null)
+    applyIntrinsics(module)
 
-    return module.accept(object : IrElementVisitor<JsNode, Nothing?> {
-        override fun visitElement(element: IrElement, data: Nothing?): JsNode {
+    return module.accept(object : IrElementVisitor<JsNode, Data> {
+        override fun visitElement(element: IrElement, data: Data): JsNode {
             TODO(element)
         }
 
-        override fun visitModuleFragment(declaration: IrModuleFragment, data: Nothing?): JsNode {
+        override fun visitModuleFragment(declaration: IrModuleFragment, data: Data): JsNode {
             // TODO
             val block = JsBlock()
             declaration.files.forEach { block.statements.add(it.accept(this, data) as JsStatement) }
             return block
         }
 
-        override fun visitFile(declaration: IrFile, data: Nothing?): JsNode {
+        override fun visitFile(declaration: IrFile, data: Data): JsNode {
             val block = JsBlock()
             val segments = declaration.packageFragmentDescriptor.fqName.pathSegments()
 
@@ -82,7 +96,34 @@ fun ir2js(module: IrModuleFragment): JsNode {
             return block
         }
 
-    }, null)
+    }, JsBackendContext(module.irBuiltins))
+}
+
+fun applyIntrinsics(module: IrModuleFragment) {
+    val intrinsics = Intrinsics(module.irBuiltins)
+
+    // TODO which order is better intrinsics than replace property accessors with field access or versa?
+    // could we merge these passes?
+    // see intrinsic for Array.size
+    module.transformChildrenVoid(object: IrElementTransformerVoid() {
+        override fun visitCall(expression: IrCall): IrExpression {
+            expression.transformChildrenVoid(this)
+
+            val descriptor = expression.descriptor
+            if (descriptor is CallableMemberDescriptor) {
+                return intrinsics.get(descriptor)?.invoke(expression) ?: expression
+            }
+
+            return expression
+        }
+    })
+
+    module.transformChildrenVoid(object: IrElementTransformerVoid() {
+        override fun visitCall(expression: IrCall): IrExpression {
+            expression.transformChildrenVoid(this)
+            return propertyAccessToFieldAccess(expression)
+        }
+    })
 }
 
 fun extractBlockExpressions(module: IrModuleFragment) {
@@ -97,7 +138,7 @@ fun IrBranch.isElse(): Boolean {
     return c is IrConst<*> && c.value == true && c.startOffset == result.startOffset && c.endOffset == result.endOffset
 }
 
-typealias Data = Nothing?
+typealias Data = JsBackendContext
 
 interface BaseGenerator<out R : JsNode, in D> : IrElementVisitor<R, D> {
     override fun visitElement(element: IrElement, data: D): R {
@@ -105,11 +146,12 @@ interface BaseGenerator<out R : JsNode, in D> : IrElementVisitor<R, D> {
     }
 
     override fun visitTypeAlias(declaration: IrTypeAlias, data: D): R {
+        @Suppress("UNCHECKED_CAST")
         return JsEmpty as R
     }
 }
 
-private fun generateFunction(declaration: IrFunction, data: Data?, packageRef: JsExpression? = null): JsStatement {
+private fun generateFunction(declaration: IrFunction, data: Data, packageRef: JsExpression? = null): JsStatement {
     val funName = declaration.descriptor.name.asString()
     val body = declaration.body?.accept(StatementGenerator(), data) as? JsBlock ?: JsBlock()
     val function = JsFunction(JsFunctionScope(program.scope, "scope for $funName"), body, "function $funName")
@@ -134,7 +176,7 @@ class DeclarationGenerator(val packageRef: JsExpression) : BaseGenerator<JsNode,
     // TODO
     override fun visitDeclaration(declaration: IrDeclaration, data: Data) = JsEmpty
 
-    override fun visitFunction(declaration: IrFunction, data: Nothing?): JsNode {
+    override fun visitFunction(declaration: IrFunction, data: Data): JsNode {
         return generateFunction(declaration, data, packageRef)
     }
 
@@ -172,7 +214,7 @@ class StatementGenerator : BaseGenerator<JsStatement, Data> {
 //
 //    fun visitBody(body: IrBody, data: D) = visitElement(body, data)
 //    fun visitExpressionBody(body: IrExpressionBody, data: D) = visitBody(body, data)
-    override fun visitBlockBody(body: IrBlockBody, data: Nothing?): JsStatement {
+    override fun visitBlockBody(body: IrBlockBody, data: Data): JsStatement {
         return JsBlock(body.statements.map { it.accept(this, data) })
     }
 //    fun visitSyntheticBody(body: IrSyntheticBody, data: D) = visitBody(body, data)
@@ -241,17 +283,21 @@ class StatementGenerator : BaseGenerator<JsStatement, Data> {
     override fun visitTry(aTry: IrTry, data: Data): JsStatement {
         val tryBlock = aTry.tryResult.accept(this, data)
 
-        val catchBlocks = aTry.catches.map {
-            val catchParameter = it.parameter
-            val catchBody = it.result.accept(this, data)
+        //TODO generate better name
+        val catchBlock = JsCatch(program.scope, "e", aTry.catches.foldRight<IrCatch, JsStatement>(JsThrow(_ref("e"))) { l, r ->
+            val catchParameter = l.parameter
+            val catchBody = l.result.accept(this, data)
+            catchParameter.type
+
+            val refToType = staticCtx.getQualifiedReference(catchParameter.type.constructor.declarationDescriptor as ClassDescriptor)
 
             // TODO set condition
-            JsCatch(program.scope, catchParameter.name.asString(), catchBody)
-        }
+            JsIf(_instanceOf(_ref("e"), refToType), catchBody, r)
+        })
 
         val finallyBlock = aTry.finallyExpression?.accept(this, data)
 
-        return JsTry(/*TODO*/ tryBlock as JsBlock, catchBlocks, /*TODO*/finallyBlock as JsBlock)
+        return JsTry(/*TODO*/ tryBlock as JsBlock, catchBlock, /*TODO*/finallyBlock as JsBlock?)
     }
 
 
@@ -265,7 +311,7 @@ class StatementGenerator : BaseGenerator<JsStatement, Data> {
 
 
     override fun visitReturn(expression: IrReturn, data: Data): JsStatement {
-        return expression.value?.let { JsReturn(it.accept(ExpressionGenerator(), data)) } ?: JsReturn()
+        return expression.value.let { JsReturn(it.accept(ExpressionGenerator(), data)) }
     }
     override fun visitThrow(expression: IrThrow, data: Data): JsStatement {
         return JsThrow(expression.value.accept(ExpressionGenerator(), data))
@@ -332,8 +378,15 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
     override fun visitSpreadElement(spread: IrSpreadElement, data: Data): JsExpression {
         return spread.expression.accept(this, data)
     }
-//
-//    fun visitBlock(expression: IrBlock, data: D) = visitExpression(expression, data)
+
+    override fun visitBlock(expression: IrBlock, data: Data): JsExpression {
+        // TODO empty?
+        val statements = expression.statements
+        return statements.subList(1, statements.size).fold(statements[0].accept(this, data)) { r, st ->
+            JsBinaryOperation(JsBinaryOperator.COMMA, r, statements[0].accept(this, data))
+        }
+    }
+
     override fun visitStringConcatenation(expression: IrStringConcatenation, data: Data): JsExpression {
         // TODO revisit
         return expression.arguments.fold<IrExpression, JsExpression>(program.getStringLiteral("")) { jsExpr, irExpr -> _plus(jsExpr, irExpr.accept(this, data)) }
@@ -360,15 +413,40 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
         val value = expression.value.accept(this, data)
         return JsBinaryOperation(JsBinaryOperator.ASG, v, value)
     }
-//    fun visitBackingFieldReference(expression: IrBackingFieldExpression, data: D) = visitDeclarationReference(expression, data)
-//    fun visitGetBackingField(expression: IrGetBackingField, data: D) = visitBackingFieldReference(expression, data)
-//    fun visitSetBackingField(expression: IrSetBackingField, data: D) = visitBackingFieldReference(expression, data)
+
+    override fun visitGetField(expression: IrGetField, data: Data): JsExpression {
+        return _ref(expression.descriptor.name.asString(), expression.receiver?.accept(this, data))
+    }
+
+    override fun visitSetField(expression: IrSetField, data: Data): JsExpression {
+        return _assignment(_ref(expression.descriptor.name.asString(), expression.receiver?.accept(this, data)), expression.value.accept(this, data)).expression
+    }
+
     override fun visitGetExtensionReceiver(expression: IrGetExtensionReceiver, data: Data): JsExpression {
         // TODO receiver
         return JsNameRef(RECEIVER)
     }
 //    fun visitGeneralCall(expression: IrGeneralCall, data: D) = visitDeclarationReference(expression, data)
     override fun visitCall(expression: IrCall, data: Data): JsExpression {
+//        (expression.descriptor as? CallableMemberDescriptor)?.let {
+//            val t = Intrinsics(data.irBuiltIns).getJS(it)?.invoke(expression)
+//        }
+
+        val (op_, arg1) = when(expression.descriptor) {
+            data.irBuiltIns.eqeqeq -> JsBinaryOperator.REF_EQ to expression.getValueArgument(1)
+            data.irBuiltIns.eqeq -> JsBinaryOperator.EQ to expression.getValueArgument(1)
+            data.irBuiltIns.lt0 -> JsBinaryOperator.LT to IrConstImpl.int(expression.startOffset, expression.endOffset, expression.type, 0)
+            data.irBuiltIns.lteq0 -> JsBinaryOperator.LTE to IrConstImpl.int(expression.startOffset, expression.endOffset, expression.type, 0)
+            data.irBuiltIns.gt0 -> JsBinaryOperator.GT to IrConstImpl.int(expression.startOffset, expression.endOffset, expression.type, 0)
+            data.irBuiltIns.gteq0 -> JsBinaryOperator.GTE to IrConstImpl.int(expression.startOffset, expression.endOffset, expression.type, 0)
+            data.irBuiltIns.throwNpe -> return throwNPE()
+            data.irBuiltIns.booleanNot -> return JsPrefixOperation(JsUnaryOperator.NOT, expression.getValueArgument(0)!!.accept(this, data))
+            else -> null to null
+        }
+
+        if (op_ != null && arg1 != null)
+            return JsBinaryOperation(op_, expression.getValueArgument(0)!!.accept(this, data), arg1.accept(this, data))
+
         when (expression) {
             is IrBinaryPrimitiveImpl -> {
                 val op = when (expression.origin) {
@@ -405,7 +483,7 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
             segments.joinToString { it.asString() }
 //            segments.subList(0, segments.lastIndex).fold()
         }
-        val ref = if (dispatchReceiver != null) JsNameRef(descriptor.name.asString(), dispatchReceiver) else JsNameRef(descriptor.fqNameUnsafe.pathSegments().joinToString(".") { it.asString() })
+        val ref = if (dispatchReceiver != null) JsNameRef(descriptor.name.asString().sanitize(), dispatchReceiver) else JsNameRef(descriptor.fqNameUnsafe.pathSegments().joinToString(".") { it.asString() }.sanitize())
         var latestProvidedArgumentIndex = 0
         val arguments =
                 // TODO mapTo
@@ -423,7 +501,7 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
 
         //TODO
         if (descriptor is ConstructorDescriptor && descriptor.isPrimary) {
-            return JsNew(JsNameRef(ref.toString().substringBeforeLast('.')), arguments)
+            return JsNew(staticCtx.getQualifiedReference(descriptor), arguments)
         }
 
         return JsInvocation(ref, extensionReceiver?.let { listOf(extensionReceiver) + arguments } ?: arguments)
@@ -447,12 +525,12 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
         // TODO review
         return when(expression.operator) {
             IrTypeOperator.CAST -> JsConditional(_instanceOf(argument, type), argument, throwCCE())
-            IrTypeOperator.IMPLICIT_CAST -> JsConditional(_instanceOf(argument, type), argument, throwCCE()) // TODO what should we do in JS here?
-            IrTypeOperator.IMPLICIT_NOTNULL -> JsConditional(_identityEquals(argument, JsLiteral.NULL), argument, throwCCE()) // TODO what should we do in JS here?
+            IrTypeOperator.IMPLICIT_CAST -> argument // JsConditional(_instanceOf(argument, type), argument, throwCCE()) // TODO what should we do in JS here?
+            IrTypeOperator.IMPLICIT_NOTNULL -> if (expression.argument.type.isDynamic()) argument else JsConditional(_identityEquals(argument, JsLiteral.NULL), argument, throwCCE()) // TODO what should we do in JS here?
             IrTypeOperator.SAFE_CAST -> JsConditional(_instanceOf(argument, type), argument, JsLiteral.NULL)
             IrTypeOperator.INSTANCEOF -> _instanceOf(argument, type)
             IrTypeOperator.NOT_INSTANCEOF -> _not(_instanceOf(argument, type))
-            IrTypeOperator.IMPLICIT_COERCION_TO_UNIT -> TODO()
+            IrTypeOperator.IMPLICIT_COERCION_TO_UNIT -> argument // TODO: ?
         }
    }
 
@@ -466,10 +544,14 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
     }
 }
 
+// TODO: remove
+private fun String.sanitize() = this.replace("[-<>\\s]".toRegex(), "_")
+
 /*
 rewrite on ir:
 * when expressions
 * try-catch
+* many catch blocks -> one catch with many ifs
 * return, break, continue
 * block expressions
 *
