@@ -130,7 +130,7 @@ class ExpressionBlockExtractor(private val irBuiltIns: IrBuiltIns) : IrElementTr
         }
     }
 
-    private fun <T : IrStatement, R : IrStatement> extractIrBlockIfNeed(expression: T, elementToReplace: IrExpression?, type: KotlinType = irBuiltIns.nothing, replace: T.(IrExpression) -> Unit): R {
+    private fun <T : IrStatement, R : IrStatement> extractIrBlockIfNeed(expression: T, elementToReplace: IrExpression?, type: KotlinType = irBuiltIns.builtIns.nothingType, replace: T.(IrExpression) -> Unit): R {
         if (elementToReplace is IrBlock) {
             changed = true
 
@@ -142,7 +142,7 @@ class ExpressionBlockExtractor(private val irBuiltIns: IrBuiltIns) : IrElementTr
     }
 
 
-    private fun <T : IrStatement, R : IrStatement> extractIrBlock(declaration: T, block: IrBlock, type: KotlinType = irBuiltIns.nothing, replace: T.(IrExpression) -> Unit): R {
+    private fun <T : IrStatement, R : IrStatement> extractIrBlock(declaration: T, block: IrBlock, type: KotlinType = irBuiltIns.builtIns.nothingType, replace: T.(IrExpression) -> Unit): R {
         val statements = block.statements
         val last = block.statements[statements.lastIndex]
         declaration.replace(last as IrExpression)
