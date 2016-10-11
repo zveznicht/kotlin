@@ -273,14 +273,6 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
         spread.expression.acceptVoid(this)
     }
 
-    override fun visitThisReference(expression: IrThisReference) {
-        p.printWithNoIndent("this")
-    }
-
-    override fun visitGetExtensionReceiver(expression: IrGetExtensionReceiver) {
-        p.printWithNoIndent("^this")
-    }
-
     override fun visitDeclarationReference(expression: IrDeclarationReference) {
         super.visitDeclarationReference(expression)
     }
@@ -289,7 +281,8 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
         p.printWithNoIndent(expression.descriptor.defaultType.asString())
     }
 
-    override fun visitGetVariable(expression: IrGetVariable) {
+    override fun visitGetValue(expression: IrGetValue) {
+        // TODO support `this` and receiver
         p.printWithNoIndent(expression.descriptor.name.asString())
     }
 

@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.impl.IrBinaryPrimitiveImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrGetVariableImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.name.Name
@@ -71,7 +71,7 @@ class Intrinsics(val irBuiltIns: IrBuiltIns) {
             TODO("not implemented")
         }
     }
-    private val IR_KOTLIN = IrGetVariableImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, KOTLIN_D)
+    private val IR_KOTLIN = IrGetValueImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, KOTLIN_D)
 
     private val KOTLIN_TO_STRING_D = IrSimpleBuiltinOperatorDescriptorImpl(KOTLIN_D, Name.identifier("toString"), irBuiltIns.builtIns.stringType).apply {
         addValueParameter(IrBuiltinValueParameterDescriptorImpl(this, Name.identifier("self"), 0, irBuiltIns.builtIns.nullableAnyType))

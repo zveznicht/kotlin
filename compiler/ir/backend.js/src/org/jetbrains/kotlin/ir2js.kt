@@ -403,8 +403,9 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
         // TODO implement
         return JsNameRef("TODO")
     }
-//    fun visitVariableAccess(expression: IrVariableAccessExpression, data: D) = visitDeclarationReference(expression, data)
-    override fun visitGetVariable(expression: IrGetVariable, data: Data): JsExpression {
+
+    override fun visitGetValue(expression: IrGetValue, data: Data): JsExpression {
+        // TODO support `this` and receiver
         return JsNameRef(expression.descriptor.name.asString())
     }
 
@@ -422,10 +423,6 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
         return _assignment(_ref(expression.descriptor.name.asString(), expression.receiver?.accept(this, data)), expression.value.accept(this, data)).expression
     }
 
-    override fun visitGetExtensionReceiver(expression: IrGetExtensionReceiver, data: Data): JsExpression {
-        // TODO receiver
-        return JsNameRef(RECEIVER)
-    }
 //    fun visitGeneralCall(expression: IrGeneralCall, data: D) = visitDeclarationReference(expression, data)
     override fun visitCall(expression: IrCall, data: Data): JsExpression {
 //        (expression.descriptor as? CallableMemberDescriptor)?.let {
