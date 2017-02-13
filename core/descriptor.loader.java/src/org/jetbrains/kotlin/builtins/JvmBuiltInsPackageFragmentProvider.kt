@@ -45,7 +45,7 @@ class JvmBuiltInsPackageFragmentProvider(
                 LookupTracker.DO_NOTHING,
                 FlexibleTypeDeserializer.ThrowException,
                 listOf(
-                        BuiltInFictitiousFunctionClassFactory(storageManager, moduleDescriptor),
+                        BuiltInFictitiousFunctionClassFactory(storageManager, moduleDescriptor, additionalClassPartsProvider),
                         JvmBuiltInClassDescriptorFactory(storageManager, moduleDescriptor)
                 ),
                 notFoundClasses, additionalClassPartsProvider, platformDependentDeclarationFilter

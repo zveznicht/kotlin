@@ -61,6 +61,7 @@ class JvmBuiltIns @JvmOverloads constructor(
 
     override fun getAdditionalClassPartsProvider(): AdditionalClassPartsProvider = settings
 
-    override fun getClassDescriptorFactories() =
-            super.getClassDescriptorFactories() + JvmBuiltInClassDescriptorFactory(storageManager, builtInsModule)
+    override fun getClassDescriptorFactories(additionalClassPartsProvider: AdditionalClassPartsProvider) =
+            super.getClassDescriptorFactories(additionalClassPartsProvider) +
+            JvmBuiltInClassDescriptorFactory(storageManager, builtInsModule)
 }

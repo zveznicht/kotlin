@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.serialization.deserialization.AdditionalClassPartsProvider
 import org.jetbrains.kotlin.serialization.deserialization.ClassDescriptorFactory
 import org.jetbrains.kotlin.storage.StorageManager
 
@@ -31,7 +32,8 @@ import org.jetbrains.kotlin.storage.StorageManager
  */
 class BuiltInFictitiousFunctionClassFactory(
         private val storageManager: StorageManager,
-        private val module: ModuleDescriptor
+        private val module: ModuleDescriptor,
+        private val additionalClassPartsProvider: AdditionalClassPartsProvider
 ) : ClassDescriptorFactory {
 
     private data class KindWithArity(val kind: Kind, val arity: Int)
@@ -82,7 +84,7 @@ class BuiltInFictitiousFunctionClassFactory(
 
         val containingPackageFragment = module.getPackage(packageFqName).fragments.filterIsInstance<BuiltInsPackageFragment>().first()
 
-        return FunctionClassDescriptor(storageManager, containingPackageFragment, kind, arity)
+        return FunctionClassDescriptor(storageManager, containingPackageFragment, additionalClassPartsProvider, kind, arity)
     }
 
     override fun getAllContributedClassesIfPossible(packageFqName: FqName): Collection<ClassDescriptor> {

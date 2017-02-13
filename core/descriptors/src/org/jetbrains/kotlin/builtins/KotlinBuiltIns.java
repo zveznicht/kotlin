@@ -126,6 +126,7 @@ public abstract class KotlinBuiltIns {
                 return new FunctionClassDescriptor(
                         getStorageManager(),
                         packageFragments.invoke().builtInsPackageFragment,
+                        getAdditionalClassPartsProvider(),
                         FunctionClassDescriptor.Kind.SuspendFunction,
                         arity
                 );
@@ -135,11 +136,12 @@ public abstract class KotlinBuiltIns {
 
     protected void createBuiltInsModule() {
         builtInsModule = new ModuleDescriptorImpl(BUILTINS_MODULE_NAME, storageManager, this, null);
+        AdditionalClassPartsProvider additionalClassPartsProvider = getAdditionalClassPartsProvider();
         PackageFragmentProvider packageFragmentProvider = BuiltInsPackageFragmentProviderKt.createBuiltInPackageFragmentProvider(
                 storageManager, builtInsModule, BUILT_INS_PACKAGE_FQ_NAMES,
-                getClassDescriptorFactories(),
+                getClassDescriptorFactories(additionalClassPartsProvider),
                 getPlatformDependentDeclarationFilter(),
-                getAdditionalClassPartsProvider(),
+                additionalClassPartsProvider,
                 new Function1<String, InputStream>() {
                     @Override
                     public InputStream invoke(String path) {
@@ -179,8 +181,12 @@ public abstract class KotlinBuiltIns {
     }
 
     @NotNull
-    protected Iterable<ClassDescriptorFactory> getClassDescriptorFactories() {
-        return Collections.<ClassDescriptorFactory>singletonList(new BuiltInFictitiousFunctionClassFactory(storageManager, builtInsModule));
+    protected Iterable<ClassDescriptorFactory> getClassDescriptorFactories(
+            @NotNull AdditionalClassPartsProvider additionalClassPartsProvider
+    ) {
+        return Collections.<ClassDescriptorFactory>singletonList(new BuiltInFictitiousFunctionClassFactory(
+                storageManager, builtInsModule, additionalClassPartsProvider
+        ));
     }
 
     @NotNull

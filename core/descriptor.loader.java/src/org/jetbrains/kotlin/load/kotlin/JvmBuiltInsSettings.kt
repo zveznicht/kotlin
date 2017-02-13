@@ -96,7 +96,7 @@ open class JvmBuiltInsSettings(
         return mockSerializableClass.defaultType
     }
 
-    override fun getSupertypes(classDescriptor: DeserializedClassDescriptor): Collection<KotlinType> {
+    override fun getSupertypes(classDescriptor: ClassDescriptor): Collection<KotlinType> {
         val fqName = classDescriptor.fqNameUnsafe
         return when {
             isArrayOrPrimitiveArray(fqName) -> listOf(cloneableType, mockSerializableType)

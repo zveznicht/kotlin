@@ -108,11 +108,14 @@ public class LoadBuiltinsTest extends KotlinTestWithEnvironment {
         ModuleDescriptorImpl builtInsModule =
                 new ModuleDescriptorImpl(KotlinBuiltIns.BUILTINS_MODULE_NAME, storageManager, DefaultBuiltIns.getInstance());
 
+        AdditionalClassPartsProvider additionalClassPartsProvider = AdditionalClassPartsProvider.None.INSTANCE;
         PackageFragmentProvider packageFragmentProvider = createBuiltInPackageFragmentProvider(
                 storageManager, builtInsModule, BUILT_INS_PACKAGE_FQ_NAMES,
-                Collections.singletonList(new BuiltInFictitiousFunctionClassFactory(storageManager, builtInsModule)),
+                Collections.singletonList(new BuiltInFictitiousFunctionClassFactory(
+                        storageManager, builtInsModule, additionalClassPartsProvider
+                )),
                 PlatformDependentDeclarationFilter.All.INSTANCE,
-                AdditionalClassPartsProvider.None.INSTANCE,
+                additionalClassPartsProvider,
                 new Function1<String, InputStream>() {
                     @Override
                     public InputStream invoke(String path) {

@@ -28,9 +28,9 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.serialization.deserialization.AdditionalClassPartsProvider
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.*
-import org.jetbrains.kotlin.utils.toReadOnlyList
 import java.util.*
 
 /**
@@ -44,6 +44,7 @@ import java.util.*
 class FunctionClassDescriptor(
         private val storageManager: StorageManager,
         private val containingDeclaration: PackageFragmentDescriptor,
+        private val additionalClassPartsProvider: AdditionalClassPartsProvider,
         val functionKind: Kind,
         val arity: Int
 ) : AbstractClassDescriptor(storageManager, functionKind.numberedClassName(arity)) {
@@ -81,7 +82,7 @@ class FunctionClassDescriptor(
 
         typeParameter(Variance.OUT_VARIANCE, "R")
 
-        parameters = result.toReadOnlyList()
+        parameters = result.toList()
     }
 
     override fun getContainingDeclaration() = containingDeclaration
@@ -146,7 +147,7 @@ class FunctionClassDescriptor(
                 add(kotlinPackageFragment, Kind.Function.numberedClassName(arity))
             }
 
-            return result.toReadOnlyList()
+            return (result + additionalClassPartsProvider.getSupertypes(declarationDescriptor)).toList()
         }
 
         override fun getParameters() = this@FunctionClassDescriptor.parameters

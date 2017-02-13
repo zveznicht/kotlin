@@ -7930,6 +7930,12 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 doTest(fileName);
             }
 
+            @TestMetadata("functionsAreSerializable.kt")
+            public void testFunctionsAreSerializable() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/functionLiterals/functionsAreSerializable.kt");
+                doTest(fileName);
+            }
+
             @TestMetadata("higherOrderCallMissingParameters.kt")
             public void testHigherOrderCallMissingParameters() throws Exception {
                 String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/functionLiterals/higherOrderCallMissingParameters.kt");
