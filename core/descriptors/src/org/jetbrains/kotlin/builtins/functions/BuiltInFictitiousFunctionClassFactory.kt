@@ -48,28 +48,17 @@ class BuiltInFictitiousFunctionClassFactory(
             return KindWithArity(kind, arity)
         }
 
-        @JvmStatic fun getFunctionalClassKind(className: String, packageFqName: FqName) =
+        @JvmStatic
+        fun getFunctionalClassKind(className: String, packageFqName: FqName): FunctionClassDescriptor.Kind? =
                 parseClassName(className, packageFqName)?.kind
 
-        @JvmStatic fun getFunctionalClassArity(className: String, packageFqName: FqName) =
-                parseClassName(className, packageFqName)?.arity
-
-        @JvmStatic fun isFunctionClassName(className: String, packageFqName: FqName) =
+        @JvmStatic
+        fun isFunctionClassName(className: String, packageFqName: FqName): Boolean =
                 getFunctionalClassKind(className, packageFqName) == Kind.Function
 
-        @JvmStatic fun isSuspendFunctionClassName(className: String, packageFqName: FqName) =
-                getFunctionalClassKind(className, packageFqName) == Kind.SuspendFunction
-
         private fun toInt(s: String): Int? {
-            if (s.isEmpty()) return null
-
-            var result = 0
-            for (c in s) {
-                val d = c - '0'
-                if (d !in 0..9) return null
-                result = result * 10 + d
-            }
-            return result
+            val first = s.firstOrNull()
+            return if (first != null && first.isDigit()) s.toIntOrNull() else null
         }
     }
 
