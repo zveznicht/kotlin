@@ -338,6 +338,11 @@ public class K2JSCompiler extends CLICompiler<K2JSCompilerArguments> {
         if (incrementalResultsConsumer != null) {
             configuration.put(JSConfigurationKeys.INCREMENTAL_RESULTS_CONSUMER, incrementalResultsConsumer);
         }
+
+        LookupTracker lookupTracker = services.get(LookupTracker.class);
+        if (lookupTracker != null) {
+            configuration.put(CommonConfigurationKeys.LOOKUP_TRACKER, lookupTracker);
+        }
     }
 
     private static MainCallParameters createMainCallParameters(String main) {
