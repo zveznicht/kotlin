@@ -16,8 +16,6 @@
 
 package org.jetbrains.kotlin.incremental
 
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.util.io.PersistentEnumeratorBase
 import org.jetbrains.kotlin.annotation.AnnotationFileUpdater
 import org.jetbrains.kotlin.build.GeneratedFile
@@ -28,31 +26,22 @@ import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.js.K2JSCompiler
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
-import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.compilerRunner.ArgumentUtils
 import org.jetbrains.kotlin.compilerRunner.MessageCollectorToOutputItemsCollectorAdapter
 import org.jetbrains.kotlin.compilerRunner.OutputItemsCollectorImpl
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.IncrementalCompilation
 import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.incremental.multiproject.ArtifactChangesProvider
 import org.jetbrains.kotlin.incremental.multiproject.ChangesRegistry
-import org.jetbrains.kotlin.js.analyzer.JsAnalysisResult
-import org.jetbrains.kotlin.js.config.JSConfigurationKeys
-import org.jetbrains.kotlin.js.config.JsConfig
-import org.jetbrains.kotlin.js.facade.K2JSTranslator
-import org.jetbrains.kotlin.js.facade.MainCallParameters
-import org.jetbrains.kotlin.js.facade.TranslationResult
-import org.jetbrains.kotlin.js.facade.TranslationUnit
-import org.jetbrains.kotlin.js.incremental.IncrementalJsService
-import org.jetbrains.kotlin.js.incremental.IncrementalJsServiceImpl
+import org.jetbrains.kotlin.js.incremental.IncrementalDataProvider
+import org.jetbrains.kotlin.js.incremental.IncrementalDataProviderImpl
+import org.jetbrains.kotlin.js.incremental.IncrementalResultsConsumer
+import org.jetbrains.kotlin.js.incremental.IncrementalResultsConsumerImpl
 import org.jetbrains.kotlin.load.kotlin.header.KotlinClassHeader
 import org.jetbrains.kotlin.modules.TargetId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.progress.CompilationCanceledStatus
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.serialization.js.PackagesWithHeaderMetadata
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -218,8 +207,6 @@ class IncrementalJsCompilerRunner(
 
         if (changedFiles !is ChangedFiles.Known) return rebuild { "inputs' changes are unknown (first or clean build)" }
 
-        if (changedFiles.removed.isNotEmpty()) return rebuild { "some files were removed" }
-
         val dirtyFiles = HashSet<File>(with(changedFiles) { modified.size + removed.size})
         with(changedFiles) {
             modified.asSequence() + removed.asSequence()
@@ -237,7 +224,6 @@ class IncrementalJsCompilerRunner(
     ): ExitCode {
         assert(IncrementalCompilation.isEnabledForJs()) { "Incremental compilation is not enabled" }
 
-        val allGeneratedFiles = hashSetOf<GeneratedFile<TargetId>>()
         @Suppress("NAME_SHADOWING")
         var compilationMode = compilationMode
         var dirtySources: MutableList<File>
@@ -256,56 +242,47 @@ class IncrementalJsCompilerRunner(
 
         var exitCode = ExitCode.OK
         while (dirtySources.any()) {
-            val (sourcesToCompile, removedKotlinSources) = dirtySources.partition(File::exists)
-            assert(removedKotlinSources.isEmpty()) // todo !!
-
+            val (sourcesToCompile, _) = dirtySources.partition(File::exists)
             allSourcesToCompile.addAll(sourcesToCompile)
-            val metadataHeaderFile = File(cacheDirectory, "header.metadata")
 
             // todo: val text = allSourcesToCompile.map { it.canonicalPath }.joinToString(separator = System.getProperty("line.separator"))
             // todo: dirtySourcesSinceLastTimeFile.writeText(text)
-            val translationUnits = mutableListOf<TranslationUnit>()
-            var fallbackMetadata: PackagesWithHeaderMetadata? = null
+            val metadataHeaderFile = File(cacheDirectory, "header.metadata")
 
-            var headerMetadata: ByteArray? = null
+            val services = Services.Builder()
             if (compilationMode is CompilationMode.Incremental) {
-                val translationResultsCache = cache.translationResults
+                dirtySources.forEach { cache.translationResults.remove(it) }
+                val headerMetada = metadataHeaderFile.readBytes()
+                val packagePartsMetadata = arrayListOf<ByteArray>()
+                val binaryTrees = arrayListOf<ByteArray>()
 
-                for (dirtyFile in sourcesToCompile) {
-                    translationResultsCache.remove(dirtyFile)
+                cache.translationResults.values().forEach {
+                    packagePartsMetadata.add(it.metadata)
+                    binaryTrees.add(it.binaryAst)
                 }
 
-                headerMetadata = metadataHeaderFile.readBytes()
-                val packagesMetadata = mutableListOf<ByteArray>()
-
-                translationResultsCache.values().forEach {
-                    packagesMetadata.add(it.metadata)
-                    translationUnits.add(TranslationUnit.BinaryAst(it.binaryAst))
-                }
-
-                fallbackMetadata = PackagesWithHeaderMetadata(headerMetadata, packagesMetadata)
+                val incrementalDataProvider = IncrementalDataProviderImpl(
+                        headerMetada,
+                        packagePartsMetadata = packagePartsMetadata,
+                        binaryTrees = binaryTrees)
+                services.register(IncrementalDataProvider::class.java, incrementalDataProvider)
+            }
+            else {
+                cache.clean()
             }
 
+            val incrementalResults = IncrementalResultsConsumerImpl()
+            services.register(IncrementalResultsConsumer::class.java, incrementalResults)
 
-            val incrementalService = IncrementalJsServiceImpl()
-            val services = Services.Builder().run {
-                register(IncrementalJsService::class.java, incrementalService)
-                build()
-            }
-
-            exitCode = compileChanged(sourcesToCompile.toSet(), translationUnits,
-                                      fallbackMetadata, args, messageCollector,
-                                      services)
-
+            exitCode = compileChanged(sourcesToCompile.toSet(), args, messageCollector, services.build())
             if (exitCode != ExitCode.OK) break
 
             //dirtySourcesSinceLastTimeFile.delete()
-            val metadataHeader = incrementalService.headerProto!!.toByteArray()
-            var hasChanges = Arrays.equals(headerMetadata, metadataHeader)
-            metadataHeaderFile.writeBytes(metadataHeader)
+            metadataHeaderFile.writeBytes(incrementalResults.headerMetadata!!)
 
-            incrementalService.packageParts.forEach { (file, proto, ast) ->
-                hasChanges = hasChanges || cache.translationResults.put(file, metadata = proto.toByteArray()!!, binaryAst = ast)
+            var hasChanges = false
+            incrementalResults.packageParts.forEach {
+                hasChanges = hasChanges || cache.translationResults.put(it.sourceFile, metadata = it.proto, binaryAst = it.binaryAst)
             }
 
             if (compilationMode is CompilationMode.Rebuild || !hasChanges) break
@@ -323,35 +300,11 @@ class IncrementalJsCompilerRunner(
 
     private fun compileChanged(
             sourcesToCompile: Set<File>,
-            additionalTranslationUnits: List<TranslationUnit>,
-            fallbackMetadata: PackagesWithHeaderMetadata?,
             args: K2JSCompilerArguments,
             messageCollector: MessageCollector,
             services: Services
     ): ExitCode {
-        val compiler = object : K2JSCompiler() {
-            override fun createJsEnvironment(configuration: CompilerConfiguration, rootDisposable: Disposable): KotlinCoreEnvironment {
-                fallbackMetadata?.let { configuration.put(JSConfigurationKeys.FALLBACK_METADATA, it) }
-                return super.createJsEnvironment(configuration, rootDisposable)
-            }
-
-            override fun translate(
-                    allKotlinFiles: MutableList<KtFile>,
-                    jsAnalysisResult: JsAnalysisResult,
-                    mainCallParameters: MainCallParameters,
-                    config: JsConfig
-            ): TranslationResult {
-                val ktSourceToCompile =
-                        when {
-                            sourcesToCompile.size != allKotlinFiles.size -> {
-                                allKotlinFiles.filter { VfsUtilCore.virtualToIoFile(it.virtualFile) in sourcesToCompile }
-                            }
-                            else -> allKotlinFiles
-                        }
-                val translationUnits = ktSourceToCompile.map { TranslationUnit.SourceFile(it) }
-                return K2JSTranslator(config).translateUnits(translationUnits + additionalTranslationUnits, mainCallParameters, jsAnalysisResult)
-            }
-        }
+        val compiler = K2JSCompiler()
 
         args.reportOutputFiles = true
         val outputItemCollector = OutputItemsCollectorImpl()
