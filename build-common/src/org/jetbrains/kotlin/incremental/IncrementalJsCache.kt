@@ -33,11 +33,13 @@ import java.io.File
 open class IncrementalJsCache(cachesDir: File) : IncrementalCacheCommon(cachesDir) {
     companion object {
         private val TRANSLATION_RESULT_MAP = "translation-result"
+        private val SOURCES_TO_CLASSES_FQNS = "sources-to-classes"
         private val HEADER_FILE_NAME = "header.meta"
     }
 
     private val dirtySources = arrayListOf<File>()
     private val translationResults = registerMap(TranslationResultMap(TRANSLATION_RESULT_MAP.storageFile))
+    private val sourcesToClasses = registerMap(SourceToClassesMap(SOURCES_TO_CLASSES_FQNS.storageFile))
 
     private val headerFile: File
         get() = File(cachesDir, HEADER_FILE_NAME)
@@ -58,12 +60,29 @@ open class IncrementalJsCache(cachesDir: File) : IncrementalCacheCommon(cachesDi
             if (it !in translatedFiles) {
                 translationResults.remove(it, changesCollector)
             }
+
+            removeAllFromClassStorage(sourcesToClasses[it])
+            sourcesToClasses.clearOutputsForSource(it)
         }
         dirtySources.clear()
 
-        for ((src, data) in translatedFiles) {
-            val (proto, binaryAst) = data
-            translationResults.put(src, proto, binaryAst, changesCollector)
+        for ((srcFile, data) in translatedFiles) {
+            val (binaryMetadata, binaryAst) = data
+
+            val oldProtoMap = translationResults[srcFile]?.metadata?.let { getProtoData(srcFile, it) } ?: emptyMap()
+            val newProtoMap = getProtoData(srcFile, binaryMetadata)
+
+            for (protoData in newProtoMap.values) {
+                if (protoData is ClassProtoData) {
+                    addToClassStorage(protoData.proto, protoData.nameResolver, srcFile)
+                }
+            }
+
+            for (classId in oldProtoMap.keys + newProtoMap.keys) {
+                changesCollector.collectProtoChanges(oldProtoMap[classId], newProtoMap[classId])
+            }
+
+            translationResults.put(srcFile, binaryMetadata, binaryAst)
         }
     }
 
@@ -76,6 +95,25 @@ open class IncrementalJsCache(cachesDir: File) : IncrementalCacheCommon(cachesDi
                     }
                 }
             }
+}
+
+private class SourceToClassesMap(storageFile: File) : BasicStringMap<Collection<String>>(storageFile, PathStringDescriptor, StringCollectionExternalizer) {
+    fun clearOutputsForSource(sourceFile: File) {
+        remove(sourceFile.canonicalPath)
+    }
+
+    fun add(sourceFile: File, className: FqName) {
+        storage.append(sourceFile.canonicalPath, className.asString())
+    }
+
+    operator fun get(sourceFile: File): Collection<FqName> =
+            storage[sourceFile.canonicalPath].orEmpty().map { FqName(it) }
+
+    override fun dumpValue(value: Collection<String>) = value.dumpCollection()
+
+    private fun remove(path: String) {
+        storage.remove(path)
+    }
 }
 
 private object TranslationResultValueExternalizer : DataExternalizer<TranslationResultValue> {
@@ -104,17 +142,12 @@ private class TranslationResultMap(storageFile: File) : BasicStringMap<Translati
     override fun dumpValue(value: TranslationResultValue): String =
             "Metadata: ${value.metadata.md5String()}, Binary AST: ${value.binaryAst.md5String()}"
 
-    fun put(file: File, newMetadata: ByteArray, newBinaryAst: ByteArray, changesCollector: ChangesCollector) {
-        val oldValue = storage[file.canonicalPath]
+    fun put(file: File, newMetadata: ByteArray, newBinaryAst: ByteArray) {
         storage[file.canonicalPath] = TranslationResultValue(metadata = newMetadata, binaryAst = newBinaryAst)
-
-        val oldProtoMap = oldValue?.metadata?.let { getProtoData(file, it) } ?: emptyMap()
-        val newProtoMap = getProtoData(file, newMetadata)
-
-        for (classId in oldProtoMap.keys + newProtoMap.keys) {
-            changesCollector.collectProtoChanges(oldProtoMap[classId], newProtoMap[classId])
-        }
     }
+
+    operator fun get(file: File): TranslationResultValue? =
+            storage[file.canonicalPath]
 
     operator fun get(key: String): TranslationResultValue? =
             storage[key]
