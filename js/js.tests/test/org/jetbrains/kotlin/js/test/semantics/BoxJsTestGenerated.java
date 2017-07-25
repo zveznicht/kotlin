@@ -3491,9 +3491,9 @@ public class BoxJsTestGenerated extends AbstractBoxJsTest {
             doTest(fileName);
         }
 
-        @TestMetadata("classes.kt")
-        public void testClasses() throws Exception {
-            String fileName = KotlinTestUtils.navigationMetadata("js/js.translator/testData/box/incremental/classes.kt");
+        @TestMetadata("classReferencingClass.kt")
+        public void testClassReferencingClass() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("js/js.translator/testData/box/incremental/classReferencingClass.kt");
             doTest(fileName);
         }
 
@@ -3512,6 +3512,12 @@ public class BoxJsTestGenerated extends AbstractBoxJsTest {
         @TestMetadata("exportedPackage.kt")
         public void testExportedPackage() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("js/js.translator/testData/box/incremental/exportedPackage.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("functionReferencingClass.kt")
+        public void testFunctionReferencingClass() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("js/js.translator/testData/box/incremental/functionReferencingClass.kt");
             doTest(fileName);
         }
 
