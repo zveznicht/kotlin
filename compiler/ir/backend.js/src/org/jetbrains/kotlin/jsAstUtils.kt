@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin
 
-import com.google.dart.compiler.backend.js.ast.*
+import org.jetbrains.kotlin.js.backend.ast.*
 
 fun _identityEquals(a: JsExpression, b: JsExpression) = JsBinaryOperation(JsBinaryOperator.REF_EQ, a, b)
 fun _identityNotEquals(a: JsExpression, b: JsExpression) = JsBinaryOperation(JsBinaryOperator.REF_NEQ, a, b)

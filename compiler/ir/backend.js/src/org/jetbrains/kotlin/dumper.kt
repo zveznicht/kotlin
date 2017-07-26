@@ -214,7 +214,7 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
     override fun visitClass(declaration: IrClass) {
         val descriptor = declaration.descriptor
 
-        val kind = DescriptorRenderer.getClassKindPrefix(descriptor)
+        val kind = DescriptorRenderer.getClassifierKindPrefix(descriptor)
 
         p.println(kind + " " + descriptor.name.asString() + " {")
         p.pushIndent()
@@ -324,6 +324,7 @@ class Dumper(val p: Printer) : IrElementVisitorVoid {
             IrTypeOperator.SAFE_CAST -> "as?" to ""
             IrTypeOperator.INSTANCEOF -> "is" to ""
             IrTypeOperator.NOT_INSTANCEOF -> "!is" to ""
+            IrTypeOperator.IMPLICIT_INTEGER_COERCION -> TODO()
         }
 
         expression.argument.acceptVoid(this)

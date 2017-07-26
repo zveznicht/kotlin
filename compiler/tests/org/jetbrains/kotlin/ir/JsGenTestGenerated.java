@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 JetBrains s.r.o.
+ * Copyright 2010-2017 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.ir;
 import com.intellij.testFramework.TestDataPath;
 import org.jetbrains.kotlin.test.JUnit3RunnerWithInners;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
+import org.jetbrains.kotlin.test.TargetBackend;
 import org.jetbrains.kotlin.test.TestMetadata;
 import org.junit.runner.RunWith;
 
@@ -32,15 +33,21 @@ import java.util.regex.Pattern;
 @RunWith(JUnit3RunnerWithInners.class)
 public class JsGenTestGenerated extends AbstractJsGenTest {
     public void testAllFilesPresentInIrText() throws Exception {
-        KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText"), Pattern.compile("^(.+)\\.kt$"), true);
+        KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
     }
 
     @TestMetadata("compiler/testData/ir/irText/classes")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Classes extends AbstractJsGenTest {
+        @TestMetadata("abstractMembers.kt")
+        public void testAbstractMembers() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/abstractMembers.kt");
+            doTest(fileName);
+        }
+
         public void testAllFilesPresentInClasses() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/classes"), Pattern.compile("^(.+)\\.kt$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/classes"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
         }
 
         @TestMetadata("argumentReorderingInDelegatingConstructorCall.kt")
@@ -67,9 +74,21 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("dataClassWithArrayMembers.kt")
+        public void testDataClassWithArrayMembers() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/dataClassWithArrayMembers.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("dataClasses.kt")
         public void testDataClasses() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/dataClasses.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("dataClassesGeneric.kt")
+        public void testDataClassesGeneric() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/dataClassesGeneric.kt");
             doTest(fileName);
         }
 
@@ -82,6 +101,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
         @TestMetadata("delegatedImplementationWithExplicitOverride.kt")
         public void testDelegatedImplementationWithExplicitOverride() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/delegatedImplementationWithExplicitOverride.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("delegatingConstructorCallToTypeAliasConstructor.kt")
+        public void testDelegatingConstructorCallToTypeAliasConstructor() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/delegatingConstructorCallToTypeAliasConstructor.kt");
             doTest(fileName);
         }
 
@@ -127,6 +152,18 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("innerClassWithDelegatingConstructor.kt")
+        public void testInnerClassWithDelegatingConstructor() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/innerClassWithDelegatingConstructor.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("lambdaInDataClassDefaultParameter.kt")
+        public void testLambdaInDataClassDefaultParameter() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/lambdaInDataClassDefaultParameter.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("localClasses.kt")
         public void testLocalClasses() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/localClasses.kt");
@@ -142,6 +179,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
         @TestMetadata("objectWithInitializers.kt")
         public void testObjectWithInitializers() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/objectWithInitializers.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("outerClassAccess.kt")
+        public void testOuterClassAccess() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/classes/outerClassAccess.kt");
             doTest(fileName);
         }
 
@@ -193,7 +236,13 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Declarations extends AbstractJsGenTest {
         public void testAllFilesPresentInDeclarations() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/declarations"), Pattern.compile("^(.+)\\.kt$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/declarations"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("catchParameterInTopLevelProperty.kt")
+        public void testCatchParameterInTopLevelProperty() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/catchParameterInTopLevelProperty.kt");
+            doTest(fileName);
         }
 
         @TestMetadata("classLevelProperties.kt")
@@ -214,6 +263,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("fakeOverrides.kt")
+        public void testFakeOverrides() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/fakeOverrides.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("fileWithAnnotations.kt")
         public void testFileWithAnnotations() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/fileWithAnnotations.kt");
@@ -229,6 +284,18 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
         @TestMetadata("localDelegatedProperties.kt")
         public void testLocalDelegatedProperties() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/localDelegatedProperties.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("localDelegatedPropertyWithSuspendOperators.kt")
+        public void testLocalDelegatedPropertyWithSuspendOperators() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/localDelegatedPropertyWithSuspendOperators.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("localVarInDoWhile.kt")
+        public void testLocalVarInDoWhile() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/localVarInDoWhile.kt");
             doTest(fileName);
         }
 
@@ -255,6 +322,120 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/typeAlias.kt");
             doTest(fileName);
         }
+
+        @TestMetadata("compiler/testData/ir/irText/declarations/parameters")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Parameters extends AbstractJsGenTest {
+            public void testAllFilesPresentInParameters() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/declarations/parameters"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+            }
+
+            @TestMetadata("class.kt")
+            public void testClass() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/parameters/class.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("constructor.kt")
+            public void testConstructor() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/parameters/constructor.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("dataClassMembers.kt")
+            public void testDataClassMembers() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/parameters/dataClassMembers.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("defaultPropertyAccessors.kt")
+            public void testDefaultPropertyAccessors() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/parameters/defaultPropertyAccessors.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("delegatedMembers.kt")
+            public void testDelegatedMembers() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/parameters/delegatedMembers.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("fun.kt")
+            public void testFun() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/parameters/fun.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("genericInnerClass.kt")
+            public void testGenericInnerClass() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/parameters/genericInnerClass.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("lambdas.kt")
+            public void testLambdas() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/parameters/lambdas.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("localFun.kt")
+            public void testLocalFun() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/parameters/localFun.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("propertyAccessors.kt")
+            public void testPropertyAccessors() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/parameters/propertyAccessors.kt");
+                doTest(fileName);
+            }
+        }
+
+        @TestMetadata("compiler/testData/ir/irText/declarations/provideDelegate")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class ProvideDelegate extends AbstractJsGenTest {
+            public void testAllFilesPresentInProvideDelegate() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/declarations/provideDelegate"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+            }
+
+            @TestMetadata("differentReceivers.kt")
+            public void testDifferentReceivers() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/provideDelegate/differentReceivers.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("local.kt")
+            public void testLocal() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/provideDelegate/local.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("localDifferentReceivers.kt")
+            public void testLocalDifferentReceivers() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/provideDelegate/localDifferentReceivers.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("member.kt")
+            public void testMember() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/provideDelegate/member.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("memberExtension.kt")
+            public void testMemberExtension() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/provideDelegate/memberExtension.kt");
+                doTest(fileName);
+            }
+
+            @TestMetadata("topLevel.kt")
+            public void testTopLevel() throws Exception {
+                String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/declarations/provideDelegate/topLevel.kt");
+                doTest(fileName);
+            }
+        }
     }
 
     @TestMetadata("compiler/testData/ir/irText/errors")
@@ -262,7 +443,7 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Errors extends AbstractJsGenTest {
         public void testAllFilesPresentInErrors() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/errors"), Pattern.compile("^(.+)\\.kt$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/errors"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
         }
 
         @TestMetadata("suppressedNonPublicCall.kt")
@@ -283,7 +464,13 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Expressions extends AbstractJsGenTest {
         public void testAllFilesPresentInExpressions() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/expressions"), Pattern.compile("^(.+)\\.kt$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/expressions"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("argumentMappedWithError.kt")
+        public void testArgumentMappedWithError() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/argumentMappedWithError.kt");
+            doTest(fileName);
         }
 
         @TestMetadata("arrayAccess.kt")
@@ -346,6 +533,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("booleanConstsInAndAndOrOr.kt")
+        public void testBooleanConstsInAndAndOrOr() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/booleanConstsInAndAndOrOr.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("booleanOperators.kt")
         public void testBooleanOperators() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/booleanOperators.kt");
@@ -382,15 +575,39 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("callableRefToGenericMember.kt")
+        public void testCallableRefToGenericMember() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/callableRefToGenericMember.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("callableReferenceToImportedFromObject.kt")
+        public void testCallableReferenceToImportedFromObject() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/callableReferenceToImportedFromObject.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("calls.kt")
         public void testCalls() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/calls.kt");
             doTest(fileName);
         }
 
+        @TestMetadata("catchParameterAccess.kt")
+        public void testCatchParameterAccess() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/catchParameterAccess.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("chainOfSafeCalls.kt")
         public void testChainOfSafeCalls() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/chainOfSafeCalls.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("classReference.kt")
+        public void testClassReference() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/classReference.kt");
             doTest(fileName);
         }
 
@@ -406,6 +623,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("contructorCall.kt")
+        public void testContructorCall() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/contructorCall.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("conventionComparisons.kt")
         public void testConventionComparisons() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/conventionComparisons.kt");
@@ -415,6 +638,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
         @TestMetadata("destructuring1.kt")
         public void testDestructuring1() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/destructuring1.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("destructuringWithUnderscore.kt")
+        public void testDestructuringWithUnderscore() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/destructuringWithUnderscore.kt");
             doTest(fileName);
         }
 
@@ -430,9 +659,27 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("enumEntryAsReceiver.kt")
+        public void testEnumEntryAsReceiver() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/enumEntryAsReceiver.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("equality.kt")
         public void testEquality() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/equality.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("extFunInvokeAsFun.kt")
+        public void testExtFunInvokeAsFun() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/extFunInvokeAsFun.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("extFunSafeInvoke.kt")
+        public void testExtFunSafeInvoke() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/extFunSafeInvoke.kt");
             doTest(fileName);
         }
 
@@ -466,6 +713,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("genericPropertyCall.kt")
+        public void testGenericPropertyCall() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/genericPropertyCall.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("identity.kt")
         public void testIdentity() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/identity.kt");
@@ -496,6 +749,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("interfaceThisRef.kt")
+        public void testInterfaceThisRef() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/interfaceThisRef.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("jvmInstanceFieldReference.kt")
         public void testJvmInstanceFieldReference() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/jvmInstanceFieldReference.kt");
@@ -508,15 +767,69 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("kt16904.kt")
+        public void testKt16904() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/kt16904.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("kt16905.kt")
+        public void testKt16905() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/kt16905.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("lambdaInCAO.kt")
+        public void testLambdaInCAO() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/lambdaInCAO.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("literals.kt")
         public void testLiterals() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/literals.kt");
             doTest(fileName);
         }
 
+        @TestMetadata("membersImportedFromObject.kt")
+        public void testMembersImportedFromObject() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/membersImportedFromObject.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("multipleThisReferences.kt")
+        public void testMultipleThisReferences() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/multipleThisReferences.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("objectAsCallable.kt")
+        public void testObjectAsCallable() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/objectAsCallable.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("objectClassReference.kt")
+        public void testObjectClassReference() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/objectClassReference.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("outerClassInstanceReference.kt")
+        public void testOuterClassInstanceReference() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/outerClassInstanceReference.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("primitiveComparisons.kt")
         public void testPrimitiveComparisons() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/primitiveComparisons.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("primitivesImplicitConversions.kt")
+        public void testPrimitivesImplicitConversions() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/primitivesImplicitConversions.kt");
             doTest(fileName);
         }
 
@@ -604,6 +917,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("thisOfGenericOuterClass.kt")
+        public void testThisOfGenericOuterClass() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/thisOfGenericOuterClass.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("throw.kt")
         public void testThrow() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/throw.kt");
@@ -664,6 +983,12 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
             doTest(fileName);
         }
 
+        @TestMetadata("whenCoercedToUnit.kt")
+        public void testWhenCoercedToUnit() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/whenCoercedToUnit.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("whenElse.kt")
         public void testWhenElse() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/expressions/whenElse.kt");
@@ -688,12 +1013,18 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Lambdas extends AbstractJsGenTest {
         public void testAllFilesPresentInLambdas() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/lambdas"), Pattern.compile("^(.+)\\.kt$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/lambdas"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
         }
 
         @TestMetadata("anonymousFunction.kt")
         public void testAnonymousFunction() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/lambdas/anonymousFunction.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("destructuringInLambda.kt")
+        public void testDestructuringInLambda() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/lambdas/destructuringInLambda.kt");
             doTest(fileName);
         }
 
@@ -739,12 +1070,96 @@ public class JsGenTestGenerated extends AbstractJsGenTest {
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Regressions extends AbstractJsGenTest {
         public void testAllFilesPresentInRegressions() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/regressions"), Pattern.compile("^(.+)\\.kt$"), true);
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/regressions"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
         }
 
         @TestMetadata("coercionInLoop.kt")
         public void testCoercionInLoop() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/regressions/coercionInLoop.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("integerCoercionToT.kt")
+        public void testIntegerCoercionToT() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/regressions/integerCoercionToT.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("typeAliasCtorForGenericClass.kt")
+        public void testTypeAliasCtorForGenericClass() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/regressions/typeAliasCtorForGenericClass.kt");
+            doTest(fileName);
+        }
+    }
+
+    @TestMetadata("compiler/testData/ir/irText/singletons")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Singletons extends AbstractJsGenTest {
+        public void testAllFilesPresentInSingletons() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/singletons"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("companion.kt")
+        public void testCompanion() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/singletons/companion.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("enumEntry.kt")
+        public void testEnumEntry() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/singletons/enumEntry.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("object.kt")
+        public void testObject() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/singletons/object.kt");
+            doTest(fileName);
+        }
+    }
+
+    @TestMetadata("compiler/testData/ir/irText/stubs")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Stubs extends AbstractJsGenTest {
+        public void testAllFilesPresentInStubs() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/ir/irText/stubs"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+        }
+
+        @TestMetadata("builtinMap.kt")
+        public void testBuiltinMap() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/stubs/builtinMap.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("javaEnum.kt")
+        public void testJavaEnum() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/stubs/javaEnum.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("javaInnerClass.kt")
+        public void testJavaInnerClass() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/stubs/javaInnerClass.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("javaNestedClass.kt")
+        public void testJavaNestedClass() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/stubs/javaNestedClass.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("kotlinInnerClass.kt")
+        public void testKotlinInnerClass() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/stubs/kotlinInnerClass.kt");
+            doTest(fileName);
+        }
+
+        @TestMetadata("simple.kt")
+        public void testSimple() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/ir/irText/stubs/simple.kt");
             doTest(fileName);
         }
     }

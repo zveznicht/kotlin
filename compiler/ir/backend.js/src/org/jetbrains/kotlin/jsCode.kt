@@ -16,12 +16,12 @@
 
 package org.jetbrains.kotlin
 
-import com.google.dart.compiler.backend.js.ast.*
 import com.google.gwt.dev.js.ThrowExceptionOnErrorReporter
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.js.backend.ast.*
 import org.jetbrains.kotlin.js.parser.parse
 
 fun translateJsCode(call: IrCall, scope: JsScope): JsNode {
@@ -58,7 +58,7 @@ private fun parseJsCode(jsCodeExpression: IrExpression, currentScope: JsScope): 
     // In case of js we want to keep new local names,
     // but no new global ones.
     assert(currentScope is JsFunctionScope) { "Usage of js outside of function is unexpected" }
-    val temporaryRootScope = JsRootScope(JsProgram("<js code>"))
+    val temporaryRootScope = JsRootScope(JsProgram())
     val scope = DelegatingJsFunctionScopeWithTemporaryParent(currentScope as JsFunctionScope, temporaryRootScope)
-    return parse(jsCode, ThrowExceptionOnErrorReporter, scope)
+    return parse(jsCode, ThrowExceptionOnErrorReporter, scope, "<js code>")
 }

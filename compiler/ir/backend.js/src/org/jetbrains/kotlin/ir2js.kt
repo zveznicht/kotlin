@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin
 
-import com.google.dart.compiler.backend.js.ast.*
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
@@ -31,17 +30,17 @@ import org.jetbrains.kotlin.ir.util.dump
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
+import org.jetbrains.kotlin.js.backend.ast.*
 import org.jetbrains.kotlin.js.resolve.diagnostics.JsCallChecker
 import org.jetbrains.kotlin.js.translate.context.Namer
-import org.jetbrains.kotlin.js.translate.context.StandardClasses
 import org.jetbrains.kotlin.js.translate.context.StaticContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
 import org.jetbrains.kotlin.transformers.Intrinsics
 import org.jetbrains.kotlin.transformers.propertyAccessToFieldAccess
 import org.jetbrains.kotlin.types.isDynamic
 
-private val program = JsProgram("<ir2js>")
-private val staticCtx = StaticContext(program, Namer.newInstance(program.rootScope), StandardClasses.bindImplementations(JsObjectScope(program.rootScope, "")), program.rootScope)
+private val program = JsProgram()
+private val staticCtx = StaticContext(program, Namer.newInstance(program.rootScope), program.rootScope)
 
 val RECEIVER = "\$receiver"
 
@@ -81,7 +80,7 @@ fun ir2js(module: IrModuleFragment): JsNode {
                 segments.subList(1, segments.size).fold(JsNameRef(name)) { r, n -> JsNameRef(n.asString(), r) }
             }
             else {
-                JsLiteral.THIS
+                JsThisRef()
             }
 
             // var foo = foo || {}
@@ -356,16 +355,16 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
     override fun <T> visitConst(expression: IrConst<T>, data: Data): JsExpression {
     val kind = expression.kind
     return when (kind) {
-            is IrConstKind.String -> program.getStringLiteral(kind.valueOf(expression))
-            is IrConstKind.Null -> JsLiteral.NULL
-            is IrConstKind.Boolean -> if (kind.valueOf(expression)) JsLiteral.TRUE else JsLiteral.FALSE
-            is IrConstKind.Char -> program.getNumberLiteral(kind.valueOf(expression).toInt()) // TODO
-            is IrConstKind.Byte -> program.getNumberLiteral(kind.valueOf(expression).toInt())
-            is IrConstKind.Short -> program.getNumberLiteral(kind.valueOf(expression).toInt())
-            is IrConstKind.Int -> program.getNumberLiteral(kind.valueOf(expression))
-            is IrConstKind.Long -> program.getNumberLiteral(kind.valueOf(expression).toDouble()) // TODO
-            is IrConstKind.Float -> program.getNumberLiteral(kind.valueOf(expression).toDouble())
-            is IrConstKind.Double -> program.getNumberLiteral(kind.valueOf(expression))
+            is IrConstKind.String -> JsStringLiteral(kind.valueOf(expression))
+            is IrConstKind.Null -> JsNullLiteral()
+            is IrConstKind.Boolean -> if (kind.valueOf(expression)) JsBooleanLiteral(true) else JsBooleanLiteral(false)
+            is IrConstKind.Char -> JsIntLiteral(kind.valueOf(expression).toInt()) // TODO
+            is IrConstKind.Byte -> JsIntLiteral(kind.valueOf(expression).toInt())
+            is IrConstKind.Short -> JsIntLiteral(kind.valueOf(expression).toInt())
+            is IrConstKind.Int -> JsIntLiteral(kind.valueOf(expression))
+            is IrConstKind.Long -> JsDoubleLiteral(kind.valueOf(expression).toDouble()) // TODO
+            is IrConstKind.Float -> JsDoubleLiteral(kind.valueOf(expression).toDouble())
+            is IrConstKind.Double -> JsDoubleLiteral(kind.valueOf(expression))
         }
     }
     override fun visitVararg(expression: IrVararg, data: Data): JsExpression {
@@ -389,7 +388,7 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
 
     override fun visitStringConcatenation(expression: IrStringConcatenation, data: Data): JsExpression {
         // TODO revisit
-        return expression.arguments.fold<IrExpression, JsExpression>(program.getStringLiteral("")) { jsExpr, irExpr -> _plus(jsExpr, irExpr.accept(this, data)) }
+        return expression.arguments.fold<IrExpression, JsExpression>(JsStringLiteral("")) { jsExpr, irExpr -> _plus(jsExpr, irExpr.accept(this, data)) }
     }
 //    fun visitThisReference(expression: IrThisReference, data: D) = visitExpression(expression, data)
 //
@@ -465,7 +464,7 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
 
         val descriptor = expression.descriptor
         //  JS-code
-        if (descriptor is SimpleFunctionDescriptor && JsCallChecker.JS_PATTERN.apply(descriptor)) {
+        if (descriptor is SimpleFunctionDescriptor && JsCallChecker.JS_PATTERN.test(descriptor)) {
             // TODO it can be non-expression
             val jsCode = translateJsCode(expression, program.scope)
             if (jsCode is JsExpression) return jsCode
@@ -491,7 +490,7 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
                         argument.accept(this, data)
                     }
                     else {
-                        JsPrefixOperation(JsUnaryOperator.VOID, program.getNumberLiteral(1))
+                        JsPrefixOperation(JsUnaryOperator.VOID, JsIntLiteral(1))
                     }
                 }.take(latestProvidedArgumentIndex + 1)
 
@@ -523,11 +522,12 @@ class ExpressionGenerator : BaseGenerator<JsExpression, Data> {
         return when(expression.operator) {
             IrTypeOperator.CAST -> JsConditional(_instanceOf(argument, type), argument, throwCCE())
             IrTypeOperator.IMPLICIT_CAST -> argument // JsConditional(_instanceOf(argument, type), argument, throwCCE()) // TODO what should we do in JS here?
-            IrTypeOperator.IMPLICIT_NOTNULL -> if (expression.argument.type.isDynamic()) argument else JsConditional(_identityEquals(argument, JsLiteral.NULL), argument, throwCCE()) // TODO what should we do in JS here?
-            IrTypeOperator.SAFE_CAST -> JsConditional(_instanceOf(argument, type), argument, JsLiteral.NULL)
+            IrTypeOperator.IMPLICIT_NOTNULL -> if (expression.argument.type.isDynamic()) argument else JsConditional(_identityEquals(argument, JsNullLiteral()), argument, throwCCE()) // TODO what should we do in JS here?
+            IrTypeOperator.SAFE_CAST -> JsConditional(_instanceOf(argument, type), argument, JsNullLiteral())
             IrTypeOperator.INSTANCEOF -> _instanceOf(argument, type)
             IrTypeOperator.NOT_INSTANCEOF -> _not(_instanceOf(argument, type))
             IrTypeOperator.IMPLICIT_COERCION_TO_UNIT -> argument // TODO: ?
+            IrTypeOperator.IMPLICIT_INTEGER_COERCION -> TODO()
         }
    }
 

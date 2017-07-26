@@ -16,8 +16,6 @@
 
 package org.jetbrains.kotlin.transformers
 
-import com.google.dart.compiler.backend.js.ast.JsExpression
-import com.google.dart.compiler.backend.js.ast.JsLiteral
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
@@ -35,6 +33,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrBinaryPrimitiveImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
+import org.jetbrains.kotlin.js.backend.ast.*
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.name.Name
@@ -136,7 +135,7 @@ class Intrinsics(val irBuiltIns: IrBuiltIns) {
 
         with(KotlinBuiltIns.BUILT_INS_PACKAGE_FQ_NAME + "Array") {
             add(this, "<get-size>", 0) {
-                val descriptor = PropertyDescriptorImpl.create(packageFragment, Annotations.EMPTY, Modality.FINAL, Visibilities.DEFAULT_VISIBILITY, false, Name.identifier("length"), CallableMemberDescriptor.Kind.DECLARATION, org.jetbrains.kotlin.descriptors.SourceElement.NO_SOURCE, false, false)
+                val descriptor = PropertyDescriptorImpl.create(packageFragment, Annotations.EMPTY, Modality.FINAL, Visibilities.DEFAULT_VISIBILITY, false, Name.identifier("length"), CallableMemberDescriptor.Kind.DECLARATION, org.jetbrains.kotlin.descriptors.SourceElement.NO_SOURCE, false, false, false, false, false, false)
                 descriptor.setType(it.descriptor.returnType!!, it.descriptor.typeParameters, it.descriptor.dispatchReceiverParameter, it.descriptor.extensionReceiverParameter)
                 IrGetFieldImpl(it.startOffset, it.endOffset, descriptor, it.dispatchReceiver ?: it.extensionReceiver)
             }
@@ -168,7 +167,7 @@ class Intrinsics(val irBuiltIns: IrBuiltIns) {
     private val toJsIntrinsics = IntrinsicsMap<IrCallTransformer<JsExpression>>().apply {
         add(KotlinBuiltIns.BUILT_INS_PACKAGE_FQ_NAME, "arrayOf", 1) {
             it
-            JsLiteral.NULL
+            JsNullLiteral()
         }
     }
 

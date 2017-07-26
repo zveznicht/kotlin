@@ -69,7 +69,6 @@ public final class StaticContext {
     @NotNull
     private final JsProgram program;
 
-    @NotNull
     private final JsProgramFragment fragment;
 
     @NotNull
@@ -77,6 +76,7 @@ public final class StaticContext {
     @NotNull
     private final Namer namer;
 
+    @NotNull
     private final Intrinsics intrinsics;
 
     @NotNull
@@ -130,7 +130,6 @@ public final class StaticContext {
     @NotNull
     private final Map<FqName, JsScope> packageScopes = new HashMap<>();
 
-    @NotNull
     private final ClassModelGenerator classModelGenerator;
 
     @Nullable
@@ -164,18 +163,19 @@ public final class StaticContext {
     public StaticContext(
             @NotNull JsProgram program,
             @NotNull Namer namer,
-            @NotNull StandardClasses standardClasses,
             @NotNull JsScope rootScope
     ) {
         this.program = program;
         this.namer = namer;
-        this.standardClasses = standardClasses;
         this.rootScope = rootScope;
         this.bindingTrace = null;
         this.intrinsics = null;
         this.config = null;
         currentModule = null;
-        rootPackageScope = new JsObjectScope(rootScope, "<root package>", "root-package");;
+        ///todo
+        this.fragment = null;
+        this.classModelGenerator = null;
+        rootPackageScope = new JsObjectScope(rootScope, "<root package>");;
     }
 
     @NotNull
@@ -716,12 +716,16 @@ public final class StaticContext {
 
         if (UNKNOWN_EXTERNAL_MODULE_NAME.equals(moduleName)) return null;
 
-        JsName moduleId = moduleName.equals(Namer.KOTLIN_LOWER_NAME) ? rootScope.declareName(Namer.KOTLIN_NAME) :
-                          importedModules.get(moduleName);
-        if (moduleId == null) {
-            moduleId = rootScope.declareFreshName(Namer.LOCAL_MODULE_PREFIX + Namer.suggestedModuleName(moduleName));
-            importedModules.put(moduleName, moduleId);
-        }
+        return getImportedModule(moduleName, null).getInternalName();
+
+        ///???
+        //JsName moduleId = moduleName.equals(Namer.KOTLIN_LOWER_NAME) ? rootScope.declareName(Namer.KOTLIN_NAME) :
+        //                  importedModules.get(moduleName);
+        //if (moduleId == null) {
+        //    moduleId = rootScope.declareFreshName(Namer.LOCAL_MODULE_PREFIX + Namer.suggestedModuleName(moduleName));
+        //    importedModules.put(moduleName, moduleId);
+        //}
+    }
 
     @NotNull
     private static String suggestModuleName(@NotNull ModuleDescriptor module) {

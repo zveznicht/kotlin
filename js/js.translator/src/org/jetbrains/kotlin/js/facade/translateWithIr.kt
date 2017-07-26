@@ -16,9 +16,9 @@
 
 package org.jetbrains.kotlin.js.facade
 
-import com.google.dart.compiler.backend.js.ast.JsNode
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir2js
+import org.jetbrains.kotlin.js.backend.ast.JsNode
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi2ir.Psi2IrConfiguration
 import org.jetbrains.kotlin.psi2ir.Psi2IrTranslator
