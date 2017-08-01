@@ -31,7 +31,7 @@ object UtilityParsers {
 }
 
 internal fun ValueParameterDescriptor.toESVariable(): ESVariable {
-    val dfv = DataFlowValue(IdentifierInfo.Variable(this, DataFlowValue.Kind.STABLE_VALUE, null), type)
+    val dfv = DataFlowValue(IdentifierInfo.Variable(this, DataFlowValue.Kind.STABLE_VALUE, null, null), type)
     return ESVariable(ValueIdsFactory.dfvBased(dfv), type)
 }
 

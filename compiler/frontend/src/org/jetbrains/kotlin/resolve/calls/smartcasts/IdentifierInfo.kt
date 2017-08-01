@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.resolve.calls.smartcasts
 
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.VariableDescriptor
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValue.Kind.OTHER
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValue.Kind.STABLE_VALUE
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
@@ -44,7 +45,8 @@ interface IdentifierInfo {
     class Variable(
             val variable: VariableDescriptor,
             override val kind: DataFlowValue.Kind,
-            val bound: DataFlowValue?
+            val bound: DataFlowValue?,
+            val accessElement: KtElement?
     ) : IdentifierInfo {
 
         override val canBeBound
