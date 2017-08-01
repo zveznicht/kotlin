@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns;
 import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.Annotations;
+import org.jetbrains.kotlin.effectsystem.adapters.EffectSystem;
 import org.jetbrains.kotlin.name.Name;
 import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus;
 import org.jetbrains.kotlin.psi.*;
@@ -77,8 +78,10 @@ public class CallResolver {
     private PSICallResolver PSICallResolver;
     private final KotlinBuiltIns builtIns;
     private final LanguageVersionSettings languageVersionSettings;
+    private EffectSystem effectSystem;
 
-    private static final PerformanceCounter callResolvePerfCounter = PerformanceCounter.Companion.create("Call resolve", ExpressionTypingVisitorDispatcher.typeInfoPerfCounter);
+    private static final PerformanceCounter callResolvePerfCounter =
+            PerformanceCounter.Companion.create("Call resolve", ExpressionTypingVisitorDispatcher.typeInfoPerfCounter);
 
     public CallResolver(
             @NotNull KotlinBuiltIns builtIns,
@@ -86,6 +89,12 @@ public class CallResolver {
     ) {
         this.builtIns = builtIns;
         this.languageVersionSettings = languageVersionSettings;
+    }
+
+    // component dependency cycle
+    @Inject
+    public void setEffectSystem(@NotNull EffectSystem effectSystem) {
+        this.effectSystem = effectSystem;
     }
 
     // component dependency cycle
@@ -163,7 +172,8 @@ public class CallResolver {
             @NotNull KtReferenceExpression functionReference,
             @NotNull Name name
     ) {
-        BasicCallResolutionContext callResolutionContext = BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
+        BasicCallResolutionContext callResolutionContext =
+                BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
         return computeTasksAndResolveCall(
                 callResolutionContext, name, functionReference,
                 NewResolutionOldInference.ResolutionKind.Function.INSTANCE);
@@ -249,7 +259,8 @@ public class CallResolver {
             @NotNull Call call,
             @NotNull FunctionDescriptor functionDescriptor
     ) {
-        BasicCallResolutionContext callResolutionContext = BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
+        BasicCallResolutionContext callResolutionContext =
+                BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS);
         ResolutionCandidate<FunctionDescriptor> candidate = ResolutionCandidate.create(
                 call, functionDescriptor, null, ExplicitReceiverKind.NO_EXPLICIT_RECEIVER, null);
 
@@ -268,7 +279,8 @@ public class CallResolver {
     ) {
         return resolveFunctionCall(
                 BasicCallResolutionContext.create(
-                        trace, scope, call, expectedType, dataFlowInfo, ContextDependency.INDEPENDENT, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
+                        trace, scope, call, expectedType, dataFlowInfo, ContextDependency.INDEPENDENT,
+                        CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
                         isAnnotationContext
                 )
         );
@@ -300,9 +312,12 @@ public class CallResolver {
         else if (calleeExpression instanceof KtConstructorDelegationReferenceExpression) {
             KtConstructorDelegationCall delegationCall = (KtConstructorDelegationCall) context.call.getCallElement();
             DeclarationDescriptor container = context.scope.getOwnerDescriptor();
-            assert container instanceof ConstructorDescriptor : "Trying to resolve JetConstructorDelegationCall not in constructor. scope.ownerDescriptor = " + container;
-            return (OverloadResolutionResults) resolveConstructorDelegationCall(context, delegationCall, (KtConstructorDelegationReferenceExpression) calleeExpression,
-                                                    (ClassConstructorDescriptor) container);
+            assert container instanceof ConstructorDescriptor :
+                    "Trying to resolve JetConstructorDelegationCall not in constructor. scope.ownerDescriptor = " +
+                    container;
+            return (OverloadResolutionResults) resolveConstructorDelegationCall(context, delegationCall,
+                                                                                (KtConstructorDelegationReferenceExpression) calleeExpression,
+                                                                                (ClassConstructorDescriptor) container);
         }
         else if (calleeExpression == null) {
             return checkArgumentTypesAndFail(context);
@@ -322,7 +337,8 @@ public class CallResolver {
         }
         KotlinType calleeType = expressionTypingServices.safeGetType(
                 context.scope, calleeExpression, expectedType, context.dataFlowInfo, context.trace);
-        ExpressionReceiver expressionReceiver = ExpressionReceiver.Companion.create(calleeExpression, calleeType, context.trace.getBindingContext());
+        ExpressionReceiver expressionReceiver =
+                ExpressionReceiver.Companion.create(calleeExpression, calleeType, context.trace.getBindingContext());
 
         Call call = new CallTransformer.CallForImplicitInvoke(context.call.getExplicitReceiver(), expressionReceiver, context.call,
                                                               false);
@@ -449,8 +465,8 @@ public class CallResolver {
 
 
         KotlinType superType = isThisCall ?
-                                  calleeConstructor.getContainingDeclaration().getDefaultType() :
-                                  DescriptorUtils.getSuperClassType(currentClassDescriptor);
+                               calleeConstructor.getContainingDeclaration().getDefaultType() :
+                               DescriptorUtils.getSuperClassType(currentClassDescriptor);
 
         Pair<Collection<ResolutionCandidate<ConstructorDescriptor>>, BasicCallResolutionContext> candidatesAndContext =
                 prepareCandidatesAndContextForConstructorCall(superType, context, syntheticScopes);
@@ -464,8 +480,8 @@ public class CallResolver {
         PsiElement reportOn = call.isImplicit() ? call : calleeExpression;
 
         if (delegateClassDescriptor.isInner()
-                && !DescriptorResolver.checkHasOuterClassInstance(context.scope, context.trace, reportOn,
-                                                                  (ClassDescriptor) delegateClassDescriptor.getContainingDeclaration())) {
+            && !DescriptorResolver.checkHasOuterClassInstance(context.scope, context.trace, reportOn,
+                                                              (ClassDescriptor) delegateClassDescriptor.getContainingDeclaration())) {
             return checkArgumentTypesAndFail(context);
         }
 
@@ -502,7 +518,9 @@ public class CallResolver {
     private static boolean anyConstructorHasDeclaredTypeParameters(@Nullable ClassifierDescriptor classDescriptor) {
         if (!(classDescriptor instanceof ClassDescriptor)) return false;
         for (ConstructorDescriptor constructor : ((ClassDescriptor) classDescriptor).getConstructors()) {
-            if (constructor.getTypeParameters().size() > constructor.getContainingDeclaration().getDeclaredTypeParameters().size()) return true;
+            if (constructor.getTypeParameters().size() > constructor.getContainingDeclaration().getDeclaredTypeParameters().size()) {
+                return true;
+            }
         }
 
         return false;
@@ -517,7 +535,8 @@ public class CallResolver {
     ) {
         return callResolvePerfCounter.<OverloadResolutionResults<FunctionDescriptor>>time(() -> {
             BasicCallResolutionContext basicCallResolutionContext =
-                    BasicCallResolutionContext.create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, dataFlowInfoForArguments);
+                    BasicCallResolutionContext
+                            .create(context, call, CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS, dataFlowInfoForArguments);
 
             Set<ResolutionCandidate<FunctionDescriptor>> candidates = Collections.singleton(candidate);
 
@@ -537,12 +556,14 @@ public class CallResolver {
         Call call = context.call;
         tracing.bindCall(context.trace, call);
 
-        if (KotlinResolutionConfigurationKt.getUSE_NEW_INFERENCE() && (resolutionTask.resolutionKind.getKotlinCallKind() != KotlinCallKind.UNSUPPORTED)) {
+        if (KotlinResolutionConfigurationKt.getUSE_NEW_INFERENCE() &&
+            (resolutionTask.resolutionKind.getKotlinCallKind() != KotlinCallKind.UNSUPPORTED)) {
             assert resolutionTask.name != null;
             return PSICallResolver.runResolutionAndInference(context, resolutionTask.name, resolutionTask.resolutionKind, tracing);
         }
 
-        if (KotlinResolutionConfigurationKt.getUSE_NEW_INFERENCE() && resolutionTask.resolutionKind instanceof NewResolutionOldInference.ResolutionKind.GivenCandidates) {
+        if (KotlinResolutionConfigurationKt.getUSE_NEW_INFERENCE() &&
+            resolutionTask.resolutionKind instanceof NewResolutionOldInference.ResolutionKind.GivenCandidates) {
             assert resolutionTask.givenCandidates != null;
             return PSICallResolver.runResolutionAndInferenceForGivenCandidates(context, resolutionTask.givenCandidates, tracing);
         }
@@ -606,7 +627,8 @@ public class CallResolver {
         if (CallResolverUtilKt.isInvokeCallOnVariable(call)) return;
 
         DelegatingBindingTrace deltasTraceToCacheResolve = new DelegatingBindingTrace(
-                BindingContext.EMPTY, "delta trace for caching resolve of", context.call, BindingTraceFilter.Companion.getACCEPT_ALL(), false);
+                BindingContext.EMPTY, "delta trace for caching resolve of", context.call, BindingTraceFilter.Companion.getACCEPT_ALL(),
+                false);
         traceToResolveCall.addOwnDataTo(deltasTraceToCacheResolve);
 
         context.resolutionResultsCache.record(call, results, context, tracing, deltasTraceToCacheResolve);
@@ -643,7 +665,17 @@ public class CallResolver {
 
         if (!(resolutionTask.resolutionKind instanceof NewResolutionOldInference.ResolutionKind.GivenCandidates)) {
             assert resolutionTask.name != null;
-            return newResolutionOldInference.runResolution(context, resolutionTask.name, resolutionTask.resolutionKind, tracing);
+            OverloadResolutionResultsImpl<D> results =
+                    newResolutionOldInference.runResolution(context, resolutionTask.name, resolutionTask.resolutionKind, tracing);
+
+            if (results.isSingleResult()) {
+                effectSystem.recordDefiniteInvocationsForArguments(
+                        results.getResultingCall(), context.trace, languageVersionSettings,
+                        DescriptorUtils.getContainingModule(context.scope.getOwnerDescriptor())
+                );
+            }
+
+            return results;
         }
         else {
             assert resolutionTask.givenCandidates != null;
@@ -654,14 +686,11 @@ public class CallResolver {
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private static class ResolutionTask<D extends CallableDescriptor> {
 
-        @Nullable
-        final Name name;
+        @Nullable final Name name;
 
-        @Nullable
-        final Collection<ResolutionCandidate<D>> givenCandidates;
+        @Nullable final Collection<ResolutionCandidate<D>> givenCandidates;
 
-        @NotNull
-        final NewResolutionOldInference.ResolutionKind<D> resolutionKind;
+        @NotNull final NewResolutionOldInference.ResolutionKind<D> resolutionKind;
 
         private ResolutionTask(
                 @NotNull NewResolutionOldInference.ResolutionKind<D> kind,
@@ -673,5 +702,4 @@ public class CallResolver {
             resolutionKind = kind;
         }
     }
-
 }

@@ -53,6 +53,19 @@ class EffectSystem {
                           bindingTrace, languageVersionSettings, moduleDescriptor)
     }
 
+    fun recordDefiniteInvocationsForArguments(
+            resolvedCall: ResolvedCall<*>,
+            bindingTrace: BindingTrace,
+            languageVersionSettings: LanguageVersionSettings,
+            moduleDescriptor: ModuleDescriptor
+    ) {
+        val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: return
+        // Prevent launch of effect system machinery on pointless cases (constants/enums/constructors/etc.)
+        if (callExpression is KtDeclaration) return
+        getDFIWhen(ESReturns(ValuesFactory.UNKNOWN_CONSTANT), callExpression,
+                   bindingTrace, languageVersionSettings, moduleDescriptor)
+    }
+
     fun getConditionalInfoForThenBranch(
             condition: KtExpression?,
             bindingTrace: BindingTrace,
