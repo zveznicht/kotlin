@@ -49,21 +49,20 @@ class EffectSystem {
         val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: return DataFlowInfo.EMPTY
         // Prevent launch of effect system machinery on pointless cases (constants/enums/constructors/etc.)
         if (callExpression is KtDeclaration) return DataFlowInfo.EMPTY
-        return getDFIWhen(ESReturns(ValuesFactory.UNKNOWN_CONSTANT), callExpression,
-                          bindingTrace, languageVersionSettings, moduleDescriptor)
+        return getContextInfoWhen(ESReturns(ValuesFactory.UNKNOWN_CONSTANT), callExpression,
+                                  bindingTrace, moduleDescriptor).toDataFlowInfo(languageVersionSettings)
     }
 
     fun recordDefiniteInvocationsForArguments(
             resolvedCall: ResolvedCall<*>,
             bindingTrace: BindingTrace,
-            languageVersionSettings: LanguageVersionSettings,
             moduleDescriptor: ModuleDescriptor
     ) {
         val callExpression = resolvedCall.call.callElement as? KtCallExpression ?: return
         // Prevent launch of effect system machinery on pointless cases (constants/enums/constructors/etc.)
         if (callExpression is KtDeclaration) return
-        getDFIWhen(ESReturns(ValuesFactory.UNKNOWN_CONSTANT), callExpression,
-                   bindingTrace, languageVersionSettings, moduleDescriptor)
+        val contextInfo = getContextInfoWhen(ESReturns(ValuesFactory.UNKNOWN_CONSTANT), callExpression, bindingTrace, moduleDescriptor)
+        checkAndRecordDefiniteInvocations(bindingTrace, contextInfo)
     }
 
     fun getConditionalInfoForThenBranch(
@@ -73,7 +72,7 @@ class EffectSystem {
             moduleDescriptor: ModuleDescriptor
     ): DataFlowInfo {
         if (condition == null) return DataFlowInfo.EMPTY
-        return getDFIWhen(ESReturns(true.lift()), condition, bindingTrace, languageVersionSettings, moduleDescriptor)
+        return getContextInfoWhen(ESReturns(true.lift()), condition, bindingTrace, moduleDescriptor).toDataFlowInfo(languageVersionSettings)
     }
 
     fun getConditionalInfoForElseBranch(
@@ -83,23 +82,22 @@ class EffectSystem {
             moduleDescriptor: ModuleDescriptor
     ): DataFlowInfo {
         if (condition == null) return DataFlowInfo.EMPTY
-        return getDFIWhen(ESReturns(false.lift()), condition, bindingTrace, languageVersionSettings, moduleDescriptor)
+        return getContextInfoWhen(ESReturns(false.lift()), condition, bindingTrace, moduleDescriptor).toDataFlowInfo(languageVersionSettings)
     }
 
-    private fun getDFIWhen(
+    private fun getContextInfoWhen(
             observedEffect: ESEffect,
             expression: KtExpression,
             bindingTrace: BindingTrace,
-            languageVersionSettings: LanguageVersionSettings,
             moduleDescriptor: ModuleDescriptor
-    ): DataFlowInfo {
-        val schema = getSchema(expression, bindingTrace, moduleDescriptor) ?: return DataFlowInfo.EMPTY
+    ): MutableContextInfo {
+        val schema = getSchema(expression, bindingTrace, moduleDescriptor) ?: return MutableContextInfo.EMPTY
 
         val extractedContextInfo = InfoCollector(observedEffect).collectFromSchema(schema)
 
         checkAndRecordDefiniteInvocations(bindingTrace, extractedContextInfo)
 
-        return extractedContextInfo.toDataFlowInfo(languageVersionSettings)
+        return extractedContextInfo
     }
 
     private fun getSchema(expression: KtExpression, bindingTrace: BindingTrace, moduleDescriptor: ModuleDescriptor): EffectSchema? {

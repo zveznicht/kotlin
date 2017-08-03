@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors.SMARTCAST_IMPOSSIBLE
 import org.jetbrains.kotlin.psi.Call
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.ValueArgument
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingContext.*
 import org.jetbrains.kotlin.resolve.BindingTrace
@@ -118,7 +117,7 @@ class SmartCastManager {
                 recordExpressionType: Boolean
         ) {
             if (KotlinBuiltIns.isNullableNothing(type)) return
-            if (DataFlowValueFactory.isStableWrtEffects(dataFlowValue, trace.bindingContext)) {
+            if (DataFlowValueFactory.isStableWithEffects(dataFlowValue, trace.bindingContext)) {
                 val oldSmartCasts = trace[SMARTCAST, expression]
                 val newSmartCast = SingleSmartCast(call, type)
                 if (oldSmartCasts != null) {

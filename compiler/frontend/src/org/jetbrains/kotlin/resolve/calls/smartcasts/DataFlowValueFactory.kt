@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isNullableNothing
 import org.jetbrains.kotlin.cfg.ControlFlowInformationProvider
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.descriptors.impl.SyntheticFieldDescriptor
 import org.jetbrains.kotlin.effectsystem.effects.ESCalls
@@ -37,12 +36,10 @@ import org.jetbrains.kotlin.resolve.calls.context.ResolutionContext
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValue.Kind
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValue.Kind.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
-import org.jetbrains.kotlin.resolve.descriptorUtil.parents
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ImplicitReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.resolve.scopes.receivers.TransientReceiver
-import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingUtils
 import org.jetbrains.kotlin.types.expressions.PreliminaryDeclarationVisitor
@@ -61,7 +58,7 @@ object DataFlowValueFactory {
             resolutionContext: ResolutionContext<*>
     ) = createDataFlowValue(expression, type, resolutionContext.trace.bindingContext, resolutionContext.scope.ownerDescriptor)
 
-    private fun isComplexExpression(expression: KtExpression): Boolean = when (expression) {
+    private fun isComplexExpression(expression: KtExpression): Boolean = when(expression) {
         is KtBlockExpression, is KtIfExpression, is KtWhenExpression -> true
         is KtBinaryExpression -> expression.operationToken === KtTokens.ELVIS
         is KtParenthesizedExpression -> {
@@ -379,7 +376,7 @@ object DataFlowValueFactory {
             CAPTURED_VARIABLE
     }
 
-    fun isStableWrtEffects(dataFlowValue: DataFlowValue, bindingContext: BindingContext): Boolean {
+    fun isStableWithEffects(dataFlowValue: DataFlowValue, bindingContext: BindingContext): Boolean {
         if (dataFlowValue.kind != CAPTURED_VARIABLE) return dataFlowValue.isStable
         val identifierInfo = dataFlowValue.identifierInfo as? IdentifierInfo.Variable ?: return dataFlowValue.isStable
         val accessElement = identifierInfo.accessElement ?: return dataFlowValue.isStable
