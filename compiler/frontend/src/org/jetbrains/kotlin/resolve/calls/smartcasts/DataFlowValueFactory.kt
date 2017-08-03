@@ -284,21 +284,15 @@ object DataFlowValueFactory {
             bindingContext: BindingContext,
             accessElement: KtElement
     ): Boolean {
-        val parent = ControlFlowInformationProvider.getElementParentDeclaration(accessElement) ?: return false
-
-        // Access is at the same declaration: not in closure
-        if (ControlFlowInformationProvider.getDeclarationDescriptorIncludingConstructors(bindingContext, parent) == variableContainingDeclaration) return false
+        var parent = ControlFlowInformationProvider.getElementParentDeclaration(accessElement) ?: return false
 
         // Access is in closure; check if it is inlined closure
-        if (parent is KtFunctionLiteral && parent.parent is KtLambdaExpression &&
-            bindingContext[LAMBDA_INVOCATIONS, parent.parent as KtLambdaExpression] != null)
-        {
+        while (isInlinedClosure(parent, bindingContext)) {
             // treat inlined closure as its parent
-            return parent.parent == variableContainingDeclaration
+            parent = ControlFlowInformationProvider.getElementParentDeclaration(parent) ?: return false
         }
 
-        // Otherwise, access is in closure which isn't inlined
-        return false
+        return ControlFlowInformationProvider.getDeclarationDescriptorIncludingConstructors(bindingContext, parent) != variableContainingDeclaration
     }
 
     private fun isAccessedBeforeAllClosureWriters(
