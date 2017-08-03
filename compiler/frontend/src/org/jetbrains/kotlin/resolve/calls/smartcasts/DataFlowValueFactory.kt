@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.descriptors.impl.SyntheticFieldDescriptor
+import org.jetbrains.kotlin.effectsystem.effects.ESCalls
 import org.jetbrains.kotlin.lexer.KtToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
@@ -324,7 +325,7 @@ object DataFlowValueFactory {
 
     private fun isInlinedClosure(declaration: KtDeclaration?, bindingContext: BindingContext): Boolean {
         val lambdaExpression = declaration?.parent as? KtLambdaExpression ?: return false
-        return bindingContext[BindingContext.LAMBDA_INVOCATIONS, lambdaExpression] != null
+        return bindingContext[BindingContext.LAMBDA_INVOCATIONS, lambdaExpression] == ESCalls.InvocationCount.EXACTLY_ONCE
     }
 
     private fun propertyKind(propertyDescriptor: PropertyDescriptor, usageModule: ModuleDescriptor?): Kind {
