@@ -16,15 +16,13 @@
 
 package org.jetbrains.kotlin.js.facade;
 
-import org.jetbrains.kotlin.js.backend.ast.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor;
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor;
 import org.jetbrains.kotlin.js.analyze.TopDownAnalyzerFacadeForJS;
 import org.jetbrains.kotlin.js.analyzer.JsAnalysisResult;
-import org.jetbrains.kotlin.js.backend.ast.JsImportedModule;
-import org.jetbrains.kotlin.js.backend.ast.JsProgramFragment;
+import org.jetbrains.kotlin.js.backend.ast.*;
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys;
 import org.jetbrains.kotlin.js.config.JsConfig;
 import org.jetbrains.kotlin.js.coroutine.CoroutineTransformer;
@@ -37,8 +35,9 @@ import org.jetbrains.kotlin.js.sourceMap.SourceFilePathResolver;
 import org.jetbrains.kotlin.js.translate.general.AstGenerationResult;
 import org.jetbrains.kotlin.js.translate.general.FileTranslationResult;
 import org.jetbrains.kotlin.js.translate.general.Translation;
-import org.jetbrains.kotlin.js.translate.utils.JsDescriptorUtils;
 import org.jetbrains.kotlin.js.translate.utils.ExpandIsCallsKt;
+import org.jetbrains.kotlin.js.translate.utils.JsAstUtils;
+import org.jetbrains.kotlin.js.translate.utils.JsDescriptorUtils;
 import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus;
 import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.kotlin.resolve.BindingTrace;
@@ -50,11 +49,7 @@ import org.jetbrains.kotlin.serialization.js.ast.JsAstSerializer;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.jetbrains.kotlin.diagnostics.DiagnosticUtils.hasError;
@@ -131,6 +126,27 @@ public final class K2JSTranslator {
         ProgressIndicatorAndCompilationCanceledStatus.checkCanceled();
         if (hasError(diagnostics)) return new TranslationResult.Fail(diagnostics);
 
+        JsNode node = TranslateWithIrKt.translateWithIr(moduleDescriptor, files, bindingTrace.getBindingContext());
+        JsProgram program = new JsProgram();
+
+        JsFunction rootFunction = JsAstUtils.createFunctionWithEmptyBody(program.getScope());
+        JsProgramFragment fragment1 = new JsProgramFragment(rootFunction.getScope());
+
+        List<JsStatement> statements = fragment1.getDeclarationBlock().getStatements();
+        statements.addAll(((JsBlock) node).getStatements());
+        statements.add(new JsVars(new JsVars.JsVar(program.getScope().declareName(JsDescriptorUtils.getModuleName(moduleDescriptor)),
+                                                   new JsObjectLiteral(
+                                                           Arrays.asList(new JsPropertyInitializer(new JsStringLiteral("foo"),
+                                                                                                   new JsNameRef("foo")))))));
+
+        translationResult = new AstGenerationResult(program,
+                                                    translationResult.getInnerModuleName(),
+                                                    Arrays.asList(fragment1),
+                                                    translationResult.getFragmentMap(),
+                                                    Arrays.asList(fragment1),
+                                                    translationResult.getFileMemberScopes(),
+                                                    translationResult.getImportedModuleList());
+
         List<JsProgramFragment> newFragments = new ArrayList<>(translationResult.getNewFragments());
         List<JsProgramFragment> allFragments = new ArrayList<>(translationResult.getFragments());
 
@@ -151,24 +167,24 @@ public final class K2JSTranslator {
         ExpandIsCallsKt.expandIsCalls(newFragments);
         ProgressIndicatorAndCompilationCanceledStatus.checkCanceled();
 
-        /** TODO
-         JsNode node = TranslateWithIrKt.translateWithIr(moduleDescriptor, files, bindingTrace.getBindingContext());
-         program = new JsProgram("new");
-         List<JsStatement> statements = program.getGlobalBlock().getStatements();
-         statements.addAll(((JsBlock) node).getStatements());
-         statements.add(new JsVars(new JsVars.JsVar(program.getScope().declareName(JsDescriptorUtils.getModuleName(moduleDescriptor)),
-         new JsObjectLiteral(
-         Arrays.asList(new JsPropertyInitializer(program.getStringLiteral("foo"), new JsNameRef("foo")))))));
-         //statements.add(new JsVars(new JsVars.JsVar(program.getScope().declareName(JsDescriptorUtils.getModuleName(moduleDescriptor)),
-         //                                           new JsObjectLiteral(
-         //                                                   Arrays.asList(new JsPropertyInitializer(program.getStringLiteral("foo"),
-         //                                                                                           new JsObjectLiteral(Arrays.asList(new JsPropertyInitializer(program.getStringLiteral("box"),
-         //                                                                                                                                       new JsNameRef("box"))))))))));
-
-         List<String> importedModules = new ArrayList<String>(context.getImportedModules().keySet());
-         return new TranslationResult.Success(config, files, program, diagnostics, importedModules, moduleDescriptor);
-
-         */
+        ///** TODO
+        //JsNode node = TranslateWithIrKt.translateWithIr(moduleDescriptor, files, bindingTrace.getBindingContext());
+        //JsProgram program = new JsProgram();
+        //List<JsStatement> statements = program.getGlobalBlock().getStatements();
+        //statements.addAll(((JsBlock) node).getStatements());
+        //statements.add(new JsVars(new JsVars.JsVar(program.getScope().declareName(JsDescriptorUtils.getModuleName(moduleDescriptor)),
+        //                                           new JsObjectLiteral(
+        //                                                   Arrays.asList(new JsPropertyInitializer(new JsStringLiteral("foo"),
+        //                                                                                           new JsNameRef("foo")))))));
+        // //statements.add(new JsVars(new JsVars.JsVar(program.getScope().declareName(JsDescriptorUtils.getModuleName(moduleDescriptor)),
+        // //                                           new JsObjectLiteral(
+        // //                                                   Arrays.asList(new JsPropertyInitializer(program.getStringLiteral("foo"),
+        // //                                                                                           new JsObjectLiteral(Arrays.asList(new JsPropertyInitializer(program.getStringLiteral("box"),
+        // //                                                                                                                                       new JsNameRef("box"))))))))));
+        //
+        // List<String> importedModules = new ArrayList<String>(context.getImportedModules().keySet());
+        // return new TranslationResult.Success(config, files, program, diagnostics, importedModules, moduleDescriptor);
+         //*/
 
 
         List<File> sourceRoots = config.getSourceMapRoots().stream().map(File::new).collect(Collectors.toList());
