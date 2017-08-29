@@ -24,9 +24,12 @@ import org.jetbrains.kotlin.incremental.utils.TestMessageCollector
 import java.io.File
 
 abstract class AbstractIncrementalJsCompilerRunnerTest : AbstractIncrementalCompilerRunnerTestBase<K2JSCompilerArguments>() {
-    override fun make(cacheDir: File, sourceRoots: Iterable<File>, args: K2JSCompilerArguments): TestCompilationResult {
+    override fun make(module: Module): TestCompilationResult {
         val reporter = TestICReporter()
         val messageCollector = TestMessageCollector()
+        val cacheDir = module.cacheDir
+        val sourceRoots = listOf(module.sourceRoot)
+        val args = createCompilerArguments(module)
         makeJsIncrementally(cacheDir, sourceRoots, args, reporter = reporter, messageCollector = messageCollector)
         return TestCompilationResult(reporter, messageCollector)
     }
@@ -34,9 +37,15 @@ abstract class AbstractIncrementalJsCompilerRunnerTest : AbstractIncrementalComp
     override val buildLogFinder: BuildLogFinder
         get() = super.buildLogFinder.copy(isJsEnabled = true)
 
-    override fun createCompilerArguments(destinationDir: File, testDir: File): K2JSCompilerArguments =
-            K2JSCompilerArguments().apply {
-                outputFile = File(destinationDir, "${testDir.name}.js").path
-                libraries = File(bootstrapKotlincLib, "kotlin-stdlib-js.jar").path
-            }
+    override fun createCompilerArguments(module: Module): K2JSCompilerArguments {
+        val libs = arrayListOf(File(bootstrapKotlincLib, "kotlin-stdlib-js.jar"))
+        module.dependencies.mapTo(libs) { it.outDir }
+
+        return K2JSCompilerArguments().apply {
+            outputFile = File(module.outDir, "${module.name}.js").path
+            libraries = libs.joinToString(File.pathSeparator) { it.canonicalPath }
+            metaInfo = true
+        }
+    }
+
 }

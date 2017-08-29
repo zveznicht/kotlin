@@ -23,29 +23,65 @@ import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.incremental.testingUtils.*
 import org.jetbrains.kotlin.incremental.utils.TestCompilationResult
 import org.junit.Assert
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.runners.Parameterized
 import java.io.File
+import java.util.*
 
 abstract class AbstractIncrementalCompilerRunnerTestBase<Args : CommonCompilerArguments> : TestWithWorkingDir() {
-    protected abstract fun createCompilerArguments(destinationDir: File, testDir: File): Args
+    protected open val buildLogFinder: BuildLogFinder
+        get() = BuildLogFinder(isGradleEnabled = true)
+
+    protected fun make(sortedModules: List<Module>): TestCompilationResult {
+        var exitCode = ExitCode.OK
+        val compiledSources = HashSet<File>()
+        val compileErrors = ArrayList<String>()
+
+        for (module in sortedModules) {
+            val (moduleExitCode, sources, errors) = make(module)
+            exitCode = moduleExitCode
+            compiledSources.addAll(sources)
+            compileErrors.addAll(errors)
+
+            if (exitCode != ExitCode.OK) break
+        }
+
+        return TestCompilationResult(exitCode, compiledSources, compileErrors)
+    }
+    protected abstract fun make(module: Module): TestCompilationResult
+
+    protected abstract fun createCompilerArguments(module: Module): Args
+
+    protected class Module(val name: String, workingDir: File) {
+        val sourceRoot by lazy { File(workingDir, "src/$name").apply { mkdirs() } }
+        val cacheDir by lazy { File(workingDir, "incremental-data/$name").apply { mkdirs() } }
+        val outDir by lazy { File(workingDir, "out/$name").apply { mkdirs() } }
+        val dependencies = hashSetOf<Module>()
+
+        override fun equals(other: Any?): Boolean =
+                name == (other as? Module)?.name
+
+        override fun hashCode(): Int =
+                name.hashCode()
+
+        override fun toString(): String =
+                "Module(name='$name')"
+    }
+
+    private fun createModule(name: String) =
+            Module(name, File(workingDir, name))
 
     fun doTest(path: String) {
         val testDir = File(path)
+        val sortedModules = sortModules(readModules(testDir))
 
         fun Iterable<File>.relativePaths() =
                 map { it.relativeTo(workingDir).path.replace('\\', '/') }
 
-        val srcDir = File(workingDir, "src").apply { mkdirs() }
-        val cacheDir = File(workingDir, "incremental-data").apply { mkdirs() }
-        val outDir = File(workingDir, "out").apply { mkdirs() }
-
-        val mapWorkingToOriginalFile = HashMap(copyTestSources(testDir, srcDir, filePrefix = ""))
-        val sourceRoots = listOf(srcDir)
-        val args = createCompilerArguments(outDir, testDir)
+        val mapWorkingToOriginalFile = HashMap<File, File>()
+        for (module in sortedModules) {
+            mapWorkingToOriginalFile.putAll(copyTestSources(testDir, module.sourceRoot, filePrefix = module.name))
+        }
         // initial build
-        val (_, _, errors) = make(cacheDir, sourceRoots, args)
+        val (_, _, errors) = make(sortedModules)
         if (errors.isNotEmpty()) {
             throw IllegalStateException("Initial build failed: \n${errors.joinToString("\n")}")
         }
@@ -73,7 +109,7 @@ abstract class AbstractIncrementalCompilerRunnerTestBase<Args : CommonCompilerAr
         var step = 1
         for ((modificationStep, buildLogStep) in modifications.zip(buildLogSteps)) {
             modificationStep.forEach { it.perform(workingDir, mapWorkingToOriginalFile) }
-            val (_, compiledSources, compileErrors) = make(cacheDir, sourceRoots, args)
+            val (_, compiledSources, compileErrors) = make(sortedModules)
 
             expectedSB.appendLine(stepLogAsString(step, buildLogStep.compiledKotlinFiles, buildLogStep.compileErrors))
             expectedSBWithoutErrors.appendLine(stepLogAsString(step, buildLogStep.compiledKotlinFiles, buildLogStep.compileErrors, includeErrors = false))
@@ -88,24 +124,81 @@ abstract class AbstractIncrementalCompilerRunnerTestBase<Args : CommonCompilerAr
 
         // todo: also compare caches
         run rebuildAndCompareOutput@ {
-            val rebuildOutDir = File(workingDir, "rebuild-out").apply { mkdirs() }
-            val rebuildCacheDir = File(workingDir, "rebuild-cache").apply { mkdirs() }
-            val rebuildResult = make(rebuildCacheDir, sourceRoots, createCompilerArguments(rebuildOutDir, testDir))
+            val outAfterIC = HashMap<Module, File>()
+            val outAfterIncrementalBuildRoot = File(workingDir, "out-after-ic")
+            for (module in sortedModules) {
+                val targetDir = File(outAfterIncrementalBuildRoot, module.name).apply { mkdirs() }
+                module.outDir.copyRecursively(targetDir)
+                outAfterIC[module] = targetDir
 
+                with (module.outDir) {
+                    deleteRecursively()
+                    mkdirs()
+                }
+
+                with (module.cacheDir) {
+                    deleteRecursively()
+                    mkdirs()
+                }
+            }
+
+            val rebuildResult = make(sortedModules)
             val rebuildExpectedToSucceed = buildLogSteps.last().compileSucceeded
             val rebuildSucceeded = rebuildResult.exitCode == ExitCode.OK
             Assert.assertEquals("Rebuild exit code differs from incremental exit code", rebuildExpectedToSucceed, rebuildSucceeded)
 
             if (rebuildSucceeded) {
-                assertEqualDirectories(outDir, rebuildOutDir, forgiveExtraFiles = rebuildSucceeded)
+                for (module in sortedModules) {
+                    assertEqualDirectories(module.outDir, outAfterIC[module]!!, forgiveExtraFiles = rebuildSucceeded)
+                }
             }
         }
     }
 
-    protected open val buildLogFinder: BuildLogFinder
-        get() = BuildLogFinder(isGradleEnabled = true)
+    private fun readModules(testDir: File): Set<Module> {
+        val dependenciesTxt = File(testDir, "dependencies.txt")
+        if (!dependenciesTxt.exists()) {
+            return setOf(Module(name = "", workingDir = workingDir))
+        }
 
-    protected abstract fun make(cacheDir: File, sourceRoots: Iterable<File>, args: Args): TestCompilationResult
+        val modules = HashMap<String, Module>()
+        for (line in dependenciesTxt.readLines()) {
+            val (moduleName, dependencyName) = line.split("->")
+            val module = modules.getOrPut(moduleName) { createModule(moduleName) }
+            if (dependencyName.isNotBlank()) {
+                val dependencyModule = modules.getOrPut(dependencyName) { createModule(dependencyName) }
+                module.dependencies.add(dependencyModule)
+            }
+        }
+
+        return modules.values.toSet()
+    }
+
+    private fun sortModules(modules: Set<Module>): List<Module> {
+        val topSortedModules = ArrayList<Module>(modules.size)
+
+        val visited = HashSet<Module>(modules.size)
+        val visiting = HashSet<Module>(modules.size)
+
+        fun visit(module: Module) {
+            if (module in visited) return
+
+            if (module in visiting) error("Cycles in module graphs are not supported")
+
+            visiting.add(module)
+            module.dependencies.forEach { visit(it) }
+            visiting.remove(module)
+            visited.add(module)
+
+            topSortedModules.add(module)
+        }
+
+        for (module in modules) {
+            visit(module)
+        }
+
+        return topSortedModules
+    }
 
     private fun stepLogAsString(step: Int, ktSources: Iterable<String>, errors: Collection<String>, includeErrors: Boolean = true): String {
         val sb = StringBuilder()

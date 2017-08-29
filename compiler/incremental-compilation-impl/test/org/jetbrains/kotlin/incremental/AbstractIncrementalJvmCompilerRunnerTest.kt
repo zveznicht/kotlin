@@ -26,9 +26,12 @@ import java.io.File
 import javax.tools.ToolProvider
 
 abstract class AbstractIncrementalJvmCompilerRunnerTest : AbstractIncrementalCompilerRunnerTestBase<K2JVMCompilerArguments>() {
-    override fun make(cacheDir: File, sourceRoots: Iterable<File>, args: K2JVMCompilerArguments): TestCompilationResult {
+    override fun make(module: Module): TestCompilationResult {
         val reporter = TestICReporter()
         val messageCollector = TestMessageCollector()
+        val cacheDir = module.cacheDir
+        val sourceRoots = listOf(module.sourceRoot)
+        val args = createCompilerArguments(module)
         makeIncrementally(cacheDir, sourceRoots, args, reporter = reporter, messageCollector = messageCollector)
         val kotlinCompileResult = TestCompilationResult(reporter, messageCollector)
         if (kotlinCompileResult.exitCode != ExitCode.OK) return kotlinCompileResult
@@ -67,10 +70,12 @@ abstract class AbstractIncrementalJvmCompilerRunnerTest : AbstractIncrementalCom
         return TestCompilationResult(exitCode, javaSources, errors)
     }
 
-    override fun createCompilerArguments(destinationDir: File, testDir: File): K2JVMCompilerArguments =
+    override fun createCompilerArguments(module: Module): K2JVMCompilerArguments =
             K2JVMCompilerArguments().apply {
-                moduleName = testDir.name
-                destination = destinationDir.path
+                if (module.dependencies.isNotEmpty()) error("Multi-module standalone tests are not supported for JVM")
+
+                moduleName = module.name
+                destination = module.outDir.path
                 classpath = compileClasspath
             }
 
