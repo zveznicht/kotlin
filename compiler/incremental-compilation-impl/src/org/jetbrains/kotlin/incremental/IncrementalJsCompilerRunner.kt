@@ -26,6 +26,10 @@ import org.jetbrains.kotlin.config.IncrementalCompilation
 import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.incremental.js.*
+import org.jetbrains.kotlin.serialization.ProtoBuf
+import org.jetbrains.kotlin.serialization.js.JsProtoBuf
+import org.jetbrains.kotlin.utils.KotlinJavascriptMetadataUtils
+import org.jetbrains.kotlin.utils.LibraryUtils
 import java.io.File
 
 fun makeJsIncrementally(
@@ -71,6 +75,34 @@ class IncrementalJsCompilerRunner(
         artifactChangesProvider = null,
         changesRegistry = null
 ) {
+    // value is null when key is not a js library
+    private val librariesCache = hashMapOf<File, JsLibraryProtoMapValue?>()
+    private fun readJsLibrary(file: File): JsLibraryProtoMapValue? =
+            librariesCache.getOrPut(file) {
+                if (!file.exists() || LibraryUtils.isKotlinJavascriptStdLibrary(file)) {
+                    null
+                }
+                else {
+                    val modulesList = KotlinJavascriptMetadataUtils.loadMetadata(file)
+                    val modules = modulesList.associate { it.moduleName to it.body }
+                    JsLibraryProtoMapValue(modules)
+                }
+            }
+    private fun getLibrariesMap(args: K2JSCompilerArguments): Map<File, JsLibraryProtoMapValue> {
+        val paths = args.libraries?.split(File.pathSeparator) ?: return emptyMap()
+        val libraries = HashMap<File, JsLibraryProtoMapValue>()
+        for (path in paths) {
+            val file = File(path)
+            libraries[file] = readJsLibrary(file) ?: continue
+        }
+        return libraries
+    }
+
+    override fun preBuildHook(args: K2JSCompilerArguments, compilationMode: CompilationMode, caches: IncrementalJsCachesManager) {
+        val libraries = getLibrariesMap(args)
+        caches.platformCache.updateLibaries(libraries)
+    }
+
     override fun isICEnabled(): Boolean =
         IncrementalCompilation.isEnabled() && IncrementalCompilation.isEnabledForJs()
 
@@ -83,7 +115,25 @@ class IncrementalJsCompilerRunner(
     override fun calculateSourcesToCompile(caches: IncrementalJsCachesManager, changedFiles: ChangedFiles.Known, args: K2JSCompilerArguments): CompilationMode {
         if (BuildInfo.read(lastBuildInfoFile) == null) return CompilationMode.Rebuild { "No information on previous build" }
 
-        return CompilationMode.Incremental(getDirtyFiles(changedFiles))
+        val dirtyFiles = HashSet<File>()
+        val libraries = getLibrariesMap(args)
+        val librariesChanges = caches.platformCache.compareLibraries(libraries)
+        @Suppress("UNUSED_VARIABLE") // To make this 'when' exhaustive
+        val unused: Any = when (librariesChanges) {
+            is LibrariesChangesEither.Known -> {
+                val (dirtyLookupSymbols, dirtyClassFqNames) = librariesChanges.changesCollector.getDirtyData(listOf(caches.platformCache), reporter)
+                with (dirtyFiles) {
+                    addAll(mapLookupSymbolsToFiles(caches.lookupCache, dirtyLookupSymbols, reporter))
+                    addAll(mapClassesFqNamesToFiles(kotlin.collections.listOf(caches.platformCache), dirtyClassFqNames, reporter))
+                }
+            }
+            is LibrariesChangesEither.Unknown -> {
+                CompilationMode.Rebuild { librariesChanges.reason }
+            }
+        }
+
+        dirtyFiles.addAll(getDirtyFiles(changedFiles))
+        return CompilationMode.Incremental(dirtyFiles)
     }
 
     override fun makeServices(

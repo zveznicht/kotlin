@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.serialization.AnnotationSerializer
 import org.jetbrains.kotlin.serialization.DescriptorSerializer
 import org.jetbrains.kotlin.serialization.ProtoBuf
 import org.jetbrains.kotlin.serialization.deserialization.DeserializationConfiguration
+import org.jetbrains.kotlin.serialization.js.KotlinJavascriptSerializationUtil.deserializeToLibraryParts
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.utils.JsMetadataVersion
 import org.jetbrains.kotlin.utils.KotlinJavascriptMetadataUtils
@@ -262,11 +263,14 @@ object KotlinJavascriptSerializationUtil {
         }.toByteArray()
     }
 
+    fun readLibraryMetadata(bytes: ByteArray): Pair<JsProtoBuf.Header, JsProtoBuf.Library> =
+            GZIPInputStream(ByteArrayInputStream(bytes)).use { stream ->
+                JsProtoBuf.Header.parseDelimitedFrom(stream, JsSerializerProtocol.extensionRegistry) to
+                JsProtoBuf.Library.parseFrom(stream, JsSerializerProtocol.extensionRegistry)
+            }
+
     private fun ByteArray.deserializeToLibraryParts(name: String): JsModuleDescriptor<KotlinJavaScriptLibraryParts> {
-        val (header, content) = GZIPInputStream(ByteArrayInputStream(this)).use { stream ->
-            JsProtoBuf.Header.parseDelimitedFrom(stream, JsSerializerProtocol.extensionRegistry) to
-            JsProtoBuf.Library.parseFrom(stream, JsSerializerProtocol.extensionRegistry)
-        }
+        val (header, content) = readLibraryMetadata(this)
 
         return JsModuleDescriptor(
                 name = name,

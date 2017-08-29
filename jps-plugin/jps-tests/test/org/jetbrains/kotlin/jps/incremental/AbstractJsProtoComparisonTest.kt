@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.jps.incremental
 
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants
-import org.jetbrains.kotlin.cli.js.K2JSCompiler
 import org.jetbrains.kotlin.compilerRunner.OutputItemsCollectorImpl
 import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.incremental.ProtoData
@@ -27,12 +26,7 @@ import org.jetbrains.kotlin.incremental.utils.TestMessageCollector
 import org.jetbrains.kotlin.incremental.js.IncrementalResultsConsumer
 import org.jetbrains.kotlin.incremental.js.IncrementalResultsConsumerImpl
 import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.serialization.ProtoBuf
-import org.jetbrains.kotlin.serialization.deserialization.NameResolverImpl
-import org.jetbrains.kotlin.serialization.js.JsProtoBuf
-import org.jetbrains.kotlin.serialization.js.JsSerializerProtocol
 import org.junit.Assert
 import java.io.File
 
@@ -69,33 +63,16 @@ abstract class AbstractJsProtoComparisonTest : AbstractProtoComparisonTest<Proto
         val classes = hashMapOf<ClassId, ProtoData>()
 
         for ((sourceFile, translationResult) in incrementalResults.packageParts) {
-            classes.putAll(getProtoData(sourceFile, translationResult.metadata))
+            val protoDataView = ProtoDataView().apply { addDataFromFragment(translationResult.metadata) }
+            classes.putAll(protoDataView.classes)
+
+            val (fqName, packageProto) = protoDataView.packages.entries.single()
+            val packagePartClassId = ClassId(fqName, Name.identifier(sourceFile.nameWithoutExtension.capitalize() + "Kt"))
+            classes[packagePartClassId] = packageProto
         }
 
         return classes
     }
 
     override fun ProtoData.toProtoData(): ProtoData? = this
-}
-
-fun getProtoData(sourceFile: File, metadata: ByteArray): Map<ClassId, ProtoData>  {
-    val classes = hashMapOf<ClassId, ProtoData>()
-    val proto = ProtoBuf.PackageFragment.parseFrom(metadata, JsSerializerProtocol.extensionRegistry)
-    val nameResolver = NameResolverImpl(proto.strings, proto.qualifiedNames)
-
-    proto.class_List.forEach {
-        val classId = nameResolver.getClassId(it.fqName)
-        classes[classId] = ClassProtoData(it, nameResolver)
-    }
-
-    proto.`package`.apply {
-        val packageFqName = if (hasExtension(JsProtoBuf.packageFqName)) {
-            nameResolver.getPackageFqName(getExtension(JsProtoBuf.packageFqName))
-        }
-        else FqName.ROOT
-
-        val packagePartClassId = ClassId(packageFqName, Name.identifier(sourceFile.nameWithoutExtension.capitalize() + "Kt"))
-        classes[packagePartClassId] = PackagePartProtoData(this, nameResolver, packageFqName)
-    }
-    return classes
 }

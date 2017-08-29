@@ -184,7 +184,7 @@ class IncrementalJvmCompilerRunner(
         return ChangesEither.Known(symbols, fqNames)
     }
 
-    override fun preBuildHook(args: K2JVMCompilerArguments, compilationMode: CompilationMode) {
+    override fun preBuildHook(args: K2JVMCompilerArguments, compilationMode: CompilationMode, caches: IncrementalJvmCachesManager) {
         when (compilationMode) {
             is CompilationMode.Incremental -> {
                 args.classpathAsList += args.destinationAsFile.apply { mkdirs() }

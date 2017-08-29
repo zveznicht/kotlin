@@ -143,7 +143,7 @@ abstract class IncrementalCompilerRunner<
             changesCollector: ChangesCollector
     )
 
-    protected open fun preBuildHook(args: Args, compilationMode: CompilationMode) {}
+    protected open fun preBuildHook(args: Args, compilationMode: CompilationMode, caches: CacheManager) {}
     protected open fun postCompilationHook(exitCode: ExitCode) {}
     protected open fun additionalDirtyFiles(caches: CacheManager, generatedFiles: List<GeneratedFile>): Iterable<File> =
             emptyList()
@@ -176,7 +176,7 @@ abstract class IncrementalCompilerRunner<
             compilationMode: CompilationMode,
             messageCollector: MessageCollector
     ): ExitCode {
-        preBuildHook(args, compilationMode)
+        preBuildHook(args, compilationMode, caches)
 
         val dirtySources = when (compilationMode) {
             is CompilationMode.Incremental -> ArrayList(compilationMode.dirtyFiles)

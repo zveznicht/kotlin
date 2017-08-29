@@ -72,6 +72,20 @@ class ChangesCollector {
         }
     }
 
+    fun collectProtoChanges(oldProtoView: ProtoDataView, newProtoView: ProtoDataView) {
+        val oldClasses = oldProtoView.classes
+        val newClasses = newProtoView.classes
+        for (classId in oldClasses.keys + newClasses.keys) {
+            collectProtoChanges(oldClasses[classId], newClasses[classId])
+        }
+
+        val newPackages = oldProtoView.packages
+        val oldPackages = newProtoView.packages
+        for (fqName in newPackages.keys + newPackages.keys) {
+            collectProtoChanges(oldPackages[fqName], newPackages[fqName])
+        }
+    }
+
     fun collectProtoChanges(oldData: ProtoData?, newData: ProtoData?) {
         if (oldData == null && newData == null) {
             throw IllegalStateException("Old and new value are null")
