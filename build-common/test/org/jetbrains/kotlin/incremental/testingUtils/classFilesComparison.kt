@@ -19,10 +19,20 @@ package org.jetbrains.kotlin.incremental.testingUtils
 import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.kotlin.incremental.LocalFileKotlinClass
 import org.jetbrains.kotlin.load.kotlin.header.KotlinClassHeader
+import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.protobuf.ExtensionRegistry
 import org.jetbrains.kotlin.serialization.DebugProtoBuf
+import org.jetbrains.kotlin.serialization.ProtoBuf
+import org.jetbrains.kotlin.serialization.deserialization.NameResolver
+import org.jetbrains.kotlin.serialization.deserialization.NameResolverImpl
+import org.jetbrains.kotlin.serialization.js.DebugJsProtoBuf
+import org.jetbrains.kotlin.serialization.js.JsProtoBuf
+import org.jetbrains.kotlin.serialization.js.JsSerializerProtocol
 import org.jetbrains.kotlin.serialization.jvm.BitEncoding
 import org.jetbrains.kotlin.serialization.jvm.DebugJvmProtoBuf
+import org.jetbrains.kotlin.utils.KotlinJavascriptMetadataUtils
 import org.jetbrains.kotlin.utils.Printer
 import org.jetbrains.org.objectweb.asm.ClassReader
 import org.jetbrains.org.objectweb.asm.util.TraceClassVisitor
@@ -34,6 +44,7 @@ import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.*
 import java.util.zip.CRC32
+import java.util.zip.GZIPInputStream
 import kotlin.comparisons.compareBy
 
 // Set this to true if you want to dump all bytecode (test will fail in this case)
@@ -171,11 +182,84 @@ private fun getExtensionRegistry(): ExtensionRegistry {
 
 private fun fileToStringRepresentation(file: File): String {
     return when {
+        file.name.endsWith(".meta.js") -> {
+            val out = StringWriter()
+            val p = Printer(out)
+
+            val modules = KotlinJavascriptMetadataUtils.loadMetadata(file)
+            for (module in modules) {
+                p.println(">>> Module ${module.moduleName} (version ${module.version.toInteger()}) <<<")
+                val (header, library) = GZIPInputStream(ByteArrayInputStream(module.body)).use { stream ->
+                    DebugJsProtoBuf.Header.parseDelimitedFrom(stream, JsSerializerProtocol.extensionRegistry) to
+                    DebugJsProtoBuf.Library.parseFrom(stream, JsSerializerProtocol.extensionRegistry)
+                }
+                p.println("> Header of ${module.moduleName}")
+                p.println(header.toString())
+
+                p.println("> Library of ${module.moduleName}")
+                library.packageFragmentList.forEach { fragment ->
+                    val nameResolver = DebugNameResolverImpl(fragment.strings, fragment.qualifiedNames)
+
+                    fragment.class_List.forEach { classProto ->
+                        p.println("Class id ${classProto.fqName}->${nameResolver.getClassId(classProto.fqName)}")
+                    }
+                }
+                p.println(library.toString())
+                p.println()
+            }
+            out.toString()
+        }
+        file.name.endsWith(".kjsm") -> {
+            ""
+        }
         file.name.endsWith(".class") -> {
             classFileToString(file)
         }
         else -> {
             file.readText()
         }
+    }
+}
+
+
+class DebugNameResolverImpl(
+        private val strings: DebugProtoBuf.StringTable,
+        private val qualifiedNames: DebugProtoBuf.QualifiedNameTable
+) : NameResolver {
+    override fun getString(index: Int): String = strings.getString(index)
+
+    override fun getName(index: Int) = Name.guessByFirstCharacter(strings.getString(index))
+
+    override fun getClassId(index: Int): ClassId {
+        val (packageFqNameSegments, relativeClassNameSegments, isLocal) = traverseIds(index)
+        return ClassId(FqName.fromSegments(packageFqNameSegments), FqName.fromSegments(relativeClassNameSegments), isLocal)
+    }
+
+    fun getPackageFqName(index: Int): FqName {
+        val packageNameSegments = traverseIds(index).first
+        return FqName.fromSegments(packageNameSegments)
+    }
+
+    private fun traverseIds(startingIndex: Int): Triple<List<String>, List<String>, Boolean> {
+        var index = startingIndex
+        val packageNameSegments = LinkedList<String>()
+        val relativeClassNameSegments = LinkedList<String>()
+        var local = false
+
+        while (index != -1) {
+            val proto = qualifiedNames.getQualifiedName(index)
+            val shortName = strings.getString(proto.shortName)
+            when (proto.kind!!) {
+                ProtoBuf.QualifiedNameTable.QualifiedName.Kind.CLASS -> relativeClassNameSegments.addFirst(shortName)
+                ProtoBuf.QualifiedNameTable.QualifiedName.Kind.PACKAGE -> packageNameSegments.addFirst(shortName)
+                ProtoBuf.QualifiedNameTable.QualifiedName.Kind.LOCAL -> {
+                    relativeClassNameSegments.addFirst(shortName)
+                    local = true
+                }
+            }
+
+            index = proto.parentQualifiedName
+        }
+        return Triple(packageNameSegments, relativeClassNameSegments, local)
     }
 }
