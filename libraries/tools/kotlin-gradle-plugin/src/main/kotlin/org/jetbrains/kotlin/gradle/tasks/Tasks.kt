@@ -236,6 +236,7 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
     internal open val sourceRootsContainer = FilteringSourceRootsContainer()
 
     private var kaptAnnotationsFileUpdater: AnnotationFileUpdater? = null
+    val buildHistoryFile: File = File(taskBuildDirectory, "build-history.bin")
 
     val kaptOptions = KaptOptions()
 

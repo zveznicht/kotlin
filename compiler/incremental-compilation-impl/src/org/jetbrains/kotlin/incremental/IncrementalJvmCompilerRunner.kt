@@ -16,10 +16,10 @@
 
 package org.jetbrains.kotlin.incremental
 
+import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.kotlin.annotation.AnnotationFileUpdater
 import org.jetbrains.kotlin.build.GeneratedFile
 import org.jetbrains.kotlin.build.GeneratedJvmClass
-import org.jetbrains.kotlin.build.isModuleMappingFile
 import org.jetbrains.kotlin.build.JvmSourceRoot
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import java.io.File
 import java.util.*
+import kotlin.collections.HashSet
 
 fun makeIncrementally(
         cachesDir: File,
@@ -89,7 +90,9 @@ class IncrementalJvmCompilerRunner(
         reporter: ICReporter,
         private var kaptAnnotationsFileUpdater: AnnotationFileUpdater? = null,
         artifactChangesProvider: ArtifactChangesProvider? = null,
-        changesRegistry: ChangesRegistry? = null
+        changesRegistry: ChangesRegistry? = null,
+        private val myDiffsFile: File? = null,
+        private val friendDiffsFile: File? = null
 ) : IncrementalCompilerRunner<K2JVMCompilerArguments, IncrementalJvmCachesManager>(
         workingDir,
         "caches-jvm",
@@ -110,16 +113,47 @@ class IncrementalJvmCompilerRunner(
     private var javaFilesProcessor = ChangedJavaFilesProcessor(reporter)
 
     override fun calculateSourcesToCompile(caches: IncrementalJvmCachesManager, changedFiles: ChangedFiles.Known, args: K2JVMCompilerArguments): CompilationMode {
-        val removedClassFiles = changedFiles.removed.filter(File::isClassFile)
-        if (removedClassFiles.any()) return CompilationMode.Rebuild { "Removed class files: ${reporter.pathsAsString(removedClassFiles)}" }
+        val lastBuildInfo = BuildInfo.read(lastBuildInfoFile)
+        reporter.report { "Last Kotlin Build info -- $lastBuildInfo" }
+        val dirtyFilesFromFriend = HashSet<File>()
 
-        val modifiedClassFiles = changedFiles.modified.filter(File::isClassFile)
-        if (modifiedClassFiles.any()) return CompilationMode.Rebuild { "Modified class files: ${reporter.pathsAsString(modifiedClassFiles)}" }
+        val readDirtyDataFromFriend = lazy<Boolean> {
+            val myLastTS = lastBuildInfo?.startTS ?: return@lazy false
+            val storage = friendDiffsFile?.let { BuildDiffsStorage.readFromFile(it, reporter) } ?: return@lazy false
+
+            val (prevDiffs, newDiffs) = storage.buildDiffs.partition { it.ts < myLastTS }
+            if (prevDiffs.isEmpty()) return@lazy false
+
+            newDiffs.forEach {
+                if (!it.isIncremental) return@lazy false
+
+                val dirtyLookupSymbols = it.dirtyData.dirtyLookupSymbols
+                if (dirtyLookupSymbols.any()){
+                    val dirtyFilesFromLookups = mapLookupSymbolsToFiles(caches.lookupCache, dirtyLookupSymbols, reporter)
+                    dirtyFilesFromFriend.addAll(dirtyFilesFromLookups)
+                }
+
+                val dirtyClassesFqNames = it.dirtyData.dirtyClassesFqNames.flatMap { withSubtypes(it, listOf(caches.platformCache)) }
+                if (dirtyClassesFqNames.any()) {
+                    val dirtyFilesFromFqNames = mapClassesFqNamesToFiles(listOf(caches.platformCache), dirtyClassesFqNames, reporter)
+                    dirtyFilesFromFriend.addAll(dirtyFilesFromFqNames)
+                }
+            }
+
+            true
+        }
+        val friendDirs = args.friendPaths?.map { File(it) } ?: emptyList()
+        for (file in changedFiles.removed.asSequence() + changedFiles.modified.asSequence()) {
+            if (!file.isClassFile()) continue
+
+            val isFriendClassFile = friendDirs.any { FileUtil.isAncestor(it, file, false) }
+            if (isFriendClassFile && readDirtyDataFromFriend.value) continue
+
+            return CompilationMode.Rebuild { "Cannot get changes from modified or removed class file: ${reporter.pathsAsString(file)}" }
+        }
 
         val classpathSet = args.classpathAsList.toHashSet()
         val modifiedClasspathEntries = changedFiles.modified.filter { it in classpathSet }
-        val lastBuildInfo = BuildInfo.read(lastBuildInfoFile)
-        reporter.report { "Last Kotlin Build info -- $lastBuildInfo" }
         val classpathChanges = getClasspathChanges(modifiedClasspathEntries, lastBuildInfo)
         if (classpathChanges !is ChangesEither.Known) {
             return CompilationMode.Rebuild { "could not get changes from modified classpath entries: ${reporter.pathsAsString(modifiedClasspathEntries)}" }
@@ -262,6 +296,23 @@ class IncrementalJvmCompilerRunner(
 
     override fun additionalDirtyLookupSymbols(): Iterable<LookupSymbol> =
             javaFilesProcessor.allChangedSymbols
+
+    override fun processChangesAfterBuild(compilationMode: CompilationMode, currentBuildInfo: BuildInfo, dirtyData: DirtyData) {
+        super.processChangesAfterBuild(compilationMode, currentBuildInfo, dirtyData)
+
+        if (myDiffsFile == null) return
+
+        val prevDiffs = BuildDiffsStorage.readFromFile(myDiffsFile, reporter)?.buildDiffs ?: emptyList()
+        val newDiff = if (compilationMode is CompilationMode.Incremental) {
+            BuildDifference(currentBuildInfo.startTS, true, dirtyData)
+        }
+        else {
+            val emptyDirtyData = DirtyData()
+            BuildDifference(currentBuildInfo.startTS, false, emptyDirtyData)
+        }
+
+        BuildDiffsStorage.writeToFile(myDiffsFile, BuildDiffsStorage(prevDiffs + newDiff), reporter)
+    }
 
     override fun makeServices(
             args: K2JVMCompilerArguments,
