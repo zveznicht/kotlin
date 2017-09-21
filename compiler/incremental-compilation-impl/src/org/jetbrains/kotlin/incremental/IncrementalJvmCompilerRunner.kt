@@ -91,8 +91,8 @@ class IncrementalJvmCompilerRunner(
         private var kaptAnnotationsFileUpdater: AnnotationFileUpdater? = null,
         artifactChangesProvider: ArtifactChangesProvider? = null,
         changesRegistry: ChangesRegistry? = null,
-        private val myDiffsFile: File? = null,
-        private val friendDiffsFile: File? = null
+        private val buildHistoryFile: File? = null,
+        private val friendBuildHistoryFile: File? = null
 ) : IncrementalCompilerRunner<K2JVMCompilerArguments, IncrementalJvmCachesManager>(
         workingDir,
         "caches-jvm",
@@ -113,41 +113,48 @@ class IncrementalJvmCompilerRunner(
     private var javaFilesProcessor = ChangedJavaFilesProcessor(reporter)
 
     override fun calculateSourcesToCompile(caches: IncrementalJvmCachesManager, changedFiles: ChangedFiles.Known, args: K2JVMCompilerArguments): CompilationMode {
+        fun mapFilesTo(files: MutableCollection<File>, lookupSymbols: Collection<LookupSymbol>) {
+            if (lookupSymbols.isEmpty()) return
+
+            val dirtyFilesFromLookups = mapLookupSymbolsToFiles(caches.lookupCache, lookupSymbols, reporter)
+            files.addAll(dirtyFilesFromLookups)
+        }
+
+        fun mapFilesTo(files: MutableCollection<File>, dirtyClassesFqNames: Collection<FqName>) {
+            if (dirtyClassesFqNames.isEmpty()) return
+
+            val fqNamesWithSubtypes = dirtyClassesFqNames.flatMap { withSubtypes(it, listOf(caches.platformCache)) }
+            val dirtyFilesFromFqNames = mapClassesFqNamesToFiles(listOf(caches.platformCache), fqNamesWithSubtypes, reporter)
+            files.addAll(dirtyFilesFromFqNames)
+        }
+
         val lastBuildInfo = BuildInfo.read(lastBuildInfoFile)
         reporter.report { "Last Kotlin Build info -- $lastBuildInfo" }
-        val dirtyFilesFromFriend = HashSet<File>()
 
-        val readDirtyDataFromFriend = lazy<Boolean> {
-            val myLastTS = lastBuildInfo?.startTS ?: return@lazy false
-            val storage = friendDiffsFile?.let { BuildDiffsStorage.readFromFile(it, reporter) } ?: return@lazy false
+        val changesFromFriend = run {
+            val myLastTS = lastBuildInfo?.startTS ?: return@run ChangesEither.Unknown()
+            val storage = friendBuildHistoryFile?.let { BuildDiffsStorage.readFromFile(it, reporter) } ?: return@run ChangesEither.Unknown()
 
             val (prevDiffs, newDiffs) = storage.buildDiffs.partition { it.ts < myLastTS }
-            if (prevDiffs.isEmpty()) return@lazy false
+            if (prevDiffs.isEmpty()) return@run ChangesEither.Unknown()
 
-            newDiffs.forEach {
-                if (!it.isIncremental) return@lazy false
+            val dirtyLookupSymbols = HashSet<LookupSymbol>()
+            val dirtyClassesFqNames = HashSet<FqName>()
+            for ((_, isIncremental, dirtyData) in newDiffs) {
+                if (!isIncremental) return@run ChangesEither.Unknown()
 
-                val dirtyLookupSymbols = it.dirtyData.dirtyLookupSymbols
-                if (dirtyLookupSymbols.any()){
-                    val dirtyFilesFromLookups = mapLookupSymbolsToFiles(caches.lookupCache, dirtyLookupSymbols, reporter)
-                    dirtyFilesFromFriend.addAll(dirtyFilesFromLookups)
-                }
-
-                val dirtyClassesFqNames = it.dirtyData.dirtyClassesFqNames.flatMap { withSubtypes(it, listOf(caches.platformCache)) }
-                if (dirtyClassesFqNames.any()) {
-                    val dirtyFilesFromFqNames = mapClassesFqNamesToFiles(listOf(caches.platformCache), dirtyClassesFqNames, reporter)
-                    dirtyFilesFromFriend.addAll(dirtyFilesFromFqNames)
-                }
+                dirtyLookupSymbols.addAll(dirtyData.dirtyLookupSymbols)
+                dirtyClassesFqNames.addAll(dirtyData.dirtyClassesFqNames)
             }
 
-            true
+            ChangesEither.Known(dirtyLookupSymbols, dirtyClassesFqNames)
         }
         val friendDirs = args.friendPaths?.map { File(it) } ?: emptyList()
         for (file in changedFiles.removed.asSequence() + changedFiles.modified.asSequence()) {
             if (!file.isClassFile()) continue
 
             val isFriendClassFile = friendDirs.any { FileUtil.isAncestor(it, file, false) }
-            if (isFriendClassFile && readDirtyDataFromFriend.value) continue
+            if (isFriendClassFile && changesFromFriend is ChangesEither.Known) continue
 
             return CompilationMode.Rebuild { "Cannot get changes from modified or removed class file: ${reporter.pathsAsString(file)}" }
         }
@@ -166,6 +173,10 @@ class IncrementalJvmCompilerRunner(
         }
 
         val dirtyFiles = getDirtyFiles(changedFiles)
+        mapFilesTo(dirtyFiles, affectedJavaSymbols)
+        mapFilesTo(dirtyFiles, classpathChanges.lookupSymbols)
+        mapFilesTo(dirtyFiles, classpathChanges.lookupSymbols)
+
         val lookupSymbols = HashSet<LookupSymbol>()
         lookupSymbols.addAll(affectedJavaSymbols)
         lookupSymbols.addAll(classpathChanges.lookupSymbols)
@@ -300,9 +311,9 @@ class IncrementalJvmCompilerRunner(
     override fun processChangesAfterBuild(compilationMode: CompilationMode, currentBuildInfo: BuildInfo, dirtyData: DirtyData) {
         super.processChangesAfterBuild(compilationMode, currentBuildInfo, dirtyData)
 
-        if (myDiffsFile == null) return
+        if (buildHistoryFile == null) return
 
-        val prevDiffs = BuildDiffsStorage.readFromFile(myDiffsFile, reporter)?.buildDiffs ?: emptyList()
+        val prevDiffs = BuildDiffsStorage.readFromFile(buildHistoryFile, reporter)?.buildDiffs ?: emptyList()
         val newDiff = if (compilationMode is CompilationMode.Incremental) {
             BuildDifference(currentBuildInfo.startTS, true, dirtyData)
         }
@@ -311,7 +322,7 @@ class IncrementalJvmCompilerRunner(
             BuildDifference(currentBuildInfo.startTS, false, emptyDirtyData)
         }
 
-        BuildDiffsStorage.writeToFile(myDiffsFile, BuildDiffsStorage(prevDiffs + newDiff), reporter)
+        BuildDiffsStorage.writeToFile(buildHistoryFile, BuildDiffsStorage(prevDiffs + newDiff), reporter)
     }
 
     override fun makeServices(

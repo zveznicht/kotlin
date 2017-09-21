@@ -510,8 +510,8 @@ class CompileServiceImpl(
         val compiler = IncrementalJvmCompilerRunner(workingDir, javaSourceRoots, versions,
                                                     reporter, annotationFileUpdater,
                                                     artifactChanges, changesRegistry,
-                                                    myDiffsFile = incrementalCompilationOptions.resultDifferenceFile,
-                                                    friendDiffsFile = incrementalCompilationOptions.friendDifferenceFile)
+                                                    buildHistoryFile = incrementalCompilationOptions.resultDifferenceFile,
+                                                    friendBuildHistoryFile = incrementalCompilationOptions.friendDifferenceFile)
         return compiler.compile(allKotlinFiles, k2jvmArgs, compilerMessageCollector, { changedFiles })
     }
 
