@@ -32,7 +32,6 @@ dependencies {
 
     compile project(':kotlin-stdlib')
     compile project(':kotlin-android-extensions')
-    compile project(':kotlin-build-common')
     compile project(':kotlin-compiler-runner')
 
     compileOnly(project(':core:util.runtime')) { transitive = false }
