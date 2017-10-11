@@ -29,11 +29,9 @@ import kotlin.reflect.full.withNullability
 // Additional properties that should be included in interface
 @Suppress("unused")
 interface AdditionalGradleProperties {
-    @GradleOption(EmptyList::class)
+    @GradleOption(DefaultValues.EmptyList::class)
     @Argument(value = "", description = "A list of additional compiler arguments")
     var freeCompilerArgs: List<String>
-
-    object EmptyList : DefaultValues("emptyList()")
 }
 
 fun generateKotlinGradleOptions(withPrinterToFile: (targetFile: File, Printer.()->Unit)->Unit) {

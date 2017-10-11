@@ -18,26 +18,25 @@ package org.jetbrains.kotlin.cli.common.arguments
 
 import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants.CALL
 import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants.NO_CALL
-import org.jetbrains.kotlin.config.JvmTarget
-import org.jetbrains.kotlin.config.LanguageVersion
 
-open class DefaultValues(val defaultValue: String, val possibleValues: List<String>? = null) {
+sealed class DefaultValues(val defaultValue: String, val possibleValues: List<String>? = null) {
     object BooleanFalseDefault : DefaultValues("false")
 
     object BooleanTrueDefault : DefaultValues("true")
 
     object StringNullDefault : DefaultValues("null")
 
-    object ListEmptyDefault : DefaultValues("<empty list>")
+    object EmptyList : DefaultValues("emptyList()")
 
     object LanguageVersions : DefaultValues(
             "null",
-            LanguageVersion.values().map { "\"${it.description}\"" }
+            listOf("1.0", "1.1", "1.2", "1.3").map { "\"$it\"" }
     )
 
     object JvmTargetVersions : DefaultValues(
-            "\"" + JvmTarget.DEFAULT.description + "\"",
-            JvmTarget.values().map { "\"${it.description}\"" }
+            "\"" + "1.6" + "\"",
+            listOf("1.6", "1.8").map { "\"$it\"" }
+
     )
 
     object JsEcmaVersions : DefaultValues(
