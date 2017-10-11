@@ -31,6 +31,7 @@ projectTest {
     workingDir = projectDir
 }
 
+noDefaultJar()
 runtimeJar(task<ShadowJar>("shadowJar")) {
     from(packedJars)
     from(the<JavaPluginConvention>().sourceSets.getByName("main").output)
