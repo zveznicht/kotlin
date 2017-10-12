@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 apply plugin: 'java'
 apply plugin: 'kotlin'
 apply plugin: 'groovy'
@@ -9,6 +11,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.jetbrains.dokka:dokka-gradle-plugin:0.9.13'
+        classpath "com.github.jengelman.gradle.plugins:shadow:${property("versions.shadow")}"
     }
 }
 
@@ -24,6 +27,22 @@ repositories {
 
 configurations {
     agp25CompileOnly
+    packedJars
+}
+
+def projectsToInclude = [
+    ":kotlin-build-common",
+    ":core:util.runtime",
+    ":compiler:cli-common",
+    ":compiler:daemon-common",
+    ":kotlin-daemon-client"
+]
+
+projectsToInclude.forEach { projectToInclude ->
+    dependencies {
+        compileOnly(project(projectToInclude)) { transitive = false }
+        packedJars(project(projectToInclude)) { transitive = false }
+    }
 }
 
 dependencies {
@@ -31,12 +50,6 @@ dependencies {
 
     compile project(':kotlin-stdlib')
     runtime project(':kotlin-android-extensions')
-
-    compile(project(':kotlin-build-common')) { transitive = false }
-    compileOnly(project(':compiler:cli-common')) { transitive = false }
-    compileOnly(project(':compiler:daemon-common')) { transitive = false }
-    compileOnly(project(':kotlin-daemon-client')) { transitive = false }
-    runtime project(path: ':kotlin-compiler-client-embeddable', configuration: "runtimeJar")
 
     compile project(path: ':kotlin-annotation-processing-gradle', configuration: "runtimeJar")
 
@@ -114,15 +127,20 @@ processResources {
     expand(project.properties)
 }
 
-jar.dependsOn agp25Classes
+jar.enabled = false
 
-jar {
+task shadowJar(type: ShadowJar, dependsOn: agp25Classes) {
+    configurations = [project.configurations.packedJars]
     from compileGroovy.destinationDir
     from sourceSets.agp25.output.classesDirs
+    from sourceSets.main.output.classesDirs
     manifestAttributes(manifest, project)
 }
 
+configurations.archives.artifacts.removeAll()
+
 artifacts {
+    archives shadowJar
     archives sourcesJar
     archives javadocJar
 }
