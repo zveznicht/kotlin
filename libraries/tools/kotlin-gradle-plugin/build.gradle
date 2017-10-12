@@ -54,9 +54,7 @@ dependencies {
     testCompile "junit:junit:4.12"
 }
 
-task installAll
-
-installAll.dependsOn(
+tasks.getByName("install").dependsOn(
         ":kotlin-android-extensions:install",
         ":kotlin-annotation-processing-gradle:install",
         ":kotlin-build-common:install",
