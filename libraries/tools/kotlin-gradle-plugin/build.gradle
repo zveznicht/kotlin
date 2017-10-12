@@ -33,6 +33,7 @@ dependencies {
     compile project(':kotlin-stdlib')
     compile project(':kotlin-android-extensions')
 
+    compile(project(':kotlin-build-common')) { transitive = false }
     compileOnly(project(':compiler:cli-common')) { transitive = false }
     compileOnly(project(':compiler:daemon-common')) { transitive = false }
     compileOnly(project(':kotlin-daemon-client')) { transitive = false }
