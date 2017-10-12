@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2016 JetBrains s.r.o.
+ * Copyright 2010-2017 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.incremental
+package org.jetbrains.kotlin.gradle.incremental
 
+import org.jetbrains.kotlin.incremental.CacheVersion
 import java.io.File
 
 internal const val GRADLE_CACHE_VERSION = 4

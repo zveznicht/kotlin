@@ -20,12 +20,12 @@ import org.gradle.BuildAdapter
 import org.gradle.BuildResult
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
-import org.jetbrains.kotlin.compilerRunner.DELETED_SESSION_FILE_PREFIX
-import org.jetbrains.kotlin.compilerRunner.GradleCompilerRunner
-import org.jetbrains.kotlin.incremental.BuildCacheStorage
-import org.jetbrains.kotlin.incremental.multiproject.ArtifactDifferenceRegistryProvider
-import org.jetbrains.kotlin.incremental.relativeToRoot
-import org.jetbrains.kotlin.incremental.stackTraceStr
+import org.jetbrains.kotlin.gradle.compilerRunner.DELETED_SESSION_FILE_PREFIX
+import org.jetbrains.kotlin.gradle.compilerRunner.GradleCompilerRunner
+import org.jetbrains.kotlin.gradle.incremental.BuildCacheStorage
+import org.jetbrains.kotlin.gradle.incremental.multiproject.ArtifactDifferenceRegistryProvider
+import org.jetbrains.kotlin.gradle.incremental.relativeToRoot
+import org.jetbrains.kotlin.gradle.incremental.stackTraceStr
 import java.io.File
 import java.lang.management.ManagementFactory
 

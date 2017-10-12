@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.gradle
 
-import org.jetbrains.kotlin.compilerRunner.*
+import org.jetbrains.kotlin.gradle.compilerRunner.*
 import org.junit.Assert
 import org.junit.Test
 import java.io.File

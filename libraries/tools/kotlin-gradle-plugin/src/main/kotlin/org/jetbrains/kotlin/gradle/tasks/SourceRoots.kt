@@ -5,8 +5,8 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.logging.Logger
 import org.jetbrains.kotlin.gradle.plugin.kotlinDebug
 import org.jetbrains.kotlin.gradle.utils.isParentOf
-import org.jetbrains.kotlin.incremental.isJavaFile
-import org.jetbrains.kotlin.incremental.isKotlinFile
+import org.jetbrains.kotlin.gradle.incremental.isJavaFile
+import org.jetbrains.kotlin.gradle.incremental.isKotlinFile
 import java.io.File
 import java.util.*
 

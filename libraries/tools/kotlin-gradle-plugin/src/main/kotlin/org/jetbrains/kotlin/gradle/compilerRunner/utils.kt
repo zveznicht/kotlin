@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.compilerRunner
+package org.jetbrains.kotlin.gradle.compilerRunner
 
 import org.jetbrains.kotlin.cli.common.ExitCode
+import org.jetbrains.kotlin.compilerRunner.KotlinLogger
 import org.jetbrains.kotlin.daemon.client.DaemonReportMessage
 import org.jetbrains.kotlin.daemon.client.DaemonReportingTargets
 import org.jetbrains.kotlin.daemon.client.launchProcessWithFallback

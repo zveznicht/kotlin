@@ -14,24 +14,28 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.incremental.multiproject
-import java.io.File
+package org.jetbrains.kotlin.gradle.compilerRunner
 
-internal class ArtifactDifferenceRegistryImpl(
-        @Suppress("UNUSED_PARAMETER") storageFile: File
-) : ArtifactDifferenceRegistry {
-    override fun get(artifact: File): Iterable<ArtifactDifference>? =
-            null
+import org.gradle.api.logging.Logger
+import org.jetbrains.kotlin.compilerRunner.KotlinLogger
 
-    override fun add(artifact: File, difference: ArtifactDifference) {
+internal class GradleKotlinLogger(private val log: Logger) : KotlinLogger {
+    override fun debug(msg: String) {
+        log.debug(msg)
     }
 
-    override fun remove(artifact: File) {
+    override fun error(msg: String) {
+        log.error(msg)
     }
 
-    override fun flush(memoryCachesOnly: Boolean) {
+    override fun info(msg: String) {
+        log.info(msg)
     }
 
-    override fun close() {
+    override fun warn(msg: String) {
+        log.warn(msg)
     }
+
+    override val isDebugEnabled: Boolean
+        get() = log.isDebugEnabled
 }

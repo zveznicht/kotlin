@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.jetbrains.kotlin.incremental
+package org.jetbrains.kotlin.gradle.incremental
 
 import org.gradle.api.Project
 import java.io.File
