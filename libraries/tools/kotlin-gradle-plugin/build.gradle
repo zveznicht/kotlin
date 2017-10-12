@@ -32,7 +32,6 @@ dependencies {
 
     compile project(':kotlin-stdlib')
     compile project(':kotlin-android-extensions')
-    compile project(':kotlin-compiler-runner')
 
     compileOnly(project(':compiler:cli-common')) { transitive = false }
     compileOnly(project(':compiler:daemon-common')) { transitive = false }
@@ -61,7 +60,6 @@ install.dependsOn(
         ":kotlin-build-common:install",
         ":kotlin-compiler-client-embeddable:install",
         ":kotlin-compiler-embeddable:install",
-        ":kotlin-compiler-runner:install",
         ":kotlin-gradle-plugin-api:install",
         ":kotlin-stdlib:install"
 )

@@ -5,6 +5,8 @@ apply { plugin("kotlin") }
 
 dependencies {
     compileOnly(project(":core:util.runtime"))
+    compileOnly(project(":compiler:daemon-common"))
+    compileOnly(project(":kotlin-daemon-client"))
     compileOnly(project(":compiler:util"))
     compileOnly(project(":compiler:cli-common"))
     compileOnly(project(":compiler:frontend.java"))

@@ -15,7 +15,6 @@ dependencies {
     compile(project(":js:js.serializer"))
     compile(project(":compiler:light-classes"))
     compile(project(":compiler:util"))
-    compile(project(":kotlin-compiler-runner"))
     compile(project(":compiler:plugin-api"))
     compile(project(":eval4j"))
     compile(project(":j2k"))
