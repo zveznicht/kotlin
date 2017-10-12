@@ -2,12 +2,12 @@ package org.jetbrains.kotlin.gradle.plugin
 
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.BasePlugin
-import com.android.build.gradle.api.AndroidSourceSet
 import com.android.builder.model.SourceProvider
 import groovy.lang.Closure
 import org.apache.tools.ant.util.ReflectUtil.newInstance
 import org.gradle.api.*
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
@@ -37,10 +37,10 @@ import java.util.*
 import java.util.concurrent.Callable
 import java.util.jar.Manifest
 
-val KOTLIN_AFTER_JAVA_TASK_SUFFIX = "AfterJava"
 val KOTLIN_DSL_NAME = "kotlin"
 val KOTLIN_JS_DSL_NAME = "kotlin2js"
 val KOTLIN_OPTIONS_DSL_NAME = "kotlinOptions"
+internal val KOTLIN_COMPILER_CLASSPATH_CONFIGURATION_NAME = "kotlinCompilerClasspath"
 
 internal abstract class KotlinSourceSetProcessor<T : AbstractKotlinCompile<*>>(
         val project: Project,
@@ -345,6 +345,7 @@ internal abstract class AbstractKotlinPlugin(
     internal abstract fun buildSourceSetProcessor(project: Project, javaBasePlugin: JavaBasePlugin, sourceSet: SourceSet, kotlinPluginVersion: String): KotlinSourceSetProcessor<*>
 
     override fun apply(project: Project) {
+        setUpKotlinClasspathConfiguration(project)
         val javaBasePlugin = project.plugins.apply(JavaBasePlugin::class.java)
         val javaPluginConvention = project.convention.getPlugin(JavaPluginConvention::class.java)
 
@@ -352,6 +353,20 @@ internal abstract class AbstractKotlinPlugin(
 
         configureSourceSetDefaults(project, javaBasePlugin, javaPluginConvention)
         configureDefaultVersionsResolutionStrategy(project)
+    }
+
+    private fun setUpKotlinClasspathConfiguration(project: Project) {
+        if (project.buildscript.configurations.findByName(KOTLIN_COMPILER_CLASSPATH_CONFIGURATION_NAME) == null) {
+            fun DependencyHandler.jbModule(name: String) =
+                    add(KOTLIN_COMPILER_CLASSPATH_CONFIGURATION_NAME, "org.jetbrains.kotlin:$name:$kotlinPluginVersion")
+
+            project.buildscript.dependencies.apply {
+                jbModule("kotlin-compiler-embeddable")
+                jbModule("kotlin-stdlib")
+                jbModule("kotlin-script-runtime")
+                jbModule("kotlin-reflect")
+            }
+        }
     }
 
     open protected fun configureSourceSetDefaults(

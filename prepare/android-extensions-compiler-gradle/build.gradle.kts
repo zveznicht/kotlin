@@ -29,7 +29,6 @@ dependencies {
     compileOnly(project(":compiler:frontend.java"))
     compileOnly(project(":compiler:backend"))
     compileOnly(project(":kotlin-android-extensions-runtime"))
-    runtimeOnly(projectRuntimeJar(":kotlin-compiler-embeddable"))
     runtime(commonDep("com.google.android", "android"))
 }
 

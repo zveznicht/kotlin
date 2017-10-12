@@ -16,9 +16,7 @@
 
 package org.jetbrains.kotlin.gradle.tasks
 
-import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.tasks.Input
@@ -34,6 +32,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compilerRunner.*
 import org.jetbrains.kotlin.gradle.dsl.*
+import org.jetbrains.kotlin.gradle.plugin.KOTLIN_COMPILER_CLASSPATH_CONFIGURATION_NAME
 import org.jetbrains.kotlin.gradle.plugin.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.kotlinInfo
 import org.jetbrains.kotlin.gradle.utils.ParsedGradleVersion
@@ -52,18 +51,20 @@ abstract class AbstractKotlinCompileTool<T : CommonToolArguments>() : AbstractCo
     // TODO: deprecate and remove
     var compilerJarFile: File? = null
     var compilerClasspath: List<File>? = null
+    private fun resolveKotlinCompilerClasspath(): List<File> {
+        val config = project.buildscript.configurations.findByName(KOTLIN_COMPILER_CLASSPATH_CONFIGURATION_NAME)
+        return config?.resolve()?.toList() ?: listOf()
+    }
 
     @get:InputFiles
     internal val computedCompilerClasspath: List<File>
         get() = compilerClasspath?.takeIf { it.isNotEmpty() }
                 ?: compilerJarFile?.let {
                     // a hack to remove compiler jar from the cp, will be dropped when compilerJarFile will be removed
-                    listOf(it) + findKotlinCompilerClasspath(project).filter { !it.name.startsWith("kotlin-compiler") }
+                    listOf(it) + resolveKotlinCompilerClasspath().filter { !it.name.startsWith("kotlin-compiler") }
                 }
-                ?: findKotlinCompilerClasspath(project).takeIf { it.isNotEmpty() }
+                ?: resolveKotlinCompilerClasspath().takeIf { it.isNotEmpty() }
                 ?: throw IllegalStateException("Could not find Kotlin Compiler classpath. Please specify $name.compilerClasspath")
-
-    protected abstract fun findKotlinCompilerClasspath(project: Project): List<File>
 }
 
 abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKotlinCompileTool<T>(), CompilerArgumentAware {
@@ -258,9 +259,6 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
         incremental = true
     }
 
-    override fun findKotlinCompilerClasspath(project: Project): List<File> =
-            findKotlinJvmCompilerClasspath(project)
-
     override fun createCompilerArgs(): K2JVMCompilerArguments =
             K2JVMCompilerArguments()
 
@@ -387,9 +385,6 @@ open class Kotlin2JsCompile() : AbstractKotlinCompile<K2JSCompilerArguments>(), 
     @Suppress("unused")
     val outputFile: String
         get() = kotlinOptions.outputFile ?: defaultOutputFile.canonicalPath
-
-    override fun findKotlinCompilerClasspath(project: Project): List<File> =
-            findKotlinJsCompilerClasspath(project)
 
     override fun createCompilerArgs(): K2JSCompilerArguments =
             K2JSCompilerArguments()

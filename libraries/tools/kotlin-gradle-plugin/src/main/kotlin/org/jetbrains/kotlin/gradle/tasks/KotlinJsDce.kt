@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.gradle.tasks
 
-import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.jetbrains.kotlin.cli.common.arguments.K2JSDceArguments
 import org.jetbrains.kotlin.compilerRunner.ArgumentUtils
@@ -25,7 +24,6 @@ import org.jetbrains.kotlin.compilerRunner.runToolInSeparateProcess
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsDce
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsDceOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsDceOptionsImpl
-import java.io.File
 
 private const val DCE_CLASS_FQ_NAME = "org.jetbrains.kotlin.cli.js.dce.K2JSDce"
 
@@ -36,8 +34,6 @@ open class KotlinJsDce : AbstractKotlinCompileTool<K2JSDceArguments>(), KotlinJs
         get() = dceOptionsImpl
 
     override val keep: MutableList<String> = mutableListOf()
-
-    override fun findKotlinCompilerClasspath(project: Project): List<File> = findKotlinJsDceClasspath(project)
 
     override fun compile() {}
 

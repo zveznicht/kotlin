@@ -25,7 +25,6 @@ dependencies {
         transitive = false
     }
 
-    testCompile project(path: ':kotlin-compiler-embeddable', configuration: 'runtimeJar')
     testCompile project(path: ':examples:annotation-processor-example')
     testCompile project(':kotlin-stdlib-jre8')
     testCompile project(':kotlin-reflect')
