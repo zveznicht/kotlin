@@ -37,7 +37,7 @@ dependencies {
 }
 
 test.dependsOn(
-        ":kotlin-gradle-plugin:installAll",
+        ":kotlin-gradle-plugin:install",
         ":kotlin-reflect:install",
         ":kotlin-test:kotlin-test-common:install",
         ":kotlin-test:kotlin-test-jvm:install",
