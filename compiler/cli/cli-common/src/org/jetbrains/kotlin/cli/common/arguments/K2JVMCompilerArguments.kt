@@ -117,7 +117,7 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
                           "preserve-class-initialization: normalize preserving class initialization order), " +
                           "default is disable"
     )
-    var constructorCallNormalizationMode: String? by FreezableVar(JVMConstructorCallNormalizationMode.DEFAULT.description)
+    var constructorCallNormalizationMode: String? by FreezableVar("enable")
 
     @Argument(value = "-Xreport-perf", description = "Report detailed performance statistics")
     var reportPerf: Boolean by FreezableVar(false)
