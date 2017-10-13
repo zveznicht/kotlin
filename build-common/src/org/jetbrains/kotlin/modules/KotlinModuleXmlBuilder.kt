@@ -16,8 +16,6 @@
 
 package org.jetbrains.kotlin.modules
 
-import com.intellij.openapi.util.io.FileUtil.toSystemIndependentName
-import com.intellij.openapi.util.text.StringUtil.escapeXml
 import org.jetbrains.kotlin.build.JvmSourceRoot
 import org.jetbrains.kotlin.cli.common.modules.ModuleXmlParser.*
 import org.jetbrains.kotlin.config.IncrementalCompilation
@@ -132,5 +130,42 @@ class KotlinModuleXmlBuilder {
 
     private fun getEscapedPath(sourceFile: File): String {
         return escapeXml(toSystemIndependentName(sourceFile.path))
+    }
+
+    companion object {
+        // copied from com.intellij.openapi.util.io.FileUtil
+        fun toSystemIndependentName(path: String): String =
+                path.replace('\\', '/')
+
+        // copied from com.intellij.openapi.util.text.StringUtil
+        private val REPLACES_DISP = arrayOf("<", ">", "&", "'", "\"")
+        private val REPLACES_REFS = arrayOf("&lt;", "&gt;", "&amp;", "&#39;", "&quot;")
+
+        private fun escapeXml(text: String) = replace(text, REPLACES_DISP, REPLACES_REFS)
+
+        private fun replace(text: String, from: Array<String>, to: Array<String>): String {
+            assert(from.size == to.size)
+
+            val result = StringBuilder(text.length)
+
+            var i = 0
+            loop@ while (i < text.length) {
+                for (j in from.indices) {
+                    val toReplace = from[j]
+                    val len = toReplace.length
+                    if (text.regionMatches(i, toReplace, 0, len)) {
+                        result.append(to[j])
+                        i += len - 1
+                        ++i
+                        continue@loop
+                    }
+                }
+
+                result.append(text[i])
+                ++i
+            }
+
+            return result.toString()
+        }
     }
 }
