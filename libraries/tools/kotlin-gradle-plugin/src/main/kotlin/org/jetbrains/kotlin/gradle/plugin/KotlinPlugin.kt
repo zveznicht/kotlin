@@ -356,11 +356,19 @@ internal abstract class AbstractKotlinPlugin(
     }
 
     private fun setUpKotlinClasspathConfiguration(project: Project) {
-        if (project.buildscript.configurations.findByName(KOTLIN_COMPILER_CLASSPATH_CONFIGURATION_NAME) == null) {
-            fun DependencyHandler.jbModule(name: String) =
-                    add(KOTLIN_COMPILER_CLASSPATH_CONFIGURATION_NAME, "org.jetbrains.kotlin:$name:$kotlinPluginVersion")
+        val buildscript = project.buildscript
+        val configurations = buildscript.configurations
+        val dependencies = buildscript.dependencies
 
-            project.buildscript.dependencies.apply {
+        if (configurations.findByName(KOTLIN_COMPILER_CLASSPATH_CONFIGURATION_NAME) == null) {
+            configurations.create(KOTLIN_COMPILER_CLASSPATH_CONFIGURATION_NAME)
+
+            fun DependencyHandler.jbModule(name: String) {
+                val moduleNotation = "org.jetbrains.kotlin:$name:$kotlinPluginVersion"
+                add(KOTLIN_COMPILER_CLASSPATH_CONFIGURATION_NAME, moduleNotation)
+            }
+
+            dependencies.apply {
                 jbModule("kotlin-compiler-embeddable")
                 jbModule("kotlin-stdlib")
                 jbModule("kotlin-script-runtime")
