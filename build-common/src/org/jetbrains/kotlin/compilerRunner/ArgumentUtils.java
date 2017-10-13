@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.compilerRunner;
 
-import com.intellij.util.containers.ContainerUtil;
 import kotlin.jvm.JvmClassMappingKt;
 import kotlin.reflect.KClass;
 import kotlin.reflect.KProperty1;
@@ -57,7 +56,13 @@ public class ArgumentUtils {
             @NotNull List<String> result
     ) throws IllegalAccessException, InstantiationException, InvocationTargetException {
         for (KProperty1 property : KClasses.getMemberProperties(clazz)) {
-            Argument argument = ContainerUtil.findInstance(property.getAnnotations(), Argument.class);
+            Argument argument = null;
+            for (Object ann : property.getAnnotations()) {
+                if (ann instanceof Argument) {
+                    argument = (Argument) ann;
+                    break;
+                }
+            }
             if (argument == null) continue;
 
             if (property.getVisibility() != KVisibility.PUBLIC) continue;
