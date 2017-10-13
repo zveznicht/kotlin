@@ -9,7 +9,7 @@ repositories {
 }
 
 dependencies {
-    testCompile project(':kotlin-gradle-plugin')
+    testCompile project(path: ':kotlin-gradle-plugin', configuration: 'runtimeJar')
     testCompile project(':kotlin-gradle-plugin').sourceSets.test.output
     testCompile project(':kotlin-gradle-subplugin-example')
     testCompile project(':kotlin-allopen')
