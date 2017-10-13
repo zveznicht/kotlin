@@ -23,13 +23,13 @@ import org.jetbrains.kotlin.load.kotlin.JvmMetadataVersion
 import java.io.File
 import java.io.IOException
 
-private val NORMAL_VERSION = 8
-private val DATA_CONTAINER_VERSION = 2
+val NORMAL_VERSION = 8
+val DATA_CONTAINER_VERSION = 2
 
 private val NORMAL_VERSION_FILE_NAME = "format-version.txt"
 private val DATA_CONTAINER_VERSION_FILE_NAME = "data-container-format-version.txt"
 
-class CacheVersion(
+open class CacheVersion(
         private val ownVersion: Int,
         private val versionFile: File,
         private val whenVersionChanged: CacheVersion.Action,
@@ -50,7 +50,7 @@ class CacheVersion(
             null
         }
 
-    private val expectedVersion: Int
+    protected open val expectedVersion: Int
         get() {
             val metadata = JvmMetadataVersion.INSTANCE
             val bytecode = JvmBytecodeBinaryVersion.INSTANCE

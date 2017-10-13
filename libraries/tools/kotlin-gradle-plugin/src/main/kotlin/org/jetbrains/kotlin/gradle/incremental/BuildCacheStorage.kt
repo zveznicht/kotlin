@@ -36,14 +36,17 @@ internal class BuildCacheStorage(private val workingDir: File) : BasicMapsOwner(
 
     private val log = Logging.getLogger(this.javaClass)
     private val versionFile = File(workingDir, "version.txt")
-    private val version = CacheVersion(
+    private val version = object : CacheVersion(
             OWN_VERSION,
             versionFile,
             whenVersionChanged = CacheVersion.Action.REBUILD_ALL_KOTLIN,
             whenTurnedOff = CacheVersion.Action.REBUILD_ALL_KOTLIN,
             whenTurnedOn = CacheVersion.Action.REBUILD_ALL_KOTLIN,
             // assume it's always enabled for simplicity (if IC is not enabled, just don't write to cache)
-            isEnabled = { true })
+            isEnabled = { true }) {
+        override val expectedVersion: Int
+            get() = OWN_VERSION
+    }
 
     @Volatile
     private var artifactDifferenceRegistry: ArtifactDifferenceRegistryImpl? = null

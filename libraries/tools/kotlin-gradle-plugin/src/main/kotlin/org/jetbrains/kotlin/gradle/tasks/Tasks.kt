@@ -35,9 +35,7 @@ import org.jetbrains.kotlin.gradle.compilerRunner.GradleCompilerEnvironment
 import org.jetbrains.kotlin.gradle.compilerRunner.GradleCompilerRunner
 import org.jetbrains.kotlin.gradle.compilerRunner.GradleIncrementalCompilerEnvironment
 import org.jetbrains.kotlin.gradle.dsl.*
-import org.jetbrains.kotlin.gradle.incremental.ChangedFiles
-import org.jetbrains.kotlin.gradle.incremental.GradleICReporter
-import org.jetbrains.kotlin.gradle.incremental.gradleCacheVersion
+import org.jetbrains.kotlin.gradle.incremental.*
 import org.jetbrains.kotlin.gradle.plugin.KOTLIN_COMPILER_CLASSPATH_CONFIGURATION_NAME
 import org.jetbrains.kotlin.gradle.plugin.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.kotlinInfo
@@ -45,7 +43,6 @@ import org.jetbrains.kotlin.gradle.utils.ParsedGradleVersion
 import org.jetbrains.kotlin.incremental.*
 import org.jetbrains.kotlin.gradle.incremental.multiproject.ArtifactDifferenceRegistry
 import org.jetbrains.kotlin.gradle.incremental.multiproject.ArtifactDifferenceRegistryProvider
-import org.jetbrains.kotlin.gradle.incremental.pathsAsStringRelativeTo
 import java.io.File
 import java.util.*
 import kotlin.properties.Delegates
@@ -78,14 +75,9 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
     internal val taskBuildDirectory: File
         get() = File(File(project.buildDir, KOTLIN_BUILD_DIR_NAME), name).apply { mkdirs() }
 
-    private val cacheVersions: List<CacheVersion>
-        get() =
-            listOf(normalCacheVersion(taskBuildDirectory, enabled = incremental),
-                   dataContainerCacheVersion(taskBuildDirectory, enabled = incremental),
-                   gradleCacheVersion(taskBuildDirectory, enabled = incremental))
-
     // indicates that task should compile kotlin incrementally if possible
     // it's not possible when IncrementalTaskInputs#isIncremental returns false (i.e first build)
+    @Input
     var incremental: Boolean = false
         get() = field
         set(value) {
@@ -93,12 +85,13 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
             logger.kotlinDebug { "Set $this.incremental=$value" }
         }
 
-    internal val isCacheFormatUpToDate: Boolean
-        get() {
-            if (!incremental) return true
-
-            return cacheVersions.all { it.checkVersion() == CacheVersion.Action.DO_NOTHING }
-        }
+    // read from compiler classloader
+    @get:Input
+    val normalCacheVersion: String? get() = NORMAL_VERSION.toString()
+    @get:Input
+    val dataContainerCacheVersion: String? get() = DATA_CONTAINER_VERSION.toString()
+    @get:Input
+    val gradleCacheVersion: String? get() = GRADLE_CACHE_VERSION.toString()
 
     abstract protected fun createCompilerArgs(): T
 
