@@ -86,6 +86,7 @@ dependencies {
     compile(project(":kotlin-gradle-plugin-api"))
 
     compile(project(":kotlin-stdlib"))
+    compile(project(":kotlin-reflect"))
     runtime(project(":kotlin-android-extensions"))
 
     compile(project(path = ":kotlin-annotation-processing-gradle", configuration = "runtimeJar"))
@@ -138,9 +139,8 @@ noDefaultJar()
 runtimeJar(task<ShadowJar>("shadowJar"))  {
     from(packedJars)
     from(compileGroovy.destinationDir)
-    from(the<JavaPluginConvention>().sourceSets["agp25"]!!.output.classesDirs)
-    from(main.output.classesDirs)
-    from(main.resources)
+    from(the<JavaPluginConvention>().sourceSets["agp25"]!!.output)
+    from(main.output)
 }
 sourcesJar()
 javadocJar()
@@ -178,10 +178,10 @@ install.dependsOn(
         ":kotlin-android-extensions:install",
         ":kotlin-annotation-processing-gradle:install",
         ":kotlin-build-common:install",
-        ":kotlin-compiler-client-embeddable:install",
         ":kotlin-compiler-embeddable:install",
         ":kotlin-gradle-plugin-api:install",
-        ":kotlin-stdlib:install"
+        ":kotlin-stdlib:install",
+        ":kotlin-reflect:install"
 )
 
 // Validate that all dependencies 'install' tasks are added to 'test' dependencies
