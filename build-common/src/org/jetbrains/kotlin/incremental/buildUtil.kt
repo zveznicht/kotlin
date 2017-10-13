@@ -16,8 +16,6 @@
 
 package org.jetbrains.kotlin.incremental
 
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.build.GeneratedFile
 import org.jetbrains.kotlin.build.GeneratedJvmClass
 import org.jetbrains.kotlin.build.JvmSourceRoot
@@ -57,10 +55,28 @@ fun makeModuleFile(
             friendDirs
     )
 
-    val scriptFile = File.createTempFile("kjps", StringUtil.sanitizeJavaIdentifier(name) + ".script.xml")
-    FileUtil.writeToFile(scriptFile, builder.asText().toString())
+    val scriptFile = File.createTempFile("kjps", sanitizeJavaIdentifier(name) + ".script.xml")
+    scriptFile.writeText(builder.asText().toString())
     return scriptFile
 }
+
+private fun sanitizeJavaIdentifier(name: String): String {
+    val result = StringBuilder(name.length)
+
+    for (i in 0 until name.length) {
+        val ch = name[i]
+        if (Character.isJavaIdentifierPart(ch)) {
+            if (result.length == 0 && !Character.isJavaIdentifierStart(ch)) {
+                result.append("_")
+            }
+
+            result.append(ch)
+        }
+    }
+
+    return result.toString()
+}
+
 
 fun makeCompileServices(
         incrementalCaches: Map<TargetId, IncrementalCache>,
