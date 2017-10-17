@@ -351,7 +351,6 @@ class TypeResolver(
     private fun resolveTypeForTypeParameter(
             c: TypeResolutionContext, annotations: Annotations,
             typeParameter: TypeParameterDescriptor,
-            referenceExpression: KtSimpleNameExpression,
             typeArgumentList: KtTypeArgumentList?
     ): KotlinType {
         val scopeForTypeParameter = getScopeForTypeParameter(c, typeParameter)
@@ -359,11 +358,6 @@ class TypeResolver(
         if (typeArgumentList != null) {
             resolveTypeProjections(c, ErrorUtils.createErrorType("No type").constructor, typeArgumentList.arguments)
             c.trace.report(TYPE_ARGUMENTS_NOT_ALLOWED.on(typeArgumentList, "for type parameters"))
-        }
-
-        val containing = typeParameter.containingDeclaration
-        if (containing is ClassDescriptor) {
-            DescriptorResolver.checkHasOuterClassInstance(c.scope, c.trace, referenceExpression, containing)
         }
 
         return if (scopeForTypeParameter is ErrorUtils.ErrorScope)
@@ -402,7 +396,7 @@ class TypeResolver(
                 }
 
                 val qualifierPart = qualifierParts.single()
-                type(resolveTypeForTypeParameter(c, annotations, descriptor, qualifierPart.expression, qualifierPart.typeArguments))
+                type(resolveTypeForTypeParameter(c, annotations, descriptor, qualifierPart.typeArguments))
             }
             is ClassDescriptor -> resolveTypeForClass(c, annotations, descriptor, element, qualifierResolutionResult)
             is TypeAliasDescriptor -> resolveTypeForTypeAlias(c, annotations, descriptor, element, qualifierResolutionResult)
