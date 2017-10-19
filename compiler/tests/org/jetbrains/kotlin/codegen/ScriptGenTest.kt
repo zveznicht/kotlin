@@ -34,8 +34,8 @@ import org.jetbrains.org.objectweb.asm.Opcodes
 
 class ScriptGenTest : CodegenTestCase() {
     companion object {
-        private val FIB_SCRIPT_DEFINITION = KotlinScriptDefinitionFromAnnotatedTemplate(ScriptWithIntParam::class, providedScriptFilePattern = ".*\\.lang\\.kt")
-        private val NO_PARAM_SCRIPT_DEFINITION = KotlinScriptDefinitionFromAnnotatedTemplate(Any::class, providedScriptFilePattern = ".*\\.kts")
+        private val FIB_SCRIPT_DEFINITION = KotlinScriptDefinitionFromAnnotatedTemplate(ScriptWithIntParam::class)
+        private val NO_PARAM_SCRIPT_DEFINITION = KotlinScriptDefinitionFromAnnotatedTemplate(Any::class)
     }
 
     override fun setUp() {

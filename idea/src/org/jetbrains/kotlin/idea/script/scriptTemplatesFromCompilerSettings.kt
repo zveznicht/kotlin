@@ -18,15 +18,14 @@ package org.jetbrains.kotlin.idea.script
 
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCompilerSettings
-import org.jetbrains.kotlin.script.ScriptTemplatesProvider
+import org.jetbrains.kotlin.idea.core.script.TemplateBasedScriptDefinitionContributor
 import java.io.File
 
-class ScriptTemplatesFromCompilerSettingsProvider(project: Project): ScriptTemplatesProvider
+class ScriptTemplatesFromCompilerSettingsProvider(project: Project): TemplateBasedScriptDefinitionContributor()
 {
     private val kotlinSettings = KotlinCompilerSettings.getInstance(project).settings
 
     override val id: String = "KotlinCompilerScriptTemplatesSettings"
-    override val isValid: Boolean = kotlinSettings.scriptTemplates.isNotBlank()
 
     override val templateClassNames: Iterable<String> get() = kotlinSettings.scriptTemplates.split(',', ' ')
     override val templateClasspath get() = kotlinSettings.scriptTemplatesClasspath.split(File.pathSeparator).map(::File)

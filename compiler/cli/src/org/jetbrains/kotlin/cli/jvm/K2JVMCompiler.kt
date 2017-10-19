@@ -449,7 +449,7 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
                 for (template in scriptTemplates) {
                     try {
                         val cls = classloader.loadClass(template)
-                        val def = KotlinScriptDefinitionFromAnnotatedTemplate(cls.kotlin, null, null, scriptResolverEnv)
+                        val def = KotlinScriptDefinitionFromAnnotatedTemplate(cls.kotlin, scriptResolverEnv)
                         configuration.add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, def)
                         messageCollector.report(
                                 INFO,

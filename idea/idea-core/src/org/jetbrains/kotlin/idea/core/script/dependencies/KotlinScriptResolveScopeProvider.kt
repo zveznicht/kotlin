@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.script.getScriptDefinition
 
 class KotlinScriptResolveScopeProvider : ResolveScopeProvider() {
     companion object {
+        // TODO: this is never set true anymore
         val USE_NULL_RESOLVE_SCOPE = "USE_NULL_RESOLVE_SCOPE"
     }
 

@@ -24,6 +24,11 @@ import com.intellij.psi.PsiFile
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
+//interface KotlinScriptDefinitionProvider {
+//
+//}
+
+// TODO: make and interface, work on api
 class KotlinScriptDefinitionProvider {
 
     private val definitions: MutableList<KotlinScriptDefinition> = arrayListOf(StandardScriptDefinition)

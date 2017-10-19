@@ -24,7 +24,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import org.gradle.tooling.ProjectConnection
 import org.jetbrains.kotlin.lexer.KotlinLexer
 import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.script.ScriptTemplatesProvider
 import org.jetbrains.plugins.gradle.service.execution.GradleExecutionHelper
 import org.jetbrains.plugins.gradle.settings.GradleExecutionSettings
 import java.io.File
@@ -33,7 +32,7 @@ import kotlin.script.experimental.dependencies.ScriptDependencies
 
 abstract class AbstractGradleScriptTemplatesProvider(
         project: Project, override val id: String, private val templateClass: String, private val dependencySelector: Regex
-): ScriptTemplatesProvider {
+): TemplateBasedScriptDefinitionContributor() {
 
     private val gradleExeSettings: GradleExecutionSettings? by lazy {
         try {
@@ -65,8 +64,6 @@ abstract class AbstractGradleScriptTemplatesProvider(
             it.takeIf { it.exists() && it.isDirectory } ?: error("Invalid Gradle libraries directory $it")
         }
     }
-
-    override val isValid: Boolean get() = true
 
     override val templateClassNames get() = listOf(templateClass)
 
