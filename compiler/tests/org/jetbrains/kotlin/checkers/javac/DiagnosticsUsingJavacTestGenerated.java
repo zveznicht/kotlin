@@ -19434,6 +19434,12 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                     KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/scopes/protectedVisibility"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
                 }
 
+                @TestMetadata("bogusRecursion.kt")
+                public void testBogusRecursion() throws Exception {
+                    String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/scopes/protectedVisibility/bogusRecursion.kt");
+                    doTest(fileName);
+                }
+
                 @TestMetadata("complexCompanion.kt")
                 public void testComplexCompanion() throws Exception {
                     String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/diagnostics/tests/scopes/protectedVisibility/complexCompanion.kt");
