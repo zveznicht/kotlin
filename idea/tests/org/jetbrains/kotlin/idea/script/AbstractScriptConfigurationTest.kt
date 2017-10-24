@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.idea.script
 
+import com.intellij.openapi.components.service
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
@@ -24,10 +25,9 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.testFramework.PlatformTestUtil
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime
 import org.jetbrains.kotlin.idea.KotlinDaemonAnalyzerTestCase
-import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager
+import org.jetbrains.kotlin.idea.core.script.*
 import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesManager.Companion.updateScriptDependenciesSynchronously
 import org.jetbrains.kotlin.idea.navigation.GotoCheck
-import org.jetbrains.kotlin.idea.core.script.ScriptTemplatesProvider
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.MockLibraryUtil
@@ -182,28 +182,26 @@ abstract class AbstractScriptConfigurationTest : KotlinDaemonAnalyzerTestCase() 
 
         PlatformTestUtil.registerExtension(
                 Extensions.getArea(project),
-                ScriptTemplatesProvider.EP_NAME,
+                ScriptDefinitionContributor.EP_NAME,
                 provider,
                 testRootDisposable
         )
-        ScriptDependenciesManager.reloadScriptDefinitions(project)
+        project.service<ScriptDefinitionsManager>().reloadScriptDefinitions()
     }
 }
 
 class CustomScriptTemplateProvider(
         override val environment: Map<String, Any?>
-) : ScriptTemplatesProvider {
+) : TemplateBasedScriptDefinitionContributor() {
     override val id = "Test"
-    override val isValid = true
     override val templateClassNames = listOf("custom.scriptDefinition.Template")
     override val templateClasspath = listOfNotNull(environment["template-classes"] as? File)
 }
 
 class FromTextTemplateProvider(
         override val environment: Map<String, Any?>
-) : ScriptTemplatesProvider {
+) : TemplateBasedScriptDefinitionContributor() {
     override val id = "Test"
-    override val isValid = true
     override val templateClassNames = listOf("org.jetbrains.kotlin.idea.script.Template")
     override val templateClasspath get() = emptyList<File>()
 }
