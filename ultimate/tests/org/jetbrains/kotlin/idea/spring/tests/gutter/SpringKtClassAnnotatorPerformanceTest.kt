@@ -22,15 +22,12 @@ import com.intellij.spring.model.utils.SpringModelSearchers
 import com.intellij.testFramework.PlatformTestUtil
 import com.intellij.testFramework.UsefulTestCase
 import org.jetbrains.kotlin.idea.codeInsight.generate.AbstractCodeInsightActionTest
+import org.jetbrains.kotlin.idea.spring.tests.SpringKtLightHighlightingTestCase
 import org.jetbrains.kotlin.idea.spring.tests.SpringTestFixtureExtension
 import org.jetbrains.kotlin.idea.test.TestFixtureExtension
 
-class SpringKtClassAnnotatorPerformanceTest : AbstractCodeInsightActionTest() {
+class SpringKtClassAnnotatorPerformanceTest : SpringKtLightHighlightingTestCase() {
 
-    override fun setUp() {
-        super.setUp()
-        TestFixtureExtension.loadFixture<SpringTestFixtureExtension>(myModule)
-    }
 
     fun testKtComponentScan() {
         val beansCount = 50
@@ -56,7 +53,7 @@ class SpringKtClassAnnotatorPerformanceTest : AbstractCodeInsightActionTest() {
 
     """)
 
-        TestFixtureExtension.getFixture<SpringTestFixtureExtension>()!!.configureFileSet(myFixture, listOf("Config.kt"))
+        configureFileSet("Config.kt")
 
         PlatformTestUtil.startPerformanceTest("do Highlighting", 2800
         ) {
@@ -102,7 +99,7 @@ class SpringKtClassAnnotatorPerformanceTest : AbstractCodeInsightActionTest() {
 
         println("addClass = " + addClass.containingFile.virtualFile.url)
 
-        TestFixtureExtension.getFixture<SpringTestFixtureExtension>()!!.configureFileSet(myFixture, listOf("pkg/Config.java"))
+        configureFileSet("pkg/Config.java")
 
         PlatformTestUtil.startPerformanceTest("do Highlighting", 1000
         ) {
@@ -121,8 +118,5 @@ class SpringKtClassAnnotatorPerformanceTest : AbstractCodeInsightActionTest() {
     }
 
 
-    override fun tearDown() {
-        TestFixtureExtension.unloadFixture<SpringTestFixtureExtension>()
-        super.tearDown()
-    }
+
 }
