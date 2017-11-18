@@ -17,14 +17,11 @@
 package org.jetbrains.kotlin.idea.spring.tests.gutter
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo
-import com.intellij.psi.PsiElement
-import com.intellij.spring.model.utils.SpringModelSearchers
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.testFramework.PlatformTestUtil
-import com.intellij.testFramework.UsefulTestCase
-import org.jetbrains.kotlin.idea.codeInsight.generate.AbstractCodeInsightActionTest
 import org.jetbrains.kotlin.idea.spring.tests.SpringKtLightHighlightingTestCase
-import org.jetbrains.kotlin.idea.spring.tests.SpringTestFixtureExtension
-import org.jetbrains.kotlin.idea.test.TestFixtureExtension
 
 class SpringKtClassAnnotatorPerformanceTest : SpringKtLightHighlightingTestCase() {
 
@@ -38,6 +35,7 @@ class SpringKtClassAnnotatorPerformanceTest : SpringKtLightHighlightingTestCase(
         @org.springframework.context.annotation.Configuration
         @org.springframework.context.annotation.ComponentScan
         open class Config {
+        <caret>
 
        ${(0..beansCount).joinToString("\n") {
             """
@@ -54,6 +52,7 @@ class SpringKtClassAnnotatorPerformanceTest : SpringKtLightHighlightingTestCase(
     """)
 
         configureFileSet("Config.kt")
+        PsiDocumentManager.getInstance(project).commitAllDocuments()
 
         PlatformTestUtil.startPerformanceTest("do Highlighting", 2800
         ) {
@@ -61,13 +60,25 @@ class SpringKtClassAnnotatorPerformanceTest : SpringKtLightHighlightingTestCase(
 
             val allGutters = myFixture.findAllGutters("Config.kt")
             println("count = " + allGutters.size)
+//            TestCase.assertEquals(103, allGutters.size)
             val guttersMapping = allGutters.map {
                 (it as LineMarkerInfo.LineMarkerGutterIconRenderer<*>).lineMarkerInfo.let {
                     it.element?.text.toString() to it.lineMarkerTooltip
                 }
             }
             println("guttersMapping = " + guttersMapping)
-        }.attempts(2).assertTiming()
+        }.setup {
+
+            val modCount = myFixture.psiManager.modificationTracker.outOfCodeBlockModificationCount
+            println("modCount = " + modCount)
+            WriteCommandAction.runWriteCommandAction(project) {
+                val document = myFixture.editor.document
+                document.insertString(myFixture.caretOffset, "fun foo$modCount(){}\n")
+            }
+            PsiDocumentManager.getInstance(project).commitAllDocuments()
+            FileDocumentManager.getInstance().saveAllDocuments()
+
+        }.attempts(5).assertTiming()
 
     }
 
@@ -101,7 +112,7 @@ class SpringKtClassAnnotatorPerformanceTest : SpringKtLightHighlightingTestCase(
 
         configureFileSet("pkg/Config.java")
 
-        PlatformTestUtil.startPerformanceTest("do Highlighting", 1000
+        PlatformTestUtil.startPerformanceTest("do Highlighting", 2800
         ) {
             myFixture.testHighlighting("pkg/Config.java")
 
@@ -113,10 +124,53 @@ class SpringKtClassAnnotatorPerformanceTest : SpringKtLightHighlightingTestCase(
                 }
             }
             println("guttersMapping = " + guttersMapping)
-        }.attempts(2).assertTiming()
+        }.attempts(3).assertTiming()
 
     }
 
 
+}
+
+class SpringKtClassAnnotatorPTest : SpringKtLightHighlightingTestCase() {
+    fun testKtComponentScan() {
+        val beansCount = 50
+
+        myFixture.configureByText("Config.kt", """
+        package pkg;
+
+        @org.springframework.context.annotation.Configuration
+        @org.springframework.context.annotation.ComponentScan
+        open class Config {
+
+       ${(0..beansCount).joinToString("\n") {
+            """
+                @org.springframework.context.annotation.Bean
+                open fun localBean$it() = LocalBean$it()
+                """.trimIndent()
+        }}
+        }
+
+        ${(0..beansCount).joinToString("\n") {
+            "class LocalBean$it"
+        }}
+
+    """)
+
+        configureFileSet("Config.kt")
+
+
+        myFixture.testHighlighting("Config.kt")
+
+        val allGutters = myFixture.findAllGutters("Config.kt")
+        println("count = " + allGutters.size)
+        val guttersMapping = allGutters.map {
+            (it as LineMarkerInfo.LineMarkerGutterIconRenderer<*>).lineMarkerInfo.let {
+                it.element?.text.toString() to it.lineMarkerTooltip
+            }
+        }
+        println("guttersMapping = " + guttersMapping)
+
+
+    }
 
 }
