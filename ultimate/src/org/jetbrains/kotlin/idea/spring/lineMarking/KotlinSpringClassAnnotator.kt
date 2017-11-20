@@ -61,14 +61,15 @@ class KotlinSpringClassAnnotator : SpringClassAnnotator() {
         super.collectNavigationMarkers(elements.distinctBy { getElementToProcess(it) }, result, forNavigation)
     }
 
-    override fun getElementToProcess(psiElement: PsiElement): PsiElement? {
-        return CachedValuesManager.getManager(psiElement.project).getCachedValue(psiElement, ELEMENT_TO_PROCESS, {
-            val r = getElementToProcess0(psiElement)
-            CachedValueProvider.Result.create(r, PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT)
-        }, false)
-    }
+    override fun getElementToProcess(psiElement: PsiElement): PsiElement? =
+            CachedValuesManager.getManager(psiElement.project).getCachedValue(psiElement, ELEMENT_TO_PROCESS, {
+                CachedValueProvider.Result.create(
+                        computeElementToProcess(psiElement),
+                        PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT
+                )
+            }, false)
 
-    private fun getElementToProcess0(psiElement: PsiElement): PsiElement? {
+    private fun computeElementToProcess(psiElement: PsiElement): PsiElement? {
         if (psiElement is KtLightIdentifier) return psiElement.parent
         psiElement.getParentOfTypeAndBranch<KtClass> { nameIdentifier }?.let { return it.toLightClass() }
         psiElement.getParentOfTypeAndBranch<KtNamedFunction> { nameIdentifier }?.let { function ->
@@ -135,8 +136,7 @@ class KotlinSpringClassAnnotator : SpringClassAnnotator() {
     override fun collectNavigationMarkers(psiElement: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<PsiElement>>) {
 
         val newItems = CachedValuesManager.getManager(psiElement.project).getCachedValue(psiElement, MARKERS, {
-            val markers = doCollectMarkers(psiElement)
-            CachedValueProvider.Result.create(markers, PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT)
+            CachedValueProvider.Result.create(doCollectMarkers(psiElement), PsiModificationTracker.OUT_OF_CODE_BLOCK_MODIFICATION_COUNT)
         }, false)
 
         newItems.mapNotNullTo(result) { item ->
