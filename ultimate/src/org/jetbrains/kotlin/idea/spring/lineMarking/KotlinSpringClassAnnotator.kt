@@ -50,14 +50,16 @@ import org.jetbrains.kotlin.psi.psiUtil.getParentOfTypeAndBranch
 import org.jetbrains.kotlin.resolve.annotations.hasJvmStaticAnnotation
 import javax.swing.Icon
 
-class KotlinSpringClassAnnotator : SpringClassAnnotator() {
 
+private val ELEMENT_TO_PROCESS = Key.create<CachedValue<PsiElement?>>("ELEMENT_TO_PROCESS")
+
+private val MARKERS = Key.create<CachedValue<List<RelatedItemLineMarkerInfo<PsiElement>>>>("MARKERS")
+
+class KotlinSpringClassAnnotator : SpringClassAnnotator() {
 
     override fun collectNavigationMarkers(elements: MutableList<PsiElement>, result: MutableCollection<in RelatedItemLineMarkerInfo<PsiElement>>, forNavigation: Boolean) {
         super.collectNavigationMarkers(elements.distinctBy { getElementToProcess(it) }, result, forNavigation)
     }
-
-    private val ELEMENT_TO_PROCESS = Key.create<CachedValue<PsiElement?>>("ELEMENT_TO_PROCESS")
 
     override fun getElementToProcess(psiElement: PsiElement): PsiElement? {
         return CachedValuesManager.getManager(psiElement.project).getCachedValue(psiElement, ELEMENT_TO_PROCESS, {
@@ -129,8 +131,6 @@ class KotlinSpringClassAnnotator : SpringClassAnnotator() {
             else -> super.getIdentifierLocal(annotation)
         }
     }
-
-    private val MARKERS = Key.create<CachedValue<List<RelatedItemLineMarkerInfo<PsiElement>>>>("MARKERS")
 
     override fun collectNavigationMarkers(psiElement: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<PsiElement>>) {
 
