@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.psi
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.lang.html.HTMLLanguage
 import com.intellij.lang.injection.MultiHostInjector
-import com.intellij.openapi.components.ServiceManager.getService
 import com.intellij.openapi.fileTypes.PlainTextLanguage
 import org.intellij.lang.annotations.Language
 import org.intellij.lang.regexp.RegExpLanguage
@@ -497,6 +496,45 @@ class KotlinInjectionTest : AbstractInjectionTest() {
         }
         finally {
             kotlinLanguageInjector.annotationInjectionsEnabled = injectionsEnabled
+            Configuration.getInstance().replaceInjections(listOf(), listOf(customInjection), true)
+        }
+    }
+
+
+    fun testKotlinAnnotationsPattern() {
+        val customInjection = BaseInjection("kotlin")
+        customInjection.injectedLanguageId = RegExpLanguage.INSTANCE.id
+        val elementPattern = customInjection.compiler.createElementPattern(
+                """kotlinParameter().ofFunction(0, kotlinFunction().withName("Matches").definedInClass("Matches"))""".trimIndent(),
+                "temp rule")
+        customInjection.setInjectionPlaces(InjectionPlace(elementPattern, true))
+
+        try {
+            Configuration.getInstance().replaceInjections(listOf(customInjection), listOf(), true)
+
+            doInjectionPresentTest(
+                    text = """
+                        annotation class Matches(val pattern: String)
+
+                        @Matches("[A-Z]<caret>[a-z]+")
+                        val name = "John"
+                    """,
+                    languageId = RegExpLanguage.INSTANCE.id,
+                    unInjectShouldBePresent = false
+            )
+
+            doInjectionPresentTest(
+                    text = """
+                        annotation class Matches(val pattern: String)
+
+                        @Matches(pattern = "[A-Z]<caret>[a-z]+")
+                        val name = "John"
+                    """,
+                    languageId = RegExpLanguage.INSTANCE.id,
+                    unInjectShouldBePresent = false
+            )
+        }
+        finally {
             Configuration.getInstance().replaceInjections(listOf(), listOf(customInjection), true)
         }
     }

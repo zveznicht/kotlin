@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.util.text.StringUtilRt
+import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PatternConditionPlus
 import com.intellij.patterns.PsiClassNamePatternCondition
 import com.intellij.patterns.ValuePatternCondition
@@ -43,19 +44,19 @@ import org.intellij.plugins.intelliLang.inject.config.BaseInjection
 import org.intellij.plugins.intelliLang.inject.config.InjectionPlace
 import org.intellij.plugins.intelliLang.inject.java.JavaLanguageInjectionSupport
 import org.intellij.plugins.intelliLang.util.AnnotationUtilEx
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithSource
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.patterns.KotlinFunctionPattern
 import org.jetbrains.kotlin.idea.references.KtReference
+import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.runInReadActionWithWriteActionPriority
 import org.jetbrains.kotlin.idea.util.ProjectRootsUtil
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
-import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.util.aliasImportMap
+import org.jetbrains.kotlin.utils.SmartList
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 
 class KotlinLanguageInjector(
@@ -279,11 +280,19 @@ class KotlinLanguageInjector(
         val argument = host.parent as? KtValueArgument ?: return null
         val annotationEntry = argument.parent.parent as? KtAnnotationEntry ?: return null
         if (!fastCheckInjectionsExists(annotationEntry)) return null
-        val callDescriptor = annotationEntry.getResolvedCall(annotationEntry.analyze())?.candidateDescriptor
-        val psiClass = (callDescriptor as? DeclarationDescriptorWithSource)?.source?.getPsi() as? PsiClass ?: return null
-        val argumentName = argument.getArgumentName()?.asName?.identifier ?: "value"
-        val method = psiClass.findMethodsByName(argumentName, false).singleOrNull() ?: return null
-        return findInjection(method, configuration.getInjections(JavaLanguageInjectionSupport.JAVA_SUPPORT_ID))
+        val calleeReference = annotationEntry.calleeExpression?.constructorReferenceExpression?.mainReference
+        val callee = calleeReference?.resolve()
+        when (callee) {
+            is KtFunction -> return injectionForKotlinCall(argument, callee, calleeReference)
+            is PsiClass -> {
+                val psiClass = callee as? PsiClass ?: return null
+                val argumentName = argument.getArgumentName()?.asName?.identifier ?: "value"
+                val method = psiClass.findMethodsByName(argumentName, false).singleOrNull() ?: return null
+                return findInjection(method, configuration.getInjections(JavaLanguageInjectionSupport.JAVA_SUPPORT_ID))
+            }
+            else -> return null
+        }
+
     }
 
     private fun injectionForJavaMethod(argument: KtValueArgument, javaMethod: PsiMethod): InjectionInfo? {
@@ -375,7 +384,14 @@ class KotlinLanguageInjector(
                                    CachedValueProvider.Result.create(HashSet<String>().apply {
                                        for (injection in configuration.getInjections(JavaLanguageInjectionSupport.JAVA_SUPPORT_ID)) {
                                            for (injectionPlace in injection.injectionPlaces) {
-                                               for (targetClassFQN in retrievePlaceTargetClassesFQNs(injectionPlace)) {
+                                               for (targetClassFQN in retrieveJavaPlaceTargetClassesFQNs(injectionPlace)) {
+                                                   add(StringUtilRt.getShortName(targetClassFQN))
+                                               }
+                                           }
+                                       }
+                                       for (injection in configuration.getInjections(org.jetbrains.kotlin.idea.injection.KOTLIN_SUPPORT_ID)) {
+                                           for (injectionPlace in injection.injectionPlaces) {
+                                               for (targetClassFQN in retrieveKotlinPlaceTargetClassesFQNs(injectionPlace)) {
                                                    add(StringUtilRt.getShortName(targetClassFQN))
                                                }
                                            }
@@ -389,13 +405,25 @@ class KotlinLanguageInjector(
         return annotationShortName in injectableTargetClassShortNames.value
     }
 
-    private fun retrievePlaceTargetClassesFQNs(place: InjectionPlace): Collection<String> {
+    private fun retrieveJavaPlaceTargetClassesFQNs(place: InjectionPlace): Collection<String> {
         val classCondition = place.elementPattern.condition.conditions.firstOrNull { it.debugMethodName == "definedInClass" }
                                      as? PatternConditionPlus<*, *> ?: return emptyList()
         val psiClassNamePatternCondition = classCondition.valuePattern.condition.conditions.
                 firstIsInstanceOrNull<PsiClassNamePatternCondition>() ?: return emptyList()
         val valuePatternCondition = psiClassNamePatternCondition.namePattern.condition.conditions.firstIsInstanceOrNull<ValuePatternCondition<String>>() ?: return emptyList()
         return valuePatternCondition.values
+    }
+
+    private fun retrieveKotlinPlaceTargetClassesFQNs(place: InjectionPlace): Collection<String> {
+        val classNames = SmartList<String>()
+        fun collect(condition: PatternCondition<*>) {
+            when (condition) {
+                is PatternConditionPlus<*, *> -> condition.valuePattern.condition.conditions.forEach { collect(it) }
+                is KotlinFunctionPattern.DefinedInClassCondition -> classNames.add(condition.fqName)
+            }
+        }
+        place.elementPattern.condition.conditions.forEach { collect(it) }
+        return classNames
     }
 
 }
