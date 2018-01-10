@@ -48,7 +48,7 @@ open class KtFile(viewProvider: FileViewProvider, val isCompiled: Boolean) :
     private var isScript: Boolean? = null
 
     @Volatile
-    private var hasTopLeveCallables: Boolean? = null
+    private var hasTopLevelCallables: Boolean? = null
 
     @Volatile
     private var pathCached: String? = null
@@ -176,14 +176,14 @@ open class KtFile(viewProvider: FileViewProvider, val isCompiled: Boolean) :
         @Suppress("RemoveExplicitSuperQualifier")
         super<PsiFileBase>.clearCaches()
         isScript = null
-        hasTopLeveCallables = null
+        hasTopLevelCallables = null
         pathCached = null
     }
 
     fun isScript(): Boolean = stub?.isScript() ?: isScriptByTree
 
     fun hasTopLevelCallables(): Boolean {
-        hasTopLeveCallables?.let { return it }
+        hasTopLevelCallables?.let { return it }
 
         val result = declarations.any {
             (it is KtProperty ||
@@ -192,7 +192,7 @@ open class KtFile(viewProvider: FileViewProvider, val isCompiled: Boolean) :
                     it is KtTypeAlias) && !it.hasExpectModifier()
         }
 
-        hasTopLeveCallables = result
+        hasTopLevelCallables = result
         return result
     }
 
