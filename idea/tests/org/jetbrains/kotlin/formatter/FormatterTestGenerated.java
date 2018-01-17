@@ -891,6 +891,12 @@ public class FormatterTestGenerated extends AbstractFormatterTest {
             doTest(fileName);
         }
 
+        @TestMetadata("StatementLabel.after.kt")
+        public void testStatementLabel() throws Exception {
+            String fileName = KotlinTestUtils.navigationMetadata("idea/testData/formatter/StatementLabel.after.kt");
+            doTest(fileName);
+        }
+
         @TestMetadata("SuperListIndent.after.kt")
         public void testSuperListIndent() throws Exception {
             String fileName = KotlinTestUtils.navigationMetadata("idea/testData/formatter/SuperListIndent.after.kt");
