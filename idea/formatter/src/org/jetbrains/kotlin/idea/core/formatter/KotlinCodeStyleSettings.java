@@ -55,6 +55,10 @@ public class KotlinCodeStyleSettings extends CustomCodeStyleSettings {
     public KotlinCodeStyleSettings(CodeStyleSettings container) {
         super("JetCodeStyleSettings", container);
 
+
+        //throw new IllegalStateException("Not executed 2");
+        //KotlinStyleGuideCodeStyle.Companion.applyToKotlinCustomSettings(this);
+
         // defaults in IDE but not in tests
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
             PACKAGES_TO_USE_STAR_IMPORTS.addEntry(new PackageEntry(false, "java.util", false));
