@@ -18,9 +18,24 @@ package org.jetbrains.kotlin.idea.core.formatter;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.util.InvalidDataException;
+import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.psi.codeStyle.*;
-import com.intellij.util.ReflectionUtil;
+import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.Predicate;
+import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.idea.formatter.KotlinStyleGuideCodeStyle;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Set;
+
+import static com.intellij.util.ReflectionUtil.copyFields;
 
 public class KotlinCodeStyleSettings extends CustomCodeStyleSettings {
     public static final KotlinCodeStyleSettings DEFAULT = new KotlinCodeStyleSettings(new CodeStyleSettings());
@@ -52,12 +67,12 @@ public class KotlinCodeStyleSettings extends CustomCodeStyleSettings {
     public int WRAP_ELVIS_EXPRESSIONS = 1;
     public boolean IF_RPAREN_ON_NEW_LINE = false;
 
+    // Meta setting - should be ignored during equals checks. It also affects the defaults, both in common and in custom settings for Kotlin.
+    @ReflectionUtil.SkipInEquals
+    public boolean KOTLIN_OFFICIAL_CODE_STYLE = false;
+
     public KotlinCodeStyleSettings(CodeStyleSettings container) {
         super("JetCodeStyleSettings", container);
-
-
-        //throw new IllegalStateException("Not executed 2");
-        //KotlinStyleGuideCodeStyle.Companion.applyToKotlinCustomSettings(this);
 
         // defaults in IDE but not in tests
         if (!ApplicationManager.getApplication().isUnitTestMode()) {
@@ -78,8 +93,86 @@ public class KotlinCodeStyleSettings extends CustomCodeStyleSettings {
     }
 
     private void copyFrom(@NotNull KotlinCodeStyleSettings from) {
-        ReflectionUtil.copyFields(getClass().getFields(), from, this);
-
+        copyFields(getClass().getFields(), from, this);
         PACKAGES_TO_USE_STAR_IMPORTS.copyFrom(from.PACKAGES_TO_USE_STAR_IMPORTS);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof KotlinCodeStyleSettings)) return false;
+        if (!ReflectionUtil.comparePublicNonFinalFieldsWithSkip(this, obj)) return false;
+        return true;
+    }
+
+    @Override
+    public void writeExternal(Element parentElement, @NotNull CustomCodeStyleSettings parentSettings) throws WriteExternalException {
+        if (KOTLIN_OFFICIAL_CODE_STYLE) {
+            KotlinCodeStyleSettings thisKotlinStyleClone = (KotlinCodeStyleSettings) this.clone();
+            KotlinStyleGuideCodeStyle.Companion.applyToKotlinCustomSettings(thisKotlinStyleClone);
+
+            boolean isAllKotlinDefaults = this.equals(thisKotlinStyleClone);
+
+            if (isAllKotlinDefaults) {
+                KotlinCodeStyleSettings parentKotlinStyleClone = (KotlinCodeStyleSettings) parentSettings.clone();
+                KotlinStyleGuideCodeStyle.Companion.applyToKotlinCustomSettings(parentKotlinStyleClone);
+                parentKotlinStyleClone.KOTLIN_OFFICIAL_CODE_STYLE = false;
+
+                super.writeExternal(parentElement, parentKotlinStyleClone);
+                return;
+            }
+            else {
+                KOTLIN_OFFICIAL_CODE_STYLE = false;
+            }
+        }
+
+        super.writeExternal(parentElement, parentSettings);
+    }
+
+    @Override
+    public void readExternal(Element parentElement) throws InvalidDataException {
+        super.readExternal(parentElement);
+
+        if (KOTLIN_OFFICIAL_CODE_STYLE) {
+            KotlinStyleGuideCodeStyle.Companion.applyToKotlinCustomSettings(this);
+        }
+    }
+
+    private static class ReflectionUtil {
+        @Retention(RetentionPolicy.RUNTIME)
+        public @interface SkipInEquals {}
+
+        public static boolean comparePublicNonFinalFieldsWithSkip(@NotNull Object first, @NotNull Object second) {
+            return comparePublicNonFinalFields(first, second, field -> field.getAnnotation(SkipInEquals.class) == null);
+        }
+
+        private static boolean comparePublicNonFinalFields(@NotNull Object first, @NotNull Object second, @Nullable Predicate<Field> acceptPredicate) {
+            Set<Field> firstFields = ContainerUtil.newHashSet(first.getClass().getFields());
+
+
+            for (Field field : second.getClass().getFields()) {
+                if (firstFields.contains(field)) {
+                    if (isPublic(field) && !isFinal(field) && (acceptPredicate == null || acceptPredicate.apply(field))) {
+                        try {
+                            if (!Comparing.equal(field.get(first), field.get(second))) {
+                                return false;
+                            }
+                        }
+                        catch (IllegalAccessException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private static boolean isPublic(Field field) {
+            return (field.getModifiers() & Modifier.PUBLIC) != 0;
+        }
+
+        private static boolean isFinal(Field field) {
+            return (field.getModifiers() & Modifier.FINAL) != 0;
+        }
     }
 }

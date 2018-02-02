@@ -345,11 +345,9 @@ class KotlinLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvide
 
     override fun getIndentOptionsEditor(): IndentOptionsEditor = SmartIndentOptionsEditor()
 
-    override fun getDefaultCommonSettings(): CommonCodeStyleSettings =
-        CommonCodeStyleSettings(language).apply {
+    override fun getDefaultCommonSettings(): CommonCodeStyleSettings {
+        return CommonCodeStyleSettings(language).apply {
             initIndentOptions()
-//            KotlinStyleGuideCodeStyle.applyToCommonSettings(this)
-//
-//            throw IllegalStateException("Not executed 1")
         }
+    }
 }

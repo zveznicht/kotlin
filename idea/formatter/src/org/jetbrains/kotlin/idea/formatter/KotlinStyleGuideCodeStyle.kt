@@ -35,6 +35,8 @@ class KotlinStyleGuideCodeStyle : PredefinedCodeStyle("Kotlin style guide", Kotl
 
         fun applyToKotlinCustomSettings(kotlinCustomSettings: KotlinCodeStyleSettings) {
             kotlinCustomSettings.apply {
+                KOTLIN_OFFICIAL_CODE_STYLE = true
+
                 CONTINUATION_INDENT_IN_PARAMETER_LISTS = false
                 CONTINUATION_INDENT_IN_ARGUMENT_LISTS = false
                 CONTINUATION_INDENT_FOR_EXPRESSION_BODIES = false
