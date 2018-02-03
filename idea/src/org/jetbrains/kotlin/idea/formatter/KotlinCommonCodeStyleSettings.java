@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Set;
 
 public class KotlinCommonCodeStyleSettings extends CommonCodeStyleSettings {
+    public String CODE_STYLE = null;
+
     public KotlinCommonCodeStyleSettings() {
         super(KotlinLanguage.INSTANCE);
     }
@@ -41,6 +43,7 @@ public class KotlinCommonCodeStyleSettings extends CommonCodeStyleSettings {
         Set<String> supportedFields = getSupportedFields();
         if (supportedFields != null) {
             supportedFields.add("FORCE_REARRANGE_MODE");
+            supportedFields.add("CODE_STYLE");
         }
         DefaultJDOMExternalizer.writeExternal(this, element, new SupportedFieldsDiffFilter(this, supportedFields, defaultSettings));
         List<Integer> softMargins = getSoftMargins();
