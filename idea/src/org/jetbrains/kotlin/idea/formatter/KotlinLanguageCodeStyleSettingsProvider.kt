@@ -346,7 +346,7 @@ class KotlinLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvide
     override fun getIndentOptionsEditor(): IndentOptionsEditor = SmartIndentOptionsEditor()
 
     override fun getDefaultCommonSettings(): CommonCodeStyleSettings =
-        CommonCodeStyleSettings(language).apply {
+        KotlinCommonCodeStyleSettings().apply {
             initIndentOptions()
         }
 }
