@@ -51,7 +51,7 @@ class KotlinLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvide
                // todo: something
                        try {            return foo1(12, 13, 14)
                        }        catch (e: Exception) {            return 0        }        finally {           if (true) {               return 1           }           else {               return 2           }        }    }
-                   private val f = {(a: Int)->a*2}
+                   private val f = {a: Int->a*2}
 
                    fun longMethod(@Named("param1") param1: Int,
                     param2: String) {
@@ -137,7 +137,7 @@ class KotlinLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvide
                }""".trimIndent()
 
         else -> """open class Some {
-                       private val f: (Int)->Int = { (a: Int) -> a * 2 }
+                       private val f: (Int)->Int = { a: Int -> a * 2 }
                        fun foo(): Int {
                            val test: Int = 12
                            for (i in 10..42) {
