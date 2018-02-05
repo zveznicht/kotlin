@@ -137,7 +137,7 @@ public class KotlinCodeStyleSettings extends CustomCodeStyleSettings {
         }
     }
 
-    private static class ReflectionUtil {
+    public static class ReflectionUtil {
         @Retention(RetentionPolicy.RUNTIME)
         public @interface SkipInEquals {}
 

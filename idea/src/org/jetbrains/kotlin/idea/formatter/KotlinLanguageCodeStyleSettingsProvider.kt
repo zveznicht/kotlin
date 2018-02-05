@@ -19,9 +19,12 @@ package org.jetbrains.kotlin.idea.formatter
 import com.intellij.application.options.IndentOptionsEditor
 import com.intellij.application.options.SmartIndentOptionsEditor
 import com.intellij.openapi.application.ApplicationBundle
+import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings
 import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider
+import com.intellij.util.ReflectionUtil
+import org.jdom.Element
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.formatter.KotlinCodeStyleSettings
 import kotlin.reflect.KProperty
@@ -346,8 +349,30 @@ class KotlinLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvide
     override fun getIndentOptionsEditor(): IndentOptionsEditor = SmartIndentOptionsEditor()
 
     override fun getDefaultCommonSettings(): CommonCodeStyleSettings {
-        return CommonCodeStyleSettings(language).apply {
+        return KotlinCommonStyleSettings().apply {
             initIndentOptions()
+        }
+    }
+
+    class KotlinCommonStyleSettings() : CommonCodeStyleSettings(KotlinLanguage.INSTANCE) {
+        @KotlinCodeStyleSettings.ReflectionUtil.SkipInEquals
+        var KOTLIN_OFFICIAL_STYLE: Boolean = false
+
+        override fun writeExternal(element: Element?) {
+            super.writeExternal(element)
+        }
+
+        override fun readExternal(element: Element?) {
+            super.readExternal(element)
+        }
+
+        override fun equals(other: Any?): Boolean {
+            if (other !is CommonCodeStyleSettings) return false
+
+            return KotlinCodeStyleSettings.ReflectionUtil.comparePublicNonFinalFieldsWithSkip(this, other) &&
+                    softMargins == other.softMargins &&
+                    indentOptions == other.indentOptions &&
+                    arrangementSettingsEqual(other)
         }
     }
 }
