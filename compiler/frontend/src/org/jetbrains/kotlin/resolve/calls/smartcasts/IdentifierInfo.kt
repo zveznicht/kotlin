@@ -76,6 +76,10 @@ interface IdentifierInfo {
         override fun toString() = descriptor.toString()
     }
 
+    data class EnumEntry(val descriptor: ClassDescriptor) : IdentifierInfo {
+        override val kind: DataFlowValue.Kind = STABLE_VALUE
+    }
+
     class Qualified(
         val receiverInfo: IdentifierInfo,
         val selectorInfo: IdentifierInfo,
@@ -218,7 +222,14 @@ private fun getIdForSimpleNameExpression(
             }
         }
 
-        is PackageViewDescriptor, is ClassDescriptor -> IdentifierInfo.PackageOrClass(declarationDescriptor)
+        is ClassDescriptor -> {
+            if (declarationDescriptor.kind == ClassKind.ENUM_ENTRY)
+                IdentifierInfo.EnumEntry(declarationDescriptor)
+            else
+                IdentifierInfo.PackageOrClass(declarationDescriptor)
+        }
+
+        is PackageViewDescriptor -> IdentifierInfo.PackageOrClass(declarationDescriptor)
 
         else -> IdentifierInfo.NO
     }

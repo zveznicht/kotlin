@@ -18479,6 +18479,11 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                 runTest("compiler/testData/diagnostics/tests/smartCasts/elvisRHS.kt");
             }
 
+            @TestMetadata("enumEntryMembers.kt")
+            public void testEnumEntryMembers() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/smartCasts/enumEntryMembers.kt");
+            }
+
             @TestMetadata("equals.kt")
             public void testEquals() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/smartCasts/equals.kt");
