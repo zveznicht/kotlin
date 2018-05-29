@@ -170,7 +170,7 @@ internal fun getIdForStableIdentifier(
 
         is KtPostfixExpression -> {
             val operationType = expression.operationReference.getReferencedNameElementType()
-            if (operationType === KtTokens.PLUSPLUS || operationType === KtTokens.MINUSMINUS)
+            if (operationType === KtTokens.PLUSPLUS || operationType === KtTokens.MINUSMINUS || operationType === KtTokens.EXCLEXCL)
                 postfix(getIdForStableIdentifier(expression.baseExpression, bindingContext, containingDeclarationOrModule), operationType)
             else
                 IdentifierInfo.NO

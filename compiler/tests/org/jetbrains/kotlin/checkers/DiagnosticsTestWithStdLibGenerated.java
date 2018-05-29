@@ -2765,6 +2765,11 @@ public class DiagnosticsTestWithStdLibGenerated extends AbstractDiagnosticsTestW
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/testsWithStdLib/smartcasts"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
         }
 
+        @TestMetadata("elvisInWhileTrue.kt")
+        public void testElvisInWhileTrue() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/smartcasts/elvisInWhileTrue.kt");
+        }
+
         @TestMetadata("forEachSafe.kt")
         public void testForEachSafe() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/smartcasts/forEachSafe.kt");
@@ -2823,6 +2828,11 @@ public class DiagnosticsTestWithStdLibGenerated extends AbstractDiagnosticsTestW
         @TestMetadata("listOfGeneric.kt")
         public void testListOfGeneric() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/smartcasts/listOfGeneric.kt");
+        }
+
+        @TestMetadata("smartcastOnPropertyOfNonNullAssertedReceiver.kt")
+        public void testSmartcastOnPropertyOfNonNullAssertedReceiver() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/smartcasts/smartcastOnPropertyOfNonNullAssertedReceiver.kt");
         }
 
         @TestMetadata("withChangesToNull.kt")
