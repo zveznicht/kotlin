@@ -10,11 +10,13 @@ import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsPr
 import com.intellij.openapi.externalSystem.service.project.IdeModifiableModelsProviderImpl
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.roots.ProjectRootModificationTracker
+import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValueProvider
 import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.idea.facet.KotlinFacetType
+import org.jetbrains.kotlin.resolve.TargetPlatform
 
 val Module.implementingModules: List<Module>
     get() = cached(CachedValueProvider {
@@ -74,3 +76,20 @@ val ModuleDescriptor.implementedDescriptors: List<ModuleDescriptor>
 
 private fun ModuleSourceInfo.toDescriptor() = KotlinCacheService.getInstance(module.project)
     .getResolutionFacadeByModuleInfo(this, platform)?.moduleDescriptor
+
+fun PsiElement.getPlatformModuleInfo(desiredPlatform: TargetPlatform): PlatformModuleInfo? {
+    assert(desiredPlatform != TargetPlatform.Common)
+    val moduleInfo = getModuleInfo() as? ModuleSourceInfo ?: return null
+    return when (moduleInfo.platform) {
+        TargetPlatform.Common -> {
+            val correspondingImplementingModule = moduleInfo.module.implementingModules.map { it.toInfo(moduleInfo.isTests()) }
+                .firstOrNull { it?.platform == desiredPlatform } ?: return null
+            PlatformModuleInfo(correspondingImplementingModule, correspondingImplementingModule.expectedBy)
+        }
+        desiredPlatform -> {
+            val expectedBy = moduleInfo.expectedBy.takeIf { it.isNotEmpty() } ?: return null
+            PlatformModuleInfo(moduleInfo, expectedBy)
+        }
+        else -> null
+    }
+}
