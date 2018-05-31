@@ -419,6 +419,8 @@ data class PlatformModuleInfo(
 
     override fun dependencies() = platformModule.dependencies()
 
+    override fun modulesWhoseInternalsAreVisible() = containedModules.flatMap { it.modulesWhoseInternalsAreVisible() }
+
     override val name: Name
         get() = Name.special("<Platform module ${platformModule.displayedName} including ${commonModules.map { it.displayedName }}>")
 
