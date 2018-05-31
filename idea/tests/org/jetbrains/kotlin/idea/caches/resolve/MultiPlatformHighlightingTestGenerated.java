@@ -25,6 +25,11 @@ public class MultiPlatformHighlightingTestGenerated extends AbstractMultiPlatfor
         KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
     }
 
+    @TestMetadata("actualsWithDefaultValues")
+    public void testActualsWithDefaultValues() throws Exception {
+        runTest("idea/testData/multiModuleHighlighting/multiplatform/actualsWithDefaultValues/");
+    }
+
     @TestMetadata("additionalMembersInPlatformInterface")
     public void testAdditionalMembersInPlatformInterface() throws Exception {
         runTest("idea/testData/multiModuleHighlighting/multiplatform/additionalMembersInPlatformInterface/");
