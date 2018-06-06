@@ -1,0 +1,13 @@
+package
+
+public suspend inline fun </*0*/ T : kotlin.Any> OverloadTest.overload(/*0*/ value: T?, /*1*/ function: suspend (T) -> kotlin.Unit): kotlin.Unit
+public suspend fun OverloadTest.overloadBoolean(/*0*/ value: kotlin.Boolean?): kotlin.Unit
+
+public final class OverloadTest {
+    public constructor OverloadTest()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public final suspend fun foo(/*0*/ bar: kotlin.Any?): kotlin.Unit
+    public final suspend fun foo(/*0*/ bar: kotlin.Boolean): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}

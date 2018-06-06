@@ -1,0 +1,17 @@
+package
+
+public val a: S
+public val b: S
+public suspend fun noUnusedParameter(/*0*/ s: S): kotlin.Int
+public fun unreachableCode(): S
+public fun unreachableCodeInLoop(): kotlin.Int
+public fun unusedExpression(/*0*/ s: S): kotlin.Unit
+public suspend fun kotlin.Int.returnsString(): kotlin.String
+
+public final class S {
+    public constructor S()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public final suspend fun returnsInt(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}

@@ -1,0 +1,8 @@
+package
+
+public val x1: suspend () -> kotlin.Unit
+public val x2: kotlin.Int
+public fun bar(/*0*/ f: suspend () -> kotlin.Unit): kotlin.Int
+public fun bar(/*0*/ f: suspend (kotlin.String) -> kotlin.Unit): kotlin.Int
+public suspend fun foo(): kotlin.Unit
+public suspend fun foo(/*0*/ s: kotlin.String): kotlin.Unit

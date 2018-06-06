@@ -1,0 +1,16 @@
+package
+
+public fun expectSuspendFunction0String(/*0*/ f: suspend () -> kotlin.String): suspend () -> kotlin.String
+public fun expectSuspendFunction0Unit(/*0*/ f: suspend () -> kotlin.Unit): suspend () -> kotlin.Unit
+public fun expectSuspendFunction1String(/*0*/ f: suspend (A) -> kotlin.String): suspend (A) -> kotlin.String
+public fun expectSuspendFunction1Unit(/*0*/ f: suspend (A) -> kotlin.Unit): suspend (A) -> kotlin.Unit
+public suspend fun foo(): kotlin.String
+
+public final class A {
+    public constructor A()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public final suspend fun foo(): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public final fun main(): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}

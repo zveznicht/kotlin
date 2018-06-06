@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.resolve.calls.CallResolver
 import org.jetbrains.kotlin.resolve.calls.callResolverUtil.ResolveArgumentsMode
 import org.jetbrains.kotlin.resolve.calls.callUtil.getCalleeExpressionIfAny
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
+import org.jetbrains.kotlin.resolve.calls.checkers.isBuiltInCoroutineContext
 import org.jetbrains.kotlin.resolve.calls.context.*
 import org.jetbrains.kotlin.resolve.calls.results.OverloadResolutionResults
 import org.jetbrains.kotlin.resolve.calls.results.OverloadResolutionResultsUtil
@@ -637,8 +638,8 @@ class DoubleColonExpressionResolver(
         resolutionResults: OverloadResolutionResults<CallableDescriptor>?
     ) {
         val descriptor =
-            if (resolutionResults?.isSingleResult == true) resolutionResults.resultingDescriptor as? FunctionDescriptor else null
-        if (descriptor?.isSuspend == true && descriptor is PropertyDescriptor) {
+            if (resolutionResults?.isSingleResult == true) resolutionResults.resultingDescriptor else null
+        if (descriptor is PropertyDescriptor && descriptor.isBuiltInCoroutineContext(languageVersionSettings)) {
             context.trace.report(UNSUPPORTED.on(expression.callableReference, "Callable references to suspend property"))
         }
 

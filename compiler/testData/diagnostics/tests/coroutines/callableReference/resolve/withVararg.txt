@@ -1,0 +1,9 @@
+package
+
+public val fn1: suspend (kotlin.Int) -> kotlin.Unit
+public val fn2: suspend (kotlin.IntArray) -> kotlin.Unit
+public val fn3: suspend (kotlin.Int, kotlin.Int) -> kotlin.Unit
+public val fn4: suspend (kotlin.Array<kotlin.String>) -> kotlin.Unit
+public suspend fun foo(/*0*/ vararg ss: kotlin.String /*kotlin.Array<out kotlin.String>*/): kotlin.Unit
+public suspend fun foo(/*0*/ i: kotlin.Int): kotlin.Unit
+public suspend fun foo(/*0*/ vararg ii: kotlin.Int /*kotlin.IntArray*/): kotlin.Unit

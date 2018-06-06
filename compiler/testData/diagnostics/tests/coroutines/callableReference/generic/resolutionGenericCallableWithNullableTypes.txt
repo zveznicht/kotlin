@@ -1,0 +1,7 @@
+package
+
+public fun </*0*/ T> baz(/*0*/ element: suspend (T) -> kotlin.Unit): T?
+public suspend fun foo(/*0*/ z: kotlin.Boolean): kotlin.Unit
+public suspend fun foo(/*0*/ x: kotlin.Int?): kotlin.Unit
+public suspend fun foo(/*0*/ y: kotlin.String?): kotlin.Unit
+public fun test1(): kotlin.Unit

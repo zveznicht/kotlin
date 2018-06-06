@@ -1,0 +1,13 @@
+package
+
+public suspend fun bar(/*0*/ s: kotlin.String): kotlin.String
+public suspend fun fn1(/*0*/ x: kotlin.Int, /*1*/ f1: suspend (kotlin.Int) -> kotlin.String, /*2*/ f2: suspend (kotlin.String) -> kotlin.String): kotlin.String
+public suspend fun fn2(/*0*/ f1: suspend (kotlin.Int) -> kotlin.Int, /*1*/ f2: suspend (kotlin.Int) -> kotlin.String): kotlin.String
+public suspend fun fn2(/*0*/ f1: suspend (kotlin.Int) -> kotlin.String, /*1*/ f2: suspend (kotlin.String) -> kotlin.String): kotlin.String
+public suspend fun fn2(/*0*/ f1: suspend (kotlin.String) -> kotlin.String, /*1*/ f2: suspend (kotlin.String) -> kotlin.String): kotlin.String
+public suspend fun fn3(/*0*/ i: kotlin.Int, /*1*/ f: suspend (kotlin.Int, kotlin.Int, kotlin.Int) -> kotlin.Int): kotlin.Int
+public suspend fun foo(/*0*/ i: kotlin.Int): kotlin.String
+public suspend fun foo(/*0*/ s: kotlin.String): kotlin.String
+public suspend fun qux(/*0*/ i: kotlin.Int, /*1*/ j: kotlin.Int, /*2*/ k: kotlin.Int): kotlin.Int
+public suspend fun qux(/*0*/ a: kotlin.String, /*1*/ b: kotlin.String, /*2*/ c: kotlin.String, /*3*/ d: kotlin.String): kotlin.Unit
+public suspend fun test(): kotlin.Unit

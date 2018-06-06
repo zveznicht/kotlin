@@ -1,0 +1,6 @@
+package
+
+public suspend fun bar(/*0*/ x: kotlin.Int): kotlin.Unit
+public suspend fun baz(): kotlin.String
+public suspend fun foo(): kotlin.Unit
+public fun main(): kotlin.Unit

@@ -1,0 +1,11 @@
+package
+
+public fun test(/*0*/ s: S): [ERROR : Error function type]
+
+public final class S {
+    public constructor S()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public final suspend fun id(): S
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}

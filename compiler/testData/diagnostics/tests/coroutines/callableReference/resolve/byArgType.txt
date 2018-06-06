@@ -1,0 +1,6 @@
+package
+
+public fun fn(/*0*/ f: suspend () -> kotlin.Unit): kotlin.Unit
+public suspend fun foo(): kotlin.Unit
+public suspend fun foo(/*0*/ s: kotlin.String): kotlin.Unit
+public fun test(): kotlin.Unit

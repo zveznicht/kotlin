@@ -1,0 +1,4 @@
+package
+
+public suspend fun foo(): kotlin.Int
+public suspend fun test(): kotlin.Unit

@@ -1,0 +1,5 @@
+package
+
+public suspend fun getString(): kotlin.String
+public suspend fun </*0*/ T> getT(): T
+public fun test(): kotlin.Unit

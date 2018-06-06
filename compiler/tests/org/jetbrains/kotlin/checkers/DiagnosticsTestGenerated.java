@@ -4126,6 +4126,519 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
             }
         }
 
+        @TestMetadata("compiler/testData/diagnostics/tests/coroutines")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Coroutines extends AbstractDiagnosticsTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInCoroutines() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/coroutines"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+            }
+
+            @TestMetadata("compiler/testData/diagnostics/tests/coroutines/callableReference")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class CallableReference extends AbstractDiagnosticsTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInCallableReference() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/coroutines/callableReference"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                }
+
+                @TestMetadata("callableReferenceAsLastExpressionInBlock.kt")
+                public void testCallableReferenceAsLastExpressionInBlock() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/callableReferenceAsLastExpressionInBlock.kt");
+                }
+
+                @TestMetadata("classVsPackage.kt")
+                public void testClassVsPackage() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/classVsPackage.kt");
+                }
+
+                @TestMetadata("emptyLhs.kt")
+                public void testEmptyLhs() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/emptyLhs.kt");
+                }
+
+                @TestMetadata("invokeOutideSuspend.kt")
+                public void testInvokeOutideSuspend() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/invokeOutideSuspend.kt");
+                }
+
+                @TestMetadata("kt7430_wrongClassOnLHS.kt")
+                public void testKt7430_wrongClassOnLHS() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/kt7430_wrongClassOnLHS.kt");
+                }
+
+                @TestMetadata("packageInLhs.kt")
+                public void testPackageInLhs() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/packageInLhs.kt");
+                }
+
+                @TestMetadata("parsingPriorityOfGenericArgumentsVsLess.kt")
+                public void testParsingPriorityOfGenericArgumentsVsLess() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/parsingPriorityOfGenericArgumentsVsLess.kt");
+                }
+
+                @TestMetadata("unused.kt")
+                public void testUnused() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/unused.kt");
+                }
+
+                @TestMetadata("whitespacesInExpression.kt")
+                public void testWhitespacesInExpression() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/whitespacesInExpression.kt");
+                }
+
+                @TestMetadata("compiler/testData/diagnostics/tests/coroutines/callableReference/bound")
+                @TestDataPath("$PROJECT_ROOT")
+                @RunWith(JUnit3RunnerWithInners.class)
+                public static class Bound extends AbstractDiagnosticsTest {
+                    private void runTest(String testDataFilePath) throws Exception {
+                        KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+                    }
+
+                    public void testAllFilesPresentInBound() throws Exception {
+                        KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/coroutines/callableReference/bound"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                    }
+
+                    @TestMetadata("companionObject.kt")
+                    public void testCompanionObject() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/companionObject.kt");
+                    }
+
+                    @TestMetadata("controlFlow.kt")
+                    public void testControlFlow() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/controlFlow.kt");
+                    }
+
+                    @TestMetadata("expectedType.kt")
+                    public void testExpectedType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/expectedType.kt");
+                    }
+
+                    @TestMetadata("expressionWithNullableType.kt")
+                    public void testExpressionWithNullableType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/expressionWithNullableType.kt");
+                    }
+
+                    @TestMetadata("functionCallWithoutArguments.kt")
+                    public void testFunctionCallWithoutArguments() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/functionCallWithoutArguments.kt");
+                    }
+
+                    @TestMetadata("kt12843.kt")
+                    public void testKt12843() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/kt12843.kt");
+                    }
+
+                    @TestMetadata("object.kt")
+                    public void testObject() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/object.kt");
+                    }
+
+                    @TestMetadata("privateToThis.kt")
+                    public void testPrivateToThis() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/privateToThis.kt");
+                    }
+
+                    @TestMetadata("reservedExpressionSyntax.kt")
+                    public void testReservedExpressionSyntax() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/reservedExpressionSyntax.kt");
+                    }
+
+                    @TestMetadata("reservedExpressionSyntax2.kt")
+                    public void testReservedExpressionSyntax2() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/reservedExpressionSyntax2.kt");
+                    }
+
+                    @TestMetadata("reservedExpressionSyntax3.kt")
+                    public void testReservedExpressionSyntax3() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/reservedExpressionSyntax3.kt");
+                    }
+
+                    @TestMetadata("syntheticExtensionOnLHS.kt")
+                    public void testSyntheticExtensionOnLHS() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/syntheticExtensionOnLHS.kt");
+                    }
+
+                    @TestMetadata("valueOfTypeParameterType.kt")
+                    public void testValueOfTypeParameterType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/valueOfTypeParameterType.kt");
+                    }
+                }
+
+                @TestMetadata("compiler/testData/diagnostics/tests/coroutines/callableReference/function")
+                @TestDataPath("$PROJECT_ROOT")
+                @RunWith(JUnit3RunnerWithInners.class)
+                public static class Function extends AbstractDiagnosticsTest {
+                    private void runTest(String testDataFilePath) throws Exception {
+                        KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+                    }
+
+                    public void testAllFilesPresentInFunction() throws Exception {
+                        KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/coroutines/callableReference/function"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                    }
+
+                    @TestMetadata("ambiguityTopLevelVsTopLevel.kt")
+                    public void testAmbiguityTopLevelVsTopLevel() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/ambiguityTopLevelVsTopLevel.kt");
+                    }
+
+                    @TestMetadata("callableRefrenceOnNestedObject.kt")
+                    public void testCallableRefrenceOnNestedObject() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/callableRefrenceOnNestedObject.kt");
+                    }
+
+                    @TestMetadata("classMemberVsConstructorLikeFunction.kt")
+                    public void testClassMemberVsConstructorLikeFunction() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/classMemberVsConstructorLikeFunction.kt");
+                    }
+
+                    @TestMetadata("differentPackageClass.kt")
+                    public void testDifferentPackageClass() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/differentPackageClass.kt");
+                    }
+
+                    @TestMetadata("differentPackageExtension.kt")
+                    public void testDifferentPackageExtension() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/differentPackageExtension.kt");
+                    }
+
+                    @TestMetadata("differentPackageTopLevel.kt")
+                    public void testDifferentPackageTopLevel() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/differentPackageTopLevel.kt");
+                    }
+
+                    @TestMetadata("extensionFromTopLevel.kt")
+                    public void testExtensionFromTopLevel() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/extensionFromTopLevel.kt");
+                    }
+
+                    @TestMetadata("extensionInClassDisallowed.kt")
+                    public void testExtensionInClassDisallowed() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/extensionInClassDisallowed.kt");
+                    }
+
+                    @TestMetadata("extensionOnNullable.kt")
+                    public void testExtensionOnNullable() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/extensionOnNullable.kt");
+                    }
+
+                    @TestMetadata("extensionToSupertype.kt")
+                    public void testExtensionToSupertype() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/extensionToSupertype.kt");
+                    }
+
+                    @TestMetadata("fakeOverrideType.kt")
+                    public void testFakeOverrideType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/fakeOverrideType.kt");
+                    }
+
+                    @TestMetadata("genericClassFromTopLevel.kt")
+                    public void testGenericClassFromTopLevel() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/genericClassFromTopLevel.kt");
+                    }
+
+                    @TestMetadata("localNamedFun.kt")
+                    public void testLocalNamedFun() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/localNamedFun.kt");
+                    }
+
+                    @TestMetadata("localNamedFunFromExtensionInLocalClass.kt")
+                    public void testLocalNamedFunFromExtensionInLocalClass() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/localNamedFunFromExtensionInLocalClass.kt");
+                    }
+
+                    @TestMetadata("localNamedFunFromLocalClass.kt")
+                    public void testLocalNamedFunFromLocalClass() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/localNamedFunFromLocalClass.kt");
+                    }
+
+                    @TestMetadata("localNamedFunFromLocalExtension.kt")
+                    public void testLocalNamedFunFromLocalExtension() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/localNamedFunFromLocalExtension.kt");
+                    }
+
+                    @TestMetadata("longQualifiedName.kt")
+                    public void testLongQualifiedName() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/longQualifiedName.kt");
+                    }
+
+                    @TestMetadata("longQualifiedNameGeneric.kt")
+                    public void testLongQualifiedNameGeneric() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/longQualifiedNameGeneric.kt");
+                    }
+
+                    @TestMetadata("memberFromTopLevel.kt")
+                    public void testMemberFromTopLevel() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/memberFromTopLevel.kt");
+                    }
+
+                    @TestMetadata("noAmbiguityLocalVsTopLevel.kt")
+                    public void testNoAmbiguityLocalVsTopLevel() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/noAmbiguityLocalVsTopLevel.kt");
+                    }
+
+                    @TestMetadata("noAmbiguityMemberVsExtension.kt")
+                    public void testNoAmbiguityMemberVsExtension() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/noAmbiguityMemberVsExtension.kt");
+                    }
+
+                    @TestMetadata("noAmbiguityMemberVsTopLevel.kt")
+                    public void testNoAmbiguityMemberVsTopLevel() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/noAmbiguityMemberVsTopLevel.kt");
+                    }
+
+                    @TestMetadata("renameOnImport.kt")
+                    public void testRenameOnImport() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/renameOnImport.kt");
+                    }
+
+                    @TestMetadata("topLevelFromClass.kt")
+                    public void testTopLevelFromClass() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/topLevelFromClass.kt");
+                    }
+
+                    @TestMetadata("topLevelFromExtension.kt")
+                    public void testTopLevelFromExtension() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/topLevelFromExtension.kt");
+                    }
+
+                    @TestMetadata("topLevelFromExtensionInClass.kt")
+                    public void testTopLevelFromExtensionInClass() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/topLevelFromExtensionInClass.kt");
+                    }
+
+                    @TestMetadata("topLevelFromTopLevel.kt")
+                    public void testTopLevelFromTopLevel() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/topLevelFromTopLevel.kt");
+                    }
+
+                    @TestMetadata("unresolved.kt")
+                    public void testUnresolved() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/unresolved.kt");
+                    }
+                }
+
+                @TestMetadata("compiler/testData/diagnostics/tests/coroutines/callableReference/generic")
+                @TestDataPath("$PROJECT_ROOT")
+                @RunWith(JUnit3RunnerWithInners.class)
+                public static class Generic extends AbstractDiagnosticsTest {
+                    private void runTest(String testDataFilePath) throws Exception {
+                        KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+                    }
+
+                    public void testAllFilesPresentInGeneric() throws Exception {
+                        KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/coroutines/callableReference/generic"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                    }
+
+                    @TestMetadata("argumentAndReturnExpectedType.kt")
+                    public void testArgumentAndReturnExpectedType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/argumentAndReturnExpectedType.kt");
+                    }
+
+                    @TestMetadata("argumentExpectedType.kt")
+                    public void testArgumentExpectedType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/argumentExpectedType.kt");
+                    }
+
+                    @TestMetadata("dependOnArgumentType.kt")
+                    public void testDependOnArgumentType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/dependOnArgumentType.kt");
+                    }
+
+                    @TestMetadata("expectedFunctionType.kt")
+                    public void testExpectedFunctionType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/expectedFunctionType.kt");
+                    }
+
+                    @TestMetadata("explicitTypeArguments.kt")
+                    public void testExplicitTypeArguments() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/explicitTypeArguments.kt");
+                    }
+
+                    @TestMetadata("genericExtensionFunction.kt")
+                    public void testGenericExtensionFunction() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/genericExtensionFunction.kt");
+                    }
+
+                    @TestMetadata("genericFunctionsWithNullableTypes.kt")
+                    public void testGenericFunctionsWithNullableTypes() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/genericFunctionsWithNullableTypes.kt");
+                    }
+
+                    @TestMetadata("kt10968.kt")
+                    public void testKt10968() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/kt10968.kt");
+                    }
+
+                    @TestMetadata("kt11075.kt")
+                    public void testKt11075() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/kt11075.kt");
+                    }
+
+                    @TestMetadata("kt12286.kt")
+                    public void testKt12286() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/kt12286.kt");
+                    }
+
+                    @TestMetadata("kt7470.kt")
+                    public void testKt7470() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/kt7470.kt");
+                    }
+
+                    @TestMetadata("nestedCallWithOverload.kt")
+                    public void testNestedCallWithOverload() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/nestedCallWithOverload.kt");
+                    }
+
+                    @TestMetadata("noInferenceFeatureForCallableReferences.kt")
+                    public void testNoInferenceFeatureForCallableReferences() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/noInferenceFeatureForCallableReferences.kt");
+                    }
+
+                    @TestMetadata("resolutionGenericCallableWithNullableTypes.kt")
+                    public void testResolutionGenericCallableWithNullableTypes() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/resolutionGenericCallableWithNullableTypes.kt");
+                    }
+
+                    @TestMetadata("resolutionWithGenericCallable.kt")
+                    public void testResolutionWithGenericCallable() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/resolutionWithGenericCallable.kt");
+                    }
+
+                    @TestMetadata("specialCalls.kt")
+                    public void testSpecialCalls() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/specialCalls.kt");
+                    }
+                }
+
+                @TestMetadata("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve")
+                @TestDataPath("$PROJECT_ROOT")
+                @RunWith(JUnit3RunnerWithInners.class)
+                public static class Resolve extends AbstractDiagnosticsTest {
+                    private void runTest(String testDataFilePath) throws Exception {
+                        KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+                    }
+
+                    public void testAllFilesPresentInResolve() throws Exception {
+                        KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                    }
+
+                    @TestMetadata("ambiguousWithVararg.kt")
+                    public void testAmbiguousWithVararg() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/ambiguousWithVararg.kt");
+                    }
+
+                    @TestMetadata("byArgType.kt")
+                    public void testByArgType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/byArgType.kt");
+                    }
+
+                    @TestMetadata("byGenericArgType.kt")
+                    public void testByGenericArgType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/byGenericArgType.kt");
+                    }
+
+                    @TestMetadata("byValType.kt")
+                    public void testByValType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/byValType.kt");
+                    }
+
+                    @TestMetadata("intersectionTypeOverloadWithWrongParameter.kt")
+                    public void testIntersectionTypeOverloadWithWrongParameter() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/intersectionTypeOverloadWithWrongParameter.kt");
+                    }
+
+                    @TestMetadata("kt10036.kt")
+                    public void testKt10036() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/kt10036.kt");
+                    }
+
+                    @TestMetadata("kt10036_bound.kt")
+                    public void testKt10036_bound() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/kt10036_bound.kt");
+                    }
+
+                    @TestMetadata("kt12338.kt")
+                    public void testKt12338() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/kt12338.kt");
+                    }
+
+                    @TestMetadata("kt12751.kt")
+                    public void testKt12751() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/kt12751.kt");
+                    }
+
+                    @TestMetadata("kt9601.kt")
+                    public void testKt9601() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/kt9601.kt");
+                    }
+
+                    @TestMetadata("moreSpecificAmbiguousExtensions.kt")
+                    public void testMoreSpecificAmbiguousExtensions() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/moreSpecificAmbiguousExtensions.kt");
+                    }
+
+                    @TestMetadata("moreSpecificSimple.kt")
+                    public void testMoreSpecificSimple() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/moreSpecificSimple.kt");
+                    }
+
+                    @TestMetadata("overloads.kt")
+                    public void testOverloads() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/overloads.kt");
+                    }
+
+                    @TestMetadata("overloadsBound.kt")
+                    public void testOverloadsBound() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/overloadsBound.kt");
+                    }
+
+                    @TestMetadata("overloadsMember.kt")
+                    public void testOverloadsMember() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/overloadsMember.kt");
+                    }
+
+                    @TestMetadata("valVsFun.kt")
+                    public void testValVsFun() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/valVsFun.kt");
+                    }
+
+                    @TestMetadata("withAs.kt")
+                    public void testWithAs() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/withAs.kt");
+                    }
+
+                    @TestMetadata("withExtFun.kt")
+                    public void testWithExtFun() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/withExtFun.kt");
+                    }
+
+                    @TestMetadata("withGenericFun.kt")
+                    public void testWithGenericFun() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/withGenericFun.kt");
+                    }
+
+                    @TestMetadata("withPlaceholderTypes.kt")
+                    public void testWithPlaceholderTypes() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/withPlaceholderTypes.kt");
+                    }
+
+                    @TestMetadata("withVararg.kt")
+                    public void testWithVararg() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/withVararg.kt");
+                    }
+                }
+            }
+        }
+
         @TestMetadata("compiler/testData/diagnostics/tests/cyclicHierarchy")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)

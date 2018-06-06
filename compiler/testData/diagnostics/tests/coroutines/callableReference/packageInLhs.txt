@@ -1,0 +1,9 @@
+package
+
+package foo {
+    public suspend fun test(): kotlin.Unit
+
+    package foo.bar {
+        public suspend fun test(): kotlin.Unit
+    }
+}

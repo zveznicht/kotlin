@@ -1,0 +1,7 @@
+package
+
+public fun </*0*/ T> bar(/*0*/ x: T): T
+public suspend fun baz(/*0*/ i: kotlin.Int): kotlin.Int
+public fun nullableFun(): (suspend (kotlin.Int) -> kotlin.Int)?
+public fun test(): kotlin.Unit
+public suspend fun test2(): kotlin.Unit

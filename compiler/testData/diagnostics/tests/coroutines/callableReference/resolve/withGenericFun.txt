@@ -1,0 +1,6 @@
+package
+
+public suspend fun </*0*/ T, /*1*/ R> apply(/*0*/ x: T, /*1*/ f: suspend (T) -> R): R
+public suspend fun foo(/*0*/ i: kotlin.Int): kotlin.Unit
+public suspend fun foo(/*0*/ s: kotlin.String): kotlin.Unit
+public suspend fun test(): kotlin.Unit
