@@ -17,7 +17,6 @@ import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Computable
-import com.intellij.openapi.util.Pair
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.util.Alarm
@@ -30,15 +29,19 @@ import org.jetbrains.kotlin.codegen.KotlinCodegenFacade
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
-import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
+import org.jetbrains.kotlin.idea.caches.project.ModuleSourceInfo
+import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
+import org.jetbrains.kotlin.idea.caches.project.implementingModules
 import org.jetbrains.kotlin.idea.debugger.DebuggerUtils
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
-import org.jetbrains.kotlin.idea.util.InfinitePeriodicalTask
-import org.jetbrains.kotlin.idea.util.LongRunningReadTask
-import org.jetbrains.kotlin.idea.util.ProjectRootsUtil
+import org.jetbrains.kotlin.idea.project.targetPlatform
+import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
+import org.jetbrains.kotlin.idea.util.*
 import org.jetbrains.kotlin.psi.KtClassOrObject
+import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtScript
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.jvm.platform.JvmPlatform
 import org.jetbrains.kotlin.utils.join
 import java.awt.BorderLayout
@@ -279,16 +282,16 @@ class KotlinBytecodeToolWindow(private val myProject: Project, private val toolW
                 .getResolutionFacadeByFile(ktFile, JvmPlatform)
                     ?: return null
 
-            val bindingContextForFile = resolutionFacade.analyzeWithAllCompilerChecks(listOf(ktFile)).bindingContext
+            val actuals = findActualDeclarationForExpectedFromThisFile(ktFile)
 
-            val (bindingContext, toProcess) = DebuggerUtils.analyzeInlinedFunctions(
-                resolutionFacade, ktFile, configuration.getBoolean(CommonConfigurationKeys.DISABLE_INLINE),
-                bindingContextForFile
-            )
+            val allFiles = listOf(ktFile) + actuals.map { it.containingKtFile }.distinct()
+            val bindingContextForFile = resolutionFacade.analyzeWithAllCompilerChecks(allFiles).bindingContext
+
+            val (bindingContext, toProcess) = analyzeInlinedFunctions(resolutionFacade, allFiles, configuration, bindingContextForFile)
 
             val generateClassFilter = object : GenerationState.GenerateClassFilter() {
                 override fun shouldGeneratePackagePart(@Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE") file: KtFile): Boolean {
-                    return file === ktFile
+                    return file in allFiles
                 }
 
                 override fun shouldAnnotateClass(processingClassOrObject: KtClassOrObject): Boolean {
@@ -296,7 +299,7 @@ class KotlinBytecodeToolWindow(private val myProject: Project, private val toolW
                 }
 
                 override fun shouldGenerateClass(processingClassOrObject: KtClassOrObject): Boolean {
-                    return processingClassOrObject.containingKtFile === ktFile
+                    return processingClassOrObject.containingKtFile === ktFile || processingClassOrObject in actuals
                 }
 
                 override fun shouldGenerateScript(script: KtScript): Boolean {
@@ -305,7 +308,7 @@ class KotlinBytecodeToolWindow(private val myProject: Project, private val toolW
             }
 
             val state = GenerationState.Builder(
-                ktFile.project, ClassBuilderFactories.TEST, resolutionFacade.moduleDescriptor, bindingContext, toProcess,
+                ktFile.project, ClassBuilderFactories.TEST, resolutionFacade.moduleDescriptor, bindingContext, toProcess.distinct(),
                 configuration
             )
                 .generateDeclaredClassFilter(generateClassFilter)
@@ -320,6 +323,34 @@ class KotlinBytecodeToolWindow(private val myProject: Project, private val toolW
             KotlinCodegenFacade.compileCorrectFiles(state, CompilationErrorHandler.THROW_EXCEPTION)
 
             return state
+        }
+
+        private fun analyzeInlinedFunctions(
+            resolutionFacade: ResolutionFacade,
+            files: List<KtFile>,
+            configuration: CompilerConfiguration,
+            bindingContextForFile: BindingContext
+        ): Pair<BindingContext, List<KtFile>> {
+            return files.fold(bindingContextForFile to emptyList()) { (bindingContext, filesToProcess), file ->
+                val (newContext, additionalFiles) = DebuggerUtils.analyzeInlinedFunctions(
+                    resolutionFacade, file, configuration.getBoolean(CommonConfigurationKeys.DISABLE_INLINE),
+                    bindingContextForFile
+                )
+                newContext to filesToProcess + additionalFiles
+            }
+        }
+
+        private fun findActualDeclarationForExpectedFromThisFile(
+            ktFile: KtFile
+        ): List<KtDeclaration> {
+            val moduleSourceInfo = ktFile.getModuleInfo() as? ModuleSourceInfo
+                    ?: return emptyList()
+            val jvmImplementation = moduleSourceInfo.module.implementingModules.find { it.targetPlatform is TargetPlatformKind.Jvm }
+                    ?: return emptyList()
+
+            return ktFile.declarations.filter {
+                it.isExpectDeclaration()
+            }.flatMap { it.actualsForExpected(jvmImplementation) }
         }
 
         private fun mapLines(text: String, startLine: Int, endLine: Int): Pair<Int, Int> {
