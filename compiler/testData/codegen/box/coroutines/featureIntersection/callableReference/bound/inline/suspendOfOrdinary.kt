@@ -1,13 +1,13 @@
+// !LANGUAGE: +NewInference
 // IGNORE_BACKEND: JS
 
-// COMMON_COROUTINES_TEST
 // WITH_RUNTIME
 // WITH_COROUTINES
 
 import helpers.*
-import COROUTINES_PACKAGE.*
+import kotlin.coroutines.experimental.*
 
-inline suspend fun go(f: suspend () -> String) = f()
+inline suspend fun go(f: () -> String) = f()
 
 suspend fun String.id(): String = this
 

@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.types.expressions
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.ReflectionTypes
-import org.jetbrains.kotlin.builtins.isSuspendFunctionType
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.*
@@ -47,7 +46,6 @@ import org.jetbrains.kotlin.resolve.calls.util.CallMaker
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.calls.util.createValueParametersForInvokeInFunctionType
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
-import org.jetbrains.kotlin.resolve.descriptorUtil.isExtensionProperty
 import org.jetbrains.kotlin.resolve.scopes.receivers.ClassQualifier
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.Receiver
@@ -545,7 +543,7 @@ class DoubleColonExpressionResolver(
         val type = createKCallableTypeForReference(descriptor, lhs, reflectionTypes, context.scope.ownerDescriptor) ?: return null
 
         when (descriptor) {
-            is FunctionDescriptor -> bindFunctionReference(expression, type, context)
+            is FunctionDescriptor -> bindFunctionReference(expression, type, context, descriptor)
             is PropertyDescriptor -> bindPropertyReference(expression, type, context)
         }
 
@@ -582,13 +580,18 @@ class DoubleColonExpressionResolver(
         return original.extensionReceiverParameter != null && original.dispatchReceiverParameter != null
     }
 
-    internal fun bindFunctionReference(expression: KtCallableReferenceExpression, type: KotlinType, context: ResolutionContext<*>) {
+    internal fun bindFunctionReference(
+        expression: KtCallableReferenceExpression,
+        type: KotlinType,
+        context: ResolutionContext<*>,
+        referencedFunction: FunctionDescriptor
+    ) {
         val functionDescriptor = AnonymousFunctionDescriptor(
             context.scope.ownerDescriptor,
             Annotations.EMPTY,
             CallableMemberDescriptor.Kind.DECLARATION,
             expression.toSourceElement(),
-            /* isCoroutine = */ ReflectionTypes.isKSuspendFunction(type)
+            /* isCoroutine = */ ReflectionTypes.isKSuspendFunction(type) || referencedFunction.isSuspend
         )
 
         functionDescriptor.initialize(

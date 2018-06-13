@@ -5639,8 +5639,15 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
                     }
 
                     @TestMetadata("emptyLHS.kt")
-                    public void testEmptyLHS() throws Exception {
-                        runTest("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/emptyLHS.kt");
+                    public void testEmptyLHS_1_2() throws Exception {
+                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/emptyLHS.kt");
+                        try {
+                            doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+                        }
+                        catch (Throwable ignore) {
+                            return;
+                        }
+                        throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive for that.");
                     }
 
                     @TestMetadata("enumEntryMember.kt")
@@ -5776,16 +5783,9 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
                             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/inline"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.JS, true);
                         }
 
-                        @TestMetadata("simpleVal.kt")
-                        public void testSimpleVal_1_2() throws Exception {
-                            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/inline/simpleVal.kt");
-                            try {
-                                doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                            }
-                            catch (Throwable ignore) {
-                                return;
-                            }
-                            throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive for that.");
+                        @TestMetadata("ordinaryParameter.kt")
+                        public void testOrdinaryParameter() throws Exception {
+                            runTest("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/inline/ordinaryParameter.kt");
                         }
 
                         @TestMetadata("simple.kt")
@@ -5798,6 +5798,11 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
                                 return;
                             }
                             throw new AssertionError("Looks like this test can be unmuted. Remove IGNORE_BACKEND directive for that.");
+                        }
+
+                        @TestMetadata("suspendOfOrdinary.kt")
+                        public void testSuspendOfOrdinary() throws Exception {
+                            runTest("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/inline/suspendOfOrdinary.kt");
                         }
                     }
                 }

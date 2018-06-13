@@ -6493,8 +6493,15 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
                     }
 
                     @TestMetadata("emptyLHS.kt")
-                    public void testEmptyLHS() throws Exception {
-                        runTest("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/emptyLHS.kt");
+                    public void testEmptyLHS_1_2() throws Exception {
+                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/emptyLHS.kt");
+                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
+                    }
+
+                    @TestMetadata("emptyLHS.kt")
+                    public void testEmptyLHS_1_3() throws Exception {
+                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/emptyLHS.kt");
+                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
                     }
 
                     @TestMetadata("enumEntryMember.kt")
@@ -6642,16 +6649,9 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
                             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/inline"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.JVM, true);
                         }
 
-                        @TestMetadata("simpleVal.kt")
-                        public void testSimpleVal_1_2() throws Exception {
-                            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/inline/simpleVal.kt");
-                            doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                        }
-
-                        @TestMetadata("simpleVal.kt")
-                        public void testSimpleVal_1_3() throws Exception {
-                            String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/inline/simpleVal.kt");
-                            doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
+                        @TestMetadata("ordinaryParameter.kt")
+                        public void testOrdinaryParameter() throws Exception {
+                            runTest("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/inline/ordinaryParameter.kt");
                         }
 
                         @TestMetadata("simple.kt")
@@ -6664,6 +6664,11 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
                         public void testSimple_1_3() throws Exception {
                             String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/inline/simple.kt");
                             doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
+                        }
+
+                        @TestMetadata("suspendOfOrdinary.kt")
+                        public void testSuspendOfOrdinary() throws Exception {
+                            runTest("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/bound/inline/suspendOfOrdinary.kt");
                         }
                     }
                 }

@@ -10,11 +10,11 @@ class A {
 
     val ok2 = ::topLevelFun
 
-    fun fail1() {
+    fun test1() {
         ::extensionFun
     }
 
-    fun fail2() {
+    fun test2() {
         ::memberFun
     }
 }
@@ -23,10 +23,10 @@ class A {
 
 val ok2 = ::topLevelFun
 
-fun A.fail1() {
+fun A.test1() {
     ::extensionFun
 }
 
-fun A.fail2() {
+fun A.test2() {
     ::memberFun
 }

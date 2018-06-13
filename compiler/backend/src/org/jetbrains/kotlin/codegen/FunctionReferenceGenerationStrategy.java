@@ -42,6 +42,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.jetbrains.kotlin.codegen.inline.InlineCodegenUtilsKt.addFakeContinuationMarker;
+
 /*
  * Notice the difference between two function descriptors in this class.
  * - [referencedFunction] is the function declaration which is referenced by the "::" expression. This is a real function present in code.
@@ -81,13 +83,9 @@ public class FunctionReferenceGenerationStrategy extends FunctionGenerationStrat
         if (resolvedCall.getResultingDescriptor() instanceof FunctionDescriptor &&
             ((FunctionDescriptor) resolvedCall.getResultingDescriptor()).isSuspend()) {
             this.referencedFunction = CoroutineCodegenUtilKt.getOrCreateJvmSuspendFunctionView(
-                    (FunctionDescriptor) resolvedCall.getResultingDescriptor(),
-                    state.getLanguageVersionSettings().supportsFeature(LanguageFeature.ReleaseCoroutines),
-                    state.getBindingContext());
+                    (FunctionDescriptor) resolvedCall.getResultingDescriptor(), state);
             this.functionDescriptor = CoroutineCodegenUtilKt.getOrCreateJvmSuspendFunctionView(
-                    functionDescriptor,
-                    state.getLanguageVersionSettings().supportsFeature(LanguageFeature.ReleaseCoroutines),
-                    state.getBindingContext());
+                    functionDescriptor, state);
         }
         else {
             this.referencedFunction = (FunctionDescriptor) resolvedCall.getResultingDescriptor();

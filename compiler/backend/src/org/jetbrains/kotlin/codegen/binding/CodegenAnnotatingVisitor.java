@@ -410,8 +410,7 @@ class CodegenAnnotatingVisitor extends KtVisitorVoid {
                 SimpleFunctionDescriptor jvmSuspendFunctionView =
                         CoroutineCodegenUtilKt.getOrCreateJvmSuspendFunctionView(
                                 functionDescriptor,
-                                languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines),
-                                /*bindingContext*/ null
+                                languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)
                         );
 
                 bindingTrace.record(
