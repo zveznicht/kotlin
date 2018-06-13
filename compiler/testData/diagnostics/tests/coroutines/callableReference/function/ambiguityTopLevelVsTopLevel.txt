@@ -1,7 +1,0 @@
-package
-
-public fun bar(): kotlin.Unit
-public suspend fun bar(): kotlin.Unit
-public suspend fun foo(/*0*/ x: kotlin.Any, /*1*/ y: kotlin.Int): kotlin.Int
-public suspend fun foo(/*0*/ x: kotlin.Int, /*1*/ y: kotlin.Any): kotlin.Int
-public fun main(): kotlin.Unit

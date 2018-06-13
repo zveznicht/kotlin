@@ -4170,31 +4170,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/invokeOutideSuspend.kt");
                 }
 
-                @TestMetadata("kt7430_wrongClassOnLHS.kt")
-                public void testKt7430_wrongClassOnLHS() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/kt7430_wrongClassOnLHS.kt");
-                }
-
-                @TestMetadata("packageInLhs.kt")
-                public void testPackageInLhs() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/packageInLhs.kt");
-                }
-
-                @TestMetadata("parsingPriorityOfGenericArgumentsVsLess.kt")
-                public void testParsingPriorityOfGenericArgumentsVsLess() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/parsingPriorityOfGenericArgumentsVsLess.kt");
-                }
-
-                @TestMetadata("unused.kt")
-                public void testUnused() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/unused.kt");
-                }
-
-                @TestMetadata("whitespacesInExpression.kt")
-                public void testWhitespacesInExpression() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/whitespacesInExpression.kt");
-                }
-
                 @TestMetadata("compiler/testData/diagnostics/tests/coroutines/callableReference/bound")
                 @TestDataPath("$PROJECT_ROOT")
                 @RunWith(JUnit3RunnerWithInners.class)
@@ -4222,44 +4197,9 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                         runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/expectedType.kt");
                     }
 
-                    @TestMetadata("expressionWithNullableType.kt")
-                    public void testExpressionWithNullableType() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/expressionWithNullableType.kt");
-                    }
-
-                    @TestMetadata("functionCallWithoutArguments.kt")
-                    public void testFunctionCallWithoutArguments() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/functionCallWithoutArguments.kt");
-                    }
-
-                    @TestMetadata("kt12843.kt")
-                    public void testKt12843() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/kt12843.kt");
-                    }
-
                     @TestMetadata("object.kt")
                     public void testObject() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/object.kt");
-                    }
-
-                    @TestMetadata("privateToThis.kt")
-                    public void testPrivateToThis() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/privateToThis.kt");
-                    }
-
-                    @TestMetadata("reservedExpressionSyntax.kt")
-                    public void testReservedExpressionSyntax() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/reservedExpressionSyntax.kt");
-                    }
-
-                    @TestMetadata("reservedExpressionSyntax2.kt")
-                    public void testReservedExpressionSyntax2() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/reservedExpressionSyntax2.kt");
-                    }
-
-                    @TestMetadata("reservedExpressionSyntax3.kt")
-                    public void testReservedExpressionSyntax3() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/bound/reservedExpressionSyntax3.kt");
                     }
 
                     @TestMetadata("syntheticExtensionOnLHS.kt")
@@ -4285,84 +4225,9 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                         KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/coroutines/callableReference/function"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
                     }
 
-                    @TestMetadata("ambiguityTopLevelVsTopLevel.kt")
-                    public void testAmbiguityTopLevelVsTopLevel() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/ambiguityTopLevelVsTopLevel.kt");
-                    }
-
-                    @TestMetadata("callableRefrenceOnNestedObject.kt")
-                    public void testCallableRefrenceOnNestedObject() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/callableRefrenceOnNestedObject.kt");
-                    }
-
-                    @TestMetadata("classMemberVsConstructorLikeFunction.kt")
-                    public void testClassMemberVsConstructorLikeFunction() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/classMemberVsConstructorLikeFunction.kt");
-                    }
-
-                    @TestMetadata("differentPackageClass.kt")
-                    public void testDifferentPackageClass() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/differentPackageClass.kt");
-                    }
-
-                    @TestMetadata("differentPackageExtension.kt")
-                    public void testDifferentPackageExtension() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/differentPackageExtension.kt");
-                    }
-
-                    @TestMetadata("differentPackageTopLevel.kt")
-                    public void testDifferentPackageTopLevel() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/differentPackageTopLevel.kt");
-                    }
-
-                    @TestMetadata("extensionFromTopLevel.kt")
-                    public void testExtensionFromTopLevel() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/extensionFromTopLevel.kt");
-                    }
-
-                    @TestMetadata("extensionInClassDisallowed.kt")
-                    public void testExtensionInClassDisallowed() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/extensionInClassDisallowed.kt");
-                    }
-
-                    @TestMetadata("extensionOnNullable.kt")
-                    public void testExtensionOnNullable() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/extensionOnNullable.kt");
-                    }
-
-                    @TestMetadata("extensionToSupertype.kt")
-                    public void testExtensionToSupertype() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/extensionToSupertype.kt");
-                    }
-
-                    @TestMetadata("fakeOverrideType.kt")
-                    public void testFakeOverrideType() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/fakeOverrideType.kt");
-                    }
-
-                    @TestMetadata("genericClassFromTopLevel.kt")
-                    public void testGenericClassFromTopLevel() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/genericClassFromTopLevel.kt");
-                    }
-
                     @TestMetadata("localNamedFun.kt")
                     public void testLocalNamedFun() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/localNamedFun.kt");
-                    }
-
-                    @TestMetadata("localNamedFunFromExtensionInLocalClass.kt")
-                    public void testLocalNamedFunFromExtensionInLocalClass() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/localNamedFunFromExtensionInLocalClass.kt");
-                    }
-
-                    @TestMetadata("localNamedFunFromLocalClass.kt")
-                    public void testLocalNamedFunFromLocalClass() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/localNamedFunFromLocalClass.kt");
-                    }
-
-                    @TestMetadata("localNamedFunFromLocalExtension.kt")
-                    public void testLocalNamedFunFromLocalExtension() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/localNamedFunFromLocalExtension.kt");
                     }
 
                     @TestMetadata("longQualifiedName.kt")
@@ -4378,51 +4243,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     @TestMetadata("memberFromTopLevel.kt")
                     public void testMemberFromTopLevel() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/memberFromTopLevel.kt");
-                    }
-
-                    @TestMetadata("noAmbiguityLocalVsTopLevel.kt")
-                    public void testNoAmbiguityLocalVsTopLevel() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/noAmbiguityLocalVsTopLevel.kt");
-                    }
-
-                    @TestMetadata("noAmbiguityMemberVsExtension.kt")
-                    public void testNoAmbiguityMemberVsExtension() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/noAmbiguityMemberVsExtension.kt");
-                    }
-
-                    @TestMetadata("noAmbiguityMemberVsTopLevel.kt")
-                    public void testNoAmbiguityMemberVsTopLevel() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/noAmbiguityMemberVsTopLevel.kt");
-                    }
-
-                    @TestMetadata("renameOnImport.kt")
-                    public void testRenameOnImport() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/renameOnImport.kt");
-                    }
-
-                    @TestMetadata("topLevelFromClass.kt")
-                    public void testTopLevelFromClass() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/topLevelFromClass.kt");
-                    }
-
-                    @TestMetadata("topLevelFromExtension.kt")
-                    public void testTopLevelFromExtension() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/topLevelFromExtension.kt");
-                    }
-
-                    @TestMetadata("topLevelFromExtensionInClass.kt")
-                    public void testTopLevelFromExtensionInClass() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/topLevelFromExtensionInClass.kt");
-                    }
-
-                    @TestMetadata("topLevelFromTopLevel.kt")
-                    public void testTopLevelFromTopLevel() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/topLevelFromTopLevel.kt");
-                    }
-
-                    @TestMetadata("unresolved.kt")
-                    public void testUnresolved() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/function/unresolved.kt");
                     }
                 }
 
@@ -4473,34 +4293,9 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                         runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/genericFunctionsWithNullableTypes.kt");
                     }
 
-                    @TestMetadata("kt10968.kt")
-                    public void testKt10968() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/kt10968.kt");
-                    }
-
-                    @TestMetadata("kt11075.kt")
-                    public void testKt11075() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/kt11075.kt");
-                    }
-
-                    @TestMetadata("kt12286.kt")
-                    public void testKt12286() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/kt12286.kt");
-                    }
-
-                    @TestMetadata("kt7470.kt")
-                    public void testKt7470() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/kt7470.kt");
-                    }
-
                     @TestMetadata("nestedCallWithOverload.kt")
                     public void testNestedCallWithOverload() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/nestedCallWithOverload.kt");
-                    }
-
-                    @TestMetadata("noInferenceFeatureForCallableReferences.kt")
-                    public void testNoInferenceFeatureForCallableReferences() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/noInferenceFeatureForCallableReferences.kt");
                     }
 
                     @TestMetadata("resolutionGenericCallableWithNullableTypes.kt")
@@ -4511,11 +4306,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     @TestMetadata("resolutionWithGenericCallable.kt")
                     public void testResolutionWithGenericCallable() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/resolutionWithGenericCallable.kt");
-                    }
-
-                    @TestMetadata("specialCalls.kt")
-                    public void testSpecialCalls() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/generic/specialCalls.kt");
                     }
                 }
 
@@ -4556,31 +4346,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                         runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/intersectionTypeOverloadWithWrongParameter.kt");
                     }
 
-                    @TestMetadata("kt10036.kt")
-                    public void testKt10036() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/kt10036.kt");
-                    }
-
-                    @TestMetadata("kt10036_bound.kt")
-                    public void testKt10036_bound() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/kt10036_bound.kt");
-                    }
-
-                    @TestMetadata("kt12338.kt")
-                    public void testKt12338() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/kt12338.kt");
-                    }
-
-                    @TestMetadata("kt12751.kt")
-                    public void testKt12751() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/kt12751.kt");
-                    }
-
-                    @TestMetadata("kt9601.kt")
-                    public void testKt9601() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/kt9601.kt");
-                    }
-
                     @TestMetadata("moreSpecificAmbiguousExtensions.kt")
                     public void testMoreSpecificAmbiguousExtensions() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/moreSpecificAmbiguousExtensions.kt");
@@ -4604,11 +4369,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
                     @TestMetadata("overloadsMember.kt")
                     public void testOverloadsMember() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/overloadsMember.kt");
-                    }
-
-                    @TestMetadata("valVsFun.kt")
-                    public void testValVsFun() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/coroutines/callableReference/resolve/valVsFun.kt");
                     }
 
                     @TestMetadata("withAs.kt")

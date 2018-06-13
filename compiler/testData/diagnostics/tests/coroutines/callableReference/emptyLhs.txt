@@ -3,16 +3,16 @@ package
 public val ok2: kotlin.reflect.KSuspendFunction0<kotlin.Int>
 public suspend fun topLevelFun(): kotlin.Int
 public suspend fun A.extensionFun(): kotlin.Int
-public fun A.fail1(): kotlin.Unit
-public fun A.fail2(): kotlin.Unit
+public fun A.test1(): kotlin.Unit
+public fun A.test2(): kotlin.Unit
 
 public final class A {
     public constructor A()
     public final val ok2: kotlin.reflect.KSuspendFunction0<kotlin.Int>
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
-    public final fun fail1(): kotlin.Unit
-    public final fun fail2(): kotlin.Unit
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public final suspend fun memberFun(): kotlin.Int
+    public final fun test1(): kotlin.Unit
+    public final fun test2(): kotlin.Unit
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }
