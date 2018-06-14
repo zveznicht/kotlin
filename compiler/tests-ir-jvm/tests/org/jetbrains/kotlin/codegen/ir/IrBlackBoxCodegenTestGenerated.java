@@ -6697,147 +6697,27 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
                         KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.JVM, true);
                     }
 
-                    @TestMetadata("classMemberFromClass.kt")
-                    public void testClassMemberFromClass_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromClass.kt");
+                    @TestMetadata("classMember.kt")
+                    public void testClassMember_1_2() throws Exception {
+                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMember.kt");
                         doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
                     }
 
-                    @TestMetadata("classMemberFromClass.kt")
-                    public void testClassMemberFromClass_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromClass.kt");
+                    @TestMetadata("classMember.kt")
+                    public void testClassMember_1_3() throws Exception {
+                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMember.kt");
                         doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
                     }
 
-                    @TestMetadata("classMemberFromExtension.kt")
-                    public void testClassMemberFromExtension_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromExtension.kt");
+                    @TestMetadata("extension.kt")
+                    public void testExtension_1_2() throws Exception {
+                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extension.kt");
                         doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
                     }
 
-                    @TestMetadata("classMemberFromExtension.kt")
-                    public void testClassMemberFromExtension_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromExtension.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("classMemberFromTopLevelStringNoArgs.kt")
-                    public void testClassMemberFromTopLevelStringNoArgs_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromTopLevelStringNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("classMemberFromTopLevelStringNoArgs.kt")
-                    public void testClassMemberFromTopLevelStringNoArgs_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromTopLevelStringNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("classMemberFromTopLevelStringOneStringArg.kt")
-                    public void testClassMemberFromTopLevelStringOneStringArg_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromTopLevelStringOneStringArg.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("classMemberFromTopLevelStringOneStringArg.kt")
-                    public void testClassMemberFromTopLevelStringOneStringArg_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromTopLevelStringOneStringArg.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("classMemberFromTopLevelUnitNoArgs.kt")
-                    public void testClassMemberFromTopLevelUnitNoArgs_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromTopLevelUnitNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("classMemberFromTopLevelUnitNoArgs.kt")
-                    public void testClassMemberFromTopLevelUnitNoArgs_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromTopLevelUnitNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("classMemberFromTopLevelUnitOneStringArg.kt")
-                    public void testClassMemberFromTopLevelUnitOneStringArg_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromTopLevelUnitOneStringArg.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("classMemberFromTopLevelUnitOneStringArg.kt")
-                    public void testClassMemberFromTopLevelUnitOneStringArg_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/classMemberFromTopLevelUnitOneStringArg.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("extensionFromClass.kt")
-                    public void testExtensionFromClass_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromClass.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("extensionFromClass.kt")
-                    public void testExtensionFromClass_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromClass.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("extensionFromExtension.kt")
-                    public void testExtensionFromExtension_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromExtension.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("extensionFromExtension.kt")
-                    public void testExtensionFromExtension_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromExtension.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("extensionFromTopLevelStringNoArgs.kt")
-                    public void testExtensionFromTopLevelStringNoArgs_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromTopLevelStringNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("extensionFromTopLevelStringNoArgs.kt")
-                    public void testExtensionFromTopLevelStringNoArgs_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromTopLevelStringNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("extensionFromTopLevelStringOneStringArg.kt")
-                    public void testExtensionFromTopLevelStringOneStringArg_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromTopLevelStringOneStringArg.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("extensionFromTopLevelStringOneStringArg.kt")
-                    public void testExtensionFromTopLevelStringOneStringArg_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromTopLevelStringOneStringArg.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("extensionFromTopLevelUnitNoArgs.kt")
-                    public void testExtensionFromTopLevelUnitNoArgs_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromTopLevelUnitNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("extensionFromTopLevelUnitNoArgs.kt")
-                    public void testExtensionFromTopLevelUnitNoArgs_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromTopLevelUnitNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("extensionFromTopLevelUnitOneStringArg.kt")
-                    public void testExtensionFromTopLevelUnitOneStringArg_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromTopLevelUnitOneStringArg.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("extensionFromTopLevelUnitOneStringArg.kt")
-                    public void testExtensionFromTopLevelUnitOneStringArg_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extensionFromTopLevelUnitOneStringArg.kt");
+                    @TestMetadata("extension.kt")
+                    public void testExtension_1_3() throws Exception {
+                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/extension.kt");
                         doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
                     }
 
@@ -6942,87 +6822,15 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
                         doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
                     }
 
-                    @TestMetadata("topLevelFromClass.kt")
-                    public void testTopLevelFromClass_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromClass.kt");
+                    @TestMetadata("topLevel.kt")
+                    public void testTopLevel_1_2() throws Exception {
+                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevel.kt");
                         doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
                     }
 
-                    @TestMetadata("topLevelFromClass.kt")
-                    public void testTopLevelFromClass_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromClass.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("topLevelFromExtension.kt")
-                    public void testTopLevelFromExtension_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromExtension.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("topLevelFromExtension.kt")
-                    public void testTopLevelFromExtension_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromExtension.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("topLevelFromTopLevelStringNoArgs.kt")
-                    public void testTopLevelFromTopLevelStringNoArgs_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromTopLevelStringNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("topLevelFromTopLevelStringNoArgs.kt")
-                    public void testTopLevelFromTopLevelStringNoArgs_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromTopLevelStringNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("topLevelFromTopLevelStringOneStringArg.kt")
-                    public void testTopLevelFromTopLevelStringOneStringArg_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromTopLevelStringOneStringArg.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("topLevelFromTopLevelStringOneStringArg.kt")
-                    public void testTopLevelFromTopLevelStringOneStringArg_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromTopLevelStringOneStringArg.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("topLevelFromTopLevelUnitNoArgs.kt")
-                    public void testTopLevelFromTopLevelUnitNoArgs_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromTopLevelUnitNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("topLevelFromTopLevelUnitNoArgs.kt")
-                    public void testTopLevelFromTopLevelUnitNoArgs_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromTopLevelUnitNoArgs.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("topLevelFromTopLevelUnitOneStringArg.kt")
-                    public void testTopLevelFromTopLevelUnitOneStringArg_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromTopLevelUnitOneStringArg.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("topLevelFromTopLevelUnitOneStringArg.kt")
-                    public void testTopLevelFromTopLevelUnitOneStringArg_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevelFromTopLevelUnitOneStringArg.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
-                    }
-
-                    @TestMetadata("traitImplMethodWithClassReceiver.kt")
-                    public void testTraitImplMethodWithClassReceiver_1_2() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/traitImplMethodWithClassReceiver.kt");
-                        doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines.experimental");
-                    }
-
-                    @TestMetadata("traitImplMethodWithClassReceiver.kt")
-                    public void testTraitImplMethodWithClassReceiver_1_3() throws Exception {
-                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/traitImplMethodWithClassReceiver.kt");
+                    @TestMetadata("topLevel.kt")
+                    public void testTopLevel_1_3() throws Exception {
+                        String fileName = KotlinTestUtils.navigationMetadata("compiler/testData/codegen/box/coroutines/featureIntersection/callableReference/function/topLevel.kt");
                         doTestWithCoroutinesPackageReplacement(fileName, "kotlin.coroutines");
                     }
 
