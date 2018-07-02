@@ -1,17 +1,6 @@
 /*
- * Copyright 2010-2017 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2010-2018 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
+ * that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.types.expressions
@@ -591,7 +580,7 @@ class DoubleColonExpressionResolver(
             Annotations.EMPTY,
             CallableMemberDescriptor.Kind.DECLARATION,
             expression.toSourceElement(),
-            /* isCoroutine = */ ReflectionTypes.isKSuspendFunction(type) || referencedFunction.isSuspend
+            /* isCoroutine = */ ReflectionTypes.isNumberedKSuspendFunction(type) || referencedFunction.isSuspend
         )
 
         functionDescriptor.initialize(
@@ -789,13 +778,9 @@ class DoubleColonExpressionResolver(
                     val returnType = descriptor.returnType ?: return null
                     val parametersTypes = descriptor.valueParameters.map { it.type }
                     val parametersNames = descriptor.valueParameters.map { it.name }
-                    return if (descriptor.isSuspend) reflectionTypes.getKSuspendFunctionType(
+                    return reflectionTypes.getKFunctionType(
                         Annotations.EMPTY, receiverType,
-                        parametersTypes, parametersNames, returnType, descriptor.builtIns
-                    )
-                    else reflectionTypes.getKFunctionType(
-                        Annotations.EMPTY, receiverType,
-                        parametersTypes, parametersNames, returnType, descriptor.builtIns
+                        parametersTypes, parametersNames, returnType, descriptor.builtIns, descriptor.isSuspend
                     )
                 }
                 is PropertyDescriptor -> {
