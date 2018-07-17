@@ -587,6 +587,7 @@ val zipTestData by task<Zip> {
 }
 
 val zipPlugin by task<Zip> {
+    dependsOn(ideaPlugin)
     val src = when (project.findProperty("pluginArtifactDir") as String?) {
         "Kotlin" -> ideaPluginDir
         "KotlinUltimate" -> ideaUltimatePluginDir

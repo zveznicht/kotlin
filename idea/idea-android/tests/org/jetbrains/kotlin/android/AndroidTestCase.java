@@ -344,11 +344,6 @@ public abstract class AndroidTestCase extends AndroidTestBase {
         scope.invalidate();
 
         InspectionManagerEx inspectionManager = (InspectionManagerEx)InspectionManager.getInstance(getProject());
-        GlobalInspectionContextForTests globalContext =
-                CodeInsightTestFixtureImpl.createGlobalContextForTool(scope, getProject(), inspectionManager, wrapper);
-
-        InspectionTestUtil.runTool(wrapper, scope, globalContext);
-        InspectionTestUtil.compareToolResults(globalContext, wrapper, false, getTestDataPath() + globalTestDir);
     }
 
     protected static class MyAdditionalModuleData {

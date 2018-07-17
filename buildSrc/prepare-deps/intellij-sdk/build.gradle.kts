@@ -146,22 +146,24 @@ fun removePathPrefix(path: String): String {
 }
 
 val unzipIntellijSdk by tasks.creating {
-    configureExtractFromConfigurationTask(intellij, pathRemap = { removePathPrefix(it) }) {
-        zipTree(it.singleFile).matching {
-            exclude("**/plugins/Kotlin/**")
-        }
-    }
+//    configureExtractFromConfigurationTask(intellij, pathRemap = { removePathPrefix(it) }) {
+//        zipTree(it.singleFile).matching {
+//            exclude("**/plugins/Kotlin/**")
+//        }
+//    }
 }
 
 val unzipIntellijUltimateSdk by tasks.creating {
-    configureExtractFromConfigurationTask(intellijUltimate) {
-        zipTree(it.singleFile).matching {
-            exclude("plugins/Kotlin/**")
-        }
-    }
+//    configureExtractFromConfigurationTask(intellijUltimate) {
+//        zipTree(it.singleFile).matching {
+//            exclude("plugins/Kotlin/**")
+//        }
+//    }
 }
 
-val unzipIntellijCore by tasks.creating { configureExtractFromConfigurationTask(`intellij-core`) { zipTree(it.singleFile) } }
+val unzipIntellijCore by tasks.creating {
+//    configureExtractFromConfigurationTask(`intellij-core`) { zipTree(it.singleFile) }
+}
 
 val unzipJpsStandalone by tasks.creating { configureExtractFromConfigurationTask(`jps-standalone`) { zipTree(it.singleFile) } }
 
