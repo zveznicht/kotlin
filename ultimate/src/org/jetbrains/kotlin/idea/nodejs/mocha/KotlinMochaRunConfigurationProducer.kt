@@ -26,20 +26,19 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiUtilCore
 import com.intellij.util.SmartList
 import com.intellij.util.containers.SmartHashSet
 import com.jetbrains.nodejs.mocha.MochaUtil
 import com.jetbrains.nodejs.mocha.execution.*
 import org.jetbrains.kotlin.idea.js.KotlinJSRunConfigurationData
 import org.jetbrains.kotlin.idea.js.KotlinJSRunConfigurationDataProvider
-import org.jetbrains.kotlin.idea.js.jsOrJsImpl
 import org.jetbrains.kotlin.idea.js.jsTestOutputFilePath
 import org.jetbrains.kotlin.idea.nodejs.TestElementInfo
 import org.jetbrains.kotlin.idea.nodejs.TestElementPath
 import org.jetbrains.kotlin.idea.nodejs.getNodeJsEnvironmentVars
+import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
 import org.jetbrains.kotlin.idea.run.addBuildTask
-import org.jetbrains.kotlin.idea.util.projectStructure.module
+import org.jetbrains.kotlin.js.resolve.JsPlatform
 
 private typealias MochaTestElementInfo = TestElementInfo<MochaRunSettings>
 
@@ -105,23 +104,20 @@ class KotlinMochaRunConfigurationProducer : MochaRunConfigurationProducer(), Kot
     }
 
     private fun getConfigurationData(element: PsiElement, context: ConfigurationContext?): MochaConfigData? {
-        val module = element.module
-        val jsModule = module?.jsOrJsImpl() ?: return null
-        val file = if (jsModule != module) {
-            jsModule.moduleFile
-        } else {
-            PsiUtilCore.getVirtualFile(element)
-        } ?: return null
+        val module = context?.location?.module ?: return null
+        if (TargetPlatformDetector.getPlatform(module) !is JsPlatform) return null
         val project = module.project
 
         val testFilePath = module.jsTestOutputFilePath ?: return null
+        // TODO: is this right?
+        val jsTestFile = LocalFileSystem.getInstance().findFileByPath(testFilePath) ?: return null
         val testElementPath = TestElementPath.forElement(element, module) ?: return null
 
-        val configData = MochaConfigData(element, jsModule, testFilePath, testElementPath)
+        val configData = MochaConfigData(element, module, testFilePath, testElementPath)
 
-        if (context?.getOriginalConfiguration(MochaConfigurationType.getInstance()) is MochaRunConfiguration) return configData
+        if (context.getOriginalConfiguration(MochaConfigurationType.getInstance()) is MochaRunConfiguration) return configData
 
-        if (isTestRunnerPackageAvailableFor(project, file)) return configData
+        if (isTestRunnerPackageAvailableFor(project, jsTestFile)) return configData
 
         val roots = collectMochaTestRoots(project)
         if (roots.isEmpty()) return null
@@ -130,10 +126,10 @@ class KotlinMochaRunConfigurationProducer : MochaRunConfigurationProducer(), Kot
         for (root in roots) {
             when {
                 root.isDirectory -> dirs.add(root)
-                root == file -> return configData
+                root == jsTestFile -> return configData
             }
         }
-        return if (VfsUtilCore.isUnder(file, dirs)) configData else null
+        return if (VfsUtilCore.isUnder(jsTestFile, dirs)) configData else null
     }
 
     override val isForTests: Boolean
