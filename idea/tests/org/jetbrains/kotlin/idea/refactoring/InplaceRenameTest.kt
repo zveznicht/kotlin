@@ -198,7 +198,6 @@ class InplaceRenameTest : LightPlatformCodeInsightTestCase() {
         val project = editor.project!!
         val templateManager = TemplateManager.getInstance(project) as TemplateManagerImpl
         try {
-            templateManager.setTemplateTesting(true)
 
             object : WriteCommandAction.Simple<Any>(project) {
                 override fun run() {
@@ -221,7 +220,6 @@ class InplaceRenameTest : LightPlatformCodeInsightTestCase() {
             state!!.gotoEnd(false)
         }
         finally {
-            templateManager.setTemplateTesting(false)
         }
 
 

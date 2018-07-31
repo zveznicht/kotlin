@@ -139,8 +139,8 @@ class KotlinSpacingBuilder(val commonCodeStyleSettings: CommonCodeStyleSettings,
 
             if (spacing != null) {
                 // TODO: it's a severe hack but I don't know how to implement it in other way
-                if (child1.node.elementType == KtTokens.EOL_COMMENT && spacing.toString().contains("minLineFeeds=0")) {
-                    val isBeforeBlock = child2.node.elementType == KtNodeTypes.BLOCK || child2.node.firstChildNode?.elementType == KtNodeTypes.BLOCK
+                if (child1.node?.elementType == KtTokens.EOL_COMMENT && spacing.toString().contains("minLineFeeds=0")) {
+                    val isBeforeBlock = child2.node?.elementType == KtNodeTypes.BLOCK || child2.node?.firstChildNode?.elementType == KtNodeTypes.BLOCK
                     val keepBlankLines = if (isBeforeBlock) 0 else commonCodeStyleSettings.KEEP_BLANK_LINES_IN_CODE
                     return createSpacing(0, minLineFeeds = 1, keepLineBreaks = true, keepBlankLines = keepBlankLines)
                 }

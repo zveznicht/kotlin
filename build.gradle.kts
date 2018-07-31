@@ -159,13 +159,13 @@ extra["versions.jflex"] = "1.7.0"
 extra["versions.markdown"] = "0.1.25"
 
 val isTeamcityBuild = project.hasProperty("teamcity") || System.getenv("TEAMCITY_VERSION") != null
-val intellijUltimateEnabled = project.getBooleanProperty("intellijUltimateEnabled") ?: isTeamcityBuild
+val intellijUltimateEnabled = true
 val effectSystemEnabled by extra(project.getBooleanProperty("kotlin.compiler.effectSystemEnabled") ?: false)
 val newInferenceEnabled by extra(project.getBooleanProperty("kotlin.compiler.newInferenceEnabled") ?: false)
 
 val intellijSeparateSdks = project.getBooleanProperty("intellijSeparateSdks") ?: false
 
-extra["intellijUltimateEnabled"] = intellijUltimateEnabled
+extra["intellijUltimateEnabled"] = true
 extra["intellijSeparateSdks"] = intellijSeparateSdks
 
 extra["IntellijCoreDependencies"] =
@@ -588,12 +588,13 @@ val zipTestData by task<Zip> {
 
 val zipPlugin by task<Zip> {
     dependsOn(ideaPlugin)
-    val src = when (project.findProperty("pluginArtifactDir") as String?) {
-        "Kotlin" -> ideaPluginDir
-        "KotlinUltimate" -> ideaUltimatePluginDir
-        null -> if (project.hasProperty("ultimate")) ideaUltimatePluginDir else ideaPluginDir
-        else -> error("Unsupported plugin artifact dir")
-    }
+//    val src = when (project.findProperty("pluginArtifactDir") as String?) {
+//        "Kotlin" -> ideaPluginDir
+//        "KotlinUltimate" -> ideaUltimatePluginDir
+//        null -> if (project.hasProperty("ultimate")) ideaUltimatePluginDir else ideaPluginDir
+//        else -> error("Unsupported plugin artifact dir")
+//    }
+    val src = ideaUltimatePluginDir
     val destPath = project.findProperty("pluginZipPath") as String?
     val dest = File(destPath ?: "$buildDir/kotlin-plugin.zip")
     destinationDir = dest.parentFile

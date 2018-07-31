@@ -181,7 +181,7 @@ include ":kotlin-build-common",
 
 def isTeamcityBuild = hasProperty("teamcity") || System.getenv("TEAMCITY_VERSION") != null
 def includeUltimate = hasProperty("intellijUltimateEnabled") && intellijUltimateEnabled != 'false'
-if (isTeamcityBuild || includeUltimate) {
+if (true) {
     include(
             ":ultimate",
             ":ultimate:ultimate-runner"
