@@ -8,6 +8,7 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.findClassAcrossModuleDependencies
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
@@ -29,6 +30,7 @@ abstract class Ir<out T : CommonBackendContext>(val context: T, val irModule: Ir
     val defaultParameterDeclarationsCache = mutableMapOf<FunctionDescriptor, IrFunction>()
     val interfaceDefaultImplsClassCache = mutableMapOf<ClassDescriptor, IrClass>()
     val interfaceDefaultImplsFunCache = mutableMapOf<FunctionDescriptor, IrSimpleFunction>()
+    val objectInstanceFieldCache = mutableMapOf<IrClassSymbol, IrField>()
 
     open fun shouldGenerateHandlerParameterForDefaultBodyFun() = false
 }
