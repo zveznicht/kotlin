@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.symbols.*
+import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.toIrType
 import org.jetbrains.kotlin.name.FqName
@@ -317,6 +318,30 @@ val IrClass.isClass get() = kind == ClassKind.CLASS
 val IrClass.isObject get() = kind == ClassKind.OBJECT
 
 val IrDeclaration.parentAsClass get() = parent as IrClass
+
+tailrec fun IrElement.getPackageFragment(): IrPackageFragment? {
+    if (this is IrPackageFragment) return this
+    val vParent = (this as? IrDeclaration)?.parent
+    return when (vParent) {
+        is IrPackageFragment -> vParent
+        is IrClass -> vParent.getPackageFragment()
+        else -> null
+    }
+}
+
+fun IrClass.isSubclassOf(superClass: IrClass): Boolean {
+    fun IrType.isSubTypeOf(superClass: IrClass): Boolean {
+        if (this !is IrSimpleType) return false
+        if (this.classifier == superClass.symbol) return true
+
+        val owner = this.classifier.owner
+        // No common superclass for IrClass and IrTypeParameter.
+        return (owner is IrClass && owner.superTypes.any { it.isSubTypeOf(superClass) } ||
+                (owner is IrTypeParameter && owner.superTypes.any { it.isSubTypeOf(superClass) }))
+    }
+
+    return this == superClass || superTypes.any { it.isSubTypeOf(superClass) }
+}
 
 fun IrAnnotationContainer.hasAnnotation(name: FqName) =
     annotations.any {
