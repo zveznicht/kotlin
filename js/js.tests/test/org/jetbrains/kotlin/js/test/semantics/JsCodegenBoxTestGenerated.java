@@ -20177,6 +20177,11 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             KotlinTestUtils.runTest0(this::doTest, TargetBackend.JS, testDataFilePath);
         }
 
+        @TestMetadata("accessInlined.kt")
+        public void testAccessInlined() throws Exception {
+            runTest("compiler/testData/codegen/box/syntheticAccessors/accessInlined.kt");
+        }
+
         @TestMetadata("accessorForGenericConstructor.kt")
         public void testAccessorForGenericConstructor() throws Exception {
             runTest("compiler/testData/codegen/box/syntheticAccessors/accessorForGenericConstructor.kt");
@@ -20204,6 +20209,11 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
 
         public void testAllFilesPresentInSyntheticAccessors() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/codegen/box/syntheticAccessors"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.JS, true);
+        }
+
+        @TestMetadata("field.kt")
+        public void testField() throws Exception {
+            runTest("compiler/testData/codegen/box/syntheticAccessors/field.kt");
         }
 
         @TestMetadata("jvmNameForAccessors.kt")
