@@ -47,7 +47,7 @@ class InterfaceDelegationLowering(val context: JvmBackendContext) : IrElementTra
                     if (classDescriptor !== descriptor) {
                         InterfaceLowering.getDefaultImplFunction(
                             descriptor as DefaultImplsClassDescriptorImpl,
-                            interfaceFun,
+                            value,
                             classDescriptor,
                             context
                         ).descriptor
