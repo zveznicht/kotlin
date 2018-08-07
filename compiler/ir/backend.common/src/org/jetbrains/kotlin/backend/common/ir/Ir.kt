@@ -35,7 +35,7 @@ abstract class Ir<out T : CommonBackendContext>(val context: T, val irModule: Ir
     open fun shouldGenerateHandlerParameterForDefaultBodyFun() = false
 }
 
-abstract class Symbols<out T : CommonBackendContext>(val context: T, private val symbolTable: ReferenceSymbolTable) {
+abstract class Symbols<out T : CommonBackendContext>(val context: T, val symbolTable: ReferenceSymbolTable) {
 
     protected val builtIns
         get() = context.builtIns
