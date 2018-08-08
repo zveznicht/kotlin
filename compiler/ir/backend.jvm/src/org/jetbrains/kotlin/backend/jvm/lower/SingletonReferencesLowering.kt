@@ -7,6 +7,9 @@ package org.jetbrains.kotlin.backend.jvm.lower
 
 import org.jetbrains.kotlin.backend.common.BodyLoweringPass
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
+import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.impl.IrFieldImpl
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetEnumValue
@@ -22,6 +25,9 @@ class SingletonReferencesLowering(val context: JvmBackendContext) : BodyLowering
 
     override fun visitGetEnumValue(expression: IrGetEnumValue): IrExpression {
         val entrySymbol = context.descriptorsFactory.getSymbolForEnumEntry(expression.symbol)
+        if (!entrySymbol.isBound) { // happens for external references
+            IrFieldImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, IrDeclarationOrigin.IR_BUILTINS_STUB, entrySymbol, expression.type)
+        }
         return IrGetFieldImpl(expression.startOffset, expression.endOffset, entrySymbol, expression.type)
     }
 
