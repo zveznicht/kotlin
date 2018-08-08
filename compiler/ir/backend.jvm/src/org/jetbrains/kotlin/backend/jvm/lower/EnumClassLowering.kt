@@ -481,9 +481,9 @@ class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringPass {
                     IrCallImpl(
                         UNDEFINED_OFFSET,
                         UNDEFINED_OFFSET,
-                        unsubstitutedValueOfDescriptor.returnType!!.toIrType()!!,
+                        substitutedValueOfDescriptor.returnType!!.toIrType()!!,
                         substitutedValueOf.symbol,
-                        unsubstitutedValueOfDescriptor,
+                        substitutedValueOfDescriptor,
                         substitutedValueOf.descriptor.typeParametersCount
                     )
                 irValueOfCall.putValueArgument(
