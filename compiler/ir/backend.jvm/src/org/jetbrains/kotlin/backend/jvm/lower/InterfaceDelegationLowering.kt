@@ -34,19 +34,19 @@ class InterfaceDelegationLowering(val context: JvmBackendContext) : IrElementTra
         if (irClass.isJvmInterface) return
 
         irClass.transformChildrenVoid(this)
-        generateInterfaceMethods(irClass, irClass.descriptor)
+        generateInterfaceMethods(irClass)
     }
 
 
-    private fun generateInterfaceMethods(irClass: IrClass, descriptor: ClassDescriptor) {
-        val classDescriptor = (descriptor as? DefaultImplsClassDescriptor)?.correspondingInterface ?: descriptor
+    private fun generateInterfaceMethods(irClass: IrClass) {
+        val classDescriptor = (irClass.descriptor as? DefaultImplsClassDescriptor)?.correspondingInterface ?: irClass.descriptor
         for ((interfaceFun, value) in CodegenUtil.getNonPrivateTraitMethods(classDescriptor)) {
             //skip java 8 default methods
             if (!interfaceFun.isDefinitelyNotDefaultImplsMethod()) {
                 val inheritedFunDescriptor =
-                    if (classDescriptor !== descriptor) {
+                    if (classDescriptor !== irClass.descriptor) {
                         InterfaceLowering.getDefaultImplFunction(
-                            descriptor as DefaultImplsClassDescriptorImpl,
+                            irClass,
                             value,
                             classDescriptor,
                             context
@@ -66,9 +66,10 @@ class InterfaceDelegationLowering(val context: JvmBackendContext) : IrElementTra
         irClass.declarations.add(irFunction)
 
         val interfaceDescriptor = interfaceFun.containingDeclaration as ClassDescriptor
-        val defaultImpls = InterfaceLowering.getDefaultImplsClass(interfaceDescriptor, context)
+        val interfaceClass = context.ir.symbols.symbolTable.referenceClass(interfaceDescriptor).owner
+        val defaultImpls = InterfaceLowering.getDefaultImplsClass(interfaceClass, context)
         val defaultImplFun =
-            InterfaceLowering.getDefaultImplFunction(defaultImpls.descriptor, interfaceFun.original, interfaceDescriptor, context)
+            InterfaceLowering.getDefaultImplFunction(defaultImpls, interfaceFun.original, interfaceDescriptor, context)
         irFunction.returnType = defaultImplFun.returnType
         val irCallImpl =
             IrCallImpl(

@@ -41,7 +41,7 @@ class InterfaceLowering(val context: JvmBackendContext) : IrElementTransformerVo
     override fun lower(irClass: IrClass) {
         if (!irClass.isInterface) return
 
-        val defaultImplsIrClass = getDefaultImplsClass(irClass.descriptor, context)
+        val defaultImplsIrClass = getDefaultImplsClass(irClass, context)
         irClass.declarations.add(defaultImplsIrClass)
 
         val members = defaultImplsIrClass.declarations
@@ -52,7 +52,7 @@ class InterfaceLowering(val context: JvmBackendContext) : IrElementTransformerVo
                 members.add(oldFunction) //just copy $default to DefaultImpls
             } else if (descriptor.modality != Modality.ABSTRACT && oldFunction.origin != IrDeclarationOrigin.FAKE_OVERRIDE) {
                 val newFunction =
-                    getDefaultImplFunction(defaultImplsIrClass.descriptor, descriptor, irClass.descriptor, context)
+                    getDefaultImplFunction(defaultImplsIrClass, descriptor, irClass.descriptor, context)
                 newFunction.transferBody(oldFunction)
                 members.add(newFunction)
                 oldFunction.body = null
@@ -80,7 +80,8 @@ class InterfaceLowering(val context: JvmBackendContext) : IrElementTransformerVo
 
     companion object {
 
-        fun getDefaultImplsClass(interfaceDescriptor: ClassDescriptor, context: CommonBackendContext): IrClass {
+        fun getDefaultImplsClass(irInterface: IrClass, context: CommonBackendContext): IrClass {
+            val interfaceDescriptor = irInterface.descriptor
             return context.ir.interfaceDefaultImplsClassCache.getOrPut(interfaceDescriptor) {
                 val defaultImplsDescriptor = DefaultImplsClassDescriptorImpl(
                     Name.identifier(JvmAbi.DEFAULT_IMPLS_CLASS_NAME), interfaceDescriptor, interfaceDescriptor.source
@@ -92,20 +93,26 @@ class InterfaceLowering(val context: JvmBackendContext) : IrElementTransformerVo
                     psi?.endOffset ?: UNDEFINED_OFFSET,
                     JvmLoweredDeclarationOrigin.DEFAULT_IMPLS,
                     defaultImplsDescriptor
-                )
+                ).apply {
+                    parent = irInterface
+                }
             }
         }
 
         fun getDefaultImplFunction(
-            defaultImplsDescriptor: ClassDescriptor,
+            defaultImplsClass: IrClass,
             descriptor: FunctionDescriptor,
             interfaceDescriptor: ClassDescriptor,
             context: JvmBackendContext
         ): IrSimpleFunction {
             return context.ir.interfaceDefaultImplsFunCache.getOrPut(descriptor) {
                 val name = Name.identifier(context.state.typeMapper.mapAsmMethod(descriptor).name)
-                val funDescriptor =
-                    createStaticFunctionDescriptorWithReceivers(defaultImplsDescriptor, name, descriptor, interfaceDescriptor.defaultType)
+                val funDescriptor = createStaticFunctionDescriptorWithReceivers(
+                    defaultImplsClass.descriptor,
+                    name,
+                    descriptor,
+                    interfaceDescriptor.defaultType
+                )
                 val psi = (descriptor.source as? PsiSourceElement)?.psi
                 IrFunctionImpl(
                     psi?.startOffset ?: UNDEFINED_OFFSET,
@@ -114,6 +121,7 @@ class InterfaceLowering(val context: JvmBackendContext) : IrElementTransformerVo
                     IrSimpleFunctionSymbolImpl(funDescriptor),
                     descriptor.visibility
                 ).apply {
+                    parent = defaultImplsClass
                     returnType = descriptor.returnType!!.toIrType()!!
                     createParameterDeclarations()
                 }
