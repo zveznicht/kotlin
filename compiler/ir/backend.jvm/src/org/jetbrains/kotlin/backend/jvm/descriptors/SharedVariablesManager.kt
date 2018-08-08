@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.backend.jvm.descriptors
 import org.jetbrains.kotlin.backend.common.descriptors.KnownClassDescriptor
 import org.jetbrains.kotlin.backend.common.descriptors.KnownPackageFragmentDescriptor
 import org.jetbrains.kotlin.backend.common.descriptors.SharedVariablesManager
+import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.PrimitiveType
 import org.jetbrains.kotlin.descriptors.*
@@ -16,7 +17,12 @@ import org.jetbrains.kotlin.descriptors.impl.ClassConstructorDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.descriptors.impl.PropertyDescriptorImpl
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.declarations.IrConstructor
+import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrVariable
+import org.jetbrains.kotlin.ir.declarations.impl.IrConstructorImpl
+import org.jetbrains.kotlin.ir.declarations.impl.IrFieldImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -41,19 +47,34 @@ class JvmSharedVariablesManager(
     private class PrimitiveRefDescriptorsProvider(type: KotlinType, refClass: ClassDescriptor) {
         val refType: KotlinType = refClass.defaultType
 
-        val refConstructor: ClassConstructorDescriptor =
+        val refConstructorDescriptor: ClassConstructorDescriptor =
             ClassConstructorDescriptorImpl.create(refClass, Annotations.EMPTY, true, SourceElement.NO_SOURCE).apply {
                 initialize(emptyList(), Visibilities.PUBLIC, emptyList())
                 returnType = refType
             }
 
-        val elementField: PropertyDescriptor =
+        val refConstructor: IrConstructor = IrConstructorImpl(
+            UNDEFINED_OFFSET,
+            UNDEFINED_OFFSET,
+            JvmLoweredDeclarationOrigin.REF_FOR_SHARED_VARIABLE,
+            refConstructorDescriptor
+        )
+
+        val elementFieldDescriptor: PropertyDescriptor =
             PropertyDescriptorImpl.create(
                 refClass, Annotations.EMPTY, Modality.FINAL, Visibilities.PUBLIC, true,
                 Name.identifier("element"), CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE,
                 /* lateInit = */ false, /* isConst = */ false, /* isExpect = */ false, /* isActual = */ false,
                 /* isExternal = */ false, /* isDelegated = */ false
             ).initialize(type, dispatchReceiverParameter = refClass.thisAsReceiverParameter)
+
+        val elementField: IrField = IrFieldImpl(
+            UNDEFINED_OFFSET,
+            UNDEFINED_OFFSET,
+            JvmLoweredDeclarationOrigin.REF_FOR_SHARED_VARIABLE,
+            elementFieldDescriptor,
+            type.toIrType()!!
+        )
     }
 
     private val primitiveRefDescriptorProviders: Map<PrimitiveType, PrimitiveRefDescriptorsProvider> =
@@ -72,7 +93,7 @@ class JvmSharedVariablesManager(
                 Name.identifier("ObjectRef"), refNamespaceClass, listOf(builtIns.anyType), listOf(Name.identifier("T"))
             )
 
-        val genericRefConstructor: ClassConstructorDescriptor =
+        val genericRefConstructorDescriptor: ClassConstructorDescriptor =
             ClassConstructorDescriptorImpl.create(genericRefClass, Annotations.EMPTY, true, SourceElement.NO_SOURCE).apply {
                 initialize(emptyList(), Visibilities.PUBLIC)
                 val typeParameter = typeParameters[0]
@@ -90,17 +111,24 @@ class JvmSharedVariablesManager(
                 )
             }
 
-        val constructorTypeParameter: TypeParameterDescriptor =
-            genericRefConstructor.typeParameters[0]
+        val genericRefConstructor: IrConstructor = IrConstructorImpl(
+            UNDEFINED_OFFSET,
+            UNDEFINED_OFFSET,
+            JvmLoweredDeclarationOrigin.REF_FOR_SHARED_VARIABLE,
+            genericRefConstructorDescriptor
+        )
 
-        fun getSubstitutedRefConstructor(valueType: KotlinType): ClassConstructorDescriptor =
-            genericRefConstructor.substitute(
+        val constructorTypeParameter: TypeParameterDescriptor =
+            genericRefConstructorDescriptor.typeParameters[0]
+
+        fun getSubstitutedRefConstructorDescriptor(valueType: KotlinType): ClassConstructorDescriptor =
+            genericRefConstructorDescriptor.substitute(
                 TypeSubstitutor.create(
                     mapOf(constructorTypeParameter.typeConstructor to TypeProjectionImpl(Variance.INVARIANT, valueType))
                 )
             )!!
 
-        val genericElementField: PropertyDescriptor =
+        val genericElementFieldDescriptor: PropertyDescriptor =
             PropertyDescriptorImpl.create(
                 genericRefClass, Annotations.EMPTY, Modality.FINAL, Visibilities.PUBLIC, true,
                 Name.identifier("element"), CallableMemberDescriptor.Kind.DECLARATION, SourceElement.NO_SOURCE,
@@ -110,6 +138,14 @@ class JvmSharedVariablesManager(
                 type = builtIns.anyType,
                 dispatchReceiverParameter = genericRefClass.thisAsReceiverParameter
             )
+
+        val genericElementField: IrField = IrFieldImpl(
+            UNDEFINED_OFFSET,
+            UNDEFINED_OFFSET,
+            JvmLoweredDeclarationOrigin.REF_FOR_SHARED_VARIABLE,
+            genericElementFieldDescriptor,
+            irBuiltIns.anyType
+        )
 
         fun getRefType(valueType: KotlinType) =
             KotlinTypeFactory.simpleNotNullType(
@@ -132,8 +168,11 @@ class JvmSharedVariablesManager(
         val valueType = originalDeclaration.descriptor.type
         val primitiveRefDescriptorsProvider = primitiveRefDescriptorProviders[getPrimitiveType(valueType)]
 
-        val refConstructor =
-            primitiveRefDescriptorsProvider?.refConstructor ?: objectRefDescriptorsProvider.getSubstitutedRefConstructor(valueType)
+        val refConstructorDescriptor =
+            primitiveRefDescriptorsProvider?.refConstructorDescriptor
+                ?: objectRefDescriptorsProvider.getSubstitutedRefConstructorDescriptor(valueType)
+
+        val refConstructor = primitiveRefDescriptorsProvider?.refConstructor ?: objectRefDescriptorsProvider.genericRefConstructor
 
         val refConstructorTypeArguments =
             if (primitiveRefDescriptorsProvider != null) null
@@ -142,9 +181,13 @@ class JvmSharedVariablesManager(
 
         val refConstructorCall = IrCallImpl(
             originalDeclaration.startOffset, originalDeclaration.endOffset,
-            refConstructor.constructedClass.defaultType.toIrType()!!,
-            refConstructor, refConstructorTypeArguments?.size ?: 0
+            refConstructorDescriptor.constructedClass.defaultType.toIrType()!!,
+            refConstructor.symbol, refConstructorDescriptor,
+            refConstructorTypeArguments?.size ?: 0
         )
+        if (refConstructorTypeArguments?.isNotEmpty() == true) {
+            refConstructorCall.putTypeArgument(0, originalDeclaration.type)
+        }
         return IrVariableImpl(
             originalDeclaration.startOffset, originalDeclaration.endOffset, originalDeclaration.origin,
             sharedVariableDescriptor, sharedVariableDescriptor.type.toIrType()!!, refConstructorCall
@@ -160,12 +203,12 @@ class JvmSharedVariablesManager(
         val valueType = originalDeclaration.descriptor.type
         val primitiveRefDescriptorsProvider = primitiveRefDescriptorProviders[getPrimitiveType(valueType)]
 
-        val elementPropertyDescriptor =
+        val elementField =
             primitiveRefDescriptorsProvider?.elementField ?: objectRefDescriptorsProvider.genericElementField
 
         val sharedVariableInitialization = IrSetFieldImpl(
             initializer.startOffset, initializer.endOffset,
-            elementPropertyDescriptor,
+            elementField.symbol,
             IrGetValueImpl(initializer.startOffset, initializer.endOffset, sharedVariableDeclaration.symbol),
             initializer,
             originalDeclaration.type
@@ -177,7 +220,7 @@ class JvmSharedVariablesManager(
         )
     }
 
-    private fun getElementFieldDescriptor(valueType: KotlinType): PropertyDescriptor {
+    private fun getElementField(valueType: KotlinType): IrField {
         val primitiveRefDescriptorsProvider = primitiveRefDescriptorProviders[getPrimitiveType(valueType)]
 
         return primitiveRefDescriptorsProvider?.elementField ?: objectRefDescriptorsProvider.genericElementField
@@ -186,20 +229,20 @@ class JvmSharedVariablesManager(
     override fun getSharedValue(sharedVariableSymbol: IrVariableSymbol, originalGet: IrGetValue): IrExpression =
         IrGetFieldImpl(
             originalGet.startOffset, originalGet.endOffset,
-            getElementFieldDescriptor(originalGet.descriptor.type),
+            getElementField(originalGet.descriptor.type).symbol,
+            originalGet.type,
             IrGetValueImpl(
                 originalGet.startOffset,
                 originalGet.endOffset,
                 sharedVariableSymbol
             ),
-            originalGet.type,
             originalGet.origin
         )
 
     override fun setSharedValue(sharedVariableSymbol: IrVariableSymbol, originalSet: IrSetVariable): IrExpression =
         IrSetFieldImpl(
             originalSet.startOffset, originalSet.endOffset,
-            getElementFieldDescriptor(originalSet.descriptor.type),
+            getElementField(originalSet.descriptor.type).symbol,
             IrGetValueImpl(
                 originalSet.startOffset,
                 originalSet.endOffset,

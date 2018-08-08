@@ -33,6 +33,7 @@ interface JvmLoweredDeclarationOrigin : IrDeclarationOrigin {
     object JVM_STATIC_WRAPPER : IrDeclarationOriginImpl("JVM_STATIC_WRAPPER")
     object JVM_OVERLOADS_WRAPPER : IrDeclarationOriginImpl("JVM_OVERLOADS_WRAPPER")
     object JVM_MODIFIED_BY_LOWERING : IrDeclarationOriginImpl("JVM_MODIFIED_BY_LOWERING")
+    object REF_FOR_SHARED_VARIABLE: IrDeclarationOriginImpl("REF_FOR_SHARED_VARIABLE")
 
 }
 
