@@ -224,8 +224,6 @@ private class AccessorCallsLowering(
     val context: JvmBackendContext,
     val descriptorToBoundSymbol: Map<DeclarationDescriptor, IrSymbol>
 ) : FileLoweringPass, IrElementTransformerVoidWithContext() {
-    private inline fun <reified SyT : IrSymbol> SyT.fixUp() =
-        if (isBound) this else descriptorToBoundSymbol[descriptor]!!.safeAs<SyT>()!!
 
     val functionMap = mutableMapOf<IrFunctionSymbol, IrFunctionSymbol>()
     val getterMap = mutableMapOf<IrFieldSymbol, IrSimpleFunctionSymbol>()
@@ -260,7 +258,7 @@ private class AccessorCallsLowering(
         exprConverter: (ExprT, ToSyT) -> IrDeclarationReference
     ): IrExpression {
         if (!symbol.isAccessible()) {
-            val accessorSymbol = accumMap.getOrPut(symbol.fixUp(), { symbolConverter(symbol) })
+            val accessorSymbol = accumMap.getOrPut(symbol, { symbolConverter(symbol) })
             return exprConverter(expression, accessorSymbol)
         } else {
             return expression
@@ -482,7 +480,7 @@ private class AccessorCallsLowering(
         /// This function needs to single out those cases where Java accessibility rules differ from Kotlin's.
         /// TODO: a very primitive preliminary code.
 
-        val declarationRaw = fixUp().owner as IrDeclarationWithVisibility
+        val declarationRaw = owner as IrDeclarationWithVisibility
         val declaration = (declarationRaw as? IrSimpleFunction)?.resolveFakeOverride() ?: declarationRaw
         if (declaration.visibility == Visibilities.PUBLIC) return true
 
