@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.backend.jvm.lower
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
+import org.jetbrains.kotlin.backend.common.ir.primaryConstructor
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.descriptors.initialize
@@ -18,10 +19,7 @@ import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.PropertyDescriptorImpl
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
-import org.jetbrains.kotlin.ir.declarations.IrField
-import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFieldImpl
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
@@ -55,7 +53,7 @@ class ObjectClassLowering(val context: JvmBackendContext) : IrElementTransformer
 
         val publicInstance = irClass.getObjectInstanceField(context)
 
-        val constructor = irClass.descriptor.unsubstitutedPrimaryConstructor
+        val constructor = irClass.primaryConstructor()
                 ?: throw AssertionError("Object should have a primary constructor: ${irClass.descriptor}")
 
         val publicInstanceOwner = if (irClass.descriptor.isCompanionObject) parentScope!!.irElement as IrDeclarationContainer else irClass
@@ -82,13 +80,13 @@ class ObjectClassLowering(val context: JvmBackendContext) : IrElementTransformer
 
     private fun initializeInstanceFieldWithInitializer(
         field: IrField,
-        constructor: ClassConstructorDescriptor,
+        constructor: IrConstructor,
         instanceOwner: IrDeclarationContainer,
         objectType: IrType
     ) {
         initializeFieldWithCustomInitializer(
             field,
-            IrCallImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, objectType, constructor, 0),
+            IrCallImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, objectType, constructor.symbol),
             instanceOwner
         )
     }

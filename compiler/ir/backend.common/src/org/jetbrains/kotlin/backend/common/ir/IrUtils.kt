@@ -133,3 +133,5 @@ fun IrClass.addSimpleDelegatingConstructor(
         this.declarations.add(constructor)
     }
 }
+
+fun IrClass.primaryConstructor(): IrConstructor? = declarations.firstOrNull { it is IrConstructor && it.isPrimary } as IrConstructor?
