@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi2ir.PsiSourceManager
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import kotlin.reflect.KProperty
 
 class JvmBackendContext(
     val state: GenerationState,
@@ -129,4 +130,26 @@ class JvmBackendContext(
 
         override fun shouldGenerateHandlerParameterForDefaultBodyFun() = true
     }
+
+    // !!!!!! Temporary, until this code by @svyatoslav.scherbina becomes official
+    class LazyMember<T>(val initializer: JvmBackendContext.() -> T) {
+        operator fun getValue(thisRef: JvmBackendContext, property: KProperty<*>): T = thisRef.getValue(this)
+    }
+
+    companion object {
+        fun <T> lazyMember(initializer: JvmBackendContext.() -> T) = LazyMember<T>(initializer)
+
+        fun <K, V> lazyMapMember(initializer: JvmBackendContext.(K) -> V): LazyMember<(K) -> V> = lazyMember {
+            val storage = mutableMapOf<K, V>()
+            val result: (K) -> V = {
+                storage.getOrPut(it, { initializer(it) })
+            }
+            result
+        }
+    }
+
+    private val lazyValues = mutableMapOf<LazyMember<*>, Any?>()
+
+    fun <T> getValue(member: LazyMember<T>): T =
+        @Suppress("UNCHECKED_CAST") (lazyValues.getOrPut(member, { member.initializer(this) }) as T)
 }
