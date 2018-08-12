@@ -6,20 +6,49 @@
 package org.jetbrains.kotlin.backend.jvm.lower
 
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
+import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.codegen.JvmCodegenUtil
-import org.jetbrains.kotlin.descriptors.PropertyAccessorDescriptor
-import org.jetbrains.kotlin.descriptors.PropertyGetterDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.declarations.IrProperty
+import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.declarations.impl.IrExternalPackageFragmentImpl
+import org.jetbrains.kotlin.ir.declarations.impl.IrFieldImpl
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrSetFieldImpl
+import org.jetbrains.kotlin.ir.symbols.IrExternalPackageFragmentSymbol
+import org.jetbrains.kotlin.ir.symbols.impl.IrExternalPackageFragmentSymbolImpl
+import org.jetbrains.kotlin.ir.types.toIrType
+import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.synthetic.SyntheticJavaPropertyDescriptor
+
+val JvmBackendContext.getFieldForProperty: (PropertyDescriptor) -> IrField by JvmBackendContext.lazyMapMember { descriptor ->
+    IrFieldImpl(
+        UNDEFINED_OFFSET,
+        UNDEFINED_OFFSET,
+        IrDeclarationOrigin.PROPERTY_BACKING_FIELD,
+        descriptor,
+        descriptor.type.toIrType()!!
+    ).apply {
+        getParent(descriptor)?.let { parent = it }
+    }
+}
+
+fun JvmBackendContext.getParent(descriptor: PropertyDescriptor): IrDeclarationParent? {
+    val containingDeclaration = descriptor.containingDeclaration
+    return when (containingDeclaration) {
+        is ClassDescriptor -> ir.symbols.symbolTable.referenceClass(containingDeclaration).owner
+        is FunctionDescriptor -> ir.symbols.symbolTable.referenceDeclaredFunction(containingDeclaration).owner
+        // For package fragments, the only parameter relevant for accessibility is `fqName`. No danger in creating extra ones.
+        is PackageFragmentDescriptor -> IrExternalPackageFragmentImpl(IrExternalPackageFragmentSymbolImpl(containingDeclaration))
+        else -> null
+    }
+}
 
 class ConstAndJvmFieldPropertiesLowering(val context: JvmBackendContext) : IrElementTransformerVoid(), FileLoweringPass {
     override fun lower(irFile: IrFile) {
@@ -53,10 +82,13 @@ class ConstAndJvmFieldPropertiesLowering(val context: JvmBackendContext) : IrEle
     }
 
     private fun substituteSetter(descriptor: PropertyAccessorDescriptor, expression: IrCall): IrSetFieldImpl {
+        val property = descriptor.correspondingProperty
+        val fieldSymbol = context.getFieldForProperty(property).symbol
+
         return IrSetFieldImpl(
             expression.startOffset,
             expression.endOffset,
-            context.ir.symbols.symbolTable.referenceField(descriptor.correspondingProperty),
+            fieldSymbol,
             expression.dispatchReceiver,
             expression.getValueArgument(descriptor.valueParameters.lastIndex)!!,
             expression.type,
@@ -66,10 +98,12 @@ class ConstAndJvmFieldPropertiesLowering(val context: JvmBackendContext) : IrEle
     }
 
     private fun substituteGetter(descriptor: PropertyGetterDescriptor, expression: IrCall): IrGetFieldImpl {
+        val property = descriptor.correspondingProperty
+        val fieldSymbol = context.getFieldForProperty(property).symbol
         return IrGetFieldImpl(
             expression.startOffset,
             expression.endOffset,
-            context.ir.symbols.symbolTable.referenceField(descriptor.correspondingProperty),
+            fieldSymbol,
             expression.type,
             expression.dispatchReceiver,
             expression.origin,
