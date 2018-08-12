@@ -39,7 +39,7 @@ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.DescriptorUtils
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import org.jetbrains.kotlin.types.KotlinType
 
 class AccessorLowering(val context: JvmBackendContext) : FileLoweringPass {
 
@@ -154,7 +154,7 @@ class AccessorLowering(val context: JvmBackendContext) : FileLoweringPass {
                     IrGetValueImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, syntheticFunction.valueParameters[offset++].symbol)
         }
 
-        call.descriptor.valueParameters.forEachIndexed { i, param ->
+        call.descriptor.valueParameters.forEachIndexed { i, _ ->
             call.putValueArgument(
                 i,
                 IrGetValueImpl(
@@ -167,7 +167,8 @@ class AccessorLowering(val context: JvmBackendContext) : FileLoweringPass {
     }
 
     private fun createAccessorForGetter(targetFieldSymbol: IrFieldSymbol, accessorSymbol: IrSimpleFunctionSymbol): IrSimpleFunction {
-        val type = targetFieldSymbol.owner.type
+        val resolvedTargetField = targetFieldSymbol.owner.resolveFakeOverride(context)!!
+        val type = resolvedTargetField.type
         val accessor = IrFunctionImpl(
             UNDEFINED_OFFSET, UNDEFINED_OFFSET,
             JvmLoweredDeclarationOrigin.SYNTHETIC_ACCESSOR,
@@ -182,7 +183,7 @@ class AccessorLowering(val context: JvmBackendContext) : FileLoweringPass {
             UNDEFINED_OFFSET, UNDEFINED_OFFSET,
             IrGetFieldImpl(
                 UNDEFINED_OFFSET, UNDEFINED_OFFSET,
-                targetFieldSymbol,
+                resolvedTargetField.symbol,
                 type,
                 maybeDispatchReceiver
             )
@@ -191,7 +192,8 @@ class AccessorLowering(val context: JvmBackendContext) : FileLoweringPass {
     }
 
     private fun createAccessorForSetter(targetFieldSymbol: IrFieldSymbol, accessorSymbol: IrSimpleFunctionSymbol): IrSimpleFunction {
-        val type = targetFieldSymbol.owner.type
+        val resolvedTargetField = targetFieldSymbol.owner.resolveFakeOverride(context)!!
+        val type = resolvedTargetField.type
         val accessor = IrFunctionImpl(
             UNDEFINED_OFFSET, UNDEFINED_OFFSET,
             JvmLoweredDeclarationOrigin.SYNTHETIC_ACCESSOR,
@@ -210,7 +212,7 @@ class AccessorLowering(val context: JvmBackendContext) : FileLoweringPass {
             UNDEFINED_OFFSET, UNDEFINED_OFFSET,
             IrSetFieldImpl(
                 UNDEFINED_OFFSET, UNDEFINED_OFFSET,
-                targetFieldSymbol,
+                resolvedTargetField.symbol,
                 maybeDispatchReceiver,
                 value,
                 type
@@ -287,12 +289,13 @@ private class AccessorCallsLowering(
             CallableMemberDescriptor.Kind.SYNTHESIZED,
             fieldSymbol.descriptor.source
         ).also { getterDescriptor ->
+            val myType = (fieldSymbol.descriptor.containingDeclaration as? ClassDescriptor)?.defaultType
             getterDescriptor.initialize(
                 null,
                 null,
                 emptyList(), // fieldSymbol.descriptor.typeParameters
                 listOfNotNull<ValueParameterDescriptor>(
-                    fieldSymbol.descriptor.dispatchReceiverParameter?.toValueReceiverParameter(getterDescriptor, 0, Name.identifier("this"))
+                    fieldSymbol.descriptor.dispatchReceiverParameter?.toValueReceiverParameter(getterDescriptor, 0, Name.identifier("this"), myType)
                 ).toMutableList(),
                 fieldSymbol.descriptor.type,
                 Modality.FINAL,
@@ -309,9 +312,10 @@ private class AccessorCallsLowering(
             CallableMemberDescriptor.Kind.SYNTHESIZED,
             fieldSymbol.descriptor.source
         ).also { setterDescriptor ->
+            val myType = (fieldSymbol.descriptor.containingDeclaration as? ClassDescriptor)?.defaultType
             val valueParametersList = mutableListOf<ValueParameterDescriptor>()
             fieldSymbol.descriptor.dispatchReceiverParameter?.let {
-                valueParametersList.add(it.toValueReceiverParameter(setterDescriptor, 0, Name.identifier("this")))
+                valueParametersList.add(it.toValueReceiverParameter(setterDescriptor, 0, Name.identifier("this"), myType))
             }
             valueParametersList.add(
                 ValueParameterDescriptorImpl(
@@ -410,7 +414,7 @@ private class AccessorCallsLowering(
         oldExpression.receiver?.let {
             call.putValueArgument(0, oldExpression.receiver)
         }
-        call.putValueArgument(call.valueArgumentsCount, oldExpression.value)
+        call.putValueArgument(call.valueArgumentsCount - 1, oldExpression.value)
         return call
     }
 
@@ -467,12 +471,12 @@ private class AccessorCallsLowering(
 
     private fun PropertyDescriptor.accessorNameForGetter(): Name {
         val getterName = JvmAbi.getterName(name.asString())
-        return Name.identifier("access\$$getterName")
+        return Name.identifier("access\$prop\$$getterName")
     }
 
     private fun PropertyDescriptor.accessorNameForSetter(): Name {
         val setterName = JvmAbi.setterName(name.asString())
-        return Name.identifier("access\$$setterName")
+        return Name.identifier("access\$prop\$$setterName")
     }
 
     private fun IrSymbol.isAccessible(): Boolean {
@@ -481,11 +485,13 @@ private class AccessorCallsLowering(
         /// TODO: a very primitive preliminary code.
 
         val declarationRaw = owner as IrDeclarationWithVisibility
-        val declaration = (declarationRaw as? IrSimpleFunction)?.resolveFakeOverride() ?: declarationRaw
+        val declaration =
+            (declarationRaw as? IrSimpleFunction)?.resolveFakeOverride()
+                ?: (declarationRaw as? IrField)?.resolveFakeOverride(context) ?: declarationRaw
         if (declaration.visibility == Visibilities.PUBLIC) return true
 
         val symbolDeclarationContainer = declaration.parent as? IrDeclarationContainer
-        // If local variables are accessible Kotlin rules, they also are by Java rules.
+        // If local variables are accessible by Kotlin rules, they also are by Java rules.
         if (symbolDeclarationContainer == null) return true
 
         val contextDeclarationContainer = allScopes.lastOrNull { it.irElement is IrDeclarationContainer }?.irElement
@@ -501,14 +507,14 @@ private class AccessorCallsLowering(
     }
 }
 
-private fun ReceiverParameterDescriptor.toValueReceiverParameter(functionDescriptor: FunctionDescriptor, index: Int, name: Name) =
+private fun ReceiverParameterDescriptor.toValueReceiverParameter(functionDescriptor: FunctionDescriptor, index: Int, name: Name, type: KotlinType? = this.type) =
     ValueParameterDescriptorImpl(
         functionDescriptor,
         null,
         index,
         Annotations.EMPTY,
         name,
-        type,
+        type ?: this.type,
         /* declaresDefaultvalue = */false,
         /* isCrossinline = */ false,
         /* isNoinline = */ false,
@@ -536,3 +542,15 @@ private class DeclarationSymbolCollector : IrElementVisitorVoid {
         }
     }
 }
+
+// TODO: better have a way to resolve overrides without resorting to descriptors.
+private fun IrField.resolveFakeOverride(context: JvmBackendContext): IrField? {
+    var toVisit = mutableSetOf(descriptor)
+    val nonOverridden = mutableSetOf<PropertyDescriptor>()
+    while (toVisit.isNotEmpty()) {
+        nonOverridden += toVisit.filter { it.overriddenDescriptors.isEmpty() }
+        toVisit = toVisit.flatMap { it.overriddenDescriptors }.toMutableSet()
+    }
+    return nonOverridden.singleOrNull()?.let { context.getFieldForProperty(it) }
+}
+
