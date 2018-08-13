@@ -677,16 +677,18 @@ class CallableReferenceLowering(val context: JvmBackendContext) : FileLoweringPa
                             -1, -1, globalContext.irBuiltIns.stringType,
                             state.moduleName
                         )
-                        val function = reflectionClass.getStaticFunction("getOrCreateKotlinPackage", emptyList())
-                        irCall(IrSimpleFunctionSymbolImpl(function), function.returnType!!.toIrType()!!).apply {
+                        val functionDescriptor = reflectionClass.getStaticFunction("getOrCreateKotlinPackage", emptyList())
+                        val functionSymbol = globalContext.ir.symbols.symbolTable.referenceSimpleFunction(functionDescriptor)
+                        irCall(functionSymbol, functionSymbol.owner.returnType).apply {
                             putValueArgument(0, clazz)
                             putValueArgument(1, module)
                         }
                     } else {
-                        val function = reflectionClass.staticScope
+                        val functionDescriptor = reflectionClass.staticScope
                             .getContributedFunctions(Name.identifier("getOrCreateKotlinClass"), NoLookupLocation.FROM_BACKEND)
                             .single { it.valueParameters.size == 1 }
-                        irCall(IrSimpleFunctionSymbolImpl(function), function.returnType!!.toIrType()!!).apply {
+                        val functionSymbol = globalContext.ir.symbols.symbolTable.referenceSimpleFunction(functionDescriptor)
+                        irCall(functionSymbol, functionSymbol.owner.returnType).apply {
                             putValueArgument(0, clazz)
                         }
                     }
