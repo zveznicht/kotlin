@@ -488,7 +488,9 @@ private class AccessorCallsLowering(
         val declaration =
             (declarationRaw as? IrSimpleFunction)?.resolveFakeOverride()
                 ?: (declarationRaw as? IrField)?.resolveFakeOverride(context) ?: declarationRaw
-        if (declaration.visibility == Visibilities.PUBLIC) return true
+
+        // The only two visibilities where Kotlin rules differ from JVM rules.
+        if (declaration.visibility != Visibilities.PRIVATE && declaration.visibility != Visibilities.PROTECTED) return true
 
         val symbolDeclarationContainer = declaration.parent as? IrDeclarationContainer
         // If local variables are accessible by Kotlin rules, they also are by Java rules.
