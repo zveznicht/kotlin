@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.ClassConstructorDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.TypeParameterDescriptorImpl
 import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -98,10 +99,12 @@ class AccessorLowering(val context: JvmBackendContext) : FileLoweringPass {
     }
 
     private fun createConstructorCall(accessor: IrConstructor, targetSymbol: IrConstructorSymbol) =
+        // TODO: Type parameters are more reliably represented in descriptor than in IrConstructor.
+        // Need to correct that.
         IrDelegatingConstructorCallImpl(
             UNDEFINED_OFFSET, UNDEFINED_OFFSET,
             context.irBuiltIns.unitType,
-            targetSymbol, targetSymbol.descriptor, targetSymbol.owner.typeParameters.size
+            targetSymbol, targetSymbol.descriptor, targetSymbol.descriptor.typeParametersCount /* targetSymbol.owner.typeParameters.size */
         ).also {
             copyAllParamsToArgs(it, accessor)
         }
@@ -425,6 +428,16 @@ private class AccessorCallsLowering(
             /* isPrimary = */ false,
             source
         ).also { newDescriptor ->
+            val newTypeParameters = typeParameters.map {
+                TypeParameterDescriptorImpl.createWithDefaultBound(
+                    newDescriptor,
+                    it.annotations,
+                    it.isReified,
+                    it.variance,
+                    it.name,
+                    it.index
+                )
+            }
             var offset = 0
             val receivers = mutableListOf<ValueParameterDescriptor>()
             extensionReceiverParameter?.apply {
@@ -436,7 +449,7 @@ private class AccessorCallsLowering(
             newDescriptor.initialize(
                 null,
                 null,
-                emptyList(), // typeParameters
+                newTypeParameters, // typeParameters
                 receivers + valueParameters.map {
                     it.copy(
                         newDescriptor,
@@ -492,7 +505,7 @@ private class AccessorCallsLowering(
         // The only two visibilities where Kotlin rules differ from JVM rules.
         if (declaration.visibility != Visibilities.PRIVATE && declaration.visibility != Visibilities.PROTECTED) return true
 
-        val symbolDeclarationContainer = declaration.parent as? IrDeclarationContainer
+        val symbolDeclarationContainer = (declaration.parent as? IrDeclarationContainer) as? IrElement
         // If local variables are accessible by Kotlin rules, they also are by Java rules.
         if (symbolDeclarationContainer == null) return true
 
