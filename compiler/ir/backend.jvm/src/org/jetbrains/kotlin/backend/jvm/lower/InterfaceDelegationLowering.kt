@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredStatementOrigin
 import org.jetbrains.kotlin.backend.jvm.codegen.isJvmInterface
 import org.jetbrains.kotlin.backend.jvm.descriptors.DefaultImplsClassDescriptor
-import org.jetbrains.kotlin.backend.jvm.descriptors.DefaultImplsClassDescriptorImpl
 import org.jetbrains.kotlin.codegen.isDefinitelyNotDefaultImplsMethod
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -45,12 +44,7 @@ class InterfaceDelegationLowering(val context: JvmBackendContext) : IrElementTra
             if (!interfaceFun.isDefinitelyNotDefaultImplsMethod()) {
                 val inheritedFunDescriptor =
                     if (classDescriptor !== irClass.descriptor) {
-                        InterfaceLowering.getDefaultImplFunction(
-                            irClass,
-                            value,
-                            classDescriptor,
-                            context
-                        ).descriptor
+                        context.getDefaultImplFunction(Triple(irClass, value, classDescriptor)).descriptor
                     } else {
                         value
                     }
@@ -66,10 +60,10 @@ class InterfaceDelegationLowering(val context: JvmBackendContext) : IrElementTra
         irClass.declarations.add(irFunction)
 
         val interfaceDescriptor = interfaceFun.containingDeclaration as ClassDescriptor
-        val interfaceClass = context.ir.symbols.symbolTable.referenceClass(interfaceDescriptor).owner
-        val defaultImpls = InterfaceLowering.getDefaultImplsClass(interfaceClass, context)
+        val interfaceClass = context.ir.symbols.externalSymbolTable.referenceClass(interfaceDescriptor).owner
+        val defaultImpls = context.getDefaultImplsClass(interfaceClass)
         val defaultImplFun =
-            InterfaceLowering.getDefaultImplFunction(defaultImpls, interfaceFun.original, interfaceDescriptor, context)
+            context.getDefaultImplFunction(Triple(defaultImpls, interfaceFun.original, interfaceDescriptor))
         irFunction.returnType = defaultImplFun.returnType
         val irCallImpl =
             IrCallImpl(

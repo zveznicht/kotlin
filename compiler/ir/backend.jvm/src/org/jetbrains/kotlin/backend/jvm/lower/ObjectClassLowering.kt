@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.backend.jvm.lower
 
-import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.common.ir.primaryConstructor
@@ -25,6 +24,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrExpressionBodyImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
+import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrFieldSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
@@ -51,10 +51,10 @@ class ObjectClassLowering(val context: JvmBackendContext) : IrElementTransformer
     private fun process(irClass: IrClass) {
         if (!irClass.isObject) return
 
-        val publicInstance = irClass.getObjectInstanceField(context)
+        val publicInstance = context.getObjectInstanceField(irClass.symbol)
 
         val constructor = irClass.primaryConstructor()
-                ?: throw AssertionError("Object should have a primary constructor: ${irClass.descriptor}")
+            ?: throw AssertionError("Object should have a primary constructor: ${irClass.descriptor}")
 
         val publicInstanceOwner = if (irClass.descriptor.isCompanionObject) parentScope!!.irElement as IrDeclarationContainer else irClass
         if (isCompanionObjectInInterfaceNotIntrinsic(irClass.descriptor)) {
@@ -102,10 +102,9 @@ class ObjectClassLowering(val context: JvmBackendContext) : IrElementTransformer
     }
 }
 
-fun IrClass.getObjectInstanceField(context: CommonBackendContext) =
-    context.ir.objectInstanceFieldCache.getOrPut(this.symbol) {
-        createField(IrFieldSymbolImpl(createObjectInstanceFieldDescriptor(this.descriptor)), defaultType)
-    }
+val JvmBackendContext.getObjectInstanceField: (IrClassSymbol) -> IrField by JvmBackendContext.lazyMapMember { objectSymbol ->
+    createField(IrFieldSymbolImpl(createObjectInstanceFieldDescriptor(objectSymbol.descriptor)), objectSymbol.owner.defaultType)
+}
 
 
 private fun createField(symbol: IrFieldSymbol, type: IrType): IrField =

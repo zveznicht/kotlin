@@ -51,7 +51,7 @@ class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringPass {
         val typeParameter0 = unsubstitutedArrayOfFunDescriptor.typeParameters[0]
         val typeSubstitutor = TypeSubstitutor.create(mapOf(typeParameter0.typeConstructor to TypeProjectionImpl(arrayElementType)))
         val substitutedArrayOfDescriptor = unsubstitutedArrayOfFunDescriptor.substitute(typeSubstitutor)!!
-        val substitutedArrayOfFun = context.ir.symbols.symbolTable.referenceSimpleFunction(substitutedArrayOfDescriptor.original).owner
+        val substitutedArrayOfFun = context.ir.symbols.externalSymbolTable.referenceSimpleFunction(substitutedArrayOfDescriptor.original).owner
 
 
         val valueParameter0 = substitutedArrayOfDescriptor.valueParameters[0]
@@ -475,7 +475,7 @@ class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringPass {
                 val enumClassType = irClass.descriptor.defaultType
                 val typeSubstitutor = TypeSubstitutor.create(mapOf(typeParameterT.typeConstructor to TypeProjectionImpl(enumClassType)))
                 val substitutedValueOfDescriptor = unsubstitutedValueOfDescriptor.substitute(typeSubstitutor)!!
-                val substitutedValueOf = context.ir.symbols.symbolTable.referenceSimpleFunction(substitutedValueOfDescriptor.original).owner
+                val substitutedValueOf = context.ir.symbols.externalSymbolTable.referenceSimpleFunction(substitutedValueOfDescriptor.original).owner
 
                 val irValueOfCall =
                     IrCallImpl(
@@ -506,7 +506,7 @@ class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringPass {
 
             private fun createEnumValuesBody(valuesField: IrField): IrBody {
                 val cloneFunDescriptor = valuesField.type.toKotlinType().memberScope.findSingleFunction(Name.identifier("clone")).original
-                val cloneFun = context.ir.symbols.symbolTable.referenceSimpleFunction(cloneFunDescriptor).owner
+                val cloneFun = context.ir.symbols.externalSymbolTable.referenceSimpleFunction(cloneFunDescriptor).owner
 
                 val irCloneValues = IrCallImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, cloneFun.returnType, cloneFun.symbol, cloneFun.descriptor, 0).apply {
                     dispatchReceiver = IrGetFieldImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, valuesField.symbol, valuesField.symbol.owner.type)

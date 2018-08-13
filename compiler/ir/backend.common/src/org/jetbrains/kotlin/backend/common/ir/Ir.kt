@@ -28,14 +28,11 @@ abstract class Ir<out T : CommonBackendContext>(val context: T, val irModule: Ir
     abstract val symbols: Symbols<T>
 
     val defaultParameterDeclarationsCache = mutableMapOf<FunctionDescriptor, IrFunction>()
-    val interfaceDefaultImplsClassCache = mutableMapOf<ClassDescriptor, IrClass>()
-    val interfaceDefaultImplsFunCache = mutableMapOf<FunctionDescriptor, IrSimpleFunction>()
-    val objectInstanceFieldCache = mutableMapOf<IrClassSymbol, IrField>()
 
     open fun shouldGenerateHandlerParameterForDefaultBodyFun() = false
 }
 
-abstract class Symbols<out T : CommonBackendContext>(val context: T, val symbolTable: ReferenceSymbolTable) {
+abstract class Symbols<out T : CommonBackendContext>(val context: T, private val symbolTable: ReferenceSymbolTable) {
 
     protected val builtIns
         get() = context.builtIns

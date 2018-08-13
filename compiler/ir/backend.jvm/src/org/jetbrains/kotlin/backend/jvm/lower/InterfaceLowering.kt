@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.backend.jvm.lower
 
 import org.jetbrains.kotlin.backend.common.ClassLoweringPass
-import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.lower.DECLARATION_ORIGIN_FUNCTION_FOR_DEFAULT_PARAMETER
 import org.jetbrains.kotlin.backend.common.lower.InitializersLowering.Companion.clinitName
 import org.jetbrains.kotlin.backend.common.lower.VariableRemapper
@@ -36,12 +35,52 @@ import org.jetbrains.kotlin.resolve.source.PsiSourceElement
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.org.objectweb.asm.Opcodes
 
+val JvmBackendContext.getDefaultImplsClass: (IrClass) -> IrClass by JvmBackendContext.lazyMapMember { irInterface ->
+    val interfaceDescriptor = irInterface.descriptor
+    val defaultImplsDescriptor = DefaultImplsClassDescriptorImpl(
+        Name.identifier(JvmAbi.DEFAULT_IMPLS_CLASS_NAME), interfaceDescriptor, interfaceDescriptor.source
+    )
+
+    val psi = (interfaceDescriptor.source as? PsiSourceElement)?.psi
+    IrClassImpl(
+        psi?.startOffset ?: UNDEFINED_OFFSET,
+        psi?.endOffset ?: UNDEFINED_OFFSET,
+        JvmLoweredDeclarationOrigin.DEFAULT_IMPLS,
+        defaultImplsDescriptor
+    ).apply {
+        parent = irInterface
+    }
+}
+
+val JvmBackendContext.getDefaultImplFunction: (Triple<IrClass, FunctionDescriptor, ClassDescriptor>) -> IrSimpleFunction
+        by JvmBackendContext.lazyMapMember { (defaultImplsClass, descriptor, interfaceDescriptor) ->
+            val name = Name.identifier(state.typeMapper.mapAsmMethod(descriptor).name)
+            val funDescriptor = createStaticFunctionDescriptorWithReceivers(
+                defaultImplsClass.descriptor,
+                name,
+                descriptor,
+                interfaceDescriptor.defaultType
+            )
+            val psi = (descriptor.source as? PsiSourceElement)?.psi
+            IrFunctionImpl(
+                psi?.startOffset ?: UNDEFINED_OFFSET,
+                psi?.endOffset ?: UNDEFINED_OFFSET,
+                JvmLoweredDeclarationOrigin.JVM_MODIFIED_BY_LOWERING,  // true origin not always accessible
+                IrSimpleFunctionSymbolImpl(funDescriptor),
+                descriptor.visibility
+            ).apply {
+                parent = defaultImplsClass
+                returnType = descriptor.returnType!!.toIrType()!!
+                createParameterDeclarations()
+            }
+        }
+
 class InterfaceLowering(val context: JvmBackendContext) : IrElementTransformerVoid(), ClassLoweringPass {
 
     override fun lower(irClass: IrClass) {
         if (!irClass.isInterface) return
 
-        val defaultImplsIrClass = getDefaultImplsClass(irClass, context)
+        val defaultImplsIrClass = context.getDefaultImplsClass(irClass)
         irClass.declarations.add(defaultImplsIrClass)
 
         val members = defaultImplsIrClass.declarations
@@ -52,7 +91,7 @@ class InterfaceLowering(val context: JvmBackendContext) : IrElementTransformerVo
                 members.add(oldFunction) //just copy $default to DefaultImpls
             } else if (descriptor.modality != Modality.ABSTRACT && oldFunction.origin != IrDeclarationOrigin.FAKE_OVERRIDE) {
                 val newFunction =
-                    getDefaultImplFunction(defaultImplsIrClass, descriptor, irClass.descriptor, context)
+                    context.getDefaultImplFunction(Triple(defaultImplsIrClass, descriptor, irClass.descriptor))
                 newFunction.transferBody(oldFunction)
                 members.add(newFunction)
                 oldFunction.body = null
@@ -76,57 +115,6 @@ class InterfaceLowering(val context: JvmBackendContext) : IrElementTransformerVo
         }
         irClass.declarations.removeAll(privateToRemove)
         irClass.declarations.removeAll(defaultBodies)
-    }
-
-    companion object {
-
-        fun getDefaultImplsClass(irInterface: IrClass, context: CommonBackendContext): IrClass {
-            val interfaceDescriptor = irInterface.descriptor
-            return context.ir.interfaceDefaultImplsClassCache.getOrPut(interfaceDescriptor) {
-                val defaultImplsDescriptor = DefaultImplsClassDescriptorImpl(
-                    Name.identifier(JvmAbi.DEFAULT_IMPLS_CLASS_NAME), interfaceDescriptor, interfaceDescriptor.source
-                )
-
-                val psi = (interfaceDescriptor.source as? PsiSourceElement)?.psi
-                IrClassImpl(
-                    psi?.startOffset ?: UNDEFINED_OFFSET,
-                    psi?.endOffset ?: UNDEFINED_OFFSET,
-                    JvmLoweredDeclarationOrigin.DEFAULT_IMPLS,
-                    defaultImplsDescriptor
-                ).apply {
-                    parent = irInterface
-                }
-            }
-        }
-
-        fun getDefaultImplFunction(
-            defaultImplsClass: IrClass,
-            descriptor: FunctionDescriptor,
-            interfaceDescriptor: ClassDescriptor,
-            context: JvmBackendContext
-        ): IrSimpleFunction {
-            return context.ir.interfaceDefaultImplsFunCache.getOrPut(descriptor) {
-                val name = Name.identifier(context.state.typeMapper.mapAsmMethod(descriptor).name)
-                val funDescriptor = createStaticFunctionDescriptorWithReceivers(
-                    defaultImplsClass.descriptor,
-                    name,
-                    descriptor,
-                    interfaceDescriptor.defaultType
-                )
-                val psi = (descriptor.source as? PsiSourceElement)?.psi
-                IrFunctionImpl(
-                    psi?.startOffset ?: UNDEFINED_OFFSET,
-                    psi?.endOffset ?: UNDEFINED_OFFSET,
-                    JvmLoweredDeclarationOrigin.JVM_MODIFIED_BY_LOWERING,  // true origin not always accessible
-                    IrSimpleFunctionSymbolImpl(funDescriptor),
-                    descriptor.visibility
-                ).apply {
-                    parent = defaultImplsClass
-                    returnType = descriptor.returnType!!.toIrType()!!
-                    createParameterDeclarations()
-                }
-            }
-        }
     }
 }
 

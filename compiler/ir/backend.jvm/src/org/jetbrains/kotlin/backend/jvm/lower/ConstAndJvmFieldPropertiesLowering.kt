@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.backend.jvm.lower
 
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
-import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.codegen.JvmCodegenUtil
 import org.jetbrains.kotlin.descriptors.*
@@ -19,10 +18,8 @@ import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrSetFieldImpl
-import org.jetbrains.kotlin.ir.symbols.IrExternalPackageFragmentSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrExternalPackageFragmentSymbolImpl
 import org.jetbrains.kotlin.ir.types.toIrType
-import org.jetbrains.kotlin.ir.util.referenceFunction
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.synthetic.SyntheticJavaPropertyDescriptor
@@ -42,8 +39,8 @@ val JvmBackendContext.getFieldForProperty: (PropertyDescriptor) -> IrField by Jv
 fun JvmBackendContext.getParent(descriptor: PropertyDescriptor): IrDeclarationParent? {
     val containingDeclaration = descriptor.containingDeclaration
     return when (containingDeclaration) {
-        is ClassDescriptor -> ir.symbols.symbolTable.referenceClass(containingDeclaration).owner
-        is FunctionDescriptor -> ir.symbols.symbolTable.referenceDeclaredFunction(containingDeclaration).owner
+        is ClassDescriptor -> ir.symbols.externalSymbolTable.referenceClass(containingDeclaration).owner
+        is FunctionDescriptor -> ir.symbols.externalSymbolTable.referenceDeclaredFunction(containingDeclaration).owner
         // For package fragments, the only parameter relevant for accessibility is `fqName`. No danger in creating extra ones.
         is PackageFragmentDescriptor -> IrExternalPackageFragmentImpl(IrExternalPackageFragmentSymbolImpl(containingDeclaration))
         else -> null

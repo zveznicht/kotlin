@@ -32,7 +32,7 @@ class SingletonReferencesLowering(val context: JvmBackendContext) : BodyLowering
     }
 
     override fun visitGetObjectValue(expression: IrGetObjectValue): IrExpression {
-        val instanceField = expression.symbol.owner.getObjectInstanceField(context)
+        val instanceField = context.getObjectInstanceField(expression.symbol)
         return IrGetFieldImpl(expression.startOffset, expression.endOffset, instanceField.symbol, expression.type)
     }
 }
