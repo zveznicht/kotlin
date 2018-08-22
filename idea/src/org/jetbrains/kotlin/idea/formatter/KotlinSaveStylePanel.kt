@@ -7,17 +7,8 @@ package org.jetbrains.kotlin.idea.formatter
 
 import com.intellij.application.options.CodeStyleAbstractPanel
 import com.intellij.openapi.editor.colors.EditorColorsScheme
-import com.intellij.openapi.ui.ComboBox
 import com.intellij.psi.codeStyle.CodeStyleSettings
 import com.intellij.ui.ListCellRendererWrapper
-import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.components.panels.HorizontalLayout
-import com.intellij.ui.components.panels.VerticalLayout
-import com.intellij.util.ui.JBUI
-import com.intellij.util.ui.UIUtil
-import java.awt.BorderLayout
-import javax.swing.BorderFactory
-import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JPanel
 
@@ -31,7 +22,6 @@ class KotlinSaveStylePanel(settings: CodeStyleSettings) : CodeStyleAbstractPanel
 
     private data class SaveItem(val label: String, val id: String?)
 
-    private val saveDefaultsComboBox = ComboBox<SaveItem>()
     private val saveDefaultsItems = listOf(
         SaveItem("<ide defaults>", null),
         SaveItem(KotlinObsoleteCodeStyle.CODE_STYLE_TITLE, KotlinObsoleteCodeStyle.CODE_STYLE_ID),
@@ -47,29 +37,19 @@ class KotlinSaveStylePanel(settings: CodeStyleSettings) : CodeStyleAbstractPanel
             saveDefaultsComboBox.selectedItem = saveDefaultsItems.firstOrNull { (_, id) -> id == value } ?: saveDefaultsItems.first()
         }
 
-    private val jPanel = JPanel(BorderLayout()).apply {
-        add(
-            JBScrollPane(
-                JPanel(VerticalLayout(JBUI.scale(5))).apply {
-                    border = BorderFactory.createEmptyBorder(UIUtil.DEFAULT_VGAP, 10, UIUtil.DEFAULT_VGAP, 10)
-                    add(JPanel(HorizontalLayout(JBUI.scale(5))).apply {
-                        saveDefaultsItems.forEach {
-                            saveDefaultsComboBox.addItem(it)
-                        }
+    private val loadSaveCodeStyleForm = LoadSaveCodeStyleForm().apply {
+        saveDefaultsItems.forEach {
+            saveDefaultsComboBox.addItem(it)
+        }
 
-                        saveDefaultsComboBox.setRenderer(object : ListCellRendererWrapper<SaveItem>() {
-                            override fun customize(list: JList<*>?, value: SaveItem, index: Int, selected: Boolean, hasFocus: Boolean) {
-                                setText(value.label)
-                            }
-                        })
-
-                        add(JLabel("Use defaults from:"))
-                        add(saveDefaultsComboBox)
-                    })
-                }
-            )
-        )
+        saveDefaultsComboBox.setRenderer(object : ListCellRendererWrapper<SaveItem>() {
+            override fun customize(list: JList<*>?, value: SaveItem, index: Int, selected: Boolean, hasFocus: Boolean) {
+                setText(value.label)
+            }
+        })
     }
+
+    private val saveDefaultsComboBox get() = loadSaveCodeStyleForm.saveDefaultsComboBox
 
     override fun apply(settings: CodeStyleSettings) {
         settings.kotlinCustomSettings.CODE_STYLE_DEFAULTS = selectedId
@@ -81,7 +61,7 @@ class KotlinSaveStylePanel(settings: CodeStyleSettings) : CodeStyleAbstractPanel
                 selectedId != settings.kotlinCommonSettings.CODE_STYLE_DEFAULTS
     }
 
-    override fun getPanel() = jPanel
+    override fun getPanel(): JPanel = loadSaveCodeStyleForm.panel
 
     override fun resetImpl(settings: CodeStyleSettings) {
         selectedId = settings.kotlinCustomSettings.CODE_STYLE_DEFAULTS ?: settings.kotlinCommonSettings.CODE_STYLE_DEFAULTS
