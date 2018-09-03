@@ -65,6 +65,9 @@ public class KotlinCodeStyleSettings extends CustomCodeStyleSettings {
     @ReflectionUtil.SkipInEquals
     public String CODE_STYLE_DEFAULTS = null;
 
+    @ReflectionUtil.SkipInEquals
+    public boolean OVERRIDE_PROJECT_DEFAULTS = false;
+
     /**
      * Load settings with previous IDEA defaults to have an ability to restore them.
      */

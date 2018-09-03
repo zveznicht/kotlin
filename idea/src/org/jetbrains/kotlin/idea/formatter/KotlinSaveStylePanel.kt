@@ -28,7 +28,7 @@ class KotlinSaveStylePanel(settings: CodeStyleSettings) : CodeStyleAbstractPanel
         SaveItem(KotlinStyleGuideCodeStyle.CODE_STYLE_TITLE, KotlinStyleGuideCodeStyle.CODE_STYLE_ID)
     )
 
-    var selectedId: String?
+    private var selectedId: String?
         get() {
             val (_, id) = saveDefaultsComboBox.selectedItem as SaveItem
             return id
@@ -54,17 +54,20 @@ class KotlinSaveStylePanel(settings: CodeStyleSettings) : CodeStyleAbstractPanel
     override fun apply(settings: CodeStyleSettings) {
         settings.kotlinCustomSettings.CODE_STYLE_DEFAULTS = selectedId
         settings.kotlinCommonSettings.CODE_STYLE_DEFAULTS = selectedId
+        settings.kotlinCustomSettings.OVERRIDE_PROJECT_DEFAULTS = loadSaveCodeStyleForm.useDefaultObsoleteCodeCheckBox.isSelected
     }
 
     override fun isModified(settings: CodeStyleSettings): Boolean {
         return selectedId != settings.kotlinCustomSettings.CODE_STYLE_DEFAULTS ||
-                selectedId != settings.kotlinCommonSettings.CODE_STYLE_DEFAULTS
+                selectedId != settings.kotlinCommonSettings.CODE_STYLE_DEFAULTS ||
+                loadSaveCodeStyleForm.useDefaultObsoleteCodeCheckBox.isSelected != settings.kotlinCustomSettings.OVERRIDE_PROJECT_DEFAULTS
     }
 
     override fun getPanel(): JPanel = loadSaveCodeStyleForm.panel
 
     override fun resetImpl(settings: CodeStyleSettings) {
         selectedId = settings.kotlinCustomSettings.CODE_STYLE_DEFAULTS ?: settings.kotlinCommonSettings.CODE_STYLE_DEFAULTS
+        loadSaveCodeStyleForm.useDefaultObsoleteCodeCheckBox.isSelected = settings.kotlinCustomSettings.OVERRIDE_PROJECT_DEFAULTS
     }
 
     override fun onSomethingChanged() {

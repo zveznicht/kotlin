@@ -32,6 +32,8 @@ import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.roots.impl.libraries.LibraryImpl
 import com.intellij.openapi.roots.libraries.PersistentLibraryKind
 import com.intellij.openapi.util.Key
+import com.intellij.psi.codeStyle.CodeStyleSchemes
+import com.intellij.psi.codeStyle.CodeStyleSettingsManager
 import com.intellij.util.PathUtil
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
@@ -111,6 +113,16 @@ class KotlinGradleProjectDataService : AbstractProjectDataService<ModuleData, Vo
             val ideModule = modelsProvider.findIdeModule(moduleData) ?: continue
             val kotlinFacet = configureFacetByGradleModule(ideModule, modelsProvider, moduleNode, null) ?: continue
             GradleProjectImportHandler.getInstances(project).forEach { it.importByModule(kotlinFacet, moduleNode) }
+        }
+
+        val property = GradleProperties(project).getProperty("kotlin.code.style")
+        if (property != null) {
+            val schemeManager = CodeStyleSettingsManager.getInstance(project)
+            val currentScheme = CodeStyleSchemes.getInstance().findPreferredScheme(schemeManager.PREFERRED_PROJECT_CODE_STYLE)
+
+            if (currentScheme.isDefault) {
+
+            }
         }
     }
 }

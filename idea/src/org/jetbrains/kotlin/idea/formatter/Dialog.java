@@ -7,8 +7,8 @@ package org.jetbrains.kotlin.idea.formatter;
 
 import javax.swing.*;
 
-public class LoadSaveCodeStyleForm {
-    public JComboBox saveDefaultsComboBox;
-    public JPanel panel;
-    public JCheckBox useDefaultObsoleteCodeCheckBox;
+public class Dialog {
+    private JRadioButton enableProjectCodeStyleRadioButton;
+    private JRadioButton enableNewCodeStyleRadioButton;
+    private JRadioButton useLocalCodeStyleRadioButton;
 }
