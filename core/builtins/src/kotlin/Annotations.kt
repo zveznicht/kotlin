@@ -21,17 +21,20 @@ import kotlin.annotation.AnnotationRetention.SOURCE
 import kotlin.annotation.AnnotationTarget.*
 
 /**
- * Marks the annotated class, function, property, variable or parameter as deprecated.
+ * Marks the annotated declaration as deprecated. A deprecated declaration is not recommended for use,
+ * and a diagnostic with the specified severity and message will be reported on usages of this declaration.
+ *
  * @property message the message explaining the deprecation and recommending an alternative API to use.
  * @property replaceWith if present, specifies a code fragment which should be used as a replacement for
  *     the deprecated API usage.
+ * @property level severity of the diagnostic reported by the compiler on usages of this declaration.
  */
 @Target(CLASS, FUNCTION, PROPERTY, ANNOTATION_CLASS, CONSTRUCTOR, PROPERTY_SETTER, PROPERTY_GETTER, TYPEALIAS)
 @MustBeDocumented
 public annotation class Deprecated(
-        val message: String,
-        val replaceWith: ReplaceWith = ReplaceWith(""),
-        val level: DeprecationLevel = DeprecationLevel.WARNING
+    val message: String,
+    val replaceWith: ReplaceWith = ReplaceWith(""),
+    val level: DeprecationLevel = DeprecationLevel.WARNING
 )
 
 /**
@@ -53,14 +56,14 @@ public annotation class Deprecated(
 public annotation class ReplaceWith(val expression: String, vararg val imports: String)
 
 /**
- * Contains levels for deprecation levels.
+ * Severity of the diagnostic reported by the compiler on usages of a deprecated declaration.
  */
 public enum class DeprecationLevel {
-    /** Usage of the deprecated element will be marked as a warning. */
+    /** Usage of the deprecated declaration will be marked as a warning. */
     WARNING,
-    /** Usage of the deprecated element will be marked as an error. */
+    /** Usage of the deprecated declaration will be marked as an error. */
     ERROR,
-    /** Deprecated element will not be accessible from code. */
+    /** Deprecated declaration will not be accessible from code. */
     HIDDEN
 }
 
