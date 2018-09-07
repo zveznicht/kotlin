@@ -164,19 +164,22 @@ class DeprecationResolver(
 
     private fun DeclarationDescriptor.addDeprecationIfPresent(result: MutableList<Deprecation>) {
         val annotation = annotations.findAnnotation(KotlinBuiltIns.FQ_NAMES.deprecated)
+            ?: annotations.findAnnotation(KotlinBuiltIns.FQ_NAMES.deprecatedSinceKotlin)
             ?: annotations.findAnnotation(JAVA_DEPRECATED)
         if (annotation != null) {
-            val deprecatedByAnnotation = DeprecatedByAnnotation(annotation, this)
-            val deprecation = when {
-                this is TypeAliasConstructorDescriptor ->
-                    DeprecatedTypealiasByAnnotation(typeAliasDescriptor, deprecatedByAnnotation)
+            val deprecatedByAnnotation = DeprecatedByAnnotation.create(annotation, this, languageVersionSettings.apiVersion)
+            if (deprecatedByAnnotation != null) {
+                val deprecation = when {
+                    this is TypeAliasConstructorDescriptor ->
+                        DeprecatedTypealiasByAnnotation(typeAliasDescriptor, deprecatedByAnnotation)
 
-                isBuiltInOperatorMod ->
-                    DeprecatedOperatorMod(languageVersionSettings, deprecatedByAnnotation)
+                    isBuiltInOperatorMod ->
+                        DeprecatedOperatorMod(languageVersionSettings, deprecatedByAnnotation)
 
-                else -> deprecatedByAnnotation
+                    else -> deprecatedByAnnotation
+                }
+                result.add(deprecation)
             }
-            result.add(deprecation)
         }
 
         for (deprecation in getDeprecationByVersionRequirement(this)) {

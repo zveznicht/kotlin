@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.resolve.deprecation
 
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -14,23 +15,64 @@ import org.jetbrains.kotlin.metadata.deserialization.VersionRequirement
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.annotations.argumentValue
 import org.jetbrains.kotlin.resolve.calls.checkers.shouldWarnAboutDeprecatedModFromBuiltIns
+import org.jetbrains.kotlin.resolve.constants.AnnotationValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.deprecation.DeprecationLevelValue.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
-internal data class DeprecatedByAnnotation(val annotation: AnnotationDescriptor, override val target: DeclarationDescriptor) : Deprecation {
-    override val deprecationLevel: DeprecationLevelValue
-        get() = when (annotation.argumentValue("level")?.safeAs<EnumValue>()?.enumEntryName?.asString()) {
-            "WARNING" -> WARNING
-            "ERROR" -> ERROR
-            "HIDDEN" -> HIDDEN
-            else -> WARNING
-        }
-
+internal sealed class DeprecatedByAnnotation(
+    val annotation: AnnotationDescriptor, override val target: DeclarationDescriptor
+) : Deprecation {
     override val message: String?
         get() = annotation.argumentValue("message")?.safeAs<StringValue>()?.value
+
+    internal val replaceWithValue: String?
+        get() {
+            val replaceWithAnnotation = annotation.argumentValue(Deprecated::replaceWith.name)?.safeAs<AnnotationValue>()?.value
+            return replaceWithAnnotation?.argumentValue(ReplaceWith::expression.name)?.safeAs<StringValue>()?.value
+        }
+
+    class StandardDeprecated(annotation: AnnotationDescriptor, target: DeclarationDescriptor) : DeprecatedByAnnotation(annotation, target) {
+        override val deprecationLevel: DeprecationLevelValue
+            get() = when (annotation.argumentValue("level")?.safeAs<EnumValue>()?.enumEntryName?.asString()) {
+                "WARNING" -> WARNING
+                "ERROR" -> ERROR
+                "HIDDEN" -> HIDDEN
+                else -> WARNING
+            }
+    }
+
+    class DeprecatedSince(
+        annotation: AnnotationDescriptor, target: DeclarationDescriptor, override val deprecationLevel: DeprecationLevelValue
+    ) : DeprecatedByAnnotation(annotation, target)
+
+    companion object {
+        fun create(annotation: AnnotationDescriptor, target: DeclarationDescriptor, apiVersion: ApiVersion): DeprecatedByAnnotation? {
+            if (annotation.fqName == KotlinBuiltIns.FQ_NAMES.deprecatedSinceKotlin) {
+                val level = computeLevelForDeprecatedSinceKotlin(annotation, apiVersion) ?: return null
+                return DeprecatedSince(annotation, target, level)
+            }
+            return StandardDeprecated(annotation, target)
+        }
+
+        private fun computeLevelForDeprecatedSinceKotlin(annotation: AnnotationDescriptor, apiVersion: ApiVersion): DeprecationLevelValue? {
+            fun getSinceVersion(name: String): ApiVersion? =
+                annotation.argumentValue(name)?.safeAs<StringValue>()?.value?.takeUnless(String::isEmpty)?.let(ApiVersion.Companion::parse)
+
+            val hiddenSince = getSinceVersion("hiddenSince")
+            if (hiddenSince != null && apiVersion >= hiddenSince) return HIDDEN
+
+            val errorSince = getSinceVersion("errorSince")
+            if (errorSince != null && apiVersion >= errorSince) return ERROR
+
+            val warningSince = getSinceVersion("warningSince")
+            if (warningSince != null && apiVersion >= warningSince) return WARNING
+
+            return null
+        }
+    }
 }
 
 internal data class DeprecatedByOverridden(private val deprecations: Collection<Deprecation>) : Deprecation {

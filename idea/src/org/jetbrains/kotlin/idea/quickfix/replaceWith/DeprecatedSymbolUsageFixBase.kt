@@ -77,6 +77,7 @@ abstract class DeprecatedSymbolUsageFixBase(
 
     companion object {
         fun fetchReplaceWithPattern(descriptor: DeclarationDescriptor, project: Project): ReplaceWith? {
+            // TODO: support DeprecatedSinceKotlin
             val annotation = descriptor.annotations.findAnnotation(KotlinBuiltIns.FQ_NAMES.deprecated) ?: return null
             val replaceWithValue =
                 annotation.argumentValue(kotlin.Deprecated::replaceWith.name)?.safeAs<AnnotationValue>()?.value ?: return null

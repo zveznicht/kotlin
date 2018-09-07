@@ -6136,6 +6136,34 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTest {
             public void testWarningOnConstructorErrorOnClass() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/deprecated/warningOnConstructorErrorOnClass.kt");
             }
+
+            @TestMetadata("compiler/testData/diagnostics/tests/deprecated/deprecatedSinceKotlin")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class DeprecatedSinceKotlin extends AbstractDiagnosticsTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInDeprecatedSinceKotlin() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/testData/diagnostics/tests/deprecated/deprecatedSinceKotlin"), Pattern.compile("^(.+)\\.kt$"), TargetBackend.ANY, true);
+                }
+
+                @TestMetadata("error.kt")
+                public void testError() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/deprecated/deprecatedSinceKotlin/error.kt");
+                }
+
+                @TestMetadata("hidden.kt")
+                public void testHidden() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/deprecated/deprecatedSinceKotlin/hidden.kt");
+                }
+
+                @TestMetadata("warning.kt")
+                public void testWarning() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/deprecated/deprecatedSinceKotlin/warning.kt");
+                }
+            }
         }
 
         @TestMetadata("compiler/testData/diagnostics/tests/duplicateJvmSignature")

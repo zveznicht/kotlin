@@ -73,7 +73,10 @@ open class FunctionCodegen(private val irFunction: IrFunction, private val class
         val visibility = AsmUtil.getVisibilityAccessFlag(irFunction.visibility) ?: error("Unmapped visibility ${irFunction.visibility}")
         val staticFlag = if (isStatic) Opcodes.ACC_STATIC else 0
         val varargFlag = if (irFunction.valueParameters.any { it.varargElementType != null }) Opcodes.ACC_VARARGS else 0
-        val deprecation = if (irFunction.hasAnnotation(FQ_NAMES.deprecated)) Opcodes.ACC_DEPRECATED else 0
+        val deprecation =
+            if (irFunction.hasAnnotation(FQ_NAMES.deprecated) || irFunction.hasAnnotation(FQ_NAMES.deprecatedSinceKotlin))
+                Opcodes.ACC_DEPRECATED
+            else 0
         val bridgeFlag = 0 //TODO
         val modalityFlag = when ((irFunction as? IrSimpleFunction)?.modality) {
             Modality.FINAL -> if (!classCodegen.irClass.isAnnotationClass) Opcodes.ACC_FINAL else Opcodes.ACC_ABSTRACT
