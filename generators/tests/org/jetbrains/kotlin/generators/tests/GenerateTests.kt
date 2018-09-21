@@ -40,7 +40,6 @@ import org.jetbrains.kotlin.findUsages.AbstractFindUsagesTest
 import org.jetbrains.kotlin.findUsages.AbstractKotlinFindUsagesWithLibraryTest
 import org.jetbrains.kotlin.formatter.AbstractFormatterTest
 import org.jetbrains.kotlin.formatter.AbstractTypingIndentationTestBase
-import org.jetbrains.kotlin.generators.tests.generator.TestGroup
 import org.jetbrains.kotlin.generators.tests.generator.testGroup
 import org.jetbrains.kotlin.generators.util.KT_OR_KTS
 import org.jetbrains.kotlin.generators.util.KT_OR_KTS_WITHOUT_DOTS_IN_NAME
@@ -145,11 +144,6 @@ import org.jetbrains.kotlin.incremental.*
 import org.jetbrains.kotlin.j2k.AbstractJavaToKotlinConverterForWebDemoTest
 import org.jetbrains.kotlin.j2k.AbstractJavaToKotlinConverterMultiFileTest
 import org.jetbrains.kotlin.j2k.AbstractJavaToKotlinConverterSingleFileTest
-import org.jetbrains.kotlin.jps.build.*
-import org.jetbrains.kotlin.jps.build.android.AbstractAndroidJpsTestCase
-import org.jetbrains.kotlin.jps.build.dependeciestxt.actualizeMppJpsIncTestCaseDirs
-import org.jetbrains.kotlin.jps.incremental.AbstractJsProtoComparisonTest
-import org.jetbrains.kotlin.jps.incremental.AbstractJvmProtoComparisonTest
 import org.jetbrains.kotlin.kapt3.test.AbstractClassFileToSourceStubConverterTest
 import org.jetbrains.kotlin.kapt3.test.AbstractKotlinKaptContextTest
 import org.jetbrains.kotlin.noarg.AbstractBlackBoxCodegenTestForNoArg
@@ -941,70 +935,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("jps-plugin/jps-tests/test", "jps-plugin/testData") {
-        testClass<AbstractIncrementalJpsTest> {
-            model("incremental/multiModule/common", extension = null, excludeParentDirs = true)
-            model("incremental/multiModule/jvm", extension = null, excludeParentDirs = true)
-            model("incremental/multiModule/multiplatform/custom", extension = null, excludeParentDirs = true)
-            model("incremental/pureKotlin", extension = null, recursive = false)
-            model("incremental/withJava", extension = null, excludeParentDirs = true)
-            model("incremental/inlineFunCallSite", extension = null, excludeParentDirs = true)
-            model("incremental/classHierarchyAffected", extension = null, excludeParentDirs = true)
-        }
-
-        actualizeMppJpsIncTestCaseDirs(testDataRoot, "incremental/multiModule/multiplatform/withGeneratedContent")
-
-        testClass<AbstractIncrementalJsJpsTest> {
-            model("incremental/multiModule/common", extension = null, excludeParentDirs = true)
-        }
-
-        testClass<AbstractMultiplatformJpsTestWithGeneratedContent> {
-            model(
-                "incremental/multiModule/multiplatform/withGeneratedContent", extension = null, excludeParentDirs = true,
-                testClassName = "MultiplatformMultiModule", recursive = true
-            )
-        }
-
-        testClass<AbstractJvmLookupTrackerTest> {
-            model("incremental/lookupTracker/jvm", extension = null, recursive = false)
-        }
-        testClass<AbstractJsLookupTrackerTest> {
-            model("incremental/lookupTracker/js", extension = null, recursive = false)
-        }
-
-        testClass<AbstractIncrementalLazyCachesTest> {
-            model("incremental/lazyKotlinCaches", extension = null, excludeParentDirs = true)
-            model("incremental/changeIncrementalOption", extension = null, excludeParentDirs = true)
-        }
-
-        testClass<AbstractIncrementalCacheVersionChangedTest> {
-            model("incremental/cacheVersionChanged", extension = null, excludeParentDirs = true)
-        }
-
-        testClass<AbstractDataContainerVersionChangedTest> {
-            model("incremental/cacheVersionChanged", extension = null, excludeParentDirs = true)
-        }
-    }
-
-    testGroup("jps-plugin/jps-tests/test", "jps-plugin/testData") {
-        fun TestGroup.TestClass.commonProtoComparisonTests() {
-            model("comparison/classSignatureChange", extension = null, excludeParentDirs = true)
-            model("comparison/classPrivateOnlyChange", extension = null, excludeParentDirs = true)
-            model("comparison/classMembersOnlyChanged", extension = null, excludeParentDirs = true)
-            model("comparison/packageMembers", extension = null, excludeParentDirs = true)
-            model("comparison/unchanged", extension = null, excludeParentDirs = true)
-        }
-
-        testClass<AbstractJvmProtoComparisonTest> {
-            commonProtoComparisonTests()
-            model("comparison/jvmOnly", extension = null, excludeParentDirs = true)
-        }
-
-        testClass<AbstractJsProtoComparisonTest> {
-            commonProtoComparisonTests()
-            model("comparison/jsOnly", extension = null, excludeParentDirs = true)
-        }
-    }
+    addJpsTestGroups()
 
     testGroup("compiler/incremental-compilation-impl/test", "jps-plugin/testData") {
         testClass<AbstractIncrementalJvmCompilerRunnerTest> {
@@ -1160,9 +1091,5 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("plugins/android-extensions/android-extensions-jps/test", "plugins/android-extensions/android-extensions-jps/testData") {
-        testClass<AbstractAndroidJpsTestCase> {
-            model("android", recursive = false, extension = null)
-        }
-    }
+    addAndroidExtensionsJpsTestGroups()
 }
