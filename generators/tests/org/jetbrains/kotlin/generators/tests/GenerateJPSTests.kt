@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.jps.incremental.AbstractJsProtoComparisonTest
 import org.jetbrains.kotlin.jps.incremental.AbstractJvmProtoComparisonTest
 
 fun addJpsTestGroups() {
-    testGroup("jps-plugin/jps-tests/test", "jps-plugin/testData") {
+/*    testGroup("jps-plugin/jps-tests/test", "jps-plugin/testData") {
         testClass<AbstractIncrementalJpsTest> {
             model("incremental/multiModule/common", extension = null, excludeParentDirs = true)
             model("incremental/multiModule/jvm", extension = null, excludeParentDirs = true)
@@ -77,7 +77,7 @@ fun addJpsTestGroups() {
             commonProtoComparisonTests()
             model("comparison/jsOnly", extension = null, excludeParentDirs = true)
         }
-    }
+    }*/
 }
 
 fun addAndroidExtensionsJpsTestGroups() {
