@@ -108,7 +108,7 @@ class GroovyBuildScriptManipulator(
         }
 
         scriptFile.getDependenciesBlock().apply {
-            addExpressionOrStatementInBlockIfNeeded(getGroovyDependencySnippet(stdlibArtifactName, !useNewSyntax), false, false)
+            addExpressionOrStatementInBlockIfNeeded(getGroovyDependencySnippet(stdlibArtifactName, !useNewSyntax, version), false, false)
         }
 
         if (jvmTarget != null) {
@@ -291,7 +291,8 @@ class GroovyBuildScriptManipulator(
 
     private fun getGroovyDependencySnippet(
         artifactName: String,
-        withVersion: Boolean
+        withVersion: Boolean,
+        gradleVersion: String
     ) = "implementation \"org.jetbrains.kotlin:$artifactName${if (withVersion) ":\$kotlin_version" else ""}\""
 
     private fun getApplyPluginDirective(pluginName: String) = "apply plugin: '$pluginName'"
