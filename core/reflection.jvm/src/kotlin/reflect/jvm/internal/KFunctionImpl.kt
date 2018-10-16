@@ -132,17 +132,20 @@ internal class KFunctionImpl private constructor(
         }?.createInlineClassAwareCallerIfNeeded(descriptor, isDefault = true)
     }
 
+    private val coercedBoundReceiver
+        get() = boundReceiver.coerceToExpectedReceiverType(descriptor)
+
     private fun createStaticMethodCaller(member: Method) =
-        if (isBound) CallerImpl.Method.BoundStatic(member, boundReceiver) else CallerImpl.Method.Static(member)
+        if (isBound) CallerImpl.Method.BoundStatic(member, coercedBoundReceiver) else CallerImpl.Method.Static(member)
 
     private fun createJvmStaticInObjectCaller(member: Method) =
         if (isBound) CallerImpl.Method.BoundJvmStaticInObject(member) else CallerImpl.Method.JvmStaticInObject(member)
 
     private fun createInstanceMethodCaller(member: Method) =
-        if (isBound) CallerImpl.Method.BoundInstance(member, boundReceiver) else CallerImpl.Method.Instance(member)
+        if (isBound) CallerImpl.Method.BoundInstance(member, coercedBoundReceiver) else CallerImpl.Method.Instance(member)
 
     private fun createConstructorCaller(member: Constructor<*>) =
-        if (isBound) CallerImpl.BoundConstructor(member, boundReceiver) else CallerImpl.Constructor(member)
+        if (isBound) CallerImpl.BoundConstructor(member, coercedBoundReceiver) else CallerImpl.Constructor(member)
 
     override val arity: Int get() = caller.arity
 

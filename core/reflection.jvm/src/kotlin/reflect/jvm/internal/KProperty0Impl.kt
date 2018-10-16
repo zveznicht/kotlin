@@ -34,7 +34,7 @@ internal open class KProperty0Impl<out R> : KProperty0<R>, KPropertyImpl<R> {
 
     override fun get(): R = getter.call()
 
-    private val delegateFieldValue = lazy(PUBLICATION) { getDelegate(computeDelegateField(), boundReceiver) }
+    private val delegateFieldValue = lazy(PUBLICATION) { getDelegate(computeDelegateField(), coercedBoundReceiver) }
 
     override fun getDelegate(): Any? = delegateFieldValue.value
 
