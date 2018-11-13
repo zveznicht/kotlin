@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.backend.common.runOnFilePostfix
 import org.jetbrains.kotlin.backend.jvm.lower.*
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.util.PatchDeclarationParentsVisitor
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
@@ -52,8 +53,8 @@ class JvmLower(val context: JvmBackendContext) {
         LocalDeclarationsLowering(
             context,
             object : LocalNameProvider {
-                override fun localName(descriptor: DeclarationDescriptor): String =
-                    NameUtils.sanitizeAsJavaIdentifier(super.localName(descriptor))
+                override fun localName(declaration: IrDeclarationWithName): String =
+                    NameUtils.sanitizeAsJavaIdentifier(super.localName(declaration))
             },
             Visibilities.PUBLIC, //TODO properly figure out visibility
             true

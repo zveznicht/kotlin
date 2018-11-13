@@ -86,7 +86,7 @@ class SharedVariablesLowering(val context: BackendContext) : FunctionLoweringPas
         }
 
         private fun rewriteSharedVariables() {
-            val transformedDescriptors = HashMap<IrValueSymbol, IrVariableSymbol>()
+            val transformedSymbols = HashMap<IrValueSymbol, IrVariableSymbol>()
 
             irFunction.transformChildrenVoid(object : IrElementTransformerVoid() {
                 override fun visitVariable(declaration: IrVariable): IrStatement {
@@ -95,7 +95,7 @@ class SharedVariablesLowering(val context: BackendContext) : FunctionLoweringPas
                     if (declaration !in sharedVariables) return declaration
 
                     val newDeclaration = context.sharedVariablesManager.declareSharedVariable(declaration)
-                    transformedDescriptors[declaration.symbol] = newDeclaration.symbol
+                    transformedSymbols[declaration.symbol] = newDeclaration.symbol
 
                     return context.sharedVariablesManager.defineSharedValue(declaration, newDeclaration)
                 }
@@ -119,7 +119,7 @@ class SharedVariablesLowering(val context: BackendContext) : FunctionLoweringPas
                 }
 
                 private fun getTransformedSymbol(oldSymbol: IrValueSymbol): IrVariableSymbol? =
-                    transformedDescriptors.getOrElse(oldSymbol) {
+                    transformedSymbols.getOrElse(oldSymbol) {
                         assert(oldSymbol.owner !in sharedVariables) {
                             "Shared variable is not transformed: ${oldSymbol.owner.dump()}"
                         }

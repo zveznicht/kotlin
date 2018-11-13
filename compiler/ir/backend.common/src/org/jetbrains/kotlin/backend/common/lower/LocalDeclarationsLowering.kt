@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.transformDeclarationsFlat
-import org.jetbrains.kotlin.ir.util.transformFlat
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
@@ -39,8 +38,8 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.parents
 import java.util.*
 
 interface LocalNameProvider {
-    fun localName(descriptor: DeclarationDescriptor): String =
-        descriptor.name.asString()
+    fun localName(declaration: IrDeclarationWithName): String =
+        declaration.name.asString()
 
     companion object {
         val DEFAULT = object : LocalNameProvider {}
@@ -73,11 +72,12 @@ class LocalDeclarationsLowering(
         if (irDeclarationContainer is IrDeclaration) {
 
             // TODO: in case of `crossinline` lambda the @containingDeclaration and @parent points to completely different locations
-//            val parentsDecl = irDeclarationContainer.parents
-            val parentsDesc = irDeclarationContainer.descriptor.parents
+            // See test: corossinlineLocalDeclaration.kt
+            val parentsDecl = irDeclarationContainer.parents
+//            val parentsDesc = irDeclarationContainer.descriptor.parents
 
-            if (parentsDesc.any { it is CallableDescriptor }) {
-
+            if (parentsDecl.any { it is IrFunction }) {
+//            if (parentsDesc.any { it is CallableDescriptor }) {
                 // Lowering of non-local declarations handles all local declarations inside.
                 // This declaration is local and shouldn't be considered.
                 return
@@ -464,13 +464,13 @@ class LocalDeclarationsLowering(
             }
         }
 
-        private fun suggestLocalName(declaration: IrDeclaration): String {
+        private fun suggestLocalName(declaration: IrDeclarationWithName): String {
             localFunctions[declaration]?.let {
                 if (it.index >= 0)
                     return "lambda-${it.index}"
             }
 
-            return localNameProvider.localName(declaration.descriptor)
+            return localNameProvider.localName(declaration)
         }
 
         private fun generateNameForLiftedDeclaration(
@@ -480,7 +480,7 @@ class LocalDeclarationsLowering(
             Name.identifier(
                 declaration.parentsWithSelf
                     .takeWhile { it != newOwner }
-                    .toList().reversed().joinToString(separator = "$") { suggestLocalName(it as IrDeclaration) }
+                    .toList().reversed().joinToString(separator = "$") { suggestLocalName(it as IrDeclarationWithName) }
             )
 
         private fun createLiftedDeclaration(localFunctionContext: LocalFunctionContext) {
