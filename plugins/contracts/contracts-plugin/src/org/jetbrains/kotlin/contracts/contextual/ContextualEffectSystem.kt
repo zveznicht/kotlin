@@ -14,14 +14,25 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 
 object ContextualEffectSystem {
-    fun getFamilies(project: Project): Collection<ContextFamily> = SpecificContractExtension.getInstances(project).map { it.getFamily() }
+    private val cache = mutableMapOf<Project, Collection<SpecificContractExtension>>()
+    private fun getExtensionInstances(project: Project): Collection<SpecificContractExtension> {
+        val cachedInstances = cache[project]
+        if (cachedInstances != null) return cachedInstances
+
+        val instances = SpecificContractExtension.getInstances(project)
+        cache[project] = instances
+        return instances
+    }
+
+
+    fun getFamilies(project: Project): Collection<ContextFamily> = getExtensionInstances(project).map { it.getFamily() }
 
     fun getParsers(
         project: Project,
         bindingContext: BindingContext,
         dispatcher: PsiContractVariableParserDispatcher
     ): Collection<PsiEffectDeclarationExtractor> =
-        SpecificContractExtension.getInstances(project).map { it.getParser(bindingContext, dispatcher) }
+        getExtensionInstances(project).map { it.getParser(bindingContext, dispatcher) }
 }
 
 fun KtExpression.declaredFactsInfo(bindingContext: BindingContext): FactsBindingInfo =
