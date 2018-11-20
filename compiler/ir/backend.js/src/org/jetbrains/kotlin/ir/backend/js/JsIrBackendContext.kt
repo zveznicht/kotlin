@@ -45,7 +45,7 @@ import org.jetbrains.kotlin.types.createDynamicType
 class JsIrBackendContext(
     val module: ModuleDescriptor,
     override val irBuiltIns: IrBuiltIns,
-    val symbolTable: SymbolTable,
+    override val symbolTable: SymbolTable,
     irModuleFragment: IrModuleFragment,
     val configuration: CompilerConfiguration
 ) : CommonBackendContext {
