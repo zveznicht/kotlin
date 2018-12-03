@@ -11,9 +11,6 @@ import org.jetbrains.kotlin.backend.common.deepCopyWithWrappedDescriptors
 import org.jetbrains.kotlin.backend.common.descriptors.*
 import org.jetbrains.kotlin.backend.common.ir.SetDeclarationsParentVisitor
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.descriptors.annotations.Annotations
-import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
-import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
@@ -23,14 +20,9 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrBlockBodyImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrSetFieldImpl
-import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
-import org.jetbrains.kotlin.ir.util.DescriptorsRemapper
-import org.jetbrains.kotlin.ir.util.SymbolRenamer
-import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
-import org.jetbrains.kotlin.ir.util.parentAsClass
+import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.visitors.*
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 
 object SYNTHESIZED_INIT_BLOCK: IrStatementOriginImpl("SYNTHESIZED_INIT_BLOCK")
 
@@ -114,27 +106,29 @@ class InitializersLowering(
     }
 
     fun createStaticInitializationMethod(irClass: IrClass, staticInitializerStatements: List<IrStatement>) {
-        val staticInitializerDescriptor = SimpleFunctionDescriptorImpl.create(
-            irClass.descriptor, Annotations.EMPTY, clinitName,
-            CallableMemberDescriptor.Kind.SYNTHESIZED,
-            SourceElement.NO_SOURCE
-        )
-        staticInitializerDescriptor.initialize(
-            null, null, emptyList(), emptyList(),
-            irClass.descriptor.builtIns.unitType,
-            Modality.FINAL, Visibilities.PUBLIC
-        )
-        irClass.declarations.add(
-            IrFunctionImpl(
-                irClass.startOffset, irClass.endOffset, declarationOrigin,
-                staticInitializerDescriptor,
-                IrBlockBodyImpl(irClass.startOffset, irClass.endOffset,
-                                staticInitializerStatements.map { it.copy(irClass) })
-            ).apply {
-                returnType = context.irBuiltIns.unitType
-                accept(SetDeclarationsParentVisitor, this)
-            }
-        )
+        // TODO: mark as synthesized
+        val staticInitializerDescriptor = WrappedSimpleFunctionDescriptor()
+        val staticInitializer = IrFunctionImpl(
+            irClass.startOffset, irClass.endOffset,
+            declarationOrigin,
+            IrSimpleFunctionSymbolImpl(staticInitializerDescriptor),
+            clinitName,
+            Visibilities.PUBLIC,
+            Modality.FINAL,
+            isInline = false,
+            isExternal = false,
+            isTailrec = false,
+            isSuspend = false
+        ).apply {
+            staticInitializerDescriptor.bind(this)
+            returnType = context.irBuiltIns.unitType
+            body = IrBlockBodyImpl(irClass.startOffset, irClass.endOffset,
+                                   staticInitializerStatements.map { it.copy(irClass) })
+            accept(SetDeclarationsParentVisitor, this)
+            // Should come after SetDeclarationParentVisitor, because it sets staticInitializer's own parent to itself.
+            parent = irClass
+        }
+        irClass.declarations.add(staticInitializer)
     }
 
     companion object {
