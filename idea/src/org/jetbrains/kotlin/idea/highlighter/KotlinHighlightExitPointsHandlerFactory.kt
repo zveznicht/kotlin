@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.parents
+import org.jetbrains.kotlin.resolve.bindingContextUtil.isUsedAsResultOfLambda
 import org.jetbrains.kotlin.resolve.inline.InlineUtil
 
 class KotlinHighlightExitPointsHandlerFactory : HighlightUsagesHandlerFactoryBase() {
@@ -45,13 +46,26 @@ class KotlinHighlightExitPointsHandlerFactory : HighlightUsagesHandlerFactoryBas
                 KtThrowExpression::class.java
             ) ?: return null
 
-            return MyHandler(editor, file, returnOrThrow)
+            return OnExitUsagesHandler(editor, file, returnOrThrow)
         }
+
+        if (target is LeafPsiElement && target.elementType == KtTokens.IDENTIFIER) {
+            val refExpr = target.parent as? KtNameReferenceExpression ?: return null
+            val call = refExpr.parent as? KtCallExpression ?: return null
+            if (call.calleeExpression != refExpr) return null
+
+            val lambda = call.lambdaArguments.singleOrNull()?: return null
+            val literal = lambda.getLambdaExpression()?.functionLiteral ?: return null
+
+            return OnExitUsagesHandler(editor, file, literal)
+        }
+
         return null
     }
 
-    private class MyHandler(editor: Editor, file: PsiFile, val target: KtExpression) :
+    private class OnExitUsagesHandler(editor: Editor, file: PsiFile, val target: KtExpression) :
         HighlightUsagesHandlerBase<PsiElement>(editor, file) {
+
         override fun getTargets() = listOf(target)
 
         override fun selectTargets(targets: MutableList<PsiElement>, selectionConsumer: Consumer<MutableList<PsiElement>>) {
@@ -59,11 +73,34 @@ class KotlinHighlightExitPointsHandlerFactory : HighlightUsagesHandlerFactoryBas
         }
 
         override fun computeUsages(targets: MutableList<PsiElement>?) {
-            val relevantFunction = target.getRelevantDeclaration()
+            val relevantFunction: KtDeclarationWithBody? =
+                when (target) {
+                    is KtFunctionLiteral -> target
+                    else -> target.getRelevantDeclaration()
+                }
+
             relevantFunction?.accept(object : KtVisitorVoid() {
                 override fun visitKtElement(element: KtElement) {
                     element.acceptChildren(this)
                 }
+
+                override fun visitExpression(expression: KtExpression) {
+                    if (relevantFunction is KtFunctionLiteral && KtPsiUtil.isStatement(expression)) {
+                        if (expression !is KtIfExpression && expression !is KtWhenExpression && expression !is KtBlockExpression) {
+                            val bindingContext = expression.analyze()
+                            if (expression !is KtBlockExpression && expression.isUsedAsResultOfLambda(bindingContext)) {
+                                if (expression.getRelevantDeclaration() == relevantFunction) {
+                                    addOccurrence(expression)
+                                }
+
+                                return
+                            }
+                        }
+                    }
+
+                    super.visitExpression(expression)
+                }
+
 
                 private fun visitReturnOrThrow(expression: KtExpression) {
                     if (expression.getRelevantDeclaration() == relevantFunction) {
