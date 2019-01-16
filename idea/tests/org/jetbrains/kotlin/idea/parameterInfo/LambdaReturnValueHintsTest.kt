@@ -5,38 +5,86 @@
 
 package org.jetbrains.kotlin.idea.parameterInfo
 
+import com.google.common.collect.Lists
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.LineExtensionInfo
+import com.intellij.openapi.editor.VisualPosition
 import com.intellij.openapi.editor.impl.EditorImpl
+import com.intellij.openapi.util.TextRange
+import com.intellij.rt.execution.junit.FileComparisonFailure
+import com.intellij.testFramework.VfsTestUtil
+import com.intellij.testFramework.utils.inlays.InlayHintsChecker
+import com.intellij.testFramework.utils.inlays.InlayInfo
+import junit.framework.ComparisonFailure
 import org.jetbrains.kotlin.idea.test.KotlinLightCodeInsightFixtureTestCase
 import org.jetbrains.kotlin.idea.test.KotlinLightProjectDescriptor
 import org.jetbrains.kotlin.idea.test.KotlinWithJdkAndRuntimeLightProjectDescriptor
+import org.jetbrains.kotlin.test.TagsTestDataUtil
 import org.junit.Assert
 
 class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
     override fun getProjectDescriptor(): KotlinLightProjectDescriptor = KotlinWithJdkAndRuntimeLightProjectDescriptor.INSTANCE
 
+    private class LineExtensionInfoTag(offset: Int, data: LineExtensionInfo) :
+        TagsTestDataUtil.TagInfo<LineExtensionInfo>(offset, data, true) {
+
+        override fun getName() = "hint"
+        override fun getAttributesString(): String = "text=\"${data.text}\""
+    }
+
+    private class CaretTag(editor: Editor) :
+        TagsTestDataUtil.TagInfo<Any>(
+            editor.caretModel.currentCaret.offset, "caret",
+            /*isStart = */true, /*isClosed = */false, /*isFixed = */true
+        )
+
+
+    private fun collectActualLineExtensionsTags(): List<LineExtensionInfoTag> {
+        val tags = ArrayList<LineExtensionInfoTag>()
+        val lineCount = myFixture.editor.document.lineCount
+        for (i in 0 until lineCount) {
+            val lineEndOffset = myFixture.editor.document.getLineEndOffset(i)
+
+            (myFixture.editor as EditorImpl).processLineExtensions(i) { lineExtensionInfo ->
+                tags.add(LineExtensionInfoTag(lineEndOffset, lineExtensionInfo))
+                true
+            }
+        }
+
+        return tags
+    }
+
     fun check(text: String) {
         myFixture.configureByText("A.kt", text.trimIndent())
 
-        if (myFixture.editor.caretModel.offset != 0) {
-            myFixture.checkHintType(HintType.LAMBDA_RETURN_EXPRESSION)
-        }
+        // Clean test file from the hints tags
+        InlayHintsChecker(myFixture).extractInlaysAndCaretInfo(editor.document)
 
-        myFixture.testInlays()
-        checkLineExtensions()
-    }
-
-    fun checkLineExtensions() {
         myFixture.doHighlighting()
 
-        val offset = myFixture.editor.caretModel.offset
-        Assert.assertTrue("Caret position is expected", offset > 0)
-
-        val caretLineNumber = myFixture.editor.document.getLineNumber(offset)
-
-        (myFixture.editor as EditorImpl).processLineExtensions(caretLineNumber) { lineExtensionInfo ->
-            Assert.assertEquals("bebebe", lineExtensionInfo.text)
-            true
+        val expectedText = run {
+            val tags = if (editor.caretModel.offset > 0) listOf(CaretTag(editor)) else emptyList()
+            TagsTestDataUtil.insertTagsInText(tags, editor.document.text)
         }
+
+        Assert.assertTrue(
+            "No other inlays should be present in the file",
+            editor.inlayModel.getInlineElementsInRange(0, editor.document.textLength).isEmpty()
+        )
+
+        val actualText = run {
+            val tags = ArrayList<TagsTestDataUtil.TagInfo<*>>()
+
+            tags.addAll(collectActualLineExtensionsTags())
+
+            if (editor.caretModel.offset > 0) {
+                tags.add(CaretTag(editor))
+            }
+
+            TagsTestDataUtil.insertTagsInText(tags, editor.document.text)
+        }
+
+        Assert.assertEquals(expectedText, actualText)
     }
 
     fun testSimple() {
@@ -44,18 +92,7 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
             """
             val x = run {
                 println("foo")
-                <caret><hint text="^run" />1
-            }
-            """
-        )
-    }
-
-    fun testTypeAtStatementEnd() {
-        check(
-            """
-            val x = run {
-                println("foo")
-                false<caret>
+                1<caret><hint text=" ^run"/>
             }
             """
         )
@@ -66,7 +103,7 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
             """
             val x = run {
                 var s = "abc"
-                s.length<caret><line text="^run" />
+                s.length<caret><hint text=" ^run"/>
             }
             """
         )
@@ -77,9 +114,9 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
             """
             val x = run {
                 if (true) {
-                    <hint text="^run" />1
+                    1<hint text=" ^run"/>
                 } else {
-                    <hint text="^run" />0
+                    0<hint text=" ^run"/>
                 }
             }
             """
@@ -91,7 +128,7 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
             """
             val x = run {
                 println(1)
-                <caret><hint text="^run"/>if (true) 1 else { 0 }
+                if (true) 1 else { 0 }<caret><hint text=" ^run"/>
             }
             """
         )
@@ -102,8 +139,8 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
             """
             val x = run {
                 when (true) {
-                    true -> <hint text="^run" />1
-                    false -><hint text="^run" />0
+                    true -> 1<hint text=" ^run"/>
+                    false ->0<hint text=" ^run"/>
                 }
             }
             """
@@ -125,7 +162,7 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
             """
             val x = run foo@{
                 println("foo")
-                <hint text="^foo" />1
+                1<hint text=" ^foo"/>
             }
             """
         )
@@ -138,12 +175,12 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
                 if (true) {
                 }
 
-                <hint text="^hello" />run { // Two hints here
+                run { // Two hints here
                     when (true) {
-                        true -> <hint text="^run" />1
-                        false -> <hint text="^run" />0
+                        true -> 1<hint text=" ^run"/>
+                        false -> 0<hint text=" ^run"/>
                     }
-                }
+                }<hint text=" ^hello"/>
             }
             """
         )
@@ -155,7 +192,7 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
             fun foo() {
                 run {
                     val length: Int? = null
-                    <hint text="^run" />length ?: 0
+                    length ?: 0<hint text=" ^run"/>
                 }
             }
             """
@@ -169,12 +206,12 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
                 var test = 0
                 run {
                     test
-                    <hint text="^run"/>test++
+                    test++<hint text=" ^run"/>
                 }
 
                 run {
                     test
-                    <hint text="^run"/>++test
+                    ++test<hint text=" ^run"/>
                 }
             }
             """
@@ -191,12 +228,12 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
                 run {
                     val files: Any? = null
                     @Some
-                    <hint text="^run"/>12
+                    12<hint text=" ^run"/>
                 }
 
                 run {
                     val files: Any? = null
-                    <hint text="^run"/>@Some 12
+                    @Some 12<hint text=" ^run"/>
                 }
             }
             """
@@ -210,12 +247,12 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
                 run {
                     val files: Any? = null
                     run@
-                    <hint text="^run"/>12
+                    12<hint text=" ^run"/>
                 }
 
                 run {
                     val files: Any? = null
-                    <hint text="^run"/>run@12
+                    run@12<hint text=" ^run"/>
                 }
             }
             """
@@ -227,7 +264,7 @@ class LambdaReturnValueHintsTest : KotlinLightCodeInsightFixtureTestCase() {
             """
             fun test() = run {
                 val a = 1
-                <hint text="^run"/>{ a }
+                { a }<hint text=" ^run"/>
             }
             """
         )
