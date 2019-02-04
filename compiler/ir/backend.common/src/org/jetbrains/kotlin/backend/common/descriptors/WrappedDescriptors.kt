@@ -454,7 +454,15 @@ open class WrappedClassDescriptor(
 
     override fun getMemberScope(typeSubstitution: TypeSubstitution) = MemberScope.Empty
 
+    override fun getMemberScope(
+        typeArguments: MutableList<out TypeProjection>,
+        moduleDescriptor: ModuleDescriptor
+    ): MemberScope = MemberScope.Empty
+
+    override fun getMemberScope(typeSubstitution: TypeSubstitution, moduleDescriptor: ModuleDescriptor): MemberScope = MemberScope.Empty
+
     override fun getUnsubstitutedMemberScope() = MemberScope.Empty
+    override fun getUnsubstitutedMemberScope(moduleDescriptor: ModuleDescriptor) = MemberScope.Empty
 
     override fun getUnsubstitutedInnerClassesScope() = MemberScope.Empty
 
@@ -536,7 +544,15 @@ open class WrappedEnumEntryDescriptor(
 
     override fun getMemberScope(typeSubstitution: TypeSubstitution) = MemberScope.Empty
 
+    override fun getMemberScope(
+        typeArguments: MutableList<out TypeProjection>,
+        moduleDescriptor: ModuleDescriptor
+    ): MemberScope = MemberScope.Empty
+
+    override fun getMemberScope(typeSubstitution: TypeSubstitution, moduleDescriptor: ModuleDescriptor): MemberScope = MemberScope.Empty
+
     override fun getUnsubstitutedMemberScope() = MemberScope.Empty
+    override fun getUnsubstitutedMemberScope(moduleDescriptor: ModuleDescriptor) = MemberScope.Empty
 
     override fun getUnsubstitutedInnerClassesScope() = MemberScope.Empty
 
