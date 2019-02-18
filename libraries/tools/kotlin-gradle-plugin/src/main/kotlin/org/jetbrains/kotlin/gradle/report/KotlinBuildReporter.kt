@@ -154,13 +154,27 @@ internal class KotlinBuildReporter(
 
         sb.appendln("Total time for Kotlin tasks: ${formatTime(kotlinTotalTimeNs)} ($ktTaskPercent % of all tasks time)")
 
+        // 1 ms
+        val taskTimeThresholdNs = 1_000_000L
+        var otherTaskCount = 0
+        var otherTaskTimeNs = 0L
+
         val table = TextTable("Time", "% of Kotlin time", "Task")
         kotlinTaskTimeNs.entries
             .sortedByDescending { (_, timeNs) -> timeNs }
             .forEach { (task, timeNs) ->
-                val percent = (timeNs.toDouble() / kotlinTotalTimeNs * 100).asString(1)
-                table.addRow(formatTime(timeNs), "$percent %", task.path)
+                if (timeNs >= taskTimeThresholdNs) {
+                    val percent = (timeNs.toDouble() / kotlinTotalTimeNs * 100).asString(1)
+                    table.addRow(formatTime(timeNs), "$percent %", task.path)
+                } else {
+                    otherTaskCount++
+                    otherTaskTimeNs += timeNs
+                }
             }
+        if (otherTaskCount > 0) {
+            val percent = (otherTaskTimeNs.toDouble() / kotlinTotalTimeNs * 100).asString(1)
+            table.addRow(formatTime(otherTaskTimeNs), "$percent %", "other tasks (< ${formatTime(taskTimeThresholdNs)})")
+        }
         table.printTo(sb)
         sb.appendln()
         return sb.toString()
