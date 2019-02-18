@@ -167,6 +167,7 @@ internal class KotlinBuildReporter(
     }
 
     private fun printTimings(): String = buildString {
+        appendln()
         appendln("Timings by activity type:")
         for ((desc, timings) in TaskTimings.allTimings()) {
             val totalTime = timings.sumByLong { it.nanoTime }
