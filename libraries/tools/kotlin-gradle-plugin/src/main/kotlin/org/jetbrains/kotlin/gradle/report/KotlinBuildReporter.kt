@@ -68,6 +68,7 @@ internal class KotlinBuildReporter(
 
     private val taskStartNs = HashMap<Task, Long>()
     private val kotlinTaskTimeNs = HashMap<Task, Long>()
+    private val nonKotlinTaskTimeNs = HashMap<Task, Long>()
     private val tasksSb = StringBuilder()
 
     @Volatile
@@ -87,6 +88,7 @@ internal class KotlinBuildReporter(
         allTasksTimeNs += timeNs
 
         if (!task.javaClass.name.startsWith("org.jetbrains.kotlin")) {
+            nonKotlinTaskTimeNs[task] = timeNs
             return
         }
 
@@ -116,7 +118,7 @@ internal class KotlinBuildReporter(
     override fun buildFinished(result: BuildResult) {
         val logger = result.gradle?.rootProject?.logger
         try {
-            perfReportFile.writeText(buildInfo(result) + taskOverview() + tasksSb.toString() + printTimings())
+            perfReportFile.writeText(buildInfo(result) + taskOverview(kotlinTaskTimeNs, "Kotlin") + tasksSb.toString() + taskOverview(nonKotlinTaskTimeNs, "non-Kotlin") + printTimings())
             logger?.lifecycle("Kotlin build report is written to ${perfReportFile.canonicalPath}")
         } catch (e: Throwable) {
             logger?.error("Could not write Kotlin build report to ${perfReportFile.canonicalPath}", e)
@@ -145,26 +147,26 @@ internal class KotlinBuildReporter(
         }
     }
 
-    private fun taskOverview(): String {
-        if (kotlinTaskTimeNs.isEmpty()) return buildString { appendln("No Kotlin task was run") }
+    private fun taskOverview(taskTime: Map<Task, Long>, tasksType: String): String {
+        if (taskTime.isEmpty()) return buildString { appendln("No $tasksType task was run") }
+
+        val tasksTimeSumNs = taskTime.values.sum()
+        val tasksPercent = (tasksTimeSumNs.toDouble() / allTasksTimeNs * 100).asString(1)
 
         val sb = StringBuilder()
-        val kotlinTotalTimeNs = kotlinTaskTimeNs.values.sum()
-        val ktTaskPercent = (kotlinTotalTimeNs.toDouble() / allTasksTimeNs * 100).asString(1)
-
-        sb.appendln("Total time for Kotlin tasks: ${formatTime(kotlinTotalTimeNs)} ($ktTaskPercent % of all tasks time)")
+        sb.appendln("Total time for $tasksType tasks: ${formatTime(tasksTimeSumNs)} ($tasksPercent % of all tasks time)")
 
         // 1 ms
         val taskTimeThresholdNs = 1_000_000L
         var otherTaskCount = 0
         var otherTaskTimeNs = 0L
 
-        val table = TextTable("Time", "% of Kotlin time", "Task")
+        val table = TextTable("Time", "% of $tasksType time", "Task")
         kotlinTaskTimeNs.entries
             .sortedByDescending { (_, timeNs) -> timeNs }
             .forEach { (task, timeNs) ->
                 if (timeNs >= taskTimeThresholdNs) {
-                    val percent = (timeNs.toDouble() / kotlinTotalTimeNs * 100).asString(1)
+                    val percent = (timeNs.toDouble() / tasksTimeSumNs * 100).asString(1)
                     table.addRow(formatTime(timeNs), "$percent %", task.path)
                 } else {
                     otherTaskCount++
@@ -172,7 +174,7 @@ internal class KotlinBuildReporter(
                 }
             }
         if (otherTaskCount > 0) {
-            val percent = (otherTaskTimeNs.toDouble() / kotlinTotalTimeNs * 100).asString(1)
+            val percent = (otherTaskTimeNs.toDouble() / tasksTimeSumNs * 100).asString(1)
             table.addRow(formatTime(otherTaskTimeNs), "$percent %", "other tasks (< ${formatTime(taskTimeThresholdNs)})")
         }
         table.printTo(sb)
