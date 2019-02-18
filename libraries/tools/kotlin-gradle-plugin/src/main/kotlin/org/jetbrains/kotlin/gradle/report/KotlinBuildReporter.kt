@@ -15,7 +15,9 @@ import org.gradle.api.tasks.TaskState
 import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskExecutionResults
+import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskTimings
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
+import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.io.File
 import java.lang.StringBuilder
 import java.text.SimpleDateFormat
@@ -114,7 +116,7 @@ internal class KotlinBuildReporter(
     override fun buildFinished(result: BuildResult) {
         val logger = result.gradle?.rootProject?.logger
         try {
-            perfReportFile.writeText(buildInfo(result) + taskOverview() + tasksSb.toString())
+            perfReportFile.writeText(buildInfo(result) + taskOverview() + tasksSb.toString() + printTimings())
             logger?.lifecycle("Kotlin build report is written to ${perfReportFile.canonicalPath}")
         } catch (e: Throwable) {
             logger?.error("Could not write Kotlin build report to ${perfReportFile.canonicalPath}", e)
@@ -162,6 +164,19 @@ internal class KotlinBuildReporter(
         table.printTo(sb)
         sb.appendln()
         return sb.toString()
+    }
+
+    private fun printTimings(): String = buildString {
+        appendln("Timings by activity type:")
+        for ((desc, timings) in TaskTimings.allTimings()) {
+            val totalTime = timings.sumByLong { it.nanoTime }
+            appendln("  $desc ${formatTime(totalTime)}")
+
+            for (timing in timings.sortedByDescending { it.nanoTime }) {
+                appendln("    ${timing.task} ${formatTime(timing.nanoTime)}")
+            }
+        }
+        appendln()
     }
 
     private fun formatTime(ns: Long): String {

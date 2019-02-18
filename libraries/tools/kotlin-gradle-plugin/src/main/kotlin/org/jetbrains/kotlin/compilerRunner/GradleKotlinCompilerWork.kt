@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.daemon.common.*
 import org.jetbrains.kotlin.gradle.logging.*
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskExecutionResults
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskLoggers
+import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskTimings
 import org.jetbrains.kotlin.gradle.report.BuildReportMode
 import org.jetbrains.kotlin.gradle.report.TaskExecutionResult
 import org.jetbrains.kotlin.gradle.tasks.throwGradleExceptionIfError
@@ -162,14 +163,16 @@ internal class GradleKotlinCompilerWork @Inject constructor(
 
         val connection =
             try {
-                GradleCompilerRunner.getDaemonConnectionImpl(
-                    clientIsAliveFlagFile,
-                    sessionFlagFile,
-                    compilerFullClasspath,
-                    daemonMessageCollector,
-                    isDebugEnabled = isDebugEnabled,
-                    enableAssertions = enableAssertions
-                )
+                TaskTimings.measureTime(taskPath, "getting daemon connection") {
+                    GradleCompilerRunner.getDaemonConnectionImpl(
+                        clientIsAliveFlagFile,
+                        sessionFlagFile,
+                        compilerFullClasspath,
+                        daemonMessageCollector,
+                        isDebugEnabled = isDebugEnabled,
+                        enableAssertions = enableAssertions
+                    )
+                }
             } catch (e: Throwable) {
                 log.error("Caught an exception trying to connect to Kotlin Daemon:")
                 log.error(e.stackTraceAsString())
@@ -210,7 +213,9 @@ internal class GradleKotlinCompilerWork @Inject constructor(
         // often source of the NoSuchObjectException and UnmarshalException, probably caused by the failed/crashed/exited daemon
         // TODO: implement a proper logic to avoid remote calls in such cases
         try {
-            daemon.clearJarCache()
+            TaskTimings.measureTime(taskPath, "clearing jar cache") {
+                daemon.clearJarCache()
+            }
         } catch (e: RemoteException) {
             log.warn("Unable to clear jar cache after compilation, maybe daemon is already down: $e")
         }

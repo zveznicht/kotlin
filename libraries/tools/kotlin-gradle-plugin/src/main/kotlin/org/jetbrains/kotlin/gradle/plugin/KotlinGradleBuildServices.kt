@@ -25,7 +25,9 @@ import org.jetbrains.kotlin.compilerRunner.DELETED_SESSION_FILE_PREFIX
 import org.jetbrains.kotlin.compilerRunner.GradleCompilerRunner
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskLoggers
 import org.jetbrains.kotlin.gradle.logging.kotlinDebug
+import org.jetbrains.kotlin.gradle.plugin.internal.state.BuildState
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskExecutionResults
+import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskTimings
 import org.jetbrains.kotlin.gradle.report.KotlinBuildReporter
 import org.jetbrains.kotlin.gradle.report.configureBuildReporter
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
@@ -60,6 +62,8 @@ internal class KotlinGradleBuildServices private constructor(
                 return instance!!
             }
 
+            configureBuildReporter(gradle, log)
+
             val services = KotlinGradleBuildServices(gradle)
             gradle.addBuildListener(services)
             instance = services
@@ -79,15 +83,11 @@ internal class KotlinGradleBuildServices private constructor(
     fun buildStarted() {
         startMemory = getUsedMemoryKb()
 
-        TaskLoggers.clear()
-        TaskExecutionResults.clear()
-
-        configureBuildReporter(gradle, log)
+        BuildState.clear()
     }
 
     override fun buildFinished(result: BuildResult) {
-        TaskLoggers.clear()
-        TaskExecutionResults.clear()
+        BuildState.clear()
 
         val gradle = result.gradle!!
         GradleCompilerRunner.clearBuildModulesInfo()

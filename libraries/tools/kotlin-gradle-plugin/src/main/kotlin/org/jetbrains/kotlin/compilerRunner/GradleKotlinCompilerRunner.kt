@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.daemon.client.CompileServiceSession
 import org.jetbrains.kotlin.daemon.common.*
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskLoggers
 import org.jetbrains.kotlin.gradle.logging.kotlinDebug
+import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskTimings
 import org.jetbrains.kotlin.gradle.tasks.*
 import org.jetbrains.kotlin.gradle.utils.newTmpFile
 import org.jetbrains.kotlin.gradle.utils.relativeToRoot
@@ -68,16 +69,19 @@ internal open class GradleCompilerRunner(protected val task: Task) {
         args: K2JVMCompilerArguments,
         environment: GradleCompilerEnvironment
     ) {
-        val buildFile = makeModuleFile(
-            args.moduleName!!,
-            isTest = false,
-            outputDir = args.destinationAsFile,
-            sourcesToCompile = sourcesToCompile,
-            commonSources = commonSources,
-            javaSourceRoots = javaSourceRoots.map { JvmSourceRoot(it, javaPackagePrefix) },
-            classpath = args.classpathAsList,
-            friendDirs = args.friendPaths?.map(::File).orEmpty()
-        )
+
+        val buildFile = TaskTimings.measureTime(task.path, "generating build file") {
+            makeModuleFile(
+                args.moduleName!!,
+                isTest = false,
+                outputDir = args.destinationAsFile,
+                sourcesToCompile = sourcesToCompile,
+                commonSources = commonSources,
+                javaSourceRoots = javaSourceRoots.map { JvmSourceRoot(it, javaPackagePrefix) },
+                classpath = args.classpathAsList,
+                friendDirs = args.friendPaths?.map(::File).orEmpty()
+            )
+        }
         args.buildFile = buildFile.absolutePath
 
         if (environment.incrementalCompilationEnvironment == null || kotlinCompilerExecutionStrategy() != DAEMON_EXECUTION_STRATEGY) {

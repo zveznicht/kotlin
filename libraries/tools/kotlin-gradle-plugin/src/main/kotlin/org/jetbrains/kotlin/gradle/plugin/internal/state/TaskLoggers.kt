@@ -10,7 +10,7 @@ import java.lang.ref.WeakReference
 import java.util.HashMap
 
 // todo: remove when https://github.com/gradle/gradle/issues/2678 is resolved
-internal object TaskLoggers {
+internal object TaskLoggers : BuildState() {
     private val taskLoggers = HashMap<String, WeakReference<Logger>>()
 
     @Synchronized
@@ -23,7 +23,7 @@ internal object TaskLoggers {
         taskLoggers[path]?.get()
 
     @Synchronized
-    fun clear() {
+    override fun clear() {
         taskLoggers.clear()
     }
 }
