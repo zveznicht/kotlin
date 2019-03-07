@@ -80,7 +80,7 @@ open class IrIntrinsicFunction(
                 argument != null ->
                     genArg(argument, codegen, i + offset, data)
                 descriptor.isVararg -> {
-                    val parameterType = codegen.typeMapper.mapType(descriptor.type)
+                    val parameterType = codegen.typeMapper.kotlinTypeMapper.mapType(descriptor.type)
                     StackValue.operation(parameterType) {
                         it.aconst(0)
                         it.newarray(AsmUtil.correctElementType(parameterType))
