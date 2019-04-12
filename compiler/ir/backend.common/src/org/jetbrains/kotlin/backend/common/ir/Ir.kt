@@ -188,8 +188,6 @@ abstract class Symbols<out T : CommonBackendContext>(val context: T, private val
     val intAnd = getBinaryOperator(OperatorNameConventions.AND, builtIns.intType, builtIns.intType)
     val intPlusInt = getBinaryOperator(OperatorNameConventions.PLUS, builtIns.intType, builtIns.intType)
 
-    val cloneable = getClass(Name.identifier("Cloneable"))
-
     val extensionToString = getSimpleFunction(Name.identifier("toString")) {
         it.dispatchReceiverParameter == null && it.extensionReceiverParameter != null &&
                 KotlinBuiltIns.isNullableAny(it.extensionReceiverParameter!!.type) && it.valueParameters.size == 0

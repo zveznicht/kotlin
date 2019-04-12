@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.backend.jvm
 
 import org.jetbrains.kotlin.backend.common.ir.Symbols
+import org.jetbrains.kotlin.backend.common.ir.addChild
 import org.jetbrains.kotlin.backend.common.ir.createImplicitParameterDeclarationWithWrappedDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
@@ -51,6 +52,7 @@ class JvmSymbols(
     private fun createPackage(fqName: FqName): IrPackageFragment =
         IrExternalPackageFragmentImpl(IrExternalPackageFragmentSymbolImpl(EmptyPackageFragmentDescriptor(context.state.module, fqName)))
 
+    private val kotlinPackage: IrPackageFragment = createPackage(FqName("kotlin"))
     private val kotlinJvmPackage: IrPackageFragment = createPackage(FqName("kotlin.jvm"))
     private val kotlinJvmInternalPackage: IrPackageFragment = createPackage(FqName("kotlin.jvm.internal"))
     private val kotlinJvmInternalUnsafePackage: IrPackageFragment = createPackage(FqName("kotlin.jvm.internal.unsafe"))
@@ -291,5 +293,13 @@ class JvmSymbols(
     val isArrayOf = kotlinJvmPackage.addFunction("isArrayOf", irBuiltIns.booleanType, isStatic = true).apply {
         addExtensionReceiver(irBuiltIns.arrayClass.owner.defaultType)
         addTypeParameter("T", irBuiltIns.anyNType)
+    }.symbol
+
+    val cloneable = buildClass {
+        name = Name.identifier("Cloneable")
+        kind = ClassKind.INTERFACE
+    }.apply {
+        parent = kotlinPackage
+        kotlinPackage.addChild(this)
     }.symbol
 }
