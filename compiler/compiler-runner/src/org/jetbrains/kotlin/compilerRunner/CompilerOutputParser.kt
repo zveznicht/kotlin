@@ -16,13 +16,10 @@
 
 package org.jetbrains.kotlin.compilerRunner
 
-import com.intellij.openapi.util.io.FileUtil
-import com.intellij.util.containers.Stack
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.*
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.common.messages.MessageCollectorUtil.reportException
 import org.jetbrains.kotlin.cli.common.messages.OutputMessageUtil
 import org.xml.sax.Attributes
 import org.xml.sax.InputSource
@@ -30,6 +27,7 @@ import org.xml.sax.SAXException
 import org.xml.sax.helpers.DefaultHandler
 import java.io.IOException
 import java.io.Reader
+import java.util.*
 import javax.xml.parsers.SAXParserFactory
 
 object CompilerOutputParser {
@@ -60,35 +58,36 @@ object CompilerOutputParser {
             val factory = SAXParserFactory.newInstance()
             val parser = factory.newSAXParser()
             parser.parse(InputSource(wrappingReader), CompilerOutputSAXHandler(messageCollector, collector))
-        }
-        catch (e: Throwable) {
+        } catch (e: Throwable) {
             // Load all the text into the stringBuilder
             try {
                 // This will not close the reader (see the wrapper above)
-                FileUtil.loadTextAndClose(wrappingReader)
-            }
-            catch (ioException: IOException) {
-                reportException(messageCollector, ioException)
+                wrappingReader.readText()
+            } catch (ioException: IOException) {
+                messageCollector.reportException(ioException)
             }
 
             val message = stringBuilder.toString()
-            reportException(messageCollector, IllegalStateException(message, e))
+            messageCollector.reportException(IllegalStateException(message, e))
             messageCollector.report(ERROR, message)
-        }
-        finally {
+        } finally {
             try {
                 reader.close()
-            }
-            catch (e: IOException) {
-                reportException(messageCollector, e)
+            } catch (e: IOException) {
+                messageCollector.reportException(e)
             }
         }
     }
 
-    private class CompilerOutputSAXHandler(private val messageCollector: MessageCollector, private val collector: OutputItemsCollector) : DefaultHandler() {
+    private fun MessageCollector.reportException(exception: Throwable) {
+        report(CompilerMessageSeverity.EXCEPTION, OutputMessageUtil.renderException(exception), null)
+    }
+
+    private class CompilerOutputSAXHandler(private val messageCollector: MessageCollector, private val collector: OutputItemsCollector) :
+        DefaultHandler() {
 
         private val message = StringBuilder()
-        private val tags = Stack<String>()
+        private val tags = ArrayDeque<String>()
         private var path: String? = null
         private var line: Int = 0
         private var column: Int = 0
@@ -112,8 +111,7 @@ object CompilerOutputParser {
                 if (!message.trim { it <= ' ' }.isEmpty()) {
                     messageCollector.report(ERROR, "Unhandled compiler output: $message")
                 }
-            }
-            else {
+            } else {
                 message.append(ch, start, length)
             }
         }
@@ -134,8 +132,7 @@ object CompilerOutputParser {
 
             if (category == OUTPUT) {
                 reportToCollector(text)
-            }
-            else {
+            } else {
                 messageCollector.report(category, text, CompilerMessageLocation.create(path, line, column, null))
             }
             tags.pop()
@@ -150,13 +147,14 @@ object CompilerOutputParser {
 
         companion object {
             private val CATEGORIES = mapOf(
-                    "error" to ERROR,
-                    "warning" to WARNING,
-                    "logging" to LOGGING,
-                    "output" to OUTPUT,
-                    "exception" to EXCEPTION,
-                    "info" to INFO,
-                    "messages" to INFO)
+                "error" to ERROR,
+                "warning" to WARNING,
+                "logging" to LOGGING,
+                "output" to OUTPUT,
+                "exception" to EXCEPTION,
+                "info" to INFO,
+                "messages" to INFO
+            )
 
             private fun safeParseInt(value: String?, defaultValue: Int): Int {
                 if (value == null) {
@@ -164,8 +162,7 @@ object CompilerOutputParser {
                 }
                 try {
                     return Integer.parseInt(value.trim { it <= ' ' })
-                }
-                catch (e: NumberFormatException) {
+                } catch (e: NumberFormatException) {
                     return defaultValue
                 }
 

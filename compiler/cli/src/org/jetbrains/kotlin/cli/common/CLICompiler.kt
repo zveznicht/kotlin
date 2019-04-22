@@ -47,7 +47,7 @@ abstract class CLICompiler<A : CommonCompilerArguments> : CLITool<A>() {
 
     // Used in CompilerRunnerUtil#invokeExecMethod, in Eclipse plugin (KotlinCLICompiler) and in kotlin-gradle-plugin (GradleCompilerRunner)
     fun execAndOutputXml(errStream: PrintStream, services: Services, vararg args: String): ExitCode {
-        return exec(errStream, services, MessageRenderer.XML, args)
+        return exec(errStream, services, XmlMessageRenderer(), args)
     }
 
     // Used via reflection in KotlinCompilerBaseTask

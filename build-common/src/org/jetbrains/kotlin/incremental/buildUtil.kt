@@ -18,84 +18,15 @@ package org.jetbrains.kotlin.incremental
 
 import org.jetbrains.kotlin.build.GeneratedFile
 import org.jetbrains.kotlin.build.GeneratedJvmClass
-import org.jetbrains.kotlin.build.JvmSourceRoot
 import org.jetbrains.kotlin.build.isModuleMappingFile
-import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.incremental.components.LookupTracker
-import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCache
-import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompilationComponents
-import org.jetbrains.kotlin.modules.KotlinModuleXmlBuilder
-import org.jetbrains.kotlin.modules.TargetId
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.progress.CompilationCanceledStatus
 import org.jetbrains.kotlin.synthetic.SAM_LOOKUP_NAME
 import org.jetbrains.kotlin.utils.addToStdlib.flattenTo
 import org.jetbrains.kotlin.utils.keysToMap
 import java.io.File
 import java.util.*
 import kotlin.collections.HashSet
-
-const val DELETE_MODULE_FILE_PROPERTY = "kotlin.delete.module.file.after.build"
-
-fun makeModuleFile(
-        name: String,
-        isTest: Boolean,
-        outputDir: File,
-        sourcesToCompile: Iterable<File>,
-        commonSources: Iterable<File>,
-        javaSourceRoots: Iterable<JvmSourceRoot>,
-        classpath: Iterable<File>,
-        friendDirs: Iterable<File>
-): File {
-    val builder = KotlinModuleXmlBuilder()
-    builder.addModule(
-            name,
-            outputDir.absolutePath,
-            // important to transform file to absolute paths,
-            // otherwise compiler will use module file's parent as base path (a temporary file; see below)
-            // (see org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.getAbsolutePaths)
-            sourcesToCompile.map { it.absoluteFile },
-            javaSourceRoots,
-            classpath,
-            commonSources.map { it.absoluteFile },
-            null,
-            "java-production",
-            isTest,
-            // this excludes the output directories from the class path, to be removed for true incremental compilation
-            setOf(outputDir),
-            friendDirs
-    )
-
-    val scriptFile = File.createTempFile("kjps", sanitizeJavaIdentifier(name) + ".script.xml")
-    scriptFile.writeText(builder.asText().toString())
-    return scriptFile
-}
-
-private fun sanitizeJavaIdentifier(string: String) =
-    buildString {
-        for (char in string) {
-            if (char.isJavaIdentifierPart()) {
-                if (length == 0 && !char.isJavaIdentifierStart()) {
-                    append('_')
-                }
-                append(char)
-            }
-        }
-    }
-
-fun makeCompileServices(
-        incrementalCaches: Map<TargetId, IncrementalCache>,
-        lookupTracker: LookupTracker,
-        compilationCanceledStatus: CompilationCanceledStatus?
-): Services =
-    with(Services.Builder()) {
-        register(LookupTracker::class.java, lookupTracker)
-        register(IncrementalCompilationComponents::class.java, IncrementalCompilationComponentsImpl(incrementalCaches))
-        compilationCanceledStatus?.let {
-            register(CompilationCanceledStatus::class.java, it)
-        }
-        build()
-    }
 
 fun updateIncrementalCache(
     generatedFiles: Iterable<GeneratedFile>,

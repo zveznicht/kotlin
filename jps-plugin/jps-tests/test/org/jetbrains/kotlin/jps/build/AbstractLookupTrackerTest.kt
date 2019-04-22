@@ -21,6 +21,7 @@ import com.intellij.util.containers.StringInterner
 import org.jetbrains.kotlin.TestWithWorkingDir
 import org.jetbrains.kotlin.build.JvmSourceRoot
 import org.jetbrains.kotlin.cli.common.ExitCode
+import org.jetbrains.kotlin.cli.common.arguments.ArgumentSerializationUtil
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
@@ -33,7 +34,6 @@ import org.jetbrains.kotlin.incremental.components.Position
 import org.jetbrains.kotlin.incremental.components.ScopeKind
 import org.jetbrains.kotlin.incremental.isKotlinFile
 import org.jetbrains.kotlin.incremental.js.*
-import org.jetbrains.kotlin.incremental.makeModuleFile
 import org.jetbrains.kotlin.incremental.testingUtils.TouchPolicy
 import org.jetbrains.kotlin.incremental.testingUtils.copyTestSources
 import org.jetbrains.kotlin.incremental.testingUtils.getModificationsToPerform
@@ -41,6 +41,7 @@ import org.jetbrains.kotlin.incremental.utils.TestMessageCollector
 import org.jetbrains.kotlin.jps.build.fixtures.EnableICFixture
 import org.jetbrains.kotlin.jps.incremental.createTestingCompilerEnvironment
 import org.jetbrains.kotlin.jps.incremental.runJSCompiler
+import org.jetbrains.kotlin.modules.makeModuleFile
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.utils.JsMetadataVersion
 import java.io.*
@@ -92,7 +93,7 @@ abstract class AbstractJvmLookupTrackerTest : AbstractLookupTrackerTest() {
             buildFile = moduleFile.canonicalPath
             reportOutputFiles = true
         }
-        val argsArray = ArgumentUtils.convertArgumentsToStringList(args).toTypedArray()
+        val argsArray = ArgumentSerializationUtil.convertArgumentsToStringList(args).toTypedArray()
 
         try {
             val stream = ByteArrayOutputStream()

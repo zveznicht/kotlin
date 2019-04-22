@@ -27,19 +27,33 @@ pill {
     variant = PillExtension.Variant.FULL
 }
 
+val modulesToInclude =
+    listOf(
+        ":core:util.runtime",
+        ":compiler:cli-messages",
+        ":compiler:cli-args-base",
+        ":compiler:cli-args-jvm",
+        ":compiler:cli-args-js",
+        ":compiler:cli-args-metadata",
+        ":compiler:cli-config-base",
+        ":compiler:cli-config-jvm",
+        ":kotlin-compiler-runner"
+    )
+
 dependencies {
     compile(project(":kotlin-gradle-plugin-api"))
     compile(project(":kotlin-gradle-plugin-model"))
-    compileOnly(project(":compiler"))
-    compileOnly(project(":compiler:incremental-compilation-impl"))
+    compile(project(":kotlin-daemon-client"))
     compileOnly(project(":daemon-common"))
+    compile(project(":kotlin-build-base"))
 
     compile(kotlinStdlib())
     compile(project(":native:kotlin-native-utils"))
+
+    //TODO should deleted
     compile(project(":kotlin-util-klib"))
     compileOnly(project(":kotlin-reflect-api"))
     compileOnly(project(":kotlin-android-extensions"))
-    compileOnly(project(":kotlin-build-common"))
     compileOnly(project(":kotlin-compiler-runner"))
     compileOnly(project(":kotlin-annotation-processing"))
     compileOnly(project(":kotlin-annotation-processing-gradle"))
@@ -47,24 +61,15 @@ dependencies {
     compileOnly(project(":kotlin-gradle-statistics"))
     embedded(project(":kotlin-gradle-statistics"))
 
+
     compile("com.google.code.gson:gson:${rootProject.extra["versions.jar.gson"]}")
     compile("de.undercouch:gradle-download-task:4.0.2")
-    
-    compileOnly("com.android.tools.build:gradle:2.0.0")
-    compileOnly("com.android.tools.build:gradle-core:2.0.0")
-    compileOnly("com.android.tools.build:builder:2.0.0")
-    compileOnly("com.android.tools.build:builder-model:2.0.0")
-    compileOnly("org.codehaus.groovy:groovy-all:2.4.12")
+
+    modulesToInclude.forEach {
+        jarContents(compileOnly(project(it)) { isTransitive = false })
+    }
+
     compileOnly(gradleApi())
-
-    compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
-
-    runtime(projectRuntimeJar(":kotlin-compiler-embeddable"))
-    runtime(projectRuntimeJar(":kotlin-annotation-processing-gradle"))
-    runtime(projectRuntimeJar(":kotlin-android-extensions"))
-    runtime(projectRuntimeJar(":kotlin-compiler-runner"))
-    runtime(projectRuntimeJar(":kotlin-scripting-compiler-embeddable"))
-    runtime(projectRuntimeJar(":kotlin-scripting-compiler-impl-embeddable"))
     runtime(project(":kotlin-reflect"))
 
     jarContents(compileOnly(intellijDep()) {
@@ -75,6 +80,7 @@ dependencies {
     compileOnly("com.android.tools.build:gradle:3.0.0") { isTransitive = false }
     compileOnly("com.android.tools.build:gradle-core:3.0.0") { isTransitive = false }
     compileOnly("com.android.tools.build:builder-model:3.0.0") { isTransitive = false }
+    compileOnly("com.android.tools.build:builder:3.0.0") { isTransitive = false }
 
     testCompile(intellijDep()) { includeJars( "junit", "serviceMessages", rootProject = rootProject) }
 

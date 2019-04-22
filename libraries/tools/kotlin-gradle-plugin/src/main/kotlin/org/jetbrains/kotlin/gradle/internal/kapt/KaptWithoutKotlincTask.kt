@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.gradle.plugin.CompositeSubpluginOption
 import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.SubpluginOption
 import org.jetbrains.kotlin.gradle.tasks.CompilerPluginOptions
+import org.jetbrains.kotlin.gradle.plugin.internal.state.KGPContext
 import org.jetbrains.kotlin.gradle.tasks.findKotlinStdlibClasspath
 import org.jetbrains.kotlin.gradle.tasks.findToolsJar
 import org.jetbrains.kotlin.gradle.utils.getValue
@@ -71,7 +72,10 @@ open class KaptWithoutKotlincTask @Inject constructor(private val workerExecutor
 
         val compileClasspath = classpath.files.toMutableList()
         if (project.plugins.none { it is KotlinAndroidPluginWrapper }) {
-            compileClasspath.addAll(0, PathUtil.getJdkClassesRootsFromCurrentJre())
+            val classesFromJre = KGPContext.instance.jdkClassesRoots
+            if (classesFromJre.isNotEmpty()) {
+                compileClasspath.addAll(0, classesFromJre)
+            }
         }
 
         val kaptFlagsForWorker = mutableSetOf<String>().apply {

@@ -232,6 +232,16 @@ extra["compilerModules"] = arrayOf(
     ":compiler:light-classes",
     ":compiler:cli",
     ":compiler:cli-js",
+    ":compiler:cli-config-base",
+    ":compiler:cli-config-jvm",
+    ":compiler:cli-messages",
+    ":compiler:cli-args-base",
+    ":compiler:cli-args-jvm",
+    ":compiler:cli-args-js",
+    ":compiler:cli-args-metadata",
+    ":kotlin-build-base",
+    ":kotlin-build-common",
+    ":compiler:ic:ic-js-base",
     ":compiler:incremental-compilation-impl",
     ":js:js.ast",
     ":js:js.serializer",
@@ -241,7 +251,6 @@ extra["compilerModules"] = arrayOf(
     ":js:js.dce",
     ":native:frontend.native",
     ":compiler",
-    ":kotlin-build-common",
     ":core:metadata",
     ":core:metadata.jvm",
     ":core:descriptors",
@@ -429,7 +438,7 @@ allprojects {
 
         // Aggregate task for build related checks
         tasks.register("checkBuild")
-        
+
         apply(from = "$rootDir/gradle/cacheRedirector.gradle.kts")
     }
 }
