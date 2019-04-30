@@ -37,12 +37,13 @@ import org.jetbrains.kotlin.analyzer.ResolverForProject.Companion.resolverForSpe
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
 import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.config.isTypeRefinementEnabled
 import org.jetbrains.kotlin.context.GlobalContext
 import org.jetbrains.kotlin.context.GlobalContextImpl
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.idea.caches.project.*
 import org.jetbrains.kotlin.idea.caches.project.IdeaModuleInfo
-import org.jetbrains.kotlin.idea.caches.resolve.util.contextWithNewLockAndCompositeExceptionTracker
+import org.jetbrains.kotlin.idea.caches.resolve.util.contextWithCompositeExceptionTracker
 import org.jetbrains.kotlin.idea.compiler.IDELanguageSettingsProvider
 import org.jetbrains.kotlin.idea.core.script.ScriptDependenciesModificationTracker
 import org.jetbrains.kotlin.idea.core.script.dependencies.ScriptAdditionalIdeaDependenciesProvider
@@ -51,10 +52,10 @@ import org.jetbrains.kotlin.idea.project.outOfBlockModificationCount
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.util.ProjectRootsUtil
 import org.jetbrains.kotlin.platform.DefaultIdeTargetPlatformKindProvider
+import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.contains
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.resolve.diagnostics.KotlinSuppressCache
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
@@ -69,7 +70,8 @@ data class PlatformAnalysisSettings(
     val platform: TargetPlatform, val sdk: Sdk?,
     val isAdditionalBuiltInFeaturesSupported: Boolean,
     // Effectively unused as a property. Needed only to distinguish different modes when being put in a map
-    val isReleaseCoroutines: Boolean
+    val isReleaseCoroutines: Boolean,
+    val isTypeRefinementEnabled: Boolean
 )
 
 class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
@@ -101,7 +103,8 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
             DefaultIdeTargetPlatformKindProvider.defaultPlatform // TODO: Js scripts?
         val settings = PlatformAnalysisSettings(
             platform, sdk, true,
-            LanguageFeature.ReleaseCoroutines.defaultState == LanguageFeature.State.ENABLED
+            LanguageFeature.ReleaseCoroutines.defaultState == LanguageFeature.State.ENABLED,
+            false // TODO: replace with correct value
         )
 
         val dependenciesForScriptDependencies = listOf(
@@ -119,7 +122,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
                 getOrBuildGlobalFacade(settings).facadeForSdk
             }
 
-        val globalContext = globalFacade.globalContext.contextWithNewLockAndCompositeExceptionTracker("facadeForScriptDependencies")
+        val globalContext = globalFacade.globalContext.contextWithCompositeExceptionTracker(settings, "facadeForScriptDependencies")
         return ProjectResolutionFacade(
             "facadeForScriptDependencies",
             resolverForScriptDependenciesName,
@@ -149,7 +152,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
             reuseDataFrom = null
         )
 
-        private val librariesContext = sdkContext.contextWithNewLockAndCompositeExceptionTracker(resolverForLibrariesName)
+        private val librariesContext = sdkContext.contextWithCompositeExceptionTracker(settings, resolverForLibrariesName)
         val facadeForLibraries = ProjectResolutionFacade(
             "facadeForLibraries", "$resolverForLibrariesName for platform ${settings.sdk}",
             project, librariesContext, settings,
@@ -162,7 +165,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
             )
         )
 
-        private val modulesContext = librariesContext.contextWithNewLockAndCompositeExceptionTracker(resolverForModulesName)
+        private val modulesContext = librariesContext.contextWithCompositeExceptionTracker(settings, resolverForModulesName)
         val facadeForModules = ProjectResolutionFacade(
             "facadeForModules", "$resolverForModulesName for platform ${settings.platform}",
             project, modulesContext, settings,
@@ -179,7 +182,8 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
     private fun IdeaModuleInfo.platformSettings(targetPlatform: TargetPlatform) = PlatformAnalysisSettings(
         targetPlatform, sdk,
         supportsAdditionalBuiltInsMembers(),
-        isReleaseCoroutines()
+        isReleaseCoroutines(),
+        isTypeRefinementEnabled()
     )
 
     private fun IdeaModuleInfo.supportsAdditionalBuiltInsMembers(): Boolean {
@@ -192,6 +196,12 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
         return IDELanguageSettingsProvider
             .getLanguageVersionSettings(this, project)
             .supportsFeature(LanguageFeature.ReleaseCoroutines)
+    }
+
+    private fun IdeaModuleInfo.isTypeRefinementEnabled(): Boolean {
+        return IDELanguageSettingsProvider
+            .getLanguageVersionSettings(this, project)
+            .isTypeRefinementEnabled
     }
 
     private fun globalFacade(settings: PlatformAnalysisSettings) =
@@ -259,7 +269,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
             specialModuleInfo is ModuleSourceInfo -> {
                 val dependentModules = specialModuleInfo.getDependentModules()
                 val modulesFacade = globalFacade(settings)
-                val globalContext = modulesFacade.globalContext.contextWithNewLockAndCompositeExceptionTracker("facadeForSpecialModuleInfo (ModuleSourceInfo)")
+                val globalContext = modulesFacade.globalContext.contextWithCompositeExceptionTracker(settings, "facadeForSpecialModuleInfo (ModuleSourceInfo)")
                 makeProjectResolutionFacade(
                     "facadeForSpecialModuleInfo (ModuleSourceInfo)",
                     globalContext,
@@ -272,7 +282,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
                 val facadeForScriptDependencies = createFacadeForScriptDependencies(
                     ScriptDependenciesInfo.ForFile(project, specialModuleInfo.scriptFile, specialModuleInfo.scriptDefinition)
                 )
-                val globalContext = facadeForScriptDependencies.globalContext.contextWithNewLockAndCompositeExceptionTracker("facadeForSpecialModuleInfo (ScriptModuleInfo)")
+                val globalContext = facadeForScriptDependencies.globalContext.contextWithCompositeExceptionTracker(settings, "facadeForSpecialModuleInfo (ScriptModuleInfo)")
                 makeProjectResolutionFacade(
                     "facadeForSpecialModuleInfo (ScriptModuleInfo)",
                     globalContext,
@@ -283,7 +293,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
             }
             specialModuleInfo is ScriptDependenciesInfo -> facadeForScriptDependenciesForProject
             specialModuleInfo is ScriptDependenciesSourceInfo -> {
-                val globalContext = facadeForScriptDependenciesForProject.globalContext.contextWithNewLockAndCompositeExceptionTracker("facadeForSpecialModuleInfo (ScriptDependenciesSourceInfo)")
+                val globalContext = facadeForScriptDependenciesForProject.globalContext.contextWithCompositeExceptionTracker(settings, "facadeForSpecialModuleInfo (ScriptDependenciesSourceInfo)")
                 makeProjectResolutionFacade(
                     "facadeForSpecialModuleInfo (ScriptDependenciesSourceInfo)",
                     globalContext,
@@ -296,8 +306,8 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
             specialModuleInfo is LibrarySourceInfo || specialModuleInfo === NotUnderContentRootModuleInfo -> {
                 val librariesFacade = librariesFacade(settings)
                 val debugName = "facadeForSpecialModuleInfo (LibrarySourceInfo or NotUnderContentRootModuleInfo)"
-                val globalContext = librariesFacade.globalContext.contextWithNewLockAndCompositeExceptionTracker(debugName)
-                
+                val globalContext = librariesFacade.globalContext.contextWithCompositeExceptionTracker(settings, debugName)
+
                 makeProjectResolutionFacade(
                     debugName,
                     globalContext,
