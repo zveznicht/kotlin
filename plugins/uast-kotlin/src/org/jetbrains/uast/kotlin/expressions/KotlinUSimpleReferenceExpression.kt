@@ -84,8 +84,6 @@ open class KotlinUSimpleReferenceExpression(
         visitor.afterVisitSimpleNameReferenceExpression(this)
     }
 
-    override val referenceNameElement: UElement? by lz { psi.getIdentifier()?.toUElement() }
-
     private fun visitAccessorCalls(visitor: UastVisitor) {
         // Visit Kotlin get-set synthetic Java property calls as function calls
         val bindingContext = psi.analyze()
@@ -102,15 +100,17 @@ open class KotlinUSimpleReferenceExpression(
                 null
             }
 
-            if (access.isRead) {
-                val getDescriptor = resultingDescriptor.getMethod
-                KotlinAccessorCallExpression(psi, this, resolvedCall, getDescriptor, null).accept(visitor)
-            }
+            if (resolvedCall != null) {
+                if (access.isRead) {
+                    val getDescriptor = resultingDescriptor.getMethod
+                    KotlinAccessorCallExpression(psi, this, resolvedCall, getDescriptor, null).accept(visitor)
+                }
 
-            if (access.isWrite && setterValue != null) {
-                val setDescriptor = resultingDescriptor.setMethod
-                if (setDescriptor != null) {
-                    KotlinAccessorCallExpression(psi, this, resolvedCall, setDescriptor, setterValue).accept(visitor)
+                if (access.isWrite && setterValue != null) {
+                    val setDescriptor = resultingDescriptor.setMethod
+                    if (setDescriptor != null) {
+                        KotlinAccessorCallExpression(psi, this, resolvedCall, setDescriptor, setterValue).accept(visitor)
+                    }
                 }
             }
         }

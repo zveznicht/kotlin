@@ -5,26 +5,14 @@
 
 package org.jetbrains.kotlin.idea.statistics
 
-import com.intellij.internal.statistic.service.fus.collectors.FUCounterUsageLogger
-import com.intellij.internal.statistic.eventLog.FeatureUsageData
-import org.jetbrains.kotlin.idea.KotlinPluginUtil
-
-
 open class KotlinFUSLogger {
-
     companion object {
-        private val context = FeatureUsageData().addData("plugin_version", KotlinPluginUtil.getPluginVersion())
-
         fun log(group: FUSEventGroups, event: String) {
-            FUCounterUsageLogger.getInstance().logEvent(group.GROUP_ID, event, context)
+            // Not whitelisted for 183
         }
 
         fun log(group: FUSEventGroups, event: String, eventData: Map<String, String>) {
-            val localContext = context.copy()
-            for (entry in eventData) {
-                localContext.addData(entry.key, entry.value)
-            }
-            FUCounterUsageLogger.getInstance().logEvent(group.GROUP_ID, event, localContext)
+            // Not whitelisted for 183
         }
     }
 }

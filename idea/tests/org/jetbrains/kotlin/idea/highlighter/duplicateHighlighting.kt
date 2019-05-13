@@ -5,11 +5,8 @@
 
 package org.jetbrains.kotlin.idea.highlighter
 
-import com.intellij.testFramework.ExpectedHighlightingData
-
 // Idea 191 has an additional check for duplicate highlighting
 // BUNCH: 183
 fun expectedDuplicatedHighlighting(runnable: Runnable) {
-    @Suppress("DEPRECATION")
-    ExpectedHighlightingData.expectedDuplicatedHighlighting(runnable)
+    runnable.run()
 }

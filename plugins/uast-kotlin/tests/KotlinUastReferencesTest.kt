@@ -9,7 +9,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.util.Disposer
-import com.intellij.patterns.uast.injectionHostUExpression
+import com.intellij.patterns.uast.literalExpression
 import com.intellij.psi.*
 import com.intellij.psi.impl.source.resolve.reference.PsiReferenceContributorEP
 import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry
@@ -37,7 +37,7 @@ class KotlinUastReferencesTest : KotlinLightCodeInsightFixtureTestCase() {
     fun `test original getter is visible when reference is under renaming`() {
 
         registerReferenceProviders(testRootDisposable) {
-            registerUastReferenceProvider(injectionHostUExpression(), uastInjectionHostReferenceProvider { _, psiLanguageInjectionHost ->
+            registerUastReferenceProvider(literalExpression(), uastLiteralReferenceProvider { _, psiLanguageInjectionHost ->
                 arrayOf(GetterReference("KotlinBean", psiLanguageInjectionHost))
             })
         }
