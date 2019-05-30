@@ -9,6 +9,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
+import com.intellij.openapi.util.SimpleModificationTracker
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.pom.PomManager
 import com.intellij.pom.PomModelAspect
@@ -16,11 +17,15 @@ import com.intellij.pom.event.PomModelEvent
 import com.intellij.pom.event.PomModelListener
 import com.intellij.pom.tree.TreeAspect
 import com.intellij.pom.tree.events.TreeChangeEvent
+import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
+import com.intellij.psi.PsiTreeChangeEvent
 import com.intellij.psi.impl.PsiManagerImpl
 import com.intellij.psi.impl.PsiModificationTrackerImpl
 import com.intellij.psi.impl.PsiTreeChangeEventImpl
+import com.intellij.psi.impl.PsiTreeChangeEventImpl.PsiEventType.CHILD_MOVED
+import com.intellij.psi.impl.PsiTreeChangeEventImpl.PsiEventType.PROPERTY_CHANGED
 import com.intellij.psi.impl.PsiTreeChangePreprocessor
 import com.intellij.psi.util.PsiModificationTracker
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -48,6 +53,14 @@ class KotlinCodeBlockModificationListener(
     // perModuleModCount map
     private var perModuleChangesHighWatermark: Long? = null
 
+    @Volatile
+    private var kotlinModificationTracker: Long = -1
+
+    @Volatile
+    private var hasOOCBChanges: Boolean = false
+
+    private val kotlinOOCBTracker = SimpleModificationTracker()
+
     fun getModificationCount(module: Module): Long {
         return perModuleModCount[module] ?: perModuleChangesHighWatermark ?: modificationTracker.outOfCodeBlockModificationCount
     }
@@ -58,7 +71,7 @@ class KotlinCodeBlockModificationListener(
         val model = PomManager.getModel(project)
         val messageBusConnection = project.messageBus.connect()
 
-//        (PsiManager.getInstance(project) as PsiManagerImpl).addTreeChangePreprocessor(this)
+        (PsiManager.getInstance(project) as PsiManagerImpl).addTreeChangePreprocessor(this)
 
         model.addModelListener(object : PomModelListener {
             override fun isAspectChangeInteresting(aspect: PomModelAspect): Boolean {
@@ -85,9 +98,10 @@ class KotlinCodeBlockModificationListener(
                     messageBusConnection.deliverImmediately()
 
                     if (ktFile.isPhysical && !isReplLine(ktFile.virtualFile)) {
+                        hasOOCBChanges = true
                         lastAffectedModule = ModuleUtil.findModuleForPsiElement(ktFile)
                         lastAffectedModuleModCount = modificationTracker.outOfCodeBlockModificationCount
-                        modificationTrackerImpl.incCounter()
+//                        modificationTrackerImpl.incCounter()
                     }
 
                     incOutOfBlockModificationCount(ktFile)
@@ -96,7 +110,19 @@ class KotlinCodeBlockModificationListener(
         })
 
         messageBusConnection.subscribe(PsiModificationTracker.TOPIC, PsiModificationTracker.Listener {
-            val kotlinTracker = modificationTrackerImpl.forLanguage(KotlinLanguage.INSTANCE)
+            @Suppress("UnstableApiUsage") val kotlinTrackerInternalCount =
+                modificationTrackerImpl.forLanguage(KotlinLanguage.INSTANCE).modificationCount
+            if (kotlinModificationTracker == kotlinTrackerInternalCount) {
+                // Some update that we are not sure is from Kotlin language
+                kotlinOOCBTracker.incModificationCount()
+            } else {
+                if (hasOOCBChanges) {
+                    kotlinOOCBTracker.incModificationCount()
+                }
+                hasOOCBChanges = false
+            }
+
+            kotlinModificationTracker = kotlinTrackerInternalCount
 
             val newModCount = modificationTracker.outOfCodeBlockModificationCount
             val affectedModule = lastAffectedModule
@@ -113,8 +139,21 @@ class KotlinCodeBlockModificationListener(
     }
 
     override fun treeChanged(event: PsiTreeChangeEventImpl) {
+        if (!PsiModificationTrackerImpl.canAffectPsi(event)) {
+            return
+        }
 
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        val code = event.code
+        val outOfCodeBlock = when (code) {
+            PROPERTY_CHANGED ->
+                event.propertyName === PsiTreeChangeEvent.PROP_UNLOADED_PSI || event.propertyName === PsiTreeChangeEvent.PROP_ROOTS
+            CHILD_MOVED -> event.oldParent is PsiDirectory || event.newParent is PsiDirectory
+            else -> event.parent is PsiDirectory
+        }
+
+        if (outOfCodeBlock) {
+            kotlinOOCBTracker.incModificationCount()
+        }
     }
 
     companion object {
