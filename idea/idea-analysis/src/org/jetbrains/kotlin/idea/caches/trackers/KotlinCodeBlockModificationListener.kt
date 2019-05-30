@@ -59,7 +59,11 @@ class KotlinCodeBlockModificationListener(
     @Volatile
     private var hasOOCBChanges: Boolean = false
 
-    private val kotlinOOCBTracker = SimpleModificationTracker()
+    internal val kotlinOOCBTracker = object : SimpleModificationTracker() {
+        override fun incModificationCount() {
+            super.incModificationCount()
+        }
+    }
 
     fun getModificationCount(module: Module): Long {
         return perModuleModCount[module] ?: perModuleChangesHighWatermark ?: modificationTracker.outOfCodeBlockModificationCount
@@ -124,7 +128,7 @@ class KotlinCodeBlockModificationListener(
 
             kotlinModificationTracker = kotlinTrackerInternalCount
 
-            val newModCount = modificationTracker.outOfCodeBlockModificationCount
+            val newModCount = kotlinOOCBTracker.modificationCount
             val affectedModule = lastAffectedModule
             if (affectedModule != null && newModCount == lastAffectedModuleModCount + 1) {
                 if (perModuleChangesHighWatermark == null) {
