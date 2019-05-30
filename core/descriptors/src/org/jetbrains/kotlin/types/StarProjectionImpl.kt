@@ -17,18 +17,12 @@
 package org.jetbrains.kotlin.types
 
 import org.jetbrains.kotlin.descriptors.ClassifierDescriptorWithTypeParameters
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
-import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 
-class StarProjectionImpl(
-    private val typeParameter: TypeParameterDescriptor,
-    private val moduleDescriptor: ModuleDescriptor
-) : TypeProjectionBase() {
-
-    constructor(typeParameter: TypeParameterDescriptor) : this(typeParameter, typeParameter.module)
-
+class StarProjectionImpl(private val typeParameter: TypeParameterDescriptor) : TypeProjectionBase() {
     override fun isStarProjection() = true
 
     override fun getProjectionKind() = Variance.OUT_VARIANCE
@@ -40,7 +34,18 @@ class StarProjectionImpl(
 
     override fun getType() = _type
 
-    override fun refine(moduleDescriptor: ModuleDescriptor) = StarProjectionImpl(typeParameter, moduleDescriptor)
+    @TypeRefinement
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeProjection =
+        refineIfNeeded(kotlinTypeRefiner)
+
+    override fun replaceType(newType: KotlinType): TypeProjection {
+        return TypeBasedStarProjectionImpl(newType)
+    }
+}
+
+@TypeRefinement
+private fun TypeProjectionBase.refineIfNeeded(kotlinTypeRefiner: KotlinTypeRefiner): TypeProjectionBase {
+    return TypeBasedStarProjectionImpl(kotlinTypeRefiner.refineType(type))
 }
 
 fun TypeParameterDescriptor.starProjectionType(): KotlinType {
@@ -66,5 +71,11 @@ class TypeBasedStarProjectionImpl(
 
     override fun getType() = _type
 
-    override fun refine(moduleDescriptor: ModuleDescriptor): TypeProjection = TypeBasedStarProjectionImpl(_type.refine(moduleDescriptor!!))
+    @TypeRefinement
+    override fun refine(kotlinTypeRefiner: KotlinTypeRefiner): TypeProjection =
+        TypeBasedStarProjectionImpl(kotlinTypeRefiner.refineType(_type))
+
+    override fun replaceType(newType: KotlinType): TypeProjection {
+        return TypeBasedStarProjectionImpl(newType)
+    }
 }
