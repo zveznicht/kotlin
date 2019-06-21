@@ -30,6 +30,7 @@ import java.text.DecimalFormat
 import kotlin.math.max
 import kotlin.reflect.KClass
 import kotlin.system.measureNanoTime
+import kotlin.test.assertEquals
 
 
 fun checkFirProvidersConsistency(firFiles: List<FirFile>) {
@@ -330,7 +331,8 @@ fun doFirResolveTestBench(
     transformers: List<FirTransformer<Nothing?>>,
     gc: Boolean = true,
     withProgress: Boolean = false,
-    silent: Boolean = true
+    silent: Boolean = true,
+    unresolvedTypesAllowed: Boolean = true
 ) {
 
     if (gc) {
@@ -339,7 +341,7 @@ fun doFirResolveTestBench(
 
     val bench = FirResolveBench(withProgress)
     bench.processFiles(firFiles, transformers)
-    if (!silent) bench.getTotalStatistics().report(System.out, "")
+    if (!silent) bench.getTotalStatistics().report(System.out, "", unresolvedTypesAllowed = unresolvedTypesAllowed)
     bench.throwFailure()
 }
 
@@ -380,7 +382,12 @@ fun FirResolveBench.TotalStatistics.reportErrors(stream: PrintStream) {
     }
 }
 
-fun FirResolveBench.TotalStatistics.report(stream: PrintStream, header: String) {
+fun FirResolveBench.TotalStatistics.report(
+    stream: PrintStream,
+    header: String,
+    errorTypeReports: Boolean = true,
+    unresolvedTypesAllowed: Boolean = true
+) {
     with(stream) {
         infix fun Int.percentOf(other: Int): String {
             return String.format("%.1f%%", this * 100.0 / other)
@@ -410,6 +417,10 @@ fun FirResolveBench.TotalStatistics.report(stream: PrintStream, header: String) 
                 separator()
                 printMeasureAsTable(totalMeasure, this@report, "Total time")
             }
+        }
+
+        if (!unresolvedTypesAllowed) {
+            assertEquals(0, unresolvedTypes)
         }
     }
 }
