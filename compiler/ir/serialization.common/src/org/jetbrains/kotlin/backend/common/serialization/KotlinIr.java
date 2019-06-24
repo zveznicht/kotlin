@@ -6728,33 +6728,15 @@ public final class KotlinIr {
 
     /**
      * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-     *
-     * <pre>
-     *required IrSymbolTable symbol_table = 3;
-     *required IrTypeTable type_table = 4;
-     *required StringTable string_table = 5;
-     * </pre>
      */
     java.util.List<org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile> 
         getFileList();
     /**
      * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-     *
-     * <pre>
-     *required IrSymbolTable symbol_table = 3;
-     *required IrTypeTable type_table = 4;
-     *required StringTable string_table = 5;
-     * </pre>
      */
     org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile getFile(int index);
     /**
      * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-     *
-     * <pre>
-     *required IrSymbolTable symbol_table = 3;
-     *required IrTypeTable type_table = 4;
-     *required StringTable string_table = 5;
-     * </pre>
      */
     int getFileCount();
   }
@@ -6885,24 +6867,12 @@ public final class KotlinIr {
     private java.util.List<org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile> file_;
     /**
      * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-     *
-     * <pre>
-     *required IrSymbolTable symbol_table = 3;
-     *required IrTypeTable type_table = 4;
-     *required StringTable string_table = 5;
-     * </pre>
      */
     public java.util.List<org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile> getFileList() {
       return file_;
     }
     /**
      * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-     *
-     * <pre>
-     *required IrSymbolTable symbol_table = 3;
-     *required IrTypeTable type_table = 4;
-     *required StringTable string_table = 5;
-     * </pre>
      */
     public java.util.List<? extends org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFileOrBuilder> 
         getFileOrBuilderList() {
@@ -6910,36 +6880,18 @@ public final class KotlinIr {
     }
     /**
      * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-     *
-     * <pre>
-     *required IrSymbolTable symbol_table = 3;
-     *required IrTypeTable type_table = 4;
-     *required StringTable string_table = 5;
-     * </pre>
      */
     public int getFileCount() {
       return file_.size();
     }
     /**
      * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-     *
-     * <pre>
-     *required IrSymbolTable symbol_table = 3;
-     *required IrTypeTable type_table = 4;
-     *required StringTable string_table = 5;
-     * </pre>
      */
     public org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile getFile(int index) {
       return file_.get(index);
     }
     /**
      * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-     *
-     * <pre>
-     *required IrSymbolTable symbol_table = 3;
-     *required IrTypeTable type_table = 4;
-     *required StringTable string_table = 5;
-     * </pre>
      */
     public org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFileOrBuilder getFileOrBuilder(
         int index) {
@@ -7262,48 +7214,24 @@ public final class KotlinIr {
 
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public java.util.List<org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile> getFileList() {
         return java.util.Collections.unmodifiableList(file_);
       }
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public int getFileCount() {
         return file_.size();
       }
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile getFile(int index) {
         return file_.get(index);
       }
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public Builder setFile(
           int index, org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile value) {
@@ -7317,12 +7245,6 @@ public final class KotlinIr {
       }
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public Builder setFile(
           int index, org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile.Builder builderForValue) {
@@ -7333,12 +7255,6 @@ public final class KotlinIr {
       }
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public Builder addFile(org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile value) {
         if (value == null) {
@@ -7351,12 +7267,6 @@ public final class KotlinIr {
       }
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public Builder addFile(
           int index, org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile value) {
@@ -7370,12 +7280,6 @@ public final class KotlinIr {
       }
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public Builder addFile(
           org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile.Builder builderForValue) {
@@ -7386,12 +7290,6 @@ public final class KotlinIr {
       }
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public Builder addFile(
           int index, org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile.Builder builderForValue) {
@@ -7402,12 +7300,6 @@ public final class KotlinIr {
       }
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public Builder addAllFile(
           java.lang.Iterable<? extends org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrFile> values) {
@@ -7419,12 +7311,6 @@ public final class KotlinIr {
       }
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public Builder clearFile() {
         file_ = java.util.Collections.emptyList();
@@ -7434,12 +7320,6 @@ public final class KotlinIr {
       }
       /**
        * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrFile file = 2;</code>
-       *
-       * <pre>
-       *required IrSymbolTable symbol_table = 3;
-       *required IrTypeTable type_table = 4;
-       *required StringTable string_table = 5;
-       * </pre>
        */
       public Builder removeFile(int index) {
         ensureFileIsMutable();
