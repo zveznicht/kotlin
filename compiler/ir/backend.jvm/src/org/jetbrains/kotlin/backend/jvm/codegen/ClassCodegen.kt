@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibility
-import org.jetbrains.kotlin.ir.backend.jvm.lower.serialization.ir.newJvmDescriptorUniqId
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.types.IrSimpleType
@@ -91,7 +90,7 @@ open class ClassCodegen protected constructor(
 
     private fun uniqIdProvider(descriptor: DeclarationDescriptor): Long? {
         val index = context.declarationTable.descriptorTable.get(descriptor)
-        return index?.let { newJvmDescriptorUniqId(it) }
+        return index
     }
 
     private val serializerExtension = JvmSerializerExtension(visitor.serializationBindings, state, ::uniqIdProvider)
@@ -160,8 +159,8 @@ open class ClassCodegen protected constructor(
 
                 writeKotlinMetadata(visitor, state, KotlinClassHeader.Kind.FILE_FACADE, 0) {
                     AsmUtil.writeAnnotationData(it, serializer, packageProto.build())
-                    assert(metadata.serializedIr != null)
-                    storeSerializedIr(it, metadata.serializedIr!!)
+                    val serializedIr = metadata.serializedIr ?: error("File facade should have serialized IR")
+                    storeSerializedIr(it, serializedIr)
                     // TODO: JvmPackageName
                 }
             }

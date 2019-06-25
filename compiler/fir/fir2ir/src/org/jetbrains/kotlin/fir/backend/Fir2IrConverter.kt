@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.fir.backend
 
-import org.jetbrains.kotlin.backend.common.EmptyLoggingContext
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirFile
@@ -44,15 +43,14 @@ object Fir2IrConverter {
         }
 
         val irModuleFragment = IrModuleFragmentImpl(moduleDescriptor, builtIns, irFiles)
-        generateUnboundSymbolsAsDependencies(irModuleFragment, symbolTable, builtIns, languageVersionSettings)
+        generateUnboundSymbolsAsDependencies(irModuleFragment, symbolTable, builtIns)
         return Fir2IrResult(irModuleFragment, symbolTable, sourceManager)
     }
 
     private fun generateUnboundSymbolsAsDependencies(
         irModule: IrModuleFragment,
         symbolTable: SymbolTable,
-        builtIns: IrBuiltIns,
-        languageVersionSettings: LanguageVersionSettings
+        builtIns: IrBuiltIns
     ) {
         ExternalDependenciesGenerator(irModule.descriptor, symbolTable, builtIns, deserializer = EmptyDeserializer).generateUnboundSymbolsAsDependencies()
     }

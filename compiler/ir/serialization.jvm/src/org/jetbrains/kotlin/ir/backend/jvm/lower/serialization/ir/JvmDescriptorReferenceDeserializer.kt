@@ -12,8 +12,6 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.name.FqName
 
-// Borrowed from JsDescriptorReferenceDeserializer.
-
 class JvmDescriptorReferenceDeserializer(currentModule: ModuleDescriptor, private val uniqIdAware: DescriptorUniqIdAware) :
     DescriptorReferenceDeserializer(
         currentModule,
