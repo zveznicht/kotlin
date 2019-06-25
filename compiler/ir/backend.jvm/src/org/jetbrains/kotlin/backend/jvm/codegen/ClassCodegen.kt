@@ -398,7 +398,9 @@ private fun IrClass.getSuperClassInfo(typeMapper: IrTypeMapper): IrSuperClassInf
 
 private fun storeSerializedIr(av: AnnotationVisitor, serializedIr: ByteArray) {
     val serializedIrParts = BitEncoding.encodeBytes(serializedIr)
-    serializedIrParts.forEachIndexed { i, part ->
-        av.visit(JvmAnnotationNames.METADATA_SERIALIZED_IR_FIELD_NAME_PREFIX + i.toString(), part)
+    val partsVisitor = av.visitArray(JvmAnnotationNames.METADATA_SERIALIZED_IR_FIELD_NAME)
+    for (part in serializedIrParts) {
+        partsVisitor.visit(null, part)
     }
+    partsVisitor.visitEnd()
 }
