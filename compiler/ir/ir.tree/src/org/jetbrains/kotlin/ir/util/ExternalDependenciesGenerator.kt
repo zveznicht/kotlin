@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import kotlin.math.min
 
 class ExternalDependenciesGenerator(
     moduleDescriptor: ModuleDescriptor,
@@ -39,7 +38,7 @@ class ExternalDependenciesGenerator(
         stubGenerator.unboundSymbolGeneration = true
 
         var unbound = symbolTable.allUnbound
-        while (!unbound.isEmpty()) {
+        while (unbound.isNotEmpty()) {
             for (symbol in unbound) {
                 deserializer.findDeserializedDeclaration(symbol, stubGenerator::generateStubBySymbol)
                 assert(symbol.isBound) { "$symbol unbound even after deserialization attempt" }
@@ -52,8 +51,10 @@ class ExternalDependenciesGenerator(
     }
 }
 
-private val SymbolTable.allUnbound get() =
-    unboundClasses + unboundConstructors + unboundEnumEntries + unboundFields + unboundSimpleFunctions + unboundProperties + unboundTypeParameters
+private val SymbolTable.allUnbound
+    get() =
+        unboundClasses + unboundConstructors + unboundEnumEntries + unboundFields +
+                unboundSimpleFunctions + unboundProperties + unboundTypeParameters
 
 object EmptyDeserializer : IrDeserializer {
     override fun findDeserializedDeclaration(symbol: IrSymbol, backoff: (IrSymbol) -> IrDeclaration): IrDeclaration? = backoff(symbol)

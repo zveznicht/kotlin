@@ -11,5 +11,5 @@ import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 
 class JvmDeclarationTable(builtIns: IrBuiltIns, descriptorTable: DescriptorTable) :
     DeclarationTable(builtIns, descriptorTable, JvmMangler) {
-    override var currentIndex = 0L
+    override var currentIndex = 0x1_0000_0000L
 }
