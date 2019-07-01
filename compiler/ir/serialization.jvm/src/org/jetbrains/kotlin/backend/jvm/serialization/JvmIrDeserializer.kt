@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
+import org.jetbrains.kotlin.load.java.JavaVisibilities
 import org.jetbrains.kotlin.load.kotlin.JvmPackagePartSource
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinarySourceElement
 import org.jetbrains.kotlin.name.FqName
@@ -228,6 +229,14 @@ class JvmIrDeserializer(
 
         override fun deserializeLoopHeader(loopIndex: Int, loopBuilder: () -> IrLoopBase) =
             moduleLoops.getOrPut(loopIndex, loopBuilder)
+
+        override fun deserializeVisibility(value: KotlinIr.Visibility): Visibility = when (deserializeString(value.name)) {
+            "package" -> JavaVisibilities.PACKAGE_VISIBILITY
+            "protected_static" -> JavaVisibilities.PROTECTED_STATIC_VISIBILITY
+            "protected_and_package" -> JavaVisibilities.PROTECTED_AND_PACKAGE
+            else -> super.deserializeVisibility(value)
+        }
+
     }
 
     // Fake overrides are not serialized and deserialized, so we need to patch them up

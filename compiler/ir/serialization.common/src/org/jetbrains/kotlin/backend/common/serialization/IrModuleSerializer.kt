@@ -1058,10 +1058,7 @@ open class IrModuleSerializer(
         val proto = KotlinIr.IrDeclarationContainer.newBuilder()
         declarations.forEach {
             //if (it is IrDeclarationWithVisibility && it.visibility == Visibilities.INVISIBLE_FAKE) return@forEach
-            if (externallyVisibleOnly &&
-                (it is IrDeclarationWithVisibility && isPrivate(it.visibility) ||
-                        it.origin == IrDeclarationOrigin.FAKE_OVERRIDE)
-            ) {
+            if (externallyVisibleOnly && it is IrDeclarationWithVisibility && isPrivate(it.visibility)) {
                 return@forEach
             }
             proto.addDeclaration(serializeDeclaration(it))
