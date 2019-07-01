@@ -88,13 +88,18 @@ abstract class AbstractBytecodeTextTest : CodegenTestCase() {
             return kotlinFiles > 1
         }
 
+        private val SERIALIZED_IR_FIELD_REGEX = Regex(""", si=\{".*?[^\\]"\}""")
+
         fun checkGeneratedTextAgainstExpectedOccurrences(text: String, expectedOccurrences: List<OccurrenceInfo>) {
             val expected = StringBuilder()
             val actual = StringBuilder()
 
+            /* Remove serialized IR metadata */
+            val sanitizedText = SERIALIZED_IR_FIELD_REGEX.replace(text, "")
+
             for (info in expectedOccurrences) {
                 expected.append(info).append("\n")
-                actual.append(info.getActualOccurrence(text)).append("\n")
+                actual.append(info.getActualOccurrence(sanitizedText)).append("\n")
             }
 
             try {
