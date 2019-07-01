@@ -15,5 +15,4 @@ fun bar() {
 // 0 Value\s\(\)
 // 0 IFNULL
 // 1 IFNONNULL
-// The [^\\u0002] part excludes mention of IF in the serialized IR
-// 1 [^\\u0002]IF
+// 1 IF
