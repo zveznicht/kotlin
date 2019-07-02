@@ -37,6 +37,9 @@ class ExternalDependenciesGenerator(
     fun generateUnboundSymbolsAsDependencies() {
         stubGenerator.unboundSymbolGeneration = true
 
+        /*
+            Deserializing a reference may lead to new unbound references, so we loop until none are left.
+         */
         var unbound = symbolTable.allUnbound
         while (unbound.isNotEmpty()) {
             for (symbol in unbound) {
