@@ -24,11 +24,9 @@ import org.jetbrains.kotlin.resolve.constants.IntegerLiteralTypeConstructor
 import org.jetbrains.kotlin.resolve.constants.IntegerValueTypeConstructor
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.AbstractNullabilityChecker.hasNotNullSupertype
-import org.jetbrains.kotlin.types.AbstractNullabilityChecker.hasPathByNotMarkedNullableNodes
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext.SupertypesPolicy
 import org.jetbrains.kotlin.types.model.CaptureStatus
 import org.jetbrains.kotlin.types.typeUtil.*
-import org.jetbrains.kotlin.utils.addToStdlib.cast
 
 object SimpleClassicTypeSystemContext : ClassicTypeSystemContext
 
@@ -51,13 +49,22 @@ object StrictEqualityTypeChecker {
 
 object ErrorTypesAreEqualToAnything : KotlinTypeChecker {
     override fun isSubtypeOf(subtype: KotlinType, supertype: KotlinType): Boolean =
-        NewKotlinTypeChecker.run { ClassicTypeCheckerContext(true).isSubtypeOf(subtype.unwrap(), supertype.unwrap()) }
+        NewKotlinTypeChecker.Default.run { ClassicTypeCheckerContext(true).isSubtypeOf(subtype.unwrap(), supertype.unwrap()) }
 
     override fun equalTypes(a: KotlinType, b: KotlinType): Boolean =
-        NewKotlinTypeChecker.run { ClassicTypeCheckerContext(true).equalTypes(a.unwrap(), b.unwrap()) }
+        NewKotlinTypeChecker.Default.run { ClassicTypeCheckerContext(true).equalTypes(a.unwrap(), b.unwrap()) }
 }
 
-object NewKotlinTypeChecker : KotlinTypeChecker {
+interface NewKotlinTypeChecker : KotlinTypeChecker {
+    fun transformToNewType(type: UnwrappedType): UnwrappedType
+
+    companion object {
+        val Default = NewKotlinTypeCheckerImpl()
+    }
+}
+
+
+class NewKotlinTypeCheckerImpl() : NewKotlinTypeChecker {
     override fun isSubtypeOf(subtype: KotlinType, supertype: KotlinType): Boolean =
         ClassicTypeCheckerContext(true).isSubtypeOf(subtype.unwrap(), supertype.unwrap()) // todo fix flag errorTypeEqualsToAnything
 
@@ -117,7 +124,7 @@ object NewKotlinTypeChecker : KotlinTypeChecker {
         return type
     }
 
-    fun transformToNewType(type: UnwrappedType): UnwrappedType =
+    override fun transformToNewType(type: UnwrappedType): UnwrappedType =
         when (type) {
             is SimpleType -> transformToNewType(type)
             is FlexibleType -> {
