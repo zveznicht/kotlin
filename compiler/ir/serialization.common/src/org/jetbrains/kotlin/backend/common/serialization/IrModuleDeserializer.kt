@@ -970,13 +970,6 @@ abstract class IrModuleDeserializer(
         logger.log { "### deserializing IrFunction ${proto.base.name}" }
         val symbol = deserializeIrSymbol(proto.symbol) as IrSimpleFunctionSymbol
 
-        /*
-           On JVM, certain functions are generated lazily when trying to deserialize their symbol.
-           (those that are eliminated during lowering).
-           Luckily, there's no useful information in their serialized versions either.
-         */
-        if (symbol.isBound) return symbol.owner
-
         val function = symbolTable.declareSimpleFunction(UNDEFINED_OFFSET, UNDEFINED_OFFSET, irrelevantOrigin,
                                                          symbol.descriptor
         ) {
