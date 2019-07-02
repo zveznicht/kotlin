@@ -67,7 +67,6 @@ class JvmIrDeserializer(
                 UNDEFINED_OFFSET, UNDEFINED_OFFSET,
                 IrDeclarationOrigin.IR_EXTERNAL_DECLARATION_STUB
             )
-            generateFakeOverrides(deserializedToplevel, backoff)
             deserializedToplevel.patchDeclarationParents(packageFragment) // TODO: toplevel's parent should be the module
             assert(symbol.isBound)
             return symbol.owner as IrDeclaration
@@ -85,7 +84,6 @@ class JvmIrDeserializer(
                 val member = moduleDeserializer.deserializeDeclaration(declaration, packageFragment)
                 packageFragment.declarations.add(member)
             }
-            generateFakeOverrides(packageFragment, backoff)
             packageFragment.patchDeclarationParents(packageFragment)
             assert(symbol.isBound)
             return symbol.owner as IrDeclaration
@@ -238,42 +236,4 @@ class JvmIrDeserializer(
         }
 
     }
-
-    // Fake overrides are not serialized and deserialized, so we need to patch them up
-    private fun generateFakeOverrides(declaration: IrElement, backoff: (IrSymbol) -> IrDeclaration) {
-        fun IrSimpleFunction.touchOverridden() {
-            overriddenSymbols.forEach { findDeserializedDeclaration(it, backoff) }
-        }
-
-        declaration.acceptVoid(object : IrElementVisitorVoid {
-            override fun visitElement(element: IrElement) {
-                element.acceptChildrenVoid(this)
-            }
-
-            override fun visitClass(declaration: IrClass) {
-                declaration.descriptor.unsubstitutedMemberScope.getContributedDescriptors(DescriptorKindFilter.CALLABLES).filter {
-                    it is CallableMemberDescriptor && it.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE
-                }.forEach {
-                    val symbol = when (it) {
-                        is SimpleFunctionDescriptor -> symbolTable.referenceSimpleFunction(it)
-                        is PropertyDescriptor -> symbolTable.referenceProperty(it)
-                        else -> error("Unknown kind of descriptor for fake override $it")
-                    }
-                    val override = backoff(symbol)
-                    override.parent = declaration
-                    declaration.declarations.add(override)
-
-                    // Make sure overridden declarations are instantiated.
-                    when (override) {
-                        is IrSimpleFunction -> override.touchOverridden()
-                        is IrProperty -> {
-                            override.getter?.touchOverridden()
-                            override.setter?.touchOverridden()
-                            override.backingField?.overriddenSymbols?.forEach { findDeserializedDeclaration(it, backoff) }
-                        }
-                    }
-                }
-                super.visitClass(declaration)
-            }
-        })
-    }}
+}

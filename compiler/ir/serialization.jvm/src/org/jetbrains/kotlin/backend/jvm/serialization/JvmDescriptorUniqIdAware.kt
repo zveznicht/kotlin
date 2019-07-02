@@ -77,8 +77,6 @@ class JvmDescriptorUniqIdAware(val symbolTable: SymbolTable, val fallback: (IrSy
         }.owner as IrDeclaration
 }
 
-fun newJvmDescriptorUniqId(index: Long): Long = index
-
 // May be needed in the future
 //
 //fun DeclarationDescriptor.willBeEliminatedInLowerings(): Boolean =
