@@ -22,7 +22,6 @@ public interface ClassDescriptor extends ClassifierDescriptorWithTypeParameters,
 
     @NotNull
     MemberScope getMemberScope(@NotNull TypeSubstitution typeSubstitution);
-
     @NotNull
     MemberScope getUnsubstitutedMemberScope();
 

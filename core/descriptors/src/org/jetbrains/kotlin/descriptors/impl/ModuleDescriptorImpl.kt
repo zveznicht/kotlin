@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.checker.REFINER_CAPABILITY
 import org.jetbrains.kotlin.types.checker.Ref
-import org.jetbrains.kotlin.types.refinement.TypeRefinementInternal
+import org.jetbrains.kotlin.types.refinement.TypeRefinement
 import org.jetbrains.kotlin.utils.sure
 
 class ModuleDescriptorImpl @JvmOverloads constructor(
@@ -47,7 +47,7 @@ class ModuleDescriptorImpl @JvmOverloads constructor(
             throw IllegalArgumentException("Module name must be special: $moduleName")
         }
         this.capabilities = capabilities.toMutableMap()
-        @UseExperimental(TypeRefinementInternal::class)
+        @UseExperimental(TypeRefinement::class)
         this.capabilities[REFINER_CAPABILITY] = Ref(null)
     }
 
