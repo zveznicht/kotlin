@@ -40,7 +40,7 @@ class JvmIrSerializer(
                 idCollector.collectUniqIds(declaration)
             }
         }
-        proto.auxTables = serializeAuxTables(idCollector.map)
+        proto.auxTables = serializeAuxTables(idCollector.map, collectExternalReferences(irFile))
 
         return proto.build()
     }
@@ -53,12 +53,12 @@ class JvmIrSerializer(
             .apply { collectUniqIds(irClass) }
             .map
 
-        proto.auxTables = serializeAuxTables(idMap)
+        proto.auxTables = serializeAuxTables(idMap, collectExternalReferences(irClass))
 
         return proto.build()
     }
 
-    private fun serializeAuxTables(idMap: Map<Long, FqName>): JvmIr.AuxTables {
+    private fun serializeAuxTables(idMap: Map<Long, FqName>, copiedExternalReferences: List<IrDeclaration>): JvmIr.AuxTables {
         val proto = JvmIr.AuxTables.newBuilder()
         proto.uniqIdTable = JvmIr.UniqIdTable.newBuilder() // This should come before serializing stringTable.
             .addAllInfos(idMap.toList().map { (id, fqName) ->
@@ -68,6 +68,9 @@ class JvmIrSerializer(
                     .build()
             })
             .build()
+        for (ref in copiedExternalReferences) {
+            proto.addExternalRefs(serializeIrDeclaration(ref))
+        }
         proto.symbolTable = KotlinIr.IrSymbolTable.newBuilder()
             .addAllSymbols(protoSymbolArray)
             .build()

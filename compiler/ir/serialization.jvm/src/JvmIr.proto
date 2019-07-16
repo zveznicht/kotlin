@@ -20,7 +20,8 @@ message AuxTables {
   required common.serialization.IrSymbolTable symbol_table = 1;
   required common.serialization.IrTypeTable type_table = 2;
   required common.serialization.StringTable string_table = 3;
-  required UniqIdTable uniq_id_table = 4;
+  repeated common.serialization.IrDeclaration external_refs = 4;
+  required UniqIdTable uniq_id_table = 5;
 }
 
 message JvmIrFile {
@@ -33,5 +34,3 @@ message JvmIrClass {
   required common.serialization.IrClass ir_class = 1;
   required AuxTables aux_tables = 2;
 }
-
-

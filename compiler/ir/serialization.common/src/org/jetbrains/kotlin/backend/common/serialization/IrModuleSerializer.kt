@@ -28,7 +28,6 @@ import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.findTopLevelDeclaration
 import org.jetbrains.kotlin.ir.util.lineStartOffsets
-import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
@@ -345,7 +344,7 @@ open class IrModuleSerializer(
 
     private fun serializeCatch(catch: IrCatch): KotlinIr.IrCatch {
         val proto = KotlinIr.IrCatch.newBuilder()
-            .setCatchParameter(serializeDeclaration(catch.catchParameter))
+            .setCatchParameter(serializeIrDeclaration(catch.catchParameter))
             .setResult(serializeExpression(catch.result))
         return proto.build()
     }
@@ -855,7 +854,7 @@ open class IrModuleSerializer(
 
         when (statement) {
             is IrDeclaration -> {
-                logger.log { " ###Declaration " }; proto.declaration = serializeDeclaration(statement)
+                logger.log { " ###Declaration " }; proto.declaration = serializeIrDeclaration(statement)
             }
             is IrExpression -> {
                 logger.log { " ###Expression " }; proto.expression = serializeExpression(statement)
@@ -910,7 +909,7 @@ open class IrModuleSerializer(
     private fun serializeIrTypeParameterContainer(typeParameters: List<IrTypeParameter>): KotlinIr.IrTypeParameterContainer {
         val proto = KotlinIr.IrTypeParameterContainer.newBuilder()
         typeParameters.forEach {
-            proto.addTypeParameter(serializeDeclaration(it))
+            proto.addTypeParameter(serializeIrDeclaration(it))
         }
         return proto.build()
     }
@@ -924,11 +923,11 @@ open class IrModuleSerializer(
             .setReturnType(serializeIrType(function.returnType))
             .setTypeParameters(serializeIrTypeParameterContainer(function.typeParameters))
 
-        function.dispatchReceiverParameter?.let { proto.setDispatchReceiver(serializeDeclaration(it)) }
-        function.extensionReceiverParameter?.let { proto.setExtensionReceiver(serializeDeclaration(it)) }
+        function.dispatchReceiverParameter?.let { proto.setDispatchReceiver(serializeIrDeclaration(it)) }
+        function.extensionReceiverParameter?.let { proto.setExtensionReceiver(serializeIrDeclaration(it)) }
         function.valueParameters.forEach {
             //proto.addValueParameter(serializeIrValueParameter(it))
-            proto.addValueParameter(serializeDeclaration(it))
+            proto.addValueParameter(serializeIrDeclaration(it))
         }
         if (!externallyVisibleOnly || function.isInline) {
             function.body?.let { proto.body = serializeStatement(it) }
@@ -1061,7 +1060,7 @@ open class IrModuleSerializer(
             if (externallyVisibleOnly && it is IrDeclarationWithVisibility && isPrivate(it.visibility)) {
                 return@forEach
             }
-            proto.addDeclaration(serializeDeclaration(it))
+            proto.addDeclaration(serializeIrDeclaration(it))
         }
         return proto.build()
     }
@@ -1092,7 +1091,7 @@ open class IrModuleSerializer(
         clazz.superTypes.forEach {
             proto.addSuperType(serializeIrType(it))
         }
-        clazz.thisReceiver?.let { proto.thisReceiver = serializeDeclaration(it) }
+        clazz.thisReceiver?.let { proto.thisReceiver = serializeIrDeclaration(it) }
 
         return proto.build()
     }
@@ -1108,12 +1107,12 @@ open class IrModuleSerializer(
             }
         }
         enumEntry.correspondingClass?.let {
-            proto.correspondingClass = serializeDeclaration(it)
+            proto.correspondingClass = serializeIrDeclaration(it)
         }
         return proto.build()
     }
 
-    private fun serializeDeclaration(declaration: IrDeclaration): KotlinIr.IrDeclaration {
+    fun serializeIrDeclaration(declaration: IrDeclaration): KotlinIr.IrDeclaration {
         logger.log { "### serializing Declaration: ${ir2string(declaration)}" }
 
         val declarator = KotlinIr.IrDeclarator.newBuilder()
@@ -1181,7 +1180,7 @@ open class IrModuleSerializer(
                 return@forEach
             }
 
-            val byteArray = serializeDeclaration(it).toByteArray()
+            val byteArray = serializeIrDeclaration(it).toByteArray()
             val uniqId = declarationTable.uniqIdByDeclaration(it)
             writer.addDeclaration(DeclarationId(uniqId.index, uniqId.isLocal), byteArray)
             proto.addDeclarationId(protoUniqId(uniqId))

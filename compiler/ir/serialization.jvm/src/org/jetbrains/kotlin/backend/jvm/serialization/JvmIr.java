@@ -1023,11 +1023,25 @@ public final class JvmIr {
     org.jetbrains.kotlin.backend.common.serialization.KotlinIr.StringTable getStringTable();
 
     /**
-     * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 4;</code>
+     * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+     */
+    java.util.List<org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration> 
+        getExternalRefsList();
+    /**
+     * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+     */
+    org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration getExternalRefs(int index);
+    /**
+     * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+     */
+    int getExternalRefsCount();
+
+    /**
+     * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 5;</code>
      */
     boolean hasUniqIdTable();
     /**
-     * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 4;</code>
+     * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 5;</code>
      */
     org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable getUniqIdTable();
   }
@@ -1121,6 +1135,14 @@ public final class JvmIr {
               break;
             }
             case 34: {
+              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+                externalRefs_ = new java.util.ArrayList<org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration>();
+                mutable_bitField0_ |= 0x00000008;
+              }
+              externalRefs_.add(input.readMessage(org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration.PARSER, extensionRegistry));
+              break;
+            }
+            case 42: {
               org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable.Builder subBuilder = null;
               if (((bitField0_ & 0x00000008) == 0x00000008)) {
                 subBuilder = uniqIdTable_.toBuilder();
@@ -1141,6 +1163,9 @@ public final class JvmIr {
         throw new org.jetbrains.kotlin.protobuf.InvalidProtocolBufferException(
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+          externalRefs_ = java.util.Collections.unmodifiableList(externalRefs_);
+        }
         try {
           unknownFieldsCodedOutput.flush();
         } catch (java.io.IOException e) {
@@ -1212,16 +1237,51 @@ public final class JvmIr {
       return stringTable_;
     }
 
-    public static final int UNIQ_ID_TABLE_FIELD_NUMBER = 4;
+    public static final int EXTERNAL_REFS_FIELD_NUMBER = 4;
+    private java.util.List<org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration> externalRefs_;
+    /**
+     * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+     */
+    public java.util.List<org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration> getExternalRefsList() {
+      return externalRefs_;
+    }
+    /**
+     * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+     */
+    public java.util.List<? extends org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclarationOrBuilder> 
+        getExternalRefsOrBuilderList() {
+      return externalRefs_;
+    }
+    /**
+     * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+     */
+    public int getExternalRefsCount() {
+      return externalRefs_.size();
+    }
+    /**
+     * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+     */
+    public org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration getExternalRefs(int index) {
+      return externalRefs_.get(index);
+    }
+    /**
+     * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+     */
+    public org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclarationOrBuilder getExternalRefsOrBuilder(
+        int index) {
+      return externalRefs_.get(index);
+    }
+
+    public static final int UNIQ_ID_TABLE_FIELD_NUMBER = 5;
     private org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable uniqIdTable_;
     /**
-     * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 4;</code>
+     * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 5;</code>
      */
     public boolean hasUniqIdTable() {
       return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
-     * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 4;</code>
+     * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 5;</code>
      */
     public org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable getUniqIdTable() {
       return uniqIdTable_;
@@ -1231,6 +1291,7 @@ public final class JvmIr {
       symbolTable_ = org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrSymbolTable.getDefaultInstance();
       typeTable_ = org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrTypeTable.getDefaultInstance();
       stringTable_ = org.jetbrains.kotlin.backend.common.serialization.KotlinIr.StringTable.getDefaultInstance();
+      externalRefs_ = java.util.Collections.emptyList();
       uniqIdTable_ = org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
@@ -1263,6 +1324,12 @@ public final class JvmIr {
         memoizedIsInitialized = 0;
         return false;
       }
+      for (int i = 0; i < getExternalRefsCount(); i++) {
+        if (!getExternalRefs(i).isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
       if (!getUniqIdTable().isInitialized()) {
         memoizedIsInitialized = 0;
         return false;
@@ -1283,8 +1350,11 @@ public final class JvmIr {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeMessage(3, stringTable_);
       }
+      for (int i = 0; i < externalRefs_.size(); i++) {
+        output.writeMessage(4, externalRefs_.get(i));
+      }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeMessage(4, uniqIdTable_);
+        output.writeMessage(5, uniqIdTable_);
       }
       output.writeRawBytes(unknownFields);
     }
@@ -1307,9 +1377,13 @@ public final class JvmIr {
         size += org.jetbrains.kotlin.protobuf.CodedOutputStream
           .computeMessageSize(3, stringTable_);
       }
+      for (int i = 0; i < externalRefs_.size(); i++) {
+        size += org.jetbrains.kotlin.protobuf.CodedOutputStream
+          .computeMessageSize(4, externalRefs_.get(i));
+      }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += org.jetbrains.kotlin.protobuf.CodedOutputStream
-          .computeMessageSize(4, uniqIdTable_);
+          .computeMessageSize(5, uniqIdTable_);
       }
       size += unknownFields.size();
       memoizedSerializedSize = size;
@@ -1411,8 +1485,10 @@ public final class JvmIr {
         bitField0_ = (bitField0_ & ~0x00000002);
         stringTable_ = org.jetbrains.kotlin.backend.common.serialization.KotlinIr.StringTable.getDefaultInstance();
         bitField0_ = (bitField0_ & ~0x00000004);
-        uniqIdTable_ = org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable.getDefaultInstance();
+        externalRefs_ = java.util.Collections.emptyList();
         bitField0_ = (bitField0_ & ~0x00000008);
+        uniqIdTable_ = org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable.getDefaultInstance();
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
@@ -1448,7 +1524,12 @@ public final class JvmIr {
           to_bitField0_ |= 0x00000004;
         }
         result.stringTable_ = stringTable_;
-        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+        if (((bitField0_ & 0x00000008) == 0x00000008)) {
+          externalRefs_ = java.util.Collections.unmodifiableList(externalRefs_);
+          bitField0_ = (bitField0_ & ~0x00000008);
+        }
+        result.externalRefs_ = externalRefs_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000008;
         }
         result.uniqIdTable_ = uniqIdTable_;
@@ -1466,6 +1547,16 @@ public final class JvmIr {
         }
         if (other.hasStringTable()) {
           mergeStringTable(other.getStringTable());
+        }
+        if (!other.externalRefs_.isEmpty()) {
+          if (externalRefs_.isEmpty()) {
+            externalRefs_ = other.externalRefs_;
+            bitField0_ = (bitField0_ & ~0x00000008);
+          } else {
+            ensureExternalRefsIsMutable();
+            externalRefs_.addAll(other.externalRefs_);
+          }
+          
         }
         if (other.hasUniqIdTable()) {
           mergeUniqIdTable(other.getUniqIdTable());
@@ -1499,6 +1590,12 @@ public final class JvmIr {
         if (!getTypeTable().isInitialized()) {
           
           return false;
+        }
+        for (int i = 0; i < getExternalRefsCount(); i++) {
+          if (!getExternalRefs(i).isInitialized()) {
+            
+            return false;
+          }
         }
         if (!getUniqIdTable().isInitialized()) {
           
@@ -1706,21 +1803,146 @@ public final class JvmIr {
         return this;
       }
 
-      private org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable uniqIdTable_ = org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable.getDefaultInstance();
+      private java.util.List<org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration> externalRefs_ =
+        java.util.Collections.emptyList();
+      private void ensureExternalRefsIsMutable() {
+        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+          externalRefs_ = new java.util.ArrayList<org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration>(externalRefs_);
+          bitField0_ |= 0x00000008;
+         }
+      }
+
       /**
-       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 4;</code>
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
        */
-      public boolean hasUniqIdTable() {
-        return ((bitField0_ & 0x00000008) == 0x00000008);
+      public java.util.List<org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration> getExternalRefsList() {
+        return java.util.Collections.unmodifiableList(externalRefs_);
       }
       /**
-       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 4;</code>
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+       */
+      public int getExternalRefsCount() {
+        return externalRefs_.size();
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+       */
+      public org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration getExternalRefs(int index) {
+        return externalRefs_.get(index);
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+       */
+      public Builder setExternalRefs(
+          int index, org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureExternalRefsIsMutable();
+        externalRefs_.set(index, value);
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+       */
+      public Builder setExternalRefs(
+          int index, org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration.Builder builderForValue) {
+        ensureExternalRefsIsMutable();
+        externalRefs_.set(index, builderForValue.build());
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+       */
+      public Builder addExternalRefs(org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureExternalRefsIsMutable();
+        externalRefs_.add(value);
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+       */
+      public Builder addExternalRefs(
+          int index, org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        ensureExternalRefsIsMutable();
+        externalRefs_.add(index, value);
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+       */
+      public Builder addExternalRefs(
+          org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration.Builder builderForValue) {
+        ensureExternalRefsIsMutable();
+        externalRefs_.add(builderForValue.build());
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+       */
+      public Builder addExternalRefs(
+          int index, org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration.Builder builderForValue) {
+        ensureExternalRefsIsMutable();
+        externalRefs_.add(index, builderForValue.build());
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+       */
+      public Builder addAllExternalRefs(
+          java.lang.Iterable<? extends org.jetbrains.kotlin.backend.common.serialization.KotlinIr.IrDeclaration> values) {
+        ensureExternalRefsIsMutable();
+        org.jetbrains.kotlin.protobuf.AbstractMessageLite.Builder.addAll(
+            values, externalRefs_);
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+       */
+      public Builder clearExternalRefs() {
+        externalRefs_ = java.util.Collections.emptyList();
+        bitField0_ = (bitField0_ & ~0x00000008);
+
+        return this;
+      }
+      /**
+       * <code>repeated .org.jetbrains.kotlin.backend.common.serialization.IrDeclaration external_refs = 4;</code>
+       */
+      public Builder removeExternalRefs(int index) {
+        ensureExternalRefsIsMutable();
+        externalRefs_.remove(index);
+
+        return this;
+      }
+
+      private org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable uniqIdTable_ = org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable.getDefaultInstance();
+      /**
+       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 5;</code>
+       */
+      public boolean hasUniqIdTable() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 5;</code>
        */
       public org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable getUniqIdTable() {
         return uniqIdTable_;
       }
       /**
-       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 4;</code>
+       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 5;</code>
        */
       public Builder setUniqIdTable(org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable value) {
         if (value == null) {
@@ -1728,24 +1950,24 @@ public final class JvmIr {
         }
         uniqIdTable_ = value;
 
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000010;
         return this;
       }
       /**
-       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 4;</code>
+       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 5;</code>
        */
       public Builder setUniqIdTable(
           org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable.Builder builderForValue) {
         uniqIdTable_ = builderForValue.build();
 
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000010;
         return this;
       }
       /**
-       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 4;</code>
+       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 5;</code>
        */
       public Builder mergeUniqIdTable(org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable value) {
-        if (((bitField0_ & 0x00000008) == 0x00000008) &&
+        if (((bitField0_ & 0x00000010) == 0x00000010) &&
             uniqIdTable_ != org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable.getDefaultInstance()) {
           uniqIdTable_ =
             org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable.newBuilder(uniqIdTable_).mergeFrom(value).buildPartial();
@@ -1753,16 +1975,16 @@ public final class JvmIr {
           uniqIdTable_ = value;
         }
 
-        bitField0_ |= 0x00000008;
+        bitField0_ |= 0x00000010;
         return this;
       }
       /**
-       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 4;</code>
+       * <code>required .org.jetbrains.kotlin.backend.jvm.serialization.UniqIdTable uniq_id_table = 5;</code>
        */
       public Builder clearUniqIdTable() {
         uniqIdTable_ = org.jetbrains.kotlin.backend.jvm.serialization.JvmIr.UniqIdTable.getDefaultInstance();
 
-        bitField0_ = (bitField0_ & ~0x00000008);
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
