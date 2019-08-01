@@ -172,9 +172,12 @@ val generateFullRuntimeKLib by task<NoDebugJavaExec> {
 val generateReducedRuntimeKLib by task<NoDebugJavaExec> {
     dependsOn(reducedRuntimeSources)
 
+    val outPath = buildDir.resolve("reducedRuntime/klib").absolutePath
+    extra["klibDir"] = outPath
+
     buildKLib(sources = listOf(reducedRuntimeSources.outputs.files.singleFile.path),
               dependencies = emptyList(),
-              outPath = "$buildDir/reducedRuntime/klib",
+              outPath = outPath,
               commonSources = listOf("common", "src", "unsigned").map { "$buildDir/reducedRuntime/src/libraries/stdlib/$it" }
     )
 }

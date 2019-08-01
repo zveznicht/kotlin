@@ -31,8 +31,18 @@ sourceSets {
     "test" { projectDefault() }
 }
 
+// JS IR runtime is used by AbstractIncrementalJsKlibCompilerRunnerTest
+evaluationDependsOn(":compiler:ir.serialization.js")
+val jsIrReducedRuntimeKLib by tasks.registering(Jar::class) {
+    val generateReducedRuntimeKLib = project(":compiler:ir.serialization.js").tasks.named("generateReducedRuntimeKLib")
+    from(file(generateReducedRuntimeKLib.map { it.extra["klibDir"] }))
+    destinationDirectory.set(rootProject.buildDir.resolve("js-ir-runtime"))
+    archiveFileName.set("reduced-runtime.klib")
+}
+
 projectTest(parallel = true) {
     workingDir = rootDir
+    dependsOn(jsIrReducedRuntimeKLib)
 }
 
 testsJar()
