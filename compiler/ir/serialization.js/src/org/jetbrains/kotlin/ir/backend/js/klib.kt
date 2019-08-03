@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.ir.backend.js
 
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.backend.common.LoggingContext
 import org.jetbrains.kotlin.backend.common.serialization.DescriptorTable
 import org.jetbrains.kotlin.library.impl.buildKoltinLibrary
@@ -15,6 +17,7 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.languageVersionSettings
+import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.impl.CompositePackageFragmentProvider
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
@@ -31,11 +34,14 @@ import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.js.analyze.TopDownAnalyzerFacadeForJS
 import org.jetbrains.kotlin.js.analyzer.JsAnalysisResult
+import org.jetbrains.kotlin.js.config.JSConfigurationKeys.*
 import org.jetbrains.kotlin.konan.KonanVersionImpl
 import org.jetbrains.kotlin.konan.MetaVersion
 import org.jetbrains.kotlin.konan.properties.propertyList
 import org.jetbrains.kotlin.library.*
 import org.jetbrains.kotlin.library.impl.createKotlinLibrary
+import org.jetbrains.kotlin.metadata.ProtoBuf
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.jetbrains.kotlin.psi.KtFile
@@ -44,8 +50,11 @@ import org.jetbrains.kotlin.psi2ir.Psi2IrTranslator
 import org.jetbrains.kotlin.psi2ir.generators.GeneratorContext
 import org.jetbrains.kotlin.psi2ir.generators.GeneratorExtensions
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.BindingContextUtils
 import org.jetbrains.kotlin.resolve.CompilerDeserializationConfiguration
+import org.jetbrains.kotlin.serialization.js.KotlinJavascriptSerializationUtil
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
+import org.jetbrains.kotlin.utils.JsMetadataVersion
 import org.jetbrains.kotlin.konan.file.File as KFile
 
 
@@ -86,6 +95,8 @@ fun generateKLib(
 
     val psi2IrContext = runAnalysisAndPreparePsi2Ir(depsDescriptors)
 
+    trySaveIncrementalData(psi2IrContext, configuration, files)
+
     val moduleFragment = psi2IrContext.generateModuleFragment(files)
 
     val moduleName = configuration[CommonConfigurationKeys.MODULE_NAME]!!
@@ -103,6 +114,49 @@ fun generateKLib(
         nopack
     )
 }
+
+// todo: think if possible to unify with org.jetbrains.kotlin.js.facade.K2JSTranslator.trySaveIncrementalData
+private fun trySaveIncrementalData(context: GeneratorContext, config: CompilerConfiguration, files: List<KtFile>) {
+    val incrementalResults = config.get(INCREMENTAL_RESULTS_CONSUMER) ?: return
+
+    val bindingContext = context.bindingContext
+    val moduleDescriptor = context.moduleDescriptor
+
+    val emptyByteArray = emptyArray<Byte>().toByteArray()
+
+    for (file in files) {
+        val memberScope = file.declarations.map { getDescriptorForElement(bindingContext, it) }
+        val packagePart = serializeScope(bindingContext, moduleDescriptor, file.packageFqName, memberScope, config)
+        val ioFile = VfsUtilCore.virtualToIoFile(file.virtualFile)
+        incrementalResults.processPackagePart(ioFile, packagePart.toByteArray(), binaryAst = emptyByteArray, inlineData = emptyByteArray)
+    }
+
+    val settings = config.languageVersionSettings
+    incrementalResults.processHeader(KotlinJavascriptSerializationUtil.serializeHeader(moduleDescriptor, null, settings).toByteArray())
+}
+
+// copied from org.jetbrains.kotlin.js.translate.utils.BindingUtils.getDescriptorForElement
+fun getDescriptorForElement(
+    context: BindingContext,
+    element: PsiElement
+): DeclarationDescriptor = BindingContextUtils.getNotNull(context, BindingContext.DECLARATION_TO_DESCRIPTOR, element)
+
+// copied from org.jetbrains.kotlin.js.facade.K2JSTranslator.serializeScope
+private fun serializeScope(
+    bindingContext: BindingContext,
+    moduleDescriptor: ModuleDescriptor,
+    packageName: FqName,
+    scope: Collection<DeclarationDescriptor>,
+    configuration: CompilerConfiguration
+): ProtoBuf.PackageFragment =
+    KotlinJavascriptSerializationUtil.serializeDescriptors(
+        bindingContext,
+        moduleDescriptor,
+        scope,
+        packageName,
+        configuration.languageVersionSettings,
+        configuration.get(CommonConfigurationKeys.METADATA_VERSION) ?: JsMetadataVersion.INSTANCE
+    )
 
 data class IrModuleInfo(
     val module: IrModuleFragment,
