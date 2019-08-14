@@ -11,7 +11,8 @@ import org.jetbrains.kotlin.fir.types.impl.*
 import org.jetbrains.kotlin.fir.utils.ArrayMapAccessor
 import org.jetbrains.kotlin.fir.utils.ComponentArrayOwner
 import org.jetbrains.kotlin.fir.utils.TypeRegistry
-import org.jetbrains.kotlin.utils.Jsr305State
+import org.jetbrains.kotlin.utils.JavaTypeEnhancementState
+import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 
 interface FirSessionComponent
@@ -25,7 +26,7 @@ abstract class FirSession(val sessionProvider: FirSessionProvider?) : ComponentA
 
     open val moduleInfo: ModuleInfo? get() = null
 
-    val jsr305State: Jsr305State? get() = null
+    val javaTypeEnhancementState: JavaTypeEnhancementState? get() = null
 
     val builtinTypes: BuiltinTypes = BuiltinTypes()
 
