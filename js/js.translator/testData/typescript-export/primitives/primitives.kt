@@ -8,8 +8,6 @@ package foo
 
 val _any: Any = Any()
 
-val _unit: Unit = Unit
-
 fun _nothing(): Nothing { throw Throwable() }
 
 val _throwable: Throwable = Throwable()
