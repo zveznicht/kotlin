@@ -5,18 +5,28 @@
 
 package org.jetbrains.kotlin.js.resolve.diagnostics
 
+import org.jetbrains.kotlin.descriptors.ConstructorDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.PropertyAccessorDescriptor
 import org.jetbrains.kotlin.js.naming.NameSuggestion
 import org.jetbrains.kotlin.js.translate.utils.AnnotationsUtils
 import org.jetbrains.kotlin.psi.KtDeclaration
-import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 import org.jetbrains.kotlin.resolve.checkers.DeclarationChecker
+import org.jetbrains.kotlin.resolve.checkers.DeclarationCheckerContext
 
-class JsNameCharsChecker(private val suggestion: NameSuggestion) : DeclarationChecker {
+class JsNameCharsChecker : DeclarationChecker {
     override fun check(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) {
+        val bindingContext = context.trace.bindingContext
+
         if (descriptor is PropertyAccessorDescriptor && AnnotationsUtils.getJsName(descriptor) == null) return
 
+        // WHY?
+        if (descriptor is ConstructorDescriptor &&
+            AnnotationsUtils.getJsName(descriptor) == null &&
+            AnnotationsUtils.isExportedObject(descriptor, bindingContext)
+        ) return
+
+        val suggestion = NameSuggestion(bindingContext)
         val suggestedName = suggestion.suggest(descriptor) ?: return
         if (suggestedName.stable && suggestedName.names.any { NameSuggestion.sanitizeName(it) != it }) {
             context.trace.report(ErrorsJs.NAME_CONTAINS_ILLEGAL_CHARS.on(declaration))

@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irBlockBody
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
 import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.JsCommonBackendContext
 import org.jetbrains.kotlin.ir.backend.js.ir.JsIrBuilder
@@ -106,6 +107,7 @@ fun JsCommonBackendContext.getOrCreateGetInstanceFunction(obj: IrClass) =
         JsIrBuilder.buildFunction(
             obj.name.asString() + "_getInstance",
             returnType = obj.defaultType,
-            parent = obj.parent
+            parent = obj.parent,
+            visibility = Visibilities.INTERNAL
         )
     }

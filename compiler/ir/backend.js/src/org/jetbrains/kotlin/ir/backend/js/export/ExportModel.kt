@@ -40,8 +40,9 @@ class ExportedProperty(
     val mutable: Boolean,
     val isMember: Boolean = false,
     val isStatic: Boolean = false,
+    val isObject: Boolean = false,
     val isAbstract: Boolean,
-    val ir: IrProperty
+    val ir: IrDeclarationWithName
 ) : ExportedDeclaration()
 
 
@@ -57,6 +58,12 @@ class ExportedClass(
     val typeParameters: List<String>,
     val members: List<ExportedDeclaration>,
     val statics: List<ExportedDeclaration>,
+    val ir: IrClass
+) : ExportedDeclaration()
+
+class ExportedObject(
+    val name: String,
+    val type: ExportedType,
     val ir: IrClass
 ) : ExportedDeclaration()
 
@@ -88,6 +95,8 @@ sealed class ExportedType {
     ) : ExportedType()
 
     class ClassType(val name: String, val arguments: List<ExportedType>) : ExportedType()
+    class ObjectLiteralType(val members: List<ExportedDeclaration>) : ExportedType()
+    class IntersectionType(val types: List<ExportedType>) : ExportedType()
     class TypeParameter(val name: String) : ExportedType()
     class Nullable(val baseType: ExportedType) : ExportedType()
     class ErrorType(val comment: String) : ExportedType()

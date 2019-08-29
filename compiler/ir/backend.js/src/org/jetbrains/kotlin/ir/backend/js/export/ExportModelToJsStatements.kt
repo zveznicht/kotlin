@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.JsAstUtils
 import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.defineProperty
 import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.jsAssignment
 import org.jetbrains.kotlin.ir.backend.js.utils.*
+import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.js.backend.ast.*
 
 
@@ -37,14 +38,15 @@ class ExportModelToJsStatements(
                         val varRef = JsNameRef(varName)
                         val namespaceRef = JsNameRef(element, currentRef)
                         statements += JsVars(
-                            JsVars.JsVar(JsName(varName),
-                                         JsAstUtils.or(
-                                             namespaceRef,
-                                             jsAssignment(
-                                                 namespaceRef,
-                                                 JsObjectLiteral()
-                                             )
-                                         )
+                            JsVars.JsVar(
+                                JsName(varName),
+                                JsAstUtils.or(
+                                    namespaceRef,
+                                    jsAssignment(
+                                        namespaceRef,
+                                        JsObjectLiteral()
+                                    )
+                                )
                             )
                         )
                         varRef
@@ -67,8 +69,20 @@ class ExportModelToJsStatements(
             is ExportedConstructor -> emptyList()
 
             is ExportedProperty -> {
-                val getter = declaration.ir.getter?.let { JsNameRef(nameTables.getNameForStaticDeclaration(it)) }
-                val setter = declaration.ir.setter?.let { JsNameRef(nameTables.getNameForStaticDeclaration(it)) }
+                val getter: JsNameRef?
+                val setter: JsNameRef?
+
+                val extera = mutableListOf<JsStatement>()
+                if (declaration.isObject) {
+                    getter = JsNameRef(nameTables.getNameForStaticDeclaration(declaration.ir))
+                    setter = null
+                } else {
+                    val property = declaration.ir as IrProperty
+                    getter = property.getter?.let { JsNameRef(nameTables.getNameForStaticDeclaration(it)) }
+                    setter = property.setter?.let { JsNameRef(nameTables.getNameForStaticDeclaration(it)) }
+
+                }
+
                 listOf(defineProperty(namespace, declaration.name, getter, setter).makeStmt())
             }
 
@@ -87,6 +101,10 @@ class ExportModelToJsStatements(
                 ).makeStmt()
                 val staticsExport = declaration.statics.flatMap { generateDeclarationExport(it, newNameSpace) }
                 listOf(klassExport) + staticsExport
+            }
+            is ExportedObject -> {
+                val getter = JsNameRef(nameTables.getNameForStaticDeclaration(declaration.ir))
+                listOf(defineProperty(namespace, declaration.name, getter).makeStmt())
             }
         }
     }
