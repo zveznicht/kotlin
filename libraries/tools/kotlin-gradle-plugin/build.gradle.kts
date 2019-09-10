@@ -21,6 +21,7 @@ sourcesJar()
 javadocJar()
 
 repositories {
+    mavenLocal()
     google()
     maven("https://plugins.gradle.org/m2/")
 }
@@ -36,7 +37,7 @@ dependencies {
     compileOnly(project(":compiler:incremental-compilation-impl"))
     compileOnly(project(":daemon-common"))
 
-    compile(kotlinStdlib())
+    compile(kotlinStdlibBootstrap())
     compile(project(":kotlin-native:kotlin-native-utils"))
     compileOnly(project(":kotlin-reflect-api"))
     compileOnly(project(":kotlin-android-extensions"))

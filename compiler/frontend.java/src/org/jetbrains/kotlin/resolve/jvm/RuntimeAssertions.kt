@@ -138,8 +138,7 @@ object RuntimeAssertionsOnGenericTypeReturningFunctionsCallChecker : CallChecker
          * because `inferredReturnType` in this case will be flexible (nullable), too.
          */
 
-        if (resolvedCall !is VariableAsFunctionResolvedCall &&
-            unsubstitutedReturnType.isTypeParameter() &&
+        if (unsubstitutedReturnType.isTypeParameter() &&
             unsubstitutedReturnType.isNullable() &&
             !inferredReturnType.isNullable() &&
             resolvedCall.candidateDescriptor.name !in SPECIAL_FUNCTION_NAMES

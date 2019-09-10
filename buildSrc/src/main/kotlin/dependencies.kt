@@ -83,6 +83,10 @@ fun Project.kotlinStdlib(suffix: String? = null, classifier: String? = null): An
         dependencies.project(listOfNotNull(":kotlin-stdlib", suffix).joinToString("-"), classifier)
 }
 
+fun Project.kotlinStdlibBootstrap(suffix: String? = null, classifier: String? = null): Any {
+    return kotlinDep(listOfNotNull("stdlib", suffix).joinToString("-"), "1.3-SNAPSHOT", classifier)
+}
+
 fun Project.kotlinBuiltins(): Any =
     if (kotlinBuildProperties.useBootstrapStdlib) "org.jetbrains.kotlin:builtins:$bootstrapKotlinVersion"
     else dependencies.project(":core:builtins")

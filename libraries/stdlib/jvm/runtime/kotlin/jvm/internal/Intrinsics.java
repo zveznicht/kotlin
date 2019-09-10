@@ -9,6 +9,10 @@ import kotlin.KotlinNullPointerException;
 import kotlin.SinceKotlin;
 import kotlin.UninitializedPropertyAccessException;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
@@ -23,6 +27,18 @@ public class Intrinsics {
     public static void checkNotNull(Object object) {
         if (object == null) {
             throwJavaNpe();
+        }
+    }
+
+    public static void checkNotNullTrack(Object object) throws IOException {
+        if (object == null) {
+            BufferedWriter writer = new BufferedWriter(
+                    new FileWriter("/Users/victor.petukhov/Desktop/untitled_folder/track.txt", true)  //Set true for append mode
+            );
+            writer.newLine();   //Add new line
+            writer.write("-- ");
+            writer.write(Thread.currentThread().getStackTrace().toString());
+            writer.close();
         }
     }
 

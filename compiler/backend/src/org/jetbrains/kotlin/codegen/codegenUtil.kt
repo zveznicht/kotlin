@@ -67,9 +67,7 @@ import org.jetbrains.org.objectweb.asm.commons.Method
 import org.jetbrains.org.objectweb.asm.tree.MethodNode
 import org.jetbrains.org.objectweb.asm.util.Textifier
 import org.jetbrains.org.objectweb.asm.util.TraceMethodVisitor
-import java.io.File
-import java.io.PrintWriter
-import java.io.StringWriter
+import java.io.*
 import java.util.*
 
 fun generateIsCheck(
@@ -683,6 +681,14 @@ fun generateNullCheckOnCallSite(
 
     if (assertionInfo?.needNotNullAssertion == true) {
         codegen.v.dup()
-        codegen.v.invokestatic(IntrinsicMethods.INTRINSICS_CLASS_NAME, "checkNotNull", "(Ljava/lang/Object;)V", false)
+        codegen.v.invokestatic(IntrinsicMethods.INTRINSICS_CLASS_NAME, "checkNotNullTrack", "(Ljava/lang/Object;)V", false)
+
+        val writer = BufferedWriter(
+            FileWriter("/Users/victor.petukhov/Desktop/untitled_folder/track2.txt", true)  //Set true for append mode
+        )
+        writer.newLine()   //Add new line
+        writer.write("-- ")
+        writer.write(Thread.currentThread().stackTrace.toString())
+        writer.close()
     }
 }
