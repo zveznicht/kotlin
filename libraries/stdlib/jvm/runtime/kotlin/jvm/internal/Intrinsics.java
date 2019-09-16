@@ -30,15 +30,24 @@ public class Intrinsics {
         }
     }
 
-    public static void checkNotNullTrack(Object object) throws IOException {
+    public static void checkNotNullTrack(Object object) {
         if (object == null) {
-            BufferedWriter writer = new BufferedWriter(
-                    new FileWriter("/Users/victor.petukhov/Desktop/untitled_folder/track.txt", true)  //Set true for append mode
-            );
-            writer.newLine();   //Add new line
-            writer.write("-- ");
-            writer.write(Thread.currentThread().getStackTrace().toString());
-            writer.close();
+            BufferedWriter writer = null;
+            try {
+                writer = new BufferedWriter(
+                        new FileWriter("/Users/victor.petukhov/Desktop/untitled_folder/track.txt", true)  //Set true for append mode
+                );
+                writer.newLine();   //Add new line
+                writer.write("-- ");
+                for (int i = 0; i < Thread.currentThread().getStackTrace().length; i++) {
+                    writer.write(Thread.currentThread().getStackTrace()[i].toString());
+                    writer.newLine();
+                }
+                writer.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -100,7 +109,23 @@ public class Intrinsics {
 
     public static void checkExpressionValueIsNotNull(Object value, String expression) {
         if (value == null) {
-            throw sanitizeStackTrace(new IllegalStateException(expression + " must not be null"));
+            BufferedWriter writer = null;
+            try {
+                writer = new BufferedWriter(
+                        new FileWriter("/Users/victor.petukhov/Desktop/untitled_folder/track.txt", true)  //Set true for append mode
+                );
+                writer.write("------------------------------------------------");
+                writer.newLine();   //Add new line
+                for (int i = 2; i < Math.min(Thread.currentThread().getStackTrace().length, 3); i++) {
+                    writer.write("====== " + i + ": ");
+                    writer.write(Thread.currentThread().getStackTrace()[i].toString());
+                    writer.newLine();
+                }
+                writer.close();
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

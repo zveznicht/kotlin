@@ -440,7 +440,7 @@ internal fun AbstractInsnNode.isCheckParameterIsNotNull() =
 internal fun AbstractInsnNode.isCheckExpressionValueIsNotNull() =
     isInsn<MethodInsnNode>(Opcodes.INVOKESTATIC) {
         owner == IntrinsicMethods.INTRINSICS_CLASS_NAME &&
-                (name == "checkExpressionValueIsNotNull" || name == "checkNotNullExpressionValue") &&
+                (name == "checkNotNullExpressionValue" || name == "checkNotNullExpressionValue") &&
                 desc == "(Ljava/lang/Object;Ljava/lang/String;)V"
     }
 

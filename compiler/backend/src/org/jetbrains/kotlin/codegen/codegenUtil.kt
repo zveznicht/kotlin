@@ -681,14 +681,7 @@ fun generateNullCheckOnCallSite(
 
     if (assertionInfo?.needNotNullAssertion == true) {
         codegen.v.dup()
-        codegen.v.invokestatic(IntrinsicMethods.INTRINSICS_CLASS_NAME, "checkNotNullTrack", "(Ljava/lang/Object;)V", false)
-
-        val writer = BufferedWriter(
-            FileWriter("/Users/victor.petukhov/Desktop/untitled_folder/track2.txt", true)  //Set true for append mode
-        )
-        writer.newLine()   //Add new line
-        writer.write("-- ")
-        writer.write(Thread.currentThread().stackTrace.toString())
-        writer.close()
+        codegen.v.aconst("")
+        codegen.v.invokestatic(IntrinsicMethods.INTRINSICS_CLASS_NAME, "checkExpressionValueIsNotNull", "(Ljava/lang/Object;Ljava/lang/String;)V", false)
     }
 }

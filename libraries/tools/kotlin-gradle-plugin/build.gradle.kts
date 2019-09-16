@@ -37,7 +37,7 @@ dependencies {
     compileOnly(project(":compiler:incremental-compilation-impl"))
     compileOnly(project(":daemon-common"))
 
-    compile(kotlinStdlibBootstrap())
+    compile(kotlinStdlib())
     compile(project(":kotlin-native:kotlin-native-utils"))
     compileOnly(project(":kotlin-reflect-api"))
     compileOnly(project(":kotlin-android-extensions"))
@@ -106,8 +106,6 @@ runtimeJar(rewriteDepsToShadedCompiler(jar)) {
 tasks {
     withType<KotlinCompile> {
         kotlinOptions.jdkHome = rootProject.extra["JDK_18"] as String
-        kotlinOptions.languageVersion = "1.2"
-        kotlinOptions.apiVersion = "1.2"
         kotlinOptions.freeCompilerArgs += listOf("-Xskip-metadata-version-check")
     }
 

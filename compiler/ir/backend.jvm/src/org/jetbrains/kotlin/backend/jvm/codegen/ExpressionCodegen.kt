@@ -810,7 +810,7 @@ class ExpressionCodegen(
                 mv.visitLdcInsn("TODO provide message for IMPLICIT_NOTNULL") /*TODO*/
                 val methodName =
                     if (state.languageVersionSettings.apiVersion >= ApiVersion.KOTLIN_1_4) "checkNotNullExpressionValue"
-                    else "checkExpressionValueIsNotNull"
+                    else "checkNotNullExpressionValue"
                 mv.invokestatic(IrIntrinsicMethods.INTRINSICS_CLASS_NAME, methodName, "(Ljava/lang/Object;Ljava/lang/String;)V", false)
                 // Unbox primitives.
                 value.coerce(expression.type)

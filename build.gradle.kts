@@ -6,11 +6,10 @@ import proguard.gradle.ProGuardTask
 import org.gradle.kotlin.dsl.*
 
 buildscript {
-    extra["defaultSnapshotVersion"] = "1.3-99"
-
+    extra["defaultSnapshotVersion"] = "1.3-SNAPSHOT"
     // when updating please also update JPS artifacts configuration: https://jetbrains.quip.com/zzGUAYSJ6gv3/JPS-Build-update-bootstrap
-//    kotlinBootstrapFrom(BootstrapOption.TeamCity("1.3.60-dev-770", onlySuccessBootstrap = false))
-    kotlinBootstrapFrom(BootstrapOption.Local())
+    kotlinBootstrapFrom(BootstrapOption.TeamCity("1.3.60-dev-770", onlySuccessBootstrap = false))
+//    kotlinBootstrapFrom(BootstrapOption.Local())
 
     repositories {
         bootstrapKotlinRepo?.let(::maven)

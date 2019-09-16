@@ -1025,7 +1025,7 @@ public class AsmUtil {
                     v.visitLdcInsn(runtimeAssertionInfo.getMessage());
                     String methodName = state.getLanguageVersionSettings().getApiVersion().compareTo(ApiVersion.KOTLIN_1_4) >= 0
                                         ? "checkNotNullExpressionValue"
-                                        : "checkExpressionValueIsNotNull";
+                                        : "checkNotNullExpressionValue";
                     v.invokestatic(IntrinsicMethods.INTRINSICS_CLASS_NAME, methodName, "(Ljava/lang/Object;Ljava/lang/String;)V", false);
                 }
                 StackValue.coerce(innerType, innerKotlinType, type, kotlinType, v);
