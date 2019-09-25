@@ -37,9 +37,10 @@ public class Intrinsics {
                 writer = new BufferedWriter(
                         new FileWriter("/Users/victor.petukhov/Desktop/untitled_folder/track.txt", true)  //Set true for append mode
                 );
+                writer.write("------------------------------------------------");
                 writer.newLine();   //Add new line
-                writer.write("-- ");
-                for (int i = 0; i < Thread.currentThread().getStackTrace().length; i++) {
+                for (int i = 2; i < Math.min(Thread.currentThread().getStackTrace().length, 7); i++) {
+                    writer.write("====== " + i + ": ");
                     writer.write(Thread.currentThread().getStackTrace()[i].toString());
                     writer.newLine();
                 }
@@ -116,7 +117,7 @@ public class Intrinsics {
                 );
                 writer.write("------------------------------------------------");
                 writer.newLine();   //Add new line
-                for (int i = 2; i < Math.min(Thread.currentThread().getStackTrace().length, 3); i++) {
+                for (int i = 2; i < Math.min(Thread.currentThread().getStackTrace().length, 7); i++) {
                     writer.write("====== " + i + ": ");
                     writer.write(Thread.currentThread().getStackTrace()[i].toString());
                     writer.newLine();

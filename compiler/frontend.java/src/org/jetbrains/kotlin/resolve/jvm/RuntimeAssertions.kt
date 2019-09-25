@@ -146,6 +146,8 @@ object RuntimeAssertionsOnGenericTypeReturningFunctionsCallChecker : CallChecker
             val callElement = resolvedCall.call.callElement
             val assertionInfo = RuntimeAssertionInfo(needNotNullAssertion = true, message = callElement.textForRuntimeAssertionInfo)
 
+            File("/Users/victor.petukhov/Desktop/untitled_folder/10.txt").appendText(" |")
+
             context.trace.record(
                 when (context.scope.kind) {
                     LexicalScopeKind.PROPERTY_DELEGATE_METHOD -> JvmBindingContextSlices.RUNTIME_ASSERTION_INFO_ON_DELEGATES

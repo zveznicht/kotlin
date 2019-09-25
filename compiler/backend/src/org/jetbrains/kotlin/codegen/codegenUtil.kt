@@ -681,7 +681,7 @@ fun generateNullCheckOnCallSite(
 
     if (assertionInfo?.needNotNullAssertion == true) {
         codegen.v.dup()
-        codegen.v.aconst("")
-        codegen.v.invokestatic(IntrinsicMethods.INTRINSICS_CLASS_NAME, "checkExpressionValueIsNotNull", "(Ljava/lang/Object;Ljava/lang/String;)V", false)
+//        codegen.v.aconst("")
+        codegen.v.invokestatic(IntrinsicMethods.INTRINSICS_CLASS_NAME, "checkNotNullTrack", "(Ljava/lang/Object;)V", false)
     }
 }
