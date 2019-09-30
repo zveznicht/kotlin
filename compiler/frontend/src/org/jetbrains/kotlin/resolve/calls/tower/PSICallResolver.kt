@@ -68,7 +68,8 @@ class PSICallResolver(
     private val kotlinConstraintSystemCompleter: KotlinConstraintSystemCompleter,
     private val deprecationResolver: DeprecationResolver,
     private val moduleDescriptor: ModuleDescriptor,
-    private val callableReferenceResolver: CallableReferenceResolver
+    private val callableReferenceResolver: CallableReferenceResolver,
+    private val candidateInterceptor: CandidateInterceptor
 ) {
     private val givenCandidatesName = Name.special("<given candidates>")
 
@@ -404,7 +405,7 @@ class PSICallResolver(
             name: Name,
             location: LookupLocation
         ): Collection<FunctionDescriptor> {
-            return getContributedFunctionsAndConstructors(context, resolutionScope, null, name, location)
+            return getContributedFunctionsAndConstructors(context, resolutionScope, null, candidateInterceptor, name, location)
         }
     }
 
