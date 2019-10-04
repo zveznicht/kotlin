@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.common.serialization
 
 import org.jetbrains.kotlin.backend.common.LoggingContext
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
+import org.jetbrains.kotlin.backend.common.serialization.protoMimic.IrProtoReaderMimic
 import org.jetbrains.kotlin.builtins.functions.FunctionClassDescriptor
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.EmptyPackageFragmentDescriptor
@@ -26,18 +27,17 @@ import org.jetbrains.kotlin.ir.symbols.impl.*
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.IrErrorTypeImpl
 import org.jetbrains.kotlin.ir.util.*
-import org.jetbrains.kotlin.protobuf.ExtensionRegistryLite.newInstance
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.types.Variance
-import org.jetbrains.kotlin.backend.common.serialization.proto.IrDeclaration as ProtoDeclaration
-import org.jetbrains.kotlin.backend.common.serialization.proto.IrFile as ProtoFile
-import org.jetbrains.kotlin.backend.common.serialization.proto.IrType as ProtoType
-import org.jetbrains.kotlin.backend.common.serialization.proto.IrStatement as ProtoStatement
-import org.jetbrains.kotlin.backend.common.serialization.proto.IrExpression as ProtoExpression
-import org.jetbrains.kotlin.backend.common.serialization.proto.IrConstructorCall as ProtoConstructorCall
-import org.jetbrains.kotlin.backend.common.serialization.proto.Actual as ProtoActual
-import org.jetbrains.kotlin.backend.common.serialization.proto.IdSignature as ProtoIdSignature
+import org.jetbrains.kotlin.backend.common.serialization.protoMimic.IrDeclaration as ProtoDeclaration
+import org.jetbrains.kotlin.backend.common.serialization.protoMimic.IrFile as ProtoFile
+import org.jetbrains.kotlin.backend.common.serialization.protoMimic.IrType as ProtoType
+import org.jetbrains.kotlin.backend.common.serialization.protoMimic.IrStatement as ProtoStatement
+import org.jetbrains.kotlin.backend.common.serialization.protoMimic.IrExpression as ProtoExpression
+import org.jetbrains.kotlin.backend.common.serialization.protoMimic.IrConstructorCall as ProtoConstructorCall
+import org.jetbrains.kotlin.backend.common.serialization.protoMimic.Actual as ProtoActual
+import org.jetbrains.kotlin.backend.common.serialization.protoMimic.IdSignature as ProtoIdSignature
 
 abstract class KotlinIrLinker(
     val logger: LoggingContext,
@@ -187,28 +187,28 @@ abstract class KotlinIrLinker(
 
             private fun loadTopLevelDeclarationProto(idSig: IdSignature): ProtoDeclaration {
                 val idSigIndex = resolveSignatureIndex(idSig)
-                val stream = reader(moduleDescriptor, fileIndex, idSigIndex).codedInputStream
-                return ProtoDeclaration.parseFrom(stream, newInstance())
+                val byteArray = reader(moduleDescriptor, fileIndex, idSigIndex)
+                return IrProtoReaderMimic(byteArray).readIrDeclaration()
             }
 
             private fun loadTypeProto(index: Int): ProtoType {
-                val stream = readType(moduleDescriptor, fileIndex, index).codedInputStream
-                return ProtoType.parseFrom(stream, newInstance())
+                val byteArray = readType(moduleDescriptor, fileIndex, index)
+                return IrProtoReaderMimic(byteArray).readIrType()
             }
 
             private fun loadSignatureProto(index: Int): ProtoIdSignature {
-                val stream = readSignature(moduleDescriptor, fileIndex, index).codedInputStream
-                return ProtoIdSignature.parseFrom(stream, newInstance())
+                val byteArray = readSignature(moduleDescriptor, fileIndex, index)
+                return IrProtoReaderMimic(byteArray).readIdSignature()
             }
 
             private fun loadStatementBodyProto(index: Int): ProtoStatement {
-                val stream = readBody(moduleDescriptor, fileIndex, index).codedInputStream
-                return ProtoStatement.parseFrom(stream, newInstance())
+                val byteArray = readBody(moduleDescriptor, fileIndex, index)
+                return IrProtoReaderMimic(byteArray).readIrStatement()
             }
 
             private fun loadExpressionBodyProto(index: Int): ProtoExpression {
-                val stream = readBody(moduleDescriptor, fileIndex, index).codedInputStream
-                return ProtoExpression.parseFrom(stream, newInstance())
+                val byteArray = readBody(moduleDescriptor, fileIndex, index)
+                return IrProtoReaderMimic(byteArray).readIrExpression()
             }
 
             private fun loadStringProto(index: Int): String {
@@ -483,7 +483,7 @@ abstract class KotlinIrLinker(
             val files = ArrayList<IrFile>(fileCount)
 
             for (i in 0 until fileCount) {
-                files.add(deserializeIrFile(ProtoFile.parseFrom(readFile(moduleDescriptor, i), newInstance()), i))
+                files.add(deserializeIrFile(IrProtoReaderMimic(readFile(moduleDescriptor, i)).readIrFile(), i))
             }
 
             return IrModuleFragmentImpl(moduleDescriptor, builtIns, files)
