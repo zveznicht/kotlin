@@ -1,5 +1,8 @@
 import org.gradle.internal.os.OperatingSystem
 import java.net.URI
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import javax.inject.Inject
 
 repositories {
     ivy {
@@ -37,41 +40,43 @@ val prepareSdk by task<DefaultTask> {
     doLast {}
 }
 
+val sdkDeps by configurations.creating
+// this task is needed to force Gradle to resolve and download all dependencies at once
+// this speeds up downloading when parallel build is enabled
+val downloadSdkDeps by tasks.creating {
+    // write a list of downloaded files, so that task has outputs and Gradle does not rerun it
+    val downloadedFilesTxt = project.buildDir.resolve("downloaded-files.txt")
+    inputs.files(sdkDeps)
+    outputs.files(downloadedFilesTxt)
+    doLast {
+        val files = sdkDeps.resolve()
+        val paths = files.map { it.canonicalPath }.sorted()
+        downloadedFilesTxt.writeText(paths.joinToString("\n"))
+    }
+}
+
 fun unzipSdkTask(
-    sdkName: String, sdkVer: String, destinationSubdir: String, coordinatesSuffix: String,
-    additionalConfig: Configuration? = null, dirLevelsToSkipOnUnzip: Int = 0, ext: String = "zip",
-    unzipFilter: CopySpec.() -> Unit = {}
+    sdkName: String,
+    sdkVer: String,
+    destinationSubdir: String,
+    coordinatesSuffix: String,
+    additionalConfig: Configuration? = null,
+    dirLevelsToSkipOnUnzip: Int = 0,
+    ext: String = "zip"
 ): Task {
     val id = "${sdkName}_$sdkVer"
     val cfg = configurations.create(id)
     val dependency = "google:$sdkName:$sdkVer${coordinatesSuffix.takeIf { it.isNotEmpty() }?.let { ":$it" } ?: ""}@$ext"
     dependencies.add(cfg.name, dependency)
+    dependencies.add(sdkDeps.name, dependency)
 
-    val unzipTask = task("unzip_$id") {
-        dependsOn(cfg)
-        inputs.files(cfg)
-        val targetDir = file("$sdkDestDir/$destinationSubdir")
-        outputs.dirs(targetDir)
-        doFirst {
-            project.copy {
-                when (ext) {
-                    "zip" -> from(zipTree(cfg.singleFile))
-                    "tar.gz" -> from(tarTree(resources.gzip(cfg.singleFile)))
-                    else -> throw GradleException("Don't know how to handle the extension \"$ext\"")
-                }
-                unzipFilter.invoke(this)
-                if (dirLevelsToSkipOnUnzip > 0) {
-                    eachFile {
-                        path = path.split("/").drop(dirLevelsToSkipOnUnzip).joinToString("/")
-                        if (path.isBlank()) {
-                            exclude()
-                        }
-                    }
-                }
-                into(targetDir)
-            }
-        }
+    val unzipTask = task<UnzipWithWorkers>("unzip_$id") {
+        dependsOn(downloadSdkDeps)
+        archive = cfg
+        targetDir = file("$sdkDestDir/$destinationSubdir")
+        dirLevelsToSkip = dirLevelsToSkipOnUnzip
     }
+
     prepareSdk.configure {
         dependsOn(unzipTask)
     }
@@ -83,13 +88,12 @@ fun unzipSdkTask(
     return unzipTask
 }
 
-unzipSdkTask("platform", "26_r02", "platforms/android-26", "", androidPlatform, 1)
 unzipSdkTask("android_m2repository", "r44", "extras/android", "")
+unzipSdkTask("platform", "26_r02", "platforms/android-26", "", androidPlatform, 1)
 unzipSdkTask("platform-tools", "r25.0.3", "", toolsOs)
 unzipSdkTask("tools", "r24.3.4", "", toolsOs)
 unzipSdkTask("build-tools", "r23.0.1", "build-tools/23.0.1", toolsOs, buildTools, 1)
 unzipSdkTask("build-tools", "r28.0.2", "build-tools/28.0.2", toolsOs, buildTools, 1)
-
 
 val clean by task<Delete> {
     delete(buildDir)
@@ -114,4 +118,60 @@ artifacts.add(androidSdk.name, file("$sdkDestDir")) {
 
 artifacts.add(androidJar.name, file("$libsDestDir/android.jar")) {
     builtBy(extractAndroidJar)
+}
+
+open class UnzipWithWorkers @Inject constructor(
+    private val workerExecutor: WorkerExecutor
+) : DefaultTask() {
+    @get:InputFiles
+    lateinit var archive: FileCollection
+
+    @get:OutputDirectory
+    lateinit var targetDir: File
+
+    @get:Input
+    var dirLevelsToSkip: Int = 0
+
+    @TaskAction
+    fun unzip() {
+        val archiveFile = archive.singleFile
+        workerExecutor.submit(UnzipRunnable::class.java) {
+            forkMode = ForkMode.NEVER
+            isolationMode = IsolationMode.NONE
+            params(archiveFile, targetDir, dirLevelsToSkip)
+        }
+    }
+
+    open class UnzipRunnable @Inject constructor(
+        val archive: File,
+        val targetDir: File,
+        val dirLevelsToSkip: Int
+    ) : Runnable {
+        override fun run() {
+            check(dirLevelsToSkip >= 0) { "dirLevelsToSkipOnUnzip ($dirLevelsToSkip) cannot be negative!" }
+            check(archive.extension == "zip") { "$archive extension is not zip!" }
+
+            archive.inputStream().use { inputStream ->
+                val zipStream = ZipInputStream(inputStream)
+                for (zipEntry in generateSequence { zipStream.nextEntry }) {
+                    handleZipEntry(zipEntry, zipStream)
+                    zipStream.closeEntry()
+                }
+            }
+        }
+
+        private fun handleZipEntry(zipEntry: ZipEntry, zipStream: ZipInputStream) {
+            val path = zipEntry.targetPath()
+            val file = targetDir.resolve(path)
+
+            if (zipEntry.isDirectory || path.isBlank()) return
+            file.parentFile.mkdirs()
+            file.outputStream().use {  outputStream ->
+                zipStream.copyTo(outputStream)
+            }
+        }
+
+        private fun ZipEntry.targetPath() =
+            if (dirLevelsToSkip == 0) name else name.split("/").drop(dirLevelsToSkip).joinToString("/")
+    }
 }
