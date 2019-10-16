@@ -22,11 +22,11 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'realm-android'
 
 android {
-    compileSdkVersion android_sdk_version
+    compileSdkVersion 23
     defaultConfig {
         applicationId 'io.realm.examples.kotlin'
         minSdkVersion 14
-        targetSdkVersion android_sdk_version
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }

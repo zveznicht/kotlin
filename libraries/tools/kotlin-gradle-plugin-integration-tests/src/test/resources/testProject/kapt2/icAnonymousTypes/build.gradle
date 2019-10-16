@@ -16,13 +16,13 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
-  compileSdkVersion android_sdk_version
+  compileSdkVersion 27
 
   defaultConfig {
     applicationId "org.kotlinlang.test"
 
     minSdkVersion 16
-    targetSdkVersion android_sdk_version
+    targetSdkVersion 27
 
     versionCode 1
     versionName "1.0"

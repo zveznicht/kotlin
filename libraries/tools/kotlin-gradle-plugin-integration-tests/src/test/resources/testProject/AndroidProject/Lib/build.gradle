@@ -10,11 +10,11 @@ dependencies {
 }
 
 android {
-    compileSdkVersion android_sdk_version
+    compileSdkVersion 22
 
     defaultConfig {
         minSdkVersion 7
-        targetSdkVersion android_sdk_version
+        targetSdkVersion 22
     }
 
     flavorDimensions "myFlavor"

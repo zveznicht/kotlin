@@ -6,11 +6,11 @@ dependencies {
 }
 
 android {
-    compileSdkVersion android_sdk_version
+    compileSdkVersion 23
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion android_sdk_version
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }

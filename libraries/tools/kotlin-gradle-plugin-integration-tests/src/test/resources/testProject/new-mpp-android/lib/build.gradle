@@ -6,11 +6,11 @@ group 'com.example'
 version '1.0'
 
 android {
-    compileSdkVersion android_sdk_version
+    compileSdkVersion 27
 
     defaultConfig {
         minSdkVersion 21
-        targetSdkVersion android_sdk_version
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
 

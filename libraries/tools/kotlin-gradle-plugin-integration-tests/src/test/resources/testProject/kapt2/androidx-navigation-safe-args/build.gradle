@@ -18,11 +18,11 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'androidx.navigation.safeargs'
 
 android {
-    compileSdkVersion android_sdk_version
+    compileSdkVersion 28
     defaultConfig {
         applicationId 'test.androidx.navigation'
         minSdkVersion 14
-        targetSdkVersion android_sdk_version
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }

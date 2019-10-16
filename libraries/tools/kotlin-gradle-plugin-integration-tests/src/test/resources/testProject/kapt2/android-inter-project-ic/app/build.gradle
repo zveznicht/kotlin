@@ -3,12 +3,12 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion android_sdk_version
+    compileSdkVersion 23
 
     defaultConfig {
         applicationId "org.example.inter.project.ic"
         minSdkVersion 15
-        targetSdkVersion android_sdk_version
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
         javaCompileOptions.annotationProcessorOptions.includeCompileClasspath = true

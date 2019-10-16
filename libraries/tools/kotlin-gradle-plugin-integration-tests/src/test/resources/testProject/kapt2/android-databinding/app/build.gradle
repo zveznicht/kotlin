@@ -3,12 +3,12 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion android_sdk_version
+    compileSdkVersion 24
 
     defaultConfig {
         applicationId "com.example.databinding"
         minSdkVersion 21
-        targetSdkVersion android_sdk_version
+        targetSdkVersion 24
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

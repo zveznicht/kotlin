@@ -3,12 +3,12 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion android_sdk_version
+    compileSdkVersion 23
 
     defaultConfig {
         applicationId "com.example.dagger.kotlin"
         minSdkVersion 14
-        targetSdkVersion android_sdk_version
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }
