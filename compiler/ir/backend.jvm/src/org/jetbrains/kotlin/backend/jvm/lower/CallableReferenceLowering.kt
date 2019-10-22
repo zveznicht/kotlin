@@ -413,7 +413,4 @@ internal class CallableReferenceLowering(private val context: JvmBackendContext)
             }
         }
     }
-
-    private val currentDeclarationParent
-        get() = allScopes.last { it.irElement is IrDeclarationParent }.irElement as IrDeclarationParent
 }
