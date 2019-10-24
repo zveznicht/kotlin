@@ -9,7 +9,7 @@ fun box(): String {
     try {
         "".foo
     } catch (e: NullPointerException) {
-        return "OK"
+        return "Fail: NullPointerException should have been thrown"
     }
-    return "Fail: NullPointerException should have been thrown"
+    return "OK"
 }

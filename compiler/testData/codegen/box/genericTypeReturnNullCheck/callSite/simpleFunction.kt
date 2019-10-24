@@ -7,7 +7,7 @@ fun <T> foo(): T = null as T
 
 fun box(): String {
     try {
-        foo<String>()
+        val xx = foo<String>()
     } catch (e: NullPointerException) {
         return "OK"
     }

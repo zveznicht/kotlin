@@ -10,6 +10,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.load.java.typeEnhancement.hasEnhancedNullability
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingTrace
@@ -138,15 +139,19 @@ object RuntimeAssertionsOnGenericTypeReturningFunctionsCallChecker : CallChecker
          * because `inferredReturnType` in this case will be flexible (nullable), too.
          */
 
+        context.resolutionContext.callPosition
+
+        val p = context.resolutionContext.scope
         if (unsubstitutedReturnType.isTypeParameter() &&
             unsubstitutedReturnType.isNullable() &&
             !inferredReturnType.isNullable() &&
-            resolvedCall.candidateDescriptor.name !in SPECIAL_FUNCTION_NAMES
+            resolvedCall.candidateDescriptor.name !in SPECIAL_FUNCTION_NAMES &&
+            p.toString() != "NO_EXPECTED_TYPE"
         ) {
             val callElement = resolvedCall.call.callElement
             val assertionInfo = RuntimeAssertionInfo(needNotNullAssertion = true, message = callElement.textForRuntimeAssertionInfo)
 
-            File("/Users/victor.petukhov/Desktop/untitled_folder/10.txt").appendText(" |")
+            context.trace.report(Errors.VERSION_REQUIREMENT_DEPRECATION2.on(reportOn))
 
             context.trace.record(
                 when (context.scope.kind) {
