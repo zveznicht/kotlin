@@ -5,7 +5,7 @@ import org.junit.Assert
 import org.junit.Test
 import java.io.File
 
-class IncrementalCompilationJsMultiProjectIT : BaseIncrementalCompilationMultiProjectIT() {
+open class IncrementalCompilationJsMultiProjectIT : BaseIncrementalCompilationMultiProjectIT() {
     override fun defaultProject(): Project {
         val project = Project("incrementalMultiproject")
         project.setupWorkingDir()
@@ -22,15 +22,36 @@ class IncrementalCompilationJsMultiProjectIT : BaseIncrementalCompilationMultiPr
         return project
     }
 
-    override val additionalLibDependencies: String =
-        "implementation \"org.jetbrains.kotlin:kotlin-test-js:${'$'}kotlin_version\""
+    override val compileKotlinTaskName: String
+        get() = "compileKotlin2Js"
+}
+
+class IncrementalCompilationKlibJsMultiProjectIT : IncrementalCompilationJsMultiProjectIT() {
+    override fun defaultProject(): Project {
+        val project = super.defaultProject()
+
+        for (buildGradle in project.projectDir.walk().filter { it.isFile && it.name == "build.gradle" }) {
+            buildGradle.modify {
+                it.checkedReplace(
+                    "org.jetbrains.kotlin:kotlin-stdlib-js",
+                    "org.jetbrains.kotlin:kotlin-stdlib-js-ir"
+                ) + "\n\n" + """
+                tasks.withType(org.jetbrains.kotlin.gradle.dsl.KotlinCompile).all {
+                    kotlinOptions.freeCompilerArgs += "-Xir"
+                }
+            """.trimIndent()
+            }
+        }
+
+        return project
+    }
 
     override val compileKotlinTaskName: String
         get() = "compileKotlin2Js"
 }
 
 class IncrementalCompilationJvmMultiProjectIT : BaseIncrementalCompilationMultiProjectIT() {
-    override val additionalLibDependencies: String =
+    private val additionalLibDependencies: String =
         "implementation \"org.jetbrains.kotlin:kotlin-test:${'$'}kotlin_version\""
 
     override val compileKotlinTaskName: String
@@ -97,6 +118,47 @@ class IncrementalCompilationJvmMultiProjectIT : BaseIncrementalCompilationMultiP
             val affectedSources = File(project.projectDir, "app").allKotlinFiles()
             val relativePaths = project.relativize(affectedSources)
             assertCompiledKotlinSources(relativePaths)
+        }
+    }
+
+    // todo: move to base class to test for js, and js klib
+    // also note: this test was flacky on TC, so test thoroughly when moving to base class
+    @Test
+    fun testAddDependencyToLib() {
+        val project = defaultProject()
+
+        project.build("build") {
+            assertSuccessful()
+        }
+
+        val libBuildGradle = File(project.projectDir, "lib/build.gradle")
+        Assert.assertTrue("$libBuildGradle does not exist", libBuildGradle.exists())
+        libBuildGradle.modify {
+            """
+                $it
+
+                dependencies {
+                    $additionalLibDependencies
+                }
+            """.trimIndent()
+        }
+        // Change file so Gradle won't skip :app:compile
+        project.projectFile("BarDummy.kt").modify {
+            it.replace("class BarDummy", "open class BarDummy")
+        }
+
+        project.build("build") {
+            assertSuccessful()
+            val affectedSources = project.projectDir.allKotlinFiles()
+            val relativePaths = project.relativize(affectedSources)
+            assertCompiledKotlinSources(relativePaths)
+        }
+
+        val aaKt = project.projectFile("AA.kt")
+        aaKt.modify { "$it " }
+        project.build("build") {
+            assertSuccessful()
+            assertCompiledKotlinSources(project.relativize(aaKt))
         }
     }
 }
@@ -206,47 +268,7 @@ open class A {
         }
     }
 
-    protected abstract val additionalLibDependencies: String
     protected abstract val compileKotlinTaskName: String
-
-    @Test
-    fun testAddDependencyToLib() {
-        val project = defaultProject()
-
-        project.build("build") {
-            assertSuccessful()
-        }
-
-        val libBuildGradle = File(project.projectDir, "lib/build.gradle")
-        Assert.assertTrue("$libBuildGradle does not exist", libBuildGradle.exists())
-        libBuildGradle.modify {
-            """
-                $it
-
-                dependencies {
-                    $additionalLibDependencies
-                }
-            """.trimIndent()
-        }
-        // Change file so Gradle won't skip :app:compile
-        project.projectFile("BarDummy.kt").modify {
-            it.replace("class BarDummy", "open class BarDummy")
-        }
-
-        project.build("build") {
-            assertSuccessful()
-            val affectedSources = project.projectDir.allKotlinFiles()
-            val relativePaths = project.relativize(affectedSources)
-            assertCompiledKotlinSources(relativePaths)
-        }
-
-        val aaKt = project.projectFile("AA.kt")
-        aaKt.modify { "$it " }
-        project.build("build") {
-            assertSuccessful()
-            assertCompiledKotlinSources(project.relativize(aaKt))
-        }
-    }
 
     @Test
     fun testCompileErrorInLib() {
