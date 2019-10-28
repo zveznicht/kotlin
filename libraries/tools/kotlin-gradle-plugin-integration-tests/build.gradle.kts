@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.pill.PillExtension
 
 plugins {
     kotlin("jvm")
+    kotlin("plugin.allopen")
     id("jps-compatible")
 }
 
@@ -73,7 +74,9 @@ configureCommonTasks(gradle.gradleUserHomeDir)
 
 testsJar {}
 
-// todo use allopen
+allOpen {
+    annotation("org.jetbrains.kotlin.gradle.generators.GradleTestsRootClass")
+}
 val generateTests by generator("org.jetbrains.kotlin.gradle.generators.GenerateTestsWithDifferentGradleVersionsKt")
 generateTests.setArgsString(project.file("build/classes").canonicalPath)
 
