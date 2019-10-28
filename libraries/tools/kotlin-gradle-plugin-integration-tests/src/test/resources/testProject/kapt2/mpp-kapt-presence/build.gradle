@@ -10,7 +10,7 @@ buildscript {
 
   repositories {
     mavenLocal()
-    mavenCentral()
+    maven { url 'https://cache-redirector.jetbrains.com/repo1.maven.org/maven2/' }
   }
 
   dependencies {
@@ -21,6 +21,6 @@ buildscript {
 allprojects {
   repositories {
     mavenLocal()
-    mavenCentral()
+    maven { url 'https://cache-redirector.jetbrains.com/repo1.maven.org/maven2/' }
   }
 }

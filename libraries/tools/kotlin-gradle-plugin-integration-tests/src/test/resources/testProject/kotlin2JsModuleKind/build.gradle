@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         mavenLocal()
-        mavenCentral()
+        maven { url 'https://cache-redirector.jetbrains.com/repo1.maven.org/maven2/' }
     }
 
     dependencies {
@@ -18,7 +18,7 @@ compileKotlin2Js.kotlinOptions.outputFile = outDir + "app.js"
 
 repositories {
     mavenLocal()
-    mavenCentral()
+    maven { url 'https://cache-redirector.jetbrains.com/repo1.maven.org/maven2/' }
 }
 
 dependencies {

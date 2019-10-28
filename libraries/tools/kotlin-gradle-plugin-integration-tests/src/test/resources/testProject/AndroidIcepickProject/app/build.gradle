@@ -34,6 +34,6 @@ android {
 repositories {
     mavenLocal()
     maven { url 'https://maven.google.com' }
-    mavenCentral()
+    maven { url 'https://cache-redirector.jetbrains.com/repo1.maven.org/maven2/' }
     maven { url "https://clojars.org/repo/" }
 }

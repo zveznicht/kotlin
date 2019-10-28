@@ -2,7 +2,7 @@ buildscript {
     repositories {
         mavenLocal()
         maven { url 'https://maven.google.com' }
-        mavenCentral()
+        maven { url 'https://cache-redirector.jetbrains.com/repo1.maven.org/maven2/' }
         jcenter()
     }
     dependencies {

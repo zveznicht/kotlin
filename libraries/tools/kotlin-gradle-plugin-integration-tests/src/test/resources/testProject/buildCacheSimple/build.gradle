@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         mavenLocal()
-        mavenCentral()
+        maven { url 'https://cache-redirector.jetbrains.com/repo1.maven.org/maven2/' }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -13,7 +13,7 @@ apply plugin: 'java'
 
 repositories {
     mavenLocal()
-    mavenCentral()
+    maven { url 'https://cache-redirector.jetbrains.com/repo1.maven.org/maven2/' }
 }
 
 dependencies {
