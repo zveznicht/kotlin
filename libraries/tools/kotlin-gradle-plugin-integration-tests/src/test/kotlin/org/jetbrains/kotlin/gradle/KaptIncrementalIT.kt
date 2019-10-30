@@ -14,7 +14,7 @@ open class KaptIncrementalIT : BaseGradleIT() {
     open fun getProject() =
         Project(
             "kaptIncrementalCompilationProject",
-            GradleVersionRequired.None
+            TestGradleRequirement.None
         ).apply { setupWorkingDir() }
 
     private val annotatedElements =

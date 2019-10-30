@@ -10,7 +10,7 @@ import org.junit.Test
 open class ConfigurationAvoidanceIT : BaseGradleIT() {
 
     @Test
-    fun testUnrelatedTaskNotConfigured() = with(Project("simpleProject", GradleVersionRequired.AtLeast("4.10.2"))) {
+    fun testUnrelatedTaskNotConfigured() = with(Project("simpleProject", TestGradleRequirement.AtLeast("4.10.2"))) {
         setupWorkingDir()
 
         val expensivelyConfiguredTaskName = "expensivelyConfiguredTask"

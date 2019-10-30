@@ -816,7 +816,7 @@ open class KotlinGradleIT : BaseGradleIT() {
     }
 
     @Test
-    fun testKt29971() = with(Project("kt-29971", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testKt29971() = with(Project("kt-29971", minGradle = TestGradle.v5_0)) {
         build("jvm-app:build") {
             assertSuccessful()
             assertTasksExecuted(":jvm-app:compileKotlin")
@@ -824,7 +824,7 @@ open class KotlinGradleIT : BaseGradleIT() {
     }
 
     @Test
-    fun testDetectingDifferentClassLoaders() = with(Project("kt-27059-pom-rewriting", GradleVersionRequired.AtLeast("4.10.2"))) {
+    fun testDetectingDifferentClassLoaders() = with(Project("kt-27059-pom-rewriting", minGradle = TestGradle.v4_10_2)) {
         setupWorkingDir()
 
         val originalRootBuildScript = gradleBuildScript().readText()
@@ -890,7 +890,7 @@ open class KotlinGradleIT : BaseGradleIT() {
     }
 
     @Test
-    fun testNewModelInOldJvmPlugin() = with(Project("new-model-in-old-plugin", GradleVersionRequired.AtLeast("4.10.2"))) {
+    fun testNewModelInOldJvmPlugin() = with(Project("new-model-in-old-plugin", minGradle = TestGradle.v4_10_2)) {
         setupWorkingDir()
         gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 

@@ -20,7 +20,7 @@ open class KaptIncrementalWithIsolatingApt : KaptIncrementalIT() {
     override fun getProject() =
         Project(
             "kaptIncrementalCompilationProject",
-            GradleVersionRequired.None
+            TestGradleRequirement.None
         ).apply {
             setupIncrementalAptProject("ISOLATING")
         }

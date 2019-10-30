@@ -18,7 +18,7 @@ open class KaptIncrementalWithAggregatingApt : KaptIncrementalIT() {
     override fun getProject() =
         Project(
             "kaptIncrementalCompilationProject",
-            GradleVersionRequired.None
+            TestGradleRequirement.None
         ).apply {
             setupIncrementalAptProject("AGGREGATING")
         }
@@ -105,7 +105,7 @@ open class KaptIncrementalWithAggregatingApt : KaptIncrementalIT() {
     fun testClasspathChanges() {
         val project = Project(
             "incrementalMultiproject",
-            GradleVersionRequired.None
+            TestGradleRequirement.None
         ).apply {
             setupWorkingDir()
             val processorPath = generateProcessor("AGGREGATING")

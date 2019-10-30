@@ -54,10 +54,9 @@ open class PluginsDslIT : BaseGradleIT() {
 
         private fun BaseGradleIT.projectWithMavenLocalPlugins(
             projectName: String,
-            wrapperVersion: GradleVersionRequired = GradleVersionRequired.None,
             directoryPrefix: String? = DIRECTORY_PREFIX,
             minLogLevel: LogLevel = LogLevel.DEBUG
-        ): Project = transformProjectWithPluginsDsl(projectName, wrapperVersion, directoryPrefix, minLogLevel)
+        ): Project = transformProjectWithPluginsDsl(projectName, directoryPrefix, minLogLevel)
     }
 }
 
@@ -66,12 +65,11 @@ internal const val PLUGIN_MARKER_VERSION_PLACEHOLDER = "<pluginMarkerVersion>"
 
 internal fun BaseGradleIT.transformProjectWithPluginsDsl(
     projectName: String,
-    wrapperVersion: GradleVersionRequired = defaultGradleVersion,
     directoryPrefix: String? = null,
     minLogLevel: LogLevel = LogLevel.DEBUG
 ): BaseGradleIT.Project {
 
-    val result = Project(projectName, wrapperVersion, directoryPrefix, minLogLevel)
+    val result = Project(projectName, directoryPrefix, minLogLevel = minLogLevel)
     result.setupWorkingDir()
 
     val settingsGradle = File(result.projectDir, "settings.gradle").takeIf(File::exists)

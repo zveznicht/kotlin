@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.gradle
 
-import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.util.checkBytecodeContains
 import org.jetbrains.kotlin.gradle.util.modify
 import org.junit.Test
@@ -149,7 +148,7 @@ open class SubpluginsIT : BaseGradleIT() {
         var isFailed = false
         project.build("build", options = options) {
             val classesDir = kotlinClassesDir("app", "main")
-            if (project.testGradleVersionAtLeast("5.0")) {
+            if (project.testGradle >= TestGradle.v5_0) {
                 assertSuccessful()
                 assertFileExists("${classesDir}World.class")
                 assertFileExists("${classesDir}Alice.class")
@@ -160,10 +159,9 @@ open class SubpluginsIT : BaseGradleIT() {
                     assertCompiledKotlinSources(project.relativize(bobGreet, aliceGreet, worldGreet, greetScriptTemplateKt))
                 }
             } else {
-                val usedGradleVersion = project.chooseWrapperVersionOrFinishTest()
                 assertEquals(
-                    true, usedGradleVersion.substringBefore('.').toIntOrNull()?.let { it < 5 },
-                    "Expected gradle version < 5, got $usedGradleVersion"
+                    true, project.testGradle < TestGradle.v5_0,
+                    "Expected gradle version < 5, got ${project.testGradle}"
                 )
                 assertContains("kotlin scripting plugin: incompatible Gradle version")
                 isFailed = true

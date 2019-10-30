@@ -15,16 +15,12 @@ import kotlin.test.assertEquals
 import kotlin.test.fail
 
 open class CocoaPodsIT : BaseGradleIT() {
-
-    // We use Kotlin DSL. Earlier Gradle versions fail at accessors codegen.
-    val gradleVersion = GradleVersionRequired.None
-
     val PODFILE_IMPORT_DIRECTIVE_PLACEHOLDER = "<import_mode_directive>"
 
     @Test
     fun testPodspec() {
         assumeTrue(HostManager.hostIsMac)
-        val gradleProject = transformProjectWithPluginsDsl("new-mpp-cocoapods", gradleVersion)
+        val gradleProject = transformProjectWithPluginsDsl("new-mpp-cocoapods")
 
         // Check that the podspec task fails if there is no Gradle wrapper in the project.
         gradleProject.build(":kotlin-library:podspec") {
@@ -93,7 +89,7 @@ open class CocoaPodsIT : BaseGradleIT() {
     @Test
     fun testInterop() {
         assumeTrue(HostManager.hostIsMac)
-        val gradleProject = transformProjectWithPluginsDsl("new-mpp-cocoapods", gradleVersion)
+        val gradleProject = transformProjectWithPluginsDsl("new-mpp-cocoapods")
         with(gradleProject) {
             // Check that a project with CocoaPods interop fails to be built from command line.
             build(":kotlin-library:build") {
@@ -155,7 +151,7 @@ open class CocoaPodsIT : BaseGradleIT() {
 
     private fun doTestXcode(mode: ImportMode) {
         assumeTrue(HostManager.hostIsMac)
-        val gradleProject = transformProjectWithPluginsDsl("new-mpp-cocoapods", gradleVersion)
+        val gradleProject = transformProjectWithPluginsDsl("new-mpp-cocoapods")
 
         with(gradleProject) {
             // Generate podspec.

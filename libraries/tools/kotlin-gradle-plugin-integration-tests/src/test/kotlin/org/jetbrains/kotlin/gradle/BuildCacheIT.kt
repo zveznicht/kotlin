@@ -25,7 +25,7 @@ open class BuildCacheIT : BaseGradleIT() {
         super.defaultBuildOptions().copy(withBuildCache = true)
 
     companion object {
-        private val GRADLE_VERSION = GradleVersionRequired.None
+        private val GRADLE_VERSION = TestGradleRequirement.None
     }
 
     @Test

@@ -69,7 +69,7 @@ open class Kapt3WorkersIT : Kapt3IT() {
         Assume.assumeTrue("JDK 10 isn't available", javaHome.isDirectory)
         val options = defaultBuildOptions().copy(javaHome = javaHome)
 
-        val project = Project("simple", directoryPrefix = "kapt2", gradleVersionRequirement = GradleVersionRequired.AtLeast("4.7"))
+        val project = Project("simple", directoryPrefix = "kapt2")
         project.build("build", options = options) {
             assertSuccessful()
             assertKaptSuccessful()
@@ -84,7 +84,7 @@ open class Kapt3WorkersIT : Kapt3IT() {
         Assume.assumeTrue("JDK 11 isn't available", javaHome.isDirectory)
         val options = defaultBuildOptions().copy(javaHome = javaHome)
 
-        val project = Project("simple", directoryPrefix = "kapt2", gradleVersionRequirement = GradleVersionRequired.AtLeast("5.0"))
+        val project = Project("simple", directoryPrefix = "kapt2", minGradle = TestGradle.v5_0)
         project.build("build", options = options) {
             assertSuccessful()
             assertKaptSuccessful()
@@ -646,7 +646,7 @@ open class Kapt3IT : Kapt3BaseIT() {
         Assume.assumeTrue("JDK 11 isn't available", javaHome.isDirectory)
         val options = defaultBuildOptions().copy(javaHome = javaHome)
 
-        val project = Project("simple", directoryPrefix = "kapt2", gradleVersionRequirement = GradleVersionRequired.AtLeast("5.0")).also {
+        val project = Project("simple", directoryPrefix = "kapt2", minGradle = TestGradle.v5_0).also {
             it.setupWorkingDir()
             it.gradleBuildScript().appendText("\nsourceCompatibility = '8'")
         }

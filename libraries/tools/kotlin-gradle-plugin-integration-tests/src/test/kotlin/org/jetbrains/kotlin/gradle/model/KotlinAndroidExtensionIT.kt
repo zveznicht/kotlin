@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.gradle.model
 
 import org.jetbrains.kotlin.gradle.BaseGradleIT
-import org.jetbrains.kotlin.gradle.GradleVersionRequired
 import org.jetbrains.kotlin.gradle.util.AGPVersion
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.junit.Test

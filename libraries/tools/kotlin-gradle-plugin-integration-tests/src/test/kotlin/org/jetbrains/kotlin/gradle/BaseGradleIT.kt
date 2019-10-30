@@ -16,10 +16,7 @@ import org.jetbrains.kotlin.gradle.plugin.internal.KOTLIN_NATIVE_JVM_ARGS_PROPER
 import org.jetbrains.kotlin.gradle.util.*
 import org.jetbrains.kotlin.kapt3.base.util.measureTimeMillisWithResult
 import org.jetbrains.kotlin.test.util.trimTrailingWhitespaces
-import org.junit.After
-import org.junit.AfterClass
-import org.junit.Assert
-import org.junit.Before
+import org.junit.*
 import java.io.File
 import java.util.regex.Pattern
 import kotlin.collections.HashSet
@@ -37,8 +34,8 @@ abstract class BaseGradleIT {
 
     protected open fun defaultBuildOptions(): BuildOptions = BuildOptions(withDaemon = true)
 
-    open val defaultGradleVersion: GradleVersionRequired
-        get() = GradleVersionRequired.None
+    open val defaultMinGradle: TestGradle = TestGradle.OLDEST
+    open val defaultMaxGradle: TestGradle = TestGradle.NEWEST
 
     open val useMinVersion: Boolean = true
 
@@ -79,7 +76,7 @@ abstract class BaseGradleIT {
 
     companion object {
         data class GradleDaemon(
-            val version: String,
+            val testGradle: TestGradle,
             val gradleUserHome: File,
             val javaHome: File
         )
@@ -94,14 +91,14 @@ abstract class BaseGradleIT {
             val parentDaemon = System.getProperty("runnerGradleVersion")?.let { version ->
                 val gradleUserHome = notNullSystemProperty("runnerGradleUserHome")
                 val javaHome = notNullSystemProperty("runnerGradleJavaHome")
-                GradleDaemon(version = version, gradleUserHome = File(gradleUserHome), javaHome = File(javaHome))
+                GradleDaemon(testGradle = TestGradle.fromString(version), gradleUserHome = File(gradleUserHome), javaHome = File(javaHome))
             }
 
             val activeDaemons: Set<GradleDaemon>
                 get() = daemons.keys
 
             fun register(daemon: GradleDaemon, env: EnvironmentVariables): DaemonStatus {
-                fun newStatus() = DaemonStatus(createNewWrapperDir(daemon.version), env)
+                fun newStatus() = DaemonStatus(createNewWrapperDir(daemon.testGradle), env)
 
                 // prevents shutting down parent Gradle process
                 if (daemon == parentDaemon) return newStatus()
@@ -139,13 +136,13 @@ abstract class BaseGradleIT {
 
         @Synchronized
         fun prepareWrapper(
-            version: String,
+            testGradle: TestGradle,
             env: EnvironmentVariables,
             withDaemon: Boolean = true
         ): File {
-            if (!withDaemon) return createNewWrapperDir(version)
+            if (!withDaemon) return createNewWrapperDir(testGradle)
 
-            val daemon = GradleDaemon(version = version, gradleUserHome = env.gradleUserHome, javaHome = env.javaHome)
+            val daemon = GradleDaemon(testGradle = testGradle, gradleUserHome = env.gradleUserHome, javaHome = env.javaHome)
             if ((DaemonRegistry.activeDaemons + daemon).size > MAX_ACTIVE_GRADLE_PROCESSES) {
                 println("Too many Gradle active processes (max is $MAX_ACTIVE_GRADLE_PROCESSES). Stopping all daemons")
                 stopAllDaemons()
@@ -161,10 +158,12 @@ abstract class BaseGradleIT {
             }
         }
 
-        private fun createNewWrapperDir(version: String): File =
-            createTempDir("GradleWrapper-$version-")
+        private fun createNewWrapperDir(testGradle: TestGradle): File {
+            val version = testGradle.toString()
+
+            return createTempDir("GradleWrapper-$version-")
                 .apply {
-                    File(BaseGradleIT.resourcesRootFile, "GradleWrapper").copyRecursively(this)
+                    File(resourcesRootFile, "GradleWrapper").copyRecursively(this)
                     val wrapperProperties = File(this, "gradle/wrapper/gradle-wrapper.properties")
                     val isGradleVerisonSnapshot = version.endsWith("+0000")
                     if (!isGradleVerisonSnapshot) {
@@ -175,7 +174,7 @@ abstract class BaseGradleIT {
                         }
                     }
                 }
-
+        }
 
         private fun stopDaemon(daemon: GradleDaemon) {
             assert(daemon != DaemonRegistry.parentDaemon) { "Not stopping Gradle daemon matching the runner Gradle process" }
@@ -240,8 +239,9 @@ abstract class BaseGradleIT {
 
     open inner class Project(
         val projectName: String,
-        val gradleVersionRequirement: GradleVersionRequired = defaultGradleVersion,
         directoryPrefix: String? = null,
+        minGradle: TestGradle = defaultMinGradle,
+        maxGradle: TestGradle = defaultMaxGradle,
         val minLogLevel: LogLevel = LogLevel.DEBUG
     ) {
         internal val testCase = this@BaseGradleIT
@@ -249,6 +249,9 @@ abstract class BaseGradleIT {
         val resourceDirName = if (directoryPrefix != null) "$directoryPrefix/$projectName" else projectName
         open val resourcesRoot = File(resourcesRootFile, "testProject/$resourceDirName")
         val projectDir = File(workingDir.canonicalFile, projectName)
+        val testGradle: TestGradle =
+            // we don't want to test with the same version twice
+            if (useMinVersion) minGradle else maxGradle.also { Assume.assumeTrue(minGradle != maxGradle) }
 
         open fun setupWorkingDir() {
             if (projectDir.isDirectory && projectDir.listFiles().isNotEmpty()) return
@@ -332,10 +335,8 @@ abstract class BaseGradleIT {
         projectDir: File = File(workingDir, projectName),
         check: CompiledProject.() -> Unit
     ) {
-        val wrapperVersion = chooseWrapperVersionOrFinishTest()
-
         val env = options.environmentVariables()
-        val wrapperDir = prepareWrapper(wrapperVersion, env)
+        val wrapperDir = prepareWrapper(testGradle, env)
         val cmd = createBuildCommand(wrapperDir, params, options)
 
         println("<=== Test build: ${this.projectName} $cmd ===>")
@@ -369,12 +370,11 @@ abstract class BaseGradleIT {
         val arguments = mutableListOf("-Pkotlin_version=${options.kotlinVersion}")
         options.androidGradlePluginVersion?.let { arguments.add("-Pandroid_tools_version=$it") }
         val env = options.environmentVariables()
-        val wrapperVersion = chooseWrapperVersionOrFinishTest()
-        prepareWrapper(wrapperVersion, env)
+        prepareWrapper(testGradle, env)
 
         val connection = GradleConnector
             .newConnector()
-            .useGradleVersion(wrapperVersion)
+            .useGradleVersion(testGradle.toString())
             .forProjectDirectory(projectDir)
             .useGradleUserHomeDir(GRADLE_HOME_FOR_TESTS)
             .connect()
@@ -638,11 +638,6 @@ Finished executing task ':$taskName'|
 
     fun Project.classesDir(subproject: String? = null, sourceSet: String = "main", language: String = "kotlin"): String =
         (subproject?.plus("/") ?: "") + "build/classes/$language/$sourceSet/"
-
-    fun Project.testGradleVersionAtLeast(version: String): Boolean =
-        GradleVersion.version(chooseWrapperVersionOrFinishTest()) >= GradleVersion.version(version)
-
-    fun Project.testGradleVersionBelow(version: String): Boolean = !testGradleVersionAtLeast(version)
 
     fun CompiledProject.kotlinClassesDir(subproject: String? = null, sourceSet: String = "main"): String =
         project.classesDir(subproject, sourceSet, language = "kotlin")

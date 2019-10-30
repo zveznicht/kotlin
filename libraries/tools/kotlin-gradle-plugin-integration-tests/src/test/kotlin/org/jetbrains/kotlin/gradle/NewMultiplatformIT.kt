@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.gradle.util.*
 import org.jetbrains.kotlin.konan.target.CompilerOutputKind
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.junit.Assert
-import org.junit.Assume
 import org.junit.Ignore
 import org.junit.Test
 import java.util.jar.JarFile
@@ -54,7 +53,7 @@ fun configure(): NativeTargets {
 }
 
 open class NewMultiplatformIT : BaseGradleIT() {
-    val gradleVersion = GradleVersionRequired.None
+    val gradleVersion = TestGradleRequirement.None
 
     val nativeHostTargetName = configure().current
     val supportedNativeTargets = configure().supported
@@ -228,7 +227,7 @@ open class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testMavenPublishAppliedBeforeMultiplatformPlugin() =
-        with(Project("sample-lib", GradleVersionRequired.AtLeast("5.0"), "new-mpp-lib-and-app")) {
+        with(Project("sample-lib", TestGradleRequirement.AtLeast("5.0"), "new-mpp-lib-and-app")) {
             setupWorkingDir()
 
             gradleBuildScript().modify { "apply plugin: 'maven-publish'\n$it" }
@@ -280,7 +279,7 @@ open class NewMultiplatformIT : BaseGradleIT() {
     fun testJavaSupportInJvmTargets() = doTestJvmWithJava(testJavaSupportInJvmTargets = true)
 
     private fun doTestJvmWithJava(testJavaSupportInJvmTargets: Boolean) =
-        with(Project("sample-lib", GradleVersionRequired.AtLeast("5.0"), "new-mpp-lib-and-app")) {
+        with(Project("sample-lib", TestGradleRequirement.AtLeast("5.0"), "new-mpp-lib-and-app")) {
             embedProject(Project("sample-lib-gradle-kotlin-dsl", directoryPrefix = "new-mpp-lib-and-app"))
 
             lateinit var classesWithoutJava: Set<String>
@@ -997,8 +996,8 @@ open class NewMultiplatformIT : BaseGradleIT() {
 
     private fun doTestNativeBinaryDSL(
         projectName: String,
-        gradleVersionRequired: GradleVersionRequired = gradleVersion
-    ) = with(transformProjectWithPluginsDsl(projectName, gradleVersionRequired, "new-mpp-native-binaries")) {
+        gradleRequirement: TestGradleRequirement = gradleVersion
+    ) = with(transformProjectWithPluginsDsl(projectName, gradleRequirement, "new-mpp-native-binaries")) {
 
         val hostSuffix = nativeHostTargetName.capitalize()
         val binaries = mutableListOf(
@@ -1508,7 +1507,7 @@ open class NewMultiplatformIT : BaseGradleIT() {
         // Gradle 5.0 introduced a new API for Ivy repository layouts.
         // MPP plugin uses this API to download K/N if Gradle version is >= 5.0.
         // Check this too (see KT-30258).
-        with(Project("new-mpp-native-libraries", GradleVersionRequired.AtLeast("5.0"))) {
+        with(Project("new-mpp-native-libraries", TestGradleRequirement.AtLeast("5.0"))) {
             build("tasks", "-Pkotlin.native.version=1.3.50-eap-11606") {
                 assertSuccessful()
                 assertTrue(output.contains("Kotlin/Native distribution: "))
@@ -1847,7 +1846,7 @@ open class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testDependenciesDsl() = with(transformProjectWithPluginsDsl("newMppDependenciesDsl", GradleVersionRequired.AtLeast("4.10"))) {
+    fun testDependenciesDsl() = with(transformProjectWithPluginsDsl("newMppDependenciesDsl", TestGradleRequirement.AtLeast("4.10"))) {
         val originalBuildscriptContent = gradleBuildScript("app").readText()
 
         fun testDependencies() = testResolveAllConfigurations("app") {
@@ -1925,7 +1924,7 @@ open class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testKt29725() {
-        with(Project("new-mpp-native-libraries", GradleVersionRequired.Exact("5.2"))) {
+        with(Project("new-mpp-native-libraries", TestGradleRequirement(minVer = TestGradle.v5_0))) {
             // Assert that a project with a native target can be configured with Gradle 5.2
             build("tasks") {
                 assertSuccessful()
@@ -1972,7 +1971,7 @@ open class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testPomRewritingInSinglePlatformProject() = with(Project("kt-27059-pom-rewriting", GradleVersionRequired.AtLeast("4.10.2"))) {
+    fun testPomRewritingInSinglePlatformProject() = with(Project("kt-27059-pom-rewriting", TestGradleRequirement.AtLeast("4.10.2"))) {
         setupWorkingDir()
         gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 
@@ -2077,7 +2076,7 @@ open class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testAssociateCompilations() = with(Project("new-mpp-associate-compilations", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testAssociateCompilations() = with(Project("new-mpp-associate-compilations", TestGradleRequirement.AtLeast("5.0"))) {
         setupWorkingDir()
         gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 
@@ -2112,7 +2111,7 @@ open class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testTestRunsApi() = with(Project("new-mpp-associate-compilations", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testTestRunsApi() = with(Project("new-mpp-associate-compilations", TestGradleRequirement.AtLeast("5.0"))) {
         setupWorkingDir()
         gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 

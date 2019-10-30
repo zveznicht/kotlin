@@ -351,7 +351,7 @@ open class Kotlin2JsGradlePluginIT : BaseGradleIT() {
     }
 
     @Test
-    fun testNewKotlinJsPlugin() = with(Project("kotlin-js-plugin-project", GradleVersionRequired.AtLeast("4.10.2"))) {
+    fun testNewKotlinJsPlugin() = with(Project("kotlin-js-plugin-project", TestGradleRequirement.AtLeast("4.10.2"))) {
         setupWorkingDir()
         gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
         gradleSettingsScript().modify(::transformBuildScriptWithPluginsDsl)
@@ -398,7 +398,7 @@ open class Kotlin2JsGradlePluginIT : BaseGradleIT() {
     }
 
     @Test
-    fun testKotlinJsKarmaDownloadChrome() = with(Project("kotlin-js-karma-download-chrome", GradleVersionRequired.AtLeast("4.10.2"))) {
+    fun testKotlinJsKarmaDownloadChrome() = with(Project("kotlin-js-karma-download-chrome", TestGradleRequirement.AtLeast("4.10.2"))) {
         setupWorkingDir()
         gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
         gradleSettingsScript().modify(::transformBuildScriptWithPluginsDsl)
@@ -415,7 +415,7 @@ open class Kotlin2JsGradlePluginIT : BaseGradleIT() {
     }
 
     @Test
-    fun testYarnSetup() = with(Project("yarn-setup", GradleVersionRequired.AtLeast("4.10.2"))) {
+    fun testYarnSetup() = with(Project("yarn-setup", TestGradleRequirement.AtLeast("4.10.2"))) {
         setupWorkingDir()
         gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
         gradleSettingsScript().modify(::transformBuildScriptWithPluginsDsl)

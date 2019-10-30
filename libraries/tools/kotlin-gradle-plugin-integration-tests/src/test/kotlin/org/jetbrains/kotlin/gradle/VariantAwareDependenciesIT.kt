@@ -10,11 +10,9 @@ import org.jetbrains.kotlin.gradle.util.testResolveAllConfigurations
 import org.junit.Test
 
 open class VariantAwareDependenciesIT : BaseGradleIT() {
-    private val gradleVersion = GradleVersionRequired.None
-
     @Test
     fun testJvmKtAppResolvesMppLib() {
-        val outerProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
+        val outerProject = Project("sample-lib", "new-mpp-lib-and-app")
         val innerProject = Project("simpleProject")
 
         with(outerProject) {
@@ -29,7 +27,7 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
 
     @Test
     fun testJsKtAppResolvesMppLib() {
-        val outerProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
+        val outerProject = Project("sample-lib", "new-mpp-lib-and-app")
         val innerProject = Project("kotlin2JsInternalTest")
 
         with(outerProject) {
@@ -44,7 +42,7 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
 
     @Test
     fun testMppLibResolvesJvmKtApp() {
-        val outerProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
+        val outerProject = Project("sample-lib", "new-mpp-lib-and-app")
         val innerProject = Project("simpleProject")
 
         with(outerProject) {
@@ -57,7 +55,7 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
 
     @Test
     fun testMppLibResolvesJsKtApp() {
-        val outerProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
+        val outerProject = Project("sample-lib", "new-mpp-lib-and-app")
         val innerProject = Project("kotlin2JsInternalTest")
 
         with(outerProject) {
@@ -70,7 +68,7 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
 
     @Test
     fun testNonKotlinJvmAppResolvesMppLib() {
-        val outerProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
+        val outerProject = Project("sample-lib", "new-mpp-lib-and-app")
         val innerProject = Project("simpleProject").apply {
             setupWorkingDir()
             gradleBuildScript().modify {
@@ -78,7 +76,7 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
                     .replace("\"org.jetbrains.kotlin:kotlin-stdlib\"", "\"org.jetbrains.kotlin:kotlin-stdlib:\$kotlin_version\"")
             }
 
-            if (testGradleVersionAtLeast("5.3-rc-1")) {
+            if (testGradle >= TestGradle.v5_3_RC_2) {
                 gradleBuildScript().appendText(
                     // In Gradle 5.3, the variants of a Kotlin MPP can't be disambiguated in a pure Java project's deprecated
                     // configurations that don't have a proper 'org.gradle.usage' attribute value, see KT-30378
@@ -103,7 +101,7 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
 
     @Test
     fun testJvmKtAppResolvesJvmKtApp() {
-        val outerProject = Project("simpleProject", gradleVersion)
+        val outerProject = Project("simpleProject")
         val innerProject = Project("jvmTarget") // cannot use simpleApp again, should be another project
 
         with(outerProject) {
@@ -116,7 +114,7 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
 
     @Test
     fun testJsKtAppResolvesJsKtApp() {
-        val outerProject = Project("kotlin2JsInternalTest", gradleVersion)
+        val outerProject = Project("kotlin2JsInternalTest")
         val innerProject = Project("kotlin2JsNoOutputFileProject")
 
         with(outerProject) {
@@ -129,7 +127,7 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
 
     @Test
     fun testMppResolvesJvmAndJsKtLibs() {
-        val outerProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
+        val outerProject = Project("sample-lib", "new-mpp-lib-and-app")
         val innerJvmProject = Project("simpleProject")
         val innerJsProject = Project("kotlin2JsInternalTest")
 
@@ -152,7 +150,7 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
 
     @Test
     fun testJvmKtAppDependsOnMppTestRuntime() {
-        val outerProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
+        val outerProject = Project("sample-lib", "new-mpp-lib-and-app")
         val innerProject = Project("simpleProject")
 
         with(outerProject) {
@@ -198,7 +196,7 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
     }
 
     @Test
-    fun testResolvesOldKotlinArtifactsPublishedWithMetadata() = with(Project("multiplatformProject", gradleVersion)) {
+    fun testResolvesOldKotlinArtifactsPublishedWithMetadata() = with(Project("multiplatformProject")) {
         setupWorkingDir()
         projectDir.resolve("settings.gradle").appendText("\nenableFeaturePreview 'GRADLE_METADATA'")
         gradleBuildScript().appendText(
@@ -254,7 +252,7 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
     // Starting with Gradle 5.0, plain Maven dependencies are represented as two variants, and resolving them to the API one leads
     // to transitive dependencies left out of the resolution results. We need to ensure that our attributes schema does not lead to the API
     // variants chosen over the runtime ones when resolving a configuration with no required Usage:
-        with(Project("simpleProject", GradleVersionRequired.AtLeast("5.0-milestone-1"))) {
+        with(Project("simpleProject", minGradle = TestGradle.v5_0)) {
             setupWorkingDir()
             gradleBuildScript().appendText("\ndependencies { compile 'org.jetbrains.kotlin:kotlin-compiler-embeddable' }")
 
@@ -268,8 +266,8 @@ open class VariantAwareDependenciesIT : BaseGradleIT() {
 
     @Test
     fun testCompileAndRuntimeResolutionOfElementsConfigurations() =
-        with(Project("sample-app", gradleVersion, "new-mpp-lib-and-app")) {
-            val libProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
+        with(Project("sample-app", "new-mpp-lib-and-app")) {
+            val libProject = Project("sample-lib", "new-mpp-lib-and-app")
             embedProject(libProject)
             gradleBuildScript().modify {
                 it.replace("'com.example:sample-lib:1.0'", "project('${libProject.projectName}')")

@@ -12,8 +12,8 @@ open class KotlinAndroid33GradleIT : KotlinAndroid32GradleIT() {
     override val androidGradlePluginVersion: AGPVersion
         get() = AGPVersion.v3_3_2
 
-    override val defaultGradleVersion: GradleVersionRequired
-        get() = GradleVersionRequired.AtLeast("5.1")
+    override val defaultGradleRequirement: TestGradleRequirement
+        get() = TestGradleRequirement(minVer = TestGradle.v5_0)
 }
 
 open class KotlinAndroid32GradleIT : KotlinAndroid3GradleIT() {
@@ -21,7 +21,7 @@ open class KotlinAndroid32GradleIT : KotlinAndroid3GradleIT() {
         get() = AGPVersion.v3_2_0
 
     @Test
-    fun testAndroidWithNewMppApp() = with(Project("new-mpp-android", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testAndroidWithNewMppApp() = with(Project("new-mpp-android", TestGradleRequirement(minVer = TestGradle.v5_0))) {
         build("assemble", "compileDebugUnitTestJavaWithJavac", "printCompilerPluginOptions") {
             assertSuccessful()
 
@@ -206,7 +206,7 @@ open class KotlinAndroid32GradleIT : KotlinAndroid3GradleIT() {
     }
 
     @Test
-    fun testAndroidMppProductionDependenciesInTests() = with(Project("new-mpp-android", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testAndroidMppProductionDependenciesInTests() = with(Project("new-mpp-android", TestGradleRequirement(minVer = TestGradle.v5_0))) {
         // Test the fix for KT-29343
         setupWorkingDir()
 
@@ -260,7 +260,7 @@ open class KotlinAndroid32GradleIT : KotlinAndroid3GradleIT() {
     }
 
     @Test
-    fun testCustomAttributesInAndroidTargets() = with(Project("new-mpp-android", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testCustomAttributesInAndroidTargets() = with(Project("new-mpp-android", TestGradleRequirement(minVer = TestGradle.v5_0))) {
         // Test the fix for KT-27714
 
         setupWorkingDir()
@@ -405,8 +405,8 @@ open class KotlinAndroid30GradleIT : KotlinAndroid3GradleIT() {
     override val androidGradlePluginVersion: AGPVersion
         get() = AGPVersion.v3_0_0
 
-    override val defaultGradleVersion: GradleVersionRequired
-        get() = GradleVersionRequired.Until("4.10.2")
+    override val defaultGradleRequirement: TestGradleRequirement
+        get() = TestGradleRequirement(maxVer = TestGradle.v4_10_2)
 
     @Test
     fun testOmittedStdlibVersion() = Project("AndroidProject").run {
