@@ -28,7 +28,7 @@ import kotlin.test.*
 val SYSTEM_LINE_SEPARATOR: String = System.getProperty("line.separator")
 const val TEST_GRADLE_JVM_ARGS = "-Xmx2048m -XX:MaxMetaspaceSize=512m"
 const val TEST_GRADLE_IDLE_TIMEOUT_MS = 60_000 // 1 minute
-const val TEST_KOTLIN_NATIVE_JVM_ARGS = "-Xmx1500m -XX:MaxMetaspaceSize=512m"
+const val TEST_KOTLIN_NATIVE_JVM_ARGS = "-Xmx2500m -XX:MaxMetaspaceSize=512m"
 
 @GradleTestsRootClass
 abstract class BaseGradleIT {
