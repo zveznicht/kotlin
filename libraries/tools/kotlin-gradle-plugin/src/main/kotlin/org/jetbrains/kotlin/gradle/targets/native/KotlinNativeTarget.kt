@@ -62,6 +62,11 @@ open class KotlinNativeTarget @Inject constructor(
             "org.jetbrains.kotlin.native.target",
             String::class.java
         )
+
+        val precompiledAttribute = Attribute.of(
+            "org.jetbrains.kotlin.native.precompiled",
+            Boolean::class.javaObjectType
+        )
     }
 }
 

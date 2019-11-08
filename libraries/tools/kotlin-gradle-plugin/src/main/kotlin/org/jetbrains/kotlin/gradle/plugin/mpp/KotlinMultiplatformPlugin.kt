@@ -21,6 +21,7 @@ import org.gradle.api.publish.maven.tasks.AbstractPublishToMaven
 import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.jvm.tasks.Jar
 import org.gradle.util.ConfigureUtil
+import org.jetbrains.kotlin.compilerRunner.konanHome
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.dsl.configureOrCreate
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
@@ -30,6 +31,7 @@ import org.jetbrains.kotlin.gradle.plugin.sources.DefaultLanguageSettingsBuilder
 import org.jetbrains.kotlin.gradle.plugin.sources.checkSourceSetVisibilityRequirements
 import org.jetbrains.kotlin.gradle.scripting.internal.ScriptingGradleSubplugin
 import org.jetbrains.kotlin.gradle.targets.metadata.isKotlinGranularMetadataEnabled
+import org.jetbrains.kotlin.gradle.targets.native.internal.KotlinNativeDependencyPrecompile
 import org.jetbrains.kotlin.gradle.utils.*
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
@@ -76,6 +78,7 @@ class KotlinMultiplatformPlugin(
         }
 
         setupDefaultPresets(project)
+        configureArtifactTransformations(project)
         configureDefaultVersionsResolutionStrategy(project, kotlinPluginVersion)
         configureSourceSets(project)
 
@@ -263,6 +266,27 @@ class KotlinMultiplatformPlugin(
 
         project.whenEvaluated {
             checkSourceSetVisibilityRequirements(project)
+        }
+    }
+
+    // TODO: It may worth doing it when a native target is created.
+    private fun configureArtifactTransformations(project: Project): Unit = with(project.dependencies) {
+        artifactTypes.maybeCreate("klib").apply {
+            attributes.attribute(KotlinNativeTarget.precompiledAttribute, false)
+        }
+
+        HostManager().enabledRegular.forEach { target ->
+            registerTransform(KotlinNativeDependencyPrecompile::class.java) {
+                it.from.attribute(KotlinNativeTarget.konanTargetAttribute, target.name)
+                it.from.attribute(KotlinNativeTarget.precompiledAttribute, false)
+
+                // TODO: Do we need to duplicate konanTargetAttribute here?
+                it.to.attribute(KotlinNativeTarget.konanTargetAttribute, target.name)
+                it.to.attribute(KotlinNativeTarget.precompiledAttribute, true)
+
+                it.parameters.konanTarget = target.name
+                it.parameters.konanHome = project.konanHome
+            }
         }
     }
 

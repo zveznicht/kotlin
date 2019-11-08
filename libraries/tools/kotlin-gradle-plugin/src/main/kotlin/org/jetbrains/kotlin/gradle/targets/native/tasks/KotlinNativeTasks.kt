@@ -25,6 +25,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
 import org.jetbrains.kotlin.gradle.plugin.LanguageSettingsBuilder
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.asValidFrameworkName
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
+import org.jetbrains.kotlin.gradle.targets.native.internal.CachedKlib
+import org.jetbrains.kotlin.gradle.targets.native.internal.KotlinNativeDependencyPrecompile
 import org.jetbrains.kotlin.konan.target.CompilerOutputKind
 import org.jetbrains.kotlin.konan.target.CompilerOutputKind.*
 import org.jetbrains.kotlin.konan.target.KonanTarget
@@ -488,6 +490,28 @@ open class KotlinNativeLink : AbstractKotlinNativeCompile<KotlinCommonToolOption
             }
         }
 
+    @InputFiles
+    fun getCacheFiles() = getCachedLibraries().map { it.cached }
+
+    private fun getCachedLibraries(): List<CachedKlib> {
+        if (binary.buildType != NativeBuildType.DEBUG) {
+            return emptyList()
+        }
+
+        val compileDependencies = project.configurations.getByName(binary.compilation.compileDependencyConfigurationName)
+        val artifacts = compileDependencies.incoming.artifactView {
+            it.attributes.attribute(KotlinNativeTarget.precompiledAttribute, true)
+        }
+        return artifacts.files.map {
+            assert(it.isDirectory)
+            val klibReference = it.resolve(KotlinNativeDependencyPrecompile.klibReferenceFileName)
+            val klibFile = File(klibReference.readText())
+            val cacheFile = it.resolve(KotlinNativeDependencyPrecompile.cacheFileName(compilation.konanTarget))
+
+            CachedKlib(klibFile, cacheFile)
+        }
+    }
+
     @get:Input
     val isStaticFramework: Boolean
         get() = binary.let { it is Framework && it.isStatic }
@@ -520,6 +544,10 @@ open class KotlinNativeLink : AbstractKotlinNativeCompile<KotlinCommonToolOption
             add("-Xexport-library=${it.absolutePath}")
         }
         addKey("-Xstatic-framework", isStaticFramework)
+
+        getCachedLibraries().forEach { (klib, cache) ->
+            add("-Xcached-library=${klib.absolutePath},${cache.absolutePath}")
+        }
 
         // Allow a user to force the old behaviour of a link task.
         // TODO: Remove in 1.3.70.
