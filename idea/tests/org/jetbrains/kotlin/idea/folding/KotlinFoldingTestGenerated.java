@@ -113,6 +113,11 @@ public class KotlinFoldingTestGenerated extends AbstractKotlinFoldingTest {
             runTest("idea/testData/folding/checkCollapse/doubleImportListsError.kt");
         }
 
+        @TestMetadata("expressionAccessors.kt")
+        public void testExpressionAccessors() throws Exception {
+            runTest("idea/testData/folding/checkCollapse/expressionAccessors.kt");
+        }
+
         @TestMetadata("functionLiteral.kt")
         public void testFunctionLiteral() throws Exception {
             runTest("idea/testData/folding/checkCollapse/functionLiteral.kt");
