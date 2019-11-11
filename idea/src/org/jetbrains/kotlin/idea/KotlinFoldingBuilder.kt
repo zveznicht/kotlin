@@ -40,7 +40,6 @@ import org.jetbrains.kotlin.psi.psiUtil.allChildren
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
-import org.jetbrains.kotlin.psi.stubs.elements.KtFunctionElementType
 import org.jetbrains.kotlin.resolve.calls.components.isVararg
 
 class KotlinFoldingBuilder : CustomFoldingBuilder(), DumbAware {
@@ -112,7 +111,7 @@ class KotlinFoldingBuilder : CustomFoldingBuilder(), DumbAware {
                 (type == KtNodeTypes.BLOCK && parentType != KtNodeTypes.FUNCTION_LITERAL) ||
                 type == KtNodeTypes.CLASS_BODY || type == KtTokens.BLOCK_COMMENT || type == KDocTokens.KDOC ||
                 type == KtNodeTypes.STRING_TEMPLATE || type == KtNodeTypes.PRIMARY_CONSTRUCTOR || type == KtNodeTypes.WHEN ||
-                (treeParent is KtDeclarationWithInitializer && treeParent.initializer == psi) ||
+                (psi is KtDeclarationWithInitializer && psi.hasInitializer()) ||
                 node.shouldFoldCollection(document)
     }
 
@@ -136,17 +135,25 @@ class KotlinFoldingBuilder : CustomFoldingBuilder(), DumbAware {
     }
 
     private fun getRangeToFold(node: ASTNode): TextRange {
+        val psi = node.psi
+        if (psi is KtDeclarationWithInitializer) {
+            val initializer = psi.initializer
+            if (initializer != null) {
+                return initializer.textRange
+            }
+        }
+
         if (node.elementType == KtNodeTypes.FUNCTION_LITERAL) {
-            val psi = node.psi as? KtFunctionLiteral
-            val lbrace = psi?.lBrace
-            val rbrace = psi?.rBrace
+            val functionLiteral = psi as? KtFunctionLiteral
+            val lbrace = functionLiteral?.lBrace
+            val rbrace = functionLiteral?.rBrace
             if (lbrace != null && rbrace != null) {
                 return TextRange(lbrace.startOffset, rbrace.endOffset)
             }
         }
 
         if (node.elementType == KtNodeTypes.CALL_EXPRESSION) {
-            val valueArgumentList = (node.psi as? KtCallExpression)?.valueArgumentList
+            val valueArgumentList = (psi as? KtCallExpression)?.valueArgumentList
             val leftParenthesis = valueArgumentList?.leftParenthesis
             val rightParenthesis = valueArgumentList?.rightParenthesis
             if (leftParenthesis != null && rightParenthesis != null) {
@@ -155,7 +162,7 @@ class KotlinFoldingBuilder : CustomFoldingBuilder(), DumbAware {
         }
         
         if (node.elementType == KtNodeTypes.WHEN) {
-            val whenExpression = node.psi as? KtWhenExpression
+            val whenExpression = psi as? KtWhenExpression
             val openBrace = whenExpression?.openBrace
             val closeBrace = whenExpression?.closeBrace
             if (openBrace != null && closeBrace != null) {
