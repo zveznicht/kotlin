@@ -104,17 +104,15 @@ class KotlinFoldingBuilder : CustomFoldingBuilder(), DumbAware {
 
     private fun needFolding(node: ASTNode, document: Document): Boolean {
         val type = node.elementType
+        val treeParent = node.treeParent?.psi
         val parentType = node.treeParent?.elementType
-        
-        if (type is KtFunctionElementType) {
-            val bodyExpression = (node.psi as? KtNamedFunction)?.bodyExpression
-            if (bodyExpression != null && bodyExpression !is KtBlockExpression) return true
-        }
+        val psi = node.psi
 
         return type == KtNodeTypes.FUNCTION_LITERAL ||
                 (type == KtNodeTypes.BLOCK && parentType != KtNodeTypes.FUNCTION_LITERAL) ||
                 type == KtNodeTypes.CLASS_BODY || type == KtTokens.BLOCK_COMMENT || type == KDocTokens.KDOC ||
                 type == KtNodeTypes.STRING_TEMPLATE || type == KtNodeTypes.PRIMARY_CONSTRUCTOR || type == KtNodeTypes.WHEN ||
+                (treeParent is KtDeclarationWithInitializer && treeParent.initializer == psi) ||
                 node.shouldFoldCollection(document)
     }
 
@@ -138,13 +136,6 @@ class KotlinFoldingBuilder : CustomFoldingBuilder(), DumbAware {
     }
 
     private fun getRangeToFold(node: ASTNode): TextRange {
-        if (node.elementType is KtFunctionElementType) {
-            val bodyExpression = (node.psi as? KtNamedFunction)?.bodyExpression
-            if (bodyExpression != null && bodyExpression !is KtBlockExpression) {
-                return bodyExpression.textRange
-            }
-        }
-        
         if (node.elementType == KtNodeTypes.FUNCTION_LITERAL) {
             val psi = node.psi as? KtFunctionLiteral
             val lbrace = psi?.lBrace
