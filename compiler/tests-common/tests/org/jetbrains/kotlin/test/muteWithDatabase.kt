@@ -110,24 +110,44 @@ internal fun isMutedInDatabase(testCase: TestCase): Boolean {
     return mutedTest != null && !mutedTest.hasFailFile
 }
 
-internal fun wrapWithMuteInDatabase(testCase: TestCase, f: () -> Unit): (() -> Unit)? {
-    if (isMutedInDatabase(testCase)) {
-        return { MUTED_DO_TEST_LAMBDA(testCase) }
+internal fun wrapWithMuteInDatabase(testCase: TestCase, f: () -> Unit, testPath: String? = null): (() -> Unit)? {
+    val mutedTest = mutedSet.mutedTest(testCase)
+    if (mutedTest != null) {
+        if (!mutedTest.hasFailFile) {
+            return { MUTED_DO_TEST_LAMBDA(testCase) }
+        }
     }
-
-    val doAutoMute = DO_AUTO_MUTE ?: return null
 
     return {
         try {
             f()
         } catch (e: Throwable) {
-            val file = File(doAutoMute.file)
-            val lines = file.readLines()
-            val firstLine = lines[0]
-            val muted = lines.drop(1).toMutableList()
-            muted.add("${testKey(testCase)}, ${doAutoMute.issue}")
-            val newMuted: List<String> = mutableListOf<String>() + firstLine + muted.sorted()
-            file.writeText(newMuted.joinToString("\n"))
+            val doAutoMute = DO_AUTO_MUTE
+            if (mutedTest == null && doAutoMute != null) {
+                val file = File(doAutoMute.file)
+                val lines = file.readLines()
+                val firstLine = lines[0]
+                val muted = lines.drop(1).toMutableList()
+                muted.add("${testKey(testCase)}, ${doAutoMute.issue}")
+                val newMuted: List<String> = mutableListOf<String>() + firstLine + muted.sorted()
+                file.writeText(newMuted.joinToString("\n"))
+            }
+
+            if (mutedTest != null) {
+
+            } else {
+
+            }
+
+            if (mutedTest != null && mutedTest.hasFailFile) {
+                val extraSuffix = testCase.javaClass.getAnnotation(MuteExtraSuffix::class.java)?.value ?: ""
+                if (checkFailFile(e, testDataFile, extraSuffix)) {
+                    System.err.println("MUTED TEST (FAIL): $filePath")
+                    return
+                }
+            } else {
+
+            }
 
             throw e
         }
@@ -138,7 +158,35 @@ internal val MUTED_DO_TEST_LAMBDA = { testCase: TestCase ->
     System.err.println("MUTED TEST: ${testKey(testCase)}")
 }
 
+private fun failFile(testDataFile: File, extraSuffix: String): File? {
+    val failFile = failFileNoCheck(testDataFile, extraSuffix)
+
+    if (!failFile.exists() || !failFile.isFile) {
+        return null
+    }
+
+    return failFile
+}
+
 private fun testKey(testCase: TestCase) = "${testCase::class.java.canonicalName}.${testCase.name}"
+
+private fun rawFileNoChecks(testPathFile: File, extraSuffix: String, suffix: String): File {
+    return when {
+        testPathFile.isDirectory ->
+            File(testPathFile, "${testPathFile.name}$extraSuffix$suffix")
+        else ->
+            File("${testPathFile.path}$extraSuffix$suffix")
+    }
+}
+
+private fun muteFileNoCheck(testPathFile: File, extraSuffix: String): File {
+    return rawFileNoChecks(testPathFile, extraSuffix, ".mute")
+}
+
+private fun failFileNoCheck(testPathFile: File, extraSuffix: String): File {
+    return rawFileNoChecks(testPathFile, extraSuffix, ".fail")
+}
+
 
 fun TestCase.runTest(test: () -> Unit) {
     (wrapWithMuteInDatabase(this, test) ?: test).invoke()
