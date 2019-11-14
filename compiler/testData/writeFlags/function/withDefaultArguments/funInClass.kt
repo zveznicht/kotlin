@@ -8,7 +8,7 @@ open class MyClass() {
 }
 
 // TESTED_OBJECT_KIND: function
-// TESTED_OBJECTS: MyClass, testPublic\$default
+// TESTED_OBJECTS: MyClass, testPublic$default
 // FLAGS: ACC_PUBLIC, ACC_STATIC, ACC_SYNTHETIC
 
 // TESTED_OBJECT_KIND: function

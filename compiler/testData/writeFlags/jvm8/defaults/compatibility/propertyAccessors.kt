@@ -14,15 +14,14 @@ interface Test {
 }
 
 // TESTED_OBJECT_KIND: function
-// TESTED_OBJECTS: Test, access\$getTest\$
+// TESTED_OBJECTS: Test, access$getTest$jd
 // FLAGS: ACC_PUBLIC, ACC_STATIC, ACC_SYNTHETIC
 
 // TESTED_OBJECT_KIND: function
-// TESTED_OBJECTS: Test, access\$getTest2\$
+// TESTED_OBJECTS: Test, access$getTest2$jd
 // FLAGS: ACC_PUBLIC, ACC_STATIC, ACC_SYNTHETIC
 
-
 // TESTED_OBJECT_KIND: function
-// TESTED_OBJECTS: Test, access\$setTest2\$
+// TESTED_OBJECTS: Test, access$setTest2$jd
 // FLAGS: ACC_PUBLIC, ACC_STATIC, ACC_SYNTHETIC
 

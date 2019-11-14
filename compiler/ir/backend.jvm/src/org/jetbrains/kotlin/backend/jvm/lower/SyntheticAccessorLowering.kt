@@ -7,10 +7,7 @@ package org.jetbrains.kotlin.backend.jvm.lower
 
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.IrElementTransformerVoidWithContext
-import org.jetbrains.kotlin.backend.common.ir.copyTypeParametersFrom
-import org.jetbrains.kotlin.backend.common.ir.copyValueParametersToStatic
-import org.jetbrains.kotlin.backend.common.ir.passTypeArgumentsFrom
-import org.jetbrains.kotlin.backend.common.ir.remapTypeParameters
+import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.codegen.isJvmInterface
@@ -38,6 +35,7 @@ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.load.java.JavaVisibilities
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrElementTransformerVoidWithContext(), FileLoweringPass {
@@ -228,7 +226,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
 
         return buildFun {
             origin = JvmLoweredDeclarationOrigin.SYNTHETIC_ACCESSOR
-            name = source.accessorName()
+            name = source.accessorName(expression.superQualifierSymbol)
             visibility = Visibilities.PUBLIC
             modality = if (parent is IrClass && parent.isJvmInterface) Modality.OPEN else Modality.FINAL
             isSuspend = source.isSuspend // synthetic accessors of suspend functions are handled in codegen
@@ -448,21 +446,46 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
     }
 
     // Counter used to disambiguate accessors to functions with the same base name.
-    private var nameCounter = 0
+    private val nameCounterMap = mutableMapOf<IrFunction, Int>()
 
-    private fun IrFunction.accessorName(): Name {
-        val jvmName = context.methodSignatureMapper.mapFunctionName(this)
-        return Name.identifier("access\$$jvmName\$${nameCounter++}")
+    private fun drawNextNameSuffix(function: IrFunction): Int {
+        val next = nameCounterMap[function] ?: 0
+        nameCounterMap[function] = next + 1
+        return next
     }
 
+    private fun IrFunction.accessorName(superQualifier: IrClassSymbol?): Name {
+        val jvmName = context.methodSignatureMapper.mapFunctionName(this)
+        val suffix = when {
+            // The only function accessors placed on interfaces are for JvmDefault implementations
+            parent.safeAs<IrClass>()?.isJvmInterface == true -> "jd"
+
+            // Accessor for super-qualified call
+            superQualifier != null -> "s" + superQualifier.descriptor.name.asString().hashCode()
+
+            // Access to static members that need an accessor must be because they are inherited,
+            // hence accessed on a supertype.
+            isStatic -> "s" + parent.fqNameForIrSerialization.hashCode()
+
+            else -> drawNextNameSuffix(this)
+        }
+        return Name.identifier("access\$$jvmName\$$suffix")
+    }
+
+
+    // The only static field accessors are those for fields moved from companion objects, hence a
+    // "companion property" suffix. However, companion objects for interfaces keep their fields
+    // (as interfaces cannot own fields), hence are simple "property" accessors, like everything else.
     private fun IrField.accessorNameForGetter(): Name {
         val getterName = JvmAbi.getterName(name.asString())
-        return Name.identifier("access\$prop\$$getterName\$${nameCounter++}")
+        val suffix = if (isStatic && !parentAsClass.isCompanion) "cp" else "p"
+        return Name.identifier("access\$$getterName\$$suffix")
     }
 
     private fun IrField.accessorNameForSetter(): Name {
         val setterName = JvmAbi.setterName(name.asString())
-        return Name.identifier("access\$prop\$$setterName\$${nameCounter++}")
+        val suffix = if (isStatic && !parentAsClass.isCompanion) "cp" else "p"
+        return Name.identifier("access\$$setterName\$$suffix")
     }
 
     private val Visibility.isPrivate
