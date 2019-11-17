@@ -1447,9 +1447,6 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         leaveTasks.add(answer -> {
             int index = myFrameMap.leave(functionDescriptor);
 
-            assert !functionDescriptor.getName().isSpecial()
-                    : "Local variable should be generated only for function with name: " + localFunction.getText();
-
             String functionIndex = StringsKt.substringAfterLast(type.getInternalName(), '$', "");
             assert !functionIndex.isEmpty();
 
@@ -2536,6 +2533,8 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         callGenerator.genCall(callableMethod, resolvedCall, defaultMaskWasGenerated, this);
 
         if (isSuspendNoInlineCall) {
+            addReturnsUnitMarkerIfNecessary(v, resolvedCall);
+
             addSuspendMarker(v, false);
             addInlineMarker(v, false);
         }
@@ -3297,7 +3296,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         else if (opToken == KtTokens.EQEQ || opToken == KtTokens.EXCLEQ ||
                  opToken == KtTokens.EQEQEQ || opToken == KtTokens.EXCLEQEQEQ) {
             return generateEquals(
-                    expression.getLeft(), expression.getRight(), opToken, null,
+                    expression.getLeft(), expression.getRight(), opToken, null, null,
                     bindingContext.get(BindingContext.PRIMITIVE_NUMERIC_COMPARISON_INFO, expression)
             );
         }
@@ -3372,6 +3371,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             @Nullable KtExpression right,
             @NotNull IElementType opToken,
             @Nullable StackValue pregeneratedSubject,
+            @Nullable KotlinType subjectKotlinType,
             @Nullable PrimitiveNumericComparisonInfo primitiveNumericComparisonInfo
     ) {
         if (left == null || right == null) {
@@ -3382,7 +3382,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             });
         }
 
-        KotlinType leftKotlinType = kotlinType(left);
+        KotlinType leftKotlinType = (subjectKotlinType != null) ? subjectKotlinType : kotlinType(left);
         KotlinType rightKotlinType = kotlinType(right);
         boolean leftIsInlineClass = leftKotlinType != null && InlineClassesUtilsKt.isInlineClassType(leftKotlinType);
         boolean rightIsInlineClass = rightKotlinType != null && InlineClassesUtilsKt.isInlineClassType(rightKotlinType);
@@ -3871,12 +3871,10 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         Type type = expressionType(exp);
         StackValue argument = pregeneratedExpr != null ? pregeneratedExpr : gen(exp);
 
-        if (kotlinType == null || TypeUtils.isNullableType(kotlinType)) {
+        if (kotlinType == null || TypeUtils.isNullableType(kotlinType) || !InlineClassesUtilsKt.isInlineClassType(kotlinType)) {
             return StackValue.compareWithNull(argument, (KtTokens.EQEQ == opToken || KtTokens.EQEQEQ == opToken) ? IFNONNULL : IFNULL);
         } else {
-            // If exp has a non-nullable type, the comparison is vacuous.
-            // For inline classes we cannot necessarily compare with null at all.
-            // In this case the code below is necessary for correctness, not just an optimization.
+            // If exp is an unboxed inline class value the comparison is vacuous
             return StackValue.operation(Type.BOOLEAN_TYPE, v -> {
                 argument.put(type, kotlinType, v);
                 AsmUtil.pop(v, type);
@@ -4892,10 +4890,10 @@ The "returned" value of try expression with no finally is either the last expres
         return generateIsCheck(match, expression.getTypeReference(), expression.isNegated());
     }
 
-    private StackValue generateExpressionMatch(StackValue expressionToMatch, KtExpression subjectExpression, KtExpression patternExpression) {
+    private StackValue generateExpressionMatch(StackValue expressionToMatch, KtExpression subjectExpression, KotlinType subjectKotlinType, KtExpression patternExpression) {
         if (expressionToMatch != null) {
             return generateEquals(
-                    subjectExpression, patternExpression, KtTokens.EQEQ, expressionToMatch,
+                    subjectExpression, patternExpression, KtTokens.EQEQ, expressionToMatch, subjectKotlinType,
                     bindingContext.get(BindingContext.PRIMITIVE_NUMERIC_COMPARISON_INFO, patternExpression)
             );
         }
@@ -4996,6 +4994,7 @@ The "returned" value of try expression with no finally is either the last expres
             else {
                 subjectLocal = -1;
                 subjectType = Type.VOID_TYPE;
+                subjectKotlinType = null;
             }
 
             Label begin = new Label();
@@ -5015,7 +5014,7 @@ The "returned" value of try expression with no finally is either the last expres
                 if (!whenEntry.isElse()) {
                     KtWhenCondition[] conditions = whenEntry.getConditions();
                     for (int i = 0; i < conditions.length; i++) {
-                        StackValue conditionValue = generateWhenCondition(subjectExpression, subjectType, subjectLocal, conditions[i]);
+                        StackValue conditionValue = generateWhenCondition(subjectExpression, subjectType, subjectKotlinType, subjectLocal, conditions[i]);
                         BranchedValue.Companion.condJump(conditionValue, nextCondition, true, v);
                         if (i < conditions.length - 1) {
                             v.goTo(thisEntry);
@@ -5069,7 +5068,7 @@ The "returned" value of try expression with no finally is either the last expres
         }
     }
 
-    private StackValue generateWhenCondition(KtExpression subjectExpression, Type subjectType, int subjectLocal, KtWhenCondition condition) {
+    private StackValue generateWhenCondition(KtExpression subjectExpression, Type subjectType, KotlinType subjectKotlinType, int subjectLocal, KtWhenCondition condition) {
         if (condition instanceof KtWhenConditionInRange) {
             KtWhenConditionInRange conditionInRange = (KtWhenConditionInRange) condition;
             return generateIn(StackValue.local(subjectLocal, subjectType),
@@ -5083,7 +5082,7 @@ The "returned" value of try expression with no finally is either the last expres
         }
         else if (condition instanceof KtWhenConditionWithExpression) {
             KtExpression patternExpression = ((KtWhenConditionWithExpression) condition).getExpression();
-            return generateExpressionMatch(match, subjectExpression, patternExpression);
+            return generateExpressionMatch(match, subjectExpression, subjectKotlinType, patternExpression);
         }
         else {
             throw new UnsupportedOperationException("unsupported kind of when condition");

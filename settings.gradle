@@ -61,6 +61,7 @@ include ":kotlin-build-common",
         ":compiler:ir.ir2cfg",
         ":compiler:ir.backend.common",
         ":compiler:ir.serialization.common",
+        ":compiler:ir.serialization.jvm",
         ":compiler:ir.serialization.js",
         ":compiler:backend.js",
         ":compiler:backend.wasm",
@@ -102,6 +103,7 @@ include ":kotlin-build-common",
         ":idea:idea-jvm",
         ":idea:idea-maven",
         ":idea:idea-gradle",
+        ":idea:idea-gradle-tooling-api",
         ":idea:idea-git",
         ":idea:idea-jps-common",
         ":idea:formatter",
@@ -157,6 +159,7 @@ include ":kotlin-build-common",
         ":kotlin-source-map-loader",
         ":kotlinx-metadata",
         ":kotlinx-metadata-jvm",
+        ":kotlinx-metadata-klib",
         ":prepare:build.version",
         ":kotlin-build-common",
         ":prepare:formatter",
@@ -209,6 +212,8 @@ include ":kotlin-build-common",
         ":kotlin-scripting-compiler-embeddable",
         ":kotlin-scripting-compiler-impl",
         ":kotlin-scripting-compiler-impl-embeddable",
+        ":kotlin-scripting-dependencies",
+        ":kotlin-scripting-dependencies-maven",
         ":kotlin-scripting-jsr223",
         ":kotlin-scripting-jsr223-test",
         ":kotlin-scripting-jsr223-embeddable",
@@ -243,13 +248,17 @@ def flags = BuildPropertiesKt.getKotlinBuildPropertiesForSettings(settings)
 
 if (flags.includeCidrPlugins) {
     logger.info("Including CIDR plugins in settings.gradle")
-    include ":kotlin-ultimate:ide:common-native",
-            ":kotlin-ultimate:ide:cidr-native",
+    include ":kotlin-ultimate:ide:cidr-gradle-tooling",
+            ":kotlin-ultimate:ide:common-native",
+            ":kotlin-ultimate:ide:common-cidr-native",
+            ":kotlin-ultimate:ide:common-noncidr-native",
             ":kotlin-ultimate:ide:clion-native",
             ":kotlin-ultimate:ide:appcode-native",
+            ":kotlin-ultimate:ide:android-studio-native",
             ":kotlin-ultimate:prepare:cidr-plugin",
             ":kotlin-ultimate:prepare:clion-plugin",
-            ":kotlin-ultimate:prepare:appcode-plugin"
+            ":kotlin-ultimate:prepare:appcode-plugin",
+            ":kotlin-ultimate:prepare:mobile-mpp-plugin"
 } else {
     logger.info("NOT including CIDR plugins in settings.gradle")
 }
@@ -258,6 +267,7 @@ if (flags.includeUltimate) {
     include ":kotlin-ultimate:ultimate",
             ":kotlin-ultimate:ultimate:ultimate-runner",
             ":kotlin-ultimate:ide:common-native",
+            ":kotlin-ultimate:ide:common-noncidr-native",
             ":kotlin-ultimate:ide:ultimate-native"
     logger.info("Including extension for IJ Ultimate in settings.gradle")
 } else {
@@ -274,7 +284,6 @@ if (flags.inJpsBuildIdeaSync) {
             ":kotlin-stdlib-common",
             ":kotlin-stdlib",
             ":kotlin-stdlib-js",
-            ":kotlin-test:kotlin-test-js-ir",
             ":kotlin-stdlib-js-ir",
             ":kotlin-stdlib-jdk7",
             ":kotlin-stdlib-jdk8",
@@ -289,7 +298,6 @@ if (flags.inJpsBuildIdeaSync) {
     project(':kotlin-stdlib').projectDir = "$rootDir/libraries/stdlib/jvm" as File
     project(':kotlin-stdlib-js').projectDir = "$rootDir/libraries/stdlib/js-v1" as File
     project(':kotlin-stdlib-js-ir').projectDir = "$rootDir/libraries/stdlib/js-ir" as File
-    project(':kotlin-test:kotlin-test-js-ir').projectDir = "$rootDir/libraries/kotlin.test/js-ir" as File
     project(':kotlin-stdlib-jdk7').projectDir = "$rootDir/libraries/stdlib/jdk7" as File
     project(':kotlin-stdlib-jdk8').projectDir = "$rootDir/libraries/stdlib/jdk8" as File
     project(':kotlin-stdlib:samples').projectDir = "$rootDir/libraries/stdlib/samples" as File
@@ -317,6 +325,7 @@ project(':kotlin-reflect').projectDir = "$rootDir/libraries/reflect" as File
 project(':kotlin-reflect-api').projectDir = "$rootDir/libraries/reflect/api" as File
 project(':kotlinx-metadata').projectDir = "$rootDir/libraries/kotlinx-metadata" as File
 project(':kotlinx-metadata-jvm').projectDir = "$rootDir/libraries/kotlinx-metadata/jvm" as File
+project(':kotlinx-metadata-klib').projectDir = "$rootDir/libraries/kotlinx-metadata/klib" as File
 project(':kotlin-compiler').projectDir = "$rootDir/prepare/compiler" as File
 project(':kotlin-compiler-embeddable').projectDir = "$rootDir/prepare/compiler-embeddable" as File
 project(':kotlin-compiler-client-embeddable').projectDir = "$rootDir/prepare/compiler-client-embeddable" as File
@@ -340,6 +349,7 @@ project(':compiler:backend.js').projectDir = "$rootDir/compiler/ir/backend.js" a
 project(':compiler:backend.wasm').projectDir = "$rootDir/compiler/ir/backend.wasm" as File
 project(':compiler:backend.jvm').projectDir = "$rootDir/compiler/ir/backend.jvm" as File
 project(':compiler:ir.serialization.common').projectDir = "$rootDir/compiler/ir/serialization.common" as File
+project(':compiler:ir.serialization.jvm').projectDir = "$rootDir/compiler/ir/serialization.jvm" as File
 project(':compiler:ir.serialization.js').projectDir = "$rootDir/compiler/ir/serialization.js" as File
 project(':kotlin-util-io').projectDir = "$rootDir/compiler/util-io" as File
 project(':kotlin-util-klib').projectDir = "$rootDir/compiler/util-klib" as File
@@ -392,6 +402,8 @@ project(':kotlin-scripting-jvm').projectDir = "$rootDir/libraries/scripting/jvm"
 project(':kotlin-scripting-jvm-host').projectDir = "$rootDir/libraries/scripting/jvm-host" as File
 project(':kotlin-scripting-jvm-host-test').projectDir = "$rootDir/libraries/scripting/jvm-host-test" as File
 project(':kotlin-scripting-jvm-host-embeddable').projectDir = "$rootDir/libraries/scripting/jvm-host-embeddable" as File
+project(':kotlin-scripting-dependencies').projectDir = "$rootDir/libraries/scripting/dependencies" as File
+project(':kotlin-scripting-dependencies-maven').projectDir = "$rootDir/libraries/scripting/dependencies-maven" as File
 project(':kotlin-scripting-jsr223').projectDir = "$rootDir/libraries/scripting/jsr223" as File
 project(':kotlin-scripting-jsr223-test').projectDir = "$rootDir/libraries/scripting/jsr223-test" as File
 project(':kotlin-scripting-jsr223-embeddable').projectDir = "$rootDir/libraries/scripting/jsr223-embeddable" as File

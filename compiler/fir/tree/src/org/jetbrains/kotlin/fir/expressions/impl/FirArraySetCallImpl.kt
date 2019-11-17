@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirArraySetCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
@@ -20,10 +20,10 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 class FirArraySetCallImpl(
-    override val psi: PsiElement?,
+    override val source: FirSourceElement?,
     override var rValue: FirExpression,
     override val operation: FirOperation
-) : FirArraySetCall, FirModifiableQualifiedAccess, FirAbstractAnnotatedElement {
+) : FirArraySetCall(), FirModifiableQualifiedAccess, FirAbstractAnnotatedElement {
     override val annotations: MutableList<FirAnnotationCall> = mutableListOf()
     override var safe: Boolean = false
     override var explicitReceiver: FirExpression? = null

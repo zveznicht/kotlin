@@ -5,9 +5,7 @@
 
 package org.jetbrains.kotlin.backend.jvm.descriptors
 
-import org.jetbrains.kotlin.backend.common.descriptors.WrappedClassConstructorDescriptor
-import org.jetbrains.kotlin.backend.common.descriptors.WrappedClassDescriptor
-import org.jetbrains.kotlin.backend.common.descriptors.WrappedValueParameterDescriptor
+import org.jetbrains.kotlin.backend.common.DescriptorsToIrRemapper
 import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.codegen.MethodSignatureMapper
@@ -19,12 +17,11 @@ import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.builders.setSourceRange
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.declarations.impl.IrClassImpl
-import org.jetbrains.kotlin.ir.declarations.impl.IrConstructorImpl
-import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
-import org.jetbrains.kotlin.ir.symbols.impl.IrClassSymbolImpl
-import org.jetbrains.kotlin.ir.symbols.impl.IrConstructorSymbolImpl
-import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
+import org.jetbrains.kotlin.ir.declarations.impl.*
+import org.jetbrains.kotlin.ir.descriptors.WrappedClassConstructorDescriptor
+import org.jetbrains.kotlin.ir.descriptors.WrappedClassDescriptor
+import org.jetbrains.kotlin.ir.descriptors.WrappedValueParameterDescriptor
+import org.jetbrains.kotlin.ir.symbols.impl.*
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.load.java.JavaVisibilities
@@ -41,6 +38,7 @@ class JvmDeclarationFactory(
 
     private val defaultImplsMethods = HashMap<IrSimpleFunction, IrSimpleFunction>()
     private val defaultImplsClasses = HashMap<IrClass, IrClass>()
+    private val defaultImplsRedirections = HashMap<IrSimpleFunction, IrSimpleFunction>()
 
     override fun getFieldForEnumEntry(enumEntry: IrEnumEntry, entryType: IrType): IrField =
         singletonFieldDeclarations.getOrPut(enumEntry) {
@@ -81,10 +79,17 @@ class JvmDeclarationFactory(
     private fun createInnerClassConstructorWithOuterThisParameter(oldConstructor: IrConstructor): IrConstructor {
         val newDescriptor = WrappedClassConstructorDescriptor(oldConstructor.descriptor.annotations)
         return IrConstructorImpl(
-            oldConstructor.startOffset, oldConstructor.endOffset, oldConstructor.origin,
+            oldConstructor.startOffset,
+            oldConstructor.endOffset,
+            oldConstructor.origin,
             IrConstructorSymbolImpl(newDescriptor),
-            oldConstructor.name, oldConstructor.visibility, oldConstructor.returnType,
-            oldConstructor.isInline, oldConstructor.isExternal, oldConstructor.isPrimary
+            oldConstructor.name,
+            oldConstructor.visibility,
+            oldConstructor.returnType,
+            isInline = oldConstructor.isInline,
+            isExternal = oldConstructor.isExternal,
+            isPrimary = oldConstructor.isPrimary,
+            isExpect = oldConstructor.isExpect
         ).apply {
             newDescriptor.bind(this)
             annotations.addAll(oldConstructor.annotations.map { it.deepCopyWithSymbols(this) })
@@ -172,11 +177,58 @@ class JvmDeclarationFactory(
                 isInner = false,
                 isData = false,
                 isExternal = false,
-                isInline = false
+                isInline = false,
+                isExpect = false
             ).apply {
                 descriptor.bind(this)
                 parent = interfaceClass
                 createImplicitParameterDeclarationWithWrappedDescriptor()
             }
         }
+
+    fun getDefaultImplsRedirection(fakeOverride: IrSimpleFunction): IrSimpleFunction =
+        defaultImplsRedirections.getOrPut(fakeOverride) {
+            assert(fakeOverride.origin == IrDeclarationOrigin.FAKE_OVERRIDE)
+            val irClass = fakeOverride.parentAsClass
+            val descriptor = DescriptorsToIrRemapper.remapDeclaredSimpleFunction(fakeOverride.descriptor)
+            with(fakeOverride) {
+                IrFunctionImpl(
+                    UNDEFINED_OFFSET, UNDEFINED_OFFSET, JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE,
+                    IrSimpleFunctionSymbolImpl(descriptor),
+                    name, visibility, modality, returnType,
+                    isInline = isInline,
+                    isExternal = false,
+                    isTailrec = false,
+                    isSuspend = isSuspend,
+                    isExpect = false,
+                    isFakeOverride = false
+                ).apply {
+                    descriptor.bind(this)
+                    parent = irClass
+                    overriddenSymbols.addAll(fakeOverride.overriddenSymbols)
+                    copyParameterDeclarationsFrom(fakeOverride)
+                    annotations.addAll(fakeOverride.annotations)
+                    fakeOverride.correspondingPropertySymbol?.owner?.let { fakeOverrideProperty ->
+                        // NB: property is only generated for the sake of the type mapper.
+                        // If both setter and getter are present, original property will be duplicated.
+                        val newPropertyDescriptor = DescriptorsToIrRemapper.remapDeclaredProperty(fakeOverrideProperty.descriptor)
+                        correspondingPropertySymbol = with(fakeOverrideProperty) {
+                            IrPropertyImpl(
+                                UNDEFINED_OFFSET, UNDEFINED_OFFSET,
+                                IrDeclarationOrigin.DEFINED, IrPropertySymbolImpl(newPropertyDescriptor),
+                                name, visibility, modality, isVar, isConst, isLateinit, isDelegated,
+                                isExternal = false,
+                                isExpect = isExpect
+                            ).apply {
+                                newPropertyDescriptor.bind(this)
+                                parent = irClass
+                            }.symbol
+                        }
+                    }
+                }
+            }
+
+
+        }
+
 }

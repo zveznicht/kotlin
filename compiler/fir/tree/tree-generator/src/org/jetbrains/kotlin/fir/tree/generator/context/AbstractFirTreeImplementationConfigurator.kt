@@ -150,8 +150,8 @@ abstract class AbstractFirTreeImplementationConfigurator {
             }
         }
 
-        fun noPsi() {
-            defaultNull("psi")
+        fun noSource() {
+            defaultNull("source")
         }
 
         fun defaultEmptyList(field: String) {
@@ -162,10 +162,6 @@ abstract class AbstractFirTreeImplementationConfigurator {
                 value = "emptyList()"
                 withGetter = true
             }
-        }
-
-        fun defaultSupertypesComputationStatus() {
-            default("supertypesComputationStatus", "SupertypesComputationStatus.NOT_COMPUTED")
         }
 
         fun default(field: String, init: DefaultValueContext.() -> Unit) {
@@ -180,7 +176,7 @@ abstract class AbstractFirTreeImplementationConfigurator {
             }
         }
 
-        var kind: Implementation.Kind
+        var kind: Implementation.Kind?
             get() = implementation.kind
             set(value) {
                 implementation.kind = value

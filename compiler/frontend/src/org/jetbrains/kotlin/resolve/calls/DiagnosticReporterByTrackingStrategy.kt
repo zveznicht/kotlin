@@ -32,7 +32,6 @@ import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluat
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.typeUtil.unCapture
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class DiagnosticReporterByTrackingStrategy(
@@ -137,6 +136,16 @@ class DiagnosticReporterByTrackingStrategy(
                     (diagnostic as NoneCallableReferenceCandidates).argument.psiExpression.safeAs<KtCallableReferenceExpression>()
                 reportIfNonNull(expression) {
                     trace.report(UNRESOLVED_REFERENCE.on(it.callableReference, it.callableReference))
+                }
+            }
+
+            CallableReferenceCandidatesAmbiguity::class.java -> {
+                val ambiguityDiagnostic = diagnostic as CallableReferenceCandidatesAmbiguity
+                val expression = ambiguityDiagnostic.argument.psiExpression.safeAs<KtCallableReferenceExpression>()
+                val candidates = ambiguityDiagnostic.candidates.map { it.candidate }
+                reportIfNonNull(expression) {
+                    trace.report(CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY.on(it.callableReference, candidates))
+                    trace.record(BindingContext.AMBIGUOUS_REFERENCE_TARGET, it.callableReference, candidates)
                 }
             }
 
@@ -303,6 +312,24 @@ class DiagnosticReporterByTrackingStrategy(
                     trace.report(
                         UPPER_BOUND_VIOLATED.on(
                             typeArgumentReference,
+                            constraintError.upperKotlinType,
+                            constraintError.lowerKotlinType
+                        )
+                    )
+                }
+
+                (position as? FixVariableConstraintPosition)?.let {
+                    val morePreciseDiagnosticExists = allDiagnostics.any { other ->
+                        other is NewConstraintError && other.position.from !is FixVariableConstraintPosition
+                    }
+                    if (morePreciseDiagnosticExists) return
+
+                    val call = it.resolvedAtom?.atom?.safeAs<PSIKotlinCall>()?.psiCall ?: call
+                    val expression = call.calleeExpression ?: return
+
+                    trace.reportDiagnosticOnce(
+                        TYPE_MISMATCH.on(
+                            expression,
                             constraintError.upperKotlinType,
                             constraintError.lowerKotlinType
                         )

@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.fir.declarations.impl
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirAnonymousInitializer
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.expressions.FirBlock
@@ -18,10 +18,10 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 class FirAnonymousInitializerImpl(
-    override val psi: PsiElement?,
+    override val source: FirSourceElement?,
     override val session: FirSession,
     override var body: FirBlock?
-) : FirAnonymousInitializer {
+) : FirAnonymousInitializer() {
     override var resolvePhase: FirResolvePhase = FirResolvePhase.RAW_FIR
 
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {

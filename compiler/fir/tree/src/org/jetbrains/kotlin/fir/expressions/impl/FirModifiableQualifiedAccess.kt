@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessWithoutCallee
@@ -18,47 +18,17 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 interface FirModifiableQualifiedAccess : FirQualifiedAccessWithoutCallee, FirAbstractAnnotatedElement {
-    override val psi: PsiElement?
+    override val source: FirSourceElement?
     override val annotations: MutableList<FirAnnotationCall>
     override var safe: Boolean
     override var explicitReceiver: FirExpression?
     override var dispatchReceiver: FirExpression
     override var extensionReceiver: FirExpression
-    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
-        annotations.forEach { it.accept(visitor, data) }
-        explicitReceiver?.accept(visitor, data)
-        if (dispatchReceiver !== explicitReceiver) {
-            dispatchReceiver.accept(visitor, data)
-        }
-        if (extensionReceiver !== explicitReceiver && extensionReceiver !== dispatchReceiver) {
-            extensionReceiver.accept(visitor, data)
-        }
-    }
+    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirModifiableQualifiedAccess
 
-    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirModifiableQualifiedAccess {
-        annotations.transformInplace(transformer, data)
-        explicitReceiver = explicitReceiver?.transformSingle(transformer, data)
-        if (dispatchReceiver !== explicitReceiver) {
-            dispatchReceiver = dispatchReceiver.transformSingle(transformer, data)
-        }
-        if (extensionReceiver !== explicitReceiver && extensionReceiver !== dispatchReceiver) {
-            extensionReceiver = extensionReceiver.transformSingle(transformer, data)
-        }
-        return this
-    }
+    override fun <D> transformExplicitReceiver(transformer: FirTransformer<D>, data: D): FirModifiableQualifiedAccess
 
-    override fun <D> transformExplicitReceiver(transformer: FirTransformer<D>, data: D): FirModifiableQualifiedAccess {
-        explicitReceiver = explicitReceiver?.transformSingle(transformer, data)
-        return this
-    }
+    override fun <D> transformDispatchReceiver(transformer: FirTransformer<D>, data: D): FirModifiableQualifiedAccess
 
-    override fun <D> transformDispatchReceiver(transformer: FirTransformer<D>, data: D): FirModifiableQualifiedAccess {
-        dispatchReceiver = dispatchReceiver.transformSingle(transformer, data)
-        return this
-    }
-
-    override fun <D> transformExtensionReceiver(transformer: FirTransformer<D>, data: D): FirModifiableQualifiedAccess {
-        extensionReceiver = extensionReceiver.transformSingle(transformer, data)
-        return this
-    }
+    override fun <D> transformExtensionReceiver(transformer: FirTransformer<D>, data: D): FirModifiableQualifiedAccess
 }

@@ -11,14 +11,22 @@ import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.scopes.impl.*
 
 fun MutableList<FirScope>.addImportingScopes(file: FirFile, session: FirSession, scopeSession: ScopeSession) {
-    this += listOf(
+    this += createImportingScopes(file, session, scopeSession)
+}
+
+fun createImportingScopes(
+    file: FirFile,
+    session: FirSession,
+    scopeSession: ScopeSession
+): List<FirScope> {
+    return listOf(
         // from low priority to high priority
         FirDefaultStarImportingScope(session, scopeSession, priority = DefaultImportPriority.LOW),
         FirDefaultStarImportingScope(session, scopeSession, priority = DefaultImportPriority.HIGH),
         FirExplicitStarImportingScope(file.imports, session, scopeSession),
         FirDefaultSimpleImportingScope(session, scopeSession, priority = DefaultImportPriority.LOW),
         FirDefaultSimpleImportingScope(session, scopeSession, priority = DefaultImportPriority.HIGH),
-        FirSelfImportingScope(file.packageFqName, session),
+        selfImportingScope(file.packageFqName, session),
         // TODO: explicit simple importing scope should have highest priority (higher than inner scopes added in process)
         FirExplicitSimpleImportingScope(file.imports, session, scopeSession)
     )

@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.backend.common.ir
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.DumpIrTreeWithDescriptorsVisitor
 import org.jetbrains.kotlin.backend.common.deepCopyWithVariables
-import org.jetbrains.kotlin.backend.common.descriptors.*
 import org.jetbrains.kotlin.backend.common.lower.VariableRemapper
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
@@ -22,12 +21,11 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrConstructorImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrTypeParameterImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
-import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
+import org.jetbrains.kotlin.ir.descriptors.*
 import org.jetbrains.kotlin.ir.expressions.*
-import org.jetbrains.kotlin.ir.expressions.impl.IrBlockBodyImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrDelegatingConstructorCallImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrInstanceInitializerCallImpl
+import org.jetbrains.kotlin.ir.expressions.impl.*
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrConstructorSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrTypeParameterSymbolImpl
@@ -36,7 +34,9 @@ import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
 import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
+import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DescriptorWithContainerSource
 import java.io.StringWriter
@@ -67,9 +67,10 @@ fun IrClass.addSimpleDelegatingConstructor(
         superConstructor.name,
         superConstructor.visibility,
         defaultType,
-        false,
-        false,
-        isPrimary
+        isInline = false,
+        isExternal = false,
+        isPrimary = isPrimary,
+        isExpect = false
     ).also { constructor ->
         descriptor.bind(constructor)
         constructor.parent = this
@@ -84,8 +85,8 @@ fun IrClass.addSimpleDelegatingConstructor(
             listOf(
                 IrDelegatingConstructorCallImpl(
                     startOffset, endOffset, irBuiltIns.unitType,
-                    superConstructor.symbol, superConstructor.descriptor,
-                    0, superConstructor.valueParameters.size
+                    superConstructor.symbol, 0,
+                    superConstructor.valueParameters.size
                 ).apply {
                     constructor.valueParameters.forEachIndexed { idx, parameter ->
                         putValueArgument(idx, IrGetValueImpl(startOffset, endOffset, parameter.type, parameter.symbol))
@@ -481,10 +482,12 @@ fun IrClass.addFakeOverrides() {
                 Visibilities.INHERITED,
                 irFunction.modality,
                 irFunction.returnType,
-                irFunction.isInline,
-                irFunction.isExternal,
-                irFunction.isTailrec,
-                irFunction.isSuspend
+                isInline = irFunction.isInline,
+                isExternal = irFunction.isExternal,
+                isTailrec = irFunction.isTailrec,
+                isSuspend = irFunction.isSuspend,
+                isExpect = irFunction.isExpect,
+                isFakeOverride = true
             ).apply {
                 descriptor.bind(this)
                 parent = this@addFakeOverrides
@@ -507,7 +510,8 @@ fun createStaticFunctionWithReceivers(
     oldFunction: IrFunction,
     dispatchReceiverType: IrType? = oldFunction.dispatchReceiverParameter?.type,
     origin: IrDeclarationOrigin = oldFunction.origin,
-    modality: Modality = Modality.FINAL
+    modality: Modality = Modality.FINAL,
+    copyMetadata: Boolean = true
 ): IrSimpleFunction {
     val descriptor = (oldFunction.descriptor as? DescriptorWithContainerSource)?.let {
         WrappedFunctionDescriptorWithContainerSource(it.containerSource)
@@ -521,7 +525,11 @@ fun createStaticFunctionWithReceivers(
         modality,
         oldFunction.returnType,
         isInline = oldFunction.isInline,
-        isExternal = false, isTailrec = false, isSuspend = oldFunction.isSuspend
+        isExternal = false,
+        isTailrec = false,
+        isSuspend = oldFunction.isSuspend,
+        isExpect = oldFunction.isExpect,
+        isFakeOverride = origin == IrDeclarationOrigin.FAKE_OVERRIDE
     ).apply {
         descriptor.bind(this)
         parent = irParent
@@ -546,7 +554,7 @@ fun createStaticFunctionWithReceivers(
                                        oldFunction.valueParameters.map { it.copyTo(this, index = it.index + offset) }
         )
 
-        metadata = oldFunction.metadata
+        if (copyMetadata) metadata = oldFunction.metadata
     }
 }
 
@@ -555,6 +563,31 @@ fun copyBodyToStatic(oldFunction: IrFunction, staticFunction: IrFunction) {
         (listOfNotNull(oldFunction.dispatchReceiverParameter, oldFunction.extensionReceiverParameter) + oldFunction.valueParameters)
             .zip(staticFunction.valueParameters).toMap()
     staticFunction.body = oldFunction.body
-            ?.transform(VariableRemapper(mapping), null)
-            ?.patchDeclarationParents(staticFunction)
+        ?.transform(
+            object: IrElementTransformerVoid() {
+                // Remap return targets to the static method so they do not appear to be
+                // non-local returns.
+                override fun visitReturn(expression: IrReturn): IrExpression {
+                    expression.transformChildrenVoid(this);
+                    return if (expression.returnTargetSymbol == oldFunction.symbol) {
+                        IrReturnImpl(
+                            expression.startOffset,
+                            expression.endOffset,
+                            expression.type,
+                            staticFunction.symbol,
+                            expression.value)
+                    } else expression
+                }
+
+                // Remap argument values.
+                override fun visitGetValue(expression: IrGetValue): IrExpression =
+                    mapping[expression.symbol.owner]?.let {
+                        IrGetValueImpl(expression.startOffset, expression.endOffset, it.type, it.symbol, expression.origin)
+                    } ?: expression
+
+            }, null)
+        ?.patchDeclarationParents(staticFunction)
 }
+
+val IrSymbol.isSuspend: Boolean
+    get() = this is IrSimpleFunctionSymbol && owner.isSuspend

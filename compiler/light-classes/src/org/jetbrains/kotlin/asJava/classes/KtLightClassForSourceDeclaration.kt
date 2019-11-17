@@ -105,14 +105,12 @@ abstract class KtLightClassForSourceDeclaration(
     override val lightClassData: LightClassData
         get() = findLightClassData()
 
-    protected open fun findLightClassData() = getLightClassDataHolder().
-        findDataForClassOrObject(classOrObject)
+    protected open fun findLightClassData() = getLightClassDataHolder().findDataForClassOrObject(classOrObject)
 
     private fun getJavaFileStub(): PsiJavaFileStub = getLightClassDataHolder().javaFileStub
 
-    fun getDescriptor(): ClassDescriptor? {
-        return LightClassGenerationSupport.getInstance(project).resolveToDescriptor(classOrObject) as? ClassDescriptor
-    }
+    fun getDescriptor() =
+        LightClassGenerationSupport.getInstance(project).resolveToDescriptor(classOrObject) as? ClassDescriptor
 
     protected fun getLightClassDataHolder(): LightClassDataHolder.ForClass {
         val lightClassData = getLightClassDataHolder(classOrObject)
@@ -228,7 +226,14 @@ abstract class KtLightClassForSourceDeclaration(
         if (isAbstract() || isSealed()) {
             psiModifiers.add(PsiModifier.ABSTRACT)
         } else if (!(classOrObject.hasModifier(OPEN_KEYWORD) || (classOrObject is KtClass && classOrObject.isEnum()))) {
-            psiModifiers.add(PsiModifier.FINAL)
+            val descriptor = lazy { getDescriptor() }
+            var modifier = PsiModifier.FINAL
+            project.applyCompilerPlugins {
+                modifier = it.interceptModalityBuilding(kotlinOrigin, descriptor, modifier)
+            }
+            if (modifier == PsiModifier.FINAL) {
+                psiModifiers.add(PsiModifier.FINAL)
+            }
         }
 
         if (!classOrObject.isTopLevel() && !classOrObject.hasModifier(INNER_KEYWORD)) {
@@ -353,7 +358,7 @@ abstract class KtLightClassForSourceDeclaration(
                 classOrObject is KtObjectDeclaration && classOrObject.isObjectLiteral() ->
                     KtLightClassForAnonymousDeclaration(classOrObject)
 
-                classOrObject.isLocal ->
+                classOrObject.safeIsLocal() ->
                     KtLightClassForLocalDeclaration(classOrObject)
 
                 else ->
@@ -366,9 +371,9 @@ abstract class KtLightClassForSourceDeclaration(
                 return InvalidLightClassDataHolder
             }
 
-            val containingScript = classOrObject.containingKtFile.script
+            val containingScript = classOrObject.containingKtFile.safeScript()
             return when {
-                !classOrObject.isLocal && containingScript != null ->
+                !classOrObject.safeIsLocal() && containingScript != null ->
                     KtLightClassForScript.getLightClassCachedValue(containingScript).value
                 else ->
                     getLightClassCachedValue(classOrObject).value
@@ -540,7 +545,7 @@ fun KtClassOrObject.shouldNotBeVisibleAsLightClass(): Boolean {
         return true
     }
 
-    if (isLocal) {
+    if (safeIsLocal()) {
         if (containingFile.virtualFile == null) return true
         if (hasParseErrorsAround(this) || PsiUtilCore.hasErrorElementChild(this)) return true
     }

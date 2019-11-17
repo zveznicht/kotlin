@@ -88,6 +88,9 @@ fun ControlFlowGraphBuilder.createWhenExitNode(fir: FirWhenExpression): WhenExit
 fun ControlFlowGraphBuilder.createWhenBranchResultExitNode(fir: FirWhenBranch): WhenBranchResultExitNode =
     WhenBranchResultExitNode(graph, fir, levelCounter)
 
+fun ControlFlowGraphBuilder.createWhenSyntheticElseBranchNode(fir: FirWhenExpression): WhenSyntheticElseBranchNode =
+    WhenSyntheticElseBranchNode(graph, fir, levelCounter)
+
 fun ControlFlowGraphBuilder.createWhenBranchResultEnterNode(fir: FirWhenBranch): WhenBranchResultEnterNode =
     WhenBranchResultEnterNode(graph, fir, levelCounter)
 
@@ -117,6 +120,12 @@ fun ControlFlowGraphBuilder.createAnnotationEnterNode(fir: FirAnnotationCall): A
 
 fun ControlFlowGraphBuilder.createVariableDeclarationNode(fir: FirProperty): VariableDeclarationNode =
     VariableDeclarationNode(graph, fir, levelCounter)
+
+fun ControlFlowGraphBuilder.createExitContractNode(fir: FirFunctionCall): ExitContractNode =
+    ExitContractNode(graph, fir, levelCounter)
+
+fun ControlFlowGraphBuilder.createEnterContractNode(fir: FirFunctionCall): EnterContractNode =
+    EnterContractNode(graph, fir, levelCounter)
 
 fun ControlFlowGraphBuilder.createConstExpressionNode(fir: FirConstExpression<*>): ConstExpressionNode =
     ConstExpressionNode(graph, fir, levelCounter)
@@ -162,3 +171,9 @@ fun ControlFlowGraphBuilder.createBinaryAndEnterRightOperandNode(fir: FirBinaryL
 
 fun ControlFlowGraphBuilder.createBinaryOrEnterRightOperandNode(fir: FirBinaryLogicExpression): BinaryOrEnterRightOperandNode =
     BinaryOrEnterRightOperandNode(graph, fir, levelCounter)
+
+fun ControlFlowGraphBuilder.createExitSafeCallNode(fir: FirQualifiedAccess): ExitSafeCallNode =
+    ExitSafeCallNode(graph, fir, levelCounter)
+
+fun ControlFlowGraphBuilder.createEnterSafeCallNode(fir: FirQualifiedAccess): EnterSafeCallNode =
+    EnterSafeCallNode(graph, fir, levelCounter)

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.expressions.FirDoWhileLoop
 import org.jetbrains.kotlin.fir.expressions.FirLoop
 import org.jetbrains.kotlin.fir.expressions.FirWhileLoop
 import org.jetbrains.kotlin.fir.expressions.impl.FirElseIfTrueCondition
+import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.utils.DFS
 
@@ -94,6 +95,7 @@ fun CFGNode<*>.render(): String =
                 is WhenBranchConditionExitNode -> "Exit when branch condition"
                 is WhenBranchResultEnterNode -> "Enter when branch result"
                 is WhenBranchResultExitNode -> "Exit when branch result"
+                is WhenSyntheticElseBranchNode -> "Synthetic else branch"
                 is WhenExitNode -> "Exit when"
 
                 is LoopEnterNode -> "Enter ${fir.type()} loop"
@@ -143,6 +145,12 @@ fun CFGNode<*>.render(): String =
                 is InitBlockExitNode -> "Exit init block"
                 is AnnotationEnterNode -> "Enter annotation"
                 is AnnotationExitNode -> "Exit annotation"
+
+                is EnterContractNode -> "Enter contract"
+                is ExitContractNode -> "Exit contract"
+
+                is EnterSafeCallNode -> "Enter safe call"
+                is ExitSafeCallNode -> "Exit safe call"
 
                 else -> TODO(this@render.toString())
             }

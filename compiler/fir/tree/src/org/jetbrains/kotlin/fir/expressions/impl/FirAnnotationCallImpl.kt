@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.impl.FirAbstractAnnotatedElement
@@ -19,10 +19,10 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 class FirAnnotationCallImpl(
-    override val psi: PsiElement?,
+    override val source: FirSourceElement?,
     override val useSiteTarget: AnnotationUseSiteTarget?,
     override var annotationTypeRef: FirTypeRef
-) : FirAnnotationCall, FirCallWithArgumentList, FirAbstractAnnotatedElement {
+) : FirAnnotationCall(), FirCallWithArgumentList, FirAbstractAnnotatedElement {
     override val typeRef: FirTypeRef get() = annotationTypeRef
     override val annotations: MutableList<FirAnnotationCall> = mutableListOf()
     override val arguments: MutableList<FirExpression> = mutableListOf()

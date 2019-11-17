@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
@@ -18,22 +18,10 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 interface FirCallWithArgumentList : FirCall, FirAbstractAnnotatedElement {
-    override val psi: PsiElement?
+    override val source: FirSourceElement?
     override val annotations: MutableList<FirAnnotationCall>
     override val arguments: MutableList<FirExpression>
-    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
-        annotations.forEach { it.accept(visitor, data) }
-        arguments.forEach { it.accept(visitor, data) }
-    }
+    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirCallWithArgumentList
 
-    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirCallWithArgumentList {
-        annotations.transformInplace(transformer, data)
-        transformArguments(transformer, data)
-        return this
-    }
-
-    override fun <D> transformArguments(transformer: FirTransformer<D>, data: D): FirCallWithArgumentList {
-        arguments.transformInplace(transformer, data)
-        return this
-    }
+    override fun <D> transformArguments(transformer: FirTransformer<D>, data: D): FirCallWithArgumentList
 }

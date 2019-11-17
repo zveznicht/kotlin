@@ -108,6 +108,11 @@ enum class LanguageFeature(
     UseGetterNameForPropertyAnnotationsMethodOnJvm(KOTLIN_1_4),
     AllowBreakAndContinueInsideWhen(KOTLIN_1_4),
     MixedNamedArgumentsInTheirOwnPosition(KOTLIN_1_4),
+    ProhibitTailrecOnVirtualMember(KOTLIN_1_4, kind = BUG_FIX),
+    ProperComputationOrderOfTailrecDefaultParameters(KOTLIN_1_4),
+    AllowNullableArrayArgsInMain(KOTLIN_1_4),
+    TrailingCommas(KOTLIN_1_4),
+    ProhibitInvisibleAbstractMethodsInSuperclasses(KOTLIN_1_4, kind = BUG_FIX),
 
     ProperVisibilityForCompanionObjectInstanceField(sinceVersion = null, kind = BUG_FIX),
     // Temporarily disabled, see KT-27084/KT-22379

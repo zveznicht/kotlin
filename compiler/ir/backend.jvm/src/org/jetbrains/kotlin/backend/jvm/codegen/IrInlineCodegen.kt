@@ -5,9 +5,9 @@
 
 package org.jetbrains.kotlin.backend.jvm.codegen
 
-import org.jetbrains.kotlin.backend.common.descriptors.WrappedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.ir.isInlineParameter
+import org.jetbrains.kotlin.backend.jvm.ir.isLambda
 import org.jetbrains.kotlin.codegen.IrExpressionLambda
 import org.jetbrains.kotlin.codegen.JvmKotlinType
 import org.jetbrains.kotlin.codegen.StackValue
@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrVariable
+import org.jetbrains.kotlin.ir.descriptors.WrappedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.toKotlinType
@@ -40,7 +41,13 @@ class IrInlineCodegen(
     codegen, state, function, methodOwner, signature, typeParameterMappings, sourceCompiler, reifiedTypeInliner
 ), IrCallGenerator {
     override fun generateAssertFieldIfNeeded(info: RootInliningContext) {
-        // TODO: JVM assertions are not implemented yet in IR backend
+        if (info.generateAssertField && (sourceCompiler as IrSourceCompilerForInline).isPrimaryCopy) {
+            codegen.classCodegen.generateAssertFieldIfNeeded()?.let {
+                // Generating <clinit> right now, so no longer can insert the initializer into it.
+                // Instead, ask ExpressionCodegen to generate the code for it directly.
+                it.accept(codegen, BlockInfo()).discard()
+            }
+        }
     }
 
     override fun putClosureParametersOnStack(next: LambdaInfo, functionReferenceReceiver: StackValue?) {
@@ -151,10 +158,8 @@ class IrExpressionLambdaImpl(
     // arguments apart from any other scope's. So long as it's unique, any value is fine.
     // This particular string slightly aids in debugging internal compiler errors as it at least
     // points towards the function containing the lambda.
-    override val lambdaClassType: Type = Type.getObjectType(
-        context.getLocalClassInfo(reference)?.internalName
-            ?: throw AssertionError("callable reference ${reference.dump()} has no name in context")
-    )
+    override val lambdaClassType: Type =
+        context.getLocalClassType(reference) ?: throw AssertionError("callable reference ${reference.dump()} has no name in context")
 
     override val capturedVars: List<CapturedParamDesc> =
         reference.getArgumentsWithIr().map { (param, _) ->
@@ -197,7 +202,7 @@ fun isInlineIrExpression(argumentExpression: IrExpression) =
         else -> false
     }
 
-fun IrBlock.isInlineIrBlock(): Boolean = origin == IrStatementOrigin.LAMBDA || origin == IrStatementOrigin.ANONYMOUS_FUNCTION
+fun IrBlock.isInlineIrBlock(): Boolean = origin.isLambda
 
 fun IrFunction.isInlineFunctionCall(context: JvmBackendContext) =
     (!context.state.isInlineDisabled || typeParameters.any { it.isReified }) && isInline

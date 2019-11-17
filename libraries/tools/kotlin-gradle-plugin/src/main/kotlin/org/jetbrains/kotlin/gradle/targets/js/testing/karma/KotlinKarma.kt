@@ -62,7 +62,6 @@ class KotlinKarma(override val compilation: KotlinJsCompilation) : KotlinJsTestF
     }
 
     private fun useKotlinReporter() {
-        requiredDependencies.add(versions.karmaTeamcityReporter)
         config.reporters.add("karma-kotlin-reporter")
 
         confJsWriters.add {
@@ -88,20 +87,26 @@ class KotlinKarma(override val compilation: KotlinJsCompilation) : KotlinJsTestF
         configDirectory = dir
     }
 
-    fun useChrome() = useChromeWithPuppeteer(
-        id = "Chrome",
-        envVar = CHROME_BIN
-    )
+    fun useChrome() {
+        useBrowser(
+            id = "Chrome",
+            dependency = versions.karmaChromeLauncher
+        )
+    }
 
-    fun useChromeCanary() = useChromeWithPuppeteer(
-        id = "ChromeCanary",
-        envVar = CHROME_CANARY_BIN
-    )
+    fun useChromeCanary() {
+        useBrowser(
+            id = "ChromeCanary",
+            dependency = versions.karmaChromeLauncher
+        )
+    }
 
-    fun useChromeHeadless() = useChromeWithPuppeteer(
-        id = "ChromeHeadless",
-        envVar = CHROME_BIN
-    )
+    fun useChromeHeadless() {
+        useBrowser(
+            id = "ChromeHeadless",
+            dependency = versions.karmaChromeLauncher
+        )
+    }
 
     fun usePhantomJS() = useBrowser("PhantomJS", versions.karmaPhantomJsLauncher)
 
@@ -116,21 +121,6 @@ class KotlinKarma(override val compilation: KotlinJsCompilation) : KotlinJsTestF
     private fun useBrowser(id: String, dependency: NpmPackageVersion) {
         config.browsers.add(id)
         requiredDependencies.add(dependency)
-    }
-
-    private fun useChromeWithPuppeteer(
-        id: String,
-        envVar: String
-    ) {
-        usePuppeteer(envVar)
-        useBrowser(id, versions.karmaChromeLauncher)
-    }
-
-    private fun usePuppeteer(envVar: String) {
-        requiredDependencies.add(versions.puppeteer)
-
-        //language=JavaScript 1.8
-        envJsCollector[envVar] = "require('puppeteer').executablePath()"
     }
 
     private fun useMocha() {
@@ -165,12 +155,13 @@ class KotlinKarma(override val compilation: KotlinJsCompilation) : KotlinJsTestF
             //language=ES6
             it.appendln(
                 """
-                (function() {
+                // noinspection JSUnnecessarySemicolon
+                ;(function(config) {
                     const webpack = require('webpack');
                     config.plugins.push(new webpack.SourceMapDevToolPlugin({
                         moduleFilenameTemplate: "[absolute-resource-path]"
                     }))
-                })();
+                })(config);
             """.trimIndent()
             )
 
@@ -184,7 +175,6 @@ class KotlinKarma(override val compilation: KotlinJsCompilation) : KotlinJsTestF
         requiredDependencies.add(versions.webpack)
         requiredDependencies.add(versions.webpackCli)
         requiredDependencies.add(versions.kotlinSourceMapLoader)
-        requiredDependencies.add(versions.sourceMapSupport)
     }
 
     fun useCoverage(
@@ -244,16 +234,16 @@ class KotlinKarma(override val compilation: KotlinJsCompilation) : KotlinJsTestF
     private fun createAdapterJs() {
         configurators.add {
             val npmProject = compilation.npmProject
-            val files = it.nodeModulesToLoad.map { npmProject.require(it) }
+            val file = it.nodeModulesToLoad
+                .map { npmProject.require(it) }
+                .single()
 
             val adapterJs = npmProject.dir.resolve("adapter-browser.js")
             adapterJs.printWriter().use { writer ->
                 val karmaRunner = npmProject.require("kotlin-test-js-runner/kotlin-test-karma-runner.js")
                 writer.println("require(${karmaRunner.jsQuoted()})")
 
-                files.forEach { file ->
-                    writer.println("require(${file.jsQuoted()})")
-                }
+                writer.println("module.exports = require(${file.jsQuoted()})")
             }
 
             config.files.add(adapterJs.canonicalPath)
@@ -263,7 +253,8 @@ class KotlinKarma(override val compilation: KotlinJsCompilation) : KotlinJsTestF
     override fun createTestExecutionSpec(
         task: KotlinJsTest,
         forkOptions: ProcessForkOptions,
-        nodeJsArgs: MutableList<String>
+        nodeJsArgs: MutableList<String>,
+        debug: Boolean
     ): TCServiceMessagesTestExecutionSpec {
         if (config.browsers.isEmpty()) {
             error("No browsers configured for $task")
@@ -325,22 +316,15 @@ class KotlinKarma(override val compilation: KotlinJsCompilation) : KotlinJsTestF
         return object : JSServiceMessagesTestExecutionSpec(
             forkOptions,
             args,
-            false,
+            true,
             clientSettings
         ) {
             lateinit var progressLogger: ProgressLogger
-
-            var isLaunchFailed: Boolean = false
 
             override fun wrapExecute(body: () -> Unit) {
                 project.operation("Running and building tests with karma and webpack") {
                     progressLogger = this
                     body()
-
-                    if (isLaunchFailed) {
-                        showSuppressedOutput()
-                        throw IllegalStateException("Launch of some browsers was failed")
-                    }
                 }
             }
 
@@ -358,7 +342,7 @@ class KotlinKarma(override val compilation: KotlinJsCompilation) : KotlinJsTestF
                         val value = text.trimEnd()
                         progressLogger.progress(value)
 
-                        parseConsole(value)
+                        super.printNonTestOutput(text)
                     }
 
                     override fun processStackTrace(stackTrace: String): String =
@@ -389,16 +373,6 @@ class KotlinKarma(override val compilation: KotlinJsCompilation) : KotlinJsTestF
 
                         return rawSuiteNameOnly.replace(" ", ".") // sample.a.DeepPackageTest.Inner
                     }
-
-                    private fun parseConsole(text: String) {
-                        if (KARMA_PROBLEM.matches(text)) {
-                            log.error(text)
-                            isLaunchFailed = true
-                            return
-                        }
-
-                        super.printNonTestOutput(text)
-                    }
                 }
         }
     }
@@ -418,7 +392,5 @@ class KotlinKarma(override val compilation: KotlinJsCompilation) : KotlinJsTestF
     companion object {
         const val CHROME_BIN = "CHROME_BIN"
         const val CHROME_CANARY_BIN = "CHROME_CANARY_BIN"
-
-        val KARMA_PROBLEM = "(?m)^.*\\d{2} \\d{2} \\d{4,} \\d{2}:\\d{2}:\\d{2}.\\d{3}:(ERROR|WARN) \\[.*]: (.*)\$".toRegex()
     }
 }

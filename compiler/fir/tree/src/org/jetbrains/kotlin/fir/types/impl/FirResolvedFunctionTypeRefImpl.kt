@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.types.impl
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.impl.FirAbstractAnnotatedElement
@@ -20,12 +20,12 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 class FirResolvedFunctionTypeRefImpl(
-    override val psi: PsiElement?,
+    override val source: FirSourceElement?,
     override val type: ConeKotlinType,
     override val isMarkedNullable: Boolean,
     override var receiverTypeRef: FirTypeRef?,
     override var returnTypeRef: FirTypeRef
-) : FirResolvedFunctionTypeRef, FirAbstractAnnotatedElement {
+) : FirResolvedFunctionTypeRef(), FirAbstractAnnotatedElement {
     override val annotations: MutableList<FirAnnotationCall> = mutableListOf()
     override val valueParameters: MutableList<FirValueParameter> = mutableListOf()
 

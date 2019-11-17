@@ -79,9 +79,7 @@ open class KtFileScriptSource(val ktFile: KtFile, preloadedText: String? = null)
     override val name: String? get() = ktFile.name
 
     override fun equals(other: Any?): Boolean =
-        this === other
-                || (other as? KtFileScriptSource)?.let { ktFile == it.ktFile } == true
-                || super.equals(other)
+        this === other || (other as? KtFileScriptSource)?.let { ktFile == it.ktFile } == true
 
     override fun hashCode(): Int = ktFile.hashCode()
 }
@@ -114,7 +112,7 @@ abstract class ScriptCompilationConfigurationWrapper(val script: SourceCode) {
     abstract val dependenciesSources: List<File>
     abstract val javaHome: File?
     abstract val defaultImports: List<String>
-    abstract val importedScripts: List<File>
+    abstract val importedScripts: List<SourceCode>
 
     override fun equals(other: Any?): Boolean = script == (other as? ScriptCompilationConfigurationWrapper)?.script
 
@@ -141,9 +139,8 @@ abstract class ScriptCompilationConfigurationWrapper(val script: SourceCode) {
         override val defaultImports: List<String>
             get() = configuration?.get(ScriptCompilationConfiguration.defaultImports).orEmpty()
 
-        override val importedScripts: List<File>
-            get() = configuration?.get(ScriptCompilationConfiguration.importScripts)
-                ?.mapNotNull { (it as? FileBasedScriptSource)?.file }.orEmpty()
+        override val importedScripts: List<SourceCode>
+            get() = configuration?.get(ScriptCompilationConfiguration.importScripts).orEmpty()
 
         @Suppress("OverridingDeprecatedMember")
         override val legacyDependencies: ScriptDependencies?
@@ -178,8 +175,8 @@ abstract class ScriptCompilationConfigurationWrapper(val script: SourceCode) {
         override val defaultImports: List<String>
             get() = legacyDependencies?.imports.orEmpty()
 
-        override val importedScripts: List<File>
-            get() = legacyDependencies?.scripts.orEmpty()
+        override val importedScripts: List<SourceCode>
+            get() = legacyDependencies?.scripts?.map { FileScriptSource(it) }.orEmpty()
 
         override val configuration: ScriptCompilationConfiguration?
             get() {

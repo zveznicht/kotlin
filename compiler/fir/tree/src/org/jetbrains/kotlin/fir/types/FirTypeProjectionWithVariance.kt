@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.types
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.fir.visitors.*
 
@@ -14,10 +14,10 @@ import org.jetbrains.kotlin.fir.visitors.*
  * DO NOT MODIFY IT MANUALLY
  */
 
-interface FirTypeProjectionWithVariance : FirTypeProjection {
-    override val psi: PsiElement?
-    val typeRef: FirTypeRef
-    val variance: Variance
+abstract class FirTypeProjectionWithVariance : FirTypeProjection() {
+    abstract override val source: FirSourceElement?
+    abstract val typeRef: FirTypeRef
+    abstract val variance: Variance
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitTypeProjectionWithVariance(this, data)
 }

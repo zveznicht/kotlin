@@ -35,6 +35,9 @@ val proguardLibraries by configurations.creating {
 // Libraries to copy to the lib directory
 val libraries by configurations.creating {
     exclude("org.jetbrains.kotlin", "kotlin-stdlib-common")
+    attributes {
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+    }
 }
 
 // Compiler plugins should be copied without `kotlin-` prefix
@@ -88,7 +91,6 @@ val distLibraryProjects = listOfNotNull(
     ":kotlin-stdlib-js-ir".takeIf { kotlinBuildProperties.jsIrDist },
     ":kotlin-source-sections-compiler-plugin",
     ":kotlin-test:kotlin-test-js",
-    ":kotlin-test:kotlin-test-js-ir".takeIf { kotlinBuildProperties.jsIrDist },
     ":kotlin-test:kotlin-test-junit",
     ":kotlin-test:kotlin-test-junit5",
     ":kotlin-test:kotlin-test-jvm",
@@ -111,7 +113,6 @@ val distSourcesProjects = listOfNotNull(
     ":kotlin-script-runtime",
     ":kotlin-stdlib-js-ir".takeIf { kotlinBuildProperties.jsIrDist },
     ":kotlin-test:kotlin-test-js",
-    ":kotlin-test:kotlin-test-js-ir".takeIf { kotlinBuildProperties.jsIrDist },
     ":kotlin-test:kotlin-test-junit",
     ":kotlin-test:kotlin-test-junit5",
     ":kotlin-test:kotlin-test-jvm",
@@ -146,7 +147,9 @@ dependencies {
     libraries(intellijDep()) { includeIntellijCoreJarDependencies(project) { it.startsWith("trove4j") } }
     libraries(commonDep("io.ktor", "ktor-network"))
     libraries(kotlinStdlib("jdk8"))
-    libraries(kotlinStdlib("js"))
+    if (!kotlinBuildProperties.isInJpsBuildIdeaSync) {
+        libraries(kotlinStdlib("js", "distLibrary"))
+    }
 
     distLibraryProjects.forEach {
         libraries(project(it)) { isTransitive = false }

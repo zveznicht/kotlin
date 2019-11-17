@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.idea.codeInsight;
 import com.intellij.testFramework.TestDataPath;
 import org.jetbrains.kotlin.test.JUnit3RunnerWithInners;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
-import org.jetbrains.kotlin.test.TargetBackend;
 import org.jetbrains.kotlin.test.TestMetadata;
 import org.junit.runner.RunWith;
 
@@ -22,11 +21,11 @@ import java.util.regex.Pattern;
 @RunWith(JUnit3RunnerWithInners.class)
 public class MultiFileInspectionTestGenerated extends AbstractMultiFileInspectionTest {
     private void runTest(String testDataFilePath) throws Exception {
-        KotlinTestUtils.runTest(this::doTest, TargetBackend.ANY, testDataFilePath);
+        KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
     }
 
     public void testAllFilesPresentInMultiFileInspections() throws Exception {
-        KotlinTestUtils.assertAllTestsPresentInSingleGeneratedClass(this.getClass(), new File("idea/testData/multiFileInspections"), Pattern.compile("^(.+)\\.test$"), TargetBackend.ANY);
+        KotlinTestUtils.assertAllTestsPresentInSingleGeneratedClass(this.getClass(), new File("idea/testData/multiFileInspections"), Pattern.compile("^(.+)\\.test$"));
     }
 
     @TestMetadata("fakeJvmFieldConstant/fakeJvmFieldConstant.test")
@@ -42,6 +41,11 @@ public class MultiFileInspectionTestGenerated extends AbstractMultiFileInspectio
     @TestMetadata("kotlinInternalInJava/kotlinInternalInJava.test")
     public void testKotlinInternalInJava_KotlinInternalInJava() throws Exception {
         runTest("idea/testData/multiFileInspections/kotlinInternalInJava/kotlinInternalInJava.test");
+    }
+
+    @TestMetadata("kotlinInternalInJavaTest/kotlinInternalInJavaTest.test")
+    public void testKotlinInternalInJavaTest_KotlinInternalInJavaTest() throws Exception {
+        runTest("idea/testData/multiFileInspections/kotlinInternalInJavaTest/kotlinInternalInJavaTest.test");
     }
 
     @TestMetadata("mainInTwoModules/mainInTwoModules.test")

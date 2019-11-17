@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.references
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.fir.visitors.*
@@ -15,10 +15,10 @@ import org.jetbrains.kotlin.fir.visitors.*
  * DO NOT MODIFY IT MANUALLY
  */
 
-interface FirNamedReference : FirReference {
-    override val psi: PsiElement?
-    val name: Name
-    val candidateSymbol: AbstractFirBasedSymbol<*>?
+abstract class FirNamedReference : FirReference() {
+    abstract override val source: FirSourceElement?
+    abstract val name: Name
+    abstract val candidateSymbol: AbstractFirBasedSymbol<*>?
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitNamedReference(this, data)
 }

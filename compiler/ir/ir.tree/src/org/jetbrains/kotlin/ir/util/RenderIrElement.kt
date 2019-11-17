@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeAliasSymbol
+import org.jetbrains.kotlin.ir.symbols.IrVariableSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
@@ -35,7 +36,17 @@ import org.jetbrains.kotlin.utils.addIfNotNull
 fun IrElement.render() =
     accept(RenderIrElementVisitor(), null)
 
-class RenderIrElementVisitor : IrElementVisitor<String, Nothing?> {
+class RenderIrElementVisitor(private val normalizeNames: Boolean = false) : IrElementVisitor<String, Nothing?> {
+    private val nameMap: MutableMap<IrVariableSymbol, String> = mutableMapOf()
+    private var temporaryIndex: Int = 0
+
+    private val IrVariable.normalizedName: String
+        get() {
+            if (!normalizeNames || (origin != IrDeclarationOrigin.IR_TEMPORARY_VARIABLE && origin != IrDeclarationOrigin.FOR_LOOP_ITERATOR))
+                return name.asString()
+
+            return nameMap.getOrPut(symbol) { "tmp_${temporaryIndex++}" }
+        }
 
     fun renderType(type: IrType) = type.render()
 
@@ -179,7 +190,7 @@ class RenderIrElementVisitor : IrElementVisitor<String, Nothing?> {
             buildTrimEnd {
                 if (declaration.isVar) append("var ") else append("val ")
 
-                append(declaration.name.asString())
+                append(declaration.normalizedName)
                 append(": ")
                 append(declaration.type.render())
                 append(' ')
@@ -370,7 +381,9 @@ class RenderIrElementVisitor : IrElementVisitor<String, Nothing?> {
             "tailrec".takeIf { isTailrec },
             "inline".takeIf { isInline },
             "external".takeIf { isExternal },
-            "suspend".takeIf { isSuspend }
+            "suspend".takeIf { isSuspend },
+            "expect".takeIf { isExpect },
+            "fake_override".takeIf { isFakeOverride }
         )
 
     private fun IrFunction.renderTypeParameters(): String =
@@ -397,7 +410,8 @@ class RenderIrElementVisitor : IrElementVisitor<String, Nothing?> {
         renderFlagsList(
             "inline".takeIf { isInline },
             "external".takeIf { isExternal },
-            "primary".takeIf { isPrimary }
+            "primary".takeIf { isPrimary },
+            "expect".takeIf { isExpect }
         )
 
     override fun visitProperty(declaration: IrProperty, data: Nothing?): String =
@@ -413,6 +427,8 @@ class RenderIrElementVisitor : IrElementVisitor<String, Nothing?> {
             "const".takeIf { isConst },
             "lateinit".takeIf { isLateinit },
             "delegated".takeIf { isDelegated },
+            "expect".takeIf { isExpect },
+            "fake_override".takeIf { isFakeOverride },
             if (isVar) "var" else "val"
         )
 
@@ -426,7 +442,8 @@ class RenderIrElementVisitor : IrElementVisitor<String, Nothing?> {
         renderFlagsList(
             "final".takeIf { isFinal },
             "external".takeIf { isExternal },
-            "static".takeIf { isStatic }
+            "static".takeIf { isStatic },
+            "fake_override".takeIf { isFakeOverride }
         )
 
     override fun visitClass(declaration: IrClass, data: Nothing?): String =
@@ -443,12 +460,13 @@ class RenderIrElementVisitor : IrElementVisitor<String, Nothing?> {
             "inner".takeIf { isInner },
             "data".takeIf { isData },
             "external".takeIf { isExternal },
-            "inline".takeIf { isInline }
+            "inline".takeIf { isInline },
+            "expect".takeIf { isExpect }
         )
 
     override fun visitVariable(declaration: IrVariable, data: Nothing?): String =
         declaration.runTrimEnd {
-            "VAR ${renderOriginIfNonTrivial()}name:$name type:${type.render()} ${renderVariableFlags()}"
+            "VAR ${renderOriginIfNonTrivial()}name:$normalizedName type:${type.render()} ${renderVariableFlags()}"
         }
 
 

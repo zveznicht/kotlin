@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.fir.resolve
 
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.FirAnonymousObject
+import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirCompositeScope
@@ -18,9 +20,9 @@ fun ConeKotlinType.scope(useSiteSession: FirSession, scopeSession: ScopeSession)
         is ConeKotlinErrorType -> null
         is ConeAbbreviatedType -> directExpansionType(useSiteSession)?.scope(useSiteSession, scopeSession)
         is ConeClassLikeType -> {
-            // TODO: for ConeClassLikeType they might be a type alias instead of a regular class
-            val fir = this.lookupTag.toSymbol(useSiteSession)?.fir as? FirRegularClass ?: return null
-            wrapSubstitutionScopeIfNeed(useSiteSession, fir.buildUseSiteScope(useSiteSession, scopeSession)!!, fir, scopeSession)
+            // TODO: for ConeClassLikeType they might be a type alias instead of a class
+            val fir = this.lookupTag.toSymbol(useSiteSession)?.fir as? FirClass<*> ?: return null
+            wrapSubstitutionScopeIfNeed(useSiteSession, fir.buildUseSiteMemberScope(useSiteSession, scopeSession)!!, fir, scopeSession)
         }
         is ConeTypeParameterType -> {
             // TODO: support LibraryTypeParameterSymbol or get rid of it
@@ -37,6 +39,7 @@ fun ConeKotlinType.scope(useSiteSession: FirSession, scopeSession: ScopeSession)
                 it.scope(useSiteSession, scopeSession)
             }
         )
+        is ConeDefinitelyNotNullType -> original.scope(useSiteSession, scopeSession)
         else -> error("Failed type $this")
     }
 }
@@ -50,6 +53,14 @@ fun FirRegularClass.defaultType(): ConeClassTypeImpl {
                 isNullable = false
             )
         }.toTypedArray(),
+        isNullable = false
+    )
+}
+
+fun FirAnonymousObject.defaultType(): ConeClassTypeImpl {
+    return ConeClassTypeImpl(
+        symbol.toLookupTag(),
+        emptyArray(),
         isNullable = false
     )
 }

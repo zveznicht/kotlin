@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirOperation
@@ -22,9 +22,9 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 class FirOperatorCallImpl(
-    override val psi: PsiElement?,
+    override val source: FirSourceElement?,
     override val operation: FirOperation
-) : FirOperatorCall, FirCallWithArgumentList, FirAbstractAnnotatedElement {
+) : FirOperatorCall(), FirCallWithArgumentList, FirAbstractAnnotatedElement {
     override var typeRef: FirTypeRef = if (operation in FirOperation.BOOLEANS) {
         FirImplicitBooleanTypeRef(null)
     } else {

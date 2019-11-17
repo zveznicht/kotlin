@@ -5,7 +5,8 @@
 
 package org.jetbrains.kotlin.fir.types
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirPureAbstractElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.visitors.*
@@ -15,11 +16,11 @@ import org.jetbrains.kotlin.fir.visitors.*
  * DO NOT MODIFY IT MANUALLY
  */
 
-interface FirDelegatedTypeRef : FirTypeRef {
-    override val psi: PsiElement?
-    override val annotations: List<FirAnnotationCall>
-    val delegate: FirExpression?
-    val typeRef: FirTypeRef
+abstract class FirDelegatedTypeRef : FirPureAbstractElement(), FirTypeRef {
+    abstract override val source: FirSourceElement?
+    abstract override val annotations: List<FirAnnotationCall>
+    abstract val delegate: FirExpression?
+    abstract val typeRef: FirTypeRef
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitDelegatedTypeRef(this, data)
 }

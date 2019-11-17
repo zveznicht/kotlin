@@ -7,8 +7,6 @@ package org.jetbrains.kotlin.backend.jvm.lower
 
 import org.jetbrains.kotlin.backend.common.ClassLoweringPass
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
-import org.jetbrains.kotlin.backend.common.descriptors.WrappedFunctionDescriptorWithContainerSource
-import org.jetbrains.kotlin.backend.common.descriptors.WrappedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irBlock
@@ -24,6 +22,8 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
+import org.jetbrains.kotlin.ir.descriptors.WrappedFunctionDescriptorWithContainerSource
+import org.jetbrains.kotlin.ir.descriptors.WrappedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -111,7 +111,9 @@ private class CompanionObjectJvmStaticLowering(val context: JvmBackendContext) :
             isInline = false,
             isExternal = false,
             isTailrec = false,
-            isSuspend = target.isSuspend
+            isSuspend = target.isSuspend,
+            isExpect = false,
+            isFakeOverride = origin == IrDeclarationOrigin.FAKE_OVERRIDE
         ).apply {
             descriptor.bind(this)
             parent = irClass
@@ -230,7 +232,9 @@ private class MakeCallsStatic(
             startOffset, endOffset, origin,
             IrSimpleFunctionSymbolImpl(newDescriptor),
             name,
-            visibility, modality, returnType, isInline, isExternal, isTailrec, isSuspend
+            visibility, modality, returnType,
+            isInline = isInline, isExternal = isExternal, isTailrec = isTailrec, isSuspend = isSuspend, isExpect = isExpect,
+            isFakeOverride = origin == IrDeclarationOrigin.FAKE_OVERRIDE
         ).also {
             newDescriptor.bind(it)
             it.parent = parent

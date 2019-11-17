@@ -517,6 +517,7 @@ message IrFunctionBase {
   repeated IrValueParameter value_parameter = 9;
   optional int32 body = 10;
   required int32 return_type = 11;
+  required bool is_expect = 12;
 }
 
 message IrFunction {
@@ -526,12 +527,12 @@ message IrFunction {
   required bool is_suspend = 4;
   repeated int32 overridden = 5;
   //optional UniqId corresponding_property = 7;
+  required bool is_fake_override = 8;
 }
 
 message IrConstructor {
   required IrFunctionBase base = 1;
   required bool is_primary = 2;
-
 }
 
 message IrField {
@@ -543,6 +544,7 @@ message IrField {
   required bool is_external = 6;
   required bool is_static = 7;
   required int32 type = 8;
+  required bool is_fake_override = 9;
 }
 
 message IrLocalDelegatedProperty {
@@ -568,6 +570,8 @@ message IrProperty {
   optional IrField backing_field = 10;
   optional IrFunction getter = 11;
   optional IrFunction setter = 12;
+  required bool is_expect = 13;
+  required bool is_fake_override = 14;
 }
 
 message IrVariable {
@@ -636,6 +640,7 @@ message IrClass {
   required IrTypeParameterContainer type_parameters = 12;
   required IrDeclarationContainer declaration_container = 13;
   repeated int32 super_type = 14;
+  required bool is_expect = 15;
 }
 
 message IrTypeAlias {

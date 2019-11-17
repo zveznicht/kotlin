@@ -5,7 +5,8 @@
 
 package org.jetbrains.kotlin.fir.expressions
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirPureAbstractElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
 
@@ -14,13 +15,13 @@ import org.jetbrains.kotlin.fir.visitors.*
  * DO NOT MODIFY IT MANUALLY
  */
 
-interface FirBlock : FirExpression {
-    override val psi: PsiElement?
-    override val annotations: List<FirAnnotationCall>
-    val statements: List<FirStatement>
-    override val typeRef: FirTypeRef
+abstract class FirBlock : FirPureAbstractElement(), FirExpression {
+    abstract override val source: FirSourceElement?
+    abstract override val annotations: List<FirAnnotationCall>
+    abstract val statements: List<FirStatement>
+    abstract override val typeRef: FirTypeRef
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitBlock(this, data)
 
-    override fun replaceTypeRef(newTypeRef: FirTypeRef)
+    abstract override fun replaceTypeRef(newTypeRef: FirTypeRef)
 }

@@ -13,12 +13,10 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedImportImpl
 import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculatorWithJump
-import org.jetbrains.kotlin.fir.scopes.FirPosition
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.scopes.impl.FirAbstractImportingScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirExplicitSimpleImportingScope
-import org.jetbrains.kotlin.fir.scopes.processClassifiersByNameWithAction
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.ConeAbbreviatedType
@@ -69,7 +67,7 @@ abstract class SessionBasedTowerLevel(val session: FirSession) : TowerScopeLevel
             is FirNamedFunctionSymbol -> fir.dispatchReceiverValue(session)
             is FirPropertySymbol -> fir.dispatchReceiverValue(session)
             is FirFieldSymbol -> fir.dispatchReceiverValue(session)
-            is FirClassSymbol -> ClassDispatchReceiverValue(fir.symbol)
+            is FirClassSymbol -> ClassDispatchReceiverValue(this)
             else -> null
         }
     }
@@ -133,7 +131,7 @@ class MemberScopeTowerLevel(
                 this.processFunctionsByName(name, symbol.cast())
             }
             TowerScopeLevel.Token.Objects -> processMembers(processor, explicitExtensionReceiver) { symbol ->
-                this.processClassifiersByNameWithAction(name, FirPosition.OTHER, symbol.cast())
+                this.processClassifiersByName(name, symbol.cast())
             }
         }
     }
@@ -199,7 +197,7 @@ class ScopeTowerLevel(
                     ProcessorAction.NEXT
                 }
             }
-            TowerScopeLevel.Token.Objects -> scope.processClassifiersByNameWithAction(name, FirPosition.OTHER) {
+            TowerScopeLevel.Token.Objects -> scope.processClassifiersByName(name) {
                 processor.consumeCandidate(
                     it as T, dispatchReceiverValue = null,
                     implicitExtensionReceiverValue = null
@@ -247,7 +245,7 @@ class QualifiedReceiverTowerLevel(
         }
 
         return when (token) {
-            TowerScopeLevel.Token.Objects -> scope.processClassifiersByNameWithAction(name, FirPosition.OTHER) {
+            TowerScopeLevel.Token.Objects -> scope.processClassifiersByName(name) {
                 @Suppress("UNCHECKED_CAST")
                 processor.consumeCandidate(it as T, null, null)
             }
@@ -265,9 +263,8 @@ fun FirCallableDeclaration<*>.dispatchReceiverValue(session: FirSession): ClassD
     if (this is FirConstructor) return null
     val id = this.symbol.callableId.classId ?: return null
     val symbol = session.firSymbolProvider.getClassLikeSymbolByFqName(id) as? FirClassSymbol ?: return null
-    val regularClass = symbol.fir
 
-    return ClassDispatchReceiverValue(regularClass.symbol)
+    return ClassDispatchReceiverValue(symbol)
 }
 
 private fun FirCallableSymbol<*>.hasExtensionReceiver(): Boolean = this.fir.receiverTypeRef != null
@@ -308,7 +305,7 @@ private fun FirScope.processFunctionsAndConstructorsByName(
 
 private fun FirScope.getFirstClassifierOrNull(name: Name): FirClassifierSymbol<*>? {
     var result: FirClassifierSymbol<*>? = null
-    processClassifiersByNameWithAction(name, FirPosition.OTHER) {
+    processClassifiersByName(name) {
         result = it
         ProcessorAction.STOP
     }
@@ -335,7 +332,7 @@ private fun processSyntheticConstructors(
     bodyResolveComponents: BodyResolveComponents
 ): ProcessorAction {
     if (matchedSymbol == null) return ProcessorAction.NEXT
-    if (matchedSymbol !is FirClassSymbol) return ProcessorAction.NEXT
+    if (matchedSymbol !is FirRegularClassSymbol) return ProcessorAction.NEXT
 
     val function = bodyResolveComponents.samResolver.getSamConstructor(matchedSymbol.fir) ?: return ProcessorAction.NEXT
 
@@ -352,8 +349,8 @@ private fun processConstructors(
     try {
         if (matchedSymbol != null) {
             val scope = when (matchedSymbol) {
-                is FirTypeAliasSymbol -> matchedSymbol.fir.buildUseSiteScope(session, scopeSession)
-                is FirClassSymbol -> matchedSymbol.fir.buildUseSiteScope(session, scopeSession)
+                is FirTypeAliasSymbol -> matchedSymbol.fir.buildUseSiteMemberScope(session, scopeSession)
+                is FirClassSymbol -> matchedSymbol.buildUseSiteMemberScope(session, scopeSession)
             }
 
 

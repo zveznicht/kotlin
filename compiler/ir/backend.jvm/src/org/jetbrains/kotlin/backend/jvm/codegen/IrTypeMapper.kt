@@ -1,6 +1,6 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license
- * that can be found in the license/LICENSE.txt file.
+ * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.backend.jvm.codegen
@@ -36,6 +36,9 @@ import org.jetbrains.org.objectweb.asm.Type
 class IrTypeMapper(private val context: JvmBackendContext) : KotlinTypeMapperBase() {
     internal val typeSystem = IrTypeCheckerContext(context.irBuiltIns)
 
+    private val IrTypeArgument.adjustedType
+        get() = (this as? IrTypeProjection)?.type ?: context.irBuiltIns.anyNType
+
     override fun mapClass(classifier: ClassifierDescriptor): Type =
         when (classifier) {
             is ClassDescriptor ->
@@ -47,7 +50,10 @@ class IrTypeMapper(private val context: JvmBackendContext) : KotlinTypeMapperBas
         }
 
     fun classInternalName(irClass: IrClass): String {
-        context.getLocalClassInfo(irClass)?.internalName?.let { return it }
+        context.getLocalClassType(irClass)?.internalName?.let { return it }
+
+        context.classNameOverride[irClass]?.let { return it.internalName }
+
         val className = SpecialNames.safeIdentifier(irClass.name).identifier
         val internalName = when (val parent = irClass.parent) {
             is IrPackageFragment -> {
@@ -99,8 +105,8 @@ class IrTypeMapper(private val context: JvmBackendContext) : KotlinTypeMapperBas
 
         if (type.isSuspendFunction()) {
             val arguments =
-                type.arguments.dropLast(1).map { (it as IrTypeProjection).type } +
-                        context.ir.symbols.continuationClass.typeWith((type.arguments.last() as IrTypeProjection).type) +
+                type.arguments.dropLast(1).map { it.adjustedType } +
+                        context.ir.symbols.continuationClass.typeWith(type.arguments.last().adjustedType) +
                         context.irBuiltIns.anyNType
             val runtimeFunctionType = context.referenceClass(context.builtIns.getFunction(arguments.size - 1)).typeWith(arguments)
             return mapType(runtimeFunctionType, mode, sw)

@@ -5,7 +5,8 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirSourceElement
+import org.jetbrains.kotlin.fir.diagnostics.FirDiagnostic
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirErrorExpression
 import org.jetbrains.kotlin.fir.impl.FirAbstractAnnotatedElement
@@ -19,9 +20,9 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 class FirErrorExpressionImpl(
-    override val psi: PsiElement?,
-    override val reason: String
-) : FirErrorExpression, FirAbstractAnnotatedElement {
+    override val source: FirSourceElement?,
+    override val diagnostic: FirDiagnostic
+) : FirErrorExpression(), FirAbstractAnnotatedElement {
     override var typeRef: FirTypeRef = FirImplicitTypeRefImpl(null)
     override val annotations: MutableList<FirAnnotationCall> = mutableListOf()
 

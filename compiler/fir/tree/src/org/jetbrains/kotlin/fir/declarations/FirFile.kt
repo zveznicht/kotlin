@@ -5,9 +5,10 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirAnnotationContainer
+import org.jetbrains.kotlin.fir.FirPureAbstractElement
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.fir.visitors.*
@@ -17,15 +18,15 @@ import org.jetbrains.kotlin.fir.visitors.*
  * DO NOT MODIFY IT MANUALLY
  */
 
-interface FirFile : FirAnnotationContainer, FirDeclaration {
-    override val psi: PsiElement?
-    override val annotations: List<FirAnnotationCall>
-    override val session: FirSession
-    override val resolvePhase: FirResolvePhase
-    val imports: List<FirImport>
-    val declarations: List<FirDeclaration>
-    val name: String
-    val packageFqName: FqName
+abstract class FirFile : FirPureAbstractElement(), FirAnnotationContainer, FirDeclaration {
+    abstract override val source: FirSourceElement?
+    abstract override val annotations: List<FirAnnotationCall>
+    abstract override val session: FirSession
+    abstract override val resolvePhase: FirResolvePhase
+    abstract val imports: List<FirImport>
+    abstract val declarations: List<FirDeclaration>
+    abstract val name: String
+    abstract val packageFqName: FqName
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitFile(this, data)
 }

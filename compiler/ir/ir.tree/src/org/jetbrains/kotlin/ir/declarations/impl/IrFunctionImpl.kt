@@ -31,9 +31,11 @@ class IrFunctionImpl(
     isInline: Boolean,
     isExternal: Boolean,
     override val isTailrec: Boolean,
-    override val isSuspend: Boolean
+    override val isSuspend: Boolean,
+    isExpect: Boolean,
+    override val isFakeOverride: Boolean
 ) :
-    IrFunctionBase(startOffset, endOffset, origin, name, visibility, isInline, isExternal, returnType),
+    IrFunctionBase(startOffset, endOffset, origin, name, visibility, isInline, isExternal, isExpect, returnType),
     IrSimpleFunction {
 
     constructor(
@@ -50,22 +52,17 @@ class IrFunctionImpl(
         visibility,
         modality,
         returnType,
-        symbol.descriptor.isInline,
-        symbol.descriptor.isExternal,
-        symbol.descriptor.isTailrec,
-        symbol.descriptor.isSuspend
+        isInline = symbol.descriptor.isInline,
+        isExternal = symbol.descriptor.isExternal,
+        isTailrec = symbol.descriptor.isTailrec,
+        isSuspend = symbol.descriptor.isSuspend,
+        isExpect = symbol.descriptor.isExpect,
+        isFakeOverride = origin == IrDeclarationOrigin.FAKE_OVERRIDE
     )
 
     override val descriptor: FunctionDescriptor = symbol.descriptor
 
     override val overriddenSymbols: MutableList<IrSimpleFunctionSymbol> = SmartList()
-
-    @Suppress("OverridingDeprecatedMember")
-    override var correspondingProperty: IrProperty?
-        get() = correspondingPropertySymbol?.owner
-        set(value) {
-            correspondingPropertySymbol = value?.symbol
-        }
 
     override var correspondingPropertySymbol: IrPropertySymbol? = null
 

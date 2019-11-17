@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirVariable
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirExpression
@@ -24,14 +24,15 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 class FirWhenExpressionImpl(
-    override val psi: PsiElement?,
+    override val source: FirSourceElement?,
     override var subject: FirExpression?,
     override var subjectVariable: FirVariable<*>?
-) : FirWhenExpression, FirAbstractAnnotatedElement {
+) : FirWhenExpression(), FirAbstractAnnotatedElement {
     override var typeRef: FirTypeRef = FirImplicitTypeRefImpl(null)
     override val annotations: MutableList<FirAnnotationCall> = mutableListOf()
     override var calleeReference: FirReference = FirStubReference()
     override val branches: MutableList<FirWhenBranch> = mutableListOf()
+    override var isExhaustive: Boolean = false
 
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         typeRef.accept(visitor, data)
@@ -80,5 +81,9 @@ class FirWhenExpressionImpl(
 
     override fun replaceTypeRef(newTypeRef: FirTypeRef) {
         typeRef = newTypeRef
+    }
+
+    override fun replaceIsExhaustive(newIsExhaustive: Boolean) {
+        isExhaustive = newIsExhaustive
     }
 }

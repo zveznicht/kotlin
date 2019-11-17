@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.fir.declarations.impl
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
@@ -26,7 +26,7 @@ import org.jetbrains.kotlin.fir.visitors.*
  */
 
 interface FirModifiableFunction<F : FirFunction<F>>  : FirFunction<F>, FirAbstractAnnotatedElement {
-    override val psi: PsiElement?
+    override val source: FirSourceElement?
     override val session: FirSession
     override var resolvePhase: FirResolvePhase
     override val annotations: MutableList<FirAnnotationCall>
@@ -37,43 +37,15 @@ interface FirModifiableFunction<F : FirFunction<F>>  : FirFunction<F>, FirAbstra
     override val symbol: FirFunctionSymbol<F>
     override val valueParameters: MutableList<FirValueParameter>
     override var body: FirBlock?
-    override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
-        annotations.forEach { it.accept(visitor, data) }
-        returnTypeRef.accept(visitor, data)
-        receiverTypeRef?.accept(visitor, data)
-        controlFlowGraphReference.accept(visitor, data)
-        typeParameters.forEach { it.accept(visitor, data) }
-        valueParameters.forEach { it.accept(visitor, data) }
-        body?.accept(visitor, data)
-    }
+    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirModifiableFunction<F>
 
-    override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirModifiableFunction<F> {
-        annotations.transformInplace(transformer, data)
-        transformReturnTypeRef(transformer, data)
-        receiverTypeRef = receiverTypeRef?.transformSingle(transformer, data)
-        transformControlFlowGraphReference(transformer, data)
-        typeParameters.transformInplace(transformer, data)
-        transformValueParameters(transformer, data)
-        body = body?.transformSingle(transformer, data)
-        return this
-    }
+    override fun <D> transformReturnTypeRef(transformer: FirTransformer<D>, data: D): FirModifiableFunction<F>
 
-    override fun <D> transformReturnTypeRef(transformer: FirTransformer<D>, data: D): FirModifiableFunction<F> {
-        returnTypeRef = returnTypeRef.transformSingle(transformer, data)
-        return this
-    }
+    override fun <D> transformReceiverTypeRef(transformer: FirTransformer<D>, data: D): FirModifiableFunction<F>
 
-    override fun <D> transformControlFlowGraphReference(transformer: FirTransformer<D>, data: D): FirModifiableFunction<F> {
-        controlFlowGraphReference = controlFlowGraphReference.transformSingle(transformer, data)
-        return this
-    }
+    override fun <D> transformControlFlowGraphReference(transformer: FirTransformer<D>, data: D): FirModifiableFunction<F>
 
-    override fun <D> transformValueParameters(transformer: FirTransformer<D>, data: D): FirModifiableFunction<F> {
-        valueParameters.transformInplace(transformer, data)
-        return this
-    }
+    override fun <D> transformValueParameters(transformer: FirTransformer<D>, data: D): FirModifiableFunction<F>
 
-    override fun replaceResolvePhase(newResolvePhase: FirResolvePhase) {
-        resolvePhase = newResolvePhase
-    }
+    override fun replaceResolvePhase(newResolvePhase: FirResolvePhase)
 }

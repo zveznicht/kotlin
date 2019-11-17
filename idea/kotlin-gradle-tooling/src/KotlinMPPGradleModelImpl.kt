@@ -9,6 +9,25 @@ import org.gradle.api.tasks.Exec
 import java.io.File
 import kotlin.collections.HashSet
 
+class KotlinSourceSetProto(
+    val name: String,
+    private val languageSettings: KotlinLanguageSettings,
+    private val sourceDirs: Set<File>,
+    private val resourceDirs: Set<File>,
+    private val dependencies: () -> Array<KotlinDependencyId>,
+    val dependsOnSourceSets: Set<String>
+) {
+
+    fun buildKotlinSourceSetImpl(doBuildDependencies: Boolean) = KotlinSourceSetImpl(
+        name,
+        languageSettings,
+        sourceDirs,
+        resourceDirs,
+        if (doBuildDependencies) dependencies.invoke() else emptyArray(),
+        dependsOnSourceSets
+    )
+
+}
 class KotlinSourceSetImpl(
     override val name: String,
     override val languageSettings: KotlinLanguageSettings,
@@ -223,7 +242,13 @@ class KotlinPlatformContainerImpl() : KotlinPlatformContainer {
     override fun supports(simplePlatform: KotlinPlatform): Boolean = platforms.contains(simplePlatform)
 
     override fun addSimplePlatforms(platforms: Collection<KotlinPlatform>) {
-        (myPlatforms ?: HashSet<KotlinPlatform>().apply { myPlatforms = this }).addAll(platforms)
+        (myPlatforms ?: HashSet<KotlinPlatform>().apply { myPlatforms = this }).let {
+            it.addAll(platforms)
+            if (it.contains(KotlinPlatform.COMMON)) {
+                it.clear()
+                it.addAll(defaultCommonPlatform)
+            }
+        }
     }
 }
 

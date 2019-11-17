@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.references
 
-import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
 
@@ -14,11 +14,11 @@ import org.jetbrains.kotlin.fir.visitors.*
  * DO NOT MODIFY IT MANUALLY
  */
 
-interface FirSuperReference : FirReference {
-    override val psi: PsiElement?
-    val superTypeRef: FirTypeRef
+abstract class FirSuperReference : FirReference() {
+    abstract override val source: FirSourceElement?
+    abstract val superTypeRef: FirTypeRef
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitSuperReference(this, data)
 
-    fun replaceSuperTypeRef(newSuperTypeRef: FirTypeRef)
+    abstract fun replaceSuperTypeRef(newSuperTypeRef: FirTypeRef)
 }

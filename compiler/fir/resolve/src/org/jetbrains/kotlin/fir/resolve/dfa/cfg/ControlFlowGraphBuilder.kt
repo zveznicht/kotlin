@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.dfa.*
-import org.jetbrains.kotlin.fir.resolve.transformers.resultType
+import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.resultType
 import org.jetbrains.kotlin.fir.types.isNothing
 
 class ControlFlowGraphBuilder {
@@ -24,6 +24,7 @@ class ControlFlowGraphBuilder {
 
     private val exitNodes: Stack<CFGNode<*>> = stackOf()
 
+    private val functionEnterNodes: SymbolBasedNodeStorage<FirFunction<*>, FunctionEnterNode> = SymbolBasedNodeStorage()
     private val functionExitNodes: SymbolBasedNodeStorage<FirFunction<*>, FunctionExitNode> = SymbolBasedNodeStorage()
 
     private val whenExitNodes: NodeStorage<FirWhenExpression, WhenExitNode> = NodeStorage()
@@ -41,6 +42,8 @@ class ControlFlowGraphBuilder {
     private val topLevelVariableInitializerExitNodes: Stack<PropertyInitializerExitNode> = stackOf()
 
     private val initBlockExitNodes: Stack<InitBlockExitNode> = stackOf()
+
+    private val exitSafeCallNodes: Stack<ExitSafeCallNode> = stackOf()
 
     var levelCounter: Int = 0
         private set
@@ -86,17 +89,14 @@ class ControlFlowGraphBuilder {
 
         @Suppress("NON_EXHAUSTIVE_WHEN")
         when (invocationKind) {
-            InvocationKind.AT_LEAST_ONCE -> addEdge(exitNode, enterNode)
-            InvocationKind.AT_MOST_ONCE -> addEdge(enterNode, exitNode)
-            InvocationKind.UNKNOWN -> {
-                addEdge(exitNode, enterNode)
-                addEdge(enterNode, exitNode)
-            }
+            InvocationKind.AT_MOST_ONCE, InvocationKind.UNKNOWN -> addEdge(enterNode, exitNode)
         }
 
         functionExitNodes.push(exitNode)
         if (!isInplace) {
             exitNodes.push(exitNode)
+        } else {
+            functionEnterNodes.push(enterNode)
         }
         levelCounter++
         return enterNode to previousNode
@@ -105,12 +105,17 @@ class ControlFlowGraphBuilder {
     fun exitFunction(function: FirFunction<*>): Pair<FunctionExitNode, ControlFlowGraph?> {
         levelCounter--
         val exitNode = functionExitNodes.pop()
-        val isInplace = function.isInplace()
+        val invocationKind = function.invocationKind
+        val isInplace = invocationKind != null
         if (!isInplace) {
             exitNodes.pop()
         }
         if (isInplace) {
             addNewSimpleNode(exitNode)
+            val enterNode = functionEnterNodes.pop()
+            when (invocationKind) {
+                InvocationKind.AT_LEAST_ONCE, InvocationKind.UNKNOWN -> addEdge(exitNode, enterNode, propagateDeadness = false)
+            }
         } else {
             addEdge(lastNodes.pop(), exitNode)
             lexicalScopes.pop()
@@ -220,15 +225,21 @@ class ControlFlowGraphBuilder {
         return node
     }
 
-    fun exitWhenExpression(whenExpression: FirWhenExpression): WhenExitNode {
-        levelCounter--
+    fun exitWhenExpression(whenExpression: FirWhenExpression): Pair<WhenExitNode, WhenSyntheticElseBranchNode?> {
+        val whenExitNode = whenExitNodes.pop()
         // exit from last condition node still on stack
         // we should remove it
-        require(lastNodes.pop() is WhenBranchConditionExitNode)
-        val whenExitNode = whenExitNodes.pop()
+        val lastWhenConditionExit = lastNodes.pop()
+        val syntheticElseBranchNode = if (!whenExpression.isExhaustive) {
+            createWhenSyntheticElseBranchNode(whenExpression).apply {
+                addEdge(lastWhenConditionExit, this)
+                addEdge(this, whenExitNode)
+            }
+        } else null
         whenExitNode.markAsDeadIfNecessary()
         lastNodes.push(whenExitNode)
-        return whenExitNode
+        levelCounter--
+        return whenExitNode to syntheticElseBranchNode
     }
 
     // ----------------------------------- While Loop -----------------------------------
@@ -380,6 +391,14 @@ class ControlFlowGraphBuilder {
             levelCounter++
         }
         return leftExitNode to rightExitNode
+    }
+
+    fun enterContract(functionCall: FirFunctionCall): EnterContractNode {
+        return createEnterContractNode(functionCall).also { addNewSimpleNode(it) }
+    }
+
+    fun exitContract(functionCall: FirFunctionCall): ExitContractNode {
+        return createExitContractNode(functionCall).also { addNewSimpleNode(it) }
     }
 
     fun exitBinaryOr(binaryLogicExpression: FirBinaryLogicExpression): BinaryOrExitNode {
@@ -555,6 +574,25 @@ class ControlFlowGraphBuilder {
         }
     }
 
+    // ----------------------------------- Safe calls -----------------------------------
+
+    fun enterSafeCall(qualifiedAccess: FirQualifiedAccess): EnterSafeCallNode {
+        val lastNode = lastNodes.pop()
+        val enterNode = createEnterSafeCallNode(qualifiedAccess)
+        lastNodes.push(enterNode)
+        val exitNode = createExitSafeCallNode(qualifiedAccess)
+        exitSafeCallNodes.push(exitNode)
+        addEdge(lastNode, enterNode)
+        addEdge(lastNode, exitNode)
+        return enterNode
+    }
+
+    fun exitSafeCall(qualifiedAccess: FirQualifiedAccess): ExitSafeCallNode {
+        return exitSafeCallNodes.pop().also {
+            addNewSimpleNode(it)
+        }
+    }
+
     // -------------------------------------------------------------------------------------------------------------------------
 
     private fun CFGNode<*>.markAsDeadIfNecessary() {
@@ -609,11 +647,6 @@ class ControlFlowGraphBuilder {
         get() = (this as? FirAnonymousFunction)?.invocationKind
 
     private fun InvocationKind?.isInplace(): Boolean {
-        return this != null && this != InvocationKind.UNKNOWN
-    }
-
-    private fun FirFunction<*>.isInplace(): Boolean {
-        val invocationKind = this.invocationKind
-        return invocationKind != null && invocationKind != InvocationKind.UNKNOWN
+        return this != null
     }
 }

@@ -9,8 +9,8 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.*
-import org.jetbrains.kotlin.fir.scopes.FirPosition
 import org.jetbrains.kotlin.fir.scopes.FirScope
+import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassifierSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
@@ -38,8 +38,7 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver {
 
     override fun resolveToSymbol(
         typeRef: FirTypeRef,
-        scope: FirScope,
-        position: FirPosition
+        scope: FirScope
     ): FirClassifierSymbol<*>? {
         return when (typeRef) {
             is FirResolvedTypeRef -> typeRef.coneTypeSafe<ConeLookupTagBasedType>()?.lookupTag?.let(symbolProvider::getSymbolByLookupTag)
@@ -48,7 +47,7 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver {
                 val qualifierResolver = FirQualifierResolver.getInstance(session)
 
                 var resolvedSymbol: FirClassifierSymbol<*>? = null
-                scope.processClassifiersByName(typeRef.qualifier.first().name, position) { symbol ->
+                scope.processClassifiersByName(typeRef.qualifier.first().name) { symbol ->
                     resolvedSymbol = when (symbol) {
                         is FirClassLikeSymbol<*> -> {
                             if (typeRef.qualifier.size == 1) {
@@ -63,7 +62,7 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver {
                         }
                         else -> error("!")
                     }
-                    resolvedSymbol == null
+                    if (resolvedSymbol == null) ProcessorAction.NEXT else ProcessorAction.STOP
                 }
 
                 // TODO: Imports
@@ -77,7 +76,9 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver {
     }
 
     override fun resolveUserType(typeRef: FirUserTypeRef, symbol: FirClassifierSymbol<*>?, scope: FirScope): ConeKotlinType {
-        symbol ?: return ConeKotlinErrorType("Symbol not found, for `${typeRef.render()}`")
+        if (symbol == null) {
+            return ConeKotlinErrorType("Symbol not found, for `${typeRef.render()}`")
+        }
         return symbol.constructType(typeRef.qualifier, typeRef.isMarkedNullable)
     }
 
@@ -96,25 +97,22 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver {
 
     override fun resolveType(
         typeRef: FirTypeRef,
-        scope: FirScope,
-        position: FirPosition
+        scope: FirScope
     ): ConeKotlinType {
         return when (typeRef) {
             is FirResolvedTypeRef -> typeRef.type
             is FirUserTypeRef -> {
-                resolveUserType(typeRef, resolveToSymbol(typeRef, scope, position), scope)
+                resolveUserType(typeRef, resolveToSymbol(typeRef, scope), scope)
             }
-            is FirErrorTypeRef -> {
-                ConeKotlinErrorType(typeRef.reason)
-            }
+            is FirErrorTypeRef -> typeRef.type
             is FirFunctionTypeRef -> {
                 createFunctionalType(typeRef)
             }
             is FirImplicitBuiltinTypeRef -> {
-                resolveToSymbol(typeRef, scope, position)!!.constructType(emptyList(), isNullable = false)
+                resolveToSymbol(typeRef, scope)!!.constructType(emptyList(), isNullable = false)
             }
             is FirDelegatedTypeRef -> {
-                resolveType(typeRef.typeRef, scope, position)
+                resolveType(typeRef.typeRef, scope)
             }
             is FirDynamicTypeRef -> {
                 ConeKotlinErrorType("Not supported: ${typeRef::class.simpleName}")

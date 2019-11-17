@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
-import org.jetbrains.kotlin.ir.types.getClass
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
 import org.jetbrains.kotlin.ir.util.constructedClass
@@ -29,6 +28,7 @@ import org.jetbrains.kotlin.ir.util.explicitParameters
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.InlineClassDescriptorResolver
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class IrReplacementFunction(
     val function: IrFunction,
@@ -56,11 +56,6 @@ class MemoizedInlineClassReplacements {
                 else -> null
             }
         }
-
-    private val IrFunction.hasMangledParameters: Boolean
-        get() = dispatchReceiverParameter?.type?.getClass()?.isInline == true ||
-                fullValueParameterList.any { it.type.requiresMangling } ||
-                (this is IrConstructor && constructedClass.isInline)
 
     private val IrFunction.hasStaticReplacement: Boolean
         get() = origin != IrDeclarationOrigin.FAKE_OVERRIDE &&
@@ -202,6 +197,7 @@ class MemoizedInlineClassReplacements {
                 copyTypeParameters(function.constructedClass.typeParameters + function.typeParameters)
             } else {
                 copyTypeParametersFrom(function)
+                correspondingPropertySymbol = function.safeAs<IrSimpleFunction>()?.correspondingPropertySymbol
             }
             body()
         }

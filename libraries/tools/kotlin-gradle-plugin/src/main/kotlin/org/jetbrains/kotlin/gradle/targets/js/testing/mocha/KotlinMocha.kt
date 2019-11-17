@@ -32,13 +32,17 @@ class KotlinMocha(override val compilation: KotlinJsCompilation) : KotlinJsTestF
         get() = listOf(
             KotlinGradleNpmPackage("test-js-runner"),
             versions.mocha,
-            versions.mochaTeamCityReporter
+            versions.sourceMapSupport
         )
+
+    // https://mochajs.org/#-timeout-ms-t-ms
+    var timeout: String = DEFAULT_TIMEOUT
 
     override fun createTestExecutionSpec(
         task: KotlinJsTest,
         forkOptions: ProcessForkOptions,
-        nodeJsArgs: MutableList<String>
+        nodeJsArgs: MutableList<String>,
+        debug: Boolean
     ): TCServiceMessagesTestExecutionSpec {
         val clientSettings = TCServiceMessagesClientSettings(
             task.name,
@@ -57,19 +61,21 @@ class KotlinMocha(override val compilation: KotlinJsCompilation) : KotlinJsTestF
 
         createAdapterJs(task)
 
-        val nodeModules = listOf(
-            "mocha/bin/mocha",
-            "./$ADAPTER_NODEJS"
-        )
+        val mocha = npmProject.require("mocha/bin/mocha")
+        val adapter = npmProject.require("./$ADAPTER_NODEJS")
 
-        val args = nodeJsArgs +
-                nodeModules.map {
-                    npmProject.require(it)
-                } + cliArgs.toList() +
-                listOf("--reporter", "mocha-teamcity-reporter") +
-                listOf(
-                    "-r", "kotlin-test-js-runner/kotlin-nodejs-source-map-support.js"
-                )
+        val args = mutableListOf(
+            "--require",
+            npmProject.require("source-map-support/register.js")
+
+        ).apply {
+            add(mocha)
+            addAll(cliArg("--inspect-brk", debug))
+            add(adapter)
+            addAll(cliArgs.toList())
+            addAll(cliArg("--reporter", "kotlin-test-js-runner/mocha-kotlin-reporter.js"))
+            addAll(cliArg("--timeout", timeout))
+        }
 
         return TCServiceMessagesTestExecutionSpec(
             forkOptions,
@@ -77,6 +83,14 @@ class KotlinMocha(override val compilation: KotlinJsCompilation) : KotlinJsTestF
             false,
             clientSettings
         )
+    }
+
+    private fun cliArg(cli: String, value: Boolean): List<String> {
+        return if (value) listOf(cli) else emptyList()
+    }
+
+    private fun cliArg(cli: String, value: String?): List<String> {
+        return value?.let { listOf(cli, it) } ?: emptyList()
     }
 
     private fun createAdapterJs(task: KotlinJsTest) {
@@ -90,11 +104,13 @@ class KotlinMocha(override val compilation: KotlinJsCompilation) : KotlinJsTestF
             val adapter = npmProject.require("kotlin-test-js-runner/kotlin-test-nodejs-runner.js")
             writer.println("require(${adapter.jsQuoted()})")
 
-            writer.println("require(${file.jsQuoted()})")
+            writer.println("module.exports = require(${file.jsQuoted()})")
         }
     }
 
     companion object {
         const val ADAPTER_NODEJS = "adapter-nodejs.js"
+
+        private const val DEFAULT_TIMEOUT = "2s"
     }
 }

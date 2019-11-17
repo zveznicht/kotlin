@@ -11,19 +11,23 @@ import org.jetbrains.kotlin.backend.common.ir.copyTypeParametersFrom
 import org.jetbrains.kotlin.backend.common.ir.copyValueParametersToStatic
 import org.jetbrains.kotlin.backend.common.ir.passTypeArgumentsFrom
 import org.jetbrains.kotlin.backend.common.ir.remapTypeParameters
-import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.intrinsics.receiverAndArgs
+import org.jetbrains.kotlin.backend.jvm.ir.IrInlineReferenceLocator
+import org.jetbrains.kotlin.backend.jvm.ir.isLambda
+import org.jetbrains.kotlin.backend.jvm.ir.shouldBeHidden
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.declarations.buildConstructor
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.declarations.impl.IrConstructorImpl
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.*
@@ -36,13 +40,14 @@ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.load.java.JavaVisibilities
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrElementTransformerVoidWithContext(), FileLoweringPass {
     private val pendingTransformations = mutableListOf<Function0<Unit>>()
     private val inlineLambdaToCallSite = mutableMapOf<IrFunction, IrDeclaration?>()
 
     override fun lower(irFile: IrFile) {
-        inlineLambdaToCallSite.putAll(InlineReferenceLocator.scan(context, irFile).lambdaToCallSite)
+        inlineLambdaToCallSite.putAll(IrInlineReferenceLocator.scan(context, irFile).lambdaToCallSite)
         irFile.transformChildrenVoid(this)
         pendingTransformations.forEach { it() }
     }
@@ -56,49 +61,88 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
             return super.visitFunctionAccess(expression)
         }
 
-        fun makeFunctionAccessorSymbolWithSuper(functionSymbol: IrFunctionSymbol): IrFunctionSymbol =
-            when (functionSymbol) {
-                is IrConstructorSymbol -> functionSymbol.owner.makeConstructorAccessor().symbol
-                is IrSimpleFunctionSymbol -> functionSymbol.owner.makeSimpleFunctionAccessor(expression as IrCall).symbol
-                else -> error("Unknown subclass of IrFunctionSymbol")
-            }
-
+        val withSuper = (expression as? IrCall)?.superQualifierSymbol != null
+        val thisSymbol = (expression as? IrCall)?.dispatchReceiver?.type?.classifierOrNull as? IrClassSymbol
+        if (expression.symbol.isAccessible(withSuper, thisSymbol)) {
+            return super.visitFunctionAccess(expression)
+        }
         return super.visitExpression(
-            handleAccess(
-                expression,
-                expression.symbol,
-                functionMap,
-                ::makeFunctionAccessorSymbolWithSuper,
-                ::modifyFunctionAccessExpression,
-                (expression as? IrCall)?.superQualifierSymbol,
-                (expression as? IrCall)?.dispatchReceiver?.type?.classifierOrNull as? IrClassSymbol
-            )
+            modifyFunctionAccessExpression(expression, functionMap.getOrPut(expression.symbol) {
+                when (val symbol = expression.symbol) {
+                    is IrConstructorSymbol -> symbol.owner.makeConstructorAccessor().symbol
+                    is IrSimpleFunctionSymbol -> symbol.owner.makeSimpleFunctionAccessor(expression as IrCall).symbol
+                    else -> error("Unknown subclass of IrFunctionSymbol")
+                }
+            })
         )
     }
 
     override fun visitGetField(expression: IrGetField) = super.visitExpression(
-        handleAccess(expression, expression.symbol, getterMap, ::makeGetterAccessorSymbol, ::modifyGetterExpression)
-    )
-
-    override fun visitSetField(expression: IrSetField) = super.visitExpression(
-        handleAccess(expression, expression.symbol, setterMap, ::makeSetterAccessorSymbol, ::modifySetterExpression)
-    )
-
-    private inline fun <ExprT : IrDeclarationReference, reified FromSyT : IrSymbol, ToSyT : IrSymbol> handleAccess(
-        expression: ExprT,
-        symbol: FromSyT,
-        accumMap: MutableMap<FromSyT, ToSyT>,
-        symbolConverter: (FromSyT) -> ToSyT,
-        exprConverter: (ExprT, ToSyT) -> IrDeclarationReference,
-        superQualifierSymbol: IrClassSymbol? = null,
-        thisSymbol: IrClassSymbol? = null
-    ): IrExpression =
-        if (!symbol.isAccessible(superQualifierSymbol != null, thisSymbol)) {
-            val accessorSymbol = accumMap.getOrPut(symbol) { symbolConverter(symbol) }
-            exprConverter(expression, accessorSymbol)
+        if (!expression.symbol.isAccessible(false, expression.receiver?.type?.classifierOrNull as? IrClassSymbol)) {
+            modifyGetterExpression(expression, getterMap.getOrPut(expression.symbol) { makeGetterAccessorSymbol(expression.symbol) })
         } else {
             expression
         }
+    )
+
+    override fun visitSetField(expression: IrSetField) = super.visitExpression(
+        if (!expression.symbol.isAccessible(false, expression.receiver?.type?.classifierOrNull as? IrClassSymbol)) {
+            modifySetterExpression(expression, setterMap.getOrPut(expression.symbol) { makeSetterAccessorSymbol(expression.symbol) })
+        } else {
+            expression
+        }
+    )
+
+    override fun visitConstructor(declaration: IrConstructor): IrStatement {
+        handleHiddenConstructor(declaration)
+        return super.visitConstructor(declaration)
+    }
+
+    override fun visitConstructorCall(expression: IrConstructorCall): IrExpression {
+        handleHiddenConstructor(expression.symbol.owner)
+        return super.visitConstructorCall(expression)
+    }
+
+    override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+        val function = expression.symbol.owner
+
+        if (!expression.origin.isLambda && function is IrConstructor) {
+            handleHiddenConstructor(function)?.let { accessor ->
+                expression.transformChildrenVoid()
+                return IrFunctionReferenceImpl(
+                    expression.startOffset, expression.endOffset, expression.type,
+                    accessor, accessor.owner.typeParameters.size,
+                    accessor.owner.valueParameters.size, expression.origin
+                )
+            }
+        }
+
+        return super.visitFunctionReference(expression)
+    }
+
+    private fun handleHiddenConstructor(declaration: IrConstructor): IrConstructorSymbol? {
+        functionMap[declaration.symbol]?.let { return it as IrConstructorSymbol }
+
+        if (!declaration.shouldBeHidden)
+            return null
+
+        declaration.visibility = Visibilities.PRIVATE
+
+        return declaration.makeConstructorAccessor().also { accessor ->
+            functionMap[declaration.symbol] = accessor.symbol
+
+            // There's a special case in the JVM backend for serializing the metadata of hidden
+            // constructors - we serialize the descriptor of the original constructor, but the
+            // signature of the bridge. We implement this special case in the JVM IR backend by
+            // attaching the metadata directly to the bridge. We also have to move all annotations
+            // to the bridge method. Parameter annotations are already moved by the copyTo method.
+            accessor.metadata = declaration.metadata
+            declaration.safeAs<IrConstructorImpl>()?.metadata = null
+            accessor.annotations += declaration.annotations
+            declaration.annotations.clear()
+            declaration.valueParameters.forEach { it.annotations.clear() }
+        }.symbol
+    }
 
     // In case of Java `protected static`, access could be done from a public inline function in the same package,
     // or a subclass of the Java class. Both cases require an accessor, which we cannot add to the Java class.
@@ -108,7 +152,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
             classes.lastOrNull { parent is IrClass && it.isSubclassOf(parent) } ?: classes.last()
         } else parent
 
-    private fun IrConstructor.makeConstructorAccessor(): IrConstructor {
+    private fun IrConstructor.makeConstructorAccessor(): IrConstructorImpl {
         val source = this
 
         return buildConstructor {
@@ -139,8 +183,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
         IrDelegatingConstructorCallImpl(
             UNDEFINED_OFFSET, UNDEFINED_OFFSET,
             context.irBuiltIns.unitType,
-            targetSymbol, targetSymbol.descriptor,
-            targetSymbol.owner.parentAsClass.typeParameters.size + targetSymbol.owner.typeParameters.size
+            targetSymbol, targetSymbol.owner.parentAsClass.typeParameters.size + targetSymbol.owner.typeParameters.size
         ).also {
             copyAllParamsToArgs(it, accessor)
         }
@@ -206,8 +249,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
         IrCallImpl(
             UNDEFINED_OFFSET, UNDEFINED_OFFSET,
             accessor.returnType,
-            targetSymbol, targetSymbol.descriptor,
-            targetSymbol.owner.typeParameters.size,
+            targetSymbol, targetSymbol.owner.typeParameters.size,
             superQualifierSymbol = superQualifierSymbol
         ).also {
             copyAllParamsToArgs(it, accessor)
@@ -300,15 +342,13 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
             is IrCall -> IrCallImpl(
                 oldExpression.startOffset, oldExpression.endOffset,
                 oldExpression.type,
-                accessorSymbol, accessorSymbol.descriptor,
-                oldExpression.typeArgumentsCount,
+                accessorSymbol, oldExpression.typeArgumentsCount,
                 oldExpression.origin
             )
             is IrDelegatingConstructorCall -> IrDelegatingConstructorCallImpl(
                 oldExpression.startOffset, oldExpression.endOffset,
                 context.irBuiltIns.unitType,
-                accessorSymbol as IrConstructorSymbol, accessorSymbol.descriptor,
-                oldExpression.typeArgumentsCount
+                accessorSymbol as IrConstructorSymbol, oldExpression.typeArgumentsCount
             )
             is IrConstructorCall ->
                 IrConstructorCallImpl.fromSymbolDescriptor(
@@ -344,8 +384,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
         val call = IrCallImpl(
             oldExpression.startOffset, oldExpression.endOffset,
             oldExpression.type,
-            accessorSymbol, accessorSymbol.descriptor,
-            0,
+            accessorSymbol, 0,
             oldExpression.origin
         )
         oldExpression.receiver?.let {
@@ -361,8 +400,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
         val call = IrCallImpl(
             oldExpression.startOffset, oldExpression.endOffset,
             oldExpression.type,
-            accessorSymbol, accessorSymbol.descriptor,
-            0,
+            accessorSymbol, 0,
             oldExpression.origin
         )
         oldExpression.receiver?.let {
@@ -435,11 +473,13 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
 
     private fun IrDeclaration.getAccessContext(withSuper: Boolean): IrDeclarationContainer? = when {
         this is IrDeclarationContainer -> this
-        // Accesses from public inline functions can actually be anywhere. For protected inline functions
-        // calling methods on `super` we need an accessor to satisfy INVOKESPECIAL constraints.
-        this is IrFunction && isInline && !visibility.isPrivate && (withSuper || !visibility.isProtected) -> null
         // For inline lambdas, we can navigate to the only call site directly.
         this in inlineLambdaToCallSite -> inlineLambdaToCallSite[this]?.getAccessContext(withSuper)
+        // Accesses from inline functions can actually be anywhere; even private inline functions can be
+        // inlined into a different class, e.g. a callable reference. For protected inline functions
+        // calling methods on `super` we also need an accessor to satisfy INVOKESPECIAL constraints.
+        // TODO scan nested classes for calls to private inline functions?
+        this is IrFunction && isInline -> null
         else -> (parent as? IrDeclaration)?.getAccessContext(withSuper)
     }
 
@@ -463,17 +503,13 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
         val contextDeclarationContainer = (currentScope!!.irElement as IrDeclaration).getAccessContext(withSuper) ?: return false
 
         val samePackage = declaration.getPackageFragment()?.fqName == contextDeclarationContainer.getPackageFragment()?.fqName
+        val fromSubclassOfReceiversClass = contextDeclarationContainer is IrClass && symbolDeclarationContainer is IrClass &&
+                ((thisObjReference == null || contextDeclarationContainer.symbol.isSubtypeOfClass(thisObjReference)) &&
+                        (contextDeclarationContainer.isSubclassOf(symbolDeclarationContainer)))
         return when {
             declaration.visibility.isPrivate && symbolDeclarationContainer != contextDeclarationContainer -> false
-            declaration.visibility.isProtected && !samePackage &&
-                    !(symbolDeclarationContainer is IrClass && contextDeclarationContainer is IrClass &&
-                            contextDeclarationContainer.isSubclassOf(symbolDeclarationContainer)) -> false
-            // Invoking with super qualifier is implemented by invokespecial, which requires
-            // 1. `this` to be assign compatible with current class.
-            // 2. the method is a member of a superclass of current class.
-            (withSuper && contextDeclarationContainer is IrClass && symbolDeclarationContainer is IrClass &&
-                    ((thisObjReference != null && !contextDeclarationContainer.symbol.isSubtypeOfClass(thisObjReference)) ||
-                            !(contextDeclarationContainer.isSubclassOf(symbolDeclarationContainer)))) -> false
+            declaration.visibility.isProtected && !samePackage && !fromSubclassOfReceiversClass -> false
+            withSuper && !fromSubclassOfReceiversClass -> false
             else -> true
         }
     }

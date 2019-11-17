@@ -33,11 +33,8 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import java.util.*
 
-inline fun <reified T : IrElement> T.deepCopyWithSymbols(
-    initialParent: IrDeclarationParent? = null,
-    descriptorRemapper: DescriptorsRemapper = DescriptorsRemapper.Default
-): T {
-    val symbolRemapper = DeepCopySymbolRemapper(descriptorRemapper)
+inline fun <reified T : IrElement> T.deepCopyWithSymbols(initialParent: IrDeclarationParent? = null): T {
+    val symbolRemapper = DeepCopySymbolRemapper()
     acceptVoid(symbolRemapper)
     val typeRemapper = DeepCopyTypeRemapper(symbolRemapper)
     return transform(DeepCopyIrTreeWithSymbols(symbolRemapper, typeRemapper), null).patchDeclarationParents(initialParent) as T
@@ -144,7 +141,8 @@ open class DeepCopyIrTreeWithSymbols(
             declaration.isInner,
             declaration.isData,
             declaration.isExternal,
-            declaration.isInline
+            declaration.isInline,
+            declaration.isExpect
         ).apply {
             transformAnnotations(declaration)
             copyTypeParametersFrom(declaration)
@@ -164,10 +162,12 @@ open class DeepCopyIrTreeWithSymbols(
             declaration.visibility,
             declaration.modality,
             declaration.returnType,
-            declaration.isInline,
-            declaration.isExternal,
-            declaration.isTailrec,
-            declaration.isSuspend
+            isInline = declaration.isInline,
+            isExternal = declaration.isExternal,
+            isTailrec = declaration.isTailrec,
+            isSuspend = declaration.isSuspend,
+            isExpect = declaration.isExpect,
+            isFakeOverride = declaration.isFakeOverride
         ).apply {
             declaration.overriddenSymbols.mapTo(overriddenSymbols) {
                 symbolRemapper.getReferencedFunction(it) as IrSimpleFunctionSymbol
@@ -183,9 +183,10 @@ open class DeepCopyIrTreeWithSymbols(
             declaration.name,
             declaration.visibility,
             declaration.returnType,
-            declaration.isInline,
-            declaration.isExternal,
-            declaration.isPrimary
+            isInline = declaration.isInline,
+            isExternal = declaration.isExternal,
+            isPrimary = declaration.isPrimary,
+            isExpect = declaration.isExpect
         ).apply {
             transformFunctionChildren(declaration)
         }
@@ -215,11 +216,12 @@ open class DeepCopyIrTreeWithSymbols(
             declaration.name,
             declaration.visibility,
             declaration.modality,
-            declaration.isVar,
-            declaration.isConst,
-            declaration.isLateinit,
-            declaration.isDelegated,
-            declaration.isExternal
+            isVar = declaration.isVar,
+            isConst = declaration.isConst,
+            isLateinit = declaration.isLateinit,
+            isDelegated = declaration.isDelegated,
+            isExpect = declaration.isExpect,
+            isExternal = declaration.isExternal
         ).apply {
             transformAnnotations(declaration)
             this.backingField = declaration.backingField?.transform()
@@ -238,9 +240,10 @@ open class DeepCopyIrTreeWithSymbols(
             symbolRenamer.getFieldName(declaration.symbol),
             declaration.type.remapType(),
             declaration.visibility,
-            declaration.isFinal,
-            declaration.isExternal,
-            declaration.isStatic
+            isFinal = declaration.isFinal,
+            isExternal = declaration.isExternal,
+            isStatic = declaration.isStatic,
+            isFakeOverride = declaration.isFakeOverride
         ).apply {
             transformAnnotations(declaration)
             declaration.overriddenSymbols.mapTo(overriddenSymbols) {
@@ -492,7 +495,6 @@ open class DeepCopyIrTreeWithSymbols(
             expression.startOffset, expression.endOffset,
             expression.type.remapType(),
             constructorSymbol,
-            constructorSymbol.descriptor,
             expression.typeArgumentsCount,
             expression.constructorTypeArgumentsCount,
             expression.valueArgumentsCount,
@@ -518,7 +520,6 @@ open class DeepCopyIrTreeWithSymbols(
             expression.startOffset, expression.endOffset,
             expression.type.remapType(),
             newCallee,
-            newCallee.descriptor,
             expression.typeArgumentsCount,
             expression.valueArgumentsCount,
             mapStatementOrigin(expression.origin),
@@ -547,7 +548,6 @@ open class DeepCopyIrTreeWithSymbols(
             expression.startOffset, expression.endOffset,
             expression.type.remapType(),
             newConstructor,
-            newConstructor.descriptor,
             expression.typeArgumentsCount
         ).apply {
             copyRemappedTypeArgumentsFrom(expression)
@@ -581,7 +581,6 @@ open class DeepCopyIrTreeWithSymbols(
             expression.startOffset, expression.endOffset,
             expression.type.remapType(),
             symbol,
-            symbol.descriptor,
             expression.typeArgumentsCount,
             expression.valueArgumentsCount,
             mapStatementOrigin(expression.origin)

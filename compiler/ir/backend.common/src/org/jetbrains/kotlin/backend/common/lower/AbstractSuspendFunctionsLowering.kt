@@ -6,10 +6,6 @@
 package org.jetbrains.kotlin.backend.common.lower
 
 import org.jetbrains.kotlin.backend.common.*
-import org.jetbrains.kotlin.backend.common.descriptors.WrappedClassConstructorDescriptor
-import org.jetbrains.kotlin.backend.common.descriptors.WrappedClassDescriptor
-import org.jetbrains.kotlin.backend.common.descriptors.WrappedFieldDescriptor
-import org.jetbrains.kotlin.backend.common.descriptors.WrappedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
@@ -21,6 +17,10 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrClassImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrConstructorImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrFieldImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
+import org.jetbrains.kotlin.ir.descriptors.WrappedClassConstructorDescriptor
+import org.jetbrains.kotlin.ir.descriptors.WrappedClassDescriptor
+import org.jetbrains.kotlin.ir.descriptors.WrappedFieldDescriptor
+import org.jetbrains.kotlin.ir.descriptors.WrappedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrInstanceInitializerCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
@@ -290,7 +290,8 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
                 isInner = false,
                 isData = false,
                 isExternal = false,
-                isInline = false
+                isInline = false,
+                isExpect = false
             ).apply {
                 d.bind(this)
                 parent = irFunction.parent
@@ -392,7 +393,8 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
                 coroutineClass.defaultType,
                 isInline = false,
                 isExternal = false,
-                isPrimary = true
+                isPrimary = true,
+                isExpect = false
             ).apply {
                 d.bind(this)
                 parent = coroutineClass
@@ -437,7 +439,8 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
                 coroutineClass.defaultType,
                 isInline = false,
                 isExternal = false,
-                isPrimary = false
+                isPrimary = false,
+                isExpect = false
             ).apply {
                 d.bind(this)
                 parent = coroutineClass
@@ -484,7 +487,9 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
                 isInline = false,
                 isExternal = false,
                 isTailrec = false,
-                isSuspend = false
+                isSuspend = false,
+                isExpect = false,
+                isFakeOverride = false
             ).apply {
                 d.bind(this)
                 parent = coroutineClass
@@ -549,7 +554,9 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
                 isInline = false,
                 isExternal = false,
                 isTailrec = false,
-                isSuspend = true
+                isSuspend = true,
+                isExpect = false,
+                isFakeOverride = false
             ).apply {
                 d.bind(this)
                 parent = coroutineClass
@@ -603,10 +610,12 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
                     stateMachineFunction.visibility,
                     Modality.FINAL,
                     context.irBuiltIns.anyNType,
-                    stateMachineFunction.isInline,
-                    stateMachineFunction.isExternal,
-                    stateMachineFunction.isTailrec,
-                    stateMachineFunction.isSuspend
+                    isInline = stateMachineFunction.isInline,
+                    isExternal = stateMachineFunction.isExternal,
+                    isTailrec = stateMachineFunction.isTailrec,
+                    isSuspend = stateMachineFunction.isSuspend,
+                    isExpect = stateMachineFunction.isExpect,
+                    isFakeOverride = false
                 ).apply {
                     d.bind(this)
                     parent = coroutineClass
@@ -671,9 +680,10 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
             name,
             type,
             Visibilities.PRIVATE,
-            !isMutable,
+            isFinal = !isMutable,
             isExternal = false,
-            isStatic = false
+            isStatic = false,
+            isFakeOverride = false
         ).also {
             descriptor.bind(it)
             it.parent = this

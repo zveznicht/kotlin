@@ -35,7 +35,6 @@ import org.jetbrains.kotlin.load.java.JavaVisibilities
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.checkers.ExpectedActualDeclarationChecker
 import org.jetbrains.kotlin.resolve.inline.INLINE_ONLY_ANNOTATION_FQ_NAME
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmClassSignature
@@ -110,10 +109,12 @@ val IrType.isExtensionFunctionType: Boolean
     get() = isFunctionTypeOrSubtype() && hasAnnotation(KotlinBuiltIns.FQ_NAMES.extensionFunctionType)
 
 
-/* Borrowed from MemberCodegen.java */
+/* Borrowed with modifications from MemberCodegen.java */
 
 fun writeInnerClass(innerClass: IrClass, typeMapper: IrTypeMapper, context: JvmBackendContext, v: ClassBuilder) {
-    val outerClassInternalName = innerClass.parent.safeAs<IrClass>()?.let { typeMapper.classInternalName(it) }
+    val outerClassInternalName =
+        if (context.customEnclosingFunction[innerClass.attributeOwnerId] != null) null
+        else innerClass.parent.safeAs<IrClass>()?.let(typeMapper::classInternalName)
     val innerName = innerClass.name.takeUnless { it.isSpecial }?.asString()
     val innerClassInternalName = typeMapper.classInternalName(innerClass)
     v.visitInnerClass(innerClassInternalName, outerClassInternalName, innerName, innerClass.calculateInnerClassAccessFlags(context))
@@ -185,18 +186,6 @@ private fun IrDeclarationWithVisibility.specialCaseVisibility(kind: OwnerKind?):
 
 //    if (memberDescriptor is FunctionDescriptor && isInlineClassWrapperConstructor(memberDescriptor, kind))
     if (this is IrConstructor && parentAsClass.isInline && kind === OwnerKind.IMPLEMENTATION) {
-        return Opcodes.ACC_PRIVATE
-    }
-
-//    if (kind !== OwnerKind.ERASED_INLINE_CLASS &&
-//        memberDescriptor is ConstructorDescriptor &&
-//        memberDescriptor !is AccessorForConstructorDescriptor &&
-//        shouldHideConstructorDueToInlineClassTypeValueParameters(memberDescriptor)
-//    ) {
-    if (kind !== OwnerKind.ERASED_INLINE_CLASS &&
-        this is IrConstructor &&
-        shouldHideDueToInlineClassTypeValueParameters()
-    ) {
         return Opcodes.ACC_PRIVATE
     }
 
@@ -285,30 +274,6 @@ private fun IrDeclarationWithVisibility.specialCaseVisibility(kind: OwnerKind?):
 
     return null
 }
-
-/* From inlineClassManglingRules.kt */
-fun IrConstructor.shouldHideDueToInlineClassTypeValueParameters() =
-    !Visibilities.isPrivate(visibility) &&
-            !parentAsClass.isInline &&
-            parentAsClass.modality !== Modality.SEALED &&
-            valueParameters.any { it.type.requiresFunctionNameMangling() }
-
-fun IrType.requiresFunctionNameMangling(): Boolean =
-    isInlineClassThatRequiresMangling() || isTypeParameterWithUpperBoundThatRequiresMangling()
-
-fun IrType.isInlineClassThatRequiresMangling() =
-    safeAs<IrSimpleType>()?.classifier?.owner?.safeAs<IrClass>()?.let {
-        it.isInline && !it.isDontMangleClass()
-    } ?: false
-
-fun IrClass.isDontMangleClass() =
-    fqNameWhenAvailable != DescriptorUtils.RESULT_FQ_NAME
-
-fun IrType.isTypeParameterWithUpperBoundThatRequiresMangling() =
-    safeAs<IrSimpleType>()?.classifier?.owner.safeAs<IrTypeParameter>()?.let { param ->
-        param.superTypes.any { it.requiresFunctionNameMangling() }
-    } ?: false
-
 
 /* Borrowed from InlineUtil. */
 private tailrec fun isInlineOrContainedInInline(declaration: IrDeclaration?): Boolean = when {
