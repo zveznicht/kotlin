@@ -25,7 +25,7 @@ public class ParsingTestSpecGenerated extends AbstractParsingTestSpec {
     }
 
     public void testAllFilesPresentInPsi() throws Exception {
-        KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/tests-spec/testData/psi"), Pattern.compile("^(.+)\\.kt$"), true, "helpers", "templates", "linked/expressions/type-checking-and-containment-checking-expressions", "linked/expressions/call-and-property-access-expressions");
+        KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/tests-spec/testData/psi"), Pattern.compile("^(.+)\\.kt$"), true, "helpers", "templates");
     }
 
     @TestMetadata("compiler/tests-spec/testData/psi/linked")
@@ -37,7 +37,7 @@ public class ParsingTestSpecGenerated extends AbstractParsingTestSpec {
         }
 
         public void testAllFilesPresentInLinked() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/tests-spec/testData/psi/linked"), Pattern.compile("^(.+)\\.kt$"), true, "expressions/type-checking-and-containment-checking-expressions", "expressions/call-and-property-access-expressions");
+            KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/tests-spec/testData/psi/linked"), Pattern.compile("^(.+)\\.kt$"), true);
         }
 
         @TestMetadata("compiler/tests-spec/testData/psi/linked/expressions")
@@ -49,7 +49,7 @@ public class ParsingTestSpecGenerated extends AbstractParsingTestSpec {
             }
 
             public void testAllFilesPresentInExpressions() throws Exception {
-                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/tests-spec/testData/psi/linked/expressions"), Pattern.compile("^(.+)\\.kt$"), true, "type-checking-and-containment-checking-expressions", "call-and-property-access-expressions");
+                KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/tests-spec/testData/psi/linked/expressions"), Pattern.compile("^(.+)\\.kt$"), true);
             }
 
             @TestMetadata("compiler/tests-spec/testData/psi/linked/expressions/constant-literals")
@@ -1150,9 +1150,9 @@ public class ParsingTestSpecGenerated extends AbstractParsingTestSpec {
                             KotlinTestUtils.runTest(this::doParsingTest, this, testDataFilePath);
                         }
 
-                        @TestMetadata("12.1.kt")
-                        public void test12_1() throws Exception {
-                            runTest("compiler/tests-spec/testData/psi/linked/expressions/when-expression/p-6/neg/12.1.kt");
+                        @TestMetadata("11.1.kt")
+                        public void test11_1() throws Exception {
+                            runTest("compiler/tests-spec/testData/psi/linked/expressions/when-expression/p-6/neg/11.1.kt");
                         }
 
                         @TestMetadata("1.1.kt")
@@ -1170,9 +1170,9 @@ public class ParsingTestSpecGenerated extends AbstractParsingTestSpec {
                             runTest("compiler/tests-spec/testData/psi/linked/expressions/when-expression/p-6/neg/3.1.kt");
                         }
 
-                        @TestMetadata("9.1.kt")
-                        public void test9_1() throws Exception {
-                            runTest("compiler/tests-spec/testData/psi/linked/expressions/when-expression/p-6/neg/9.1.kt");
+                        @TestMetadata("8.1.kt")
+                        public void test8_1() throws Exception {
+                            runTest("compiler/tests-spec/testData/psi/linked/expressions/when-expression/p-6/neg/8.1.kt");
                         }
 
                         public void testAllFilesPresentInNeg() throws Exception {
