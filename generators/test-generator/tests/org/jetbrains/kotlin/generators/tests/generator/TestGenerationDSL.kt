@@ -59,7 +59,8 @@ class TestGroup(
             excludeDirs: List<String> = listOf(),
             filenameStartsLowerCase: Boolean? = null,
             skipIgnored: Boolean = false,
-            deep: Int? = null
+            deep: Int? = null,
+            newModel: Boolean = targetBackend == TargetBackend.JVM_IR
         ) {
             val rootFile = File("$testDataRoot/$relativeRootPath")
             val compiledPattern = Pattern.compile(pattern)
@@ -69,13 +70,14 @@ class TestGroup(
                     if (excludeDirs.isNotEmpty()) error("excludeDirs is unsupported for SingleClassTestModel yet")
                     SingleClassTestModel(
                         rootFile, compiledPattern, filenameStartsLowerCase, testMethod, className, targetBackend,
-                        skipIgnored, testRunnerMethodName, additionalRunnerArguments, annotations
+                        skipIgnored, testRunnerMethodName, additionalRunnerArguments, annotations, newModel
                     )
                 } else {
                     SimpleTestClassModel(
                         rootFile, recursive, excludeParentDirs,
                         compiledPattern, filenameStartsLowerCase, testMethod, className,
-                        targetBackend, excludeDirs, skipIgnored, testRunnerMethodName, additionalRunnerArguments, deep, annotations
+                        targetBackend, excludeDirs, skipIgnored, testRunnerMethodName, additionalRunnerArguments, deep, annotations,
+                        newModel
                     )
                 }
             )

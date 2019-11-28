@@ -46,6 +46,7 @@ public class SimpleTestClassModel extends TestClassModel {
 
     @NotNull
     private final Collection<AnnotationModel> annotations;
+    private boolean newModel;
 
     private final boolean skipIgnored;
     private final String testRunnerMethodName;
@@ -65,7 +66,8 @@ public class SimpleTestClassModel extends TestClassModel {
             String testRunnerMethodName,
             List<String> additionalRunnerArguments,
             Integer deep,
-            @NotNull Collection<AnnotationModel> annotations
+            @NotNull Collection<AnnotationModel> annotations,
+            boolean newModel
     ) {
         this.rootFile = rootFile;
         this.recursive = recursive;
@@ -81,6 +83,7 @@ public class SimpleTestClassModel extends TestClassModel {
         this.additionalRunnerArguments = additionalRunnerArguments;
         this.deep = deep;
         this.annotations = annotations;
+        this.newModel = newModel;
     }
 
     @NotNull
@@ -100,7 +103,7 @@ public class SimpleTestClassModel extends TestClassModel {
                         children.add(new SimpleTestClassModel(
                                 file, true, excludeParentDirs, filenamePattern, checkFilenameStartsLowerCase,
                                 doTestMethodName, innerTestClassName, targetBackend, excludesStripOneDirectory(file.getName()),
-                                skipIgnored, testRunnerMethodName, additionalRunnerArguments, deep != null ? deep - 1 : null, annotations)
+                                skipIgnored, testRunnerMethodName, additionalRunnerArguments, deep != null ? deep - 1 : null, annotations, newModel)
                         );
 
                     }
@@ -234,6 +237,11 @@ public class SimpleTestClassModel extends TestClassModel {
     @Override
     public Collection<AnnotationModel> getAnnotations() {
         return annotations;
+    }
+
+    @Override
+    public boolean getNewModel() {
+        return newModel;
     }
 
     private class TestAllFilesPresentMethodModel extends TestMethodModel {

@@ -182,7 +182,7 @@ fun main(args: Array<String>) {
         }
 
         testClass<AbstractBlackBoxInlineCodegenTest> {
-            model("codegen/boxInline", targetBackend = TargetBackend.JVM)
+            model("codegen/boxInline", targetBackend = TargetBackend.JVM, newModel = true)
         }
 
         testClass<AbstractBlackBoxAgainstJavaCodegenTest> {
@@ -410,7 +410,8 @@ fun main(args: Array<String>) {
                 "compileJavaAgainstKotlin",
                 testClassName = "WithoutJavac",
                 testMethod = "doTestWithoutJavac",
-                targetBackend = TargetBackend.JVM_IR
+                targetBackend = TargetBackend.JVM_IR,
+                newModel =  true
             )
             //model("compileJavaAgainstKotlin", testClassName = "WithJavac", testMethod = "doTestWithJavac", targetBackend = TargetBackend.JVM_IR)
         }

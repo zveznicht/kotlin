@@ -55,6 +55,7 @@ public class SingleClassTestModel extends TestClassModel {
 
     @NotNull
     private final List<AnnotationModel> annotations;
+    private boolean newModel;
 
     public SingleClassTestModel(
             @NotNull File rootFile,
@@ -66,7 +67,8 @@ public class SingleClassTestModel extends TestClassModel {
             boolean skipIgnored,
             String testRunnerMethodName,
             List<String> additionalRunnerArguments,
-            @NotNull List<AnnotationModel> annotations
+            @NotNull List<AnnotationModel> annotations,
+            boolean newModel
     ) {
         this.rootFile = rootFile;
         this.filenamePattern = filenamePattern;
@@ -78,6 +80,7 @@ public class SingleClassTestModel extends TestClassModel {
         this.testRunnerMethodName = testRunnerMethodName;
         this.additionalRunnerArguments = additionalRunnerArguments;
         this.annotations = annotations;
+        this.newModel = newModel;
     }
 
     @NotNull
@@ -144,6 +147,10 @@ public class SingleClassTestModel extends TestClassModel {
     @Override
     public Collection<AnnotationModel> getAnnotations() {
         return annotations;
+    }
+
+    public boolean getNewModel() {
+        return newModel;
     }
 
     private class TestAllFilesPresentMethodModel extends TestMethodModel {

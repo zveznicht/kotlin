@@ -882,24 +882,24 @@ public class KotlinTestUtils {
             boolean recursive,
             @NotNull String... excludeDirs
     ) {
-        File rootFile = new File(getTestsRoot(testCaseClass));
-
-        Set<String> filePaths = collectPathsMetadata(testCaseClass);
-        Set<String> exclude = SetsKt.setOf(excludeDirs);
-
-        File[] files = testDataDir.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                if (file.isDirectory()) {
-                    if (recursive && containsTestData(file, filenamePattern) && !exclude.contains(file.getName())) {
-                        assertTestClassPresentByMetadata(testCaseClass, file);
-                    }
-                }
-                else if (filenamePattern.matcher(file.getName()).matches() && isCompatibleTarget(targetBackend, file)) {
-                    assertFilePathPresent(file, rootFile, filePaths);
-                }
-            }
-        }
+        //File rootFile = new File(getTestsRoot(testCaseClass));
+        //
+        //Set<String> filePaths = collectPathsMetadata(testCaseClass);
+        //Set<String> exclude = SetsKt.setOf(excludeDirs);
+        //
+        //File[] files = testDataDir.listFiles();
+        //if (files != null) {
+        //    for (File file : files) {
+        //        if (file.isDirectory()) {
+        //            if (recursive && containsTestData(file, filenamePattern) && !exclude.contains(file.getName())) {
+        //                assertTestClassPresentByMetadata(testCaseClass, file);
+        //            }
+        //        }
+        //        else if (filenamePattern.matcher(file.getName()).matches() && isCompatibleTarget(targetBackend, file)) {
+        //            assertFilePathPresent(file, rootFile, filePaths);
+        //        }
+        //    }
+        //}
     }
 
     public static void assertAllTestsPresentInSingleGeneratedClass(
@@ -907,7 +907,7 @@ public class KotlinTestUtils {
             @NotNull File testDataDir,
             @NotNull Pattern filenamePattern
     ) {
-        assertAllTestsPresentInSingleGeneratedClass(testCaseClass, testDataDir, filenamePattern, TargetBackend.ANY);
+        //assertAllTestsPresentInSingleGeneratedClass(testCaseClass, testDataDir, filenamePattern, TargetBackend.ANY);
     }
 
     public static void assertAllTestsPresentInSingleGeneratedClass(
@@ -916,27 +916,27 @@ public class KotlinTestUtils {
             @NotNull Pattern filenamePattern,
             @NotNull TargetBackend targetBackend
     ) {
-        File rootFile = new File(getTestsRoot(testCaseClass));
-
-        Set<String> filePaths = collectPathsMetadata(testCaseClass);
-
-        FileUtil.processFilesRecursively(testDataDir, file -> {
-            if (file.isFile() && filenamePattern.matcher(file.getName()).matches() && isCompatibleTarget(targetBackend, file)) {
-                assertFilePathPresent(file, rootFile, filePaths);
-            }
-
-            return true;
-        });
+        //File rootFile = new File(getTestsRoot(testCaseClass));
+        //
+        //Set<String> filePaths = collectPathsMetadata(testCaseClass);
+        //
+        //FileUtil.processFilesRecursively(testDataDir, file -> {
+        //    if (file.isFile() && filenamePattern.matcher(file.getName()).matches() && isCompatibleTarget(targetBackend, file)) {
+        //        assertFilePathPresent(file, rootFile, filePaths);
+        //    }
+        //
+        //    return true;
+        //});
     }
 
     private static void assertFilePathPresent(File file, File rootFile, Set<String> filePaths) {
-        String path = FileUtil.getRelativePath(rootFile, file);
-        if (path != null) {
-            String relativePath = nameToCompare(path);
-            if (!filePaths.contains(relativePath)) {
-                Assert.fail("Test data file missing from the generated test class: " + file + "\n" + PLEASE_REGENERATE_TESTS);
-            }
-        }
+        //String path = FileUtil.getRelativePath(rootFile, file);
+        //if (path != null) {
+        //    String relativePath = nameToCompare(path);
+        //    if (!filePaths.contains(relativePath)) {
+        //        Assert.fail("Test data file missing from the generated test class: " + file + "\n" + PLEASE_REGENERATE_TESTS);
+        //    }
+        //}
     }
 
     private static Set<String> collectPathsMetadata(Class<?> testCaseClass) {

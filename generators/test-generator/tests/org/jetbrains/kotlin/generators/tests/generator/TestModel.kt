@@ -30,6 +30,7 @@ interface ClassModel : TestEntityModel {
     val dataPathRoot: String?
     val annotations: Collection<AnnotationModel>
     val imports: Set<Class<*>>
+    val newModel: Boolean
 }
 
 abstract class TestClassModel : ClassModel {

@@ -67,4 +67,9 @@ public class DelegatingTestClassModel extends TestClassModel {
     public Collection<AnnotationModel> getAnnotations() {
         return delegate.getAnnotations();
     }
+
+    @Override
+    public boolean getNewModel() {
+        return delegate.getNewModel();
+    }
 }

@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.generators.tests.generator
 import org.jetbrains.kotlin.generators.util.GeneratorsFileUtil
 import org.jetbrains.kotlin.test.JUnit3RunnerWithInners
 import org.jetbrains.kotlin.test.KotlinTestUtils
-import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.test.TestMetadata
 import org.jetbrains.kotlin.utils.Printer
 import org.junit.Test
@@ -19,7 +18,7 @@ import java.io.IOException
 import java.util.*
 
 class TestGenerator(
-    baseDir: String,
+    private val baseDir: String,
     suiteTestClassFqName: String,
     baseTestClassFqName: String,
     testClassModels: Collection<TestClassModel>,
@@ -31,7 +30,6 @@ class TestGenerator(
     private val baseTestClassName: String
     private val testClassModels: Collection<TestClassModel>
     private val useJunit4: Boolean
-    private val testSourceFilePath: String
 
     init {
         this.baseTestClassPackage = baseTestClassFqName.substringBeforeLast('.', "")
@@ -41,15 +39,62 @@ class TestGenerator(
         this.testClassModels = ArrayList(testClassModels)
         this.useJunit4 = useJunit4
 
-        this.testSourceFilePath = baseDir + "/" + this.suiteClassPackage.replace(".", "/") + "/" + this.suiteClassName + ".java"
 
-        if (!GENERATED_FILES.add(testSourceFilePath)) {
-            throw IllegalArgumentException("Same test file already generated in current session: " + testSourceFilePath)
+    }
+
+    fun createFilePath(name: String): String {
+        val path = baseDir + "/" + this.suiteClassPackage.replace(".", "/") + "/" + name + ".java"
+
+        if (!GENERATED_FILES.add(path)) {
+            throw IllegalArgumentException("Same test file already generated in current session: $path")
         }
+        return path
     }
 
     @Throws(IOException::class)
     fun generateAndSave() {
+        val model =
+            if (testClassModels.size == 1) {
+                object : DelegatingTestClassModel(testClassModels.single()) {
+                    override val name: String
+                        get() = suiteClassName
+                }
+            } else {
+                object : TestClassModel() {
+                    override val innerTestClasses: Collection<TestClassModel>
+                        get() = testClassModels
+
+                    override val methods: Collection<MethodModel>
+                        get() = emptyList()
+
+                    override val isEmpty: Boolean
+                        get() = false
+
+                    override val name: String
+                        get() = suiteClassName
+
+                    override val dataString: String?
+                        get() = null
+
+                    override val dataPathRoot: String?
+                        get() = null
+
+                    override val annotations: Collection<AnnotationModel>
+                        get() = emptyList()
+
+                    override val imports: Set<Class<*>>
+                        get() = super.imports
+
+                    override val newModel: Boolean
+                        get() = false
+                }
+            }
+
+        generateAndSaveTestModel(model, suiteClassName)
+    }
+
+    @Throws(IOException::class)
+    fun generateAndSaveTestModel(model: TestClassModel, suiteClassName: String) {
         val out = StringBuilder()
         val p = Printer(out)
 
@@ -91,47 +136,18 @@ class TestGenerator(
 
         generateSuppressAllWarnings(p)
 
-        val model: TestClassModel
-        if (testClassModels.size == 1) {
-            model = object : DelegatingTestClassModel(testClassModels.single()) {
-                override val name: String
-                    get() = suiteClassName
-            }
-        } else {
-            model = object : TestClassModel() {
-                override val innerTestClasses: Collection<TestClassModel>
-                    get() = testClassModels
+        generateTestClass(p, model, false, suiteClassName)
 
-                override val methods: Collection<MethodModel>
-                    get() = emptyList()
-
-                override val isEmpty: Boolean
-                    get() = false
-
-                override val name: String
-                    get() = suiteClassName
-
-                override val dataString: String?
-                    get() = null
-
-                override val dataPathRoot: String?
-                    get() = null
-
-                override val annotations: Collection<AnnotationModel>
-                    get() = emptyList()
-
-                override val imports: Set<Class<*>>
-                    get() = super.imports
-            }
-        }
-
-        generateTestClass(p, model, false)
-
-        val testSourceFile = File(testSourceFilePath)
+        val testSourceFile = File(createFilePath(suiteClassName))
         GeneratorsFileUtil.writeFileIfContentChanged(testSourceFile, out.toString(), false)
     }
 
-    private fun generateTestClass(p: Printer, testClassModel: TestClassModel, isStatic: Boolean) {
+    private fun generateTestClass(
+        p: Printer,
+        testClassModel: TestClassModel,
+        isStatic: Boolean,
+        suiteClassName: String
+    ) {
         val staticModifier = if (isStatic) "static " else ""
 
         generateMetadata(p, testClassModel)
@@ -161,14 +177,25 @@ class TestGenerator(
         }
 
         for (innerTestClass in innerTestClasses) {
-            if (!innerTestClass.isEmpty) {
-                if (first) {
-                    first = false
-                } else {
-                    p.println()
-                }
+            val newName = suiteClassName + "_${innerTestClass.name}"
+            if (!testClassModel.newModel) {
+                if (!innerTestClass.isEmpty) {
+                    if (first) {
+                        first = false
+                    } else {
+                        p.println()
+                    }
 
-                generateTestClass(p, innerTestClass, true)
+                    generateTestClass(p, innerTestClass, true, newName)
+                }
+            } else {
+
+                generateAndSaveTestModel(
+                    object : DelegatingTestClassModel(innerTestClass) {
+                        override val name: String
+                            get() = newName
+                    }, newName
+                )
             }
         }
 
