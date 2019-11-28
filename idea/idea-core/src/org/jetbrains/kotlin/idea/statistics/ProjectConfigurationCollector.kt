@@ -16,10 +16,9 @@ import org.jetbrains.kotlin.idea.configuration.BuildSystemType
 import org.jetbrains.kotlin.idea.configuration.getBuildSystemType
 import org.jetbrains.kotlin.idea.facet.KotlinFacetType
 import org.jetbrains.kotlin.idea.project.platform
-import org.jetbrains.kotlin.platform.isCommon
-import org.jetbrains.kotlin.platform.js.isJs
-import org.jetbrains.kotlin.platform.jvm.isJvm
-import org.jetbrains.kotlin.platform.konan.isNative
+import org.jetbrains.kotlin.platform.js.JsPlatform
+import org.jetbrains.kotlin.platform.jvm.JvmPlatform
+import org.jetbrains.kotlin.platform.konan.KonanPlatform
 
 class ProjectConfigurationCollector : ProjectUsagesCollector() {
 
@@ -44,13 +43,14 @@ class ProjectConfigurationCollector : ProjectUsagesCollector() {
     }
 
     private fun getPlatform(it: Module): String {
-        return when {
-            it.platform.isJvm() -> "jvm"
-            it.platform.isJs() -> "js"
-            it.platform.isCommon() -> "common"
-            it.platform.isNative() -> "native"
-            else -> "unknown"
-        }
+        return it.platform?.componentPlatforms?.map {
+            when (it) {
+                is JvmPlatform -> "jvm"
+                is JsPlatform -> "js"
+                is KonanPlatform -> "native"
+                else -> "unknown"
+            }
+        }?.joinToString(",") ?: "none"
     }
 
     private fun getBuildSystemType(it: Module): String {
