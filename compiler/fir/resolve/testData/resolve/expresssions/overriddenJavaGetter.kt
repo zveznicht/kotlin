@@ -14,6 +14,6 @@ class Derived : Base() {
 
 fun test() {
     val d = Derived()
-    val res1 = d.something // Should be Ok
+    val res1 = d.<!UNRESOLVED_REFERENCE!>something<!> // Should be Ok
     val res2 = d.getSomething() // Should be Ok
 }

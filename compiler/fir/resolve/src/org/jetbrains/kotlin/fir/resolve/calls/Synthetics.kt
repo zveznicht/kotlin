@@ -6,7 +6,12 @@
 package org.jetbrains.kotlin.fir.resolve.calls
 
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.FirEnumEntry
+import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.declarations.FirSealedClass
 import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
+import org.jetbrains.kotlin.fir.declarations.impl.FirClassImpl
+import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.symbols.AccessorSymbol
@@ -46,6 +51,14 @@ class FirSyntheticPropertiesScope(
 
         if (fir.typeParameters.isNotEmpty()) return ProcessorAction.NEXT
         if (fir.valueParameters.isNotEmpty()) return ProcessorAction.NEXT
+
+        val containingClassId = symbol.callableId.classId ?: return ProcessorAction.NEXT
+        val klass = session.firSymbolProvider.getClassLikeSymbolByFqName(containingClassId)?.fir as? FirRegularClass
+            ?: return ProcessorAction.NEXT
+        if (klass is FirClassImpl || klass is FirSealedClass || klass is FirEnumEntry) {
+            // Only FirJavaClass is allowed for synthetics
+            return ProcessorAction.NEXT
+        }
 
         val synthetic = SyntheticPropertySymbol(
             accessorId = symbol.callableId,
