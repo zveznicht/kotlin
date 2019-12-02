@@ -208,21 +208,27 @@ class Fir2IrDeclarationStorage(
     }
 
     fun getIrTypeParameter(typeParameter: FirTypeParameter, index: Int = 0): IrTypeParameter {
-        return typeParameterCache.getOrPut(typeParameter) {
+        return typeParameterCache[typeParameter] ?: typeParameter.run {
             val descriptor = WrappedTypeParameterDescriptor()
             val origin = IrDeclarationOrigin.DEFINED
-            typeParameter.convertWithOffsets { startOffset, endOffset ->
-                irSymbolTable.declareGlobalTypeParameter(startOffset, endOffset, origin, descriptor) { symbol ->
-                    IrTypeParameterImpl(
-                        startOffset, endOffset, origin, symbol,
-                        typeParameter.name, index,
-                        typeParameter.isReified,
-                        typeParameter.variance
-                    ).apply {
-                        descriptor.bind(this)
+            val irTypeParameter =
+                convertWithOffsets { startOffset, endOffset ->
+                    irSymbolTable.declareGlobalTypeParameter(startOffset, endOffset, origin, descriptor) { symbol ->
+                        IrTypeParameterImpl(
+                            startOffset, endOffset, origin, symbol,
+                            name, index,
+                            isReified,
+                            variance
+                        ).apply {
+                            descriptor.bind(this)
+                        }
                     }
                 }
-            }
+
+            // Cache the type parameter BEFORE processing its bounds/supertypes, to properly handle recursive type bounds.
+            typeParameterCache[typeParameter] = irTypeParameter
+            bounds.mapTo(irTypeParameter.superTypes) { it.toIrType(session, this@Fir2IrDeclarationStorage) }
+            irTypeParameter
         }
     }
 
@@ -288,6 +294,9 @@ class Fir2IrDeclarationStorage(
         if (function !is FirConstructor) {
             val thisOrigin = IrDeclarationOrigin.DEFINED
             if (function is FirSimpleFunction) {
+                for ((index, typeParameter) in function.typeParameters.withIndex()) {
+                    typeParameters += getIrTypeParameter(typeParameter, index).apply { this.parent = parent }
+                }
                 val receiverTypeRef = function.receiverTypeRef
                 if (receiverTypeRef != null) {
                     extensionReceiverParameter = receiverTypeRef.convertWithOffsets { startOffset, endOffset ->
@@ -371,7 +380,8 @@ class Fir2IrDeclarationStorage(
                         isTailrec = function.isTailRec,
                         isSuspend = function.isSuspend,
                         isExpect = function.isExpect,
-                        isFakeOverride = origin == IrDeclarationOrigin.FAKE_OVERRIDE
+                        isFakeOverride = origin == IrDeclarationOrigin.FAKE_OVERRIDE,
+                        isOperator = function.isOperator
                     )
                 }
                 leaveScope(descriptor)
@@ -412,7 +422,8 @@ class Fir2IrDeclarationStorage(
                     // TODO: suspend lambda
                     isSuspend = false,
                     isExpect = false,
-                    isFakeOverride = false
+                    isFakeOverride = false,
+                    isOperator = false
                 )
             }.bindAndDeclareParameters(
                 function, descriptor, irParent = null, isStatic = false, shouldLeaveScope = false
@@ -471,7 +482,8 @@ class Fir2IrDeclarationStorage(
                 propertyAccessor?.visibility ?: correspondingProperty.visibility,
                 correspondingProperty.modality, accessorReturnType,
                 isInline = false, isExternal = false, isTailrec = false, isSuspend = false, isExpect = false,
-                isFakeOverride = origin == IrDeclarationOrigin.FAKE_OVERRIDE
+                isFakeOverride = origin == IrDeclarationOrigin.FAKE_OVERRIDE,
+                isOperator = false
             ).apply {
                 if (propertyAccessor == null && isSetter) {
                     declareDefaultSetterParameter(propertyType)

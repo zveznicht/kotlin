@@ -6,15 +6,16 @@
 package org.jetbrains.kotlin.backend.wasm
 
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.library.resolver.KotlinLibraryResolveResult
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.common.phaser.invokeToplevel
 import org.jetbrains.kotlin.backend.wasm.codegen.IrModuleToWasm
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.backend.js.loadIr
 import org.jetbrains.kotlin.ir.util.ExternalDependenciesGenerator
+import org.jetbrains.kotlin.ir.util.generateTypicalIrProviderList
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 import org.jetbrains.kotlin.library.KotlinLibrary
+import org.jetbrains.kotlin.library.resolver.KotlinLibraryResolveResult
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -37,12 +38,8 @@ fun compileWasm(
 
     // Load declarations referenced during `context` initialization
     dependencyModules.forEach {
-        ExternalDependenciesGenerator(
-            it.descriptor,
-            symbolTable,
-            irBuiltIns,
-            deserializer = deserializer
-        ).generateUnboundSymbolsAsDependencies()
+        val irProviders = generateTypicalIrProviderList(it.descriptor, irBuiltIns, symbolTable, deserializer)
+        ExternalDependenciesGenerator(symbolTable, irProviders).generateUnboundSymbolsAsDependencies()
     }
 
     val irFiles = dependencyModules.flatMap { it.files } + moduleFragment.files
@@ -51,11 +48,8 @@ fun compileWasm(
     moduleFragment.files += irFiles
 
     // Create stubs
-    ExternalDependenciesGenerator(
-        moduleDescriptor = moduleDescriptor,
-        symbolTable = symbolTable,
-        irBuiltIns = irBuiltIns
-    ).generateUnboundSymbolsAsDependencies()
+    val irProviders = generateTypicalIrProviderList(moduleDescriptor, irBuiltIns, symbolTable, deserializer)
+    ExternalDependenciesGenerator(symbolTable, irProviders).generateUnboundSymbolsAsDependencies()
     moduleFragment.patchDeclarationParents()
 
     wasmPhases.invokeToplevel(phaseConfig, context, moduleFragment)

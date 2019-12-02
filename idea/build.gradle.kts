@@ -125,6 +125,7 @@ dependencies {
     testCompile(project(":idea:idea-native")) { isTransitive = false }
     testCompile(project(":idea:idea-gradle-native")) { isTransitive = false }
     testCompile(commonDep("junit:junit"))
+    testCompileOnly(intellijPluginDep("coverage"))
 
     testRuntime(project(":kotlin-native:kotlin-native-library-reader")) { isTransitive = false }
     testRuntime(project(":kotlin-native:kotlin-native-utils")) { isTransitive = false }
@@ -193,8 +194,15 @@ dependencies {
     performanceTestCompile(sourceSets["test"].output)
     performanceTestCompile(sourceSets["main"].output)
     performanceTestCompile(project(":nj2k"))
+    performanceTestCompile(project(":idea:idea-gradle-tooling-api"))
     performanceTestCompile(intellijPluginDep("gradle"))
     performanceTestRuntime(sourceSets["performanceTest"].output)
+}
+
+tasks.named<Copy>("processResources") {
+    from(provider { project(":compiler:cli-common").mainSourceSet.resources }) {
+        include("META-INF/extensions/compiler.xml")
+    }
 }
 
 projectTest(parallel = true) {
@@ -213,6 +221,7 @@ projectTest(taskName = "performanceTest") {
     jvmArgs?.removeAll { it.startsWith("-Xmx") }
 
     maxHeapSize = "3g"
+    jvmArgs("-Didea.debug.mode=true")
     jvmArgs("-XX:SoftRefLRUPolicyMSPerMB=50")
     jvmArgs(
         "-XX:ReservedCodeCacheSize=240m",

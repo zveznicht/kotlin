@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.jvm
 
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.ir.Ir
+import org.jetbrains.kotlin.backend.common.lower.irThrow
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.codegen.IrTypeMapper
 import org.jetbrains.kotlin.backend.jvm.codegen.MethodSignatureMapper
@@ -24,6 +25,9 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
+import org.jetbrains.kotlin.ir.builders.irBlock
+import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -43,7 +47,10 @@ class JvmBackendContext(
     override val irBuiltIns: IrBuiltIns,
     irModuleFragment: IrModuleFragment,
     symbolTable: SymbolTable,
-    val phaseConfig: PhaseConfig
+    val phaseConfig: PhaseConfig,
+    // If the JVM fqname of a class differs from what is implied by its parent, e.g. if it's a file class
+    // annotated with @JvmPackageName, the correct name is recorded here.
+    internal val classNameOverride: MutableMap<IrClass, JvmClassName>
 ) : CommonBackendContext {
     override val transformedFunction: MutableMap<IrFunctionSymbol, IrSimpleFunctionSymbol>
         get() = TODO("not implemented")
@@ -81,10 +88,6 @@ class JvmBackendContext(
     internal val regeneratedObjectNameGenerators = mutableMapOf<Pair<IrClass, Name>, NameGenerator>()
 
     internal val localDelegatedProperties = mutableMapOf<IrClass, List<IrLocalDelegatedPropertySymbol>>()
-
-    // If the JVM fqname of a class differs from what is implied by its parent, e.g. if it's a file class
-    // annotated with @JvmPackageName, the correct name is recorded here.
-    internal lateinit var classNameOverride: MutableMap<IrClass, JvmClassName>
 
     internal val multifileFacadesToAdd = mutableMapOf<JvmClassName, MutableList<IrClass>>()
     internal val multifileFacadeForPart = mutableMapOf<IrClass, JvmClassName>()
@@ -135,6 +138,12 @@ class JvmBackendContext(
         /*TODO*/
         print(message)
     }
+
+    override fun throwUninitializedPropertyAccessException(builder: IrBuilderWithScope, name: String): IrExpression =
+        builder.irBlock {
+            +super.throwUninitializedPropertyAccessException(builder, name)
+            +irThrow(irNull())
+        }
 
     inner class JvmIr(
         irModuleFragment: IrModuleFragment,

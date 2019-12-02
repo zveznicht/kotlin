@@ -2684,6 +2684,11 @@ public class IrBlackBoxInlineCodegenTestGenerated extends AbstractIrBlackBoxInli
             runTest("compiler/testData/codegen/boxInline/property/augAssignmentAndIncViaConvention.kt");
         }
 
+        @TestMetadata("fromObject.kt")
+        public void testFromObject() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/property/fromObject.kt");
+        }
+
         @TestMetadata("kt22649.kt")
         public void testKt22649() throws Exception {
             runTest("compiler/testData/codegen/boxInline/property/kt22649.kt");
@@ -3695,6 +3700,11 @@ public class IrBlackBoxInlineCodegenTestGenerated extends AbstractIrBlackBoxInli
             @TestMetadata("defaultValueCrossinline.kt")
             public void testDefaultValueCrossinline_1_3() throws Exception {
                 runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/defaultParameter/defaultValueCrossinline.kt", "kotlin.coroutines");
+            }
+
+            @TestMetadata("defaultValueInlineFromMultiFileFacade.kt")
+            public void testDefaultValueInlineFromMultiFileFacade_1_3() throws Exception {
+                runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/defaultParameter/defaultValueInlineFromMultiFileFacade.kt", "kotlin.coroutines");
             }
 
             @TestMetadata("defaultValueInline.kt")

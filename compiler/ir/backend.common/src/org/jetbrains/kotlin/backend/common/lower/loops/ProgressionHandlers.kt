@@ -132,9 +132,9 @@ internal class UntilHandler(private val context: CommonBackendContext, private v
             var additionalVariables = emptyList<IrVariable>()
             if (untilArg.canHaveSideEffects) {
                 if (receiverValue.canHaveSideEffects) {
-                    receiverValueVar = scope.createTemporaryVariable(receiverValue, nameHint = "untilReceiverValue")
+                    receiverValueVar = scope.createTmpVariable(receiverValue, nameHint = "untilReceiverValue")
                 }
-                untilArgVar = scope.createTemporaryVariable(untilArgCasted, nameHint = "untilArg")
+                untilArgVar = scope.createTmpVariable(untilArgCasted, nameHint = "untilArg")
                 additionalVariables = listOfNotNull(receiverValueVar, untilArgVar)
             }
 
@@ -572,7 +572,7 @@ internal class DefaultProgressionHandler(private val context: CommonBackendConte
     override fun build(expression: IrExpression, scopeOwner: IrSymbol): HeaderInfo? =
         with(context.createIrBuilder(scopeOwner, expression.startOffset, expression.endOffset)) {
             // Directly use the `first/last/step` properties of the progression.
-            val progression = scope.createTemporaryVariable(expression, nameHint = "progression")
+            val progression = scope.createTmpVariable(expression, nameHint = "progression")
             val progressionClass = progression.type.getClass()!!
             val first = irCall(progressionClass.symbol.getPropertyGetter("first")!!).apply {
                 dispatchReceiver = irGet(progression)
@@ -616,7 +616,7 @@ internal abstract class IndexedGetIterationHandler(
             //
             // This also ensures that the semantics of re-assignment of array variables used in the loop is consistent with the semantics
             // proposed in https://youtrack.jetbrains.com/issue/KT-21354.
-            val objectVariable = scope.createTemporaryVariable(
+            val objectVariable = scope.createTmpVariable(
                 expression, nameHint = "indexedObject"
             )
 
@@ -695,3 +695,62 @@ internal open class CharSequenceIterationHandler(context: CommonBackendContext, 
 internal class StringIterationHandler(context: CommonBackendContext) : CharSequenceIterationHandler(context, canCacheLast = true) {
     override fun matchIterable(expression: IrExpression) = expression.type.isString()
 }
+
+/** Builds a [HeaderInfo] for calls to `withIndex()`. */
+internal class WithIndexHandler(context: CommonBackendContext, private val visitor: NestedHeaderInfoBuilderForWithIndex) :
+    HeaderInfoFromCallHandler<Nothing?> {
+
+    // Use Quantifier.ANY so we can handle all `withIndex()` calls in the same manner.
+    override val matcher = createIrCallMatcher(Quantifier.ANY) {
+        callee {
+            fqName { it == FqName("kotlin.collections.withIndex") }
+            extensionReceiver { it != null && it.type.run { isArray() || isPrimitiveArray() || isIterable() } }
+            parameterCount { it == 0 }
+        }
+        callee {
+            fqName { it == FqName("kotlin.text.withIndex") }
+            extensionReceiver { it != null && it.type.isSubtypeOfClass(context.ir.symbols.charSequence) }
+            parameterCount { it == 0 }
+        }
+        callee {
+            fqName { it == FqName("kotlin.sequences.withIndex") }
+            extensionReceiver { it != null && it.type.run { isSequence() } }
+            parameterCount { it == 0 }
+        }
+    }
+
+    override fun build(expression: IrCall, data: Nothing?, scopeOwner: IrSymbol): HeaderInfo? {
+        // WithIndexHeaderInfo is a composite that contains the HeaderInfo for the underlying iterable (if any).
+        val nestedInfo = expression.extensionReceiver!!.accept(visitor, null) ?: return null
+
+        // We cannot lower `iterable.withIndex().withIndex()`.
+        // NestedHeaderInfoBuilderForWithIndex should not be yielding a WithIndexHeaderInfo, hence the assert.
+        assert(nestedInfo !is WithIndexHeaderInfo)
+
+        return WithIndexHeaderInfo(nestedInfo)
+    }
+}
+
+/** Builds a [HeaderInfo] for Iterables not handled by more specialized handlers. */
+internal open class DefaultIterableHandler(private val context: CommonBackendContext) : ExpressionHandler {
+
+    protected open val iterableClassSymbol = context.ir.symbols.iterable
+
+    override fun matchIterable(expression: IrExpression) = expression.type.isSubtypeOfClass(iterableClassSymbol)
+
+    override fun build(expression: IrExpression, scopeOwner: IrSymbol): HeaderInfo? =
+        with(context.createIrBuilder(scopeOwner, expression.startOffset, expression.endOffset)) {
+            // The lowering operates on subtypes of Iterable. Therefore, the IrType could be
+            // a type parameter bounded by Iterable. When that is the case, we cannot get
+            // the class from the type and instead uses the Iterable.iterator() function.
+            val iteratorFun = expression.type.getClass()?.functions?.single {
+                it.name == OperatorNameConventions.ITERATOR &&
+                        it.valueParameters.isEmpty()
+            } ?: iterableClassSymbol.getSimpleFunction(OperatorNameConventions.ITERATOR.asString())!!.owner
+            IterableHeaderInfo(
+                scope.createTmpVariable(irCall(iteratorFun).apply { dispatchReceiver = expression }, nameHint = "iterator")
+            )
+        }
+}
+
+// TODO: Handle Sequences by extending DefaultIterableHandler.

@@ -4,7 +4,7 @@ description = "Simple Kotlin/JS tests runner with TeamCity reporter"
 
 plugins {
     id("base")
-    id("com.moowork.node") version "1.2.0"
+    id("com.github.node-gradle.node")
 }
 
 val default = configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
@@ -53,6 +53,8 @@ tasks {
             "nodejs.ts",
             "karma.ts",
             "karma-kotlin-reporter.js",
+            "karma-debug-runner.js",
+            "karma-debug-framework.js",
             "mocha-kotlin-reporter.js",
             "package.json",
             "rollup.config.js",

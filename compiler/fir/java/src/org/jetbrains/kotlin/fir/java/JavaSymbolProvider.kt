@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirTypeParameterImpl
+import org.jetbrains.kotlin.fir.generateValueOfFunction
+import org.jetbrains.kotlin.fir.generateValuesFunction
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaClass
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaConstructor
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaField
@@ -57,6 +59,7 @@ class JavaSymbolProvider(
     override fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<FirCallableSymbol<*>> =
         emptyList()
 
+    // NB: looks like it's better not to use this function at all...
     override fun getClassDeclaredMemberScope(classId: ClassId): FirScope? {
         val classSymbol = getClassLikeSymbolByFqName(classId) ?: return null
         return declaredMemberScope(classSymbol.fir)
@@ -92,7 +95,12 @@ class JavaSymbolProvider(
         visitedSymbols: MutableSet<FirClassLikeSymbol<*>>
     ): JavaClassUseSiteMemberScope {
         return scopeSession.getOrBuild(regularClass.symbol, JAVA_USE_SITE) {
-            val declaredScope = declaredMemberScope(regularClass)
+            val declaredScope = declaredMemberScope(
+                regularClass,
+                useLazyNestedClassifierScope = regularClass is FirJavaClass,
+                existingNames = (regularClass as? FirJavaClass)?.existingNestedClassifierNames
+            )
+            val wrappedDeclaredScope = wrapScopeWithJvmMapped(regularClass, declaredScope, useSiteSession, scopeSession)
             val superTypeEnhancementScopes =
                 lookupSuperTypes(regularClass, lookupInterfaces = true, deep = false, useSiteSession = useSiteSession)
                     .mapNotNull { useSiteSuperType ->
@@ -109,7 +117,7 @@ class JavaSymbolProvider(
                     }
             JavaClassUseSiteMemberScope(
                 regularClass, useSiteSession,
-                JavaSuperTypeScope(regularClass, useSiteSession, superTypeEnhancementScopes), declaredScope
+                JavaSuperTypeScope(regularClass, useSiteSession, superTypeEnhancementScopes), wrappedDeclaredScope
             )
         }
     }
@@ -183,7 +191,8 @@ class JavaSymbolProvider(
                     javaClass.visibility, javaClass.modality,
                     javaClass.classKind, isTopLevel = isTopLevel,
                     isStatic = javaClass.isStatic,
-                    javaTypeParameterStack = javaTypeParameterStack
+                    javaTypeParameterStack = javaTypeParameterStack,
+                    existingNestedClassifierNames = javaClass.innerClassNames.toList()
                 ).apply {
                     this.typeParameters += foundClass.typeParameters.convertTypeParameters(javaTypeParameterStack)
                     addAnnotationsFrom(this@JavaSymbolProvider.session, javaClass, javaTypeParameterStack)
@@ -277,6 +286,11 @@ class JavaSymbolProvider(
                                 )
                             }
                         }
+                    }
+
+                    if (classKind == ClassKind.ENUM_CLASS) {
+                        generateValuesFunction(session, classId.packageFqName, classId.relativeClassName)
+                        generateValueOfFunction(session, classId.packageFqName, classId.relativeClassName)
                     }
                 }
             }

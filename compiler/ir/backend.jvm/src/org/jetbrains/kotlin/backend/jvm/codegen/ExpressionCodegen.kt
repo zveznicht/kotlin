@@ -167,11 +167,22 @@ class ExpressionCodegen(
         return StackValue.onStack(type, irType.toKotlinType())
     }
 
-    internal fun genOrGetLocal(expression: IrExpression, data: BlockInfo): StackValue =
-        if (expression is IrGetValue)
+    internal fun genOrGetLocal(expression: IrExpression, data: BlockInfo): StackValue {
+        if (irFunction.origin == IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER) {
+            if (expression is IrTypeOperatorCall && expression.operator == IrTypeOperator.IMPLICIT_CAST) {
+                // inline lambda parameters are passed from `foo$default` to `foo` call with implicit cast,
+                // we need return pure StackValue.local value to be able proper inline this parameter later
+                if (expression.type.makeNullable() == expression.argument.type) {
+                    return genOrGetLocal(expression.argument, data)
+                }
+            }
+        }
+
+        return if (expression is IrGetValue)
             StackValue.local(findLocalIndex(expression.symbol), frameMap.typeOf(expression.symbol), expression.type.toKotlinType())
         else
             gen(expression, typeMapper.mapType(expression.type), expression.type, data)
+    }
 
     fun generate() {
         mv.visitCode()
@@ -252,7 +263,9 @@ class ExpressionCodegen(
             writeValueParameterInLocalVariableTable(extensionReceiverParameter, startLabel, endLabel, true)
         }
         for (param in irFunction.valueParameters) {
-            writeValueParameterInLocalVariableTable(param, startLabel, endLabel, false)
+            if (!param.origin.isSynthetic) {
+                writeValueParameterInLocalVariableTable(param, startLabel, endLabel, false)
+            }
         }
     }
 
@@ -287,7 +300,9 @@ class ExpressionCodegen(
         val info = BlockInfo(data)
         // Force materialization to avoid reading from out-of-scope variables.
         return super.visitBlock(expression, info).materialized.also {
-            writeLocalVariablesInTable(info, markNewLabel())
+            if (info.variables.isNotEmpty()) {
+                writeLocalVariablesInTable(info, markNewLabel())
+            }
         }
     }
 
@@ -329,9 +344,9 @@ class ExpressionCodegen(
 
     override fun visitFunctionAccess(expression: IrFunctionAccessExpression, data: BlockInfo): PromisedValue {
         classCodegen.context.irIntrinsics.getIntrinsic(expression.symbol)
-            ?.invoke(expression, this, data)?.let { return it.coerce(expression.type) }
+            ?.invoke(expression, this, data)?.let { return it }
 
-        val callable = methodSignatureMapper.mapToCallableMethod(expression)
+        val callable = methodSignatureMapper.mapToCallableMethod(irFunction, expression)
         val callee = expression.symbol.owner
         val callGenerator = getOrCreateCallGenerator(expression, data, callable.signature)
         val asmType = if (expression is IrConstructorCall) typeMapper.mapTypeAsDeclaration(expression.type) else expression.asmType
@@ -409,7 +424,8 @@ class ExpressionCodegen(
             }
             expression is IrConstructorCall ->
                 MaterialValue(this, asmType, expression.type)
-            expression is IrDelegatingConstructorCall ->
+            expression.type.isUnit() && callable.asmMethod.returnType == Type.VOID_TYPE ->
+                //don't generate redundant UNIT/pop instructions
                 immaterialUnitValue
             expression.type.isUnit() ->
                 // NewInference allows casting `() -> T` to `() -> Unit`. A CHECKCAST here will fail.
@@ -427,8 +443,8 @@ class ExpressionCodegen(
 
         declaration.initializer?.let {
             it.accept(this, data).coerce(varType, declaration.type).materialize()
-            mv.store(index, varType)
             it.markLineNumber(startOffset = true)
+            mv.store(index, varType)
         }
 
         data.variables.add(VariableInfo(declaration, index, varType, markNewLabel()))
@@ -447,14 +463,9 @@ class ExpressionCodegen(
 
     override fun visitFieldAccess(expression: IrFieldAccessExpression, data: BlockInfo): PromisedValue {
         val callee = expression.symbol.owner
-        callee.constantValue()?.let {
-            if (context.state.shouldInlineConstVals) {
-                // Handling const reads before codegen is important for constant folding.
-                assert(expression is IrSetField) { "read of const val ${callee.name} not inlined by ConstLowering" }
-                // This can only be the field's initializer; JVM implementations are required
-                // to generate those for ConstantValue-marked fields automatically, so this is redundant.
-                return defaultValue(expression.type)
-            }
+        if (context.state.shouldInlineConstVals) {
+            // Const fields should only have reads, and those should have been transformed by ConstLowering.
+            assert(callee.constantValue() == null) { "access of const val: ${expression.dump()}" }
         }
 
         val realField = callee.resolveFakeOverride()!!
@@ -603,6 +614,7 @@ class ExpressionCodegen(
         assert(exhaustive || expression.type.isUnit()) {
             "non-exhaustive conditional should return Unit: ${expression.dump()}"
         }
+        val lastBranch = expression.branches.lastOrNull()
         for (branch in expression.branches) {
             val elseLabel = Label()
             if (branch.condition.isFalseConst() || branch.condition.isTrueConst()) {
@@ -628,7 +640,10 @@ class ExpressionCodegen(
                     return materializedResult
                 }
             }
-            mv.goTo(endLabel)
+
+            if (branch != lastBranch) {
+                mv.goTo(endLabel)
+            }
             mv.mark(elseLabel)
         }
         mv.mark(endLabel)
@@ -776,10 +791,10 @@ class ExpressionCodegen(
             val parameter = clause.catchParameter
             val descriptorType = parameter.asmType
             val index = frameMap.enter(clause.catchParameter, descriptorType)
+            clause.markLineNumber(true)
             mv.store(index, descriptorType)
 
             val catchBody = clause.result
-            catchBody.markLineNumber(true)
             val catchResult = catchBody.accept(this, data)
             if (savedValue != null) {
                 catchResult.coerce(tryAsmType, aTry.type).materialize()
@@ -976,7 +991,7 @@ class ExpressionCodegen(
             override fun toKotlinType(type: IrType): KotlinType = type.toKotlinType()
         }, IrTypeCheckerContext(context.irBuiltIns), state.languageVersionSettings)
 
-        return IrInlineCodegen(this, state, callee.descriptor, methodOwner, signature, mappings, sourceCompiler, reifiedTypeInliner)
+        return IrInlineCodegen(this, state, callee, methodOwner, signature, mappings, sourceCompiler, reifiedTypeInliner)
     }
 
     override fun consumeReifiedOperationMarker(typeParameter: TypeParameterMarker) {

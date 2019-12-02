@@ -4249,6 +4249,11 @@ public class IrBoxJsTestGenerated extends AbstractIrBoxJsTest {
             runTest("js/js.translator/testData/box/inlineMultiFile/lambdaInLambdaNoInline.kt");
         }
 
+        @TestMetadata("privateVarFromInline.kt")
+        public void testPrivateVarFromInline() throws Exception {
+            runTest("js/js.translator/testData/box/inlineMultiFile/privateVarFromInline.kt");
+        }
+
         @TestMetadata("regeneratedLambdaName.kt")
         public void testRegeneratedLambdaName() throws Exception {
             runTest("js/js.translator/testData/box/inlineMultiFile/regeneratedLambdaName.kt");
@@ -6514,6 +6519,11 @@ public class IrBoxJsTestGenerated extends AbstractIrBoxJsTest {
             runTest("js/js.translator/testData/box/propertyAccess/propertyAssignment.kt");
         }
 
+        @TestMetadata("publicNameClash.kt")
+        public void testPublicNameClash() throws Exception {
+            runTest("js/js.translator/testData/box/propertyAccess/publicNameClash.kt");
+        }
+
         @TestMetadata("setter.kt")
         public void testSetter() throws Exception {
             runTest("js/js.translator/testData/box/propertyAccess/setter.kt");
@@ -6686,6 +6696,11 @@ public class IrBoxJsTestGenerated extends AbstractIrBoxJsTest {
 
         public void testAllFilesPresentInReflection() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("js/js.translator/testData/box/reflection"), Pattern.compile("^([^_](.+))\\.kt$"), TargetBackend.JS_IR, true);
+        }
+
+        @TestMetadata("classJsName.kt")
+        public void testClassJsName() throws Exception {
+            runTest("js/js.translator/testData/box/reflection/classJsName.kt");
         }
 
         @TestMetadata("external.kt")

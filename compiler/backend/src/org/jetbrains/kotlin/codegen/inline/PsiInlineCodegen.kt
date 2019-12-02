@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCallWithAssert
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.resolve.inline.InlineUtil
 import org.jetbrains.kotlin.resolve.inline.InlineUtil.isInlinableParameterExpression
-import org.jetbrains.kotlin.resolve.jvm.AsmTypes
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterKind
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
@@ -27,6 +26,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
+import org.jetbrains.org.objectweb.asm.tree.MethodNode
 
 class PsiInlineCodegen(
     codegen: ExpressionCodegen,
@@ -35,7 +35,8 @@ class PsiInlineCodegen(
     methodOwner: Type,
     signature: JvmMethodSignature,
     typeParameterMappings: TypeParameterMappings<KotlinType>,
-    sourceCompiler: SourceCompilerForInline
+    sourceCompiler: SourceCompilerForInline,
+    private val actualDispatchReceiver: Type = methodOwner
 ) : InlineCodegen<ExpressionCodegen>(
     codegen, state, function, methodOwner, signature, typeParameterMappings, sourceCompiler,
     ReifiedTypeInliner(typeParameterMappings, object : ReifiedTypeInliner.IntrinsicsSupport<KotlinType> {
@@ -64,7 +65,7 @@ class PsiInlineCodegen(
             return
         }
         try {
-            performInline(resolvedCall?.typeArguments?.keys?.toList(), callDefault, codegen.typeSystem, codegen)
+            performInline(resolvedCall?.typeArguments?.keys?.toList(), callDefault, callDefault, codegen.typeSystem)
         } finally {
             state.globalInlineContext.exitFromInliningOf(resolvedCall)
         }
@@ -72,7 +73,7 @@ class PsiInlineCodegen(
 
     override fun processAndPutHiddenParameters(justProcess: Boolean) {
         if (getMethodAsmFlags(functionDescriptor, sourceCompiler.contextKind, state) and Opcodes.ACC_STATIC == 0) {
-            invocationParamBuilder.addNextParameter(AsmTypes.OBJECT_TYPE, false)
+            invocationParamBuilder.addNextParameter(methodOwner, false, actualDispatchReceiver)
         }
 
         for (param in jvmSignature.valueParameters) {
@@ -192,5 +193,13 @@ class PsiInlineCodegen(
         assert(delayedHiddenWriting != null) { "processAndPutHiddenParameters(true) should be called before putHiddenParamsIntoLocals" }
         delayedHiddenWriting!!.invoke()
         delayedHiddenWriting = null
+    }
+
+    override fun extractDefaultLambdas(node: MethodNode): List<DefaultLambda> {
+        return expandMaskConditionsAndUpdateVariableNodes(
+            node, maskStartIndex, maskValues, methodHandleInDefaultMethodIndex,
+            extractDefaultLambdaOffsetAndDescriptor(jvmSignature, functionDescriptor),
+            ::PsiDefaultLambda
+        )
     }
 }
