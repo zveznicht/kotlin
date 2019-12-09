@@ -235,6 +235,14 @@ private class MergedDiagnostics(val diagnostics: Collection<Diagnostic>, overrid
     override fun noSuppression() = this
 }
 
+/**
+ * Keep in mind: trace fallbacks to [resolveContext] (is used during resolve) that does not have any
+ * traces of earlier resolve for this [element]
+ *
+ * When trace turned into [BindingContext] it fallbacks to [parentContext]:
+ * It is expected that all slices specific to [element] (and its descendants) are stored in this binding context
+ * and for the rest elements it falls back to [parentContext].
+ */
 private class StackedCompositeBindingContextTrace(
     val depth: Int, // depth of stack over original ktFile bindingContext
     val element: KtElement,
@@ -261,9 +269,9 @@ private class StackedCompositeBindingContextTrace(
     /**
      * All diagnostics from parentContext apart those diagnostics those belongs to the element or its descendants
      */
-    val parentDiagnosticsApartElement: List<Diagnostic> = parentContext.diagnostics.all().filter { d ->
+    val parentDiagnosticsApartElement: Collection<Diagnostic> = parentContext.diagnostics.all().filter { d ->
         d.psiElement.parentsWithSelf.none { it == element }
-    }.toList()
+    }
 
     inner class StackedCompositeBindingContext : BindingContext {
         var cachedDiagnostics: Diagnostics? = null
@@ -279,9 +287,12 @@ private class StackedCompositeBindingContextTrace(
 
         override fun getDiagnostics(): Diagnostics {
             if (cachedDiagnostics == null) {
-                val diagnosticList =
-                    parentDiagnosticsApartElement + (this@StackedCompositeBindingContextTrace.mutableDiagnostics?.all() ?: emptyList())
-                cachedDiagnostics = MergedDiagnostics(diagnosticList, parentContext.diagnostics.modificationTracker)
+                val mergedDiagnostics = mutableSetOf<Diagnostic>()
+                mergedDiagnostics.addAll(parentDiagnosticsApartElement)
+                this@StackedCompositeBindingContextTrace.mutableDiagnostics?.all()?.let {
+                    mergedDiagnostics.addAll(it)
+                }
+                cachedDiagnostics = MergedDiagnostics(mergedDiagnostics, parentContext.diagnostics.modificationTracker)
             }
             return cachedDiagnostics!!
         }
