@@ -516,6 +516,9 @@ class KmTypeAlias(
      */
     val versionRequirements: MutableList<KmVersionRequirement> = ArrayList(0)
 
+    private val extensions: List<KmTypeAliasExtension> =
+        MetadataExtensions.INSTANCES.map(MetadataExtensions::createTypeAliasExtension)
+
     override fun visitTypeParameter(flags: Flags, name: String, id: Int, variance: KmVariance): KmTypeParameterVisitor =
         KmTypeParameter(flags, name, id, variance).addTo(typeParameters)
 
@@ -528,6 +531,9 @@ class KmTypeAlias(
     override fun visitAnnotation(annotation: KmAnnotation) {
         annotations.add(annotation)
     }
+
+    override fun visitExtensions(type: KmExtensionType): KmTypeAliasExtensionVisitor? =
+        extensions.singleOfType(type)
 
     override fun visitVersionRequirement(): KmVersionRequirementVisitor =
         KmVersionRequirement().addTo(versionRequirements)
@@ -543,6 +549,7 @@ class KmTypeAlias(
         visitor.visitExpandedType(expandedType.flags)?.let(expandedType::accept)
         annotations.forEach(visitor::visitAnnotation)
         versionRequirements.forEach { visitor.visitVersionRequirement()?.let(it::accept) }
+        extensions.forEach { visitor.visitExtensions(it.type)?.let(it::accept) }
         visitor.visitEnd()
     }
 }
@@ -567,11 +574,17 @@ class KmValueParameter(
      */
     var varargElementType: KmType? = null
 
+    private val extensions: List<KmValueParameterExtension> =
+        MetadataExtensions.INSTANCES.map(MetadataExtensions::createValueParameterExtension)
+
     override fun visitType(flags: Flags): KmTypeVisitor =
         KmType(flags).also { type = it }
 
     override fun visitVarargElementType(flags: Flags): KmTypeVisitor =
         KmType(flags).also { varargElementType = it }
+
+    override fun visitExtensions(type: KmExtensionType): KmValueParameterExtensionVisitor? =
+        extensions.singleOfType(type)
 
     /**
      * Populates the given visitor with data in this value parameter.
@@ -581,6 +594,7 @@ class KmValueParameter(
     fun accept(visitor: KmValueParameterVisitor) {
         type?.let { visitor.visitType(it.flags)?.let(it::accept) }
         varargElementType?.let { visitor.visitVarargElementType(it.flags)?.let(it::accept) }
+        extensions.forEach { visitor.visitExtensions(it.type)?.let(it::accept) }
         visitor.visitEnd()
     }
 }

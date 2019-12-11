@@ -1,9 +1,7 @@
 package org.jetbrains.kotlin.library
 
-import org.jetbrains.kotlin.konan.KonanVersion
+import org.jetbrains.kotlin.konan.CompilerVersion
 import org.jetbrains.kotlin.konan.file.File
-import org.jetbrains.kotlin.konan.properties.hasProperty
-import org.jetbrains.kotlin.library.impl.createKotlinLibrary
 import org.jetbrains.kotlin.util.*
 
 const val KOTLIN_STDLIB_NAME = "stdlib"
@@ -19,7 +17,7 @@ interface SearchPathResolver<L: KotlinLibrary> : WithLogger {
 
 interface SearchPathResolverWithAttributes<L: KotlinLibrary>: SearchPathResolver<L> {
     val knownAbiVersions: List<KotlinAbiVersion>?
-    val knownCompilerVersions: List<KonanVersion>?
+    val knownCompilerVersions: List<CompilerVersion>?
 }
 
 // This is a simple library resolver that only cares for file names.
@@ -98,13 +96,18 @@ abstract class KotlinLibrarySearchPathResolver<L: KotlinLibrary>(
 
     override fun resolve(unresolved: UnresolvedLibrary, isDefaultLink: Boolean): L {
         val givenPath = unresolved.path
-        val fileSequence = resolutionSequence(givenPath)
-        val matching = fileSequence.map { libraryBuilder(it, isDefaultLink) }
-            .map { it.takeIf { libraryMatch(it, unresolved) } }
-            .filterNotNull()
+        try {
+            val fileSequence = resolutionSequence(givenPath)
+            val matching = fileSequence.map { libraryBuilder(it, isDefaultLink) }
+                .map { it.takeIf { libraryMatch(it, unresolved) } }
+                .filterNotNull()
 
-        return matching.firstOrNull() ?: run {
-            logger.fatal("Could not find \"$givenPath\" in ${searchRoots.map { it.absolutePath }}.")
+            return matching.firstOrNull() ?: run {
+                logger.fatal("Could not find \"$givenPath\" in ${searchRoots.map { it.absolutePath }}.")
+            }
+        } catch (e: Throwable) {
+            logger.error("Failed to resolve Kotlin library: $givenPath")
+            throw e
         }
     }
 
@@ -154,7 +157,7 @@ abstract class KotlinLibrarySearchPathResolver<L: KotlinLibrary>(
     }
 }
 
-fun KonanVersion.compatible(other: KonanVersion) =
+fun CompilerVersion.compatible(other: CompilerVersion) =
         this.major == other.major
         && this.minor == other.minor
         && this.maintenance == other.maintenance
@@ -167,7 +170,7 @@ abstract class KotlinLibraryProperResolverWithAttributes<L: KotlinLibrary>(
     repositories: List<String>,
     directLibs: List<String>,
     override val knownAbiVersions: List<KotlinAbiVersion>?,
-    override val knownCompilerVersions: List<KonanVersion>?,
+    override val knownCompilerVersions: List<CompilerVersion>?,
     distributionKlib: String?,
     localKotlinDir: String?,
     skipCurrentDir: Boolean,
@@ -183,23 +186,13 @@ abstract class KotlinLibraryProperResolverWithAttributes<L: KotlinLibrary>(
         val candidateAbiVersion = candidate.versions.abiVersion
         val candidateLibraryVersion = candidate.versions.libraryVersion
 
+
         val abiVersionMatch = candidateAbiVersion != null &&
                 knownAbiVersions != null &&
                 knownAbiVersions!!.contains(candidateAbiVersion)
 
-        val compilerVersionMatch = candidateCompilerVersion != null &&
-                knownCompilerVersions != null &&
-                knownCompilerVersions!!.any { it.compatible(candidateCompilerVersion) }
-
-        if (!abiVersionMatch && !compilerVersionMatch) {
+        if (!abiVersionMatch) {
             logger.warning("skipping $candidatePath. The abi versions don't match. Expected '${knownAbiVersions}', found '${candidateAbiVersion}'")
-
-            if (knownCompilerVersions != null) {
-                val expected = knownCompilerVersions?.map { it.toString(false, false) }
-                val found = candidateCompilerVersion?.toString(true, true)
-                logger.warning("The compiler versions don't match either. Expected '${expected}', found '${found}'")
-            }
-
             return false
         }
 

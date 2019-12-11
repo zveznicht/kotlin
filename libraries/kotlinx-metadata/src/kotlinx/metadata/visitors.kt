@@ -465,6 +465,14 @@ abstract class KmTypeAliasVisitor @JvmOverloads constructor(private val delegate
         delegate?.visitVersionRequirement()
 
     /**
+     * Visits the extensions of the given type on the type alias.
+     *
+     * @param type the type of extension visitor to be returned
+     */
+    open fun visitExtensions(type: KmExtensionType): KmTypeAliasExtensionVisitor? =
+        delegate?.visitExtensions(type)
+
+    /**
      * Visits the end of the type alias.
      */
     open fun visitEnd() {
@@ -494,6 +502,14 @@ abstract class KmValueParameterVisitor @JvmOverloads constructor(private val del
      */
     open fun visitVarargElementType(flags: Flags): KmTypeVisitor? =
         delegate?.visitVarargElementType(flags)
+
+    /**
+     * Visits the extensions of the given type on the value parameter.
+     *
+     * @param type the type of extension visitor to be returned
+     */
+    open fun visitExtensions(type: KmExtensionType): KmValueParameterExtensionVisitor? =
+        delegate?.visitExtensions(type)
 
     /**
      * Visits the end of the value parameter.

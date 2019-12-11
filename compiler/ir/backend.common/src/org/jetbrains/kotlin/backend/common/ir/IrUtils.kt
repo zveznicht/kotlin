@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.backend.common.ir
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.DumpIrTreeWithDescriptorsVisitor
 import org.jetbrains.kotlin.backend.common.deepCopyWithVariables
-import org.jetbrains.kotlin.backend.common.lower.VariableRemapper
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -369,7 +368,7 @@ fun IrClass.createImplicitParameterDeclarationWithWrappedDescriptor() {
         IrValueParameterSymbolImpl(thisReceiverDescriptor),
         Name.identifier("<this>"),
         index = -1,
-        type = this.symbol.typeWith(this.typeParameters.map { it.defaultType }),
+        type = symbol.typeWithParameters(typeParameters),
         varargElementType = null,
         isCrossinline = false,
         isNoinline = false
@@ -407,7 +406,7 @@ fun IrClass.createParameterDeclarations() {
             IrValueParameterSymbolImpl(it),
             Name.special("<this>"),
             0,
-            symbol.typeWith(typeParameters.map { it.defaultType }),
+            symbol.typeWithParameters(typeParameters),
             null,
             false,
             false
@@ -487,7 +486,8 @@ fun IrClass.addFakeOverrides() {
                 isTailrec = irFunction.isTailrec,
                 isSuspend = irFunction.isSuspend,
                 isExpect = irFunction.isExpect,
-                isFakeOverride = true
+                isFakeOverride = true,
+                isOperator = irFunction.isOperator
             ).apply {
                 descriptor.bind(this)
                 parent = this@addFakeOverrides
@@ -529,7 +529,8 @@ fun createStaticFunctionWithReceivers(
         isTailrec = false,
         isSuspend = oldFunction.isSuspend,
         isExpect = oldFunction.isExpect,
-        isFakeOverride = origin == IrDeclarationOrigin.FAKE_OVERRIDE
+        isFakeOverride = origin == IrDeclarationOrigin.FAKE_OVERRIDE,
+        isOperator = oldFunction is IrSimpleFunction && oldFunction.isOperator
     ).apply {
         descriptor.bind(this)
         parent = irParent

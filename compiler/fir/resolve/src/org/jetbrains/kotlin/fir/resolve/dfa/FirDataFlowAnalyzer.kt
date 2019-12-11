@@ -22,13 +22,14 @@ import org.jetbrains.kotlin.fir.resolve.dfa.cfg.*
 import org.jetbrains.kotlin.fir.resolve.dfa.contracts.buildContractFir
 import org.jetbrains.kotlin.fir.resolve.dfa.contracts.createArgumentsMapping
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirAbstractBodyResolveTransformer
+import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.resultType
 import org.jetbrains.kotlin.fir.resolve.withNullability
+import org.jetbrains.kotlin.fir.resolvedTypeFromPrototype
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.CallableId
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.visitors.transformSingle
-import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.addIfNotNull
@@ -48,6 +49,8 @@ class FirDataFlowAnalyzer(private val components: FirAbstractBodyResolveTransfor
     private val flowOnNodes = mutableMapOf<CFGNode<*>, Flow>()
 
     private val variablesForWhenConditions = mutableMapOf<WhenBranchConditionExitNode, DataFlowVariable>()
+
+    private var contractDescriptionVisitingMode = false
 
     /*
      * If there is no types from smartcasts function returns null
@@ -77,13 +80,16 @@ class FirDataFlowAnalyzer(private val components: FirAbstractBodyResolveTransfor
 
     fun exitFunction(function: FirFunction<*>): ControlFlowGraph? {
         val (node, graph) = graphBuilder.exitFunction(function)
-        node.mergeIncomingFlow()
+        if (function.body == null) {
+            node.mergeIncomingFlow()
+        }
         for (valueParameter in function.valueParameters) {
             variableStorage.removeRealVariable(valueParameter.symbol)
         }
         if (graphBuilder.isTopLevel()) {
             flowOnNodes.clear()
             variableStorage.reset()
+            graphBuilder.reset()
         }
         return graph
     }
@@ -103,11 +109,31 @@ class FirDataFlowAnalyzer(private val components: FirAbstractBodyResolveTransfor
     // ----------------------------------- Block -----------------------------------
 
     fun enterBlock(block: FirBlock) {
-        graphBuilder.enterBlock(block).mergeIncomingFlow()
+        graphBuilder.enterBlock(block)?.mergeIncomingFlow()
     }
 
     fun exitBlock(block: FirBlock) {
         graphBuilder.exitBlock(block).mergeIncomingFlow()
+    }
+
+    private fun FirElement.extractReturnType(target: FirFunction<*>?): ConeKotlinType? {
+        return when (this) {
+            is FirReturnExpression -> {
+                if (this.target.labeledElement == target) {
+                    result.extractReturnType(target)
+                } else {
+                    result.resultType.coneTypeSafe()
+                }
+            }
+            is FirExpression -> {
+                typeRef.coneTypeSafe()
+            }
+            else -> session.builtinTypes.unitType.type
+        }
+    }
+
+    fun returnExpressionsOfAnonymousFunction(function: FirAnonymousFunction): List<FirStatement> {
+        return graphBuilder.returnExpressionsOfAnonymousFunction(function)
     }
 
     // ----------------------------------- Operator call -----------------------------------
@@ -186,8 +212,8 @@ class FirDataFlowAnalyzer(private val components: FirAbstractBodyResolveTransfor
                 val rightConst = rightOperand as? FirConstExpression<*>
 
                 when {
-                    leftConst?.kind == IrConstKind.Null -> processEqNull(node, rightOperand, operation)
-                    rightConst?.kind == IrConstKind.Null -> processEqNull(node, leftOperand, operation)
+                    leftConst?.kind == FirConstKind.Null -> processEqNull(node, rightOperand, operation)
+                    rightConst?.kind == FirConstKind.Null -> processEqNull(node, leftOperand, operation)
                     leftConst != null -> processEqWithConst(node, rightOperand, leftConst, operation)
                     rightConst != null -> processEqWithConst(node, leftOperand, rightConst, operation)
                     operation != FirOperation.EQ && operation != FirOperation.IDENTITY -> return
@@ -223,7 +249,7 @@ class FirDataFlowAnalyzer(private val components: FirAbstractBodyResolveTransfor
 
         // propagating facts for (... == true) and (... == false)
         variableStorage[operand]?.let { operandVariable ->
-            if (const.kind != IrConstKind.Boolean) return@let
+            if (const.kind != FirConstKind.Boolean) return@let
 
             val constValue = (const.value as Boolean)
             val shouldInvert = isEq xor constValue
@@ -531,6 +557,7 @@ class FirDataFlowAnalyzer(private val components: FirAbstractBodyResolveTransfor
         val conditionalEffects = contractDescription.effects.filterIsInstance<ConeConditionalEffectDeclaration>()
         if (conditionalEffects.isEmpty()) return
         val argumentsMapping = createArgumentsMapping(functionCall) ?: return
+        contractDescriptionVisitingMode = true
         graphBuilder.enterContract(functionCall).mergeIncomingFlow()
         val functionCallVariable = getOrCreateVariable(functionCall)
         for (conditionalEffect in conditionalEffects) {
@@ -569,6 +596,7 @@ class FirDataFlowAnalyzer(private val components: FirAbstractBodyResolveTransfor
             }
         }
         graphBuilder.exitContract(functionCall).mergeIncomingFlow()
+        contractDescriptionVisitingMode = true
     }
 
 
@@ -597,6 +625,7 @@ class FirDataFlowAnalyzer(private val components: FirAbstractBodyResolveTransfor
     }
 
     fun exitConstExpresion(constExpression: FirConstExpression<*>) {
+        if (constExpression.resultType is FirResolvedTypeRef && !contractDescriptionVisitingMode) return
         graphBuilder.exitConstExpresion(constExpression).mergeIncomingFlow()
     }
 

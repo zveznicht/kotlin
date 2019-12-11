@@ -15,22 +15,30 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyAccessor
+import org.jetbrains.kotlin.fir.diagnostics.FirDiagnostic
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.impl.FirElseIfTrueCondition
 import org.jetbrains.kotlin.fir.expressions.impl.FirUnitExpression
 import org.jetbrains.kotlin.fir.references.*
 import org.jetbrains.kotlin.fir.references.impl.FirSimpleNamedReference
-import org.jetbrains.kotlin.fir.resolve.*
-import org.jetbrains.kotlin.fir.symbols.*
+import org.jetbrains.kotlin.fir.resolve.directExpansionType
+import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
+import org.jetbrains.kotlin.fir.resolve.toSymbol
+import org.jetbrains.kotlin.fir.resolve.withNullability
+import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
+import org.jetbrains.kotlin.fir.resolve.diagnostics.FirAmbiguityError
+import org.jetbrains.kotlin.fir.resolve.diagnostics.FirInapplicableCandidateError
+import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.FirTypePlaceholderProjection
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
-import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.calls.inference.model.NewConstraintError
 import org.jetbrains.kotlin.types.AbstractStrictEqualityTypeChecker
 import org.jetbrains.kotlin.types.Variance
 import java.io.File
@@ -70,6 +78,8 @@ private class PackageInfo(val fqName: FqName, val moduleInfo: ModuleInfo) {
         it.mkdirs()
     }
     val errors = mutableMapOf<String, Int>().withDefault { 0 }
+    val implicits = mutableMapOf<String, Int>().withDefault { 0 }
+    val unresolved = mutableMapOf<String, Int>().withDefault { 0 }
 }
 
 private class ModuleInfo(val name: String, outputRoot: File) {
@@ -79,6 +89,12 @@ private class ModuleInfo(val name: String, outputRoot: File) {
     }
     val errors: Map<FqName, Int> by lazy {
         packages.mapValues { (_, packageInfo) -> packageInfo.errors.values.sum() }.withDefault { 0 }
+    }
+    val implicits: Map<FqName, Int> by lazy {
+        packages.mapValues { (_, packageInfo) -> packageInfo.implicits.values.sum() }.withDefault { 0 }
+    }
+    val unresolved: Map<FqName, Int> by lazy {
+        packages.mapValues { (_, packageInfo) -> packageInfo.unresolved.values.sum() }.withDefault { 0 }
     }
 }
 
@@ -109,7 +125,11 @@ private class SupplementaryGenerator(val outputRoot: File) {
                             ) {
                                 +packageInfo.fqName.asString()
                             }
-                            addErrors(moduleInfo.errors.getValue(packageInfo.fqName))
+                            addErrors(
+                                moduleInfo.errors.getValue(packageInfo.fqName),
+                                moduleInfo.implicits.getValue(packageInfo.fqName),
+                                moduleInfo.unresolved.getValue(packageInfo.fqName)
+                            )
                         }
                     }
                 }
@@ -117,9 +137,15 @@ private class SupplementaryGenerator(val outputRoot: File) {
         }
     }
 
-    fun LI.addErrors(errors: Int) {
+    fun LI.addErrors(errors: Int, implicits: Int, unresolved: Int) {
         if (errors > 0) {
             span(classes = "error-counter") { +(errors.toString()) }
+        }
+        if (implicits > 0) {
+            span(classes = "implicit-counter") { +(implicits.toString()) }
+        }
+        if (unresolved > 0) {
+            span(classes = "unresolved-counter") { +(unresolved.toString()) }
         }
     }
 
@@ -158,7 +184,11 @@ private class SupplementaryGenerator(val outputRoot: File) {
                     for (file in packageInfo.contents) {
                         li {
                             a(href = "./$file.fir.html", classes = "container-ref") { +file }
-                            addErrors(packageInfo.errors.getValue(file))
+                            addErrors(
+                                packageInfo.errors.getValue(file),
+                                packageInfo.implicits.getValue(file),
+                                packageInfo.unresolved.getValue(file)
+                            )
                         }
                     }
                 }
@@ -181,7 +211,11 @@ private class SupplementaryGenerator(val outputRoot: File) {
                     for (module in modules) {
                         li {
                             a(href = linkToIndex(module, outputRoot), classes = "container-ref") { +module.name }
-                            addErrors(module.errors.values.sum())
+                            addErrors(
+                                module.errors.values.sum(),
+                                module.implicits.values.sum(),
+                                module.unresolved.values.sum()
+                            )
                         }
                     }
                 }
@@ -287,6 +321,8 @@ class MultiModuleHtmlFirDump(private val outputRoot: File) {
         dumpOutput.writeText(builder.toString())
         packageForFile(file).apply {
             errors[file.name] = dumper.errors
+            implicits[file.name] = dumper.implicits
+            unresolved[file.name] = dumper.unresolved
         }
     }
 
@@ -386,12 +422,19 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
     var errors: Int = 0
         private set
 
-    fun generate(element: FirFile, builder: StringBuilder): Int {
+    var implicits: Int = 0
+        private set
+
+    var unresolved: Int = 0
+        private set
+
+    fun generate(element: FirFile, builder: StringBuilder) {
         errors = 0
+        implicits = 0
+        unresolved = 0
         builder.appendHTML().html {
             generate(element)
         }
-        return errors
     }
 
     private fun FlowContent.keyword(text: String) {
@@ -575,14 +618,8 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
         }
     }
 
-
-    private fun FlowContent.generate(klass: FirRegularClass) {
-        inl()
-
-        declarationStatus(klass.status)
-
-
-        when (klass.classKind) {
+    private fun FlowContent.classKind(kind: ClassKind) {
+        when (kind) {
             ClassKind.CLASS -> keyword("class")
             ClassKind.INTERFACE -> keyword("interface")
             ClassKind.ENUM_CLASS -> keyword("enum class")
@@ -590,6 +627,13 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
             ClassKind.ANNOTATION_CLASS -> keyword("annotation class")
             ClassKind.OBJECT -> keyword("object")
         }
+    }
+
+    private fun FlowContent.generate(klass: FirRegularClass) {
+        inl()
+
+        declarationStatus(klass.status)
+        classKind(klass.classKind)
         ws
         anchoredName(klass.name, klass.classId.asString())
         if (klass.superTypeRefs.isNotEmpty()) {
@@ -628,10 +672,21 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
         +")"
     }
 
-    private fun FlowContent.generate(type: ConeClassType) {
+    private fun FlowContent.generate(type: ConeClassLikeType) {
         resolved {
-            symbolRef(type.lookupTag.toSymbol(session)) {
-                fqn(type.lookupTag.classId.relativeClassName)
+            when (val symbol = type.lookupTag.toSymbol(session)) {
+                is FirTypeAliasSymbol -> {
+                    symbolRef(symbol) {
+                        simpleName(type.lookupTag.name)
+                    }
+                    +" = "
+                    generate(type.directExpansionType(session) ?: ConeKotlinErrorType("No expansion for type-alias"))
+                }
+                else -> {
+                    symbolRef(symbol) {
+                        fqn(type.lookupTag.classId.relativeClassName)
+                    }
+                }
             }
         }
     }
@@ -672,38 +727,38 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
 
     private fun FlowContent.generate(expression: FirConstExpression<*>) {
         val value = expression.value
-        if (value == null && expression.kind != IrConstKind.Null) {
+        if (value == null && expression.kind != FirConstKind.Null) {
             return error {
                 +"null value"
             }
         }
 
         when (expression.kind) {
-            IrConstKind.Null -> keyword("null")
-            IrConstKind.Boolean -> keyword(value.toString())
-            IrConstKind.String, IrConstKind.Char ->
+            FirConstKind.Null -> keyword("null")
+            FirConstKind.Boolean -> keyword(value.toString())
+            FirConstKind.String, FirConstKind.Char ->
                 stringLiteral(value)
-            IrConstKind.Byte -> {
+            FirConstKind.Byte -> {
                 +value.toString()
                 keyword("B")
             }
-            IrConstKind.Short -> {
+            FirConstKind.Short -> {
                 +value.toString()
                 keyword("S")
             }
-            IrConstKind.Int -> {
+            FirConstKind.Int -> {
                 +value.toString()
                 keyword("I")
             }
-            IrConstKind.Long -> {
+            FirConstKind.Long -> {
                 +value.toString()
                 keyword("L")
             }
-            IrConstKind.Float -> {
+            FirConstKind.Float -> {
                 +value.toString()
                 keyword("F")
             }
-            IrConstKind.Double -> {
+            FirConstKind.Double -> {
                 +value.toString()
                 keyword("D")
             }
@@ -714,14 +769,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
     private fun FlowContent.generate(type: ConeKotlinType) {
         when (type) {
             is ConeClassErrorType -> error { +type.reason }
-            is ConeClassType -> generate(type)
-            is ConeAbbreviatedType -> resolved {
-                symbolRef(type.abbreviationLookupTag.toSymbol(session)) {
-                    simpleName(type.abbreviationLookupTag.name)
-                }
-                +" = "
-                generate(type.directExpansionType(session) ?: ConeKotlinErrorType("No expansion for type-alias"))
-            }
+            is ConeClassLikeType -> generate(type)
             is ConeTypeParameterType -> resolved {
                 symbolRef(type.lookupTag.toSymbol()) {
                     simpleName(type.lookupTag.name)
@@ -730,8 +778,12 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
             is ConeTypeVariableType -> resolved { +type.lookupTag.name.asString() }
             is ConeFlexibleType -> resolved { generate(type) }
             is ConeCapturedType -> inlineUnsupported(type)
-            is ConeDefinitelyNotNullType -> inlineUnsupported(type)
+            is ConeDefinitelyNotNullType -> resolved {
+                generate(type.original)
+                +"!!"
+            }
             is ConeIntersectionType -> resolved { generate(type) }
+            is ConeIntegerLiteralType -> inlineUnsupported(type)
         }
         if (type.typeArguments.isNotEmpty()) {
             +"<"
@@ -777,8 +829,12 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
         when (typeRef) {
             is FirErrorTypeRef -> error { +typeRef.diagnostic.reason }
             is FirResolvedTypeRef -> generate(typeRef.type)
-            is FirImplicitTypeRef -> unresolved { keyword("<implicit>") }
+            is FirImplicitTypeRef -> unresolved {
+                implicits++
+                keyword("<implicit>")
+            }
             is FirUserTypeRef -> unresolved {
+                unresolved++
                 generateList(typeRef.qualifier, separator = ".") {
                     simpleName(it.name)
                     generateTypeProjections(it.typeArguments)
@@ -946,6 +1002,114 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
         }
     }
 
+    private fun FlowContent.describeVerbose(symbol: FirCallableSymbol<*>, fir: FirMemberFunction<*>) {
+        describeTypeParameters(fir)
+
+        fir.receiverTypeRef?.let {
+            +"("
+            generate(it)
+            +")."
+        }
+        symbolRef(symbol) {
+            +symbol.callableId.toString()
+        }
+        +"("
+        generateList(fir.valueParameters) {
+            generate(it.returnTypeRef)
+        }
+        +"): "
+        generate(fir.returnTypeRef)
+    }
+
+    private fun FlowContent.describeVerbose(symbol: FirCallableSymbol<*>, fir: FirVariable<*>) {
+        if (fir is FirTypeParametersOwner) describeTypeParameters(fir)
+
+        fir.receiverTypeRef?.let {
+            +"("
+            generate(it)
+            +")."
+        }
+        symbolRef(symbol) {
+            +symbol.callableId.toString()
+        }
+        +":"
+        generate(fir.returnTypeRef)
+    }
+
+    private fun FlowContent.describeTypeParameters(typeParameterContainer: FirTypeParametersOwner) {
+        if (typeParameterContainer.typeParameters.isEmpty()) return
+        +"<"
+        generateList(typeParameterContainer.typeParameters) {
+            generate(it.variance)
+            if (it.isReified) {
+                keyword("reified ")
+            }
+
+            simpleName(it.name)
+
+            if (it.bounds.isNotEmpty()) {
+                +": "
+                generateList(it.bounds) { bound ->
+                    generate(bound)
+                }
+            }
+        }
+        +"> "
+    }
+
+    private fun FlowContent.describeVerbose(symbol: FirBasedSymbol<*>) {
+        when (symbol) {
+            is FirClassLikeSymbol<*> ->
+                when (val fir = symbol.fir) {
+                    is FirRegularClass -> {
+                        declarationStatus(fir.status)
+                        classKind(fir.classKind)
+                        ws
+                        symbolRef(symbol) {
+                            +fir.classId.asString()
+                        }
+                        describeTypeParameters(fir)
+                    }
+                    is FirTypeAlias -> {
+                        keyword("typealias ")
+                        symbolRef(symbol) {
+                            +symbol.classId.asString()
+                        }
+                        describeTypeParameters(fir)
+                    }
+                    else -> +symbol.describe()
+                }
+            is FirCallableSymbol<*> -> {
+                when (val fir = symbol.fir) {
+                    is FirSimpleFunction -> {
+                        declarationStatus(fir.status)
+                        keyword("fun ")
+                        describeVerbose(symbol, fir)
+                    }
+                    is FirConstructor -> {
+                        declarationStatus(fir.status)
+                        keyword("constructor ")
+                        describeVerbose(symbol, fir)
+                    }
+                    is FirField -> {
+                        declarationStatus(fir.status)
+                        keyword("field ")
+                        describeVerbose(symbol, fir)
+                    }
+                    is FirProperty -> {
+                        declarationStatus(fir.status)
+                        if (fir.isVal)
+                            keyword("val ")
+                        else if (fir.isVar)
+                            keyword("var ")
+                        describeVerbose(symbol, fir)
+                    }
+                }
+            }
+            else -> +symbol.describe()
+        }
+    }
+
     private fun FlowContent.symbolRef(symbol: FirBasedSymbol<*>?, body: FlowContent.() -> Unit) {
         val (link, classes) = when (symbol) {
             null -> null to setOf()
@@ -957,6 +1121,58 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
                 title = symbol.describe()
             }
             body()
+        }
+    }
+
+    private fun FlowContent.diagnosticHover(body: FlowContent.() -> Unit) {
+        span(classes = "diagnostic-hover") {
+            body()
+        }
+    }
+
+    private fun FlowContent.errorWithDiagnostic(body: FlowContent.() -> Unit) {
+        error {
+            classes = classes + "diagnostic-hover-container"
+            body()
+        }
+    }
+
+    private fun FlowContent.generate(diagnostic: FirDiagnostic) {
+        when (diagnostic) {
+            is FirInapplicableCandidateError -> {
+                for (candidate in diagnostic.candidates) {
+                    describeVerbose(candidate.symbol)
+                    br
+                    candidate.diagnostics.forEach { callDiagnostic ->
+                        when (callDiagnostic) {
+                            is NewConstraintError -> {
+                                ident()
+                                +"Lower: "
+                                generate(callDiagnostic.lowerType as ConeKotlinType)
+                                br
+                                ident()
+                                +"Upper: "
+                                generate(callDiagnostic.upperType as ConeKotlinType)
+                            }
+                            else -> {
+                                ident()
+                                callDiagnostic::class.qualifiedName?.let { +it }
+                                Unit
+                            }
+                        }
+                        br
+                    }
+                }
+            }
+            is FirAmbiguityError -> {
+                +"Ambiguity: "
+                br
+                for (candidate in diagnostic.candidates) {
+                    describeVerbose(candidate)
+                    br
+                }
+            }
+            else -> +diagnostic.reason
         }
     }
 
@@ -972,9 +1188,11 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
                 }
             }
             is FirErrorNamedReference -> {
-                error {
-                    title = reference.diagnostic.reason
+                errorWithDiagnostic {
                     simpleName(reference.name)
+                    diagnosticHover {
+                        generate(reference.diagnostic)
+                    }
                 }
             }
             is FirSimpleNamedReference -> {

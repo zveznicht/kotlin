@@ -12,6 +12,9 @@ repositories {
             artifact("[artifact]_[revision](-[classifier]).[ext]")
             artifact("[artifact]_[revision](-[classifier]).[ext]")
         }
+        metadataSources {
+            artifact()
+        }
     }
 }
 

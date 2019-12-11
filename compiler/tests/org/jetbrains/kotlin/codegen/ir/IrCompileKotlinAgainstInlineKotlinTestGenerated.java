@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 @RunWith(JUnit3RunnerWithInners.class)
 public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
     private void runTest(String testDataFilePath) throws Exception {
-        KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+        KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
     }
 
     public void testAllFilesPresentInBoxInline() throws Exception {
@@ -34,7 +34,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class AnonymousObject extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInAnonymousObject() throws Exception {
@@ -281,7 +281,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class EnumWhen extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInEnumWhen() throws Exception {
@@ -314,7 +314,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class ProperRecapturing extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInProperRecapturing() throws Exception {
@@ -357,7 +357,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class ProperRecapturingInClass extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInProperRecapturingInClass() throws Exception {
@@ -430,7 +430,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class Sam extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInSam() throws Exception {
@@ -478,7 +478,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class TwoCapturedReceivers extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInTwoCapturedReceivers() throws Exception {
@@ -517,7 +517,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class ArgumentOrder extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInArgumentOrder() throws Exception {
@@ -590,7 +590,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class ArrayConvention extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInArrayConvention() throws Exception {
@@ -633,7 +633,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Assert extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInAssert() throws Exception {
@@ -706,7 +706,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Builders extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInBuilders() throws Exception {
@@ -729,7 +729,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class BytecodePreprocessing extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInBytecodePreprocessing() throws Exception {
@@ -747,7 +747,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class CallableReference extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInCallableReference() throws Exception {
@@ -799,6 +799,11 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
             runTest("compiler/testData/codegen/boxInline/callableReference/kt16411.kt");
         }
 
+        @TestMetadata("kt35101.kt")
+        public void testKt35101() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/callableReference/kt35101.kt");
+        }
+
         @TestMetadata("propertyIntrinsic.kt")
         public void testPropertyIntrinsic() throws Exception {
             runTest("compiler/testData/codegen/boxInline/callableReference/propertyIntrinsic.kt");
@@ -829,7 +834,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class Bound extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInBound() throws Exception {
@@ -958,7 +963,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Capture extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInCapture() throws Exception {
@@ -1001,7 +1006,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Complex extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInComplex() throws Exception {
@@ -1049,7 +1054,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class ComplexStack extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInComplexStack() throws Exception {
@@ -1097,7 +1102,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Contracts extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInContracts() throws Exception {
@@ -1185,7 +1190,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class DefaultValues extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         @TestMetadata("33Parameters.kt")
@@ -1297,7 +1302,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class LambdaInlining extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInLambdaInlining() throws Exception {
@@ -1469,7 +1474,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
             @RunWith(JUnit3RunnerWithInners.class)
             public static class CallableReferences extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
                 private void runTest(String testDataFilePath) throws Exception {
-                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
                 }
 
                 public void testAllFilesPresentInCallableReferences() throws Exception {
@@ -1583,7 +1588,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class MaskElimination extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             @TestMetadata("32Parameters.kt")
@@ -1632,7 +1637,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class DelegatedProperty extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInDelegatedProperty() throws Exception {
@@ -1665,7 +1670,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class EnclosingInfo extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInEnclosingInfo() throws Exception {
@@ -1713,7 +1718,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Enum extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInEnum() throws Exception {
@@ -1791,7 +1796,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class FunctionExpression extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInFunctionExpression() throws Exception {
@@ -1809,7 +1814,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class InlineClasses extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInInlineClasses() throws Exception {
@@ -1827,7 +1832,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class InnerClasses extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInInnerClasses() throws Exception {
@@ -1855,7 +1860,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class JvmPackageName extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInJvmPackageName() throws Exception {
@@ -1873,7 +1878,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class LambdaClassClash extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInLambdaClassClash() throws Exception {
@@ -1896,7 +1901,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class LambdaTransformation extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInLambdaTransformation() throws Exception {
@@ -1939,7 +1944,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class LocalFunInLambda extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInLocalFunInLambda() throws Exception {
@@ -1972,7 +1977,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class MultifileClasses extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInMultifileClasses() throws Exception {
@@ -2000,7 +2005,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Multiplatform extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInMultiplatform() throws Exception {
@@ -2012,7 +2017,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class DefaultArguments extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInDefaultArguments() throws Exception {
@@ -2031,7 +2036,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class NoInline extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInNoInline() throws Exception {
@@ -2079,7 +2084,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class NonLocalReturns extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInNonLocalReturns() throws Exception {
@@ -2156,7 +2161,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class Deparenthesize extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInDeparenthesize() throws Exception {
@@ -2179,7 +2184,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class TryFinally extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInTryFinally() throws Exception {
@@ -2256,7 +2261,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
             @RunWith(JUnit3RunnerWithInners.class)
             public static class CallSite extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
                 private void runTest(String testDataFilePath) throws Exception {
-                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
                 }
 
                 public void testAllFilesPresentInCallSite() throws Exception {
@@ -2299,7 +2304,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
             @RunWith(JUnit3RunnerWithInners.class)
             public static class Chained extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
                 private void runTest(String testDataFilePath) throws Exception {
-                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
                 }
 
                 public void testAllFilesPresentInChained() throws Exception {
@@ -2352,7 +2357,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
             @RunWith(JUnit3RunnerWithInners.class)
             public static class DeclSite extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
                 private void runTest(String testDataFilePath) throws Exception {
-                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
                 }
 
                 public void testAllFilesPresentInDeclSite() throws Exception {
@@ -2425,7 +2430,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
             @RunWith(JUnit3RunnerWithInners.class)
             public static class ExceptionTable extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
                 private void runTest(String testDataFilePath) throws Exception {
-                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
                 }
 
                 public void testAllFilesPresentInExceptionTable() throws Exception {
@@ -2518,7 +2523,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
             @RunWith(JUnit3RunnerWithInners.class)
             public static class Variables extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
                 private void runTest(String testDataFilePath) throws Exception {
-                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                    KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
                 }
 
                 public void testAllFilesPresentInVariables() throws Exception {
@@ -2538,7 +2543,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class NullChecks extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInNullChecks() throws Exception {
@@ -2556,7 +2561,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Optimizations extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInOptimizations() throws Exception {
@@ -2574,7 +2579,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Private extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         @TestMetadata("accessorForConst.kt")
@@ -2647,7 +2652,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Property extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInProperty() throws Exception {
@@ -2682,6 +2687,11 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @TestMetadata("augAssignmentAndIncViaConvention.kt")
         public void testAugAssignmentAndIncViaConvention() throws Exception {
             runTest("compiler/testData/codegen/boxInline/property/augAssignmentAndIncViaConvention.kt");
+        }
+
+        @TestMetadata("fromObject.kt")
+        public void testFromObject() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/property/fromObject.kt");
         }
 
         @TestMetadata("kt22649.kt")
@@ -2720,7 +2730,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Reified extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInReified() throws Exception {
@@ -2827,7 +2837,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class CheckCast extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInCheckCast() throws Exception {
@@ -2870,7 +2880,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class DefaultLambda extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInDefaultLambda() throws Exception {
@@ -2923,7 +2933,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class IsCheck extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInIsCheck() throws Exception {
@@ -2952,7 +2962,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Signature extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInSignature() throws Exception {
@@ -3010,7 +3020,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Simple extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInSimple() throws Exception {
@@ -3143,7 +3153,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Smap extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInSmap() throws Exception {
@@ -3195,7 +3205,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class Anonymous extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInAnonymous() throws Exception {
@@ -3258,7 +3268,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class DefaultLambda extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInDefaultLambda() throws Exception {
@@ -3316,7 +3326,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class InlineOnly extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInInlineOnly() throws Exception {
@@ -3349,7 +3359,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class Newsmap extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInNewsmap() throws Exception {
@@ -3382,7 +3392,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class Resolve extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInResolve() throws Exception {
@@ -3406,7 +3416,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Special extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInSpecial() throws Exception {
@@ -3464,7 +3474,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class StackOnReturn extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInStackOnReturn() throws Exception {
@@ -3547,11 +3557,11 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Suspend extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         private void runTestWithPackageReplacement(String testDataFilePath, String packageName) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInSuspend() throws Exception {
@@ -3663,7 +3673,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class CallableReference extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInCallableReference() throws Exception {
@@ -3681,11 +3691,11 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class DefaultParameter extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             private void runTestWithPackageReplacement(String testDataFilePath, String packageName) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInDefaultParameter() throws Exception {
@@ -3695,6 +3705,11 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
             @TestMetadata("defaultValueCrossinline.kt")
             public void testDefaultValueCrossinline_1_3() throws Exception {
                 runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/defaultParameter/defaultValueCrossinline.kt", "kotlin.coroutines");
+            }
+
+            @TestMetadata("defaultValueInlineFromMultiFileFacade.kt")
+            public void testDefaultValueInlineFromMultiFileFacade_1_3() throws Exception {
+                runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/defaultParameter/defaultValueInlineFromMultiFileFacade.kt", "kotlin.coroutines");
             }
 
             @TestMetadata("defaultValueInline.kt")
@@ -3708,7 +3723,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class InlineUsedAsNoinline extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInInlineUsedAsNoinline() throws Exception {
@@ -3731,11 +3746,11 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class Receiver extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             private void runTestWithPackageReplacement(String testDataFilePath, String packageName) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInReceiver() throws Exception {
@@ -3788,11 +3803,11 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class StateMachine extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             private void runTestWithPackageReplacement(String testDataFilePath, String packageName) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInStateMachine() throws Exception {
@@ -3911,7 +3926,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class SyntheticAccessors extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInSyntheticAccessors() throws Exception {
@@ -3958,7 +3973,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         @RunWith(JUnit3RunnerWithInners.class)
         public static class WithinInlineLambda extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
             private void runTest(String testDataFilePath) throws Exception {
-                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
             }
 
             public void testAllFilesPresentInWithinInlineLambda() throws Exception {
@@ -4002,7 +4017,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Trait extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInTrait() throws Exception {
@@ -4020,7 +4035,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class TryCatchFinally extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInTryCatchFinally() throws Exception {
@@ -4053,7 +4068,7 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
     @RunWith(JUnit3RunnerWithInners.class)
     public static class Varargs extends AbstractIrCompileKotlinAgainstInlineKotlinTest {
         private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE:");
+            KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_MULTI_MODULE: ");
         }
 
         public void testAllFilesPresentInVarargs() throws Exception {

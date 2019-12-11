@@ -11804,6 +11804,11 @@ public class QuickFixTestGenerated extends AbstractQuickFixTest {
         public void testVararg3() throws Exception {
             runTest("idea/testData/quickfix/supertypeInitialization/vararg3.kt");
         }
+
+        @TestMetadata("vararg4.kt")
+        public void testVararg4() throws Exception {
+            runTest("idea/testData/quickfix/supertypeInitialization/vararg4.kt");
+        }
     }
 
     @TestMetadata("idea/testData/quickfix/suppress")
@@ -14340,6 +14345,11 @@ public class QuickFixTestGenerated extends AbstractQuickFixTest {
             @TestMetadata("capturedValInitialization.kt")
             public void testCapturedValInitialization() throws Exception {
                 runTest("idea/testData/quickfix/variables/changeMutability/capturedValInitialization.kt");
+            }
+
+            @TestMetadata("const.kt")
+            public void testConst() throws Exception {
+                runTest("idea/testData/quickfix/variables/changeMutability/const.kt");
             }
 
             @TestMetadata("funParameter.kt")

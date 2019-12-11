@@ -13,10 +13,11 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
-import org.jetbrains.kotlin.fir.FirElement
-import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.NAME_FOR_DEFAULT_VALUE_PARAMETER
-import org.jetbrains.kotlin.fir.builder.*
+import org.jetbrains.kotlin.fir.*
+import org.jetbrains.kotlin.fir.builder.Context
+import org.jetbrains.kotlin.fir.builder.generateAccessorsByDelegate
+import org.jetbrains.kotlin.fir.builder.generateComponentFunctions
+import org.jetbrains.kotlin.fir.builder.generateCopyFunction
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.*
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
@@ -339,11 +340,7 @@ class DeclarationsConverter(
             }
         }
 
-        val defaultDelegatedSuperTypeRef = when {
-            modifiers.isEnum() && (classKind == ClassKind.CLASS || classKind == ClassKind.INTERFACE) -> implicitEnumType
-            modifiers.isAnnotation() && (classKind == ClassKind.CLASS || classKind == ClassKind.INTERFACE) -> implicitAnnotationType
-            else -> implicitAnyType
-        }
+
 
         if (classKind == ClassKind.CLASS) {
             classKind = when {
@@ -354,7 +351,6 @@ class DeclarationsConverter(
         }
 
         val className = identifier.nameAsSafeName(if (modifiers.isCompanion()) "Companion" else "")
-        superTypeRefs.ifEmpty { superTypeRefs += defaultDelegatedSuperTypeRef }
         val isLocal = isClassLocal(classNode) { getParent() }
 
         return withChildClassName(className) {
@@ -391,12 +387,34 @@ class DeclarationsConverter(
             firClass.annotations += modifiers.annotations
             firClass.typeParameters += firTypeParameters
             firClass.joinTypeParameters(typeConstraints)
+
+            val selfType = null.toDelegatedSelfType(firClass)
+
+            when {
+                modifiers.isEnum() && (classKind == ClassKind.ENUM_CLASS) -> {
+                    superTypeRefs += FirResolvedTypeRefImpl(
+                        source = null,
+                        ConeClassLikeTypeImpl(
+                            implicitEnumType.type.lookupTag,
+                            arrayOf(selfType.coneTypeUnsafe()),
+                            isNullable = false
+                        )
+                    )
+                }
+                modifiers.isAnnotation() && (classKind == ClassKind.ANNOTATION_CLASS) -> {
+                    superTypeRefs += implicitAnnotationType
+                }
+            }
+            val defaultDelegatedSuperTypeRef = implicitAnyType
+
+            superTypeRefs.ifEmpty { superTypeRefs += defaultDelegatedSuperTypeRef }
+
             firClass.superTypeRefs += superTypeRefs
 
             val classWrapper = ClassWrapper(
                 className, modifiers, classKind, primaryConstructor != null,
                 classBody.getChildNodesByType(SECONDARY_CONSTRUCTOR).isNotEmpty(),
-                null.toDelegatedSelfType(firClass),
+                selfType,
                 delegatedSuperTypeRef ?: defaultDelegatedSuperTypeRef, superTypeCallEntry
             )
             //parse primary constructor
@@ -522,11 +540,7 @@ class DeclarationsConverter(
             )
             firEnumEntry.annotations += modifiers.annotations
 
-            val defaultDelegatedSuperTypeRef = when {
-                modifiers.isEnum() -> implicitEnumType
-                modifiers.isAnnotation() -> implicitAnnotationType
-                else -> implicitAnyType
-            }
+            val defaultDelegatedSuperTypeRef = implicitAnyType
 
             val enumClassWrapper = ClassWrapper(
                 enumEntryName, modifiers, ClassKind.ENUM_ENTRY, hasPrimaryConstructor = true,
@@ -808,6 +822,7 @@ class DeclarationsConverter(
         val parentNode = property.getParent()
         val isLocal = !(parentNode?.tokenType == KT_FILE || parentNode?.tokenType == CLASS_BODY)
         return if (isLocal) {
+            val receiver = delegateExpression?.let { expressionConverter.getAsFirExpression<FirExpression>(it, "Incorrect delegate expression") }
             FirPropertyImpl(
                 null,
                 session,
@@ -826,7 +841,7 @@ class DeclarationsConverter(
                 FirDeclarationStatusImpl(Visibilities.LOCAL, Modality.FINAL)
             ).apply {
                 annotations += modifiers.annotations
-                this.generateAccessorsByDelegate(this@DeclarationsConverter.session, member = false, stubMode = stubMode)
+                this.generateAccessorsByDelegate(this@DeclarationsConverter.session, member = false, stubMode, receiver)
             }
         } else {
             val status = FirDeclarationStatusImpl(modifiers.getVisibility(), modifiers.getModality()).apply {
@@ -835,6 +850,9 @@ class DeclarationsConverter(
                 isOverride = modifiers.hasOverride()
                 isConst = modifiers.isConst()
                 isLateInit = modifiers.hasLateinit()
+            }
+            val receiver = delegateExpression?.let {
+                expressionConverter.getAsFirExpression<FirExpression>(it, "Should have delegate")
             }
             FirPropertyImpl(
                 null,
@@ -860,7 +878,7 @@ class DeclarationsConverter(
                 this.getter = getter ?: FirDefaultPropertyGetter(null, session, returnType, modifiers.getVisibility())
                 this.setter = if (isVar) setter ?: FirDefaultPropertySetter(null, session, returnType, modifiers.getVisibility()) else null
                 generateAccessorsByDelegate(
-                    this@DeclarationsConverter.session, member = parentNode?.tokenType != KT_FILE, stubMode = stubMode
+                    this@DeclarationsConverter.session, member = parentNode?.tokenType != KT_FILE, stubMode, receiver
                 )
             }
         }
@@ -1037,7 +1055,7 @@ class DeclarationsConverter(
         val parentNode = functionDeclaration.getParent()
         val isLocal = !(parentNode?.tokenType == KT_FILE || parentNode?.tokenType == CLASS_BODY)
         val firFunction = if (identifier == null) {
-            FirAnonymousFunctionImpl(null, session, returnType!!, receiverType, FirAnonymousFunctionSymbol())
+            FirAnonymousFunctionImpl(null, session, returnType!!, receiverType, FirAnonymousFunctionSymbol(), isLambda = false)
         } else {
             val functionName = identifier.nameAsSafeName()
             val status = FirDeclarationStatusImpl(
@@ -1459,7 +1477,7 @@ class DeclarationsConverter(
         null,
         FirResolvedTypeRefImpl(
             null,
-            ConeClassTypeImpl(
+            ConeClassLikeTypeImpl(
                 ConeClassLikeLookupTagImpl(ClassId.fromString(EXTENSION_FUNCTION_ANNOTATION)),
                 emptyArray(),
                 false

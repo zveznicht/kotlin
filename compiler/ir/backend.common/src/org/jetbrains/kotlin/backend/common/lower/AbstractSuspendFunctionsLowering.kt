@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.ir.symbols.impl.IrFieldSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrFail
+import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.*
@@ -56,6 +57,8 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
 
     protected abstract fun initializeStateMachine(coroutineConstructors: List<IrConstructor>, coroutineClassThis: IrValueDeclaration)
 
+    protected open fun IrBuilderWithScope.generateDelegatedCall(expectedType: IrType, delegatingCall: IrExpression): IrExpression =
+        delegatingCall
 
     private val builtCoroutines = mutableMapOf<IrFunction, BuiltCoroutine>()
     private val suspendLambdas = mutableMapOf<IrFunction, IrFunctionReference>()
@@ -227,7 +230,7 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
             val statements = (irFunction.body as IrBlockBody).statements
             val lastStatement = statements.last()
             assert(lastStatement == delegatingCall || lastStatement is IrReturn) { "Unexpected statement $lastStatement" }
-            statements[statements.lastIndex] = irReturn(returnValue)
+            statements[statements.lastIndex] = irReturn(generateDelegatedCall(irFunction.returnType, returnValue))
         }
     }
 
@@ -306,9 +309,7 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
         private val continuationType = continuationClassSymbol.typeWith(irFunction.returnType)
 
         // Save all arguments to fields.
-        private val argumentToPropertiesMap = functionParameters.associate {
-            it to coroutineClass.addField(it.name, it.type, false)
-        }
+        private val argumentToPropertiesMap = functionParameters.associateWith { coroutineClass.addField(it.name, it.type, false) }
 
         private val coroutineBaseClass = getCoroutineBaseClass(irFunction)
         private val coroutineBaseClassConstructor = coroutineBaseClass.owner.constructors.single { it.valueParameters.size == 1 }
@@ -319,7 +320,7 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
         private val coroutineConstructors = mutableListOf<IrConstructor>()
 
         fun build(): BuiltCoroutine {
-            val superTypes = mutableListOf(coroutineBaseClass.owner.defaultType)
+            val superTypes = mutableListOf(coroutineBaseClass.defaultType)
             var suspendFunctionClass: IrClass? = null
             var functionClass: IrClass? = null
             val suspendFunctionClassTypeArguments: List<IrType>?
@@ -489,7 +490,8 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
                 isTailrec = false,
                 isSuspend = false,
                 isExpect = false,
-                isFakeOverride = false
+                isFakeOverride = false,
+                isOperator = false
             ).apply {
                 d.bind(this)
                 parent = coroutineClass
@@ -550,13 +552,14 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
                 Name.identifier("invoke"),
                 Visibilities.PROTECTED,
                 Modality.FINAL,
-                irFunction.returnType,
+                context.irBuiltIns.anyNType,
                 isInline = false,
                 isExternal = false,
                 isTailrec = false,
                 isSuspend = true,
                 isExpect = false,
-                isFakeOverride = false
+                isFakeOverride = false,
+                isOperator = false
             ).apply {
                 d.bind(this)
                 parent = coroutineClass
@@ -615,7 +618,8 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
                     isTailrec = stateMachineFunction.isTailrec,
                     isSuspend = stateMachineFunction.isSuspend,
                     isExpect = stateMachineFunction.isExpect,
-                    isFakeOverride = false
+                    isFakeOverride = false,
+                    isOperator = false
                 ).apply {
                     d.bind(this)
                     parent = coroutineClass

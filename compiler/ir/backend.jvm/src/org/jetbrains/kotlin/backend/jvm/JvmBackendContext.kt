@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.backend.jvm
 
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.ir.Ir
+import org.jetbrains.kotlin.backend.common.lower.irThrow
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.jvm.codegen.IrTypeMapper
 import org.jetbrains.kotlin.backend.jvm.codegen.MethodSignatureMapper
@@ -24,12 +25,14 @@ import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.TypeParameterDescriptor
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
+import org.jetbrains.kotlin.ir.builders.irBlock
+import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.util.ReferenceSymbolTable
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -42,8 +45,11 @@ class JvmBackendContext(
     val psiSourceManager: PsiSourceManager,
     override val irBuiltIns: IrBuiltIns,
     irModuleFragment: IrModuleFragment,
-    symbolTable: SymbolTable,
-    val phaseConfig: PhaseConfig
+    private val symbolTable: SymbolTable,
+    val phaseConfig: PhaseConfig,
+    // If the JVM fqname of a class differs from what is implied by its parent, e.g. if it's a file class
+    // annotated with @JvmPackageName, the correct name is recorded here.
+    internal val classNameOverride: MutableMap<IrClass, JvmClassName>
 ) : CommonBackendContext {
     override val transformedFunction: MutableMap<IrFunctionSymbol, IrSimpleFunctionSymbol>
         get() = TODO("not implemented")
@@ -57,10 +63,9 @@ class JvmBackendContext(
     override val declarationFactory: JvmDeclarationFactory = JvmDeclarationFactory(methodSignatureMapper)
     override val sharedVariablesManager = JvmSharedVariablesManager(state.module, builtIns, irBuiltIns)
 
-    private val symbolTable = symbolTable.lazyWrapper
     override val ir = JvmIr(irModuleFragment, this.symbolTable)
 
-    val irIntrinsics = IrIntrinsicMethods(irBuiltIns, ir.symbols)
+    val irIntrinsics by lazy { IrIntrinsicMethods(irBuiltIns, ir.symbols) }
 
     private val localClassType = mutableMapOf<IrAttributeContainer, Type>()
 
@@ -82,13 +87,9 @@ class JvmBackendContext(
 
     internal val localDelegatedProperties = mutableMapOf<IrClass, List<IrLocalDelegatedPropertySymbol>>()
 
-    // If the JVM fqname of a class differs from what is implied by its parent, e.g. if it's a file class
-    // annotated with @JvmPackageName, the correct name is recorded here.
-    internal lateinit var classNameOverride: MutableMap<IrClass, JvmClassName>
-
     internal val multifileFacadesToAdd = mutableMapOf<JvmClassName, MutableList<IrClass>>()
     internal val multifileFacadeForPart = mutableMapOf<IrClass, JvmClassName>()
-    internal val multifileFacadeMemberToPartMember = mutableMapOf<IrFunctionSymbol, IrFunctionSymbol>()
+    internal val multifileFacadeMemberToPartMember = mutableMapOf<IrFunction, IrFunction>()
 
     override var inVerbosePhase: Boolean = false
 
@@ -99,24 +100,30 @@ class JvmBackendContext(
     val suspendFunctionContinuations = mutableMapOf<IrFunction, IrClass>()
     val suspendLambdaToOriginalFunctionMap = mutableMapOf<IrClass, IrFunction>()
     val continuationClassBuilders = mutableMapOf<IrClass, ClassBuilder>()
-    val suspendFunctionViews = mutableMapOf<IrFunction, IrFunction>()
+    val suspendFunctionOriginalToView = mutableMapOf<IrFunction, IrFunction>()
+    val suspendFunctionViewToOriginal = mutableMapOf<IrFunction, IrFunction>()
     val fakeContinuation: IrExpression = createFakeContinuation(this)
 
     val staticDefaultStubs = mutableMapOf<IrFunctionSymbol, IrFunction>()
 
     val inlineClassReplacements = MemoizedInlineClassReplacements()
 
+    internal fun recordSuspendFunctionView(function: IrFunction, view: IrFunction) {
+        suspendFunctionOriginalToView[function] = view
+        suspendFunctionViewToOriginal[view] = function
+    }
+
     internal fun referenceClass(descriptor: ClassDescriptor): IrClassSymbol =
-        symbolTable.referenceClass(descriptor)
+        symbolTable.lazyWrapper.referenceClass(descriptor)
 
     internal fun referenceTypeParameter(descriptor: TypeParameterDescriptor): IrTypeParameterSymbol =
-        symbolTable.referenceTypeParameter(descriptor)
+        symbolTable.lazyWrapper.referenceTypeParameter(descriptor)
 
     internal fun referenceFunction(descriptor: FunctionDescriptor): IrFunctionSymbol =
         if (descriptor is ClassConstructorDescriptor)
-            symbolTable.referenceConstructor(descriptor)
+            symbolTable.lazyWrapper.referenceConstructor(descriptor)
         else
-            symbolTable.referenceSimpleFunction(descriptor)
+            symbolTable.lazyWrapper.referenceSimpleFunction(descriptor)
 
     override fun log(message: () -> String) {
         /*TODO*/
@@ -130,9 +137,15 @@ class JvmBackendContext(
         print(message)
     }
 
+    override fun throwUninitializedPropertyAccessException(builder: IrBuilderWithScope, name: String): IrExpression =
+        builder.irBlock {
+            +super.throwUninitializedPropertyAccessException(builder, name)
+            +irThrow(irNull())
+        }
+
     inner class JvmIr(
         irModuleFragment: IrModuleFragment,
-        symbolTable: ReferenceSymbolTable
+        symbolTable: SymbolTable
     ) : Ir<JvmBackendContext>(this, irModuleFragment) {
         override val symbols = JvmSymbols(this@JvmBackendContext, symbolTable)
 

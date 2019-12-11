@@ -15,12 +15,7 @@ import org.jetbrains.kotlin.fir.resolve.calls.InferenceComponents
 import org.jetbrains.kotlin.fir.resolve.dfa.DataFlowInferenceContext
 import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculator
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
-import org.jetbrains.kotlin.fir.types.ConeClassErrorType
-import org.jetbrains.kotlin.fir.types.ErrorTypeConstructor
 import org.jetbrains.kotlin.fir.types.FirTypeRef
-import org.jetbrains.kotlin.types.model.KotlinTypeMarker
-import org.jetbrains.kotlin.types.model.SimpleTypeMarker
-import org.jetbrains.kotlin.types.model.TypeConstructorMarker
 import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContextDelegate
 
 inline fun <reified T : FirElement> FirBasedSymbol<*>.firUnsafe(): T {
@@ -37,26 +32,22 @@ internal inline var FirExpression.resultType: FirTypeRef
         replaceTypeRef(type)
     }
 
-internal fun inferenceComponents(session: FirSession, returnTypeCalculator: ReturnTypeCalculator, scopeSession: ScopeSession) =
-    InferenceComponents(object : ConeInferenceContext, TypeSystemInferenceExtensionContextDelegate, DataFlowInferenceContext {
-        override fun findCommonIntegerLiteralTypesSuperType(explicitSupertypes: List<SimpleTypeMarker>): SimpleTypeMarker? {
-            // TODO: implement
-            return null
-        }
+interface UniversalConeInferenceContext :
+    ConeInferenceContext, TypeSystemInferenceExtensionContextDelegate, DataFlowInferenceContext
 
-        override fun TypeConstructorMarker.getApproximatedIntegerLiteralType(): KotlinTypeMarker {
-            TODO("not implemented")
-        }
-
+internal fun FirSession.inferenceContext(): UniversalConeInferenceContext {
+    val session = this
+    return object : UniversalConeInferenceContext {
         override val session: FirSession
             get() = session
+    }
+}
 
-        override fun KotlinTypeMarker.removeExactAnnotation(): KotlinTypeMarker {
-            return this
-        }
-
-        override fun TypeConstructorMarker.toErrorType(): SimpleTypeMarker {
-            require(this is ErrorTypeConstructor)
-            return ConeClassErrorType(reason)
-        }
-    }, session, returnTypeCalculator, scopeSession)
+internal fun inferenceComponents(
+    session: FirSession,
+    returnTypeCalculator: ReturnTypeCalculator,
+    scopeSession: ScopeSession
+): InferenceComponents {
+    val inferenceContext = session.inferenceContext()
+    return InferenceComponents(inferenceContext, session, returnTypeCalculator, scopeSession)
+}

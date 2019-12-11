@@ -9,10 +9,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.KtNodeTypes.*
 import org.jetbrains.kotlin.fir.*
-import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
+import org.jetbrains.kotlin.fir.declarations.FirMemberFunction
+import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.declarations.FirTypeParameter
 import org.jetbrains.kotlin.fir.declarations.impl.FirErrorFunctionImpl
-import org.jetbrains.kotlin.fir.declarations.impl.FirTypeParameterImpl
-import org.jetbrains.kotlin.fir.diagnostics.*
+import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
+import org.jetbrains.kotlin.fir.diagnostics.FirSimpleDiagnostic
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.impl.*
 import org.jetbrains.kotlin.fir.references.FirReference
@@ -26,10 +29,9 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.coneTypeSafe
-import org.jetbrains.kotlin.fir.types.impl.ConeClassTypeImpl
+import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.ConeTypeParameterTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.FirResolvedTypeRefImpl
-import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.lexer.KtTokens.CLOSING_QUOTE
 import org.jetbrains.kotlin.lexer.KtTokens.OPEN_QUOTE
 import org.jetbrains.kotlin.name.FqName
@@ -38,7 +40,6 @@ import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.jetbrains.kotlin.psi.KtUnaryExpression
 import org.jetbrains.kotlin.resolve.constants.evaluate.*
-import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
 //T can be either PsiElement, or LighterASTNode
@@ -105,8 +106,8 @@ abstract class BaseFirBuilder<T>(val session: FirSession, val context: Context =
             this
         ).apply {
             target = FirFunctionTarget(labelName)
-            val lastFunction = context.firFunctions.lastOrNull()
             if (labelName == null) {
+                val lastFunction = context.firFunctions.lastOrNull { !(it is FirAnonymousFunction && it.isLambda) }
                 if (lastFunction != null) {
                     target.bind(lastFunction)
                 } else {
@@ -149,17 +150,11 @@ abstract class BaseFirBuilder<T>(val session: FirSession, val context: Context =
     }
 
     fun KtClassOrObject?.toDelegatedSelfType(firClass: FirRegularClass): FirTypeRef {
-        val typeParameters = firClass.typeParameters.map {
-            FirTypeParameterImpl(it.source, session, it.name, FirTypeParameterSymbol(), Variance.INVARIANT, false).apply {
-                this.bounds += it.bounds
-                addDefaultBoundIfNecessary()
-            }
-        }
         return FirResolvedTypeRefImpl(
             this?.toFirSourceElement(),
-            ConeClassTypeImpl(
+            ConeClassLikeTypeImpl(
                 firClass.symbol.toLookupTag(),
-                typeParameters.map { ConeTypeParameterTypeImpl(it.symbol.toLookupTag(), false) }.toTypedArray(),
+                firClass.typeParameters.map { ConeTypeParameterTypeImpl(it.symbol.toLookupTag(), false) }.toTypedArray(),
                 false
             )
         )
@@ -228,40 +223,50 @@ abstract class BaseFirBuilder<T>(val session: FirSession, val context: Context =
             else -> null
         }
         return when (type) {
-            INTEGER_CONSTANT ->
-                if (convertedText is Long &&
-                    (hasLongSuffix(text) || hasUnsignedLongSuffix(text) || hasUnsignedSuffix(text) ||
-                            convertedText > Int.MAX_VALUE || convertedText < Int.MIN_VALUE)
-                ) {
-                    FirConstExpressionImpl(
-                        expression.getSourceOrNull(), IrConstKind.Long, convertedText, FirSimpleDiagnostic("Incorrect long: $text", DiagnosticKind.Syntax)
+            INTEGER_CONSTANT -> {
+                val kind = when {
+                    convertedText !is Long -> return FirErrorExpressionImpl(
+                        expression.getSourceOrNull(),
+                        FirSimpleDiagnostic(
+                            "Incorrect constant expression: $text",
+                            DiagnosticKind.IllegalConstExpression
+                        )
                     )
-                } else if (convertedText is Number) {
-                    // TODO: support byte / short
-                    FirConstExpressionImpl(
-                        expression.getSourceOrNull(), IrConstKind.Int, convertedText.toInt(), FirSimpleDiagnostic("Incorrect int: $text", DiagnosticKind.Syntax)
-                    )
-                } else {
-                    FirErrorExpressionImpl(expression.getSourceOrNull(), FirSimpleDiagnostic("Incorrect constant expression: $text", DiagnosticKind.IllegalConstExpression))
+
+                    hasLongSuffix(text) || hasUnsignedSuffix(text) || hasUnsignedLongSuffix(text) -> {
+                        FirConstKind.Long
+                    }
+
+                    else -> {
+                        FirConstKind.IntegerLiteral
+                    }
                 }
+
+                FirConstExpressionImpl(
+                    expression.getSourceOrNull(),
+                    kind,
+                    convertedText,
+                    FirSimpleDiagnostic("Incorrect integer literal: $text", DiagnosticKind.Syntax)
+                )
+            }
             FLOAT_CONSTANT ->
                 if (convertedText is Float) {
                     FirConstExpressionImpl(
-                        expression.getSourceOrNull(), IrConstKind.Float, convertedText, FirSimpleDiagnostic("Incorrect float: $text", DiagnosticKind.Syntax)
+                        expression.getSourceOrNull(), FirConstKind.Float, convertedText, FirSimpleDiagnostic("Incorrect float: $text", DiagnosticKind.Syntax)
                     )
                 } else {
                     FirConstExpressionImpl(
-                        expression.getSourceOrNull(), IrConstKind.Double, convertedText as Double, FirSimpleDiagnostic("Incorrect double: $text", DiagnosticKind.Syntax)
+                        expression.getSourceOrNull(), FirConstKind.Double, convertedText as Double, FirSimpleDiagnostic("Incorrect double: $text", DiagnosticKind.Syntax)
                     )
                 }
             CHARACTER_CONSTANT ->
                 FirConstExpressionImpl(
-                    expression.getSourceOrNull(), IrConstKind.Char, text.parseCharacter(), FirSimpleDiagnostic("Incorrect character: $text", DiagnosticKind.Syntax)
+                    expression.getSourceOrNull(), FirConstKind.Char, text.parseCharacter(), FirSimpleDiagnostic("Incorrect character: $text", DiagnosticKind.Syntax)
                 )
             BOOLEAN_CONSTANT ->
-                FirConstExpressionImpl(expression.getSourceOrNull(), IrConstKind.Boolean, convertedText as Boolean)
+                FirConstExpressionImpl(expression.getSourceOrNull(), FirConstKind.Boolean, convertedText as Boolean)
             NULL ->
-                FirConstExpressionImpl(expression.getSourceOrNull(), IrConstKind.Null, null)
+                FirConstExpressionImpl(expression.getSourceOrNull(), FirConstKind.Null, null)
             else ->
                 throw AssertionError("Unknown literal type: $type, $text")
         }
@@ -281,15 +286,20 @@ abstract class BaseFirBuilder<T>(val session: FirSession, val context: Context =
                 OPEN_QUOTE, CLOSING_QUOTE -> continue@L
                 LITERAL_STRING_TEMPLATE_ENTRY -> {
                     sb.append(entry.asText)
-                    FirConstExpressionImpl(entry.getSourceOrNull(), IrConstKind.String, entry.asText)
+                    FirConstExpressionImpl(entry.getSourceOrNull(), FirConstKind.String, entry.asText)
                 }
                 ESCAPE_STRING_TEMPLATE_ENTRY -> {
                     sb.append(entry.unescapedValue)
-                    FirConstExpressionImpl(entry.getSourceOrNull(), IrConstKind.String, entry.unescapedValue)
+                    FirConstExpressionImpl(entry.getSourceOrNull(), FirConstKind.String, entry.unescapedValue)
                 }
                 SHORT_STRING_TEMPLATE_ENTRY, LONG_STRING_TEMPLATE_ENTRY -> {
                     hasExpressions = true
-                    entry.convertTemplateEntry("Incorrect template argument")
+                    val firExpression = entry.convertTemplateEntry("Incorrect template argument")
+                    val source = firExpression.source
+                    FirFunctionCallImpl(source).apply {
+                        explicitReceiver = firExpression
+                        calleeReference = FirSimpleNamedReference(source, Name.identifier("toString"), candidateSymbol = null)
+                    }
                 }
                 else -> {
                     hasExpressions = true
@@ -312,7 +322,7 @@ abstract class BaseFirBuilder<T>(val session: FirSession, val context: Context =
                 }
             }
         }
-        return if (hasExpressions) result!! else FirConstExpressionImpl(base?.toFirSourceElement(), IrConstKind.String, sb.toString())
+        return if (hasExpressions) result!! else FirConstExpressionImpl(base?.toFirSourceElement(), FirConstKind.String, sb.toString())
     }
 
     /**

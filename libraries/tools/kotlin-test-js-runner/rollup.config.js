@@ -17,6 +17,16 @@ export default [
         plugins: plugins()
     },
     {
+        input: './nodejs-idle.ts',
+        output: {
+            file: 'lib/kotlin-test-nodejs-idle-runner.js',
+            format: 'cjs',
+            banner: '#!/usr/bin/env node',
+            sourcemap: true
+        },
+        plugins: plugins()
+    },
+    {
         input: './karma.ts',
         output: {
             file: 'lib/kotlin-test-karma-runner.js',
@@ -24,6 +34,20 @@ export default [
             sourcemap: true
         },
         plugins: plugins()
+    },
+    {
+        input: './karma-debug-runner.js',
+        output: {
+            file: 'lib/karma-debug-runner.js',
+            format: 'cjs'
+        }
+    },
+    {
+        input: './karma-debug-framework.js',
+        output: {
+            file: 'lib/karma-debug-framework.js',
+            format: 'cjs'
+        }
     },
     {
         input: './karma-kotlin-reporter.js',

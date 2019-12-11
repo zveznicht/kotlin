@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    id("jps-compatible")
 }
 
 group = "org.jetbrains.kotlin.fir"
@@ -16,9 +17,11 @@ repositories {
 dependencies {
     compileOnly(intellijCoreDep()) { includeJars("intellij-core", "guava", rootProject = rootProject) }
     compile(project(":compiler:psi"))
-    
-    compile("junit", "junit", "4.4")
-    compile(projectTests(":compiler:fir:psi2fir"))
+    compile(project(":compiler:fir:tree"))
+    compile(project(":compiler:fir:psi2fir"))
+
+    testCompile("junit", "junit", "4.4")
+    testCompile(projectTests(":compiler:fir:psi2fir"))
 
     compile("org.openjdk.jmh", "jmh-core", jmhVersion)
     compile("org.openjdk.jmh", "jmh-generator-bytecode", jmhVersion)
@@ -39,6 +42,8 @@ projectTest {
     workingDir = rootDir
     exclude("**/benchmark/**")
 }
+
+testsJar()
 
 val compactClasspath by tasks.registering(Jar::class) {
     archiveAppendix.set("classpath")

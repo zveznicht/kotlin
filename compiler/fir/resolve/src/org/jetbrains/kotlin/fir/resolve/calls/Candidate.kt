@@ -6,9 +6,7 @@
 package org.jetbrains.kotlin.fir.resolve.calls
 
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirFile
-import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.impl.FirNoReceiverExpression
@@ -18,6 +16,7 @@ import org.jetbrains.kotlin.fir.resolve.ImplicitReceiverStack
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
+import org.jetbrains.kotlin.fir.types.ConeTypeVariable
 import org.jetbrains.kotlin.fir.types.FirTypeProjection
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemBuilder
@@ -37,7 +36,6 @@ class CallInfo(
     val session: FirSession,
     val containingFile: FirFile,
     val implicitReceiverStack: ImplicitReceiverStack,
-    val containingDeclaration: FirDeclaration,
 
     // Three properties for callable references only
     val expectedType: ConeKotlinType? = null,
@@ -67,15 +65,19 @@ class Candidate(
     private val baseSystem: ConstraintStorage,
     val callInfo: CallInfo
 ) {
+
+    var systemInitialized: Boolean = false
     val system by lazy {
         val system = bodyResolveComponents.inferenceComponents.createConstraintSystem()
         system.addOtherSystem(baseSystem)
+        systemInitialized = true
         system
     }
 
     val samResolver get() = bodyResolveComponents.samResolver
 
     lateinit var substitutor: ConeSubstitutor
+    lateinit var freshVariables: List<ConeTypeVariable>
     var resultingTypeForCallableReference: ConeKotlinType? = null
     var outerConstraintBuilderEffect: (ConstraintSystemOperation.() -> Unit)? = null
 

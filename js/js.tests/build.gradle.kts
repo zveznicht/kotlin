@@ -6,7 +6,7 @@ import org.gradle.internal.os.OperatingSystem
 plugins {
     kotlin("jvm")
     id("jps-compatible")
-    id("com.moowork.node").version("1.2.0")
+    id("com.github.node-gradle.node")
     id("de.undercouch.download")
 }
 
@@ -63,7 +63,9 @@ dependencies {
 
     testRuntime(kotlinStdlib())
     testJsRuntime(kotlinStdlib("js"))
-    testJsRuntime(project(":kotlin-test:kotlin-test-js")) // to be sure that kotlin-test-js built before tests runned
+    if (!kotlinBuildProperties.isInJpsBuildIdeaSync) {
+        testJsRuntime(project(":kotlin-test:kotlin-test-js")) // to be sure that kotlin-test-js built before tests runned
+    }
     testRuntime(project(":kotlin-reflect"))
     testRuntime(project(":kotlin-preloader")) // it's required for ant tests
     testRuntime(project(":compiler:backend-common"))

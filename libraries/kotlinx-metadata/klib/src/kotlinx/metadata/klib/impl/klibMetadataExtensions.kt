@@ -20,10 +20,10 @@ import org.jetbrains.kotlin.serialization.StringTableImpl
 internal class KlibMetadataExtensions : MetadataExtensions {
 
     private fun ReadContext.getSourceFile(index: Int) =
-        contextExtensions.filterIsInstance<SourceFileIndexReadExtension>().first().getSourceFile(index)
+        strings.getString(index).let(::KlibSourceFile)
 
     private fun WriteContext.getIndexOf(file: KlibSourceFile) =
-        contextExtensions.filterIsInstance<ReverseSourceFileIndexWriteExtension>().first().getIndexOf(file)
+        strings.getStringIndex(file.name)
 
     override fun readClassExtensions(v: KmClassVisitor, proto: ProtoBuf.Class, c: ReadContext) {
         val extension = v.visitExtensions(KlibClassExtensionVisitor.TYPE) as? KlibClassExtensionVisitor ?: return
@@ -122,6 +122,22 @@ internal class KlibMetadataExtensions : MetadataExtensions {
         val extension = v.visitExtensions(KlibTypeExtensionVisitor.TYPE) as? KlibTypeExtensionVisitor ?: return
 
         proto.getExtension(KlibMetadataProtoBuf.typeAnnotation).forEach { annotation ->
+            extension.visitAnnotation(annotation.readAnnotation(c.strings))
+        }
+    }
+
+    override fun readTypeAliasExtensions(v: KmTypeAliasVisitor, proto: ProtoBuf.TypeAlias, c: ReadContext) {
+        val extension = v.visitExtensions(KlibTypeAliasExtensionVisitor.TYPE) as? KlibTypeAliasExtensionVisitor ?: return
+
+        proto.getExtension(KlibMetadataProtoBuf.typeAliasUniqId).let { descriptorUniqId ->
+            extension.visitUniqId(descriptorUniqId.readUniqId())
+        }
+    }
+
+    override fun readValueParameterExtensions(v: KmValueParameterVisitor, proto: ProtoBuf.ValueParameter, c: ReadContext) {
+        val extension = v.visitExtensions(KlibValueParameterExtensionVisitor.TYPE) as? KlibValueParameterExtensionVisitor ?: return
+
+        proto.getExtension(KlibMetadataProtoBuf.parameterAnnotation).forEach { annotation ->
             extension.visitAnnotation(annotation.readAnnotation(c.strings))
         }
     }
@@ -324,6 +340,38 @@ internal class KlibMetadataExtensions : MetadataExtensions {
         }
     }
 
+    override fun writeTypeAliasExtensions(
+        type: KmExtensionType,
+        proto: ProtoBuf.TypeAlias.Builder,
+        c: WriteContext
+    ): KmTypeAliasExtensionVisitor? {
+        if (type != KlibTypeAliasExtensionVisitor.TYPE) return null
+        return object : KlibTypeAliasExtensionVisitor() {
+            override fun visitUniqId(uniqId: UniqId) {
+                proto.setExtension(
+                    KlibMetadataProtoBuf.typeAliasUniqId,
+                    uniqId.writeUniqId().build()
+                )
+            }
+        }
+    }
+
+    override fun writeValueParameterExtensions(
+        type: KmExtensionType,
+        proto: ProtoBuf.ValueParameter.Builder,
+        c: WriteContext
+    ): KmValueParameterExtensionVisitor? {
+        if (type != KlibValueParameterExtensionVisitor.TYPE) return null
+        return object : KlibValueParameterExtensionVisitor() {
+            override fun visitAnnotation(annotation: KmAnnotation) {
+                proto.addExtension(
+                    KlibMetadataProtoBuf.parameterAnnotation,
+                    annotation.writeAnnotation(c.strings).build()
+                )
+            }
+        }
+    }
+
     override fun createClassExtension(): KmClassExtension =
         KlibClassExtension()
 
@@ -347,4 +395,10 @@ internal class KlibMetadataExtensions : MetadataExtensions {
 
     override fun createTypeExtension(): KmTypeExtension =
         KlibTypeExtension()
+
+    override fun createTypeAliasExtension(): KmTypeAliasExtension =
+        KlibTypeAliasExtension()
+
+    override fun createValueParameterExtension(): KmValueParameterExtension =
+        KlibValueParameterExtension()
 }

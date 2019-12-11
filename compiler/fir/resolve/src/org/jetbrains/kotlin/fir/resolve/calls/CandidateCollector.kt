@@ -63,7 +63,7 @@ open class CandidateCollector(
     }
 
     fun isSuccess(): Boolean {
-        return currentApplicability == CandidateApplicability.RESOLVED
+        return currentApplicability >= CandidateApplicability.SYNTHETIC_RESOLVED
     }
 }
 
@@ -103,7 +103,6 @@ class InvokeReceiverCandidateCollector(
                 session,
                 invokeCallInfo.containingFile,
                 invokeCallInfo.implicitReceiverStack,
-                invokeCallInfo.containingDeclaration,
                 invokeCallInfo.expectedType,
                 invokeCallInfo.outerCSBuilder,
                 invokeCallInfo.lhs,

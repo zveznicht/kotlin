@@ -108,14 +108,18 @@ open class FunctionCodegen(
 
         val visibility = irFunction.getVisibilityAccessFlag()
         val staticFlag = if (isStatic) Opcodes.ACC_STATIC else 0
-        val varargFlag = if (irFunction.valueParameters.any { it.varargElementType != null }) Opcodes.ACC_VARARGS else 0
+        val varargFlag = if (irFunction.valueParameters.lastOrNull()?.varargElementType != null) Opcodes.ACC_VARARGS else 0
         val deprecation = irFunction.deprecationFlags
         val bridgeFlag = if (
             irFunction.origin == IrDeclarationOrigin.BRIDGE ||
             irFunction.origin == IrDeclarationOrigin.BRIDGE_SPECIAL
         ) Opcodes.ACC_BRIDGE else 0
         val modalityFlag = when ((irFunction as? IrSimpleFunction)?.modality) {
-            Modality.FINAL -> if (!classCodegen.irClass.isAnnotationClass || irFunction.isStatic) Opcodes.ACC_FINAL else Opcodes.ACC_ABSTRACT
+            Modality.FINAL -> when {
+                classCodegen.irClass.isInterface && irFunction.body != null -> 0
+                !classCodegen.irClass.isAnnotationClass || irFunction.isStatic -> Opcodes.ACC_FINAL
+                else -> Opcodes.ACC_ABSTRACT
+            }
             Modality.ABSTRACT -> Opcodes.ACC_ABSTRACT
             else -> if (classCodegen.irClass.isJvmInterface && irFunction.body == null) Opcodes.ACC_ABSTRACT else 0 //TODO transform interface modality on lowering to DefaultImpls
         }

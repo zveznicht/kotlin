@@ -4,7 +4,7 @@ description = "Simple Kotlin/JS tests runner with TeamCity reporter"
 
 plugins {
     id("base")
-    id("com.moowork.node") version "1.2.0"
+    id("com.github.node-gradle.node")
 }
 
 val default = configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
@@ -19,7 +19,9 @@ convention.getPlugin(MavenPluginConvention::class.java).also {
 }
 
 dependencies {
-    archives(project(":kotlin-test:kotlin-test-js"))
+    if (!kotlinBuildProperties.isInJpsBuildIdeaSync) {
+        archives(project(":kotlin-test:kotlin-test-js"))
+    }
 }
 
 node {
@@ -49,8 +51,11 @@ tasks {
         inputs.dir("src")
         inputs.files(
             "nodejs.ts",
+            "nodejs-idle.ts",
             "karma.ts",
             "karma-kotlin-reporter.js",
+            "karma-debug-runner.js",
+            "karma-debug-framework.js",
             "mocha-kotlin-reporter.js",
             "package.json",
             "rollup.config.js",

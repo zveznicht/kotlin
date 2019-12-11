@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.ir
 
-import junit.framework.TestCase
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensions
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
@@ -37,8 +36,6 @@ import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
 import org.jetbrains.kotlin.test.KotlinTestUtils.getAnnotationsJar
 import java.io.File
-import java.io.FileWriter
-import java.io.PrintWriter
 import java.util.*
 
 abstract class AbstractIrGeneratorTestCase : CodegenTestCase() {
@@ -120,7 +117,10 @@ abstract class AbstractIrGeneratorTestCase : CodegenTestCase() {
         fun generateIrModuleWithJvmResolve(
             ktFilesToAnalyze: List<KtFile>, environment: KotlinCoreEnvironment, psi2ir: Psi2IrTranslator
         ): IrModuleFragment =
-            generateIrModule(JvmResolveUtil.analyze(ktFilesToAnalyze, environment), psi2ir, ktFilesToAnalyze, JvmGeneratorExtensions)
+            generateIrModule(
+                JvmResolveUtil.analyze(ktFilesToAnalyze, environment), psi2ir, ktFilesToAnalyze,
+                JvmGeneratorExtensions(generateFacades = false)
+            )
 
         private fun generateIrModule(
             analysisResult: AnalysisResult,

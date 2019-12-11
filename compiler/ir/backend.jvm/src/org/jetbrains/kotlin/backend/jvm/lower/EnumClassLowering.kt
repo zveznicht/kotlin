@@ -68,11 +68,41 @@ private class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringP
         private lateinit var valueOfFunction: IrFunction
 
         fun run() {
+            insertInstanceInitializer()
             assignOrdinalsToEnumEntries()
             lowerEnumConstructors(irClass)
             lowerEnumEntries()
             setupSynthesizedEnumClassMembers()
             lowerEnumClassBody()
+        }
+
+        // Make sure that an instance initializer call exists, so that field initialization code will be generated.
+        // TODO: This function is identical to the one used in the JS lowerings. Share them.
+        private fun insertInstanceInitializer() {
+            irClass.transformChildrenVoid(object : IrElementTransformerVoid() {
+                override fun visitClass(declaration: IrClass) = declaration
+
+                override fun visitConstructor(declaration: IrConstructor): IrStatement {
+                    declaration.transformChildrenVoid(this)
+
+                    val blockBody = declaration.body as IrBlockBody
+
+                    if (!blockBody.statements.any { it is IrInstanceInitializerCall }) {
+                        blockBody.statements.transformFlat {
+                            if (it is IrEnumConstructorCall)
+                                listOf(
+                                    it, IrInstanceInitializerCallImpl(
+                                        declaration.startOffset, declaration.startOffset,
+                                        irClass.symbol, context.irBuiltIns.unitType
+                                    )
+                                )
+                            else null
+                        }
+                    }
+
+                    return declaration
+                }
+            })
         }
 
         private fun assignOrdinalsToEnumEntries() {
@@ -490,7 +520,7 @@ private class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringP
                         IrReturnImpl(
                             UNDEFINED_OFFSET,
                             UNDEFINED_OFFSET,
-                            irClass.defaultType,
+                            context.irBuiltIns.nothingType,
                             valueOfFunction.symbol,
                             irValueOfCall
                         )
@@ -502,7 +532,8 @@ private class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringP
                 val cloneFun = context.irBuiltIns.arrayClass.owner.functions.find { it.name.asString() == "clone" }!!
                 val returnType = valuesFunction.symbol.owner.returnType
                 val irCloneValues =
-                    IrCallImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, returnType, cloneFun.symbol, 0).apply {
+                    IrCallImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, returnType, cloneFun.symbol, 1).apply {
+                        putTypeArgument(0, irClass.defaultType)
                         dispatchReceiver =
                             IrGetFieldImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, valuesField.symbol, valuesField.symbol.owner.type)
                     }
@@ -513,7 +544,7 @@ private class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringP
                         IrReturnImpl(
                             UNDEFINED_OFFSET,
                             UNDEFINED_OFFSET,
-                            returnType,
+                            context.irBuiltIns.nothingType,
                             valuesFunction.symbol,
                             irCloneValues
                         )

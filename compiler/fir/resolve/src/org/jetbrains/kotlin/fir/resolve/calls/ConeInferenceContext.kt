@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirClassifierSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.symbols.invoke
 import org.jetbrains.kotlin.fir.types.*
-import org.jetbrains.kotlin.fir.types.impl.ConeClassTypeImpl
+import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.ConeTypeParameterTypeImpl
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext
@@ -58,7 +58,7 @@ interface ConeInferenceContext : TypeSystemInferenceExtensionContext,
     ): SimpleTypeMarker {
         require(constructor is FirClassifierSymbol<*>)
         return when (constructor) {
-            is FirClassLikeSymbol<*> -> ConeClassTypeImpl(
+            is FirClassLikeSymbol<*> -> ConeClassLikeTypeImpl(
                 constructor.toLookupTag(),
                 (arguments as List<ConeKotlinTypeProjection>).toTypedArray(),
                 nullable
@@ -241,7 +241,7 @@ interface ConeInferenceContext : TypeSystemInferenceExtensionContext,
 
     override fun KotlinTypeMarker.mayBeTypeVariable(): Boolean {
         require(this is ConeKotlinType)
-        return this is ConeTypeVariableType
+        return this.typeConstructor() is ConeTypeVariableTypeConstructor
     }
 
     override fun CapturedTypeMarker.typeConstructorProjection(): TypeArgumentMarker {
@@ -260,7 +260,7 @@ interface ConeInferenceContext : TypeSystemInferenceExtensionContext,
             TypeSubstitutorMarker {
             override fun substituteType(type: ConeKotlinType): ConeKotlinType? {
                 val new = map[type.typeConstructor()] ?: return null
-                return makeNullableIfNeed(type.isMarkedNullable, new as ConeKotlinType)
+                return makeNullableIfNeed(type.isMarkedNullable, (new as ConeKotlinType).approximateIntegerLiteralType())
             }
         }
     }
@@ -297,5 +297,24 @@ interface ConeInferenceContext : TypeSystemInferenceExtensionContext,
 
     override fun TypeConstructorMarker.isCapturedTypeConstructor(): Boolean {
         return this is ConeCapturedTypeConstructor
+    }
+
+    override fun KotlinTypeMarker.removeExactAnnotation(): KotlinTypeMarker {
+        // TODO
+        return this
+    }
+
+    override fun TypeConstructorMarker.toErrorType(): SimpleTypeMarker {
+        require(this is ErrorTypeConstructor)
+        return ConeClassErrorType(reason)
+    }
+
+    override fun findCommonIntegerLiteralTypesSuperType(explicitSupertypes: List<SimpleTypeMarker>): SimpleTypeMarker? {
+        return ConeIntegerLiteralTypeImpl.findCommonSuperType(explicitSupertypes)
+    }
+
+    override fun TypeConstructorMarker.getApproximatedIntegerLiteralType(): KotlinTypeMarker {
+        require(this is ConeIntegerLiteralType)
+        return this.getApproximatedType()
     }
 }

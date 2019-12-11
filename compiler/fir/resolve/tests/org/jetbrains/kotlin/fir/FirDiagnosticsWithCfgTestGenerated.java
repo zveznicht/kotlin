@@ -80,6 +80,11 @@ public class FirDiagnosticsWithCfgTestGenerated extends AbstractFirDiagnosticsWi
             runTest("compiler/fir/resolve/testData/resolve/cfg/propertiesAndInitBlocks.kt");
         }
 
+        @TestMetadata("returnValuesFromLambda.kt")
+        public void testReturnValuesFromLambda() throws Exception {
+            runTest("compiler/fir/resolve/testData/resolve/cfg/returnValuesFromLambda.kt");
+        }
+
         @TestMetadata("safeCalls.kt")
         public void testSafeCalls() throws Exception {
             runTest("compiler/fir/resolve/testData/resolve/cfg/safeCalls.kt");
@@ -111,6 +116,11 @@ public class FirDiagnosticsWithCfgTestGenerated extends AbstractFirDiagnosticsWi
 
         public void testAllFilesPresentInSmartcasts() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadata(this.getClass(), new File("compiler/fir/resolve/testData/resolve/smartcasts"), Pattern.compile("^([^.]+)\\.kt$"), true);
+        }
+
+        @TestMetadata("anotherBoundSmartcasts.kt")
+        public void testAnotherBoundSmartcasts() throws Exception {
+            runTest("compiler/fir/resolve/testData/resolve/smartcasts/anotherBoundSmartcasts.kt");
         }
 
         @TestMetadata("bangbang.kt")

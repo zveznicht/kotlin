@@ -165,6 +165,9 @@ class NewConstraintSystemImpl(
         }
 
     override fun addOtherSystem(otherSystem: ConstraintStorage) {
+        otherSystem.allTypeVariables.forEach {
+            transactionRegisterVariable(it.value)
+        }
         storage.allTypeVariables.putAll(otherSystem.allTypeVariables)
         for ((variable, constraints) in otherSystem.notFixedTypeVariables) {
             notFixedTypeVariables[variable] = MutableVariableWithConstraints(constraints.typeVariable, constraints.constraints)
@@ -185,9 +188,11 @@ class NewConstraintSystemImpl(
             val capturedType = it.asSimpleType()?.asCapturedType()
             // TODO: change NewCapturedType to markered one for FE-IR
             val typeToCheck = if (capturedType is CapturedTypeMarker && capturedType.captureStatus() == CaptureStatus.FROM_EXPRESSION)
-                capturedType.typeConstructorProjection().getType()
+                capturedType.typeConstructorProjection().takeUnless { projection -> projection.isStarProjection() }?.getType()
             else
                 it
+
+            if (typeToCheck == null) return@contains false
 
             storage.allTypeVariables.containsKey(typeToCheck.typeConstructor())
         }
@@ -275,11 +280,9 @@ class NewConstraintSystemImpl(
         if (variableWithConstraints == null || variableWithConstraints.typeVariable.safeAs<NewTypeVariable>()?.hasOnlyInputTypesAnnotation() != true ) return
         val projectedInputCallTypes = variableWithConstraints.projectedInputCallTypes
         val resultTypeIsInputType = projectedInputCallTypes.any { inputType ->
-            val constructor = inputType.constructor
-            if (constructor is IntersectionTypeConstructor)
-                constructor.supertypes.any { NewKotlinTypeChecker.Default.equalTypes(resultType, it) }
-            else
-                NewKotlinTypeChecker.Default.equalTypes(resultType, inputType)
+            NewKotlinTypeChecker.Default.equalTypes(resultType, inputType) ||
+                    inputType.constructor is IntersectionTypeConstructor
+                    && inputType.constructor.supertypes.any { NewKotlinTypeChecker.Default.equalTypes(resultType, it) }
         }
         if (!resultTypeIsInputType) {
             addError(OnlyInputTypesDiagnostic(variableWithConstraints.typeVariable as NewTypeVariable))
