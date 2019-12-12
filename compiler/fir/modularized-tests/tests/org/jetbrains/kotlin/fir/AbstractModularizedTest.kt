@@ -33,9 +33,9 @@ data class ModuleData(
     val qualifiedName get() = if (name in qualifier) qualifier else "$name.$qualifier"
 
     val outputDir = File(ROOT_PATH_PREFIX, rawOutputDir.removePrefix("/"))
-    val classpath = rawClasspath.map { File(ROOT_PATH_PREFIX, it.removePrefix("/")) }
-    val sources = rawSources.map { File(ROOT_PATH_PREFIX, it.removePrefix("/")) }
-    val javaSourceRoots = rawJavaSourceRoots.map { File(ROOT_PATH_PREFIX, it.removePrefix("/")) }
+    val classpath = rawClasspath.map { File(ROOT_PATH_PREFIX, it.removePrefix("C:/")) }
+    val sources = rawSources.map { File(ROOT_PATH_PREFIX, it.removePrefix("C:/")) }
+    val javaSourceRoots = rawJavaSourceRoots.map { File(ROOT_PATH_PREFIX, it.removePrefix("C:/")) }
 }
 
 private fun NodeList.toList(): List<Node> {
@@ -49,7 +49,7 @@ private fun NodeList.toList(): List<Node> {
 
 private val Node.childNodesList get() = childNodes.toList()
 
-private val ROOT_PATH_PREFIX = System.getProperty("fir.bench.prefix", "/")
+private val ROOT_PATH_PREFIX = System.getProperty("fir.bench.prefix", "C:/")
 
 abstract class AbstractModularizedTest : KtUsefulTestCase() {
     private val folderDateFormat = SimpleDateFormat("yyyy-MM-dd")
