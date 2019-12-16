@@ -21,9 +21,7 @@ interface ICReporter {
     fun endMeasure(metric: String, endNs: Long)
 }
 
-fun <T> ICReporter?.measure(metric: String, fn: () -> T): T {
-    if (this == null) return fn()
-
+fun <T> ICReporter.measure(metric: String, fn: () -> T): T {
     val start = System.nanoTime()
     startMeasure(metric, start)
 

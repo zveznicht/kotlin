@@ -15,7 +15,7 @@ internal fun getClasspathChanges(
     changedFiles: ChangedFiles.Known,
     lastBuildInfo: BuildInfo,
     modulesApiHistory: ModulesApiHistory,
-    reporter: ICReporter?
+    reporter: ICReporter
 ): ChangesEither {
     val classpathSet = HashSet<File>()
     for (file in classpath) {
@@ -38,28 +38,37 @@ internal fun getClasspathChanges(
     val symbols = HashSet<LookupSymbol>()
     val fqNames = HashSet<FqName>()
 
-    val historyFilesEither = modulesApiHistory.historyFilesForChangedFiles(modifiedClasspath)
+    val historyFilesEither =
+        reporter.measure("discover_history_files") {
+            modulesApiHistory.historyFilesForChangedFiles(modifiedClasspath)
+        }
     val historyFiles = when (historyFilesEither) {
         is Either.Success<Set<File>> -> historyFilesEither.value
         is Either.Error -> return ChangesEither.Unknown(historyFilesEither.reason)
     }
 
-    for (historyFile in historyFiles) {
-        val allBuilds = BuildDiffsStorage.readDiffsFromFile(historyFile, reporter = reporter)
-            ?: return ChangesEither.Unknown("Could not read diffs from $historyFile")
-        val (knownBuilds, newBuilds) = allBuilds.partition { it.ts <= lastBuildTS }
-        if (knownBuilds.isEmpty()) {
-            return ChangesEither.Unknown("No previously known builds for $historyFile")
+    fun analyzeHistoryFiles(): ChangesEither {
+        for (historyFile in historyFiles) {
+            val allBuilds = BuildDiffsStorage.readDiffsFromFile(historyFile, reporter = reporter)
+                ?: return ChangesEither.Unknown("Could not read diffs from $historyFile")
+            val (knownBuilds, newBuilds) = allBuilds.partition { it.ts <= lastBuildTS }
+            if (knownBuilds.isEmpty()) {
+                return ChangesEither.Unknown("No previously known builds for $historyFile")
+            }
+
+            for (buildDiff in newBuilds) {
+                if (!buildDiff.isIncremental) return ChangesEither.Unknown("Non-incremental build from dependency $historyFile")
+
+                val dirtyData = buildDiff.dirtyData
+                symbols.addAll(dirtyData.dirtyLookupSymbols)
+                fqNames.addAll(dirtyData.dirtyClassesFqNames)
+            }
         }
 
-        for (buildDiff in newBuilds) {
-            if (!buildDiff.isIncremental) return ChangesEither.Unknown("Non-incremental build from dependency $historyFile")
-
-            val dirtyData = buildDiff.dirtyData
-            symbols.addAll(dirtyData.dirtyLookupSymbols)
-            fqNames.addAll(dirtyData.dirtyClassesFqNames)
-        }
+        return ChangesEither.Known(symbols, fqNames)
     }
 
-    return ChangesEither.Known(symbols, fqNames)
+    return reporter.measure("analyzing_history_files") {
+        analyzeHistoryFiles()
+    }
 }
