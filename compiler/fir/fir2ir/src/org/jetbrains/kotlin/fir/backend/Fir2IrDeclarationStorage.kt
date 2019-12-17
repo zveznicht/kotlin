@@ -611,7 +611,7 @@ class Fir2IrDeclarationStorage(
 
     private fun declareIrVariable(
         startOffset: Int, endOffset: Int,
-        origin: IrDeclarationOrigin, name: Name, type: IrType,
+        origin: IrVariableOrigin, name: Name, type: IrType,
         isVar: Boolean, isConst: Boolean, isLateinit: Boolean
     ): IrVariable {
         val descriptor = WrappedVariableDescriptor()
@@ -629,7 +629,7 @@ class Fir2IrDeclarationStorage(
         val type = variable.returnTypeRef.toIrType(session, this)
         // Some temporary variables are produced in RawFirBuilder, but we consistently use special names for them.
         val origin =
-            if (variable.name.isSpecial) IrDeclarationOrigin.IR_TEMPORARY_VARIABLE else IrDeclarationOrigin.DEFINED
+            if (variable.name.isSpecial) IrVariableOrigin.DEFAULT else IrVariableOriginImpl(variable.name.identifier)
         val irVariable = variable.convertWithOffsets { startOffset, endOffset ->
             declareIrVariable(
                 startOffset, endOffset, origin,
@@ -641,9 +641,10 @@ class Fir2IrDeclarationStorage(
     }
 
     fun declareTemporaryVariable(base: IrExpression, nameHint: String? = null): IrVariable {
+        val variableName = getNameForTemporary(nameHint)
         return declareIrVariable(
-            base.startOffset, base.endOffset, IrDeclarationOrigin.IR_TEMPORARY_VARIABLE,
-            Name.identifier(getNameForTemporary(nameHint)), base.type,
+            base.startOffset, base.endOffset, IrVariableOrigin.DEFAULT,
+            Name.identifier(variableName), base.type,
             isVar = false, isConst = false, isLateinit = false
         ).apply {
             initializer = base

@@ -391,7 +391,8 @@ class FunctionInlining(val context: CommonBackendContext, val dontInlineTypeOf: 
                                 data = null
                             ),
                             nameHint = callee.symbol.owner.name.toString(),
-                            isMutable = false
+                            isMutable = false,
+                            origin = IrVariableOriginImpl(it.parameter.name.toString())
                         )
 
                     evaluationStatements.add(newVariable)
@@ -444,7 +445,8 @@ class FunctionInlining(val context: CommonBackendContext, val dontInlineTypeOf: 
                             statements.add(variableInitializer)
                         },
                         nameHint = callee.symbol.owner.name.toString(),
-                        isMutable = false
+                        isMutable = false,
+                        origin = IrVariableOriginImpl(it.parameter.name.toString())
                     )
 
                 evaluationStatements.add(newVariable)
