@@ -243,7 +243,7 @@ internal fun generateFakeContinuationConstructorCall(
             load(continuationIndex, Type.getObjectType("kotlin/coroutines/Continuation"))
             invokespecial(continuationType.internalName, "<init>", "(Lkotlin/coroutines/Continuation;)V", false)
         }
-        pop()
         addFakeContinuationConstructorCallMarker(this, false)
+        pop()
     }
 }
