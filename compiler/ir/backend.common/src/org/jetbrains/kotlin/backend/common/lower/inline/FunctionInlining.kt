@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.backend.common.ir.createTemporaryVariableWithWrapped
 import org.jetbrains.kotlin.backend.common.lower.CoroutineIntrinsicLambdaOrigin
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.config.languageVersionSettings
-import org.jetbrains.kotlin.descriptors.ValueDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -234,16 +233,26 @@ class FunctionInlining(val context: CommonBackendContext) : IrElementTransformer
                                         }
                                         valueParameters[unboundIndex++].second
                                     } else {
-                                        val elements = mutableListOf<IrVarargElement>()
+                                        val elements = mutableListOf<IrExpression>()
+                                        var forwardArg = false
                                         while (unboundIndex < valueParameters.size) {
-                                            val (param, value) = valueParameters[unboundIndex++]
+                                            val (param, value) = valueParameters[unboundIndex]
                                             val substitutedParamType = param.type.substitute(superTypeArgumentsMap)
-                                            if (substitutedParamType == parameter.varargElementType!!)
+                                            if (substitutedParamType == parameter.varargElementType!!) {
                                                 elements += value
-                                            else
-                                                elements += IrSpreadElementImpl(expression.startOffset, expression.endOffset, value)
+                                                ++unboundIndex
+                                            } else {
+                                                if (elements.isEmpty() && substitutedParamType == parameter.type) {
+                                                    elements += value
+                                                    forwardArg = true
+                                                    ++unboundIndex
+                                                }
+                                                break
+                                            }
                                         }
-                                        IrVarargImpl(
+                                        if (forwardArg)
+                                            elements.single()
+                                        else IrVarargImpl(
                                             expression.startOffset, expression.endOffset,
                                             parameter.type,
                                             parameter.varargElementType!!,
