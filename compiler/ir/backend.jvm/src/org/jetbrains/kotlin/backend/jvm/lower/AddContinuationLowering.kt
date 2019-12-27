@@ -535,6 +535,7 @@ private class AddContinuationLowering(private val context: JvmBackendContext) : 
                 }
             })
         }
+        static.copyAttributes(irFunction)
         return static
     }
 
