@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.codegen.isJvmInterface
+import org.jetbrains.kotlin.backend.jvm.ir.createPlaceholderAnyNType
 import org.jetbrains.kotlin.backend.jvm.ir.hasJvmDefault
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -28,8 +29,11 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
@@ -49,11 +53,11 @@ private class InheritedDefaultMethodsOnClassesLowering(val context: JvmBackendCo
         element.acceptChildrenVoid(this)
     }
 
-    override fun lower(declaration: IrClass) {
-        if (!declaration.isJvmInterface)
-            generateInterfaceMethods(declaration)
+    override fun lower(irClass: IrClass) {
+        if (!irClass.isJvmInterface)
+            generateInterfaceMethods(irClass)
 
-        super.visitClass(declaration)
+        super.visitClass(irClass)
     }
 
     private fun generateInterfaceMethods(irClass: IrClass) {
@@ -87,8 +91,12 @@ private class InheritedDefaultMethodsOnClassesLowering(val context: JvmBackendCo
             irFunction.body = irBlockBody {
                 +irReturn(
                     irCall(defaultImplFun.symbol, irFunction.returnType).apply {
+                        interfaceImplementation.parentAsClass.typeParameters.forEachIndexed { index, _ ->
+                            putTypeArgument(index, createPlaceholderAnyNType(context.irBuiltIns))
+                        }
+                        passTypeArgumentsFrom(irFunction, offset = interfaceImplementation.parentAsClass.typeParameters.size)
+
                         var offset = 0
-                        passTypeArgumentsFrom(irFunction)
                         irFunction.dispatchReceiverParameter?.let { putValueArgument(offset++, irGet(it)) }
                         irFunction.extensionReceiverParameter?.let { putValueArgument(offset++, irGet(it)) }
                         irFunction.valueParameters.mapIndexed { i, parameter -> putValueArgument(i + offset, irGet(parameter)) }
@@ -118,11 +126,38 @@ private class InterfaceSuperCallsLowering(val context: JvmBackendContext) : IrEl
             return super.visitCall(expression)
         }
 
+        // TODO: This is too eagerly resolving the fake override statically. It
+        // should cf the old backend call precisely <supertype>.foo, not
+        // resolve foo to its implementation.
         val superCallee = (expression.symbol.owner as IrSimpleFunction).resolveFakeOverride()!!
         if (superCallee.isDefinitelyNotDefaultImplsMethod() || superCallee.hasJvmDefault()) return super.visitCall(expression)
 
         val redirectTarget = context.declarationFactory.getDefaultImplsFunction(superCallee)
-        val newCall = irCall(expression, redirectTarget, receiversAsArguments = true)
+        val newCall = IrCallImpl(
+            expression.startOffset,
+            expression.endOffset,
+            expression.type,
+            redirectTarget.symbol,
+            typeArgumentsCount = redirectTarget.typeParameters.size,
+            valueArgumentsCount = redirectTarget.valueParameters.size,
+            origin = expression.origin
+        ).apply {
+            copyValueArgumentsFrom(
+                expression,
+                expression.symbol.owner,
+                this.symbol.owner,
+                receiversAsArguments = true,
+                argumentsAsReceivers = false
+            )
+
+            var offset = 0
+            superCallee.parentAsClass.typeParameters.forEach { _ ->
+                putTypeArgument(offset++, createPlaceholderAnyNType(context.irBuiltIns))
+            }
+            for (i in 0 until expression.typeArgumentsCount) {
+                putTypeArgument(i + offset, expression.getTypeArgument(i))
+            }
+        }
 
         return super.visitCall(newCall)
     }
@@ -157,7 +192,31 @@ private class InterfaceDefaultCallsLowering(val context: JvmBackendContext) : Ir
         // gets redirected to call itself.
         if (redirectTarget == currentFunction?.irElement) return super.visitCall(expression)
 
-        val newCall = irCall(expression, redirectTarget, receiversAsArguments = true)
+        val newCall = IrCallImpl(
+            expression.startOffset,
+            expression.endOffset,
+            expression.type,
+            redirectTarget.symbol,
+            typeArgumentsCount = redirectTarget.typeParameters.size,
+            valueArgumentsCount = redirectTarget.valueParameters.size,
+            origin = expression.origin
+        ).apply {
+            copyValueArgumentsFrom(
+                expression,
+                expression.symbol.owner,
+                this.symbol.owner,
+                receiversAsArguments = true,
+                argumentsAsReceivers = false
+            )
+            var offset = 0
+            expression.symbol.owner.parentAsClass.typeParameters.forEach { _ ->
+                var offset = 0
+                putTypeArgument(offset++, createPlaceholderAnyNType(context.irBuiltIns))
+            }
+            for (i in 0 until (expression.typeArgumentsCount)) {
+                putTypeArgument(i + offset, expression.getTypeArgument(i))
+            }
+        }
 
         return super.visitCall(newCall)
     }
