@@ -20,8 +20,6 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirSimpleFunctionImpl
 import org.jetbrains.kotlin.fir.declarations.impl.FirValueParameterImpl
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.impl.FirFunctionCallImpl
-import org.jetbrains.kotlin.fir.resolve.ScopeSession
-import org.jetbrains.kotlin.fir.resolve.scope
 import org.jetbrains.kotlin.fir.resolve.scopeSessionKey
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
@@ -114,19 +112,18 @@ class FirIntegerLiteralTypeScope(private val session: FirSession) : FirScope() {
         resolvePhase = FirResolvePhase.BODY_RESOLVE
     }
 
-    override fun processClassifiersByName(name: Name, processor: (FirClassifierSymbol<*>) -> ProcessorAction): ProcessorAction {
-        return ProcessorAction.NONE
+    override fun processClassifiersByName(name: Name, processor: (FirClassifierSymbol<*>) -> Unit) {
+
     }
 
-    override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> ProcessorAction): ProcessorAction {
+    override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> Unit) {
         val symbol = BINARY_OPERATOR_SYMBOLS[name]
             ?: UNARY_OPERATOR_SYMBOLS[name]
-            ?: return ProcessorAction.NONE
-        return processor(symbol)
+            ?: return
+        processor(symbol)
     }
 
-    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> ProcessorAction): ProcessorAction {
-        return ProcessorAction.NONE
+    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> Unit) {
     }
 }
 

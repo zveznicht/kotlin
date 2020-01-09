@@ -19,24 +19,17 @@ class FirTypeResolveScopeForBodyResolve(
 ) : FirScope() {
     override fun processClassifiersByName(
         name: Name,
-        processor: (FirClassifierSymbol<*>) -> ProcessorAction
-    ): ProcessorAction {
+        processor: (FirClassifierSymbol<*>) -> Unit
+    ) {
         for (scope in localScopes.asReversed()) {
-            if (!scope.processClassifiersByName(name, processor)) {
-                return ProcessorAction.STOP
-            }
+            scope.processClassifiersByName(name, processor)
         }
         for (receiverValue in implicitReceiverStack.receiversAsReversed()) {
             if (receiverValue is ImplicitExtensionReceiverValue) continue
-            if (receiverValue.implicitScope?.processClassifiersByName(name, processor) == ProcessorAction.STOP) {
-                return ProcessorAction.STOP
-            }
+            receiverValue.implicitScope?.processClassifiersByName(name, processor)
         }
         for (scope in topLevelScopes.asReversed()) {
-            if (!scope.processClassifiersByName(name, processor)) {
-                return ProcessorAction.STOP
-            }
+            scope.processClassifiersByName(name, processor)
         }
-        return ProcessorAction.NEXT
     }
 }

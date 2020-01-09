@@ -23,14 +23,14 @@ class FirLazyNestedClassifierScope(
 
     override fun processClassifiersByName(
         name: Name,
-        processor: (FirClassifierSymbol<*>) -> ProcessorAction
-    ): ProcessorAction {
+        processor: (FirClassifierSymbol<*>) -> Unit
+    ) {
         if (name !in existingNames) {
-            return ProcessorAction.NONE
+            return
         }
         val child = classId.createNestedClassId(name)
-        val symbol = symbolProvider.getClassLikeSymbolByFqName(child) ?: return ProcessorAction.NONE
+        val symbol = symbolProvider.getClassLikeSymbolByFqName(child) ?: return
 
-        return processor(symbol)
+        processor(symbol)
     }
 }

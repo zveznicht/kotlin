@@ -311,7 +311,6 @@ class FirCallResolver(
             if (it is FirConstructorSymbol) {
                 candidates += candidateFactory.createCandidate(it, ExplicitReceiverKind.NO_EXPLICIT_RECEIVER)
             }
-            ProcessorAction.NEXT
         }
         return callResolver.selectCandidateFromGivenCandidates(delegatedConstructorCall, className, candidates)
     }

@@ -61,15 +61,14 @@ class IntegerLiteralTypeApproximationTransformer(
         scope.processFunctionsByName(operator.name) { symbol ->
             if (operator.kind.unary) {
                 resultSymbol = symbol
-                return@processFunctionsByName ProcessorAction.STOP
+                return@processFunctionsByName
             }
             val function = symbol.fir
             val valueParameterType = function.valueParameters.first().returnTypeRef.coneTypeUnsafe<ConeClassLikeType>()
             if (AbstractTypeChecker.isSubtypeOf(inferenceContext, argumentType!!, valueParameterType)) {
                 resultSymbol = symbol
-                return@processFunctionsByName ProcessorAction.STOP
+                return@processFunctionsByName
             }
-            ProcessorAction.NEXT
         }
         // TODO: Maybe resultType = data?
         //   check black box tests

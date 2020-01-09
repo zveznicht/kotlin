@@ -385,42 +385,33 @@ private class FirImmutableCompositeScope(
 
     override fun processClassifiersByName(
         name: Name,
-        processor: (FirClassifierSymbol<*>) -> ProcessorAction
-    ): ProcessorAction {
+        processor: (FirClassifierSymbol<*>) -> Unit
+    ) {
         for (scope in scopes) {
-            if (!scope.processClassifiersByName(name, processor)) {
-                return ProcessorAction.STOP
-            }
+            scope.processClassifiersByName(name, processor)
         }
-        return ProcessorAction.NEXT
     }
 
     private inline fun <T> processComposite(
-        process: FirScope.(Name, (T) -> ProcessorAction) -> ProcessorAction,
+        process: FirScope.(Name, (T) -> Unit) -> Unit,
         name: Name,
-        noinline processor: (T) -> ProcessorAction
-    ): ProcessorAction {
+        noinline processor: (T) -> Unit
+    ) {
         val unique = mutableSetOf<T>()
         for (scope in scopes) {
-            if (!scope.process(name) {
-                    if (unique.add(it)) {
-                        processor(it)
-                    } else {
-                        ProcessorAction.NEXT
-                    }
+            scope.process(name) {
+                if (unique.add(it)) {
+                    processor(it)
                 }
-            ) {
-                return ProcessorAction.STOP
             }
         }
-        return ProcessorAction.NEXT
     }
 
-    override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> ProcessorAction): ProcessorAction {
+    override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> Unit) {
         return processComposite(FirScope::processFunctionsByName, name, processor)
     }
 
-    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> Unit) {
         return processComposite(FirScope::processPropertiesByName, name, processor)
     }
 }

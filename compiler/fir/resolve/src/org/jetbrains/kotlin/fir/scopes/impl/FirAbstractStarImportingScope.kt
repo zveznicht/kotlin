@@ -27,45 +27,39 @@ abstract class FirAbstractStarImportingScope(
 
     override fun processClassifiersByName(
         name: Name,
-        processor: (FirClassifierSymbol<*>) -> ProcessorAction
-    ): ProcessorAction {
+        processor: (FirClassifierSymbol<*>) -> Unit
+    ) {
         if (starImports.isEmpty() || name in absentClassifierNames) {
-            return ProcessorAction.NONE
+            return
         }
         var empty = true
         for (import in starImports) {
             val relativeClassName = import.relativeClassName
             val classId = when {
-                !name.isSpecial && name.identifier.isEmpty() -> return ProcessorAction.NEXT
+                !name.isSpecial && name.identifier.isEmpty() -> return
                 relativeClassName == null -> ClassId(import.packageFqName, name)
                 else -> ClassId(import.packageFqName, relativeClassName.child(name), false)
             }
             val symbol = provider.getClassLikeSymbolByFqName(classId) ?: continue
             empty = false
-            if (!processor(symbol)) {
-                return ProcessorAction.STOP
-            }
+            processor(symbol)
         }
         if (empty) {
             absentClassifierNames += name
         }
-        return ProcessorAction.NEXT
     }
 
 
     override fun <T : FirCallableSymbol<*>> processCallables(
         name: Name,
         token: TowerScopeLevel.Token<T>,
-        processor: (FirCallableSymbol<*>) -> ProcessorAction
-    ): ProcessorAction {
+        processor: (FirCallableSymbol<*>) -> Unit
+    ) {
         if (starImports.isEmpty()) {
-            return ProcessorAction.NONE
+            return
         }
         for (import in starImports) {
-            if (processCallables(import, name, token, processor).stop()) {
-                return ProcessorAction.STOP
-            }
+            processCallables(import, name, token, processor)
         }
-        return ProcessorAction.NEXT
     }
 }

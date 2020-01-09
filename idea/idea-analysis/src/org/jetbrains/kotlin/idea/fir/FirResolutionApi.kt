@@ -57,9 +57,6 @@ private fun FirFile.findCallableMember(
         val fir = symbol.fir
         if (fir.psi == callableMember) {
             result = fir
-            ProcessorAction.STOP
-        } else {
-            ProcessorAction.NEXT
         }
     }
     if (callableMember is KtNamedFunction || callableMember is KtConstructor<*>) {

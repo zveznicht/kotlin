@@ -45,13 +45,9 @@ class JavaClassUseSiteMemberScope(
         val overrideCandidates = mutableSetOf<FirFunctionSymbol<*>>()
         declaredMemberScope.processFunctionsByName(name) {
             overrideCandidates += it
-            NEXT
         }
-
-
         superTypesScope.processFunctionsByName(name) {
             it.getOverridden(overrideCandidates)
-            NEXT
         }
     }
 
@@ -90,15 +86,15 @@ class JavaClassUseSiteMemberScope(
         propertyName: Name,
         getterNames: List<Name>,
         setterName: Name?,
-        processor: (FirCallableSymbol<*>) -> ProcessorAction
-    ): ProcessorAction {
+        processor: (FirCallableSymbol<*>) -> Unit
+    ): Unit {
         val overrideCandidates = mutableSetOf<FirCallableSymbol<*>>()
         val klass = symbol.fir
-        if (!declaredMemberScope.processPropertiesByName(propertyName) { variableSymbol ->
-                overrideCandidates += variableSymbol
-                processor(variableSymbol)
-            }
-        ) return STOP
+        declaredMemberScope.processPropertiesByName(propertyName) { variableSymbol ->
+            overrideCandidates += variableSymbol
+            processor(variableSymbol)
+        }
+
         if (klass is FirJavaClass) {
             for (getterName in getterNames) {
                 declaredMemberScope.processFunctionsByName(getterName) { functionSymbol ->
@@ -109,12 +105,11 @@ class JavaClassUseSiteMemberScope(
                         // NB: accessor should not be processed directly unless we find matching property symbol in supertype
                         overrideCandidates += accessorSymbol
                     }
-                    NEXT
                 }
             }
         }
 
-        return superTypesScope.processPropertiesByName(propertyName) {
+        superTypesScope.processPropertiesByName(propertyName) {
             val firCallableMember = it.fir as? FirCallableMemberDeclaration<*>
             if (firCallableMember?.isStatic == true) {
                 processor(it)
@@ -122,7 +117,6 @@ class JavaClassUseSiteMemberScope(
                 when (val overriddenBy = it.getOverridden(overrideCandidates)) {
                     null -> processor(it)
                     is FirAccessorSymbol -> processor(overriddenBy)
-                    else -> NEXT
                 }
             }
         }
@@ -153,7 +147,7 @@ class JavaClassUseSiteMemberScope(
         )
     }
 
-    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> Unit) {
         // Do not generate accessors at all?
         if (name.isSpecial) {
             return processAccessorFunctionsAndPropertiesByName(name, emptyList(), null, processor)

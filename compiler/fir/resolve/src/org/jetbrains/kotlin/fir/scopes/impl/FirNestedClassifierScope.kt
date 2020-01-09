@@ -27,9 +27,9 @@ class FirNestedClassifierScope(val klass: FirClass<*>) : FirScope() {
 
     override fun processClassifiersByName(
         name: Name,
-        processor: (FirClassifierSymbol<*>) -> ProcessorAction
-    ): ProcessorAction {
-        val matchedClass = classIndex[name] ?: return ProcessorAction.NONE
-        return processor(matchedClass)
+        processor: (FirClassifierSymbol<*>) -> Unit
+    ) {
+        val matchedClass = classIndex[name] ?: return
+        processor(matchedClass)
     }
 }

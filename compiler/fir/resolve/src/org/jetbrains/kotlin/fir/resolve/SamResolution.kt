@@ -256,9 +256,6 @@ private fun FirRegularClass.findSingleAbstractMethodByNames(
         classUseSiteMemberScope.processPropertiesByName(candidateName) {
             if ((it as? FirPropertySymbol)?.fir?.modality == Modality.ABSTRACT) {
                 metIncorrectMember = true
-                ProcessorAction.STOP
-            } else {
-                ProcessorAction.NEXT
             }
         }
 
@@ -273,14 +270,12 @@ private fun FirRegularClass.findSingleAbstractMethodByNames(
 
             if (firFunction.modality != Modality.ABSTRACT || firFunction
                     .isPublicInObject(checkOnlyName = false)
-            ) return@processFunctionsByName ProcessorAction.NEXT
+            ) return@processFunctionsByName
 
             if (resultMethod != null) {
                 metIncorrectMember = true
-                ProcessorAction.STOP
             } else {
                 resultMethod = firFunction
-                ProcessorAction.NEXT
             }
         }
     }

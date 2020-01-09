@@ -52,6 +52,7 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver {
 
                 var resolvedSymbol: FirClassifierSymbol<*>? = null
                 scope.processClassifiersByName(typeRef.qualifier.first().name) { symbol ->
+                    if (resolvedSymbol != null) return@processClassifiersByName
                     resolvedSymbol = when (symbol) {
                         is FirClassLikeSymbol<*> -> {
                             if (typeRef.qualifier.size == 1) {
@@ -66,7 +67,6 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver {
                         }
                         else -> error("!")
                     }
-                    if (resolvedSymbol == null) ProcessorAction.NEXT else ProcessorAction.STOP
                 }
 
                 // TODO: Imports

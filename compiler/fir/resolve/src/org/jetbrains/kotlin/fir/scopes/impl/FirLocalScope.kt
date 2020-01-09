@@ -30,27 +30,25 @@ class FirLocalScope : FirScope() {
         properties[NAME_FOR_BACKING_FIELD] = property.backingFieldSymbol
     }
 
-    override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> ProcessorAction): ProcessorAction {
+    override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> Unit) {
         val function = functions[name]
         if (function != null) {
-            return processor(function)
+            processor(function)
         }
-        return ProcessorAction.NONE
+
     }
 
-    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> ProcessorAction): ProcessorAction {
+    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> Unit) {
         val property = properties[name]
         if (property != null) {
-            return processor(property)
+            processor(property)
         }
-        return ProcessorAction.NONE
     }
 
-    override fun processClassifiersByName(name: Name, processor: (FirClassifierSymbol<*>) -> ProcessorAction): ProcessorAction {
+    override fun processClassifiersByName(name: Name, processor: (FirClassifierSymbol<*>) -> Unit) {
         val klass = classes[name]
         if (klass != null) {
-            return processor(klass)
+            processor(klass)
         }
-        return ProcessorAction.NONE
     }
 }

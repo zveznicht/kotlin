@@ -180,7 +180,6 @@ abstract class AbstractFirMultiModuleResolveTest : AbstractMultiModuleTest() {
                                             renderer.newLine()
                                             renderedDeclarations += enhanced
                                         }
-                                        ProcessorAction.NEXT
                                     }
                                 }
                             }

@@ -196,7 +196,6 @@ abstract class AbstractFirTypeEnhancementTest : KtUsefulTestCase() {
                                         renderer.newLine()
                                         renderedDeclarations += enhanced
                                     }
-                                    ProcessorAction.NEXT
                                 }
                                 is FirJavaMethod -> enhancementScope.processFunctionsByName(declaration.name) { symbol ->
                                     val enhanced = symbol.fir
@@ -205,7 +204,6 @@ abstract class AbstractFirTypeEnhancementTest : KtUsefulTestCase() {
                                         renderer.newLine()
                                         renderedDeclarations += enhanced
                                     }
-                                    ProcessorAction.NEXT
                                 }
                                 is FirJavaField -> enhancementScope.processPropertiesByName(declaration.name) { symbol ->
                                     val enhanced = symbol.fir
@@ -214,7 +212,6 @@ abstract class AbstractFirTypeEnhancementTest : KtUsefulTestCase() {
                                         renderer.newLine()
                                         renderedDeclarations += enhanced
                                     }
-                                    ProcessorAction.NEXT
                                 }
                                 else -> {
                                     declaration.accept(renderer, null)

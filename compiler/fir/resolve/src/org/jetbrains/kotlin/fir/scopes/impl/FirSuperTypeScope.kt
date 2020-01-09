@@ -42,24 +42,26 @@ class FirSuperTypeScope private constructor(
 
     private val typeContext = ConeTypeCheckerContext(isErrorTypeEqualsToAnything = false, isStubTypeEqualsToAnything = false, session)
 
-    override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> ProcessorAction): ProcessorAction {
-        processCallablesByName(name, processor, absentFunctions, FirScope::processFunctionsByName)?.let { return it }
-        return super.processFunctionsByName(name, processor)
+    override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> Unit) {
+        if(!processCallablesByName(name, processor, absentFunctions, FirScope::processFunctionsByName)) {
+            super.processFunctionsByName(name, processor)
+        }
     }
 
-    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> ProcessorAction): ProcessorAction {
-        processCallablesByName(name, processor, absentProperties, FirScope::processPropertiesByName)?.let { return it }
-        return super.processPropertiesByName(name, processor)
+    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> Unit) {
+        if(!processCallablesByName(name, processor, absentProperties, FirScope::processPropertiesByName)) {
+            super.processPropertiesByName(name, processor)
+        }
     }
 
     private inline fun <D : FirCallableSymbol<*>> processCallablesByName(
         name: Name,
-        noinline processor: (D) -> ProcessorAction,
+        noinline processor: (D) -> Unit,
         absentNames: MutableSet<Name>,
-        processCallables: FirScope.(Name, (D) -> ProcessorAction) -> ProcessorAction
-    ): ProcessorAction? {
+        processCallables: FirScope.(Name, (D) -> Unit) -> Unit
+    ): Boolean {
         if (name in absentNames) {
-            return ProcessorAction.NONE
+            return true
         }
 
         val membersByScope = scopes.mapNotNull { scope ->
@@ -68,7 +70,6 @@ class FirSuperTypeScope private constructor(
                 if (it !is FirConstructorSymbol) {
                     resultForScope.add(it)
                 }
-                ProcessorAction.NEXT
             }
 
             resultForScope.takeIf { it.isNotEmpty() }
@@ -76,15 +77,15 @@ class FirSuperTypeScope private constructor(
 
         if (membersByScope.isEmpty()) {
             absentNames.add(name)
-            return ProcessorAction.NONE
+            return true
         }
 
         membersByScope.singleOrNull()?.let { members ->
             for (member in members) {
-                if (processor(member).stop()) return ProcessorAction.STOP
+                processor(member)
             }
 
-            return ProcessorAction.NEXT
+            return true
         }
 
         val allMembers = membersByScope.flattenTo(LinkedList())
@@ -95,10 +96,10 @@ class FirSuperTypeScope private constructor(
 
             val mostSpecific = selectMostSpecificMember(extractedOverrides)
 
-            if (processor(mostSpecific).stop()) return ProcessorAction.STOP
+            processor(mostSpecific)
         }
 
-        return null
+        return false
     }
 
     private fun <D : FirCallableSymbol<*>> selectMostSpecificMember(
@@ -217,25 +218,20 @@ class FirSuperTypeScope private constructor(
         return result
     }
 
-    override fun processClassifiersByName(name: Name, processor: (FirClassifierSymbol<*>) -> ProcessorAction): ProcessorAction {
+    override fun processClassifiersByName(name: Name, processor: (FirClassifierSymbol<*>) -> Unit) {
         if (name in absentClassifiers) {
-            return ProcessorAction.NEXT
+            return
         }
         val accepted = HashSet<FirClassifierSymbol<*>>()
         val pending = mutableListOf<FirClassifierSymbol<*>>()
         var empty = true
         for (scope in scopes) {
-            if (scope.processClassifiersByName(name) {
-                    empty = false
-                    if (it !in accepted) {
-                        pending += it
-                        processor(it)
-                    } else {
-                        ProcessorAction.NEXT
-                    }
-                }.stop()
-            ) {
-                return ProcessorAction.STOP
+            scope.processClassifiersByName(name) {
+                empty = false
+                if (it !in accepted) {
+                    pending += it
+                    processor(it)
+                }
             }
             accepted += pending
             pending.clear()
@@ -243,7 +239,7 @@ class FirSuperTypeScope private constructor(
         if (empty) {
             absentClassifiers += name
         }
-        return super.processClassifiersByName(name, processor)
+        super.processClassifiersByName(name, processor)
     }
 
     companion object {
