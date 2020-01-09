@@ -191,7 +191,10 @@ private fun buildLightMethodFake(original: KtFunction): PsiMethod = object : Lig
         val lightOriginFile = original.containingKtFile.toLightElements().firstIsInstanceOrNull<PsiFile>()
 
         Logger.getInstance("org.jetbrains.uast.kotlin.buildLightMethodFake")
-            .error("cant get containing file for buildLightMethodFake for $original, containingClass = $containingClass, lightOriginFile = $lightOriginFile")
+            .error(
+                "cant get containing file for buildLightMethodFake for $this, original = `${original.text}` of ${original.javaClass}," +
+                        " containingClass = $containingClass, lightOriginFile = $lightOriginFile, original.containingKtFile = ${original.containingKtFile}"
+            )
 
         return lightOriginFile
     }
