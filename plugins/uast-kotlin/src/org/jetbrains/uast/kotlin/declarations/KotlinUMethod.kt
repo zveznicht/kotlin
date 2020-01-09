@@ -16,6 +16,7 @@
 
 package org.jetbrains.uast.kotlin.declarations
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.psi.*
 import com.intellij.psi.impl.light.LightMethodBuilder
 import com.intellij.psi.impl.light.LightModifierList
@@ -24,12 +25,14 @@ import com.intellij.psi.impl.light.LightTypeParameterBuilder
 import org.jetbrains.kotlin.asJava.elements.*
 import org.jetbrains.kotlin.asJava.findFacadeClass
 import org.jetbrains.kotlin.asJava.toLightClass
+import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClassOrObject
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.utils.SmartList
+import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jetbrains.uast.*
 import org.jetbrains.uast.java.internal.JavaUElementWithComments
@@ -179,6 +182,19 @@ private fun buildLightMethodFake(original: KtFunction): PsiMethod = object : Lig
     }
 
     override fun getParent(): PsiElement? = containingClass
+
+    override fun getContainingFile(): PsiFile? {
+        val containingFile = super.getContainingFile()
+
+        if (containingFile != null) return containingFile
+
+        val lightOriginFile = original.containingKtFile.toLightElements().firstIsInstanceOrNull<PsiFile>()
+
+        Logger.getInstance("org.jetbrains.uast.kotlin.buildLightMethodFake")
+            .error("cant get containing file for buildLightMethodFake for $original, containingClass = $containingClass, lightOriginFile = $lightOriginFile")
+
+        return lightOriginFile
+    }
 }
 
 class KotlinUMethodWithFakeLightDelegate(val original: KtFunction, givenParent: UElement?) :
