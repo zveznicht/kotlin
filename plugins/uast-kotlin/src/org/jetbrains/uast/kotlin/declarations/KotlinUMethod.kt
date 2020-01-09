@@ -23,8 +23,6 @@ import com.intellij.psi.impl.light.LightModifierList
 import com.intellij.psi.impl.light.LightParameterListBuilder
 import com.intellij.psi.impl.light.LightTypeParameterBuilder
 import org.jetbrains.kotlin.asJava.elements.*
-import org.jetbrains.kotlin.asJava.findFacadeClass
-import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.asJava.toLightElements
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.psi.*
@@ -155,14 +153,14 @@ open class KotlinUAnnotationMethod(
 
 }
 
-private fun buildLightMethodFake(original: KtFunction): PsiMethod = object : LightMethodBuilder(
+class UastFakeLightMethod(private val original: KtFunction, containingClass: PsiClass) : LightMethodBuilder(
     original.manager, original.language, original.name,
     LightParameterListBuilder(original.manager, original.language),
     LightModifierList(original.manager)
 ) {
 
     init {
-        containingClass = original.containingClassOrObject?.toLightClass() ?: original.containingKtFile.findFacadeClass()
+        this.containingClass = containingClass
     }
 
     private val _buildTypeParameterList by lazy {
@@ -200,8 +198,8 @@ private fun buildLightMethodFake(original: KtFunction): PsiMethod = object : Lig
     }
 }
 
-class KotlinUMethodWithFakeLightDelegate(val original: KtFunction, givenParent: UElement?) :
-    KotlinUMethod(buildLightMethodFake(original), original, givenParent) {
+class KotlinUMethodWithFakeLightDelegate(val original: KtFunction, containingLightClass: PsiClass, givenParent: UElement?) :
+    KotlinUMethod(UastFakeLightMethod(original, containingLightClass), original, givenParent) {
     override val annotations: List<UAnnotation>
         get() = original.annotationEntries.mapNotNull { it.toUElementOfType<UAnnotation>() }
 
