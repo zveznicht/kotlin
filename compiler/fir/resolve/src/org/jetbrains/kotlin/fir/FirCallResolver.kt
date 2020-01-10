@@ -30,7 +30,6 @@ import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressions
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.resultType
 import org.jetbrains.kotlin.fir.resolve.transformers.phasedFir
 import org.jetbrains.kotlin.fir.scopes.FirScope
-import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.scopes.impl.FirLocalScope
 import org.jetbrains.kotlin.fir.scopes.scope
 import org.jetbrains.kotlin.fir.symbols.impl.*
@@ -121,6 +120,7 @@ class FirCallResolver(
 
         val info = CallInfo(
             CallKind.Function,
+            functionCall.calleeReference.name,
             explicitReceiver,
             arguments,
             functionCall.safe,
@@ -132,7 +132,6 @@ class FirCallResolver(
         towerResolver.reset()
         val result = towerResolver.runResolver(
             implicitReceiverStack.receiversAsReversed(),
-            name,
             info,
             FirTowerResolver.Mode.FUNCTION_CALL
         )
@@ -156,6 +155,7 @@ class FirCallResolver(
 
         val info = CallInfo(
             CallKind.VariableAccess,
+            callee.name,
             qualifiedAccess.explicitReceiver,
             emptyList(),
             qualifiedAccess.safe,
@@ -167,7 +167,6 @@ class FirCallResolver(
         towerResolver.reset()
         val result = towerResolver.runResolver(
             implicitReceiverStack.receiversAsReversed(),
-            callee.name,
             info,
             FirTowerResolver.Mode.VARIABLE_ACCESS
         )
@@ -249,10 +248,9 @@ class FirCallResolver(
         // No reset here!
         val result = towerResolver.runResolver(
             implicitReceiverStack.receiversAsReversed(),
-            callableReferenceAccess.calleeReference.name,
             info,
             FirTowerResolver.Mode.CALLABLE_REFERENCE,
-            CandidateCollector(this, resolutionStageRunner)
+            collector = CandidateCollector(this, resolutionStageRunner)
         )
         val bestCandidates = result.bestCandidates()
         val noSuccessfulCandidates = result.currentApplicability < CandidateApplicability.SYNTHETIC_RESOLVED
@@ -291,8 +289,10 @@ class FirCallResolver(
         typeArguments: List<FirTypeProjection>
     ): FirDelegatedConstructorCall? {
         val scope = symbol.fir.scope(ConeSubstitutor.Empty, session, scopeSession) ?: return null
+        val className = symbol.classId.shortClassName
         val callInfo = CallInfo(
             CallKind.Function,
+            className,
             explicitReceiver = null,
             delegatedConstructorCall.arguments,
             isSafeCall = false,
@@ -304,7 +304,6 @@ class FirCallResolver(
         val candidateFactory = CandidateFactory(this, callInfo)
         val candidates = mutableListOf<Candidate>()
 
-        val className = symbol.classId.shortClassName
         scope.processFunctionsByName(className) {
             if (it is FirConstructorSymbol) {
                 candidates += candidateFactory.createCandidate(it, ExplicitReceiverKind.NO_EXPLICIT_RECEIVER)
@@ -341,6 +340,7 @@ class FirCallResolver(
     ): CallInfo {
         return CallInfo(
             CallKind.CallableReference,
+            callableReferenceAccess.calleeReference.name,
             callableReferenceAccess.explicitReceiver,
             emptyList(),
             false,
