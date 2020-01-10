@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.impl.FirImportImpl
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedImportImpl
 import org.jetbrains.kotlin.fir.declarations.isInner
+import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.expressions.impl.FirQualifiedAccessExpressionImpl
 import org.jetbrains.kotlin.fir.resolve.BodyResolveComponents
@@ -399,6 +400,45 @@ class FirTowerResolver(
             group = processTopLevelScope(towerDataConsumer, topLevelScope, group)
         }
 
+        return collector
+    }
+
+    private fun TowerScopeLevel.process(info: CallInfo) {
+        // TODO
+    }
+
+    private fun runResolverWithExplicitReceiver(
+        implicitReceiverValues: List<ImplicitReceiverValue<*>>,
+        info: CallInfo,
+        collector: CandidateCollector,
+        explicitReceiver: FirExpression
+    ): CandidateCollector {
+        val receiverValue = ExpressionReceiverValue(explicitReceiver)
+        // 1. Non-extension members (or statics if explicitReceiver is FirResolvedQualifier)
+        MemberScopeTowerLevel(
+            session, components, receiverValue,
+            implicitExtensionReceiver = null,
+            implicitExtensionInvokeMode = false,
+            scopeSession = components.scopeSession
+        ).process(info)
+        // 2. Local extension callables
+        for (scope in localScopes) {
+            ScopeTowerLevel(session, components, scope).process(info)
+        }
+        for (implicitReceiverValue in implicitReceiverValues) {
+            // TODO: move to 1?
+            MemberScopeTowerLevel(
+                session, components, dispatchReceiver = implicitReceiverValue, scopeSession = components.scopeSession
+            ).process(info)
+            //
+            for (scope in localScopes) {
+                ScopeTowerLevel(session, components, scope, implicitExtensionReceiver = implicitReceiverValue).process(info)
+            }
+        }
+        // 3-6. Top-level & importing scopes
+        for (topLevelScope in topLevelScopes) {
+            ScopeTowerLevel(session, components, topLevelScope).process(info)
+        }
         return collector
     }
 }
