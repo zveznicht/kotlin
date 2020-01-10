@@ -53,14 +53,14 @@ class F: A() {
     }
 
     init {
-        B().fas()
-        D().f()
+        B().<!UNRESOLVED_REFERENCE!>fas<!>()
+        D().<!UNRESOLVED_REFERENCE!>f<!>()
     }
 
     companion object {
         init {
-            B().fas()
-            D().f()
+            B().<!UNRESOLVED_REFERENCE!>fas<!>()
+            D().<!UNRESOLVED_REFERENCE!>f<!>()
         }
     }
 }

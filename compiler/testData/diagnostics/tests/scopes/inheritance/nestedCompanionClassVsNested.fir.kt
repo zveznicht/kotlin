@@ -45,8 +45,8 @@ class B: A() {
         X().A_X()
         X().<!UNRESOLVED_REFERENCE!>A_C_X<!>()
 
-        Y().B_Y()
-        Y().<!UNRESOLVED_REFERENCE!>A_Y<!>()
+        Y().<!UNRESOLVED_REFERENCE!>B_Y<!>()
+        Y().A_Y()
 
         Z().B_Z()
         Z().<!UNRESOLVED_REFERENCE!>A_C_Z<!>()
@@ -57,8 +57,8 @@ class B: A() {
             X().A_X()
             X().<!UNRESOLVED_REFERENCE!>A_C_X<!>()
 
-            Y().B_Y()
-            Y().<!UNRESOLVED_REFERENCE!>A_Y<!>()
+            Y().<!UNRESOLVED_REFERENCE!>B_Y<!>()
+            Y().A_Y()
 
             Z().B_Z()
             Z().<!UNRESOLVED_REFERENCE!>A_C_Z<!>()

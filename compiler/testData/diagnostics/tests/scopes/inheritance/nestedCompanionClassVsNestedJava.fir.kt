@@ -30,8 +30,8 @@ public class C extends A {}
 // FILE: 2.kt
 class E: B() {
     init {
-        Y().B_Y()
-        Y().<!UNRESOLVED_REFERENCE!>A_Y<!>()
+        Y().<!UNRESOLVED_REFERENCE!>B_Y<!>()
+        Y().A_Y()
 
         Z().B_Z()
         Z().<!UNRESOLVED_REFERENCE!>A_C_Z<!>()
