@@ -10,7 +10,10 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.ir.*
 import org.jetbrains.kotlin.name.Name
 
-class TypeAliasCommonizer(cache: CirClassifiersCache) : AbstractStandardCommonizer<CirTypeAlias, CirClass>() {
+class TypeAliasCommonizer(
+    cache: CirClassifiersCache,
+    private val checkUnderlyingType: Boolean = true
+) : AbstractStandardCommonizer<CirTypeAlias, CirClass>() {
     private lateinit var name: Name
     private val underlyingType = TypeCommonizer.default(cache)
     private val visibility = VisibilityCommonizer.lowering(allowPrivate = true)
@@ -34,6 +37,6 @@ class TypeAliasCommonizer(cache: CirClassifiersCache) : AbstractStandardCommoniz
         next.typeParameters.isEmpty() // TAs with declared type parameters can't be commonized
                 && next.underlyingType.arguments.isEmpty() // TAs with functional types or types with parameters at the right-hand side can't be commonized
                 && next.underlyingType.kind == CirSimpleTypeKind.CLASS // right-hand side could have only class
-                && underlyingType.commonizeWith(next.underlyingType)
+                && (!checkUnderlyingType || underlyingType.commonizeWith(next.underlyingType))
                 && visibility.commonizeWith(next)
 }

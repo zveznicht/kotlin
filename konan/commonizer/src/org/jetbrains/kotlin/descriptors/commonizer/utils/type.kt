@@ -22,7 +22,8 @@ internal inline val KotlinType.fqName: FqName
 internal val KotlinType.fqNameWithTypeParameters: String
     get() = buildString { buildFqNameWithTypeParameters(this@fqNameWithTypeParameters, HashSet()) }
 
-private fun StringBuilder.buildFqNameWithTypeParameters(type: KotlinType, exploredTypeParameters: MutableSet<KotlinType>) {
+private fun StringBuilder.buildFqNameWithTypeParameters(rawType: KotlinType, exploredTypeParameters: MutableSet<KotlinType>) {
+    val type = rawType.narrowType()
     append(type.fqName)
 
     val typeParameterDescriptor = TypeUtils.getTypeParameterDescriptorOrNull(type)

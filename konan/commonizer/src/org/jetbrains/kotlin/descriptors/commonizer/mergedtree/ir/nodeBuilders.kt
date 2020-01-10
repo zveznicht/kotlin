@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.descriptors.commonizer.core.*
 import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.ir.CirRootNode.ClassifiersCacheImpl
 import org.jetbrains.kotlin.descriptors.commonizer.utils.CommonizedGroup
 import org.jetbrains.kotlin.descriptors.commonizer.utils.firstNonNull
+import org.jetbrains.kotlin.descriptors.commonizer.utils.isObjCIntegerType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -123,18 +124,22 @@ internal fun buildTypeAliasNode(
     storageManager: StorageManager,
     cacheRW: ClassifiersCacheImpl,
     typeAliases: List<TypeAliasDescriptor?>
-): CirTypeAliasNode = buildNode(
-    storageManager = storageManager,
-    descriptors = typeAliases,
-    targetDeclarationProducer = ::CirWrappedTypeAlias,
-    commonValueProducer = { commonize(it, TypeAliasCommonizer(cacheRW)) },
-    recursionMarker = CirClassRecursionMarker,
-    nodeProducer = ::CirTypeAliasNode
-).also { node ->
-    typeAliases.firstNonNull().fqNameSafe.let { fqName ->
-        node.fqName = fqName
-        cacheRW.typeAliases.putSafe(fqName, node)
-    }
+): CirTypeAliasNode {
+    val fqName = typeAliases.firstNonNull().fqNameSafe
+
+    val node = buildNode(
+        storageManager = storageManager,
+        descriptors = typeAliases,
+        targetDeclarationProducer = ::CirWrappedTypeAlias,
+        commonValueProducer = { commonize(it, TypeAliasCommonizer(cacheRW, checkUnderlyingType = !fqName.isObjCIntegerType())) },
+        recursionMarker = CirClassRecursionMarker,
+        nodeProducer = ::CirTypeAliasNode
+    )
+
+    node.fqName = fqName
+    cacheRW.typeAliases.putSafe(fqName, node)
+
+    return node
 }
 
 private fun <D : Any, T : CirDeclaration, R : CirDeclaration, N : CirNode<T, R>> buildNode(
