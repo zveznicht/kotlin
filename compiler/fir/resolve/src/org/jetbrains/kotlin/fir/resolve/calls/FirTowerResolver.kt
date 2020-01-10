@@ -201,25 +201,20 @@ class FirTowerResolver(
     private lateinit var towerDataConsumer: TowerDataConsumer
     private lateinit var implicitReceiverValues: List<ImplicitReceiverValue<*>>
 
-    enum class Mode {
-        VARIABLE_ACCESS,
-        FUNCTION_CALL,
-        CALLABLE_REFERENCE
-    }
-
     fun runResolver(
-        implicitReceiverValues: List<ImplicitReceiverValue<*>>, info: CallInfo, resolveMode: Mode,
+        implicitReceiverValues: List<ImplicitReceiverValue<*>>,
+        info: CallInfo,
         collector: CandidateCollector = this.collector
     ): CandidateCollector {
         this.implicitReceiverValues = implicitReceiverValues
-        towerDataConsumer = when (resolveMode) {
-            Mode.VARIABLE_ACCESS -> {
+        towerDataConsumer = when (info.callKind) {
+            CallKind.VariableAccess -> {
                 createVariableAndObjectConsumer(session, info.name, info, components, collector)
             }
-            Mode.FUNCTION_CALL -> {
+            CallKind.Function -> {
                 createFunctionConsumer(session, info.name, info, components, collector, this)
             }
-            Mode.CALLABLE_REFERENCE -> {
+            CallKind.CallableReference -> {
                 if (info.stubReceiver == null) {
                     createCallableReferencesConsumer(session, info.name, info, components, collector)
                 } else {
@@ -234,11 +229,12 @@ class FirTowerResolver(
                     )
                 }
             }
+            else -> throw AssertionError("Unsupported call kind in tower resolver: ${info.callKind}")
         }
         val shouldProcessExtensionsBeforeMembers =
-            resolveMode == Mode.FUNCTION_CALL && info.name in HIDES_MEMBERS_NAME_LIST
+            info.callKind == CallKind.Function && info.name in HIDES_MEMBERS_NAME_LIST
         val shouldProcessExplicitReceiverScopeOnly =
-            resolveMode == Mode.FUNCTION_CALL && info.explicitReceiver?.typeRef?.coneTypeSafe<ConeIntegerLiteralType>() != null
+            info.callKind == CallKind.Function && info.explicitReceiver?.typeRef?.coneTypeSafe<ConeIntegerLiteralType>() != null
 
         var group = 0
 

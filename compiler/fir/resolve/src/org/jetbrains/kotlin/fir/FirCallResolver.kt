@@ -116,7 +116,6 @@ class FirCallResolver(
         val explicitReceiver = functionCall.explicitReceiver
         val arguments = functionCall.arguments
         val typeArguments = functionCall.typeArguments
-        val name = functionCall.calleeReference.name
 
         val info = CallInfo(
             CallKind.Function,
@@ -132,8 +131,7 @@ class FirCallResolver(
         towerResolver.reset()
         val result = towerResolver.runResolver(
             implicitReceiverStack.receiversAsReversed(),
-            info,
-            FirTowerResolver.Mode.FUNCTION_CALL
+            info
         )
         val bestCandidates = result.bestCandidates()
         val reducedCandidates = if (result.currentApplicability < CandidateApplicability.SYNTHETIC_RESOLVED) {
@@ -167,8 +165,7 @@ class FirCallResolver(
         towerResolver.reset()
         val result = towerResolver.runResolver(
             implicitReceiverStack.receiversAsReversed(),
-            info,
-            FirTowerResolver.Mode.VARIABLE_ACCESS
+            info
         )
 
         val bestCandidates = result.bestCandidates()
@@ -249,7 +246,6 @@ class FirCallResolver(
         val result = towerResolver.runResolver(
             implicitReceiverStack.receiversAsReversed(),
             info,
-            FirTowerResolver.Mode.CALLABLE_REFERENCE,
             collector = CandidateCollector(this, resolutionStageRunner)
         )
         val bestCandidates = result.bestCandidates()
