@@ -52,6 +52,12 @@ private class TailCallOptimizationLowering(private val context: JvmBackendContex
 
         val tailCalls = mutableSetOf<IrCall>()
 
+        // Find all tail-calls inside suspend function.
+        // We should add IrReturn before them, so the codegen will generate code, which is understandable by old BE's tail-call optimizer.
+        // This function collect all possible tail-calls, if they are not prepended by IrReturns, so we can prepend them.
+        // If the call has IrReturn before it, we do not need to add another one.
+        // If the call is inside a branch of `when` statement (or `if`, which is lowered to `when`), go through the branches and
+        // find tail-calls there.
         fun findCallsOnTailPositionWithoutImmediateReturn(statement: IrStatement, immediateReturn: Boolean = false) {
             when (statement) {
                 is IrCall -> if (statement.isSuspend && !immediateReturn) {
@@ -98,10 +104,12 @@ private class TailCallOptimizationLowering(private val context: JvmBackendContex
     }
 }
 
+// Find tail-call inside a single block. This function is needed, since there can be
+// return statement in the middle of the function and thus we cannot just assume, that its last statement is tail-call
 private fun List<IrStatement>.findTailCall(functionReturnsUnit: Boolean): IrStatement? {
     val mayBeReturn = find { it is IrReturn } as? IrReturn
     return when (val value = mayBeReturn?.value) {
-        is IrGetField -> if (value.isGetFieldOfUnit()) {
+        is IrGetField -> if (functionReturnsUnit && value.isGetFieldOfUnit()) {
             // This is simple `return` in the middle of a function
             // Tail-call should be just before it
             subList(0, indexOf(mayBeReturn)).findTailCall(functionReturnsUnit)
