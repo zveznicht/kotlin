@@ -1502,9 +1502,19 @@ public class BlackBoxCodegenTestSpecGenerated extends AbstractBlackBoxCodegenTes
                                 runTest("compiler/tests-spec/testData/codegen/box/linked/expressions/jump-expressions/continue-expression/p-3/pos/1.1.kt");
                             }
 
+                            @TestMetadata("1.2.kt")
+                            public void test1_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/expressions/jump-expressions/continue-expression/p-3/pos/1.2.kt");
+                            }
+
                             @TestMetadata("2.1.kt")
                             public void test2_1() throws Exception {
                                 runTest("compiler/tests-spec/testData/codegen/box/linked/expressions/jump-expressions/continue-expression/p-3/pos/2.1.kt");
+                            }
+
+                            @TestMetadata("2.2.kt")
+                            public void test2_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/expressions/jump-expressions/continue-expression/p-3/pos/2.2.kt");
                             }
 
                             public void testAllFilesPresentInPos() throws Exception {
