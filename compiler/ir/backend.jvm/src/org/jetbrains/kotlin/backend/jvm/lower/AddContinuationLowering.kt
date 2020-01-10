@@ -591,6 +591,7 @@ private class AddContinuationLowering(private val context: JvmBackendContext) : 
                         returnType = function.returnType
                         modality = function.modality
                         isSuspend = function.isSuspend
+                        isInline = function.isInline
                         origin =
                             if (function.isInline) JvmLoweredDeclarationOrigin.FOR_INLINE_STATE_MACHINE_TEMPLATE
                             else JvmLoweredDeclarationOrigin.FOR_INLINE_STATE_MACHINE_TEMPLATE_CAPTURES_CROSSINLINE
