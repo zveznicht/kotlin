@@ -14,6 +14,10 @@ import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculator
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction.NONE
 import org.jetbrains.kotlin.fir.scopes.impl.FirLocalScope
+import org.jetbrains.kotlin.fir.types.ConeIntegerLiteralType
+import org.jetbrains.kotlin.fir.types.coneTypeSafe
+import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.descriptorUtil.HIDES_MEMBERS_NAME_LIST
 
 enum class TowerDataKind {
     EMPTY,       // Corresponds to stub tower level which is replaced by receiver-related level
@@ -198,14 +202,44 @@ class FirTowerResolver(
     private lateinit var towerDataConsumer: TowerDataConsumer
     private lateinit var implicitReceiverValues: List<ImplicitReceiverValue<*>>
 
+    enum class Mode {
+        VARIABLE_ACCESS,
+        FUNCTION_CALL,
+        CALLABLE_REFERENCE
+    }
+
     fun runResolver(
-        consumer: TowerDataConsumer,
-        implicitReceiverValues: List<ImplicitReceiverValue<*>>,
-        shouldProcessExtensionsBeforeMembers: Boolean = false,
-        shouldProcessExplicitReceiverScopeOnly: Boolean = false
+        implicitReceiverValues: List<ImplicitReceiverValue<*>>, name: Name, info: CallInfo, resolveMode: Mode,
+        collector: CandidateCollector = this.collector
     ): CandidateCollector {
         this.implicitReceiverValues = implicitReceiverValues
-        towerDataConsumer = consumer
+        towerDataConsumer = when (resolveMode) {
+            Mode.VARIABLE_ACCESS -> {
+                createVariableAndObjectConsumer(session, name, info, components, collector)
+            }
+            Mode.FUNCTION_CALL -> {
+                createFunctionConsumer(session, name, info, components, collector, this)
+            }
+            Mode.CALLABLE_REFERENCE -> {
+                if (info.stubReceiver == null) {
+                    createCallableReferencesConsumer(session, name, info, components, collector)
+                } else {
+                    PrioritizedTowerDataConsumer(
+                        collector,
+                        createCallableReferencesConsumer(
+                            session, name, info.replaceExplicitReceiver(info.stubReceiver), components, collector
+                        ),
+                        createCallableReferencesConsumer(
+                            session, name, info, components, collector
+                        )
+                    )
+                }
+            }
+        }
+        val shouldProcessExtensionsBeforeMembers =
+            resolveMode == Mode.FUNCTION_CALL && name in HIDES_MEMBERS_NAME_LIST
+        val shouldProcessExplicitReceiverScopeOnly =
+            resolveMode == Mode.FUNCTION_CALL && info.explicitReceiver?.typeRef?.coneTypeSafe<ConeIntegerLiteralType>() != null
 
         var group = 0
 
