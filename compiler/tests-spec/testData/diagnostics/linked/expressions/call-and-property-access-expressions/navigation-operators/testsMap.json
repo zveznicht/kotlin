@@ -4,7 +4,7 @@
       "1": [
         {
           "specVersion": "0.1-222",
-          "casesNumber": 1,
+          "casesNumber": 2,
           "description": "",
           "unexpectedBehaviour": false
         }
@@ -26,7 +26,7 @@
       "1": [
         {
           "specVersion": "0.1-222",
-          "casesNumber": 1,
+          "casesNumber": 2,
           "description": "",
           "path": "compiler/tests-spec/testData/diagnostics/linked/expressions/call-and-property-access-expressions/navigation-operators/p-6/neg/1.1.kt",
           "unexpectedBehaviour": false
