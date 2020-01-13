@@ -105,6 +105,19 @@ private val propertiesPhase = makeIrFilePhase<JvmBackendContext>(
     stickyPostconditions = setOf((PropertiesLowering)::checkNoProperties)
 )
 
+private val functionReferencesWithDefaultsPhase = makeIrFilePhase(
+    ::FunctionReferencesWithDefaultsLowering,
+    name = "FunctionReferencesWithDefaults",
+    description = "Function references with defaults lowering"
+)
+
+internal val callableReferencePhase = makeIrFilePhase(
+    ::CallableReferenceLowering,
+    name = "CallableReference",
+    description = "Handle callable references",
+    prerequisite = setOf(functionReferencesWithDefaultsPhase)
+)
+
 internal val localDeclarationsPhase = makeIrFilePhase<CommonBackendContext>(
     { context ->
         LocalDeclarationsLowering(
@@ -154,12 +167,6 @@ private val computeStringTrimPhase = makeIrFilePhase<JvmBackendContext>(
     },
     name = "StringTrimLowering",
     description = "Compute trimIndent and trimMargin operations on constant strings"
-)
-
-private val functionReferencesWithDefaultsPhase = makeIrFilePhase(
-    ::FunctionReferencesWithDefaultsLowering,
-    name = "FunctionReferencesWithDefaults",
-    description = "Function references with defaults lowering"
 )
 
 private val defaultArgumentStubPhase = makeIrFilePhase(
