@@ -1,6 +1,5 @@
 package org.jetbrains.uast.test.kotlin
 
-import com.intellij.openapi.util.registry.Registry
 import org.jetbrains.uast.UFile
 import org.junit.Ignore
 import org.junit.Test
@@ -144,7 +143,9 @@ class KotlinIDERenderLogTest : AbstractKotlinUastLightCodeInsightFixtureTest(), 
     fun testDelegate() = doTest("Delegate")
 
     @Test
-    fun testConstructorDelegate() = doTest("ConstructorDelegate")
+    fun testConstructorDelegate() = doTest("ConstructorDelegate") { testName, file ->
+        check(testName, file, false)
+    }
 
     @Test
     fun testLambdaReturn() = doTest("LambdaReturn")
