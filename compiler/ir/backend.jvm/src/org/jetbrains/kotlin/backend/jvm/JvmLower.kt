@@ -274,6 +274,7 @@ private val jvmFilePhases =
         enumWhenPhase then
         singletonReferencesPhase then
 
+        functionReferencesWithDefaultsPhase then
         callableReferencePhase then
         singleAbstractMethodPhase then
         assertionPhase then

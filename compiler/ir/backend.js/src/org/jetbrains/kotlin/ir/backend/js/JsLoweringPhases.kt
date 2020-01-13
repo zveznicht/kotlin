@@ -208,6 +208,12 @@ private val privateMembersLoweringPhase = makeJsModulePhase(
     description = "Extract private members from classes"
 )
 
+private val functionReferencesWithDefaultsPhase = makeJsModulePhase(
+    ::FunctionReferencesWithDefaultsLowering,
+    name = "FunctionReferencesWithDefaults",
+    description = "Function references with defaults lowering"
+)
+
 private val callableReferenceLoweringPhase = makeJsModulePhase(
     ::CallableReferenceLowering,
     name = "CallableReferenceLowering",
@@ -216,14 +222,9 @@ private val callableReferenceLoweringPhase = makeJsModulePhase(
         suspendFunctionsLoweringPhase,
         localDeclarationsLoweringPhase,
         localDelegatedPropertiesLoweringPhase,
-        privateMembersLoweringPhase
+        privateMembersLoweringPhase,
+        functionReferencesWithDefaultsPhase
     )
-)
-
-private val functionReferencesWithDefaultsPhase = makeIrFilePhase(
-    ::FunctionReferencesWithDefaultsLowering,
-    name = "FunctionReferencesWithDefaults",
-    description = "Function references with defaults lowering"
 )
 
 private val defaultArgumentStubGeneratorPhase = makeJsModulePhase(
@@ -425,6 +426,7 @@ val jsPhases = namedIrModulePhase(
             returnableBlockLoweringPhase then
             forLoopsLoweringPhase then
             privateMembersLoweringPhase then
+            functionReferencesWithDefaultsPhase then
             callableReferenceLoweringPhase then
             defaultArgumentStubGeneratorPhase then
             defaultParameterInjectorPhase then

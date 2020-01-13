@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
+import org.jetbrains.kotlin.backend.jvm.functionReferencesWithDefaultsPhase
 import org.jetbrains.kotlin.backend.jvm.ir.IrInlineReferenceLocator
 import org.jetbrains.kotlin.backend.jvm.ir.createJvmIrBuilder
 import org.jetbrains.kotlin.backend.jvm.ir.irArray
@@ -40,7 +41,8 @@ import org.jetbrains.kotlin.name.SpecialNames
 internal val callableReferencePhase = makeIrFilePhase(
     ::CallableReferenceLowering,
     name = "CallableReference",
-    description = "Handle callable references"
+    description = "Handle callable references",
+    prerequisite = setOf(functionReferencesWithDefaultsPhase)
 )
 
 
