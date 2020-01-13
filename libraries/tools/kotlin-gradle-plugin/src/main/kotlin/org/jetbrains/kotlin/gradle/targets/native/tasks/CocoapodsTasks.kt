@@ -69,7 +69,7 @@ open class PodspecTask : DefaultTask() {
             |    spec.summary                  = '${settings.summary.orEmpty()}'
             |
             |    spec.static_framework         = true
-            |    spec.vendored_frameworks      = "$frameworkDir/#{spec.name}.framework"
+            |    spec.vendored_frameworks      = "$frameworkDir/${settings.frameworkName ?: "#{spec.name}"}.framework"
             |    spec.libraries                = "c++"
             |    spec.module_name              = "#{spec.name}_umbrella"
             |
@@ -135,7 +135,10 @@ open class DummyFrameworkTask : DefaultTask() {
 
     @get:Input
     val frameworkName
-        get() = project.name.asValidFrameworkName()
+        get() = settings.frameworkName ?: project.name.asValidFrameworkName()
+
+    @Nested
+    lateinit var settings: CocoapodsExtension
 
     private val frameworkDir: File
         get() = destinationDir.resolve("$frameworkName.framework")
