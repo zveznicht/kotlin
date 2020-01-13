@@ -220,6 +220,12 @@ private val callableReferenceLoweringPhase = makeJsModulePhase(
     )
 )
 
+private val functionReferencesWithDefaultsPhase = makeIrFilePhase(
+    ::FunctionReferencesWithDefaultsLowering,
+    name = "FunctionReferencesWithDefaults",
+    description = "Function references with defaults lowering"
+)
+
 private val defaultArgumentStubGeneratorPhase = makeJsModulePhase(
     ::JsDefaultArgumentStubGenerator,
     name = "DefaultArgumentStubGenerator",
@@ -230,7 +236,7 @@ private val defaultParameterInjectorPhase = makeJsModulePhase(
     { context -> DefaultParameterInjector(context, skipExternalMethods = true) },
     name = "DefaultParameterInjector",
     description = "Replace callsite with default parameters with corresponding stub function",
-    prerequisite = setOf(callableReferenceLoweringPhase, innerClassesLoweringPhase)
+    prerequisite = setOf(callableReferenceLoweringPhase, innerClassesLoweringPhase, functionReferencesWithDefaultsPhase)
 )
 
 private val defaultParameterCleanerPhase = makeJsModulePhase(

@@ -34,9 +34,9 @@ import org.jetbrains.kotlin.name.Name
 class FunctionReferencesWithDefaultsLowering(val context: CommonBackendContext) : FileLoweringPass {
     private object DECLARATION_ORIGIN_FUNCTION_REFERENCE_WITH_DEFAULTS : IrDeclarationOriginImpl("FUNCTION_REFERENCE_WITH_DEFAULTS")
 
-    fun IrClass.getInvokeFunction() = simpleFunctions().single { it.name.asString() == "invoke" }
+    private fun IrClass.getInvokeFunction() = simpleFunctions().single { it.name.asString() == "invoke" }
 
-    var index = 0
+    private var index = 0
 
     override fun lower(irFile: IrFile) {
         var generatedFunctions = mutableListOf<IrSimpleFunction>()
@@ -62,8 +62,7 @@ class FunctionReferencesWithDefaultsLowering(val context: CommonBackendContext) 
                 val bridgeBuilder = BridgeBuilder(expression)
                 if (!bridgeBuilder.needBridge) return expression
 
-                val (bridge, functionReference) = bridgeBuilder.build(currentClass?.irElement as? IrClass
-                                                                          ?: irFile)
+                val (bridge, functionReference) = bridgeBuilder.build(currentClass?.irElement as? IrClass ?: irFile)
                 generatedFunctions.add(bridge)
                 return functionReference
             }
@@ -139,7 +138,7 @@ class FunctionReferencesWithDefaultsLowering(val context: CommonBackendContext) 
                 startOffset, endOffset,
                 functionReferenceType,
                 bridge.symbol,
-                0, // TODO: Shouldn't we copy type parameters from the referenced function to the bridge?
+                0,
                 bridge.valueParameters.size
             ).apply {
                 functionReference.getArgumentsWithIr().forEach { (parameter, argument) ->
@@ -155,10 +154,6 @@ class FunctionReferencesWithDefaultsLowering(val context: CommonBackendContext) 
         // TODO: Probably we should create only one function for each different set of default arguments specified.
         private fun buildBridge(parent: IrDeclarationContainer): IrSimpleFunction {
             val descriptor = WrappedSimpleFunctionDescriptor()
-            // TODO: This is for K/N. Replace with metadata.
-            (referencedFunction.descriptor as? WrappedSimpleFunctionDescriptor)?.originalDescriptor?.let {
-                descriptor.originalDescriptor = it
-            }
             return IrFunctionImpl(
                 startOffset, endOffset,
                 DECLARATION_ORIGIN_FUNCTION_REFERENCE_WITH_DEFAULTS,
@@ -178,8 +173,6 @@ class FunctionReferencesWithDefaultsLowering(val context: CommonBackendContext) 
                 descriptor.bind(this)
                 val function = this
                 this.parent = parent
-
-                this.metadata = referencedFunction.metadata
 
                 bridgeValueParameters.mapIndexedTo(valueParameters) { index, parameter ->
                     parameter.copyTo(

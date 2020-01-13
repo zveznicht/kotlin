@@ -156,11 +156,17 @@ private val computeStringTrimPhase = makeIrFilePhase<JvmBackendContext>(
     description = "Compute trimIndent and trimMargin operations on constant strings"
 )
 
+private val functionReferencesWithDefaultsPhase = makeIrFilePhase(
+    ::FunctionReferencesWithDefaultsLowering,
+    name = "FunctionReferencesWithDefaults",
+    description = "Function references with defaults lowering"
+)
+
 private val defaultArgumentStubPhase = makeIrFilePhase(
     ::JvmDefaultArgumentStubGenerator,
     name = "DefaultArgumentsStubGenerator",
     description = "Generate synthetic stubs for functions with default parameter values",
-    prerequisite = setOf(localDeclarationsPhase)
+    prerequisite = setOf(localDeclarationsPhase, functionReferencesWithDefaultsPhase)
 )
 
 private val defaultArgumentInjectorPhase = makeIrFilePhase(
