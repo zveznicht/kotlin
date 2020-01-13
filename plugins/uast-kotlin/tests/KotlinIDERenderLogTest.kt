@@ -18,10 +18,10 @@ class KotlinIDERenderLogTest : AbstractKotlinUastLightCodeInsightFixtureTest(), 
 
     override fun check(testName: String, file: UFile) = super.check(testName, file)
 
-    override fun setUp() {
-        super.setUp()
-        Registry.get("kotlin.use.ultra.light.classes").setValue(false, testRootDisposable)
-    }
+//    override fun setUp() {
+//        super.setUp()
+//        Registry.get("kotlin.use.ultra.light.classes").setValue(false, testRootDisposable)
+//    }
 
     @Test
     fun testLocalDeclarations() = doTest("LocalDeclarations")
