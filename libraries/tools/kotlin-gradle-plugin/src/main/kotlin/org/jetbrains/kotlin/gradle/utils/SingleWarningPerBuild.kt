@@ -6,15 +6,11 @@
 package org.jetbrains.kotlin.gradle.utils
 
 import org.gradle.api.Project
-import java.util.*
 
 internal object SingleWarningPerBuild {
-    private val rootModuleReceivedWarning = WeakHashMap<Project, MutableSet<String>>()
+    private const val ACTION_ID_SHOW_WARNING = "show-warning:"
 
-    fun show(project: Project, warningText: String) {
-        val receivedWarnings = rootModuleReceivedWarning.computeIfAbsent(project.rootProject) { mutableSetOf() }
-        if (receivedWarnings.add(warningText)) {
-            project.logger.warn(warningText)
-        }
+    fun show(project: Project, warningText: String) = SingleActionPerBuild.run(project, ACTION_ID_SHOW_WARNING + warningText) {
+        project.logger.warn(warningText)
     }
 }
