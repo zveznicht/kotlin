@@ -5,6 +5,8 @@
 
 package org.jetbrains.kotlin.tools.dukat
 
+import org.json.JSONArray
+import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.parser.Tag
@@ -55,6 +57,27 @@ fun main(args: Array<String>) {
             w.appendln()
         }
     }
+
+    val cssPropertiesInDOMNotation = (extractCSSProperties() + manuallyAddedProperties)
+        .map { translateCSSPropertyToDOMNotation(it) }
+        .distinct()
+        .filterNot { it == "*" }
+        .map { propertiesMappingSpecialCases[it] ?: it }
+
+    File(dir, cssPropertiesFilename).bufferedWriter().use { w ->
+        w.appendln("package org.w3c.dom.css;")
+        w.appendln()
+        w.appendln("// generated from $cssPropertiesUrl")
+        w.appendln("// for more details see libraries/tools/dukat/download.kt")
+
+        w.appendln("partial interface CSSStyleDeclaration {")
+
+        cssPropertiesInDOMNotation.forEach {
+            w.appendln("    attribute String $it;")
+        }
+
+        w.appendln("};")
+    }
 }
 
 private fun fetch(url: String): String? {
@@ -93,6 +116,20 @@ private fun extractIDLText(rawContent: String, out: Appendable) {
     soup.select("spec-idl").attachTo(out)
 }
 
+private fun extractCSSProperties(): List<String> {
+    val result = mutableListOf<String>()
+    val jsonArray = JSONArray(fetch(cssPropertiesUrl))
+    for (i in 0 until jsonArray.length()) {
+        result += (jsonArray.get(i) as JSONObject).get("property") as String
+    }
+    return result
+}
+
+private fun translateCSSPropertyToDOMNotation(property: String): String {
+    val words = property.split("-")
+    return words[0] + words.drop(1).joinToString(separator = "") { it.capitalize() }
+}
+
 private val urls = listOf(
     "https://raw.githubusercontent.com/whatwg/html-mirror/master/source" to "org.w3c.dom",
     "https://html.spec.whatwg.org/" to "org.w3c.dom",
@@ -129,4 +166,14 @@ private val urls = listOf(
     "https://www.w3.org/TR/2012/REC-navigation-timing-20121217/" to "org.w3c.performance",
 
     "https://w3c.github.io/ServiceWorker/" to "org.w3c.workers"
+)
+
+private var cssPropertiesUrl = "https://www.w3.org/Style/CSS/all-properties.en.json"
+private var cssPropertiesFilename = "org.w3c.dom.css.ext.idl"
+
+private val propertiesMappingSpecialCases = mapOf(
+    "float" to "cssFloat"
+)
+private val manuallyAddedProperties = listOf(
+    "pointerEvents"
 )
