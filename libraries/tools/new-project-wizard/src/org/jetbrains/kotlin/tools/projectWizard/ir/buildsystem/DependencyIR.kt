@@ -130,7 +130,7 @@ abstract class KotlinLibraryDependencyIR(
             is MavenPrinter -> node("dependency") {
                 singleLineNode("groupId") { +"org.jetbrains.kotlin" }
                 singleLineNode("artifactId") {
-                    +"+kotlin-"
+                    +"kotlin-"
                     +artifactName
                 }
                 singleLineNode("version") { +version.toString() }
