@@ -1,4 +1,40 @@
 {
+  "3": {
+    "pos": {
+      "1": [
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "check if a property has a setter, it is called using the right-hand side expression as its argument;If the left-hand side of an assignment refers to a mutable property through the usage of safe navigation operator (?.)",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "check if a property has a setter, it is called using the right-hand side expression as its argument;If the left-hand side of an assignment refers to a mutable property through the usage of safe navigation operator (?.)",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "check if a property has a setter, it is called using the right-hand side expression as its argument;If the left-hand side of an assignment refers to a mutable property through the usage of safe navigation operator (?.)",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "check if a property has a setter, it is called using the right-hand side expression as its argument;If the left-hand side of an assignment refers to a mutable property through the usage of safe navigation operator (?.)",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "check if a property has a setter, it is called using the right-hand side expression as its argument;If the left-hand side of an assignment refers to a mutable property through the usage of safe navigation operator (?.)",
+          "unexpectedBehaviour": false
+        }
+      ]
+    }
+  },
   "2": {
     "pos": {
       "2": [
