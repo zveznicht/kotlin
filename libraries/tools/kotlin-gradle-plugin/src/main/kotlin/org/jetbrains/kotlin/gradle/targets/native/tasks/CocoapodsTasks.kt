@@ -30,6 +30,10 @@ open class PodspecTask : DefaultTask() {
     @OutputFile
     val outputFile: File = project.projectDir.resolve("$specName.podspec")
 
+    @get:Input
+    val frameworkName
+        get() = settings.frameworkName
+
     @get:Internal
     internal lateinit var settings: CocoapodsExtension
 
@@ -69,7 +73,7 @@ open class PodspecTask : DefaultTask() {
             |    spec.summary                  = '${settings.summary.orEmpty()}'
             |
             |    spec.static_framework         = true
-            |    spec.vendored_frameworks      = "$frameworkDir/${settings.frameworkName}.framework"
+            |    spec.vendored_frameworks      = "$frameworkDir/${frameworkName}.framework"
             |    spec.libraries                = "c++"
             |    spec.module_name              = "#{spec.name}_umbrella"
             |
