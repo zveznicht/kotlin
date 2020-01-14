@@ -1,0 +1,46 @@
+{
+  "2": {
+    "pos": {
+      "2": [
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "If a property has a setter, it is called using the right-hand side expression as its argument;",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "If a property has a setter (including delegated properties), it is called using the right-hand side expression as its argument",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "If a property has a setter, it is called using the right-hand side expression as its argument;",
+          "unexpectedBehaviour": false
+        }
+      ],
+      "1": [
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "If a property has a setter, it is called using the right-hand side expression as its argument;",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "If a property has a setter (including delegated properties), it is called using the right-hand side expression as its argument",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "If a property has a setter, it is called using the right-hand side expression as its argument;",
+          "unexpectedBehaviour": false
+        }
+      ]
+    }
+  }
+}

@@ -7,6 +7,7 @@
  *
  * SPEC VERSION: 0.1-222
  * PLACE: statements, assignments -> paragraph 1 -> sentence 2
+ * RELEVANT PLACES: statements, assignments, simple-assignments -> paragraph 1 -> sentence 2
  * NUMBER: 1
  * DESCRIPTION: Both left-hand and right-hand sides of an assignment must be expressions
  */
