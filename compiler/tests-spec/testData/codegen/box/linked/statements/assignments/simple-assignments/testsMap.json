@@ -1,4 +1,29 @@
 {
+  "6": {
+    "pos": {
+      "1": [
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "",
+          "unexpectedBehaviour": false
+        }
+      ]
+    }
+  },
+  "7": {
+    "pos": {
+      "1": [
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "",
+          "path": "compiler/tests-spec/testData/codegen/box/linked/statements/assignments/simple-assignments/p-6/pos/1.1.kt",
+          "unexpectedBehaviour": false
+        }
+      ]
+    }
+  },
   "3": {
     "pos": {
       "1": [
