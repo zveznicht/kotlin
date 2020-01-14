@@ -106,7 +106,7 @@ object AndroidSinglePlatformModuleConfigurator : ModuleConfiguratorWithSettings(
                 dependencyType = DependencyType.MAIN
             )
 
-            +KotlinLibraryDependencyIR("stdlib-jdk7", configurationData.kotlinVersion, DependencyType.MAIN)
+            +KotlinStdlibDependencyIR(StdlibType.StdlibJdk7, configurationData.kotlinVersion, DependencyType.MAIN)
 
             +ArtifactBasedLibraryDependencyIR(
                 MavenArtifact(DefaultRepository.GOOGLE, "androidx.constraintlayout", "constraintlayout"),

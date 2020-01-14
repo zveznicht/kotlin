@@ -63,11 +63,11 @@ class KotlinPlugin(context: Context) : Plugin(context) {
                         is SingleplatformModuleIR -> true
                         is SourcesetModuleIR -> module.sourcesetType == SourcesetType.main
                     }
-                    val libraryName = module.type.correspondingStdlibName()
+                    val stdlibType = module.type.correspondingStdlib()
                     when {
-                        needLibrary && libraryName != null -> module.withIrs(
-                            KotlinLibraryDependencyIR(
-                                libraryName,
+                        needLibrary && stdlibType != null -> module.withIrs(
+                            KotlinStdlibDependencyIR(
+                                stdlibType,
                                 KotlinPlugin::version.settingValue,
                                 DependencyType.MAIN
                             )
