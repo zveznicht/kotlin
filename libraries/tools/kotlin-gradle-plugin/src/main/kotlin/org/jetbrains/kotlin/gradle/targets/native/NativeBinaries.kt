@@ -28,12 +28,12 @@ import java.io.File
  */
 sealed class NativeBinary(
     private val name: String,
-    private val baseNameProvided: String,
+    baseNameProvided: String,
     val buildType: NativeBuildType,
     var compilation: KotlinNativeCompilation
 ) : Named {
     open var baseName: String
-        get() = baseNameProvider.getOrElse(baseNameProvided)
+        get() = baseNameProvider.get()
         set(value) {
             baseNameProvider = project.provider { value }
         }

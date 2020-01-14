@@ -30,8 +30,8 @@ open class PodspecTask : DefaultTask() {
     @OutputFile
     val outputFile: File = project.projectDir.resolve("$specName.podspec")
 
-    @Nested
-    lateinit var settings: CocoapodsExtension
+    @get:Internal
+    internal lateinit var settings: CocoapodsExtension
 
     // TODO: Handle Framework name customization - rename the framework during sync process.
     @TaskAction
@@ -69,7 +69,7 @@ open class PodspecTask : DefaultTask() {
             |    spec.summary                  = '${settings.summary.orEmpty()}'
             |
             |    spec.static_framework         = true
-            |    spec.vendored_frameworks      = "$frameworkDir/${settings.frameworkName ?: "#{spec.name}"}.framework"
+            |    spec.vendored_frameworks      = "$frameworkDir/${settings.frameworkName}.framework"
             |    spec.libraries                = "c++"
             |    spec.module_name              = "#{spec.name}_umbrella"
             |
@@ -135,10 +135,10 @@ open class DummyFrameworkTask : DefaultTask() {
 
     @get:Input
     val frameworkName
-        get() = settings.frameworkName ?: project.name.asValidFrameworkName()
+        get() = settings.frameworkName
 
-    @Nested
-    lateinit var settings: CocoapodsExtension
+    @get:Internal
+    internal lateinit var settings: CocoapodsExtension
 
     private val frameworkDir: File
         get() = destinationDir.resolve("$frameworkName.framework")

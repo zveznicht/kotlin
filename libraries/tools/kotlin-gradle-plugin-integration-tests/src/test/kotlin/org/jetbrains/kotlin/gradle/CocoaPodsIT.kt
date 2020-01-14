@@ -53,7 +53,7 @@ class CocoaPodsIT : BaseGradleIT() {
 
             frameworkName?.let {
                 fileInWorkingDir(podspecFileName).modify {
-                    it.replace("build/cocoapods/framework/#{spec.name}.framework", "build/cocoapods/framework/$frameworkName.framework")
+                    it.replace("build/cocoapods/framework/kotlin_library.framework", "build/cocoapods/framework/$frameworkName.framework")
                 }
             }
 
@@ -68,7 +68,7 @@ class CocoaPodsIT : BaseGradleIT() {
                     spec.summary                  = 'CocoaPods test library'
 
                     spec.static_framework         = true
-                    spec.vendored_frameworks      = "build/cocoapods/framework/${frameworkName ?: "#{spec.name}"}.framework"
+                    spec.vendored_frameworks      = "build/cocoapods/framework/${frameworkName ?: "kotlin_library"}.framework"
                     spec.libraries                = "c++"
                     spec.module_name              = "#{spec.name}_umbrella"
 
@@ -174,11 +174,34 @@ class CocoaPodsIT : BaseGradleIT() {
         CommandResult(process.exitValue(), stdOut, stdErr).block()
     }
 
-    private fun doTestXcode(mode: ImportMode) {
+    private fun doTestXcode(mode: ImportMode, isCustomFrameworkName: Boolean) {
         assumeTrue(HostManager.hostIsMac)
         val gradleProject = transformProjectWithPluginsDsl("new-mpp-cocoapods", gradleVersion)
 
         with(gradleProject) {
+            setupWorkingDir()
+
+            // Add property with custom framework name
+            if (isCustomFrameworkName) {
+                gradleBuildScript("kotlin-library").appendText(
+                    """
+                kotlin {
+                    cocoapods {
+                        frameworkName = "MultiPlatformLibrary"
+                    }
+                }
+            """.trimIndent()
+                )
+
+                // Change swift sources import
+                val iosAppDir = projectDir.resolve("ios-app")
+                iosAppDir.resolve("ios-app/ViewController.swift").modify {
+                    it.replace("import kotlin_library", "import MultiPlatformLibrary")
+                }
+
+            }
+
+
             // Generate podspec.
             gradleProject.build(":kotlin-library:podspec", "-Pkotlin.native.cocoapods.generate.wrapper=true") {
                 assertSuccessful()
@@ -230,82 +253,12 @@ class CocoaPodsIT : BaseGradleIT() {
     }
 
     @Test
-    fun testXcodeUseFrameworks() = doTestXcode(ImportMode.FRAMEWORKS)
+    fun testXcodeUseFrameworks() = doTestXcode(ImportMode.FRAMEWORKS, false)
 
     @Test
-    fun testXcodeUseModularHeaders() = doTestXcode(ImportMode.MODULAR_HEADERS)
+    fun testXcodeUseModularHeaders() = doTestXcode(ImportMode.MODULAR_HEADERS, false)
 
     @Test
-    fun testXcodeWithCustomFrameworkName() {
-        assumeTrue(HostManager.hostIsMac)
-        val gradleProject = transformProjectWithPluginsDsl("new-mpp-cocoapods", gradleVersion)
+    fun testXcodeWithCustomFrameworkName() = doTestXcode(ImportMode.FRAMEWORKS, true)
 
-        with(gradleProject) {
-            setupWorkingDir()
-
-            // Add property with custom framework name
-            gradleBuildScript("kotlin-library").appendText(
-                "\n" + """
-                kotlin {
-                    cocoapods {
-                        frameworkName = "MultiPlatformLibrary"
-                    }
-                }
-            """.trimIndent()
-            )
-
-            // Change swift sources import
-            val iosAppDir = projectDir.resolve("ios-app")
-            iosAppDir.resolve("ios-app/ViewController.swift").modify {
-                it.replace("import kotlin_library", "import MultiPlatformLibrary")
-            }
-
-            // Generate podspec.
-            gradleProject.build(":kotlin-library:podspec", "-Pkotlin.native.cocoapods.generate.wrapper=true") {
-                assertSuccessful()
-            }
-
-            // Set import mode for Podfile.
-            iosAppDir.resolve("Podfile").modify {
-                it.replace(PODFILE_IMPORT_DIRECTIVE_PLACEHOLDER, ImportMode.FRAMEWORKS.directive)
-            }
-
-            // Install pods.
-            runCommand(iosAppDir, "pod", "install") {
-                assertEquals(
-                    0, exitCode, """
-                        |Exit code mismatch for `pod install`.
-                        |stdout:
-                        |$stdOut
-                        |
-                        |stderr:
-                        |$stdErr
-                    """.trimMargin()
-                )
-            }
-
-            // Run Xcode build.
-            runCommand(
-                iosAppDir, "xcodebuild",
-                "-sdk", "iphonesimulator",
-                "-arch", "arm64",
-                "-configuration", "Release",
-                "-workspace", "ios-app.xcworkspace",
-                "-scheme", "ios-app",
-                inheritIO = true // Xcode doesn't finish the process if the PIPE redirect is used.
-            ) {
-                assertEquals(
-                    0, exitCode, """
-                        |Exit code mismatch for `xcodebuild`.
-                        |stdout:
-                        |$stdOut
-                        |
-                        |stderr:
-                        |$stdErr
-                    """.trimMargin()
-                )
-            }
-        }
-
-    }
 }
