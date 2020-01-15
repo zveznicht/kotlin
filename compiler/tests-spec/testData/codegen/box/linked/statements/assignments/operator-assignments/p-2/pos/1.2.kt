@@ -15,11 +15,10 @@
 
 class B(var a: Int) {
     var plus = false
-    var plusAssign = false
 
     operator fun plus(value: Int): B {
         plus = true
-        a + value
+        a= a + value
         return this
     }
 
