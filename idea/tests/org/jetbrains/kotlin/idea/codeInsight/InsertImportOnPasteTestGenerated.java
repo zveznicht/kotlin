@@ -195,6 +195,11 @@ public class InsertImportOnPasteTestGenerated extends AbstractInsertImportOnPast
             runTest("idea/testData/copyPaste/imports/ImportDirective.kt");
         }
 
+        @TestMetadata("ImportDirectiveAndClassBody.kt")
+        public void testImportDirectiveAndClassBody() throws Exception {
+            runTest("idea/testData/copyPaste/imports/ImportDirectiveAndClassBody.kt");
+        }
+
         @TestMetadata("ImportableEntityInExtensionLiteral.kt")
         public void testImportableEntityInExtensionLiteral() throws Exception {
             runTest("idea/testData/copyPaste/imports/ImportableEntityInExtensionLiteral.kt");
@@ -536,6 +541,11 @@ public class InsertImportOnPasteTestGenerated extends AbstractInsertImportOnPast
         @TestMetadata("ImportDirective.kt")
         public void testImportDirective() throws Exception {
             runTest("idea/testData/copyPaste/imports/ImportDirective.kt");
+        }
+
+        @TestMetadata("ImportDirectiveAndClassBody.kt")
+        public void testImportDirectiveAndClassBody() throws Exception {
+            runTest("idea/testData/copyPaste/imports/ImportDirectiveAndClassBody.kt");
         }
 
         @TestMetadata("ImportableEntityInExtensionLiteral.kt")

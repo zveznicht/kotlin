@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -10,16 +10,12 @@ import com.intellij.openapi.util.TextRange
 import java.awt.datatransfer.DataFlavor
 import java.io.Serializable
 
-data class TextBlock(val startOffset: Int, val endOffset: Int, val text: String)
-data class TextBlockReferenceCandidates(val textBlock: TextBlock, val referenceCandidateRanges: List<TextRange>)
-
 class BasicKotlinReferenceTransferableData(
     val sourceFileUrl: String,
     val packageName: String,
     val imports: List<String>,
-    val endOfImportsOffset: Int,
     val sourceText: String,
-    val textBlockReferenceCandidates: List<TextBlockReferenceCandidates>
+    val textRanges: List<TextRange>
 ) : TextBlockTransferableData, Cloneable, Serializable {
     override fun getFlavor() = dataFlavor
     override fun getOffsetCount() = 0
