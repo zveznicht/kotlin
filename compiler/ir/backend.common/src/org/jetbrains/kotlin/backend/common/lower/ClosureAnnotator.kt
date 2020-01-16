@@ -64,6 +64,19 @@ class ClosureAnnotator(irFile: IrFile) {
 
         var processed = false
 
+        private fun IrType.collectReferencedParameters(target: MutableSet<IrTypeParameter>) {
+            if (this !is IrSimpleType)
+                return
+            val classifier = this.classifier
+            if (classifier is IrTypeParameterSymbol && target.add(classifier.owner))
+                classifier.owner.collectReferencedParameters(target)
+            arguments.forEach { (it as? IrTypeProjection)?.type?.collectReferencedParameters(target) }
+        }
+
+        private fun IrTypeParameter.collectReferencedParameters(target: MutableSet<IrTypeParameter>) {
+            superTypes.forEach { it.collectReferencedParameters(target) }
+        }
+
         /*
          * Node's closure = variables captured by the node +
          *                  closure of all included nodes -
@@ -77,6 +90,8 @@ class ClosureAnnotator(irFile: IrFile) {
                     builder.buildClosure().capturedValues.filterTo(result) { isExternal(it.owner) }
                 }
             }
+            // Any type parameter referenced by an external type parameter also has to be external.
+            capturedTypeParameters.forEach { it.collectReferencedParameters(capturedTypeParameters) }
             // TODO: We can save the closure and reuse it.
             return Closure(result.toList(), capturedTypeParameters.toList())
         }

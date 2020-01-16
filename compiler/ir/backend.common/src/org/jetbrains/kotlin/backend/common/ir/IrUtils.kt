@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
+import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrConstructorSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrTypeParameterSymbolImpl
@@ -34,9 +35,7 @@ import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
 import org.jetbrains.kotlin.ir.util.*
-import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
-import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DescriptorWithContainerSource
 import java.io.StringWriter
@@ -224,12 +223,16 @@ fun IrTypeParametersContainer.copyTypeParameters(
     // Therefore, we first copy the parameters themselves, then set up their supertypes.
     val newTypeParameters = srcTypeParameters.mapIndexed { i, sourceParameter ->
         sourceParameter.copyToWithoutSuperTypes(this, index = i + shift, origin = origin ?: sourceParameter.origin).also {
-                oldToNewParameterMap[sourceParameter] = it
-            }
+            oldToNewParameterMap[sourceParameter] = it
+        }
     }
     typeParameters.addAll(newTypeParameters)
     srcTypeParameters.zip(newTypeParameters).forEach { (srcParameter, dstParameter) ->
-        dstParameter.copySuperTypesFrom(srcParameter, oldToNewParameterMap)
+        val sourceParent = srcParameter.parent as IrTypeParametersContainer
+        val targetParent = dstParameter.parent as IrTypeParametersContainer
+        srcParameter.superTypes.forEach {
+            dstParameter.superTypes.add(it.remapTypeParameters(sourceParent, targetParent, oldToNewParameterMap))
+        }
     }
     return newTypeParameters
 }
@@ -239,15 +242,6 @@ fun IrTypeParametersContainer.copyTypeParametersFrom(
     origin: IrDeclarationOrigin? = null,
     parameterMap: Map<IrTypeParameter, IrTypeParameter>? = null
 ) = copyTypeParameters(source.typeParameters, origin, parameterMap)
-
-private fun IrTypeParameter.copySuperTypesFrom(source: IrTypeParameter, srcToDstParameterMap: Map<IrTypeParameter, IrTypeParameter>) {
-    val target = this
-    val sourceParent = source.parent as IrTypeParametersContainer
-    val targetParent = target.parent as IrTypeParametersContainer
-    source.superTypes.forEach {
-        target.superTypes.add(it.remapTypeParameters(sourceParent, targetParent, srcToDstParameterMap))
-    }
-}
 
 // Copy value parameters, dispatch receiver, and extension receiver from source to value parameters of this function.
 // Type of dispatch receiver defaults to source's dispatch receiver. It is overridable in case the new function and the old one are used in
@@ -319,36 +313,23 @@ fun IrType.remapTypeParameters(
 ): IrType =
     when (this) {
         is IrSimpleType -> {
-            val classifier = classifier.owner
-            when {
-                classifier is IrTypeParameter -> {
-                    val newClassifier =
-                        srcToDstParameterMap?.get(classifier) ?:
-                        if (classifier.parent == source)
-                            target.typeParameters[classifier.index]
-                        else
-                            classifier
-                    IrSimpleTypeImpl(newClassifier.symbol, hasQuestionMark, arguments, annotations)
-                }
-
-                classifier is IrClass ->
-                    IrSimpleTypeImpl(
-                        classifier.symbol,
-                        hasQuestionMark,
-                        arguments.map {
-                            when (it) {
-                                is IrTypeProjection -> makeTypeProjection(
-                                    it.type.remapTypeParameters(source, target, srcToDstParameterMap),
-                                    it.variance
-                                )
-                                else -> it
-                            }
-                        },
-                        annotations
-                    )
-
-                else -> this
+            val oldClassifier = classifier
+            val newClassifier = when {
+                oldClassifier is IrTypeParameterSymbol && oldClassifier.owner.parent == source ->
+                    srcToDstParameterMap?.getValue(oldClassifier.owner)?.symbol ?: target.typeParameters[oldClassifier.owner.index].symbol
+                else ->
+                    oldClassifier
             }
+            val newArguments = arguments.map {
+                when (it) {
+                    is IrTypeProjection -> makeTypeProjection(
+                        it.type.remapTypeParameters(source, target, srcToDstParameterMap),
+                        it.variance
+                    )
+                    else -> it
+                }
+            }
+            IrSimpleTypeImpl(newClassifier, hasQuestionMark, newArguments, annotations)
         }
         else -> this
     }
