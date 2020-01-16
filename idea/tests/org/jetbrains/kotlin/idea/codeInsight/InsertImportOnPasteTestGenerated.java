@@ -130,6 +130,11 @@ public class InsertImportOnPasteTestGenerated extends AbstractInsertImportOnPast
             runTest("idea/testData/copyPaste/imports/DependencyOnStdLib.kt");
         }
 
+        @TestMetadata("EntireFile.kt")
+        public void testEntireFile() throws Exception {
+            runTest("idea/testData/copyPaste/imports/EntireFile.kt");
+        }
+
         @TestMetadata("EnumEntries.kt")
         public void testEnumEntries() throws Exception {
             runTest("idea/testData/copyPaste/imports/EnumEntries.kt");
@@ -476,6 +481,11 @@ public class InsertImportOnPasteTestGenerated extends AbstractInsertImportOnPast
         @TestMetadata("DependencyOnStdLib.kt")
         public void testDependencyOnStdLib() throws Exception {
             runTest("idea/testData/copyPaste/imports/DependencyOnStdLib.kt");
+        }
+
+        @TestMetadata("EntireFile.kt")
+        public void testEntireFile() throws Exception {
+            runTest("idea/testData/copyPaste/imports/EntireFile.kt");
         }
 
         @TestMetadata("EnumEntries.kt")
