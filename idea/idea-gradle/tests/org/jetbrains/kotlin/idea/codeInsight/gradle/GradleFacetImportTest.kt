@@ -726,6 +726,13 @@ class GradleFacetImportTest : GradleImportingTestCase() {
     }
 
     @Test
+    fun testLazyTasksImport() {
+        configureByFiles()
+        importProject()
+        assertAllModulesConfigured()
+    }
+
+    @Test
     fun testNoFacetInModuleWithoutKotlinPlugin() {
         configureByFiles()
 

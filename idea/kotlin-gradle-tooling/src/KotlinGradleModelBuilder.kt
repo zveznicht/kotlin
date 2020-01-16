@@ -167,16 +167,22 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
         val compilerArgumentsBySourceSet = LinkedHashMap<String, ArgsInfo>()
         val extraProperties = HashMap<String, KotlinTaskProperties>()
 
-        project.getAllTasks(false)[project]?.forEach { compileTask ->
-            if (compileTask.javaClass.name !in kotlinCompileTaskClasses) return@forEach
+        val kotlinCompileTaskClassesTypes = kotlinCompileTaskClasses.mapNotNull { className ->
+            runCatching { Class.forName(className.removeSuffix("_Decorated")) }.getOrNull() as? Class<out Task>
+        }
 
-            val sourceSetName = compileTask.getSourceSetName()
-            val currentArguments = compileTask.getCompilerArguments("getSerializedCompilerArguments")
-                ?: compileTask.getCompilerArguments("getSerializedCompilerArgumentsIgnoreClasspathIssues") ?: emptyList()
-            val defaultArguments = compileTask.getCompilerArguments("getDefaultSerializedCompilerArguments").orEmpty()
-            val dependencyClasspath = compileTask.getDependencyClasspath()
-            compilerArgumentsBySourceSet[sourceSetName] = ArgsInfoImpl(currentArguments, defaultArguments, dependencyClasspath)
-            extraProperties.acknowledgeTask(compileTask)
+        kotlinCompileTaskClassesTypes.forEach { classType ->
+            project.tasks.withType(classType).forEach { compileTask ->
+                if (compileTask.javaClass.name == "${classType.name}_Decorated") {
+                    val sourceSetName = compileTask.getSourceSetName()
+                    val currentArguments = compileTask.getCompilerArguments("getSerializedCompilerArguments")
+                        ?: compileTask.getCompilerArguments("getSerializedCompilerArgumentsIgnoreClasspathIssues") ?: emptyList()
+                    val defaultArguments = compileTask.getCompilerArguments("getDefaultSerializedCompilerArguments").orEmpty()
+                    val dependencyClasspath = compileTask.getDependencyClasspath()
+                    compilerArgumentsBySourceSet[sourceSetName] = ArgsInfoImpl(currentArguments, defaultArguments, dependencyClasspath)
+                    extraProperties.acknowledgeTask(compileTask)
+                }
+            }
         }
 
         val platform = platformPluginId ?: pluginToPlatform.entries.singleOrNull { project.plugins.findPlugin(it.key) != null }?.value
