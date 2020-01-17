@@ -354,7 +354,9 @@ fun IrType.remapTypeParameters(
 
 /* Copied from K/N */
 fun IrDeclarationContainer.addChild(declaration: IrDeclaration) {
-    this.declarations += declaration
+    stageController.unrestrictDeclarationListsAccess {
+        this.declarations += declaration
+    }
     declaration.accept(SetDeclarationsParentVisitor, this)
 }
 
@@ -429,6 +431,7 @@ fun IrClass.simpleFunctions() = declarations.flatMap {
         else -> emptyList()
     }
 }
+
 
 fun IrClass.createParameterDeclarations() {
     assert (thisReceiver == null)
