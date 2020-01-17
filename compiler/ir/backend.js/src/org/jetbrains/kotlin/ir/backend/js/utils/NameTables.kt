@@ -199,7 +199,8 @@ class NameTables(
         }
 
         for (p in packages) {
-            for (declaration in p.declarations) {
+            // TODO
+            for (declaration in ArrayList(p.declarations)) {
                 acceptDeclaration(declaration)
             }
         }
@@ -346,6 +347,11 @@ class NameTables(
         //       of `invoke` functions in FunctionN interfaces
         if (name == null && signature is ParameterTypeBasedSignature && signature.suggestedName.startsWith("invoke"))
             return signature.suggestedName
+
+        if (name == null) {
+            return sanitizeName(function.name.asString()) + "__error" // TODO one case is a virtual method of an abstract class with no implementation
+        }
+
         require(name != null) {
             "Can't find name for member function ${function.render()}"
         }
