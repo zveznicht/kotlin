@@ -78,7 +78,6 @@ class ClosureAnnotator(irFile: IrFile) {
                     subClosure.capturedTypeParameters.filterTo(capturedTypeParameters) { isExternal(it) }
                 }
             }
-            result.forEach { seeType(it.owner.type) }
             // TODO: We can save the closure and reuse it.
             return Closure(capturedValues.toList(), capturedTypeParameters.toList())
         }
