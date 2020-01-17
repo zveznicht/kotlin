@@ -21,7 +21,18 @@ enum class FUSEventGroups(groupIdSuffix: String, val events: Set<String> = setOf
     Debug("ide.debugger"),
     J2K("ide.j2k"),
     Editor("ide.editor"),
-    Settings("ide.settings");
+    Settings("ide.settings"),
+
+    GradleEnvironment("gradle.env"),
+    GradleKapt("gradle.kapt"),
+    GradleCompilerPlugins("gradle.compilerplugins"),
+    GradleMPP("gradle.mpp"),
+    GradleLibraries("gradle.libraries"),
+    GradleGradleConfiguration("gradle.gradleconf"),
+    GradleComponentVersions("gradle.componentversions"),
+    GradleKotlinFeatures("gradle.kotlinfeatures"),
+    GradleGradlePerformance("gradle.gradleperf"),
+    GradleUserScenarios("gradle.usescenarios");
 
     val GROUP_ID: String = "kotlin.$groupIdSuffix"
 }
