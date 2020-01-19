@@ -5,6 +5,7 @@
 package org.jetbrains.kotlin.idea.debugger.coroutine.proxy
 
 import com.intellij.debugger.engine.SuspendContextImpl
+import com.intellij.debugger.engine.evaluation.EvaluateException
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl
 import com.intellij.debugger.jdi.StackFrameProxyImpl
 import com.intellij.xdebugger.frame.XSuspendContext
@@ -65,8 +66,14 @@ class CoroutineDebugProbesProxy(val suspendContext: XSuspendContext) {
         }
     }
 
-    private fun dumpCoroutinesInfo() =
-        executionContext.invokeMethodAsObject(refs.instance, refs.dumpMethod)
+    private fun dumpCoroutinesInfo(): ObjectReference? {
+        try {
+            return executionContext.invokeMethodAsObject(refs.instance, refs.dumpMethod)
+        } catch (e: EvaluateException) {
+            log.warn("Error while calling 'dumpCoroutinesInfo'.", e)
+            return null
+        }
+    }
 
     fun frameBuilder() = CoroutineBuilder(suspendContext)
 

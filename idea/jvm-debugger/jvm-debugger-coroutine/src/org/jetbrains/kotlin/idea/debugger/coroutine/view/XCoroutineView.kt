@@ -181,8 +181,12 @@ class XCoroutineView(val project: Project, val session: XDebugSession) :
                 var coroutineCache = debugProbesProxy.dumpCoroutines()
                 if (coroutineCache.isOk()) {
                     val children = XValueChildrenList()
-                    coroutineCache.cache.forEach {
-                        children.add(FramesContainer(it, suspendContext))
+                    if (coroutineCache.cache.isEmpty()) {
+                        children.add(InfoNode("No coroutines available."))
+                    } else {
+                        coroutineCache.cache.forEach {
+                            children.add(FramesContainer(it, suspendContext))
+                        }
                     }
                     node.addChildren(children, true)
                 } else {
@@ -193,6 +197,8 @@ class XCoroutineView(val project: Project, val session: XDebugSession) :
     }
 
     inner class ErrorNode(val error: String) : RendererContainer(renderer.renderErrorNode(error))
+
+    inner class InfoNode(val error: String) : RendererContainer(renderer.renderInfoNode(error))
 
     inner class FramesContainer(
         private val infoData: CoroutineInfoData,

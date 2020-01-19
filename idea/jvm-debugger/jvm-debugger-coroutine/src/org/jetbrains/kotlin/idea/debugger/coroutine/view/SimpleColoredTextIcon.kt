@@ -182,6 +182,9 @@ class SimpleColoredTextIconPresentationRenderer {
     fun renderErrorNode(error: String) =
         SimpleColoredTextIcon(AllIcons.Actions.Lightning,false, error)
 
+    fun renderInfoNode(error: String) =
+        SimpleColoredTextIcon(AllIcons.General.NotificationInfo,false, error)
+
     fun renderRoorNode(text: String) =
         SimpleColoredTextIcon(null, true, text)
 
