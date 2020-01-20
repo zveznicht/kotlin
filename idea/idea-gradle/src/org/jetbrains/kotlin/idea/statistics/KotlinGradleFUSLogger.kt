@@ -52,7 +52,7 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
 
         private val isRunning = AtomicBoolean(false)
 
-        private fun MetricsContainer.log(group: FUSEventGroups, vararg metrics: Any) {
+        private fun MetricsContainer.log(event: GradleStatisticsEvents, vararg metrics: Any) {
             val data = HashMap<String, String>()
             fun putIfNotNull(key: String, value: String?) {
                 if (value != null) {
@@ -68,12 +68,12 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
                     is Pair<*, *> -> putIfNotNull(metric.first.toString(), metric.second.toString())
                 }
             }
-            KotlinFUSLogger.log(group, group.name, data)
+            KotlinFUSLogger.log(FUSEventGroups.GradlePerformance, event.name, data)
         }
 
         private fun processMetricsContainer(container: MetricsContainer, previous: MetricsContainer?) {
             container.log(
-                FUSEventGroups.GradleEnvironment,
+                GradleStatisticsEvents.Environment,
                 StringMetrics.OS_TYPE,
                 NumericalMetrics.CPU_NUMBER_OF_CORES,
                 StringMetrics.GRADLE_VERSION,
@@ -82,14 +82,14 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
                 BooleanMetrics.EXECUTED_FROM_IDEA
             )
             container.log(
-                FUSEventGroups.GradleKapt,
+                GradleStatisticsEvents.Kapt,
                 BooleanMetrics.ENABLED_KAPT,
                 BooleanMetrics.ENABLED_DAGGER,
                 BooleanMetrics.ENABLED_DATABINDING
             )
 
             container.log(
-                FUSEventGroups.GradleCompilerPlugins,
+                GradleStatisticsEvents.CompilerPlugins,
                 BooleanMetrics.ENABLED_COMPILER_PLUGIN_ALL_OPEN,
                 BooleanMetrics.ENABLED_COMPILER_PLUGIN_NO_ARG,
                 BooleanMetrics.ENABLED_COMPILER_PLUGIN_JPA_SUPPORT,
@@ -97,13 +97,13 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
             )
 
             container.log(
-                FUSEventGroups.GradleMPP,
+                GradleStatisticsEvents.MPP,
                 StringMetrics.MPP_PLATFORMS,
                 BooleanMetrics.ENABLED_HMPP
             )
 
             container.log(
-                FUSEventGroups.GradleLibraries,
+                GradleStatisticsEvents.Libraries,
                 StringMetrics.LIBRARY_SPRING_VERSION,
                 StringMetrics.LIBRARY_VAADIN_VERSION,
                 StringMetrics.LIBRARY_GWT_VERSION,
@@ -111,7 +111,7 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
             )
 
             container.log(
-                FUSEventGroups.GradleGradleConfiguration,
+                GradleStatisticsEvents.GradleConfiguration,
                 NumericalMetrics.GRADLE_DAEMON_HEAP_SIZE,
                 NumericalMetrics.GRADLE_BUILD_NUMBER_IN_CURRENT_DAEMON,
                 NumericalMetrics.CONFIGURATION_API_COUNT,
@@ -124,7 +124,7 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
             )
 
             container.log(
-                FUSEventGroups.GradleComponentVersions,
+                GradleStatisticsEvents.ComponentVersions,
                 StringMetrics.KOTLIN_COMPILER_VERSION,
                 StringMetrics.KOTLIN_STDLIB_VERSION,
                 StringMetrics.KOTLIN_REFLECT_VERSION,
@@ -134,7 +134,7 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
             )
 
             container.log(
-                FUSEventGroups.GradleKotlinFeatures,
+                GradleStatisticsEvents.KotlinFeatures,
                 StringMetrics.KOTLIN_LANGUAGE_VERSION,
                 StringMetrics.KOTLIN_API_VERSION,
                 BooleanMetrics.BUILD_SRC_EXISTS,
@@ -147,7 +147,7 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
             )
 
             container.log(
-                FUSEventGroups.GradleGradlePerformance,
+                GradleStatisticsEvents.GradlePerformance,
                 NumericalMetrics.GRADLE_BUILD_DURATION,
                 NumericalMetrics.GRADLE_EXECUTION_DURATION,
                 NumericalMetrics.NUMBER_OF_SUBPROJECTS
@@ -158,7 +158,7 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
 
             val betweenBuilds = if (finishTime != null && prevFinishTime != null) finishTime - prevFinishTime else null
             container.log(
-                FUSEventGroups.GradleUserScenarios,
+                GradleStatisticsEvents.UseScenarios,
                 Pair(NumericalMetrics.BUILD_FINISH_TIME.name, betweenBuilds),
                 BooleanMetrics.DEBUGGER_ENABLED,
                 BooleanMetrics.COMPILATION_STARTED,

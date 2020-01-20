@@ -22,19 +22,23 @@ enum class FUSEventGroups(groupIdSuffix: String, val events: Set<String> = setOf
     J2K("ide.j2k"),
     Editor("ide.editor"),
     Settings("ide.settings"),
-
-    GradleEnvironment("gradle.env"),
-    GradleKapt("gradle.kapt"),
-    GradleCompilerPlugins("gradle.compilerplugins"),
-    GradleMPP("gradle.mpp"),
-    GradleLibraries("gradle.libraries"),
-    GradleGradleConfiguration("gradle.gradleconf"),
-    GradleComponentVersions("gradle.componentversions"),
-    GradleKotlinFeatures("gradle.kotlinfeatures"),
-    GradleGradlePerformance("gradle.gradleperf"),
-    GradleUserScenarios("gradle.usescenarios");
+    GradlePerformance("gradle.performance");
 
     val GROUP_ID: String = "kotlin.$groupIdSuffix"
+}
+
+@Suppress("EnumEntryName")
+enum class GradleStatisticsEvents {
+    Environment,
+    Kapt,
+    CompilerPlugins,
+    MPP,
+    Libraries,
+    GradleConfiguration,
+    ComponentVersions,
+    KotlinFeatures,
+    GradlePerformance,
+    UseScenarios
 }
 
 val gradleTargetEvents = setOf(
