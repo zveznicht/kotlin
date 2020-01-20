@@ -34,8 +34,8 @@ open class PodspecTask : DefaultTask() {
     @Input
     val frameworkNameProvider: Provider<String> = project.provider { settings.frameworkName }
 
-    @get:Internal
-    internal lateinit var settings: CocoapodsExtension
+    @Nested
+    lateinit var settings: CocoapodsExtension
 
     // TODO: Handle Framework name customization - rename the framework during sync process.
     @TaskAction
@@ -140,8 +140,8 @@ open class DummyFrameworkTask : DefaultTask() {
     @Input
     val frameworkNameProvider: Provider<String> = project.provider { settings.frameworkName }
 
-    @get:Internal
-    internal lateinit var settings: CocoapodsExtension
+    @Nested
+    lateinit var settings: CocoapodsExtension
 
     private val frameworkDir: File
         get() = destinationDir.resolve("${frameworkNameProvider.get()}.framework")
