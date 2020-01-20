@@ -22,7 +22,7 @@ fun anonymizeComponentVersion(version: String): String {
     return version.replace('-', '.')
         .split(".")
         .filterIndexed { i, _ -> i < 3 }
-        .map { s -> s.toIntOrNull() ?: "?" }
+        .map { s -> s.toIntOrNull() ?: "0" }
         .joinToString(".")
 }
 

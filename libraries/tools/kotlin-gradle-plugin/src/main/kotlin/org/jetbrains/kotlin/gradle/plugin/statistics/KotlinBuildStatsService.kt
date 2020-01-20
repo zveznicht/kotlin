@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.gradle.plugin.statistics
 
 import org.gradle.BuildAdapter
 import org.gradle.BuildResult
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
 import org.gradle.initialization.BuildCompletionListener
@@ -20,6 +22,7 @@ import java.lang.management.ManagementFactory
 import javax.management.MBeanServer
 import javax.management.ObjectName
 import javax.management.StandardMBean
+import kotlin.system.measureTimeMillis
 
 /**
  * Interface for populating statistics collection method via JXM interface
@@ -199,33 +202,62 @@ internal class DefaultKotlinBuildStatsService internal constructor(
         return (gradle as? DefaultGradle)?.services?.get(BuildRequestMetaData::class.java)?.startTime
     }
 
+    private fun reportLibrariesVersions(dependencies: DependencySet?) {
+        dependencies?.forEach { dependency ->
+            when {
+                dependency.group?.startsWith("org.springframework") ?: false -> sessionLogger.report(StringMetrics.LIBRARY_SPRING_VERSION, dependency.version ?: "0.0.0")
+                dependency.group?.startsWith("com.vaadin") ?: false -> sessionLogger.report(StringMetrics.LIBRARY_VAADIN_VERSION, dependency.version ?: "0.0.0")
+                dependency.group?.startsWith("com.google.gwt") ?: false -> sessionLogger.report(StringMetrics.LIBRARY_GWT_VERSION, dependency.version ?: "0.0.0")
+                dependency.group?.startsWith("org.hibernate") ?: false -> sessionLogger.report(StringMetrics.LIBRARY_HIBERNATE_VERSION, dependency.version ?: "0.0.0")
+            }
+        }
+    }
+
     private fun reportGlobalMetrics(gradle: Gradle) {
         System.getProperty("os.name")?.also {
-            sessionLogger.report(StringMetrics.OS_TYPE, gradle.gradleVersion)
+            sessionLogger.report(StringMetrics.OS_TYPE, System.getProperty("os.name"))
         }
         sessionLogger.report(NumericalMetrics.CPU_NUMBER_OF_CORES, Runtime.getRuntime().availableProcessors().toLong())
         sessionLogger.report(StringMetrics.GRADLE_VERSION, gradle.gradleVersion)
         sessionLogger.report(BooleanMetrics.EXECUTED_FROM_IDEA, System.getProperty("idea.active") != null)
 
+        val statisticOverhead = measureTimeMillis {
+            gradle.allprojects { project ->
+                for (configuration in project.configurations) {
+                    val configurationName = configuration.name
+                    val dependencies = configuration.dependencies
 
-        gradle.allprojects { project ->
-            for (configuration in project.configurations) {
-                val configurationName = configuration.name
-                val dependencies = configuration.dependencies
-
-                when (configurationName) {
-                    "kapt" -> {
-                        sessionLogger.report(BooleanMetrics.ENABLED_KAPT, true)
-                        dependencies.forEach { dependency ->
-                            when (dependency.group) {
-                                "com.google.dagger" -> sessionLogger.report(BooleanMetrics.ENABLED_DAGGER, true)
-                                "com.android.databinding" -> sessionLogger.report(BooleanMetrics.ENABLED_DATABINDING, true)
+                    when (configurationName) {
+                        "kapt" -> {
+                            sessionLogger.report(BooleanMetrics.ENABLED_KAPT, true)
+                            dependencies?.forEach { dependency ->
+                                when (dependency.group) {
+                                    "com.google.dagger" -> sessionLogger.report(BooleanMetrics.ENABLED_DAGGER, true)
+                                    "com.android.databinding" -> sessionLogger.report(BooleanMetrics.ENABLED_DATABINDING, true)
+                                }
                             }
+                        }
+                        "api" -> {
+                            sessionLogger.report(NumericalMetrics.CONFIGURATION_API_COUNT, 1)
+                            reportLibrariesVersions(dependencies)
+                        }
+                        "implementation" -> {
+                            sessionLogger.report(NumericalMetrics.CONFIGURATION_IMPLEMENTATION_COUNT, 1)
+                            reportLibrariesVersions(dependencies)
+                        }
+                        "compile" -> {
+                            sessionLogger.report(NumericalMetrics.CONFIGURATION_COMPILE_COUNT, 1)
+                            reportLibrariesVersions(dependencies)
+                        }
+                        "runtime" -> {
+                            sessionLogger.report(NumericalMetrics.CONFIGURATION_RUNTIME_COUNT, 1)
+                            reportLibrariesVersions(dependencies)
                         }
                     }
                 }
             }
         }
+        sessionLogger.report(NumericalMetrics.STATISTICS_VISIT_ALL_PROJECTS_OVERHEAD, statisticOverhead)
     }
 
     override fun projectsEvaluated(gradle: Gradle) {

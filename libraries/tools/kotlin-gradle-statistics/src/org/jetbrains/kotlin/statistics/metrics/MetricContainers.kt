@@ -41,6 +41,19 @@ open class OverrideMetricContainer<T>() : IMetricContainer<T> {
     override fun getValue() = myValue
 }
 
+class OverrideVersionMetricContainer() : OverrideMetricContainer<String>() {
+
+    constructor(v: String) : this() {
+        myValue = v
+    }
+
+    override fun addValue(t: String) {
+        if (myValue == null || myValue == "0.0.0") {
+            myValue = t
+        }
+    }
+}
+
 class SumMetricContainer() : OverrideMetricContainer<Long>() {
 
     constructor(v: Long) : this() {

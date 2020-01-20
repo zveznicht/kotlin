@@ -68,7 +68,9 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
                     is Pair<*, *> -> putIfNotNull(metric.first.toString(), metric.second.toString())
                 }
             }
-            KotlinFUSLogger.log(FUSEventGroups.GradlePerformance, event.name, data)
+            if (data.size > 0) {
+                KotlinFUSLogger.log(FUSEventGroups.GradlePerformance, event.name, data)
+            }
         }
 
         private fun processMetricsContainer(container: MetricsContainer, previous: MetricsContainer?) {
@@ -107,7 +109,7 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
                 StringMetrics.LIBRARY_SPRING_VERSION,
                 StringMetrics.LIBRARY_VAADIN_VERSION,
                 StringMetrics.LIBRARY_GWT_VERSION,
-                StringMetrics.LIBRARY_HYBERNATE_VERSION
+                StringMetrics.LIBRARY_HIBERNATE_VERSION
             )
 
             container.log(
@@ -150,7 +152,8 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
                 GradleStatisticsEvents.GradlePerformance,
                 NumericalMetrics.GRADLE_BUILD_DURATION,
                 NumericalMetrics.GRADLE_EXECUTION_DURATION,
-                NumericalMetrics.NUMBER_OF_SUBPROJECTS
+                NumericalMetrics.NUMBER_OF_SUBPROJECTS,
+                NumericalMetrics.STATISTICS_VISIT_ALL_PROJECTS_OVERHEAD
             )
 
             val finishTime = container.getMetric(NumericalMetrics.BUILD_FINISH_TIME)?.getValue()
@@ -214,7 +217,7 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
 
             PropertiesComponent.getInstance().setValues(
                 GRADLE_USER_DIRS_PROPERTY_NAME,
-                result.filter { path -> File(path).exists() }.filterIndexed { i, _ -> i < MAXIMUM_USER_DIRS }.toTypedArray()
+                result.filter { filePath -> File(filePath).exists() }.filterIndexed { i, _ -> i < MAXIMUM_USER_DIRS }.toTypedArray()
             )
         }
     }
