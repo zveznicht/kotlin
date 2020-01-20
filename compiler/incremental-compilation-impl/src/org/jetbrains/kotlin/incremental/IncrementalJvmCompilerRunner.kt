@@ -25,7 +25,7 @@ import com.intellij.psi.PsiJavaFile
 import org.jetbrains.kotlin.build.DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
 import org.jetbrains.kotlin.build.GeneratedFile
 import org.jetbrains.kotlin.build.GeneratedJvmClass
-import org.jetbrains.kotlin.build.JvmSourceRoot
+import org.jetbrains.kotlin.build.metrics.BuildMetric
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -47,7 +47,6 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import java.io.File
-import java.io.ObjectOutputStream
 
 fun makeIncrementally(
         cachesDir: File,
@@ -144,7 +143,7 @@ class IncrementalJvmCompilerRunner(
             else
                 null
 
-    override fun calculateSourcesToCompile(
+    override fun calculateSourcesToCompileImpl(
         caches: IncrementalJvmCachesManager,
         changedFiles: ChangedFiles.Known,
         args: K2JVMCompilerArguments
@@ -155,7 +154,7 @@ class IncrementalJvmCompilerRunner(
         val lastBuildInfo = BuildInfo.read(lastBuildInfoFile) ?: return CompilationMode.Rebuild { "No information on previous build" }
         reporter.reportVerbose { "Last Kotlin Build info -- $lastBuildInfo" }
 
-        val classpathChanges = reporter.measure("calculating_classpath_changes") {
+        val classpathChanges = reporter.measure(BuildMetric.IC_ANALYZE_CHANGES_IN_DEPENDENCIES) {
             getClasspathChanges(args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter)
         }
 
@@ -172,21 +171,27 @@ class IncrementalJvmCompilerRunner(
             }
         }
 
-        if (!usePreciseJavaTracking) {
-            val javaFilesChanges = javaFilesProcessor!!.process(changedFiles)
-            val affectedJavaSymbols = when (javaFilesChanges) {
-                is ChangesEither.Known -> javaFilesChanges.lookupSymbols
-                is ChangesEither.Unknown -> return CompilationMode.Rebuild { "Could not get changes for java files" }
-            }
-            dirtyFiles.addByDirtySymbols(affectedJavaSymbols)
-        } else {
-            if (!processChangedJava(changedFiles, caches)) {
-                return CompilationMode.Rebuild { "Could not get changes for java files" }
+        reporter.measure(BuildMetric.IC_ANALYZE_CHANGES_IN_JAVA_SOURCES) {
+            if (!usePreciseJavaTracking) {
+                val javaFilesChanges = javaFilesProcessor!!.process(changedFiles)
+                val affectedJavaSymbols = when (javaFilesChanges) {
+                    is ChangesEither.Known -> javaFilesChanges.lookupSymbols
+                    is ChangesEither.Unknown -> return CompilationMode.Rebuild { "Could not get changes for Java files" }
+                }
+                dirtyFiles.addByDirtySymbols(affectedJavaSymbols)
+            } else {
+                if (!processChangedJava(changedFiles, caches)) {
+                    return CompilationMode.Rebuild { "Could not get changes for Java files" }
+                }
             }
         }
 
-        val androidLayoutChanges = processLookupSymbolsForAndroidLayouts(changedFiles)
-        val removedClassesChanges = getRemovedClassesChanges(caches, changedFiles)
+        val androidLayoutChanges = reporter.measure(BuildMetric.IC_ANALYZE_CHANGES_IN_ANDROID_LAYOUTS) {
+            processLookupSymbolsForAndroidLayouts(changedFiles)
+        }
+        val removedClassesChanges = reporter.measure(BuildMetric.IC_DETECT_REMOVED_CLASSES) {
+            getRemovedClassesChanges(caches, changedFiles)
+        }
 
         dirtyFiles.addByDirtySymbols(androidLayoutChanges)
         dirtyFiles.addByDirtySymbols(removedClassesChanges.dirtyLookupSymbols)

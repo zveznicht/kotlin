@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.incremental
 
 import org.jetbrains.kotlin.build.DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
 import org.jetbrains.kotlin.build.GeneratedFile
+import org.jetbrains.kotlin.build.metrics.BuildMetric
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -136,7 +137,16 @@ abstract class IncrementalCompilerRunner<
                 is ChangedFiles.Unknown -> CompilationMode.Rebuild { "inputs' changes are unknown (first or clean build)" }
             }
 
-    protected abstract fun calculateSourcesToCompile(caches: CacheManager, changedFiles: ChangedFiles.Known, args: Args): CompilationMode
+    private fun calculateSourcesToCompile(
+        caches: CacheManager, changedFiles: ChangedFiles.Known, args: Args
+    ): CompilationMode =
+        reporter.measure(BuildMetric.IC_CALCULATE_INITIAL_DIRTY_SET) {
+            calculateSourcesToCompileImpl(caches, changedFiles, args)
+        }
+
+    protected abstract fun calculateSourcesToCompileImpl(
+        caches: CacheManager, changedFiles: ChangedFiles.Known, args: Args
+    ): CompilationMode
 
     protected fun initDirtyFiles(dirtyFiles: DirtyFilesContainer, changedFiles: ChangedFiles.Known) {
         dirtyFiles.add(changedFiles.modified, "was modified since last time")
@@ -234,7 +244,9 @@ abstract class IncrementalCompilerRunner<
             val outputItemsCollector = OutputItemsCollectorImpl()
             val messageCollectorAdapter = MessageCollectorToOutputItemsCollectorAdapter(messageCollector, outputItemsCollector)
 
-            exitCode = runCompiler(sourcesToCompile.toSet(), args, caches, services, messageCollectorAdapter)
+            exitCode = reporter.measure(BuildMetric.COMPILE_ITERATION) {
+                runCompiler(sourcesToCompile.toSet(), args, caches, services, messageCollectorAdapter)
+            }
             postCompilationHook(exitCode)
 
             reporter.reportCompileIteration(compilationMode is CompilationMode.Incremental, sourcesToCompile, exitCode)
@@ -253,11 +265,13 @@ abstract class IncrementalCompilerRunner<
                 }
             }
 
-            caches.platformCache.updateComplementaryFiles(dirtySources, expectActualTracker)
-            caches.inputsCache.registerOutputForSourceFiles(generatedFiles)
-            caches.lookupCache.update(lookupTracker, sourcesToCompile, removedKotlinSources)
             val changesCollector = ChangesCollector()
-            updateCaches(services, caches, generatedFiles, changesCollector)
+            reporter.measure(BuildMetric.IC_UPDATE_CACHES) {
+                caches.platformCache.updateComplementaryFiles(dirtySources, expectActualTracker)
+                caches.inputsCache.registerOutputForSourceFiles(generatedFiles)
+                caches.lookupCache.update(lookupTracker, sourcesToCompile, removedKotlinSources)
+                updateCaches(services, caches, generatedFiles, changesCollector)
+            }
 
             if (compilationMode is CompilationMode.Rebuild) break
 
@@ -317,7 +331,7 @@ abstract class IncrementalCompilerRunner<
         compilationMode: CompilationMode,
         currentBuildInfo: BuildInfo,
         dirtyData: DirtyData
-    ) = reporter.measure("writing_change_history") {
+    ) = reporter.measure(BuildMetric.IC_WRITE_HISTORY_FILE) {
         val prevDiffs = BuildDiffsStorage.readFromFile(buildHistoryFile, reporter)?.buildDiffs ?: emptyList()
         val newDiff = if (compilationMode is CompilationMode.Incremental) {
             BuildDifference(currentBuildInfo.startTS, true, dirtyData)

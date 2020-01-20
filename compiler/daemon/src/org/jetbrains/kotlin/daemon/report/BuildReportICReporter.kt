@@ -9,9 +9,9 @@ import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.daemon.common.CompilationResultCategory
 import org.jetbrains.kotlin.daemon.common.CompilationResults
 import org.jetbrains.kotlin.incremental.ICReporterBase
+import org.jetbrains.kotlin.build.metrics.BuildMetric
 import java.io.File
 import java.util.*
-import kotlin.collections.ArrayList
 
 internal class BuildReportICReporter(
     private val compilationResults: CompilationResults,
@@ -23,8 +23,8 @@ internal class BuildReportICReporter(
 ) : ICReporterBase(rootDir), RemoteICReporter {
     private val icLogLines = arrayListOf<String>()
     private val recompilationReason = HashMap<File, String>()
-    private val rootMetric = Metric("<root>", 0)
-    private val metrics = ArrayDeque<Metric>().apply { add(rootMetric) }
+    private val metricStartNs: EnumMap<BuildMetric, Long> = EnumMap(BuildMetric::class.java)
+    private val metrics = ArrayList<Pair<BuildMetric, Long>>()
 
     override fun report(message: () -> String) {
         icLogLines.add(message())
@@ -36,27 +36,20 @@ internal class BuildReportICReporter(
         }
     }
 
-    override fun startMeasure(metric: String, startNs: Long) {
-        if (!reportMetrics) return
-
-        val newMetric = Metric(metric, startNs)
-        if (metrics.isNotEmpty()) {
-            metrics.peekLast().children.add(newMetric)
+    override fun startMeasure(metric: BuildMetric, startNs: Long) {
+        if (reportMetrics) {
+            if (metric in metricStartNs) {
+                error("$metric was restarted before it finished")
+            }
+            metricStartNs[metric] = startNs
         }
-        metrics.addLast(newMetric)
     }
 
-    override fun endMeasure(metric: String, endNs: Long) {
-        if (!reportMetrics) return
-
-        while (metrics.isNotEmpty()) {
-            val lastMetric = metrics.peekLast()
-            if (lastMetric.name == metric) {
-                lastMetric.endNs = endNs
-                break
-            } else {
-                metrics.removeLast()
-            }
+    override fun endMeasure(metric: BuildMetric, endNs: Long) {
+        if (reportMetrics) {
+            val startNs = metricStartNs.remove(metric) ?: error("$metric finished before it started")
+            val durationNs = endNs - startNs
+            metrics.add(metric to durationNs)
         }
     }
 
@@ -77,24 +70,9 @@ internal class BuildReportICReporter(
 
     override fun flush() {
         if (reportMetrics) {
-            icLogLines.add("Performance metrics:")
-            reportMetric(rootMetric)
+            compilationResults.add(CompilationResultCategory.BUILD_METRICS.code, metrics)
         }
 
         compilationResults.add(CompilationResultCategory.BUILD_REPORT_LINES.code, icLogLines)
     }
-
-    private fun reportMetric(metric: Metric, level: Int = 0) {
-        if (level > 0) {
-            val timeMs = metric.endNs?.let { (it - metric.startNs) / 1_000_000L }
-            icLogLines.add("  ".repeat(level) + "{perf_metric:${metric.name}} ${timeMs ?: "<unknown>"} ms")
-        }
-
-        metric.children.forEach { reportMetric(it, level + 1) }
-    }
-}
-
-private class Metric(val name: String, val startNs: Long) {
-    var endNs: Long? = null
-    val children = ArrayList<Metric>()
 }

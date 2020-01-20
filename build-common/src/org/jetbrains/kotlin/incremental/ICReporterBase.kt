@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.incremental
 
+import org.jetbrains.kotlin.build.metrics.BuildMetric
 import java.io.File
 
 abstract class ICReporterBase(private val pathsBase: File? = null) : ICReporter {
@@ -34,9 +35,9 @@ abstract class ICReporterBase(private val pathsBase: File? = null) : ICReporter 
     protected fun File.relativeOrCanonical(): File =
         pathsBase?.let { relativeToOrNull(it) } ?: canonicalFile
 
-    override fun startMeasure(metric: String, startNs: Long) {
+    override fun startMeasure(metric: BuildMetric, startNs: Long) {
     }
 
-    override fun endMeasure(metric: String, endNs: Long) {
+    override fun endMeasure(metric: BuildMetric, endNs: Long) {
     }
 }

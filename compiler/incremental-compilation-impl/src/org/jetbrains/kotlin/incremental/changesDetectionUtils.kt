@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.incremental
 
+import org.jetbrains.kotlin.build.metrics.BuildMetric
 import org.jetbrains.kotlin.incremental.multiproject.ModulesApiHistory
 import org.jetbrains.kotlin.incremental.util.Either
 import org.jetbrains.kotlin.name.FqName
@@ -39,7 +40,7 @@ internal fun getClasspathChanges(
     val fqNames = HashSet<FqName>()
 
     val historyFilesEither =
-        reporter.measure("discover_history_files") {
+        reporter.measure(BuildMetric.IC_FIND_HISTORY_FILES) {
             modulesApiHistory.historyFilesForChangedFiles(modifiedClasspath)
         }
     val historyFiles = when (historyFilesEither) {
@@ -68,7 +69,7 @@ internal fun getClasspathChanges(
         return ChangesEither.Known(symbols, fqNames)
     }
 
-    return reporter.measure("analyzing_history_files") {
+    return reporter.measure(BuildMetric.IC_ANALYZE_HISTORY_FILES) {
         analyzeHistoryFiles()
     }
 }
