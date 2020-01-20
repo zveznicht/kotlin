@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.gradle.targets.native.internal
 
-import com.intellij.util.containers.FactoryMap
 import org.gradle.api.Project
 import org.jetbrains.kotlin.compilerRunner.konanHome
 import org.jetbrains.kotlin.daemon.common.toHexString
@@ -16,13 +15,11 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.plugin.mpp.CompilationSourceSetUtil
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
-import org.jetbrains.kotlin.gradle.utils.SingleWarningPerBuild
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_COMMON_LIBS_DIR
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_KLIB_DIR
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_PLATFORM_LIBS_DIR
 import org.jetbrains.kotlin.konan.library.KONAN_STDLIB_NAME
 import org.jetbrains.kotlin.konan.target.KonanTarget
-import org.jetbrains.kotlin.utils.addToStdlib.firstIsInstanceOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.flattenTo
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -163,7 +160,6 @@ private fun Project.findSourceSetsToAddDependencies(allowCommonizer: Boolean): M
 
 private fun Project.findSourceSetsToAddCommonizedPlatformDependencies(): Map<KotlinSourceSet, Set<NativePlatformDependency>> {
     val sourceSetsToAddDeps = mutableMapOf<KotlinSourceSet, Set<NativePlatformDependency>>()
-    val leafToCommonDependencies = FactoryMap.create<KotlinSourceSet, MutableSet<KotlinSourceSet>> { mutableSetOf() }
 
     val compilationsBySourceSets = CompilationSourceSetUtil.compilationsBySourceSets(this)
     val nativeCompilations = compilationsBySourceSets.values.flattenTo(mutableSetOf()).filterIsInstance<KotlinNativeCompilation>()
@@ -216,8 +212,6 @@ private fun Project.findSourceSetsToAddCommonizedPlatformDependencies(): Map<Kot
             )
 
             leafSourceSets.forEach { (leafSourceSet, details) ->
-                leafToCommonDependencies.getValue(leafSourceSet) += sourceSet
-
                 val existingDep = sourceSetsToAddDeps[leafSourceSet]
                 if (existingDep == null) {
                     val (target, includeEndorsedLibs) = details
@@ -234,63 +228,7 @@ private fun Project.findSourceSetsToAddCommonizedPlatformDependencies(): Map<Kot
         }
     }
 
-    checkAmbiguousLeafSourceSets(sourceSetsToAddDeps, leafToCommonDependencies)
-
     return sourceSetsToAddDeps
-}
-
-/*
- * Check whether a leaf source set depends on more than one common source set with the different set of commonized KLIBs.
- *
- * Example:
- *
- *         ios64BitCommon              iosSimulatorCommon
- *    (common, iosX64+iosArm64)    (common, iosArm64+iosArm32)
- *     /                     \      /                       \
- *  iosX64                   iosArm64                       iosArm32
- *                      (should be warned)
- */
-private fun Project.checkAmbiguousLeafSourceSets(
-    sourceSetsToAddDeps: Map<KotlinSourceSet, Set<NativePlatformDependency>>,
-    leafToCommonDependencies: Map<KotlinSourceSet, Set<KotlinSourceSet>>
-) {
-    leafToCommonDependencies.forEach { (leafSourceSet: KotlinSourceSet, commonSourceSets: Set<KotlinSourceSet>) ->
-        if (commonSourceSets.size < 2) {
-            // leaf source set has less than 2 common source sets, nothing to warn about
-            return@forEach
-        }
-
-        val commonSourceSetsWithDeps: MutableMap<KotlinSourceSet, NativePlatformDependency.CommonizedCommon> = mutableMapOf()
-        commonSourceSets.forEach sourceSets@{ sourceSet ->
-            val sourceSetDeps = sourceSetsToAddDeps[sourceSet] ?: return@sourceSets
-            val commonizedCommonDep = sourceSetDeps.firstIsInstanceOrNull<NativePlatformDependency.CommonizedCommon>() ?: return@sourceSets
-            commonSourceSetsWithDeps[sourceSet] = commonizedCommonDep
-        }
-
-        val distinctDeps: Set<NativePlatformDependency.CommonizedCommon> = commonSourceSetsWithDeps.values.toSet()
-        if (distinctDeps.size < 2) {
-            // all common source sets have the same set of commonized libraries from the distribution, nothing to warn about
-            return@forEach
-        }
-
-        val leafDep: NativePlatformDependency.CommonizedPlatform = sourceSetsToAddDeps.getValue(leafSourceSet)
-            .firstIsInstanceOrNull()
-            ?: return@forEach
-
-        // TODO: use more concise warning message, or maybe reconsider the way how commonized libs are added to configurations of intermediate
-        //  source sets so that the default source set in compilation (the leaf source set) won't inherit them
-        SingleWarningPerBuild.show(
-            this,
-            "Source set ${leafSourceSet.name} (target=${leafDep.target}) depends on intermediate native source sets" +
-                    " configured for different combination of Kotlin/Native targets:\n" +
-                    commonSourceSetsWithDeps.entries.joinToString(separator = "\n") { (sourceSet, sourceSetDep) ->
-                        "- ${sourceSet.name}, targets=${sourceSetDep.targets.map { it.name }.sorted()}"
-                    } +
-                    "\nThis may lead to incorrect resolve of Kotlin source code in ${leafSourceSet.name} module in IDE after import.\n" +
-                    "To avoid this please edit Gradle buildfile and make sure that source set ${leafSourceSet.name} depends" +
-                    " only on intermediate source sets configured for the single combination of Kotlin/Native targets.\n"
-        )
-    }
 }
 
 private fun runCommonizer(project: Project, distributionDir: File, targets: Set<KonanTarget>): File {
