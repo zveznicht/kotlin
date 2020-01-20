@@ -51,7 +51,7 @@ open class CocoapodsExtension(private val project: Project) {
      * Configure framework name of the pod built from this project.
      */
     @Input
-    var frameworkName = project.name.asValidFrameworkName()
+    var frameworkName: String = project.name.asValidFrameworkName()
 
     private val _pods = project.container(CocoapodsDependency::class.java)
 
