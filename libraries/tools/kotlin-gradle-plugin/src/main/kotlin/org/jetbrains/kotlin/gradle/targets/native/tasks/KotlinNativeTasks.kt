@@ -88,8 +88,7 @@ private fun FileCollection.filterOutPublishableInteropLibs(project: Project): Fi
 }
 
 private fun Collection<File>.filterExternalKlibs(project: Project) = filter {
-    // Support only klib files for now.
-    it.extension == "klib" && !it.providedByCompiler(project)
+    !it.providedByCompiler(project) && (it.extension == "klib" || it.isDirectory)
 }
 
 // endregion
@@ -101,7 +100,7 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
     }
 
     @get:Internal
-    abstract val compilation: KotlinNativeCompilation
+    abstract val compilation: AbstractKotlinNativeCompilation
 
     // region inputs/outputs
     @get:Input
@@ -231,6 +230,11 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
         addArg("-target", target)
         addArg("-p", outputKind.name.toLowerCase())
 
+        if (compilation is KotlinSharedNativeCompilation) {
+            add("-Xklib-mpp")
+            add("-Xmetadata-klib")
+        }
+
         addArg("-o", outputFile.get().absolutePath)
 
         // Libraries.
@@ -259,7 +263,7 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
  */
 open class KotlinNativeCompile : AbstractKotlinNativeCompile<KotlinCommonOptions>(), KotlinCompile<KotlinCommonOptions> {
     @Internal
-    override lateinit var compilation: KotlinNativeCompilation
+    final override lateinit var compilation: AbstractKotlinNativeCompilation
 
     @get:Input
     override val outputKind = LIBRARY
@@ -286,7 +290,7 @@ open class KotlinNativeCompile : AbstractKotlinNativeCompile<KotlinCommonOptions
 
     private val friendModule: FileCollection?
         get() = project.files(
-            project.provider { compilation.friendCompilations.map { it.output.allOutputs } + compilation.friendArtifacts }
+            project.provider { compilation.associateWithTransitiveClosure.map { it.output.allOutputs } + compilation.friendArtifacts }
         )
     // endregion.
 
@@ -318,13 +322,7 @@ open class KotlinNativeCompile : AbstractKotlinNativeCompile<KotlinCommonOptions
         override var suppressWarnings: Boolean = false
         override var verbose: Boolean = false
 
-        // TODO: Drop extraOpts in 1.3.70 and create a list here directly
-        // Delegate for compilations's extra options.
-        override var freeCompilerArgs: List<String>
-            get() = compilation.extraOptsNoWarn
-            set(value) {
-                compilation.extraOptsNoWarn = value.toMutableList()
-            }
+        override var freeCompilerArgs: List<String> = listOf()
     }
 
     @get:Input
@@ -558,7 +556,7 @@ open class KotlinNativeLink : AbstractKotlinNativeCompile<KotlinCommonToolOption
             // Allow a user to force the old behaviour of a link task.
             // TODO: Remove in 1.3.70.
             mutableListOf<String>().apply {
-                val friendCompilations = compilation.friendCompilations
+                val friendCompilations = compilation.associateWithTransitiveClosure.toList()
                 val friendFiles = if (friendCompilations.isNotEmpty())
                     project.files(
                         project.provider { friendCompilations.map { it.output.allOutputs } + compilation.friendArtifacts }
