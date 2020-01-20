@@ -162,7 +162,6 @@ interface KotlinTestTask : Serializable {
 interface ExtraFeatures : Serializable {
     val coroutinesState: String?
     val isHMPPEnabled: Boolean
-    val isNativeDependencyPropagationEnabled: Boolean
 }
 
 interface KotlinMPPGradleModel : Serializable {
