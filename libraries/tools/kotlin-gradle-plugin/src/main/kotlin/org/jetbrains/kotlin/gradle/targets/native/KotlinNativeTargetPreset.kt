@@ -85,12 +85,6 @@ abstract class AbstractKotlinNativeTargetPreset<T : KotlinNativeTarget>(
 
     companion object {
         private const val KOTLIN_NATIVE_HOME_PRIVATE_PROPERTY = "konanHome"
-
-        internal const val NO_NATIVE_STDLIB_WARNING =
-            "The Kotlin/Native distribution used in this build does not provide the standard library. "
-
-        internal const val NO_NATIVE_STDLIB_PROPERTY_WARNING =
-            "Make sure that the '${PropertiesProvider.KOTLIN_NATIVE_HOME}' property points to a valid Kotlin/Native distribution."
     }
 
 }

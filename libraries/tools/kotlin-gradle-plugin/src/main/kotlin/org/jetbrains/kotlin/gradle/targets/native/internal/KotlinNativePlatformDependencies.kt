@@ -12,10 +12,14 @@ import org.jetbrains.kotlin.descriptors.commonizer.konan.NativeDistributionCommo
 import org.jetbrains.kotlin.gradle.dsl.multiplatformExtensionOrNull
 import org.jetbrains.kotlin.gradle.internal.isInIdeaSync
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider
+import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.Companion.KOTLIN_NATIVE_HOME
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.plugin.mpp.CompilationSourceSetUtil
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
 import org.jetbrains.kotlin.gradle.targets.metadata.isKotlinGranularMetadataEnabled
+import org.jetbrains.kotlin.gradle.targets.native.internal.NativePlatformDependency.*
+import org.jetbrains.kotlin.gradle.utils.SingleWarningPerBuild
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_COMMON_LIBS_DIR
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_KLIB_DIR
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_PLATFORM_LIBS_DIR
@@ -37,12 +41,9 @@ internal fun Project.setUpKotlinNativePlatformDependencies() {
     // run commonizer only for HMPP projects and only on IDE sync
     val allowCommonizer = isKotlinGranularMetadataEnabled && isInIdeaSync
 
-    findSourceSetsToAddDependencies(allowCommonizer).forEach { (sourceSet, sourceSetDeps) ->
-        sourceSetDeps.forEach { sourceSetDep ->
-            val resolvedDep = dependencyResolver.resolve(sourceSetDep)
-            resolvedDep.libraryPaths.forEach { dir ->
-                project.dependencies.add(sourceSet.implementationMetadataConfigurationName, dependencies.create(files(dir)))
-            }
+    findSourceSetsToAddDependencies(allowCommonizer).forEach { (sourceSet: KotlinSourceSet, sourceSetDeps: Set<NativePlatformDependency>) ->
+        sourceSetDeps.map(dependencyResolver::resolve).flatten().forEach { dir ->
+            project.dependencies.add(sourceSet.implementationMetadataConfigurationName, dependencies.create(files(dir)))
         }
     }
 }
@@ -61,78 +62,73 @@ private sealed class NativePlatformDependency {
     data class CommonizedPlatform(val target: KonanTarget, val common: CommonizedCommon) : NativePlatformDependency()
 }
 
-private sealed class NativePlatformResolvedDependency {
-    abstract val dependency: NativePlatformDependency
-    abstract val libraryPaths: Set<File>
-
-    class OutOfDistributionCommon(
-        override val dependency: NativePlatformDependency.OutOfDistributionCommon,
-        distributionLibsDir: File
-    ) : NativePlatformResolvedDependency() {
-        override val libraryPaths = libsInCommonDir(distributionLibsDir).let {
-            /* stdlib, endorsed libs */
-            if (!dependency.includeEndorsedLibs) it.filter { dir -> dir.endsWith(KONAN_STDLIB_NAME) } else it
-        }.toSet()
-    }
-
-    class OutOfDistributionPlatform(
-        override val dependency: NativePlatformDependency.OutOfDistributionPlatform,
-        distributionLibsDir: File
-    ) : NativePlatformResolvedDependency() {
-        override val libraryPaths =
-            /* platform libs for a specific target */ libsInPlatformDir(distributionLibsDir, dependency.target)
-    }
-
-    class CommonizedCommon(
-        override val dependency: NativePlatformDependency.CommonizedCommon,
-        val commonizedLibsDir: File
-    ) : NativePlatformResolvedDependency() {
-        override val libraryPaths =
-            /* commonized platform libs with expect declarations */ libsInCommonDir(commonizedLibsDir)
-    }
-
-    class CommonizedPlatform(
-        override val dependency: NativePlatformDependency.CommonizedPlatform,
-        val common: CommonizedCommon
-    ) : NativePlatformResolvedDependency() {
-        override val libraryPaths =
-            /* commonized platform libs with actual declarations */ libsInPlatformDir(common.commonizedLibsDir, dependency.target)
-    }
-
-    private companion object {
-        private fun libsInCommonDir(basePath: File) =
-            basePath.resolve(KONAN_DISTRIBUTION_COMMON_LIBS_DIR).listFiles()?.toSet() ?: emptySet()
-
-        private fun libsInPlatformDir(basePath: File, target: KonanTarget) =
-            basePath.resolve(KONAN_DISTRIBUTION_PLATFORM_LIBS_DIR).resolve(target.name).listFiles()?.toSet() ?: emptySet()
-    }
-}
-
 private class NativePlatformDependencyResolver(val project: Project) {
     private val distributionDir = File(project.konanHome)
     private val distributionLibsDir = distributionDir.resolve(KONAN_DISTRIBUTION_KLIB_DIR)
-    private val resolvedDependencies = mutableMapOf<NativePlatformDependency, NativePlatformResolvedDependency>()
 
-    fun resolve(dependency: NativePlatformDependency): NativePlatformResolvedDependency = resolvedDependencies.computeIfAbsent(dependency) {
+    private val resolvedDependencies = mutableMapOf<NativePlatformDependency, Set<File>>()
+    private val commonizationResults = mutableMapOf<CommonizedCommon, File>()
+
+    fun resolve(dependency: NativePlatformDependency): Set<File> = resolvedDependencies.computeIfAbsent(dependency) {
         when (dependency) {
-            is NativePlatformDependency.OutOfDistributionCommon -> {
-                NativePlatformResolvedDependency.OutOfDistributionCommon(dependency, distributionLibsDir)
+            is OutOfDistributionCommon -> {
+                /* stdlib, endorsed libs */
+                var hasStdlib = false
+                val libs = libsInCommonDir(distributionLibsDir) { dir ->
+                    val isStdlib = dir.endsWith(KONAN_STDLIB_NAME)
+                    hasStdlib = hasStdlib || isStdlib
+
+                    return@libsInCommonDir isStdlib || dependency.includeEndorsedLibs
+                }
+
+                if (!hasStdlib) warnAboutMissingNativeStdlib()
+
+                libs
             }
 
-            is NativePlatformDependency.OutOfDistributionPlatform -> {
-                NativePlatformResolvedDependency.OutOfDistributionPlatform(dependency, distributionLibsDir)
+            is OutOfDistributionPlatform -> {
+                /* platform libs for a specific target */
+                libsInPlatformDir(distributionLibsDir, dependency.target)
             }
 
-            is NativePlatformDependency.CommonizedCommon -> {
-                val commonizedLibsDir = runCommonizer(project, distributionDir, dependency.targets)
-                NativePlatformResolvedDependency.CommonizedCommon(dependency, commonizedLibsDir)
+            is CommonizedCommon -> {
+                /* commonized platform libs with expect declarations */
+                val commonizedLibsDir = commonize(dependency)
+                libsInCommonDir(commonizedLibsDir)
             }
 
-            is NativePlatformDependency.CommonizedPlatform -> {
-                val resolvedCommon = resolve(dependency.common) as NativePlatformResolvedDependency.CommonizedCommon
-                NativePlatformResolvedDependency.CommonizedPlatform(dependency, resolvedCommon)
+            is CommonizedPlatform -> {
+                /* commonized platform libs with actual declarations */
+                val commonizedLibsDir = commonize(dependency.common)
+                libsInPlatformDir(commonizedLibsDir, dependency.target)
             }
         }
+    }
+
+    // returns a directory with the commonized libraries
+    private fun commonize(dependency: CommonizedCommon): File = commonizationResults.computeIfAbsent(dependency) {
+        runCommonizer(project, distributionDir, dependency.targets)
+    }
+
+    private fun warnAboutMissingNativeStdlib() {
+        if (!project.hasProperty("kotlin.native.nostdlib")) {
+            SingleWarningPerBuild.show(
+                project,
+                buildString {
+                    append(NO_NATIVE_STDLIB_WARNING)
+                    if (PropertiesProvider(project).nativeHome != null)
+                        append(NO_NATIVE_STDLIB_PROPERTY_WARNING)
+                }
+            )
+        }
+    }
+
+    companion object {
+        private fun libsInCommonDir(basePath: File, predicate: (File) -> Boolean = { true }) =
+            basePath.resolve(KONAN_DISTRIBUTION_COMMON_LIBS_DIR).listFiles()?.filter { predicate(it) }?.toSet() ?: emptySet()
+
+        private fun libsInPlatformDir(basePath: File, target: KonanTarget) =
+            basePath.resolve(KONAN_DISTRIBUTION_PLATFORM_LIBS_DIR).resolve(target.name).listFiles()?.toSet() ?: emptySet()
     }
 }
 
@@ -150,8 +146,8 @@ private fun Project.findSourceSetsToAddDependencies(allowCommonizer: Boolean): M
             if (defaultSourceSet !in sourceSetsToAddDeps) {
                 val (target, includeEndorsedLibs) = details
                 sourceSetsToAddDeps[defaultSourceSet] = setOf(
-                    NativePlatformDependency.OutOfDistributionCommon(includeEndorsedLibs),
-                    NativePlatformDependency.OutOfDistributionPlatform(target)
+                    OutOfDistributionCommon(includeEndorsedLibs),
+                    OutOfDistributionPlatform(target)
                 )
             }
         }
@@ -204,11 +200,11 @@ private fun Project.findSourceSetsToAddCommonizedPlatformDependencies(): Map<Kot
             if (allTargets.isEmpty())
                 return@sourceSet
 
-            val commonizedCommonDep = NativePlatformDependency.CommonizedCommon(allTargets)
+            val commonizedCommonDep = CommonizedCommon(allTargets)
             val includeEndorsedLibsToCommonSourceSet = leafSourceSets.values.all { /* include endorsed? */ it.second }
 
             sourceSetsToAddDeps[sourceSet] = setOf(
-                NativePlatformDependency.OutOfDistributionCommon(includeEndorsedLibsToCommonSourceSet),
+                OutOfDistributionCommon(includeEndorsedLibsToCommonSourceSet),
                 commonizedCommonDep
             )
 
@@ -216,10 +212,10 @@ private fun Project.findSourceSetsToAddCommonizedPlatformDependencies(): Map<Kot
                 val existingDep = sourceSetsToAddDeps[leafSourceSet]
                 if (existingDep == null) {
                     val (target, includeEndorsedLibs) = details
-                    val commonizedPlatformDep = NativePlatformDependency.CommonizedPlatform(target, commonizedCommonDep)
+                    val commonizedPlatformDep = CommonizedPlatform(target, commonizedCommonDep)
 
                     sourceSetsToAddDeps[leafSourceSet] = setOf(
-                        NativePlatformDependency.OutOfDistributionCommon(includeEndorsedLibs),
+                        OutOfDistributionCommon(includeEndorsedLibs),
                         commonizedPlatformDep
                     )
                 } /*else if (existingDep != leafDep) {
@@ -307,3 +303,9 @@ private val String.onlySafeCharacters
             )
         }
     }.toString()
+
+internal const val NO_NATIVE_STDLIB_WARNING =
+    "The Kotlin/Native distribution used in this build does not provide the standard library. "
+
+internal const val NO_NATIVE_STDLIB_PROPERTY_WARNING =
+    "Make sure that the '$KOTLIN_NATIVE_HOME' property points to a valid Kotlin/Native distribution."
