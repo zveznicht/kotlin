@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import org.jetbrains.kotlin.gradle.plugin.getKotlinPluginVersion
 import org.jetbrains.kotlin.gradle.plugin.mpp.CompilationSourceSetUtil
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
+import org.jetbrains.kotlin.gradle.targets.metadata.isKotlinGranularMetadataEnabled
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_COMMON_LIBS_DIR
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_KLIB_DIR
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_PLATFORM_LIBS_DIR
@@ -33,8 +34,8 @@ internal fun Project.setUpKotlinNativePlatformDependencies() {
 
     val dependencyResolver = NativePlatformDependencyResolver(this)
 
-    // run commonizer only on IDE sync
-    val allowCommonizer = isInIdeaSync
+    // run commonizer only for HMPP projects and only on IDE sync
+    val allowCommonizer = isKotlinGranularMetadataEnabled && isInIdeaSync
 
     findSourceSetsToAddDependencies(allowCommonizer).forEach { (sourceSet, sourceSetDeps) ->
         sourceSetDeps.forEach { sourceSetDep ->
