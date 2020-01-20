@@ -7,6 +7,7 @@
 package org.jetbrains.kotlin.gradle.tasks
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.wrapper.Wrapper
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.CocoapodsExtension
@@ -30,9 +31,8 @@ open class PodspecTask : DefaultTask() {
     @OutputFile
     val outputFile: File = project.projectDir.resolve("$specName.podspec")
 
-    @get:Input
-    val frameworkName
-        get() = settings.frameworkName
+    @Input
+    val frameworkNameProvider: Provider<String> = project.provider { settings.frameworkName }
 
     @get:Internal
     internal lateinit var settings: CocoapodsExtension
@@ -73,7 +73,7 @@ open class PodspecTask : DefaultTask() {
             |    spec.summary                  = '${settings.summary.orEmpty()}'
             |
             |    spec.static_framework         = true
-            |    spec.vendored_frameworks      = "$frameworkDir/${frameworkName}.framework"
+            |    spec.vendored_frameworks      = "$frameworkDir/${frameworkNameProvider.get()}.framework"
             |    spec.libraries                = "c++"
             |    spec.module_name              = "#{spec.name}_umbrella"
             |
@@ -137,15 +137,14 @@ open class DummyFrameworkTask : DefaultTask() {
     @OutputDirectory
     val destinationDir = project.cocoapodsBuildDirs.framework
 
-    @get:Input
-    val frameworkName
-        get() = settings.frameworkName
+    @Input
+    val frameworkNameProvider: Provider<String> = project.provider { settings.frameworkName }
 
     @get:Internal
     internal lateinit var settings: CocoapodsExtension
 
     private val frameworkDir: File
-        get() = destinationDir.resolve("$frameworkName.framework")
+        get() = destinationDir.resolve("${frameworkNameProvider.get()}.framework")
 
     private fun copyResource(from: String, to: File) {
         to.parentFile.mkdirs()
@@ -191,11 +190,11 @@ open class DummyFrameworkTask : DefaultTask() {
 
         // Copy files for the dummy framework.
         copyFrameworkFile("Info.plist")
-        copyFrameworkFile("dummy", frameworkName)
+        copyFrameworkFile("dummy", frameworkNameProvider.get())
         copyFrameworkFile("Headers/dummy.h")
         copyFrameworkTextFile("Modules/module.modulemap") {
             if (it == "framework module dummy {") {
-                it.replace("dummy", frameworkName)
+                it.replace("dummy", frameworkNameProvider.get())
             } else {
                 it
             }
