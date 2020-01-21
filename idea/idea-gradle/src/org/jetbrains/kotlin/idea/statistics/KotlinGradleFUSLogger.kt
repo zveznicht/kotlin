@@ -56,7 +56,7 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
             val data = HashMap<String, String>()
             fun putIfNotNull(key: String, value: String?) {
                 if (value != null) {
-                    data[key] = value
+                    data[key.toLowerCase()] = value
                 }
             }
 
@@ -76,7 +76,6 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
         private fun processMetricsContainer(container: MetricsContainer, previous: MetricsContainer?) {
             container.log(
                 GradleStatisticsEvents.Environment,
-                StringMetrics.OS_TYPE,
                 NumericalMetrics.CPU_NUMBER_OF_CORES,
                 StringMetrics.GRADLE_VERSION,
                 NumericalMetrics.ARTIFACTS_DOWNLOAD_SPEED,
