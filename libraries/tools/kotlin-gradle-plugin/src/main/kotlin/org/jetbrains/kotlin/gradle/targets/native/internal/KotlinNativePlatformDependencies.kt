@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeCompilation
 import org.jetbrains.kotlin.gradle.targets.metadata.isKotlinGranularMetadataEnabled
 import org.jetbrains.kotlin.gradle.targets.native.internal.NativePlatformDependency.*
 import org.jetbrains.kotlin.gradle.utils.SingleWarningPerBuild
+import org.jetbrains.kotlin.gradle.utils.lifecycleWithDuration
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_COMMON_LIBS_DIR
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_KLIB_DIR
 import org.jetbrains.kotlin.konan.library.KONAN_DISTRIBUTION_PLATFORM_LIBS_DIR
@@ -107,7 +108,7 @@ private class NativePlatformDependencyResolver(val project: Project) {
 
     // returns a directory with the commonized libraries
     private fun commonize(dependency: CommonizedCommon): File = commonizationResults.computeIfAbsent(dependency) {
-        runCommonizer(project, distributionDir, dependency.targets)
+        project.runCommonizer(distributionDir, dependency.targets)
     }
 
     private fun warnAboutMissingNativeStdlib() {
@@ -228,16 +229,16 @@ private fun Project.findSourceSetsToAddCommonizedPlatformDependencies(): Map<Kot
     return sourceSetsToAddDeps
 }
 
-private fun runCommonizer(project: Project, distributionDir: File, targets: Set<KonanTarget>): File {
+private fun Project.runCommonizer(distributionDir: File, targets: Set<KonanTarget>): File {
     if (targets.size == 1) {
         // no need to commonize, just use the libraries from the distribution
         return distributionDir.resolve(KONAN_DISTRIBUTION_KLIB_DIR)
     }
 
-    val baseDestinationDir = project.rootProject.buildDir.resolve("commonizedLibraries")
+    val baseDestinationDir = rootProject.buildDir.resolve("commonizedLibraries")
     check(baseDestinationDir.isDirectory || !baseDestinationDir.exists()) { "$baseDestinationDir is not a directory" }
 
-    val kotlinVersion = project.getKotlinPluginVersion()?.onlySafeCharacters
+    val kotlinVersion = getKotlinPluginVersion()?.onlySafeCharacters
 
     // naive up-to-date check
     val definitelyNotUpToDate = when {
@@ -272,21 +273,37 @@ private fun runCommonizer(project: Project, distributionDir: File, targets: Set<
         return destinationDir
     }
 
-    destinationDir.deleteRecursively()
+    val suffix = estimateLibrariesCount(distributionDir, targets)?.let { " ($it items)" } ?: ""
+    logger.lifecycle("\nPreparing commonized Kotlin/Native libraries for target platforms $orderedTargets$suffix")
 
-    val destinationTmpDir = destinationDir.parentFile.resolve(destinationDir.name + ".tmp")
+    logger.lifecycleWithDuration("Preparing commonized Kotlin/Native libraries for target platforms $orderedTargets finished,") {
+        destinationDir.deleteRecursively()
 
-    NativeDistributionCommonizer(
-        repository = distributionDir,
-        targets = orderedTargets,
-        destination = destinationTmpDir,
-        handleError = ::error,
-        log = { project.logger.info("[COMMONIZER] $it") }
-    ).run()
+        val destinationTmpDir = destinationDir.parentFile.resolve(destinationDir.name + ".tmp")
 
-    destinationTmpDir.renameTo(destinationDir)
+        NativeDistributionCommonizer(
+            repository = distributionDir,
+            targets = orderedTargets,
+            destination = destinationTmpDir,
+            handleError = ::error,
+            log = { logger.info("[COMMONIZER] $it") }
+        ).run()
+
+        destinationTmpDir.renameTo(destinationDir)
+    }
 
     return destinationDir
+}
+
+private fun estimateLibrariesCount(distributionDir: File, targets: Set<KonanTarget>): Int? {
+    val targetNames = targets.map { it.name }
+    return distributionDir.resolve(KONAN_DISTRIBUTION_KLIB_DIR)
+        .resolve(KONAN_DISTRIBUTION_PLATFORM_LIBS_DIR)
+        .listFiles()
+        ?.filter { it.name in targetNames }
+        ?.mapNotNull { it.listFiles() }
+        ?.flatMap { it.toList() }
+        ?.size
 }
 
 private val String.md5String
