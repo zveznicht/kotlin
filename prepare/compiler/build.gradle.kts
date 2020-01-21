@@ -224,7 +224,7 @@ publish()
 
 val packCompiler by task<ShadowJar> {
     configurations = emptyList()
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    duplicatesStrategy = DuplicatesStrategy.FAIL
     destinationDirectory.set(File(buildDir, "libs"))
     archiveClassifier.set("before-proguard")
 

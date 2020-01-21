@@ -363,7 +363,7 @@ allprojects {
     }
 
     tasks.withType<Jar> {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        duplicatesStrategy = DuplicatesStrategy.FAIL
     }
 
     tasks {
