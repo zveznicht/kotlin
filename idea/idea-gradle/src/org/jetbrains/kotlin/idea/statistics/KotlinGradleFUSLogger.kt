@@ -161,7 +161,7 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
             val betweenBuilds = if (finishTime != null && prevFinishTime != null) finishTime - prevFinishTime else null
             container.log(
                 GradleStatisticsEvents.UseScenarios,
-                Pair(NumericalMetrics.BUILD_FINISH_TIME.name, betweenBuilds),
+                Pair("time_between_builds", betweenBuilds),
                 BooleanMetrics.DEBUGGER_ENABLED,
                 BooleanMetrics.COMPILATION_STARTED,
                 BooleanMetrics.TESTS_EXECUTED,
