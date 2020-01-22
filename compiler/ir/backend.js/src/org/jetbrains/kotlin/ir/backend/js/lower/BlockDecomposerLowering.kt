@@ -30,38 +30,53 @@ class JsBlockDecomposerLowering(val context: JsIrBackendContext) : AbstractBlock
         JsIrBuilder.buildCall(context.intrinsics.unreachable.symbol, context.irBuiltIns.nothingType)
 }
 
-// TODO Shouldn't the init function be just created on demand?
-class CreateIrFieldInitializerFunction(val context: CommonBackendContext) : DeclarationTransformer {
+abstract class AbstractBlockDecomposerLowering(
+    context: CommonBackendContext
+) : BodyLoweringPass {
 
     private val nothingType = context.irBuiltIns.nothingType
 
-    override fun transformFlat(declaration: IrDeclaration): List<IrDeclaration>? {
-        return when (declaration) {
+    // Expression with Nothing type to be inserted in places of unreachable expression
+    abstract fun unreachableExpression(): IrExpression
+
+    private val decomposerTransformer = BlockDecomposerTransformer(context, ::unreachableExpression)
+
+    override fun lower(irBody: IrBody, container: IrDeclaration) {
+        when (container) {
+            is IrFunction -> {
+                container.accept(decomposerTransformer, null)
+                irBody.patchDeclarationParents(container)
+            }
             is IrField -> {
-                declaration.initializer?.let { initializer ->
+                container.initializer?.apply {
+
                     val initFunction = JsIrBuilder.buildFunction(
-                        declaration.name.asString() + "\$init\$",
-                        declaration.type,
-                        declaration.parent,
+                        container.name.asString() + "\$init\$",
+                        container.type,
+                        container.parent,
                         Visibilities.PRIVATE
                     )
 
-                    initFunction.body = initializer.toBlockBody(initFunction)
+                    val newBody = toBlockBody(initFunction)
+                    newBody.patchDeclarationParents(initFunction)
+                    initFunction.body = newBody
 
-                    declaration.initializer = IrExpressionBodyImpl(initializer.startOffset, initializer.endOffset) {
-                        expression = JsIrBuilder.buildCall(initFunction.symbol, initFunction.returnType)
+                    initFunction.accept(decomposerTransformer, null)
+
+                    val lastStatement = newBody.statements.last()
+                    val actualParent = if (newBody.statements.size > 1 || lastStatement !is IrReturn || lastStatement.value != expression) {
+                        expression = JsIrBuilder.buildCall(initFunction.symbol, expression.type)
+                        stageController.unrestrictDeclarationListsAccess {
+                            (container.parent as IrDeclarationContainer).declarations += initFunction
+                        }
+                        initFunction
+                    } else {
+                        container
                     }
 
-                    listOf(initFunction, declaration)
+                    patchDeclarationParents(actualParent)
                 }
             }
-            is IrFunction -> {
-                (declaration.body as? IrExpressionBody)?.apply {
-                    declaration.body = toBlockBody(declaration)
-                }
-                null
-            }
-            else -> null
         }
     }
 
@@ -70,23 +85,6 @@ class CreateIrFieldInitializerFunction(val context: CommonBackendContext) : Decl
             expression.patchDeclarationParents(containingFunction)
             val returnStatement = JsIrBuilder.buildReturn(containingFunction.symbol, expression, nothingType)
             statements += returnStatement
-        }
-    }
-}
-
-abstract class AbstractBlockDecomposerLowering(
-    context: CommonBackendContext
-) : BodyLoweringPass {
-
-    // Expression with Nothing type to be inserted in places of unreachable expression
-    abstract fun unreachableExpression(): IrExpression
-
-    private val decomposerTransformer = BlockDecomposerTransformer(context, ::unreachableExpression)
-
-    override fun lower(irBody: IrBody, container: IrDeclaration) {
-        if (container is IrFunction) {
-            container.accept(decomposerTransformer, null)
-            irBody.patchDeclarationParents(container)
         }
     }
 }

@@ -496,17 +496,11 @@ private val autoboxingTransformerPhase = makeBodyLoweringPhase(
     description = "Insert box/unbox intrinsics"
 )
 
-private val createFieldInitializerFunction = makeDeclarationTransformerPhase(
-    ::CreateIrFieldInitializerFunction,
-    name = "CreateIrFieldInitializerFunction",
-    description = "Create initializer functions for fields"
-)
-
 private val blockDecomposerLoweringPhase = makeBodyLoweringPhase(
     ::JsBlockDecomposerLowering,
     name = "BlockDecomposerLowering",
     description = "Transform statement-like-expression nodes into pure-statement to make it easily transform into JS",
-    prerequisite = setOf(typeOperatorLoweringPhase, suspendFunctionsLoweringPhase, createFieldInitializerFunction)
+    prerequisite = setOf(typeOperatorLoweringPhase, suspendFunctionsLoweringPhase)
 )
 
 private val classReferenceLoweringPhase = makeBodyLoweringPhase(
@@ -619,7 +613,6 @@ val loweringList = listOf<Lowering>(
     inlineClassDeclarationLoweringPhase,
     inlineClassUsageLoweringPhase,
     autoboxingTransformerPhase,
-    createFieldInitializerFunction,
     blockDecomposerLoweringPhase,
     primitiveCompanionLoweringPhase,
     constLoweringPhase,
