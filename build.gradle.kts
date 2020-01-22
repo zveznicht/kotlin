@@ -606,7 +606,7 @@ tasks {
         dependsOn("dist")
         dependsOn(
             ":kotlin-native:kotlin-native-library-utils:test",
-            ":kotlin-native:commonizer:test"
+            ":kotlin-native:kotlin-native-commonizer:test"
         )
     }
 
