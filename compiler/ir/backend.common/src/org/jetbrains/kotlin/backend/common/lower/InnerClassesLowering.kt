@@ -45,7 +45,7 @@ class InnerClassesLowering(val context: BackendContext) : DeclarationTransformer
             for ((oldParam, newParam) in oldConstructorParameterToNew.entries) {
                 newParam.defaultValue = oldParam.defaultValue?.let { oldDefault ->
                     IrExpressionBodyImpl(oldDefault.startOffset, oldDefault.endOffset) {
-                        expression = oldDefault.expression.deepCopyWithSymbols(newConstructor)
+                        expression = oldDefault.expression.patchDeclarationParents(newConstructor)
                     }
                 }
             }
