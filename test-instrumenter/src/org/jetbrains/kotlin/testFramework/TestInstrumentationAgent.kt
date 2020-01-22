@@ -22,13 +22,14 @@ import java.lang.instrument.Instrumentation
 object TestInstrumentationAgent {
     @JvmStatic
     fun premain(arg: String?, instrumentation: Instrumentation) {
-
         val arguments = arg.orEmpty().split(",")
 
         val debug = "debug" in arguments
         if (debug) {
             println("org.jetbrains.kotlin.testFramework.TestInstrumentationAgent: premain")
         }
+
         instrumentation.addTransformer(MockApplicationCreationTracingInstrumenter(debug))
+//        instrumentation.addTransformer(PsiSubstitutorLoadingTransformer(debug))
     }
 }
