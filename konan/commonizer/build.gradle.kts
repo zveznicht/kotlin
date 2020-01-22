@@ -26,7 +26,7 @@ dependencies {
 
     compile(project(":kotlin-util-klib-metadata"))
     compile(project(":kotlin-native:kotlin-native-utils")) { isTransitive = false }
-    compile(project(":kotlin-native:kotlin-native-library-reader")) { isTransitive = false }
+    compile(project(":kotlin-native:kotlin-native-library-utils")) { isTransitive = false }
 
     testCompile(commonDep("junit:junit"))
     testCompile(projectTests(":compiler:tests-common"))

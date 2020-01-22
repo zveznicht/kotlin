@@ -129,7 +129,7 @@ dependencies {
     testCompile(commonDep("junit:junit"))
     testCompileOnly(intellijPluginDep("coverage"))
 
-    testRuntime(project(":kotlin-native:kotlin-native-library-reader")) { isTransitive = false }
+    testRuntime(project(":kotlin-native:kotlin-native-library-utils")) { isTransitive = false }
     testRuntime(project(":kotlin-native:kotlin-native-utils")) { isTransitive = false }
 
     testRuntime(commonDep("org.jetbrains", "markdown"))
