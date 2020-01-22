@@ -15,6 +15,8 @@ import java.io.File
 import java.io.Serializable
 import java.lang.reflect.InvocationTargetException
 import java.util.*
+import org.jetbrains.kotlin.gradle.KotlinMPPGradleModelBuilder.Companion.getTargets
+
 
 interface ArgsInfo : Serializable {
     val currentArguments: List<String>
@@ -162,7 +164,7 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
         }
     }
 
-    override fun buildAll(modelName: String?, project: Project): KotlinGradleModelImpl {
+    override fun buildAll(modelName: String?, project: Project): KotlinGradleModelImpl? {
         val kotlinPluginId = kotlinPluginIds.singleOrNull { project.plugins.findPlugin(it) != null }
         val platformPluginId = platformPluginIds.singleOrNull { project.plugins.findPlugin(it) != null }
         val targets = project.getTargets(includeSinglePlatform = true)
