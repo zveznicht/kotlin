@@ -76,7 +76,7 @@ fun <T : Jar> Project.runtimeJar(task: TaskProvider<T>, body: T.() -> Unit = {})
             }
         }
         setupPublicJar(project.the<BasePluginConvention>().archivesBaseName)
-        duplicatesStrategy = DuplicatesStrategy.FAIL
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         body()
         project.runtimeJarArtifactBy(this, this)
     }
