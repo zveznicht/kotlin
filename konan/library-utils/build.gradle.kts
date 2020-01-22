@@ -1,8 +1,9 @@
 plugins {
-    maven
     kotlin("jvm")
     id("jps-compatible")
 }
+
+description = "Kotlin/Native library utils"
 
 dependencies {
     compileOnly(project(":compiler:frontend"))
@@ -21,5 +22,7 @@ sourceSets {
     "main" { projectDefault() }
     "test" { projectDefault() }
 }
+
+publish()
 
 standardPublicJars()
