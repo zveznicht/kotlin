@@ -15,11 +15,9 @@ javaHome = rootProject.extra["JDK_16"] as String
 
 sourceSets {
     "main" {
-//        if(!kotlinBuildProperties.isInIdeaSync)
         java.srcDirs("src", "jvm/src")
     }
     "test" {
-//        if(!kotlinBuildProperties.isInIdeaSync)
         java.srcDirs("jvm/test")
     }
     "migrationTest" {
@@ -48,7 +46,6 @@ tasks {
             freeCompilerArgs = listOf(
                 "-Xmulti-platform",
                 "-Xallow-kotlin-package",
-                "-Xallow-result-return-type",
                 "-Xmultifile-parts-inherit",
                 "-Xuse-experimental=kotlin.contracts.ExperimentalContracts",
                 "-Xuse-experimental=kotlin.Experimental",
