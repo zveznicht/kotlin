@@ -40,21 +40,7 @@ open class InitializersLowering(context: CommonBackendContext) : InitializersLow
         container.body?.transformChildrenVoid(object : IrElementTransformerVoid() {
             override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall): IrExpression {
                 return IrBlockImpl(irClass.startOffset, irClass.endOffset, context.irBuiltIns.unitType, null, instanceInitializerStatements)
-                    .deepCopyWithSymbols(container).also {
-                        // Handle declarations, copied from initializers
-                        // TODO WTF really
-                        it.acceptVoid(object : IrElementVisitorVoid {
-                            override fun visitElement(element: IrElement) {
-                                element.acceptChildrenVoid(this)
-                            }
-
-                            override fun visitConstructor(declaration: IrConstructor) {
-                                super.visitConstructor(declaration)
-
-                                declaration.body?.let { lower(it, declaration) }
-                            }
-                        })
-                    }
+                    .deepCopyWithSymbols(container)
             }
         })
     }
