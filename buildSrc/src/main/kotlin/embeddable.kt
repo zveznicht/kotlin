@@ -5,7 +5,10 @@ import org.gradle.api.Project
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.jvm.tasks.Jar
-import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.named
+import org.gradle.kotlin.dsl.project
+import org.gradle.kotlin.dsl.provideDelegate
+import org.gradle.kotlin.dsl.register
 import java.io.File
 
 val kotlinEmbeddableRootPackage = "org.jetbrains.kotlin"
@@ -60,13 +63,12 @@ private fun ShadowJar.configureEmbeddableCompilerRelocation(withJavaxInject: Boo
 }
 
 private fun Project.compilerShadowJar(taskName: String, body: ShadowJar.() -> Unit): TaskProvider<out ShadowJar> {
-
     val compilerJar = configurations.getOrCreate("compilerJar")
     dependencies.add(compilerJar.name, dependencies.project(":kotlin-compiler", configuration = "runtimeJar"))
 
     return tasks.register<ShadowJar>(taskName) {
         destinationDir = File(buildDir, "libs")
-        setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+        duplicatesStrategy = DuplicatesStrategy.FAIL
         from(compilerJar)
         body()
     }
@@ -106,7 +108,7 @@ fun Project.embeddableCompilerDummyForDependenciesRewriting(
 
     return tasks.register<ShadowJar>(taskName) {
         destinationDir = File(buildDir, "libs")
-        setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+        duplicatesStrategy = DuplicatesStrategy.FAIL
         from(compilerDummyJar)
         configureEmbeddableCompilerRelocation(withJavaxInject = false)
         body()

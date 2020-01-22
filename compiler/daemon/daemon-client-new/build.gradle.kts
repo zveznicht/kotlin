@@ -66,6 +66,7 @@ publish()
 noDefaultJar()
 
 runtimeJar(tasks.register<ShadowJar>("shadowJar")) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(mainSourceSet.output)
 }
 

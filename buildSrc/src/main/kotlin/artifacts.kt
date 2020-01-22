@@ -76,7 +76,7 @@ fun <T : Jar> Project.runtimeJar(task: TaskProvider<T>, body: T.() -> Unit = {})
             }
         }
         setupPublicJar(project.the<BasePluginConvention>().archivesBaseName)
-        setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+        duplicatesStrategy = DuplicatesStrategy.FAIL
         body()
         project.runtimeJarArtifactBy(this, this)
     }
@@ -87,7 +87,7 @@ fun Project.runtimeJar(body: Jar.() -> Unit = {}): TaskProvider<Jar> = runtimeJa
 
 fun Project.sourcesJar(body: Jar.() -> Unit = {}): TaskProvider<Jar> {
     val task = tasks.register<Jar>("sourcesJar") {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        duplicatesStrategy = DuplicatesStrategy.FAIL
         archiveClassifier.set("sources")
 
         from(project.mainSourceSet.allSource)
@@ -118,7 +118,7 @@ fun Project.sourcesJar(body: Jar.() -> Unit = {}): TaskProvider<Jar> {
 
 fun Project.javadocJar(body: Jar.() -> Unit = {}): TaskProvider<Jar> {
     val javadocTask = getOrCreateTask<Jar>("javadocJar") {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        duplicatesStrategy = DuplicatesStrategy.FAIL
         archiveClassifier.set("javadoc")
         tasks.findByName("javadoc")?.let { it as Javadoc }?.takeIf { it.enabled }?.let {
             dependsOn(it)
