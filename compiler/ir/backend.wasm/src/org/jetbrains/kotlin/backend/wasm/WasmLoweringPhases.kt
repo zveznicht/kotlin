@@ -346,7 +346,7 @@ private val builtInsLoweringPhase = makeWasmModulePhase(
 )
 
 private val objectDeclarationLoweringPhase = makeWasmModulePhase(
-    ::ObjectDeclarationLowering,
+    ::ObjectUsageLowering,
     name = "ObjectDeclarationLowering",
     description = "Create lazy object instance generator functions"
 )
