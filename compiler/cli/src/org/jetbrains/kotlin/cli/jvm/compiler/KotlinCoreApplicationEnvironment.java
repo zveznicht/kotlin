@@ -35,6 +35,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.augment.PsiAugmentProvider;
 import com.intellij.psi.augment.TypeAnnotationModifier;
 import com.intellij.psi.compiled.ClassFileDecompilers;
+import com.intellij.psi.impl.EmptySubstitutorImpl;
 import com.intellij.psi.impl.LanguageConstantExpressionEvaluator;
 import com.intellij.psi.impl.PsiExpressionEvaluator;
 import com.intellij.psi.impl.compiled.ClassFileStubBuilder;
@@ -50,6 +51,9 @@ import com.intellij.util.QueryExecutor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.cli.jvm.modules.CoreJrtFileSystem;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 /**
  * adapted from com.intellij.core.JavaCoreApplicationEnvironment
@@ -108,6 +112,18 @@ public class KotlinCoreApplicationEnvironment extends CoreApplicationEnvironment
 
     myApplication.registerService(PsiPackageImplementationHelper.class, new CorePsiPackageImplementationHelper());
 
+    {
+      // Code doesn't do anything useful when PsiSubstitutor is replaced
+      EmptySubstitutorImpl emptySubstitutor = new EmptySubstitutorImpl();
+      myApplication.registerService(EmptySubstitutor.class, emptySubstitutor);
+
+      // Patch null values obtained because of cyclic dependency during initialization
+      if (getVersion() <= 11) {
+        updateInterfaceField(PsiSubstitutor.class, "EMPTY", emptySubstitutor);
+        updateInterfaceField(PsiSubstitutor.class, "UNKNOWN", PsiSubstitutor.EMPTY);
+      }
+    }
+
     myApplication.registerService(JavaDirectoryService.class, createJavaDirectoryService());
     myApplication.registerService(JavaVersionService.class, new JavaVersionService());
 
@@ -144,5 +160,56 @@ public class KotlinCoreApplicationEnvironment extends CoreApplicationEnvironment
   @Override
   protected VirtualFileSystem createJrtFileSystem() {
     return new CoreJrtFileSystem();
+  }
+
+  private static int getVersion() {
+    String version = System.getProperty("java.version");
+    if (version.startsWith("1.")) {
+      version = version.substring(2, 3);
+    }
+    else {
+      int dot = version.indexOf(".");
+      if (dot != -1) {
+        version = version.substring(0, dot);
+      }
+    }
+    return Integer.parseInt(version);
+  }
+
+  private static void updateInterfaceField(Class<?> klass, String name, Object value) {
+    try {
+      Field field = klass.getDeclaredField(name);
+
+      boolean wasAccessible = field.isAccessible();
+
+      try {
+        if (!wasAccessible) {
+          field.setAccessible(true);
+        }
+
+        Field modifiersField = Field.class.getDeclaredField("modifiers");
+
+        int modifiers = field.getModifiers();
+
+        try {
+          modifiersField.setAccessible(true);
+          modifiersField.setInt(field, modifiers & ~Modifier.FINAL);
+
+          field.set(null, value);
+        }
+        finally {
+          modifiersField.setInt(field, modifiers);
+          modifiersField.setAccessible(false);
+        }
+      }
+      finally {
+        if (!wasAccessible) {
+          field.setAccessible(false);
+        }
+      }
+    }
+    catch (NoSuchFieldException | IllegalAccessException e) {
+      throw new IllegalStateException(e);
+    }
   }
 }
