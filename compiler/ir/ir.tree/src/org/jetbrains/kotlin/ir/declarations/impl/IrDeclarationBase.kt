@@ -35,7 +35,7 @@ abstract class IrDeclarationBase<T : DeclarationCarrier<T>>(
     override var parentField: IrDeclarationParent? = null
 
     override var parent: IrDeclarationParent
-        get() = getCarrier().parentField!!
+        get() = getCarrier().parentField ?: throw UninitializedPropertyAccessException("Parent not initialized: $this")
         set(p) {
             if (getCarrier().parentField !== p) {
                 setCarrier().parentField = p
