@@ -90,7 +90,7 @@ private class ArrayConstructorTransformer(
                 }
                 body = irBlock {
                     val tempIndex = irTemporary(irGet(index))
-                    val value = lambda?.inline(listOf(tempIndex))?.deepCopyWithSymbols(scope.getLocalDeclarationParent()) ?: irCallOp(
+                    val value = lambda?.inline(listOf(tempIndex))?.patchDeclarationParents(scope.getLocalDeclarationParent()) ?: irCallOp(
                         invoke.symbol,
                         invoke.returnType,
                         irGet(invokableVar!!),
