@@ -224,11 +224,20 @@ publish()
 
 val packCompiler by task<ShadowJar> {
     configurations = emptyList()
-    duplicatesStrategy = DuplicatesStrategy.FAIL
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     destinationDirectory.set(File(buildDir, "libs"))
     archiveClassifier.set("before-proguard")
 
-    from(fatJarContents)
+    dependsOn(fatJarContents)
+    from {
+        fatJarContents.files.map {
+            if (it.name == "intellij-core.jar") {
+                zipTree(it).matching { exclude("com/intellij/psi/PsiSubstitutor.class") }
+            } else {
+                zipTree(it)
+            }
+        }
+    }
 
     dependsOn(fatJarContentsStripServices)
     from {
