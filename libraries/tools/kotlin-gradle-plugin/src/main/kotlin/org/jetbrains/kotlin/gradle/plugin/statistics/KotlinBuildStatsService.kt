@@ -7,11 +7,9 @@ package org.jetbrains.kotlin.gradle.plugin.statistics
 
 import org.gradle.BuildAdapter
 import org.gradle.BuildResult
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
-import org.gradle.initialization.BuildCompletionListener
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.invocation.DefaultGradle
 import org.jetbrains.kotlin.statistics.BuildSessionLogger
@@ -30,21 +28,16 @@ import kotlin.system.measureTimeMillis
  * of Kotlin Plugin and other classloaders
  */
 interface KotlinBuildStatsMXBean {
-
     fun reportBoolean(name: String, value: Boolean, subprojectName: String?)
 
     fun reportNumber(name: String, value: Long, subprojectName: String?)
 
     fun reportString(name: String, value: String, subprojectName: String?)
-
 }
 
 
-internal abstract class KotlinBuildStatsService internal constructor() : BuildAdapter(), IStatisticsValuesConsumer,
-    BuildCompletionListener {
-
+internal abstract class KotlinBuildStatsService internal constructor() : BuildAdapter(), IStatisticsValuesConsumer {
     companion object {
-
         // Do not rename this bean otherwise compatibility with the older Kotlin Gradle Plugins would be lost
         const val JMX_BEAN_NAME = "org.jetbrains.kotlin.gradle.plugin.statistics:type=StatsService"
 
@@ -56,7 +49,6 @@ internal abstract class KotlinBuildStatsService internal constructor() : BuildAd
 
         // "emergency file" collecting statistics is disabled it the file exists
         const val DISABLE_STATISTICS_FILE_NAME = "${STATISTICS_FOLDER_NAME}/.disable"
-
 
         /**
          * Method for getting IStatisticsValuesConsumer for reporting some statistics
@@ -148,15 +140,10 @@ internal abstract class KotlinBuildStatsService internal constructor() : BuildAd
             }
         }
     }
-
-
 }
 
 internal class JMXKotlinBuildStatsService(private val mbs: MBeanServer, private val beanName: ObjectName) :
     KotlinBuildStatsService() {
-
-    override fun buildFinished(result: BuildResult) {
-    }
 
     private fun callJmx(method: String, type: String, metricName: String, value: Any, subprojectName: String?) {
         mbs.invoke(
@@ -185,17 +172,15 @@ internal class JMXKotlinBuildStatsService(private val mbs: MBeanServer, private 
         }
     }
 
-    override fun completed() {
+    override fun buildFinished(result: BuildResult) {
         instance = null
     }
-
 }
 
 internal class DefaultKotlinBuildStatsService internal constructor(
     gradle: Gradle,
     val beanName: ObjectName
 ) : KotlinBuildStatsService(), KotlinBuildStatsMXBean {
-
     private val sessionLogger = BuildSessionLogger(gradle.gradleUserHomeDir)
 
     private fun gradleBuildStartTime(gradle: Gradle): Long? {
@@ -205,10 +190,22 @@ internal class DefaultKotlinBuildStatsService internal constructor(
     private fun reportLibrariesVersions(dependencies: DependencySet?) {
         dependencies?.forEach { dependency ->
             when {
-                dependency.group?.startsWith("org.springframework") ?: false -> sessionLogger.report(StringMetrics.LIBRARY_SPRING_VERSION, dependency.version ?: "0.0.0")
-                dependency.group?.startsWith("com.vaadin") ?: false -> sessionLogger.report(StringMetrics.LIBRARY_VAADIN_VERSION, dependency.version ?: "0.0.0")
-                dependency.group?.startsWith("com.google.gwt") ?: false -> sessionLogger.report(StringMetrics.LIBRARY_GWT_VERSION, dependency.version ?: "0.0.0")
-                dependency.group?.startsWith("org.hibernate") ?: false -> sessionLogger.report(StringMetrics.LIBRARY_HIBERNATE_VERSION, dependency.version ?: "0.0.0")
+                dependency.group?.startsWith("org.springframework") ?: false -> sessionLogger.report(
+                    StringMetrics.LIBRARY_SPRING_VERSION,
+                    dependency.version ?: "0.0.0"
+                )
+                dependency.group?.startsWith("com.vaadin") ?: false -> sessionLogger.report(
+                    StringMetrics.LIBRARY_VAADIN_VERSION,
+                    dependency.version ?: "0.0.0"
+                )
+                dependency.group?.startsWith("com.google.gwt") ?: false -> sessionLogger.report(
+                    StringMetrics.LIBRARY_GWT_VERSION,
+                    dependency.version ?: "0.0.0"
+                )
+                dependency.group?.startsWith("org.hibernate") ?: false -> sessionLogger.report(
+                    StringMetrics.LIBRARY_HIBERNATE_VERSION,
+                    dependency.version ?: "0.0.0"
+                )
             }
         }
     }
@@ -275,16 +272,8 @@ internal class DefaultKotlinBuildStatsService internal constructor(
     @Synchronized
     override fun buildFinished(result: BuildResult) {
         runSafe("${DefaultKotlinBuildStatsService::class.java}.buildFinished") {
-            sessionLogger.finishBuildSession(result.action, result.failure)
-        }
-    }
-
-
-    @Synchronized
-    override fun completed() {
-        runSafe("${DefaultKotlinBuildStatsService::class.java}.completed") {
             try {
-                sessionLogger.unlockJournalFile()
+                sessionLogger.finishBuildSession(result.action, result.failure)
             } finally {
                 val mbs: MBeanServer = ManagementFactory.getPlatformMBeanServer()
                 if (mbs.isRegistered(beanName)) {

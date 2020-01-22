@@ -11,10 +11,10 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.kotlin.statistics.BuildSessionLogger
 import java.io.File
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
-import org.jetbrains.kotlin.statistics.BuildSessionLogger.Companion.STATISTICS_FILE_NAME_PATTERN
 import org.jetbrains.kotlin.statistics.BuildSessionLogger.Companion.STATISTICS_FOLDER_NAME
 import org.jetbrains.kotlin.statistics.fileloggers.MetricsContainer
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
@@ -171,12 +171,10 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
         }
 
         fun reportStatistics() {
-            if (isRunning.weakCompareAndSet(false, true)) {
+            if (isRunning.compareAndSet(false, true)) {
                 try {
-                    for (gradleUserHome in getGradleUserDirs()) {
-                        File(gradleUserHome, STATISTICS_FOLDER_NAME).listFiles()?.filter {
-                            it?.name?.matches(STATISTICS_FILE_NAME_PATTERN.toRegex()) ?: false
-                        }?.forEach { statisticFile ->
+                    for (gradleUserHome in gradleUserDirs) {
+                        BuildSessionLogger.listProfileFiles(File(gradleUserHome, STATISTICS_FOLDER_NAME))?.forEach { statisticFile ->
                             try {
                                 var previousEvent: MetricsContainer? = null
                                 MetricsContainer.readFromFile(statisticFile) { metricContainer ->
@@ -200,24 +198,22 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
             }
         }
 
-        private fun getGradleUserDirs(): Array<String> {
-            return PropertiesComponent.getInstance().getValues(GRADLE_USER_DIRS_PROPERTY_NAME) ?: emptyArray()
-        }
+        private var gradleUserDirs: Array<String>
+            set(value) = PropertiesComponent.getInstance().setValues(
+                GRADLE_USER_DIRS_PROPERTY_NAME, value
+            )
+            get() = PropertiesComponent.getInstance().getValues(GRADLE_USER_DIRS_PROPERTY_NAME) ?: emptyArray()
 
         fun populateGradleUserDir(path: String) {
-            val currentState = getGradleUserDirs()
-            if (currentState.contains(path)) {
-                return
-            }
+            val currentState = gradleUserDirs
+            if (path in currentState) return
 
             val result = ArrayList<String>()
             result.add(path)
             result.addAll(currentState)
 
-            PropertiesComponent.getInstance().setValues(
-                GRADLE_USER_DIRS_PROPERTY_NAME,
-                result.filter { filePath -> File(filePath).exists() }.filterIndexed { i, _ -> i < MAXIMUM_USER_DIRS }.toTypedArray()
-            )
+            gradleUserDirs =
+                result.filter { filePath -> File(filePath).exists() }.take(MAXIMUM_USER_DIRS).toTypedArray()
         }
     }
 }

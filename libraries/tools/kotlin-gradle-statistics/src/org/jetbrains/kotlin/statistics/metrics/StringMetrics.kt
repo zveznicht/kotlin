@@ -39,9 +39,4 @@ enum class StringMetrics(val type: StringOverridePolicy, val anonymization: Stri
     // Features
     KOTLIN_LANGUAGE_VERSION(OVERRIDE, COMPONENT_VERSION),
     KOTLIN_API_VERSION(OVERRIDE, COMPONENT_VERSION),
-
-
-
 }
-
-

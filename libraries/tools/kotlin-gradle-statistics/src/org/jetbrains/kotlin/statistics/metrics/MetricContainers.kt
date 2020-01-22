@@ -13,7 +13,6 @@ interface IMetricContainer<T> {
     fun toStringRepresentation(): String
 
     fun getValue(): T?
-
 }
 
 interface IMetricContainerFactory<T> {
@@ -23,7 +22,6 @@ interface IMetricContainerFactory<T> {
 }
 
 open class OverrideMetricContainer<T>() : IMetricContainer<T> {
-
     internal var myValue: T? = null
 
     override fun addValue(t: T) {
@@ -42,7 +40,6 @@ open class OverrideMetricContainer<T>() : IMetricContainer<T> {
 }
 
 class OverrideVersionMetricContainer() : OverrideMetricContainer<String>() {
-
     constructor(v: String) : this() {
         myValue = v
     }
@@ -55,7 +52,6 @@ class OverrideVersionMetricContainer() : OverrideMetricContainer<String>() {
 }
 
 class SumMetricContainer() : OverrideMetricContainer<Long>() {
-
     constructor(v: Long) : this() {
         myValue = v
     }
@@ -98,7 +94,6 @@ class OrMetricContainer() : OverrideMetricContainer<Boolean>() {
 }
 
 class ConcatMetricContainer() : IMetricContainer<String> {
-
     private val myValues = TreeSet<String>()
 
     companion object {
@@ -114,9 +109,8 @@ class ConcatMetricContainer() : IMetricContainer<String> {
     }
 
     override fun toStringRepresentation(): String {
-        return myValues.joinToString(SEPARATOR)
+        return myValues.sorted().joinToString(SEPARATOR)
     }
 
     override fun getValue() = toStringRepresentation()
 }
-

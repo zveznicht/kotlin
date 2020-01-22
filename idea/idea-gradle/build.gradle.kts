@@ -27,7 +27,6 @@ dependencies {
     compileOnly(intellijPluginDep("testng"))
 
     compileOnly(project(":kotlin-gradle-statistics"))
-    embedded(project(":kotlin-gradle-statistics"))
 
     Platform[192].orHigher {
         compileOnly(intellijPluginDep("java"))
