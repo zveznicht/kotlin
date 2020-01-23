@@ -528,7 +528,7 @@ class KotlinCoreEnvironment private constructor(
                     false
                 }
 
-            val pluginRoot =
+            val pluginRoot: File =
                 configuration.get(CLIConfigurationKeys.INTELLIJ_PLUGIN_ROOT)?.let(::File)
                     ?: PathUtil.getResourcePathForClass(this::class.java).takeIf { it.hasConfigFile(configFilePath) }
                     // hack for load extensions when compiler run directly from project directory (e.g. in tests)
@@ -538,7 +538,7 @@ class KotlinCoreEnvironment private constructor(
                                 "(cp:\n  ${(Thread.currentThread().contextClassLoader as? UrlClassLoader)?.urls?.joinToString("\n  ") { it.file }})"
                     )
 
-            CoreApplicationEnvironment.registerExtensionPointAndExtensions(pluginRoot, configFilePath, Extensions.getRootArea())
+            registerExtensionPointAndExtensionsEx(pluginRoot, configFilePath, Extensions.getRootArea())
         }
 
         private fun workaroundIbmJdkStaxReportCdataEventIssue() {
