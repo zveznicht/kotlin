@@ -101,7 +101,9 @@ public class ForTestCompileRuntime {
     }
 
     @NotNull
-    public static File coroutinesCompatForTests() { return assertExists(new File("dist/kotlinc/lib/kotlin-coroutines-experimental-compat.jar")); }
+    public static File coroutinesCompatForTests() {
+        return assertExists(new File("dist/kotlinc/lib/kotlin-coroutines-experimental-compat.jar"));
+    }
 
     @NotNull
     private static File assertExists(@NotNull File file) {
