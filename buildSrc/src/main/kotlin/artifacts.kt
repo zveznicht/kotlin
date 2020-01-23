@@ -87,7 +87,7 @@ fun Project.runtimeJar(body: Jar.() -> Unit = {}): TaskProvider<Jar> = runtimeJa
 
 fun Project.sourcesJar(body: Jar.() -> Unit = {}): TaskProvider<Jar> {
     val task = tasks.register<Jar>("sourcesJar") {
-        duplicatesStrategy = DuplicatesStrategy.FAIL
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         archiveClassifier.set("sources")
 
         from(project.mainSourceSet.allSource)
