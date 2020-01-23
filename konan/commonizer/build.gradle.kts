@@ -45,7 +45,7 @@ dependencies {
             "idea_rt",
             "guava",
             "trove4j",
-            "picocontainer",
+//            "picocontainer",
             "asm-all",
             "log4j",
             "jdom",

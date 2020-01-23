@@ -22,7 +22,8 @@ dependencies {
         testRuntimeOnly(intellijDep()) { includeJars("openapi", rootProject = rootProject) }
     }
     testRuntimeOnly(intellijDep()) {
-        includeJars("idea", "idea_rt", "log4j", "picocontainer", "guava", "jdom", rootProject = rootProject)
+//        includeJars("picocontainer", rootProject = rootProject)
+        includeJars("idea", "idea_rt", "log4j", "guava", "jdom", rootProject = rootProject)
     }
     testRuntimeOnly(commonDep("org.jetbrains.intellij.deps", "trove4j"))
 }

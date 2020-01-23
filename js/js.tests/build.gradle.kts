@@ -54,7 +54,8 @@ dependencies {
     testCompile(project(":compiler:util"))
 
     testRuntime(project(":kotlin-reflect"))
-    testRuntime(intellijDep()) { includeJars("picocontainer", "trove4j", "guava", "jdom", rootProject = rootProject) }
+//    testRuntime(intellijDep()) { includeJars("picocontainer", rootProject = rootProject) }
+    testRuntime(intellijDep()) { includeJars("trove4j", "guava", "jdom", rootProject = rootProject) }
 
 
     val currentOs = OperatingSystem.current()
