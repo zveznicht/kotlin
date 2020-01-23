@@ -31,7 +31,9 @@ publish()
 
 runtimeJar(rewriteDefaultJarDepsToShadedCompiler())
 
-sourcesJar()
+sourcesJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 
 javadocJar()
 
