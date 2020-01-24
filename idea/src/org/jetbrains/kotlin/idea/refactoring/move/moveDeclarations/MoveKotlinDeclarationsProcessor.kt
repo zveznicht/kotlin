@@ -161,7 +161,7 @@ class MoveKotlinDeclarationsProcessor(
         val targetContainerFqName = descriptor.moveTarget.targetContainerFqName?.let {
             if (it.isRoot) UsageViewBundle.message("default.package.presentable.name") else it.asString()
         }
-        return MoveMultipleElementsViewDescriptor(elementsToMove.toTypedArray(), targetContainerFqName)
+        return MoveMultipleElementsViewDescriptor(elementsToMove.toTypedArray(), targetContainerFqName ?: "unknown")
     }
 
     fun getConflictsAsUsages(): List<UsageInfo> = conflicts.entrySet().map { ConflictUsageInfo(it.key, it.value) }
