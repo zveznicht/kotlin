@@ -13,7 +13,6 @@ import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.ContentFactory
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.KotlinIcons
 
 class ShowFirAction : AnAction() {
 
@@ -27,7 +26,6 @@ class ShowFirAction : AnAction() {
         var toolWindow = toolWindowManager.getToolWindow(TOOLWINDOW_ID)
         if (toolWindow == null) {
             toolWindow = toolWindowManager.registerToolWindow(TOOLWINDOW_ID, false, ToolWindowAnchor.RIGHT)
-            toolWindow.icon = KotlinIcons.SMALL_LOGO_13
 
             val contentManager = toolWindow.contentManager
             val contentFactory = ContentFactory.SERVICE.getInstance()
