@@ -47,6 +47,12 @@ dependencies {
     }
     testCompile(intellijDep()) {
         includeJars(
+            "testFramework",
+            "testFramework.core",
+            rootProject = rootProject
+        )
+
+        includeJars(
             "jps-model",
             "extensions",
             "util",
