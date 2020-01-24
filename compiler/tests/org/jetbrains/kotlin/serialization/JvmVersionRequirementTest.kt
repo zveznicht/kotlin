@@ -106,20 +106,4 @@ class JvmVersionRequirementTest : AbstractVersionRequirementTest() {
             )
         )
     }
-
-    fun testNestedClassMembers_1_2() {
-        doTest(
-            VersionRequirement.Version(1, 1), DeprecationLevel.ERROR, null, LANGUAGE_VERSION, null,
-            customLanguageVersion = LanguageVersion.KOTLIN_1_2,
-            fqNames = listOf(
-                "test.Outer.Inner.Deep",
-                "test.Outer.Inner.Deep.<init>",
-                "test.Outer.Inner.Deep.f",
-                "test.Outer.Inner.Deep.x",
-                "test.Outer.Inner.Deep.s",
-                "test.Outer.Nested.g",
-                "test.Outer.Companion"
-            )
-        )
-    }
 }

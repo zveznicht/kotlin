@@ -21,54 +21,6 @@ import org.jetbrains.kotlin.test.TestCaseWithTmpdir
 import java.io.File
 
 abstract class AbstractVersionRequirementTest : TestCaseWithTmpdir() {
-
-    interface ModuleContext {
-        fun checkRequirement(
-            expectedVersionRequirement: VersionRequirement.Version,
-            expectedLevel: DeprecationLevel,
-            expectedMessage: String?,
-            expectedVersionKind: ProtoBuf.VersionRequirement.VersionKind,
-            expectedErrorCode: Int?,
-            fqNames: List<String>
-        )
-    }
-
-    fun doTest(
-        customLanguageVersion: LanguageVersion = LanguageVersionSettingsImpl.DEFAULT.languageVersion,
-        assertions: ModuleContext.() -> Unit
-    ) {
-        compileFiles(listOf(File("compiler/testData/versionRequirement/${getTestName(true)}.kt")), tmpdir, customLanguageVersion)
-        val module = loadModule(tmpdir)
-
-        val moduleContext = object : ModuleContext {
-            override fun checkRequirement(
-                expectedVersionRequirement: VersionRequirement.Version,
-                expectedLevel: DeprecationLevel,
-                expectedMessage: String?,
-                expectedVersionKind: ProtoBuf.VersionRequirement.VersionKind,
-                expectedErrorCode: Int?,
-                fqNames: List<String>
-            ) {
-                for (fqName in fqNames) {
-                    val descriptor = module.findUnambiguousDescriptorByFqName(fqName)
-
-                    val requirement = when (descriptor) {
-                        is DeserializedMemberDescriptor -> descriptor.versionRequirements.singleOrNull()
-                        is DeserializedClassDescriptor -> descriptor.versionRequirements.singleOrNull()
-                        else -> throw AssertionError("Unknown descriptor: $descriptor")
-                    } ?: throw AssertionError("No VersionRequirement for $descriptor")
-
-                    assertEquals("Incorrect version for $fqName", expectedVersionRequirement, requirement.version)
-                    assertEquals("Incorrect level for $fqName", expectedLevel, requirement.level)
-                    assertEquals("Incorrect message for $fqName", expectedMessage, requirement.message)
-                    assertEquals("Incorrect versionKind for $fqName", expectedVersionKind, requirement.kind)
-                    assertEquals("Incorrect errorCode for $fqName", expectedErrorCode, requirement.errorCode)
-                }
-            }
-        }
-        moduleContext.assertions()
-    }
-
     fun doTest(
         expectedVersionRequirement: VersionRequirement.Version,
         expectedLevel: DeprecationLevel,
@@ -78,10 +30,23 @@ abstract class AbstractVersionRequirementTest : TestCaseWithTmpdir() {
         customLanguageVersion: LanguageVersion = LanguageVersionSettingsImpl.DEFAULT.languageVersion,
         fqNames: List<String>
     ) {
-        doTest(customLanguageVersion) {
-            checkRequirement(
-                expectedVersionRequirement, expectedLevel, expectedMessage, expectedVersionKind, expectedErrorCode, fqNames
-            )
+        compileFiles(listOf(File("compiler/testData/versionRequirement/${getTestName(true)}.kt")), tmpdir, customLanguageVersion)
+        val module = loadModule(tmpdir)
+
+        for (fqName in fqNames) {
+            val descriptor = module.findUnambiguousDescriptorByFqName(fqName)
+
+            val requirement = when (descriptor) {
+                is DeserializedMemberDescriptor -> descriptor.versionRequirements.singleOrNull()
+                is DeserializedClassDescriptor -> descriptor.versionRequirements.singleOrNull()
+                else -> throw AssertionError("Unknown descriptor: $descriptor")
+            } ?: throw AssertionError("No VersionRequirement for $descriptor")
+
+            assertEquals("Incorrect version for $fqName", expectedVersionRequirement, requirement.version)
+            assertEquals("Incorrect level for $fqName", expectedLevel, requirement.level)
+            assertEquals("Incorrect message for $fqName", expectedMessage, requirement.message)
+            assertEquals("Incorrect versionKind for $fqName", expectedVersionKind, requirement.kind)
+            assertEquals("Incorrect errorCode for $fqName", expectedErrorCode, requirement.errorCode)
         }
     }
 
@@ -177,25 +142,19 @@ abstract class AbstractVersionRequirementTest : TestCaseWithTmpdir() {
     }
 
     fun testNestedClassMembers() {
-        doTest(customLanguageVersion = LanguageVersion.KOTLIN_1_3) {
-            checkRequirement(
-                VersionRequirement.Version(1, 1), DeprecationLevel.ERROR, null, ProtoBuf.VersionRequirement.VersionKind.LANGUAGE_VERSION, null,
-                fqNames = listOf(
-                    "test.Outer.Inner.Deep",
-                    "test.Outer.Inner.Deep.<init>",
-                    "test.Outer.Inner.Deep.f",
-                    "test.Outer.Inner.Deep.x",
-                    "test.Outer.Nested.g",
-                    "test.Outer.Companion"
-                )
+        doTest(
+            VersionRequirement.Version(1, 3), DeprecationLevel.ERROR, null, ProtoBuf.VersionRequirement.VersionKind.LANGUAGE_VERSION, null,
+            customLanguageVersion = LanguageVersion.KOTLIN_1_3,
+            fqNames = listOf(
+                "test.Outer.Inner.Deep",
+                "test.Outer.Inner.Deep.<init>",
+                "test.Outer.Inner.Deep.f",
+                "test.Outer.Inner.Deep.x",
+                "test.Outer.Inner.Deep.s",
+                "test.Outer.Nested.g",
+                "test.Outer.Companion"
             )
-            checkRequirement(
-                VersionRequirement.Version(1, 3), DeprecationLevel.ERROR, null, ProtoBuf.VersionRequirement.VersionKind.LANGUAGE_VERSION, null,
-                fqNames = listOf(
-                    "test.Outer.Inner.Deep.s"
-                )
-            )
-        }
+        )
     }
 
     fun testInlineClassesAndRelevantDeclarations() {
