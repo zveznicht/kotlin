@@ -6,8 +6,9 @@
 package org.jetbrains.kotlin.gradle
 
 import org.jetbrains.kotlin.gradle.util.modify
-import kotlin.test.Ignore
+import org.jetbrains.kotlin.konan.file.File
 import kotlin.test.Test
+import kotlin.test.assertFalse
 
 /** FIXME (sergey.igushkin): please enable these tests back as soon as the Kotlin/Native version that is bundled with the
  *        Kotlin distribution supports compilation to klib and targetless klibs.
@@ -85,6 +86,23 @@ class KlibBasedMppIT : BaseGradleIT() {
             assertSuccessful()
 
             assertTasksExecuted(*tasksToExecute.toTypedArray())
+
+            assertFileExists("build/classes/kotlin/metadata/jvmAndJsMain/manifest")
+            assertFileExists("build/classes/kotlin/metadata/iosMain/iosMain.klib")
+
+            // Check that the common and JVM+JS source sets don't receive the Kotlin/Native stdlib in the classpath:
+            run {
+                fun getClasspath(taskPath: String): Iterable<String> {
+                    val argsPrefix = " $taskPath Kotlin compiler args:"
+                    return output.lines().single { argsPrefix in it }
+                        .substringAfter("-classpath ").substringBefore(" -").split(File.pathSeparator)
+                }
+
+                fun classpathHasKNStdlib(classpath: Iterable<String>) = classpath.any { "klib/common/stdlib" in it.replace("\\", "/") }
+
+                assertFalse(classpathHasKNStdlib(getClasspath(":compileKotlinMetadata")))
+                assertFalse(classpathHasKNStdlib(getClasspath(":compileJvmAndJsMainKotlinMetadata")))
+            }
         }
     }
 }
