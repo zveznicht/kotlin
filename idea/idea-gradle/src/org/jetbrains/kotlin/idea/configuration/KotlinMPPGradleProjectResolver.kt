@@ -34,7 +34,6 @@ import org.jetbrains.kotlin.config.ExternalSystemTestTask
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.gradle.*
 import org.jetbrains.kotlin.idea.configuration.GradlePropertiesFileFacade.Companion.KOTLIN_NOT_IMPORTED_COMMON_SOURCE_SETS_SETTING
-import org.jetbrains.kotlin.idea.configuration.KotlinMPPGradleProjectResolver.Companion.fullName
 import org.jetbrains.kotlin.idea.platform.IdePlatformKindTooling
 import org.jetbrains.kotlin.util.removeSuffixIfPresent
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
@@ -64,8 +63,8 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtension() {
         return setOf(KotlinMPPGradleModel::class.java)
     }
 
-    override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData> {
-        return super.createModule(gradleModule, projectDataNode).also {
+    override fun createModule(gradleModule: IdeaModule, projectDataNode: DataNode<ProjectData>): DataNode<ModuleData>? {
+        return super.createModule(gradleModule, projectDataNode)?.also {
             initializeModuleData(gradleModule, it, projectDataNode, resolverCtx)
         }
     }
