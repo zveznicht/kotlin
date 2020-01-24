@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.jvm.compiler.LoadDescriptorUtil
+import org.jetbrains.kotlin.metadata.ProtoBuf.VersionRequirement.VersionKind.LANGUAGE_VERSION
 import org.jetbrains.kotlin.metadata.ProtoBuf.VersionRequirement.VersionKind.COMPILER_VERSION
 import org.jetbrains.kotlin.metadata.deserialization.VersionRequirement
 import org.jetbrains.kotlin.resolve.lazy.JvmResolveUtil
@@ -86,6 +87,39 @@ class JvmVersionRequirementTest : AbstractVersionRequirementTest() {
                 "test.extensionProperty"
             ),
             customLanguageVersion = LanguageVersion.KOTLIN_1_4
+        )
+    }
+
+    fun testSuspendFun_1_2() {
+        doTest(
+            VersionRequirement.Version(1, 1), DeprecationLevel.ERROR, null, LANGUAGE_VERSION, null,
+            customLanguageVersion = LanguageVersion.KOTLIN_1_2,
+            fqNames = listOf(
+                "test.topLevel",
+                "test.Foo.member",
+                "test.Foo.<init>",
+                "test.async1",
+                "test.async2",
+                "test.async3",
+                "test.async4",
+                "test.asyncVal"
+            )
+        )
+    }
+
+    fun testNestedClassMembers_1_2() {
+        doTest(
+            VersionRequirement.Version(1, 1), DeprecationLevel.ERROR, null, LANGUAGE_VERSION, null,
+            customLanguageVersion = LanguageVersion.KOTLIN_1_2,
+            fqNames = listOf(
+                "test.Outer.Inner.Deep",
+                "test.Outer.Inner.Deep.<init>",
+                "test.Outer.Inner.Deep.f",
+                "test.Outer.Inner.Deep.x",
+                "test.Outer.Inner.Deep.s",
+                "test.Outer.Nested.g",
+                "test.Outer.Companion"
+            )
         )
     }
 }
