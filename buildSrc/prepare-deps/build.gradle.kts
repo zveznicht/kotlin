@@ -90,6 +90,7 @@ repositories {
     maven("https://www.jetbrains.com/intellij-repository/$intellijReleaseType")
     maven("https://plugins.jetbrains.com/maven")
     maven("https://jetbrains.bintray.com/intellij-third-party-dependencies/")
+    maven("https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-dev")
 }
 
 val intellij by configurations.creating
@@ -231,6 +232,7 @@ tasks.register<Delete>("cleanLegacy") {
 }
 
 tasks.named<Delete>("clean") {
+    //TODO specify repos to clean? Use CleanDataTask
     delete(customDepsRepoDir)
 }
 
