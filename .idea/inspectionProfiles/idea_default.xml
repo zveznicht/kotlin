@@ -101,6 +101,7 @@
           <Problem reference="com.intellij.util.JdomKt#element" reason="Removed in 191" />
           <Problem reference="org.jetbrains.kotlin.idea.reporter.ITNReporterCompat#submit" reason="parentComponent is nullable in AS" />
           <Problem reference="com.intellij.diagnostic.ITNReporter#submit" reason="parentComponent is nullable in AS" />
+          <Problem reference="com.intellij.codeInsight.template.impl.TemplateManagerImpl#setTemplateTesting" reason="Method is removed in 201" />
         </list>
       </option>
     </inspection_tool>
