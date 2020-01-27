@@ -239,7 +239,11 @@ private val initializersPhase = makeIrFilePhase<JvmBackendContext>(
 )
 
 private val initializersCleanupPhase = makeIrFilePhase<JvmBackendContext>(
-    { context -> InitializersCleanupLowering(context) { it.constantValue(context) == null } },
+    { context ->
+        InitializersCleanupLowering(context) {
+            it.constantValue(context) == null && (!it.isStatic || it.correspondingPropertySymbol?.owner?.isConst != true)
+        }
+    },
     name = "InitializersCleanup",
     description = "Remove non-static anonymous initializers and non-constant non-static field init expressions",
     stickyPostconditions = setOf(fun(irFile: IrFile) {

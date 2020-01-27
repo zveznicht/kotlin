@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockBodyImpl
-import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 import org.jetbrains.kotlin.name.Name
 
@@ -46,16 +45,6 @@ class StaticInitializersLowering(override val context: JvmBackendContext) : Init
             }.apply {
                 body = IrBlockBodyImpl(irClass.startOffset, irClass.endOffset, staticInitializerStatements).patchDeclarationParents(this)
             }
-
-            // Clean up
-            irClass.declarations.filterIsInstance<IrField>().forEach {
-                if (it.isStatic && it.constantValue(context) == null && it.correspondingPropertySymbol?.owner?.isConst != true) {
-                    it.initializer = null
-                } else {
-                    it.initializer = it.initializer?.deepCopyWithSymbols(it)
-                }
-            }
-            irClass.declarations.removeAll { it is IrAnonymousInitializer && it.isStatic }
         }
     }
 
