@@ -56,6 +56,11 @@ val jsMainSources by task<Sync> {
         // stdlib/js/src/generated is used exclusively for current `js-v1` backend.
         "libraries/stdlib/js/src/generated/**",
 
+        // browser API will be extracted as kotlinx-browser library
+        "libraries/stdlib/js/src/kotlin/browser/**",
+        "libraries/stdlib/js/src/kotlin/dom/**",
+        "libraries/stdlib/js/src/org.w3c/**",
+
         // JS-specific optimized version of emptyArray() already defined
         "core/builtins/src/kotlin/ArrayIntrinsics.kt"
     )
