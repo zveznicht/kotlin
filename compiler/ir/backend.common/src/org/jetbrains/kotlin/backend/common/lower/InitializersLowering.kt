@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.backend.common.lower
 
 import org.jetbrains.kotlin.backend.common.*
-import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBody
@@ -19,7 +18,8 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrSetFieldImpl
 import org.jetbrains.kotlin.ir.util.constructedClass
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
-import org.jetbrains.kotlin.ir.visitors.*
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
+import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 
 object SYNTHESIZED_INIT_BLOCK : IrStatementOriginImpl("SYNTHESIZED_INIT_BLOCK")
 
@@ -84,9 +84,9 @@ class InitializersCleanupLowering(
     }
 
     override fun transformFlat(declaration: IrDeclaration): List<IrDeclaration>? {
-        if (declaration is IrAnonymousInitializer && !declaration.isStatic) return emptyList()
+        if (declaration is IrAnonymousInitializer) return emptyList()
 
-        if (declaration is IrField && !declaration.isStatic && declaration.parent is IrClass) {
+        if (declaration is IrField && declaration.parent is IrClass) {
             if (shouldEraseFieldInitializer(declaration)) {
                 declaration.initializer = null
             } else {
