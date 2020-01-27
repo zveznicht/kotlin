@@ -25,7 +25,7 @@ import com.intellij.psi.PsiJavaFile
 import org.jetbrains.kotlin.build.DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
 import org.jetbrains.kotlin.build.GeneratedFile
 import org.jetbrains.kotlin.build.GeneratedJvmClass
-import org.jetbrains.kotlin.build.metrics.BuildMetric
+import org.jetbrains.kotlin.build.metrics.BuildTime
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -154,7 +154,7 @@ class IncrementalJvmCompilerRunner(
         val lastBuildInfo = BuildInfo.read(lastBuildInfoFile) ?: return CompilationMode.Rebuild { "No information on previous build" }
         reporter.reportVerbose { "Last Kotlin Build info -- $lastBuildInfo" }
 
-        val classpathChanges = reporter.measure(BuildMetric.IC_ANALYZE_CHANGES_IN_DEPENDENCIES) {
+        val classpathChanges = reporter.measure(BuildTime.IC_ANALYZE_CHANGES_IN_DEPENDENCIES) {
             getClasspathChanges(args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter)
         }
 
@@ -171,7 +171,7 @@ class IncrementalJvmCompilerRunner(
             }
         }
 
-        reporter.measure(BuildMetric.IC_ANALYZE_CHANGES_IN_JAVA_SOURCES) {
+        reporter.measure(BuildTime.IC_ANALYZE_CHANGES_IN_JAVA_SOURCES) {
             if (!usePreciseJavaTracking) {
                 val javaFilesChanges = javaFilesProcessor!!.process(changedFiles)
                 val affectedJavaSymbols = when (javaFilesChanges) {
@@ -186,10 +186,10 @@ class IncrementalJvmCompilerRunner(
             }
         }
 
-        val androidLayoutChanges = reporter.measure(BuildMetric.IC_ANALYZE_CHANGES_IN_ANDROID_LAYOUTS) {
+        val androidLayoutChanges = reporter.measure(BuildTime.IC_ANALYZE_CHANGES_IN_ANDROID_LAYOUTS) {
             processLookupSymbolsForAndroidLayouts(changedFiles)
         }
-        val removedClassesChanges = reporter.measure(BuildMetric.IC_DETECT_REMOVED_CLASSES) {
+        val removedClassesChanges = reporter.measure(BuildTime.IC_DETECT_REMOVED_CLASSES) {
             getRemovedClassesChanges(caches, changedFiles)
         }
 

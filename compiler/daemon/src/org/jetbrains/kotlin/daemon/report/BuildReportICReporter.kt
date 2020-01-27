@@ -5,26 +5,31 @@
 
 package org.jetbrains.kotlin.daemon.report
 
+import org.jetbrains.kotlin.build.metrics.BuildAttribute
+import org.jetbrains.kotlin.build.metrics.BuildMetricsReporter
+import org.jetbrains.kotlin.build.metrics.BuildMetricsReporterImpl
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.daemon.common.CompilationResultCategory
 import org.jetbrains.kotlin.daemon.common.CompilationResults
 import org.jetbrains.kotlin.incremental.ICReporterBase
-import org.jetbrains.kotlin.build.metrics.BuildMetric
+import org.jetbrains.kotlin.build.metrics.BuildTime
 import java.io.File
 import java.util.*
+import kotlin.collections.LinkedHashMap
 
+
+
+// todo: sync BuildReportICReporterAsync
 internal class BuildReportICReporter(
     private val compilationResults: CompilationResults,
     rootDir: File,
     private val isVerbose: Boolean = false,
-    // todo: default value
-    // todo: sync BuildReportICReporterAsync
     private val reportMetrics: Boolean = true
 ) : ICReporterBase(rootDir), RemoteICReporter {
     private val icLogLines = arrayListOf<String>()
     private val recompilationReason = HashMap<File, String>()
-    private val metricStartNs: EnumMap<BuildMetric, Long> = EnumMap(BuildMetric::class.java)
-    private val metrics = ArrayList<Pair<BuildMetric, Long>>()
+    override val metricsReporter: BuildMetricsReporter =
+        if (reportMetrics) BuildMetricsReporterImpl() else BuildMetricsReporter.DoNothing
 
     override fun report(message: () -> String) {
         icLogLines.add(message())
@@ -33,23 +38,6 @@ internal class BuildReportICReporter(
     override fun reportVerbose(message: () -> String) {
         if (isVerbose) {
             report(message)
-        }
-    }
-
-    override fun startMeasure(metric: BuildMetric, startNs: Long) {
-        if (reportMetrics) {
-            if (metric in metricStartNs) {
-                error("$metric was restarted before it finished")
-            }
-            metricStartNs[metric] = startNs
-        }
-    }
-
-    override fun endMeasure(metric: BuildMetric, endNs: Long) {
-        if (reportMetrics) {
-            val startNs = metricStartNs.remove(metric) ?: error("$metric finished before it started")
-            val durationNs = endNs - startNs
-            metrics.add(metric to durationNs)
         }
     }
 
@@ -70,7 +58,7 @@ internal class BuildReportICReporter(
 
     override fun flush() {
         if (reportMetrics) {
-            compilationResults.add(CompilationResultCategory.BUILD_METRICS.code, metrics)
+            compilationResults.add(CompilationResultCategory.BUILD_METRICS.code, metricsReporter.getMetrics())
         }
 
         compilationResults.add(CompilationResultCategory.BUILD_REPORT_LINES.code, icLogLines)

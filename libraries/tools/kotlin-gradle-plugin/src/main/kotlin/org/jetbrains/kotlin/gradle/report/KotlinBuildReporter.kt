@@ -12,6 +12,8 @@ import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.TaskState
+import org.jetbrains.kotlin.build.metrics.BuildAttribute
+import org.jetbrains.kotlin.build.metrics.BuildMetrics
 import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskExecutionResults
@@ -101,14 +103,28 @@ internal class KotlinBuildReporter(
         val path = task.path
         val executionResult = TaskExecutionResults[path]
         if (executionResult != null) {
-            tasksSb.appendln("Execution strategy: ${executionResult.executionStrategy}")
-
-            executionResult.icLogLines?.let { lines ->
+            if (executionResult.icLogLines.isNotEmpty()) {
                 tasksSb.appendln("Compilation log for $task:")
-                lines.forEach { tasksSb.appendln("  $it") }
+                executionResult.icLogLines.forEach { tasksSb.appendln("  $it") }
             }
+
+            tasksSb.appendln("Metrics for $task:")
+            tasksSb.printMetrics(executionResult.buildMetrics)
         }
     }
+
+    private fun StringBuilder.printMetrics(buildMetrics: BuildMetrics) {
+        for (attribute in BuildAttribute.values()) {
+            val value = buildMetrics.buildAttributes[attribute] ?: continue
+            appendln("  ${attribute.name}: $value")
+        }
+
+        for (attribute in BuildAttribute.values()) {
+            val value = buildMetrics.buildAttributes[attribute] ?: continue
+            appendln("  ${attribute.name}: $value")
+        }
+    }
+
 
     @Synchronized
     override fun buildFinished(result: BuildResult) {

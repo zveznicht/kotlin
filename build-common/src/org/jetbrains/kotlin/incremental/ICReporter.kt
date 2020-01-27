@@ -5,11 +5,11 @@
 
 package org.jetbrains.kotlin.incremental
 
-import org.jetbrains.kotlin.build.metrics.BuildMetric
+import org.jetbrains.kotlin.build.metrics.BuildMetricsReporter
 import org.jetbrains.kotlin.cli.common.ExitCode
 import java.io.File
 
-interface ICReporter {
+interface ICReporter : BuildMetricsReporter {
     fun report(message: () -> String)
     fun reportVerbose(message: () -> String)
 
@@ -17,19 +17,6 @@ interface ICReporter {
     fun reportMarkDirtyClass(affectedFiles: Iterable<File>, classFqName: String)
     fun reportMarkDirtyMember(affectedFiles: Iterable<File>, scope: String, name: String)
     fun reportMarkDirty(affectedFiles: Iterable<File>, reason: String)
-
-    fun startMeasure(metric: BuildMetric, startNs: Long)
-    fun endMeasure(metric: BuildMetric, endNs: Long)
 }
 
-inline fun <T> ICReporter.measure(metric: BuildMetric, fn: () -> T): T {
-    val start = System.nanoTime()
-    startMeasure(metric, start)
 
-    try {
-        return fn()
-    } finally {
-        val end = System.nanoTime()
-        endMeasure(metric, end)
-    }
-}
