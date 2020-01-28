@@ -21,9 +21,11 @@ val Project.internalKotlinRepo: String?
     get() = "https://teamcity.jetbrains.com/guestAuth/app/rest/builds/buildType:(id:Kotlin_KotlinPublic_Compiler),number:$bootstrapKotlinVersion," +
             "branch:default:any/artifacts/content/internal/repo"
 
-fun Project.kotlinBootstrapFrom(defaultSource: BootstrapOption) {
+fun Project.kotlinBootstrapFrom(cacheRedirector: Boolean = false) {
     val customVersion = project.findProperty("bootstrap.kotlin.version") as String?
+        ?: throw Exception("Mandatory property \"bootstrap.kotlin.version\" is not set.")
     val customRepo = project.findProperty("bootstrap.kotlin.repo") as String?
+        ?: throw Exception("Mandatory property \"bootstrap.kotlin.repo\" is not set.")
     val teamCityVersion = project.findProperty("bootstrap.teamcity.kotlin.version") as String?
     val teamCityBuild = project.findProperty("bootstrap.teamcity.build.number") as String?
     val teamCityProject = project.findProperty("bootstrap.teamcity.project") as String?
@@ -39,8 +41,7 @@ fun Project.kotlinBootstrapFrom(defaultSource: BootstrapOption) {
             projectExtId = teamCityProject,
             onlySuccessBootstrap = false
         )
-        customVersion != null -> BootstrapOption.Custom(kotlinVersion = customVersion, repo = customRepo)
-        else -> defaultSource
+        else -> BootstrapOption.Custom(kotlinVersion = customVersion, repo = customRepo, cacheRedirector = cacheRedirector)
     }
 
     bootstrapSource.applyToProject(project)
@@ -67,10 +68,6 @@ sealed class BootstrapOption {
     /** Get bootstrap from kotlin-dev bintray repo */
     class BintrayDev(kotlinVersion: String, cacheRedirector: Boolean = false) :
         Custom(kotlinVersion, "https://dl.bintray.com/kotlin/kotlin-dev", cacheRedirector)
-
-    /** Get bootstrap from kotlin-bootstrap bintray repo, where bootstraps are published */
-    class BintrayBootstrap(kotlinVersion: String, cacheRedirector: Boolean = false) :
-        Custom(kotlinVersion, "https://dl.bintray.com/kotlin/kotlin-bootstrap", cacheRedirector)
 
     /** Get bootstrap from teamcity maven artifacts of the specified build configuration
      *
