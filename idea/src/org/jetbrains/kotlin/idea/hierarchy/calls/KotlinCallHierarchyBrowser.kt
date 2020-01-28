@@ -16,24 +16,19 @@
 
 package org.jetbrains.kotlin.idea.hierarchy.calls;
 
-import com.intellij.ide.hierarchy.CallHierarchyBrowserBase;
-import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
-import com.intellij.ide.hierarchy.HierarchyTreeStructure;
-import com.intellij.ide.hierarchy.JavaHierarchyUtil;
-import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.openapi.actionSystem.ActionGroup;
-import com.intellij.openapi.actionSystem.ActionManager;
-import com.intellij.openapi.actionSystem.ActionPlaces;
-import com.intellij.openapi.actionSystem.IdeActions;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.ui.PopupHandler;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.psi.KtElement;
-
-import javax.swing.*;
-import java.util.Comparator;
-import java.util.Map;
+import com.intellij.ide.hierarchy.HierarchyNodeDescriptor
+import com.intellij.ide.hierarchy.JavaHierarchyUtil
+import com.intellij.openapi.actionSystem.ActionGroup
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.ActionPlaces
+import com.intellij.openapi.actionSystem.IdeActions
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
+import com.intellij.ui.PopupHandler
+import org.jetbrains.annotations.NotNull
+import org.jetbrains.kotlin.psi.KtElement
+import java.util.Map
+import javax.swing.JTree
 
 public class KotlinCallHierarchyBrowser extends CallHierarchyBrowserBase {
     public KotlinCallHierarchyBrowser(@NotNull PsiElement element) {

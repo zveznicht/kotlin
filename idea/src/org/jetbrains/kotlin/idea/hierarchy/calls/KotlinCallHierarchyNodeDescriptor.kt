@@ -16,32 +16,25 @@
 
 package org.jetbrains.kotlin.idea.hierarchy.calls;
 
-import com.intellij.icons.AllIcons;
-import com.intellij.ide.IdeBundle;
-import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
-import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor;
-import com.intellij.openapi.editor.markup.TextAttributes;
-import com.intellij.openapi.roots.ui.util.CompositeAppearance;
-import com.intellij.openapi.util.Comparing;
-import com.intellij.openapi.util.Iconable;
-import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.pom.Navigatable;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReference;
-import com.intellij.ui.LayeredIcon;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.descriptors.*;
-import org.jetbrains.kotlin.idea.caches.resolve.ResolutionUtils;
-import org.jetbrains.kotlin.name.Name;
-import org.jetbrains.kotlin.psi.*;
-import org.jetbrains.kotlin.renderer.DescriptorRenderer;
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode;
-
-import javax.swing.*;
-import java.awt.*;
-import java.util.HashSet;
-import java.util.Set;
+import com.intellij.icons.AllIcons
+import com.intellij.ide.IdeBundle
+import com.intellij.ide.hierarchy.HierarchyNodeDescriptor
+import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor
+import com.intellij.openapi.editor.markup.TextAttributes
+import com.intellij.openapi.roots.ui.util.CompositeAppearance
+import com.intellij.openapi.util.Comparing
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiReference
+import com.intellij.ui.LayeredIcon
+import org.jetbrains.annotations.NotNull
+import org.jetbrains.annotations.Nullable
+import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.idea.caches.resolve.ResolutionUtils
+import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.*
+import java.util.*
+import java.util.Set
+import javax.swing.Icon
 
 public class KotlinCallHierarchyNodeDescriptor extends HierarchyNodeDescriptor implements Navigatable {
     private int usageCount = 1;
