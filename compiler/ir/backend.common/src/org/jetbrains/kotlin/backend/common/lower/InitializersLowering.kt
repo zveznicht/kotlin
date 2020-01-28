@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.backend.common.lower
 
 import org.jetbrains.kotlin.backend.common.*
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBody
@@ -18,8 +19,7 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrSetFieldImpl
 import org.jetbrains.kotlin.ir.util.constructedClass
 import org.jetbrains.kotlin.ir.util.deepCopyWithSymbols
-import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
-import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
+import org.jetbrains.kotlin.ir.visitors.*
 
 object SYNTHESIZED_INIT_BLOCK : IrStatementOriginImpl("SYNTHESIZED_INIT_BLOCK")
 
@@ -41,7 +41,21 @@ open class InitializersLowering(context: CommonBackendContext) : InitializersLow
         container.body?.transformChildrenVoid(object : IrElementTransformerVoid() {
             override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall): IrExpression {
                 return IrBlockImpl(irClass.startOffset, irClass.endOffset, context.irBuiltIns.unitType, null, instanceInitializerStatements)
-                    .deepCopyWithSymbols(container)
+                    .deepCopyWithSymbols(container).also {
+                        // Handle declarations, copied from initializers
+                        // TODO WTF really
+                        it.acceptVoid(object : IrElementVisitorVoid {
+                            override fun visitElement(element: IrElement) {
+                                element.acceptChildrenVoid(this)
+                            }
+
+                            override fun visitConstructor(declaration: IrConstructor) {
+                                super.visitConstructor(declaration)
+
+                                declaration.body?.let { lower(it, declaration) }
+                            }
+                        })
+                    }
             }
         })
     }
