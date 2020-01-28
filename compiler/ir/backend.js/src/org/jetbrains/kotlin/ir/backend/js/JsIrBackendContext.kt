@@ -50,6 +50,8 @@ class JsIrBackendContext(
     override val lateinitNullableFields
         get() = error("Use Mapping.lateInitFieldToNullableField instead")
 
+    override val extractedLocalClasses: MutableSet<IrClass> = hashSetOf()
+
     override val builtIns = module.builtIns
 
     override var inVerbosePhase: Boolean = false
