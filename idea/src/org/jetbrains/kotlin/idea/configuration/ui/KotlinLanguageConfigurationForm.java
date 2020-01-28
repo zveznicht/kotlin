@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.idea.configuration.ui;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.registry.Registry;
+import com.intellij.util.PlatformUtils;
 import com.intellij.util.ui.AsyncProcessIcon;
 import org.jetbrains.kotlin.idea.KotlinPluginUtil;
 import org.jetbrains.kotlin.idea.util.VersioningKt;
@@ -32,6 +33,8 @@ public class KotlinLanguageConfigurationForm {
 
     public KotlinLanguageConfigurationForm() {
         showVerifierDisabledStatus();
+
+        useNewProjectWizardCheckBox.setVisible(!isAndroidStudio());
 
         String pluginVersion = KotlinPluginUtil.getPluginVersion();
 
@@ -109,5 +112,9 @@ public class KotlinLanguageConfigurationForm {
         else {
             verifierDisabledText.setText("");
         }
+    }
+
+    private static boolean isAndroidStudio() {
+        return PlatformUtils.getPlatformPrefix().equals("AndroidStudio");
     }
 }
