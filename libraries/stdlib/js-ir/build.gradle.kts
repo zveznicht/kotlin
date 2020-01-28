@@ -61,6 +61,9 @@ val jsMainSources by task<Sync> {
         "libraries/stdlib/js/src/kotlin/dom/**",
         "libraries/stdlib/js/src/org.w3c/**",
 
+        // TODO: we should use 'https://github.com/kotlin/js-externals' instead
+        "libraries/stdlib/js/src/jquery/**",
+
         // JS-specific optimized version of emptyArray() already defined
         "core/builtins/src/kotlin/ArrayIntrinsics.kt"
     )
