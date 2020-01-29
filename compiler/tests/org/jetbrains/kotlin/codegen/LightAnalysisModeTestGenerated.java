@@ -19421,6 +19421,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             runTest("compiler/testData/codegen/box/properties/companionPrivateFieldInsideLambda.kt");
         }
 
+        @TestMetadata("complexPropertyInitializer.kt")
+        public void testComplexPropertyInitializer() throws Exception {
+            runTest("compiler/testData/codegen/box/properties/complexPropertyInitializer.kt");
+        }
+
         @TestMetadata("field.kt")
         public void testField() throws Exception {
             runTest("compiler/testData/codegen/box/properties/field.kt");
