@@ -55,7 +55,7 @@ class JvmBackendContext(
     // If the JVM fqname of a class differs from what is implied by its parent, e.g. if it's a file class
     // annotated with @JvmPackageName, the correct name is recorded here.
     internal val classNameOverride: MutableMap<IrClass, JvmClassName>
-) : CommonBackendContext, Mapping by DefaultMapping() {
+) : CommonBackendContext {
     override val transformedFunction: MutableMap<IrFunctionSymbol, IrSimpleFunctionSymbol>
         get() = TODO("not implemented")
 
