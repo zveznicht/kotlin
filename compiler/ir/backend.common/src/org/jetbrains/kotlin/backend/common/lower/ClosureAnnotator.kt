@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.util.isLocal
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import kotlin.collections.set
 
 data class Closure(val capturedValues: List<IrValueSymbol>, val capturedTypeParameters: List<IrTypeParameter>)
@@ -41,7 +42,11 @@ class ClosureAnnotator(declaration: IrDeclaration) {
 
     init {
         // Collect all closures for classes and functions. Collect call graph
-        declaration.accept(ClosureCollectorVisitor(), null)
+        if (declaration is IrFunction) {
+            ClosureCollectorVisitor().visitFunction(declaration, true)
+        } else {
+            declaration.accept(ClosureCollectorVisitor(), null)
+        }
     }
 
     fun getFunctionClosure(declaration: IrFunction) = getClosure(declaration)
@@ -165,7 +170,7 @@ class ClosureAnnotator(declaration: IrDeclaration) {
             closuresStack.pop()
         }
 
-        override fun visitFunction(declaration: IrFunction) {
+        fun visitFunction(declaration: IrFunction, bodyOnly: Boolean) {
             val closureBuilder = ClosureBuilder(declaration)
             closureBuilders[declaration] = closureBuilder
 
@@ -188,10 +193,21 @@ class ClosureAnnotator(declaration: IrDeclaration) {
             }
 
             closuresStack.push(closureBuilder)
-            declaration.acceptChildrenVoid(this)
+
+            if (bodyOnly) {
+                declaration.body?.acceptVoid(this)
+            } else {
+                declaration.acceptChildrenVoid(this)
+            }
+
             closuresStack.pop()
 
             includeInParent(closureBuilder)
+        }
+
+
+        override fun visitFunction(declaration: IrFunction) {
+            visitFunction(declaration, false)
         }
 
         override fun visitVariableAccess(expression: IrValueAccessExpression) {
