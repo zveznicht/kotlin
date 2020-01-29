@@ -81,7 +81,7 @@ private class FunctionNVarargBridgeLowering(val context: JvmBackendContext) :
 
         // Fix super class
         val superType = bigArityFunctionSuperTypes.single()
-        declaration.superTypes = declaration.superTypes.filter { it != superType }
+        declaration.superTypes -= superType
         declaration.superTypes += context.ir.symbols.functionN.typeWith(
             (superType.arguments.last() as IrTypeProjection).type
         )
