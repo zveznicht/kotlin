@@ -20,17 +20,6 @@ interface ClassCarrier : DeclarationCarrier<ClassCarrier> {
     var typeParametersField: List<IrTypeParameter>
     var superTypesField: List<IrType>
 
-    override fun eq(other: ClassCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField === other.originField &&
-                annotationsField === other.annotationsField &&
-                thisReceiverField === other.thisReceiverField &&
-                metadataField === other.metadataField &&
-                visibilityField === other.visibilityField &&
-                modalityField === other.modalityField &&
-                attributeOwnerIdField === other.attributeOwnerIdField
-    }
-
     override fun clone(): ClassCarrier {
         return ClassCarrierImpl(
             lastModified,

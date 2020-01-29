@@ -11,12 +11,6 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 
 interface TypeParameterCarrier : DeclarationCarrier<TypeParameterCarrier> {
 
-    override fun eq(other: TypeParameterCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField === other.originField &&
-                annotationsField === other.annotationsField
-    }
-
     override fun clone(): TypeParameterCarrier {
         return TypeParameterCarrierImpl(lastModified, parentField, originField, annotationsField)
     }

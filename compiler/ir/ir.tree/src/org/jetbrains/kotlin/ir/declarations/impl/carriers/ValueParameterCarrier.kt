@@ -13,13 +13,6 @@ import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 interface ValueParameterCarrier : DeclarationCarrier<ValueParameterCarrier> {
     var defaultValueField: IrExpressionBody?
 
-    override fun eq(other: ValueParameterCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField === other.originField &&
-                annotationsField === other.annotationsField &&
-                defaultValueField === other.defaultValueField
-    }
-
     override fun clone(): ValueParameterCarrier {
         return ValueParameterCarrierImpl(lastModified, parentField, originField, annotationsField, defaultValueField)
     }

@@ -14,13 +14,6 @@ interface TypeAliasCarrier : DeclarationCarrier<TypeAliasCarrier> {
 
     var typeParametersField: List<IrTypeParameter>
 
-    override fun eq(other: TypeAliasCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField === other.originField &&
-                annotationsField === other.annotationsField &&
-                typeParametersField === other.typeParametersField
-    }
-
     override fun clone(): TypeAliasCarrier {
         return TypeAliasCarrierImpl(
             lastModified,

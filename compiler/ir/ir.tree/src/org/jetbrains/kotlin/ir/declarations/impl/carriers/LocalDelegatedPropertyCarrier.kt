@@ -16,15 +16,6 @@ interface LocalDelegatedPropertyCarrier : DeclarationCarrier<LocalDelegatedPrope
     var getterField: IrFunction?
     var setterField: IrFunction?
 
-    override fun eq(other: LocalDelegatedPropertyCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField === other.originField &&
-                annotationsField === other.annotationsField &&
-                delegateField === other.delegateField &&
-                getterField === other.getterField &&
-                setterField === other.setterField
-    }
-
     override fun clone(): LocalDelegatedPropertyCarrier {
         return LocalDelegatedPropertyCarrierImpl(
             lastModified,

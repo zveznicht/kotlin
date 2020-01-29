@@ -14,15 +14,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 interface EnumEntryCarrier : DeclarationCarrier<EnumEntryCarrier> {
     var correspondingClassField: IrClass?
     var initializerExpressionField: IrExpressionBody?
-
-    override fun eq(other: EnumEntryCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField === other.originField &&
-                annotationsField === other.annotationsField &&
-                correspondingClassField === other.correspondingClassField &&
-                initializerExpressionField === other.initializerExpressionField
-    }
-
+    
     override fun clone(): EnumEntryCarrier {
         return EnumEntryCarrierImpl(
             lastModified,

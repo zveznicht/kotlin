@@ -13,19 +13,6 @@ import org.jetbrains.kotlin.ir.types.IrType
 
 
 interface ConstructorCarrier : FunctionBaseCarrier<ConstructorCarrier> {
-    override fun eq(other: ConstructorCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField === other.originField &&
-                annotationsField === other.annotationsField &&
-                returnTypeFieldField === other.returnTypeFieldField &&
-                dispatchReceiverParameterField === other.dispatchReceiverParameterField &&
-                extensionReceiverParameterField === other.extensionReceiverParameterField &&
-                bodyField === other.bodyField &&
-                metadataField === other.metadataField &&
-                visibilityField === other.visibilityField &&
-                typeParametersField === other.typeParametersField &&
-                valueParametersField === other.valueParametersField
-    }
 
     override fun clone(): ConstructorCarrier {
         return ConstructorCarrierImpl(

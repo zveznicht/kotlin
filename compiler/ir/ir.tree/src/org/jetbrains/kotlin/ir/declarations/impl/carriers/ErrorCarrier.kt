@@ -11,12 +11,6 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 
 interface ErrorCarrier : DeclarationCarrier<ErrorCarrier> {
 
-    override fun eq(other: ErrorCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField === other.originField &&
-                annotationsField === other.annotationsField
-    }
-
     override fun clone(): ErrorCarrier {
         return ErrorCarrierImpl(lastModified, parentField, originField, annotationsField)
     }

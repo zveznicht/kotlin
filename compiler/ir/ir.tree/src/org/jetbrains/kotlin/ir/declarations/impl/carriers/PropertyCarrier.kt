@@ -14,16 +14,6 @@ interface PropertyCarrier : DeclarationCarrier<PropertyCarrier> {
     var setterField: IrSimpleFunction?
     var metadataField: MetadataSource?
 
-    override fun eq(other: PropertyCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField == other.originField &&
-                annotationsField === other.annotationsField &&
-                backingFieldField === other.backingFieldField &&
-                getterField === other.getterField &&
-                setterField === other.setterField &&
-                metadataField === other.metadataField
-    }
-
     override fun clone(): PropertyCarrier {
         return PropertyCarrierImpl(
             lastModified,

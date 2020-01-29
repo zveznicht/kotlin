@@ -13,12 +13,6 @@ import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 interface AnonymousInitializerCarrier : DeclarationCarrier<AnonymousInitializerCarrier> {
     var bodyField: IrBlockBody?
 
-    override fun eq(other: AnonymousInitializerCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField === other.originField &&
-                bodyField === other.bodyField
-    }
-
     override fun clone(): AnonymousInitializerCarrier {
         return AnonymousInitializerCarrierImpl(
             lastModified,

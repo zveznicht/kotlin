@@ -18,23 +18,6 @@ interface FunctionCarrier : FunctionBaseCarrier<FunctionCarrier> {
     var overriddenSymbolsField: List<IrSimpleFunctionSymbol>
     var attributeOwnerIdField: IrAttributeContainer
 
-    override fun eq(other: FunctionCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField === other.originField &&
-                annotationsField === other.annotationsField &&
-                returnTypeFieldField === other.returnTypeFieldField &&
-                dispatchReceiverParameterField === other.dispatchReceiverParameterField &&
-                extensionReceiverParameterField === other.extensionReceiverParameterField &&
-                bodyField === other.bodyField &&
-                metadataField === other.metadataField &&
-                visibilityField === other.visibilityField &&
-                typeParametersField === other.typeParametersField &&
-                valueParametersField === other.valueParametersField &&
-                correspondingPropertySymbolField === other.correspondingPropertySymbolField &&
-                overriddenSymbolsField === other.overriddenSymbolsField &&
-                attributeOwnerIdField === other.attributeOwnerIdField
-    }
-
     override fun clone(): FunctionCarrier {
         return FunctionCarrierImpl(
             lastModified,

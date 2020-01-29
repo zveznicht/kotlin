@@ -11,10 +11,6 @@ interface BodyCarrier : Carrier<BodyCarrier> {
 
     var containerField: IrDeclaration?
 
-    override fun eq(other: BodyCarrier): Boolean {
-        return containerField === other.containerField
-    }
-
     override fun clone(): BodyCarrier {
         return BodyCarrierImpl(lastModified, containerField)
     }

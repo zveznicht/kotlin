@@ -19,16 +19,6 @@ interface FieldCarrier : DeclarationCarrier<FieldCarrier> {
     var metadataField: MetadataSource.Property?
     var overridenSymbolsField: List<IrFieldSymbol>
 
-    override fun eq(other: FieldCarrier): Boolean {
-        return parentField === other.parentField &&
-                originField === other.originField &&
-                annotationsField === other.annotationsField &&
-                initializerField === other.initializerField &&
-                correspondingPropertySymbolField === other.correspondingPropertySymbolField &&
-                metadataField === other.metadataField &&
-                overridenSymbolsField === other.overridenSymbolsField
-    }
-
     override fun clone(): FieldCarrier {
         return FieldCarrierImpl(
             lastModified,
