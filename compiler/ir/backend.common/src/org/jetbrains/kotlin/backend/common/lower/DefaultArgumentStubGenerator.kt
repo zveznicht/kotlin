@@ -475,7 +475,6 @@ private fun IrFunction.generateDefaultsFunctionImpl(
         it.copyTo(
             newFunction,
             type = if (makeNullable) newType.makeNullable() else newType,
-            // TODO Why??????
             defaultValue = if (it.defaultValue != null) {
                 IrExpressionBodyImpl(IrErrorExpressionImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, it.type, "Default Stub"))
             } else null
