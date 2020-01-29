@@ -73,11 +73,10 @@ class RedundantLocalsEliminationMethodTransformer(private val languageVersionSet
         val insns = findSafeAstorePredecessors(methodNode, cfg, ignoreLocalVariableTable = false) {
             it.isUnitInstance() || it.opcode == Opcodes.ACONST_NULL || it.opcode == Opcodes.ALOAD
         }
-        for ((pred, astore) in insns) {
+        for ((_, astore) in insns) {
             val aload = findSingleLoadFromAstore(astore, cfg, methodNode) ?: continue
 
-            methodNode.instructions.removeAll(listOf(pred, astore))
-            methodNode.instructions.set(aload, pred.clone())
+            methodNode.instructions.removeAll(listOf(aload, astore))
             return true
         }
         return false
