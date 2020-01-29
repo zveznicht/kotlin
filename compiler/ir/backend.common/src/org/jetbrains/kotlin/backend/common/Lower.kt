@@ -214,18 +214,14 @@ fun DeclarationTransformer.runPostfix(withLocalDeclarations: Boolean = false): D
                         val result = this@runPostfix.transformFlatRestricted(this)
                         if (result != null) {
                             (parent as? IrDeclarationContainer)?.let {
-                                var index = -1
-                                it.declarations.forEachIndexed { i, v ->
-                                    // TODO Why do we look for property itself as well?
-                                    if (v == this || index == -1 && v == declaration) {
-                                        index = i
-                                    }
-                                }
-
-                                if (it.declarations[index] == this) {
+                                var index = it.declarations.indexOf(this)
+                                if (index == -1) {
+                                    index = it.declarations.indexOf(declaration)
+                                } else {
                                     it.declarations.removeAt(index)
                                     --index
                                 }
+
                                 it.declarations.addAll(index + 1, result)
                             }
                         }
