@@ -316,8 +316,8 @@ abstract class AnnotationCodegen(
         val infos: Iterable<TypePathInfo<IrConstructorCall>> =
             IrTypeAnnotationCollector(context.typeMapper.typeSystem).collectTypeAnnotations(type)
         for (info in infos) {
-            for (annotationDescriptor in info.annotations) {
-                genAnnotation(annotationDescriptor, info.path, true)
+            for (annotation in info.annotations) {
+                genAnnotation(annotation, info.path, true)
             }
         }
     }
@@ -331,9 +331,7 @@ abstract class AnnotationCodegen(
                 // Those are type annotations which were compiled with JVM target bytecode version 1.8 or greater
                 (it.annotationClass.origin != IrDeclarationOrigin.IR_EXTERNAL_DECLARATION_STUB &&
                         it.annotationClass.origin != IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB) ||
-                        (it.annotationClass.descriptor as? DeserializedClassDescriptor)?.let { classDescriptor ->
-                            ((classDescriptor.source as? KotlinJvmBinarySourceElement)?.binaryClass as? FileBasedKotlinClass)?.classVersion ?: 0 >= Opcodes.V1_8
-                        } ?: true
+                        isCompiledToJvm8OrHigher(it.annotationClass.descriptor)
             }
         }
     }

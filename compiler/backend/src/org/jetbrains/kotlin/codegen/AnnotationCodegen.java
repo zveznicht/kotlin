@@ -677,7 +677,7 @@ public abstract class AnnotationCodegen {
         }
 
         Iterable<TypePathInfo<AnnotationDescriptor>> infos =
-                new PsiTypeAnnotationCollector(SimpleClassicTypeSystemContext.INSTANCE).collectTypeAnnotations(type);
+                new PsiTypeAnnotationCollector().collectTypeAnnotations(type);
         for (TypePathInfo<AnnotationDescriptor> info : infos) {
             for (AnnotationDescriptor annotationDescriptor : info.getAnnotations()) {
                 genAnnotation(annotationDescriptor, info.getPath(), true);

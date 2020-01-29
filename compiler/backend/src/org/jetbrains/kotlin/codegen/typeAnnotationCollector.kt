@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.codegen
 
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.load.kotlin.FileBasedKotlinClass
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinarySourceElement
@@ -12,6 +13,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedClassDescriptor
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
+import org.jetbrains.kotlin.types.checker.SimpleClassicTypeSystemContext
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeVariance
 import org.jetbrains.org.objectweb.asm.Opcodes
@@ -41,16 +43,14 @@ private class State<T>(val path: MutableList<String>) {
     }
 }
 
-class PsiTypeAnnotationCollector(context: TypeSystemCommonBackendContext) : TypeAnnotationCollector<AnnotationDescriptor>(context) {
+class PsiTypeAnnotationCollector : TypeAnnotationCollector<AnnotationDescriptor>(SimpleClassicTypeSystemContext) {
 
     override fun KotlinTypeMarker.extractAnnotations(): List<AnnotationDescriptor> {
         require(this is KotlinType)
         return annotations.filter {
             //We only generate annotations which have the TYPE_USE Java target.
             // Those are type annotations which were compiled with JVM target bytecode version 1.8 or greater
-            (it.annotationClass as? DeserializedClassDescriptor)?.let { classDescriptor ->
-                ((classDescriptor.source as? KotlinJvmBinarySourceElement)?.binaryClass as? FileBasedKotlinClass)?.classVersion ?: 0 >= Opcodes.V1_8
-            } ?: true
+            isCompiledToJvm8OrHigher(it.annotationClass)
         }
     }
 }
@@ -74,7 +74,7 @@ abstract class TypeAnnotationCollector<T>(val context: TypeSystemCommonBackendCo
                 return
             }
 
-            extractAnnotations()?.let { state.rememberAnnotations(it) }
+            extractAnnotations().takeIf { it.isNotEmpty() }?.let { state.rememberAnnotations(it) }
 
             for (index in 0 until argumentsCount()) {
                 val type = getArgument(index)
@@ -96,6 +96,11 @@ abstract class TypeAnnotationCollector<T>(val context: TypeSystemCommonBackendCo
     }
 
 
-    abstract fun KotlinTypeMarker.extractAnnotations(): List<T>?
+    abstract fun KotlinTypeMarker.extractAnnotations(): List<T>
+
+    fun isCompiledToJvm8OrHigher(descriptor: ClassDescriptor?): Boolean =
+        (descriptor as? DeserializedClassDescriptor)?.let { classDescriptor ->
+            ((classDescriptor.source as? KotlinJvmBinarySourceElement)?.binaryClass as? FileBasedKotlinClass)?.classVersion ?: 0 >= Opcodes.V1_8
+        } ?: true
 
 }
