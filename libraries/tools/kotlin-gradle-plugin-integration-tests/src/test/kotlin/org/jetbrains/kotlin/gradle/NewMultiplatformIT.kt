@@ -139,7 +139,7 @@ class NewMultiplatformIT : BaseGradleIT() {
 
         with(appProject) {
             setupWorkingDir()
-            gradleBuildScript().appendText("\nrepositories { maven(\"$libLocalRepoUri\") }")
+            gradleBuildScript().appendText("\nrepositories { maven { setUrl(\"$libLocalRepoUri\") } }")
 
             fun CompiledProject.checkProgramCompilationCommandLine(check: (String) -> Unit) {
                 output.lineSequence().filter {
@@ -1834,6 +1834,9 @@ class NewMultiplatformIT : BaseGradleIT() {
             noArg { annotation 'com.example.Annotation' }
 
             task $printOptionsTaskName {
+                // if the tasks are not configured during evaluation phase, configuring them during execution
+                // leads to new dependencies unsuccessfully added to the resolved compilerPluginsClasspath configuration
+                kotlin.targets.all { compilations.all { /*force to configure the*/ compileKotlinTask } }
                 doFirst {
                     kotlin.sourceSets.each { sourceSet ->
                         def args = sourceSet.languageSettings.compilerPluginArguments
