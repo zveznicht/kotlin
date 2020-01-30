@@ -83,7 +83,7 @@ class JavaClassImpl(psiClass: PsiClass) : JavaClassifierImpl<PsiClass>(psiClass)
             assertNotLightClass()
             return fields(psi.fields.filter {
                 // ex. Android plugin generates LightFields for resources started from '.' (.DS_Store file etc)
-                Name.isValidIdentifier(it.name)
+                it != null && Name.isValidIdentifier(it.name)
             })
         }
 
