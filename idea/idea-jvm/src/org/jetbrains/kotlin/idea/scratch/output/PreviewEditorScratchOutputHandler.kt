@@ -156,7 +156,8 @@ class PreviewOutputBlocksManager(editor: Editor) {
 
                 if (height <= sourceExpression.height) return@runBatchFoldingOperation
 
-                val firstFoldedLine = lineStart + (sourceExpression.height - 1)
+                val firstFoldedLine = (lineStart + (sourceExpression.height - 1))
+                    .coerceAtMost(targetDocument.lineCount - 1)
                 val placeholderLine = "${targetDocument.getLineContent(firstFoldedLine)}..."
 
                 foldRegion = foldingModel.addFoldRegion(
