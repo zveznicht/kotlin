@@ -123,6 +123,10 @@ class IDEKotlinAsJavaSupport(private val project: Project) : KotlinAsJavaSupport
             return null
         }
 
+        if (classOrObject.shouldNotBeVisibleAsLightClass()) {
+            return null
+        }
+
         val virtualFile = classOrObject.containingFile.virtualFile
         if (virtualFile != null) {
             when {
