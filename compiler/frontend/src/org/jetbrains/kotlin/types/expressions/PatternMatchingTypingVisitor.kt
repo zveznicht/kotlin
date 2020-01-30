@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.types.expressions
 
+import com.intellij.psi.PsiErrorElement
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns.isBoolean
 import org.jetbrains.kotlin.cfg.WhenChecker
@@ -302,7 +303,7 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
             return components.builtIns.unitType
         }
 
-        val wrappedArgumentExpressions = wrapWhenEntryExpressionsAsSpecialCallArguments(expression)
+        val wrappedArgumentExpressions = wrapWhenEntryExpressionsAsSpecialCallArgumentsIgnoringInvalidEntries(expression)
         val callForWhen = createCallForSpecialConstruction(
             expression,
             subject.getCalleeExpressionForSpecialCall() ?: expression,
@@ -327,10 +328,16 @@ class PatternMatchingTypingVisitor internal constructor(facade: ExpressionTyping
         return resolvedCall.resultingDescriptor.returnType
     }
 
-    private fun wrapWhenEntryExpressionsAsSpecialCallArguments(expression: KtWhenExpression): List<KtExpression> {
+    private fun wrapWhenEntryExpressionsAsSpecialCallArgumentsIgnoringInvalidEntries(expression: KtWhenExpression): List<KtExpression> {
         val psiFactory = KtPsiFactory(expression)
         return expression.entries.mapNotNull { whenEntry ->
-            whenEntry.expression?.let { psiFactory.wrapInABlockWrapper(it) }
+            val whenEntryExpression = whenEntry.expression ?: return@mapNotNull null
+            if (whenEntryExpression is KtStringTemplateExpression
+                && whenEntryExpression.children.any { it is PsiErrorElement }
+            ) {
+                return@mapNotNull null
+            }
+            psiFactory.wrapInABlockWrapper(whenEntryExpression)
         }
     }
 
