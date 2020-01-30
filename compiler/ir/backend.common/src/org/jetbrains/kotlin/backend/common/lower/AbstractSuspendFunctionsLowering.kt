@@ -412,12 +412,14 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
                 coroutineConstructors += this
 
                 valueParameters = functionParameters.mapIndexed { index, parameter ->
-                    parameter.copyTo(this, DECLARATION_ORIGIN_COROUTINE_IMPL, index)
+                    parameter.copyTo(this, DECLARATION_ORIGIN_COROUTINE_IMPL, index, defaultValue = null)
                 }
                 val continuationParameter = coroutineBaseClassConstructor.valueParameters[0]
                 valueParameters += continuationParameter.copyTo(
                     this, DECLARATION_ORIGIN_COROUTINE_IMPL,
-                    index = valueParameters.size, type = continuationType
+                    index = valueParameters.size,
+                    type = continuationType,
+                    defaultValue = null
                 )
 
                 val irBuilder = context.createIrBuilder(symbol, startOffset, endOffset)
