@@ -18,8 +18,7 @@ open class MutableController(val context: JsIrBackendContext) : StageController 
     override var currentStage: Int = 0
 
     override fun lazyLower(declaration: IrDeclaration) {
-        if (declaration is IrDeclarationBase<*> && currentStage - 1 > declaration.loweredUpTo) {
-
+        if (declaration is IrDeclarationBase<*>) {
             while (declaration.loweredUpTo + 1 < currentStage) {
                 val i = declaration.loweredUpTo + 1
                 withStage(i) {
@@ -45,7 +44,7 @@ open class MutableController(val context: JsIrBackendContext) : StageController 
     }
 
     override fun lazyLower(body: IrBody) {
-        if (body is IrBodyBase<*> && body.loweredUpTo + 1 < currentStage) {
+        if (body is IrBodyBase<*>) {
             for (i in (body.loweredUpTo + 1) until currentStage) {
                 withStage(i) {
                     if (body.container !in context.externalDeclarations) {
