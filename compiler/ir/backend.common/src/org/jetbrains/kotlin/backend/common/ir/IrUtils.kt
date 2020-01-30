@@ -152,7 +152,9 @@ fun IrValueParameter.copyTo(
     val symbol = IrValueParameterSymbolImpl(descriptor)
     val defaultValueCopy = defaultValue?.let { originalDefault ->
         IrExpressionBodyImpl(originalDefault.startOffset, originalDefault.endOffset) {
-            expression = originalDefault.expression.deepCopyWithSymbols(irFunction)
+            expression = originalDefault.expression.deepCopyWithVariables().also {
+                it.patchDeclarationParents(irFunction)
+            }
         }
     }
     return IrValueParameterImpl(
