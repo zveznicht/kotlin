@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.types.isNullable
@@ -35,7 +36,8 @@ import org.jetbrains.kotlin.name.Name
 open class DefaultArgumentStubGenerator(
     open val context: CommonBackendContext,
     private val skipInlineMethods: Boolean = true,
-    private val skipExternalMethods: Boolean = false
+    private val skipExternalMethods: Boolean = false,
+    private val forceSetOverrideSymbols: Boolean = true
 ) : DeclarationTransformer {
 
     override fun lower(irFile: IrFile) {
@@ -52,7 +54,7 @@ open class DefaultArgumentStubGenerator(
 
     private fun lower(irFunction: IrFunction): List<IrFunction>? {
         val visibility = defaultArgumentStubVisibility(irFunction)
-        val newIrFunction = irFunction.generateDefaultsFunction(context, skipInlineMethods, skipExternalMethods, visibility)
+        val newIrFunction = irFunction.generateDefaultsFunction(context, skipInlineMethods, skipExternalMethods, forceSetOverrideSymbols, visibility)
             ?: return null
         if (newIrFunction.origin == IrDeclarationOrigin.FAKE_OVERRIDE) {
             return listOf(irFunction, newIrFunction)
@@ -224,7 +226,8 @@ val DEFAULT_DISPATCH_CALL = object : IrStatementOriginImpl("DEFAULT_DISPATCH_CAL
 open class DefaultParameterInjector(
     open val context: CommonBackendContext,
     private val skipInline: Boolean = true,
-    private val skipExternalMethods: Boolean = false
+    private val skipExternalMethods: Boolean = false,
+    private val forceSetOverrideSymbols: Boolean = true
 ) : IrElementTransformerVoid(), BodyLoweringPass {
 
     override fun lower(irBody: IrBody, container: IrDeclaration) {
@@ -304,7 +307,7 @@ open class DefaultParameterInjector(
         // in an interface does not leave an abstract method after being moved to DefaultImpls (see InterfaceLowering).
         // Calling the fake override on an implementation of that interface would then result in a call to a method
         // that does not actually exist as DefaultImpls is not part of the inheritance hierarchy.
-        val stubFunction = declaration.findBaseFunctionWithDefaultArguments(skipInline, skipExternalMethods)?.generateDefaultsFunction(context, skipInline, skipExternalMethods, visibility) ?: return null
+        val stubFunction = declaration.findBaseFunctionWithDefaultArguments(skipInline, skipExternalMethods)?.generateDefaultsFunction(context, skipInline, skipExternalMethods, forceSetOverrideSymbols, visibility) ?: return null
 
         log { "$declaration -> $stubFunction" }
 
@@ -380,17 +383,15 @@ class DefaultParameterCleaner(
     }
 }
 
+// Sets overriden symbols. Should be used in case `forceSetOverrideSymbols = false`
 class DefaultParameterPatchOverridenSymbolsLowering(
-    val context: CommonBackendContext,
-    private val skipInlineMethods: Boolean = true,
-    private val skipExternalMethods: Boolean = false,
-    private val defaultArgumentStubVisibility: (IrFunction) -> Visibility = { Visibilities.PUBLIC }
+    val context: CommonBackendContext
 ) : DeclarationTransformer {
     override fun transformFlat(declaration: IrDeclaration): List<IrDeclaration>? {
         if (declaration is IrSimpleFunction) {
             (context.mapping.defaultArgumentsOriginalFunction[declaration] as? IrSimpleFunction)?.run {
                 declaration.overriddenSymbols += overriddenSymbols.mapNotNull {
-                    (it.owner.generateDefaultsFunction(context, skipInlineMethods, skipExternalMethods, defaultArgumentStubVisibility(it.owner)) as? IrSimpleFunction)?.symbol
+                    (context.mapping.defaultArgumentsDispatchFunction[it.owner] as? IrSimpleFunction)?.symbol
                 }
             }
         }
@@ -403,6 +404,7 @@ private fun IrFunction.generateDefaultsFunction(
     context: CommonBackendContext,
     skipInlineMethods: Boolean,
     skipExternalMethods: Boolean,
+    forceSetOverrideSymbols: Boolean,
     visibility: Visibility
 ): IrFunction? {
     if (skipInlineMethods && isInline) return null
@@ -410,10 +412,23 @@ private fun IrFunction.generateDefaultsFunction(
     if (context.mapping.defaultArgumentsOriginalFunction[this] != null) return null
     context.mapping.defaultArgumentsDispatchFunction[this]?.let { return it }
     if (this is IrSimpleFunction) {
+        // If this is an override of a function with default arguments, produce a fake override of a default stub.
         if (overriddenSymbols.any { it.owner.findBaseFunctionWithDefaultArguments(skipInlineMethods, skipExternalMethods) != null })
             return generateDefaultsFunctionImpl(context, IrDeclarationOrigin.FAKE_OVERRIDE, visibility).also {
                 context.mapping.defaultArgumentsDispatchFunction[this] = it
                 context.mapping.defaultArgumentsOriginalFunction[it] = this
+
+                if (forceSetOverrideSymbols) {
+                    (it as IrSimpleFunction).overriddenSymbols += overriddenSymbols.mapNotNull {
+                        it.owner.generateDefaultsFunction(
+                            context,
+                            skipInlineMethods,
+                            skipExternalMethods,
+                            forceSetOverrideSymbols,
+                            visibility
+                        )?.symbol as IrSimpleFunctionSymbol?
+                    }
+                }
             }
     }
     // Note: this is intentionally done *after* checking for overrides. While normally `override fun`s
