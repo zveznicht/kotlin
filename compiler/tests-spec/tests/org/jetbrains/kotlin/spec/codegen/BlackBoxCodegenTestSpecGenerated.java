@@ -3328,6 +3328,26 @@ public class BlackBoxCodegenTestSpecGenerated extends AbstractBlackBoxCodegenTes
                                 KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
                             }
 
+                            @TestMetadata("10.1.kt")
+                            public void test10_1() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/10.1.kt");
+                            }
+
+                            @TestMetadata("10.2.kt")
+                            public void test10_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/10.2.kt");
+                            }
+
+                            @TestMetadata("13.1.kt")
+                            public void test13_1() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/13.1.kt");
+                            }
+
+                            @TestMetadata("13.2.kt")
+                            public void test13_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/13.2.kt");
+                            }
+
                             @TestMetadata("1.1.kt")
                             public void test1_1() throws Exception {
                                 runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/1.1.kt");
@@ -3336,6 +3356,26 @@ public class BlackBoxCodegenTestSpecGenerated extends AbstractBlackBoxCodegenTes
                             @TestMetadata("1.2.kt")
                             public void test1_2() throws Exception {
                                 runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/1.2.kt");
+                            }
+
+                            @TestMetadata("4.1.kt")
+                            public void test4_1() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/4.1.kt");
+                            }
+
+                            @TestMetadata("4.2.kt")
+                            public void test4_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/4.2.kt");
+                            }
+
+                            @TestMetadata("7.1.kt")
+                            public void test7_1() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/7.1.kt");
+                            }
+
+                            @TestMetadata("7.2.kt")
+                            public void test7_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/7.2.kt");
                             }
 
                             public void testAllFilesPresentInNeg() throws Exception {
@@ -3351,6 +3391,26 @@ public class BlackBoxCodegenTestSpecGenerated extends AbstractBlackBoxCodegenTes
                                 KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
                             }
 
+                            @TestMetadata("10.1.kt")
+                            public void test10_1() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/10.1.kt");
+                            }
+
+                            @TestMetadata("10.2.kt")
+                            public void test10_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/10.2.kt");
+                            }
+
+                            @TestMetadata("13.1.kt")
+                            public void test13_1() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/13.1.kt");
+                            }
+
+                            @TestMetadata("13.2.kt")
+                            public void test13_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/13.2.kt");
+                            }
+
                             @TestMetadata("1.1.kt")
                             public void test1_1() throws Exception {
                                 runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/1.1.kt");
@@ -3359,6 +3419,26 @@ public class BlackBoxCodegenTestSpecGenerated extends AbstractBlackBoxCodegenTes
                             @TestMetadata("1.2.kt")
                             public void test1_2() throws Exception {
                                 runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/1.2.kt");
+                            }
+
+                            @TestMetadata("4.1.kt")
+                            public void test4_1() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/4.1.kt");
+                            }
+
+                            @TestMetadata("4.2.kt")
+                            public void test4_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/4.2.kt");
+                            }
+
+                            @TestMetadata("7.1.kt")
+                            public void test7_1() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/7.1.kt");
+                            }
+
+                            @TestMetadata("7.2.kt")
+                            public void test7_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/7.2.kt");
                             }
 
                             public void testAllFilesPresentInPos() throws Exception {
