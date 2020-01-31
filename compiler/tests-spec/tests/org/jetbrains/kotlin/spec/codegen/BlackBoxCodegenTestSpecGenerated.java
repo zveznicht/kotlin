@@ -3348,6 +3348,16 @@ public class BlackBoxCodegenTestSpecGenerated extends AbstractBlackBoxCodegenTes
                                 runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/4.2.kt");
                             }
 
+                            @TestMetadata("7.1.kt")
+                            public void test7_1() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/7.1.kt");
+                            }
+
+                            @TestMetadata("7.2.kt")
+                            public void test7_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/7.2.kt");
+                            }
+
                             public void testAllFilesPresentInNeg() throws Exception {
                                 KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg"), Pattern.compile("^(.+)\\.kt$"), null, true);
                             }
@@ -3379,6 +3389,16 @@ public class BlackBoxCodegenTestSpecGenerated extends AbstractBlackBoxCodegenTes
                             @TestMetadata("4.2.kt")
                             public void test4_2() throws Exception {
                                 runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/4.2.kt");
+                            }
+
+                            @TestMetadata("7.1.kt")
+                            public void test7_1() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/7.1.kt");
+                            }
+
+                            @TestMetadata("7.2.kt")
+                            public void test7_2() throws Exception {
+                                runTest("compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/7.2.kt");
                             }
 
                             public void testAllFilesPresentInPos() throws Exception {

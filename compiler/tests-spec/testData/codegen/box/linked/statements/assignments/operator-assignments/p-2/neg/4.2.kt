@@ -25,11 +25,7 @@ class B(var a: Int) {
 
 }
 
-fun box(): String {
+fun box(){
     val b = B(1)
     b -= 1 //error
-
-    if (!b.minus && b.minusAssign && b.a == 2)
-        return "OK"
-    return "NOK"
 }
