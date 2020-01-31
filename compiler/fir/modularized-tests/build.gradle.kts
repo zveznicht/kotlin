@@ -46,6 +46,7 @@ projectTest {
     workingDir = rootDir
     jvmArgs!!.removeIf { it.contains("-Xmx") }
     maxHeapSize = "8g"
+    minHeapSize = "4g"
     dependsOn(":dist")
 
     run {
