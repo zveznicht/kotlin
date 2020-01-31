@@ -1,3 +1,10 @@
+/*
+ * RELEVANT SPEC SENTENCES (spec version: 0.1-220, test type: pos):
+ *  - expressions, call-and-property-access-expressions, callable-references -> paragraph 3 -> sentence 1
+ *  - expressions, call-and-property-access-expressions, navigation-operators -> paragraph 3 -> sentence 1
+ *  - expressions, call-and-property-access-expressions, navigation-operators -> paragraph 3 -> sentence 2
+ *  - expressions, call-and-property-access-expressions, navigation-operators -> paragraph 9 -> sentence 4
+ */
 // MODULE: m1
 // FILE: 1.kt
 
