@@ -30,6 +30,36 @@
           "path": "compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/1.1.kt",
           "unexpectedBehaviour": false
         }
+      ],
+      "4": [
+        {
+          "specVersion": "0.1-253",
+          "casesNumber": 0,
+          "description": "A -\u003d B is exactly the same as A.minusAssign(B) or A \u003d A.minus(B) (applied in order)",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-253",
+          "casesNumber": 0,
+          "description": "A -\u003d B is exactly the same as A.minusAssign(B) or A \u003d A.minus(B) (applied in order)",
+          "unexpectedBehaviour": false
+        }
+      ],
+      "5": [
+        {
+          "specVersion": "0.1-253",
+          "casesNumber": 0,
+          "description": "A -\u003d B is exactly the same as A.minusAssign(B) or A \u003d A.minus(B) (applied in order)",
+          "path": "compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/4.1.kt",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-253",
+          "casesNumber": 0,
+          "description": "A -\u003d B is exactly the same as A.minusAssign(B) or A \u003d A.minus(B) (applied in order)",
+          "path": "compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/neg/4.2.kt",
+          "unexpectedBehaviour": false
+        }
       ]
     },
     "pos": {
@@ -60,6 +90,36 @@
           "casesNumber": 0,
           "description": "A +\u003d B is exactly the same as A.plusAssign(B) or A \u003d A.plus(B) (applied in order)",
           "path": "compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/1.1.kt",
+          "unexpectedBehaviour": false
+        }
+      ],
+      "4": [
+        {
+          "specVersion": "0.1-253",
+          "casesNumber": 0,
+          "description": "A -\u003d B is exactly the same as A.minusAssign(B) or A \u003d A.minus(B) (applied in order)",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-253",
+          "casesNumber": 0,
+          "description": "A -\u003d B is exactly the same as A.plusAssign(B) or A \u003d A.minus(B) (applied in order)",
+          "unexpectedBehaviour": false
+        }
+      ],
+      "5": [
+        {
+          "specVersion": "0.1-253",
+          "casesNumber": 0,
+          "description": "A -\u003d B is exactly the same as A.minusAssign(B) or A \u003d A.minus(B) (applied in order)",
+          "path": "compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/4.1.kt",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-253",
+          "casesNumber": 0,
+          "description": "A -\u003d B is exactly the same as A.plusAssign(B) or A \u003d A.minus(B) (applied in order)",
+          "path": "compiler/tests-spec/testData/codegen/box/linked/statements/assignments/operator-assignments/p-2/pos/4.2.kt",
           "unexpectedBehaviour": false
         }
       ]
