@@ -471,26 +471,21 @@ public class BlackBoxCodegenTestSpecGenerated extends AbstractBlackBoxCodegenTes
                         KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/tests-spec/testData/codegen/box/linked/expressions/conditional-expression/p-6"), Pattern.compile("^(.+)\\.kt$"), null, true);
                     }
 
-                    @TestMetadata("compiler/tests-spec/testData/codegen/box/linked/expressions/conditional-expression/p-6/pos")
+                    @TestMetadata("compiler/tests-spec/testData/codegen/box/linked/expressions/conditional-expression/p-6/neg")
                     @TestDataPath("$PROJECT_ROOT")
                     @RunWith(JUnit3RunnerWithInners.class)
-                    public static class Pos extends AbstractBlackBoxCodegenTestSpec {
+                    public static class Neg extends AbstractBlackBoxCodegenTestSpec {
                         private void runTest(String testDataFilePath) throws Exception {
                             KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
                         }
 
                         @TestMetadata("1.1.kt")
                         public void test1_1() throws Exception {
-                            runTest("compiler/tests-spec/testData/codegen/box/linked/expressions/conditional-expression/p-6/pos/1.1.kt");
+                            runTest("compiler/tests-spec/testData/codegen/box/linked/expressions/conditional-expression/p-6/neg/1.1.kt");
                         }
 
-                        @TestMetadata("1.2.kt")
-                        public void test1_2() throws Exception {
-                            runTest("compiler/tests-spec/testData/codegen/box/linked/expressions/conditional-expression/p-6/pos/1.2.kt");
-                        }
-
-                        public void testAllFilesPresentInPos() throws Exception {
-                            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/tests-spec/testData/codegen/box/linked/expressions/conditional-expression/p-6/pos"), Pattern.compile("^(.+)\\.kt$"), null, true);
+                        public void testAllFilesPresentInNeg() throws Exception {
+                            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/tests-spec/testData/codegen/box/linked/expressions/conditional-expression/p-6/neg"), Pattern.compile("^(.+)\\.kt$"), null, true);
                         }
                     }
                 }
@@ -3983,29 +3978,6 @@ public class BlackBoxCodegenTestSpecGenerated extends AbstractBlackBoxCodegenTes
 
                 public void testAllFilesPresentInNeg() throws Exception {
                     KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/tests-spec/testData/codegen/box/notLinked/flexibility/neg"), Pattern.compile("^(.+)\\.kt$"), null, true);
-                }
-            }
-
-            @TestMetadata("compiler/tests-spec/testData/codegen/box/notLinked/flexibility/pos")
-            @TestDataPath("$PROJECT_ROOT")
-            @RunWith(JUnit3RunnerWithInners.class)
-            public static class Pos extends AbstractBlackBoxCodegenTestSpec {
-                private void runTest(String testDataFilePath) throws Exception {
-                    KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
-                }
-
-                @TestMetadata("1.kt")
-                public void test1() throws Exception {
-                    runTest("compiler/tests-spec/testData/codegen/box/notLinked/flexibility/pos/1.kt");
-                }
-
-                @TestMetadata("2.kt")
-                public void test2() throws Exception {
-                    runTest("compiler/tests-spec/testData/codegen/box/notLinked/flexibility/pos/2.kt");
-                }
-
-                public void testAllFilesPresentInPos() throws Exception {
-                    KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/tests-spec/testData/codegen/box/notLinked/flexibility/pos"), Pattern.compile("^(.+)\\.kt$"), null, true);
                 }
             }
         }
