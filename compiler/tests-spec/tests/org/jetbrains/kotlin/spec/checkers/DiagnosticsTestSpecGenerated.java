@@ -3230,11 +3230,6 @@ public class DiagnosticsTestSpecGenerated extends AbstractDiagnosticsTestSpec {
                             KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
                         }
 
-                        @TestMetadata("1.1.kt")
-                        public void test1_1() throws Exception {
-                            runTest("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-2/neg/1.1.kt");
-                        }
-
                         @TestMetadata("2.1.kt")
                         public void test2_1() throws Exception {
                             runTest("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-2/neg/2.1.kt");
@@ -3261,6 +3256,11 @@ public class DiagnosticsTestSpecGenerated extends AbstractDiagnosticsTestSpec {
                         @TestMetadata("1.1.kt")
                         public void test1_1() throws Exception {
                             runTest("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-2/pos/1.1.kt");
+                        }
+
+                        @TestMetadata("1.2.kt")
+                        public void test1_2() throws Exception {
+                            runTest("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-2/pos/1.2.kt");
                         }
 
                         @TestMetadata("2.1.kt")
@@ -3376,24 +3376,6 @@ public class DiagnosticsTestSpecGenerated extends AbstractDiagnosticsTestSpec {
                         KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-5"), Pattern.compile("^(.+)\\.kt$"), null, true);
                     }
 
-                    @TestMetadata("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-5/neg")
-                    @TestDataPath("$PROJECT_ROOT")
-                    @RunWith(JUnit3RunnerWithInners.class)
-                    public static class Neg extends AbstractDiagnosticsTestSpec {
-                        private void runTest(String testDataFilePath) throws Exception {
-                            KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
-                        }
-
-                        @TestMetadata("1.1.kt")
-                        public void test1_1() throws Exception {
-                            runTest("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-5/neg/1.1.kt");
-                        }
-
-                        public void testAllFilesPresentInNeg() throws Exception {
-                            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-5/neg"), Pattern.compile("^(.+)\\.kt$"), null, true);
-                        }
-                    }
-
                     @TestMetadata("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-5/pos")
                     @TestDataPath("$PROJECT_ROOT")
                     @RunWith(JUnit3RunnerWithInners.class)
@@ -3405,6 +3387,11 @@ public class DiagnosticsTestSpecGenerated extends AbstractDiagnosticsTestSpec {
                         @TestMetadata("1.1.kt")
                         public void test1_1() throws Exception {
                             runTest("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-5/pos/1.1.kt");
+                        }
+
+                        @TestMetadata("1.2.kt")
+                        public void test1_2() throws Exception {
+                            runTest("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-5/pos/1.2.kt");
                         }
 
                         public void testAllFilesPresentInPos() throws Exception {
@@ -3468,11 +3455,6 @@ public class DiagnosticsTestSpecGenerated extends AbstractDiagnosticsTestSpec {
                             runTest("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-6/neg/9.1.kt");
                         }
 
-                        @TestMetadata("9.2.kt")
-                        public void test9_2() throws Exception {
-                            runTest("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-6/neg/9.2.kt");
-                        }
-
                         public void testAllFilesPresentInNeg() throws Exception {
                             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-6/neg"), Pattern.compile("^(.+)\\.kt$"), null, true);
                         }
@@ -3534,6 +3516,11 @@ public class DiagnosticsTestSpecGenerated extends AbstractDiagnosticsTestSpec {
                         @TestMetadata("9.2.kt")
                         public void test9_2() throws Exception {
                             runTest("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-6/pos/9.2.kt");
+                        }
+
+                        @TestMetadata("9.3.kt")
+                        public void test9_3() throws Exception {
+                            runTest("compiler/tests-spec/testData/diagnostics/linked/expressions/when-expression/p-6/pos/9.3.kt");
                         }
 
                         public void testAllFilesPresentInPos() throws Exception {
