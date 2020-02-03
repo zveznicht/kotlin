@@ -8,6 +8,7 @@
  * RELEVANT PLACES: expressions, jump-expressions, break-expression -> paragraph 1 -> sentence 1
  * expressions, jump-expressions, break-expression -> paragraph 1 -> sentence 2
  * expressions, jump-expressions, break-expression -> paragraph 2 -> sentence 1
+ * statements, loop-statements, while-loop-statement -> paragraph 1 -> sentence 2
  * NUMBER: 2
  * DESCRIPTION: A simple break expression, specified using the continue keyword, which break-jumps to the innermost loop statement in the current scope
  */
