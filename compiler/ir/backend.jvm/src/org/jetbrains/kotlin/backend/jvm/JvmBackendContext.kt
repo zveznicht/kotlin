@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -29,7 +29,9 @@ import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.irBlock
 import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.declarations.impl.IrConstructorImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
+import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.symbols.*
@@ -37,6 +39,7 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi2ir.PsiErrorBuilder
 import org.jetbrains.kotlin.psi2ir.PsiSourceManager
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import org.jetbrains.org.objectweb.asm.Type
@@ -63,6 +66,8 @@ class JvmBackendContext(
 
     override val declarationFactory: JvmDeclarationFactory = JvmDeclarationFactory(methodSignatureMapper)
     override val sharedVariablesManager = JvmSharedVariablesManager(state.module, builtIns, irBuiltIns)
+
+    val psiErrorBuilder = PsiErrorBuilder(psiSourceManager, state.diagnostics)
 
     override val ir = JvmIr(irModuleFragment, this.symbolTable)
 
@@ -92,6 +97,8 @@ class JvmBackendContext(
     internal val multifileFacadeForPart = mutableMapOf<IrClass, JvmClassName>()
     internal val multifileFacadeMemberToPartMember = mutableMapOf<IrFunction, IrFunction>()
 
+    internal val hiddenConstructors = mutableMapOf<IrConstructor, IrConstructorImpl>()
+
     override var inVerbosePhase: Boolean = false
 
     override val configuration get() = state.configuration
@@ -102,6 +109,7 @@ class JvmBackendContext(
     val continuationClassBuilders = mutableMapOf<IrSimpleFunction, ClassBuilder>()
     val suspendFunctionOriginalToView = mutableMapOf<IrFunction, IrFunction>()
     val suspendFunctionViewToOriginal = mutableMapOf<IrFunction, IrFunction>()
+    val suspendTailCallsWithUnitReplacement = mutableSetOf<IrAttributeContainer>()
     val fakeContinuation: IrExpression = createFakeContinuation(this)
 
     val staticDefaultStubs = mutableMapOf<IrFunctionSymbol, IrFunction>()

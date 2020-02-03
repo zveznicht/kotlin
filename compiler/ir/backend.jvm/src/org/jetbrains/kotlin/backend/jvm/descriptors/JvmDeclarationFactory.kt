@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.ir.descriptors.WrappedClassDescriptor
 import org.jetbrains.kotlin.ir.descriptors.WrappedValueParameterDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.symbols.impl.*
-import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.load.java.JavaVisibilities
 import org.jetbrains.kotlin.load.java.JvmAbi
@@ -46,7 +45,7 @@ class JvmDeclarationFactory(
     private val defaultImplsClasses = HashMap<IrClass, IrClass>()
     private val defaultImplsRedirections = HashMap<IrSimpleFunction, IrSimpleFunction>()
 
-    override fun getFieldForEnumEntry(enumEntry: IrEnumEntry, entryType: IrType): IrField =
+    override fun getFieldForEnumEntry(enumEntry: IrEnumEntry): IrField =
         singletonFieldDeclarations.getOrPut(enumEntry) {
             buildField {
                 setSourceRange(enumEntry)
@@ -181,7 +180,7 @@ class JvmDeclarationFactory(
                 initializer = oldField.initializer
                     ?.replaceThisByStaticReference(this@JvmDeclarationFactory, oldParent, oldParent.thisReceiver!!)
                     ?.patchDeclarationParents(this) as IrExpressionBody?
-                (this as IrFieldImpl).metadata = oldField.metadata
+                origin = if (irProperty.parentAsClass.isCompanion) JvmLoweredDeclarationOrigin.COMPANION_PROPERTY_BACKING_FIELD else origin
             }
         }
     }
@@ -210,7 +209,12 @@ class JvmDeclarationFactory(
                     else -> JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE
                 },
                 // Old backend doesn't generate ACC_FINAL on DefaultImpls methods.
-                modality = Modality.OPEN
+                modality = Modality.OPEN,
+                // Interface functions are always public, with one exception: clone in Cloneable, which is protected. However, Cloneable
+                // has no DefaultImpls, so this merely replicates the incorrect behavior of the old backend. We should rather not generate
+                // a bridge to clone when interface inherits from Cloneable at all. Below, we force everything, including those bridges,
+                // to be public so that we won't try to generate synthetic accessor for them.
+                visibility = Visibilities.PUBLIC
             ).also { it.copyAttributes(interfaceFun) }
         }
     }
@@ -231,7 +235,8 @@ class JvmDeclarationFactory(
                 isData = false,
                 isExternal = false,
                 isInline = false,
-                isExpect = false
+                isExpect = false,
+                isFun = false
             ).apply {
                 descriptor.bind(this)
                 parent = interfaceClass

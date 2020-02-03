@@ -23,7 +23,10 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
+import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
+import org.jetbrains.kotlin.fir.types.arrayElementType
+import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.*
@@ -83,7 +86,8 @@ class Fir2IrDeclarationStorage(
         irSymbolTable.enterScope(descriptor)
         if (descriptor is WrappedSimpleFunctionDescriptor ||
             descriptor is WrappedClassConstructorDescriptor ||
-            descriptor is WrappedPropertyDescriptor
+            descriptor is WrappedPropertyDescriptor ||
+            descriptor is WrappedEnumEntryDescriptor
         ) {
             localStorage.enterCallable()
         }
@@ -167,7 +171,8 @@ class Fir2IrDeclarationStorage(
                         isData = regularClass?.isData == true,
                         isExternal = regularClass?.isExternal == true,
                         isInline = regularClass?.isInline == true,
-                        isExpect = regularClass?.isExpect == true
+                        isExpect = regularClass?.isExpect == true,
+                        isFun = false // TODO FirRegularClass.isFun
                     ).apply {
                         descriptor.bind(this)
                         if (setParent && regularClass != null) {
@@ -214,7 +219,8 @@ class Fir2IrDeclarationStorage(
                     startOffset, endOffset, origin, symbol,
                     Name.special("<no name provided>"), anonymousObject.classKind,
                     Visibilities.LOCAL, modality,
-                    isCompanion = false, isInner = false, isData = false, isExternal = false, isInline = false, isExpect = false
+                    isCompanion = false, isInner = false, isData = false,
+                    isExternal = false, isInline = false, isExpect = false, isFun = false
                 ).apply {
                     descriptor.bind(this)
                     declareThisReceiver()
@@ -233,7 +239,8 @@ class Fir2IrDeclarationStorage(
                     startOffset, endOffset, origin, symbol,
                     enumEntry.name, anonymousObject.classKind,
                     Visibilities.LOCAL, modality,
-                    isCompanion = false, isInner = false, isData = false, isExternal = false, isInline = false, isExpect = false
+                    isCompanion = false, isInner = false, isData = false,
+                    isExternal = false, isInline = false, isExpect = false, isFun = false
                 ).apply {
                     descriptor.bind(this)
                     declareThisReceiver()
@@ -682,7 +689,9 @@ class Fir2IrDeclarationStorage(
                 IrValueParameterImpl(
                     startOffset, endOffset, origin, symbol,
                     valueParameter.name, index, type,
-                    null, valueParameter.isCrossinline, valueParameter.isNoinline
+                    if (!valueParameter.isVararg) null
+                    else valueParameter.returnTypeRef.coneTypeSafe<ConeKotlinType>()?.arrayElementType(session)?.toIrType(session, this, irBuiltIns),
+                    valueParameter.isCrossinline, valueParameter.isNoinline
                 ).apply {
                     descriptor.bind(this)
                     if (valueParameter.defaultValue != null) {

@@ -92,6 +92,9 @@
         <scriptDefinitionContributor id="ConsoleScriptDefinitionContributor"
                                      implementation="org.jetbrains.kotlin.console.ConsoleScriptDefinitionContributor"/>
 
+        <scriptDefinitionsProvider id="MainKtsScriptDefinitionSource"
+                                   implementation="org.jetbrains.kotlin.idea.script.MainKtsScriptDefinitionSource"/>
+
         <idePlatformKindResolution implementation="org.jetbrains.kotlin.caches.resolve.JvmPlatformKindResolution"/>
         <idePlatformKindResolution implementation="org.jetbrains.kotlin.caches.resolve.JsPlatformKindResolution"/>
         <idePlatformKindResolution implementation="org.jetbrains.kotlin.caches.resolve.CommonPlatformKindResolution"/>
@@ -120,12 +123,12 @@
                      description="Use IDEA project import mechanics to load Kotlin Gradle scripts configuration"
                      defaultValue="false"
                      restartRequired="false"/>
-        <fileEditorProvider implementation="org.jetbrains.kotlin.idea.scratch.ui.KtScratchFileEditorProvider"/>
-
-        <registryKey key="kotlin.experimental.project.wizard"
-                     description="Use experimental project wizard for creating new Kotlin projects"
+        <registryKey key="kotlin.formatter.allowTrailingCommaInAnyProject"
+                     description="Allow a trailing comma regardless of plugin version"
                      defaultValue="false"
                      restartRequired="false"/>
+        <fileEditorProvider implementation="org.jetbrains.kotlin.idea.scratch.ui.KtScratchFileEditorProvider"/>
+
         <moduleBuilder builderClass="org.jetbrains.kotlin.tools.projectWizard.wizard.NewProjectWizardModuleBuilder"/>
     </extensions>
 </idea-plugin>

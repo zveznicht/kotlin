@@ -37,9 +37,9 @@ fun test() {
     C.b
     C.bar()
 
-    K.a
-    K.b
-    K.bar()
+    K.<!UNRESOLVED_REFERENCE!>a<!>
+    K.<!UNRESOLVED_REFERENCE!>b<!>
+    K.<!UNRESOLVED_REFERENCE!>bar<!>()
 
     D.a
     D.b
@@ -47,7 +47,7 @@ fun test() {
     D.bar()
     D.baz()
 
-    E.<!AMBIGUITY!>a<!>
+    E.a
     E.b
     E.c
     E.bar()

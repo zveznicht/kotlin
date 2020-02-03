@@ -20,17 +20,18 @@ import org.jetbrains.kotlin.fir.references.impl.FirDelegateFieldReferenceImpl
 import org.jetbrains.kotlin.fir.references.impl.FirExplicitThisReference
 import org.jetbrains.kotlin.fir.references.impl.FirResolvedNamedReferenceImpl
 import org.jetbrains.kotlin.fir.references.impl.FirSimpleNamedReference
-import org.jetbrains.kotlin.fir.symbols.CallableId
+import org.jetbrains.kotlin.fir.symbols.StandardClassIds
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertyAccessorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.fir.types.ConeStarProjection
 import org.jetbrains.kotlin.fir.types.FirTypeRef
-import org.jetbrains.kotlin.fir.types.impl.FirImplicitKPropertyTypeRef
-import org.jetbrains.kotlin.fir.types.impl.FirImplicitTypeRefImpl
+import org.jetbrains.kotlin.fir.types.FirUserTypeRef
+import org.jetbrains.kotlin.fir.types.impl.*
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.expressions.OperatorConventions
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
@@ -291,12 +292,12 @@ internal fun generateDestructuringBlock(
 }
 
 fun generateTemporaryVariable(
-    session: FirSession, source: FirSourceElement?, name: Name, initializer: FirExpression
+    session: FirSession, source: FirSourceElement?, name: Name, initializer: FirExpression, typeRef: FirTypeRef? = null
 ): FirVariable<*> =
     FirPropertyImpl(
         source,
         session,
-        FirImplicitTypeRefImpl(source),
+        typeRef ?: FirImplicitTypeRefImpl(source),
         null,
         name,
         initializer,
@@ -392,6 +393,14 @@ fun FirModifiableVariable<*>.generateAccessorsByDelegate(session: FirSession, me
                 }
             )
         }
+    }
+}
+
+fun FirTypeRef.convertToArrayType(): FirUserTypeRef = FirUserTypeRefImpl(source, isMarkedNullable = false).apply {
+    qualifier += FirQualifierPartImpl(StandardClassIds.Array.shortClassName).apply {
+        typeArguments += FirTypeProjectionWithVarianceImpl(
+            source, this@convertToArrayType, Variance.OUT_VARIANCE
+        )
     }
 }
 

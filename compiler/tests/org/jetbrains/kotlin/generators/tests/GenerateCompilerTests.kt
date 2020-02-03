@@ -488,6 +488,10 @@ fun main(args: Array<String>) {
         testClass<AbstractIrBytecodeTextTest> {
             model("codegen/bytecodeText", targetBackend = TargetBackend.JVM_IR, excludeDirs = listOf("oldLanguageVersions"))
         }
+
+        testClass<AbstractIrAsmLikeInstructionListingTest> {
+            model("codegen/asmLike", targetBackend = TargetBackend.JVM_IR)
+        }
     }
 
     testGroup(
@@ -512,7 +516,6 @@ fun main(args: Array<String>) {
             model("codegen/boxInline", targetBackend = TargetBackend.JVM_IR)
         }
     }
-
 
     testGroup("compiler/fir/psi2fir/tests", "compiler/fir/psi2fir/testData") {
         testClass<AbstractRawFirBuilderTestCase> {
@@ -541,11 +544,12 @@ fun main(args: Array<String>) {
         }
 
         testClass<AbstractFirDiagnosticsWithStdlibTest> {
-            model("resolve/stdlib", pattern = KT_WITHOUT_DOTS_IN_NAME, excludeDirs = listOf("contracts"))
+            model("resolve/stdlib", pattern = KT_WITHOUT_DOTS_IN_NAME, excludeDirs = listOf("contracts", "smartcasts"))
         }
 
         testClass<AbstractFirDiagnosticsWithCfgAndStdlibTest> {
             model("resolve/stdlib/contracts", pattern = KT_WITHOUT_DOTS_IN_NAME)
+            model("resolve/stdlib/smartcasts", pattern = KT_WITHOUT_DOTS_IN_NAME)
         }
     }
 

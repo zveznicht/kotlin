@@ -16,10 +16,8 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirTypeParameterImpl
 import org.jetbrains.kotlin.fir.declarations.impl.FirValueParameterImpl
 import org.jetbrains.kotlin.fir.inferenceContext
 import org.jetbrains.kotlin.fir.resolve.calls.FirSyntheticFunctionSymbol
-import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.resolve.substitution.substitutorByMap
-import org.jetbrains.kotlin.fir.scopes.ProcessorAction
-import org.jetbrains.kotlin.fir.scopes.scope
+import org.jetbrains.kotlin.fir.scopes.unsubstitutedScope
 import org.jetbrains.kotlin.fir.symbols.CallableId
 import org.jetbrains.kotlin.fir.symbols.StandardClassIds
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
@@ -245,10 +243,12 @@ private fun FirRegularClass.findSingleAbstractMethodByNames(
     scopeSession: ScopeSession,
     samCandidateNames: Set<Name>
 ): FirSimpleFunction? {
+    if (status.isNotSAM) return null
+
     var resultMethod: FirSimpleFunction? = null
     var metIncorrectMember = false
 
-    val classUseSiteMemberScope = this.scope(ConeSubstitutor.Empty, session, scopeSession)
+    val classUseSiteMemberScope = this.unsubstitutedScope(session, scopeSession)
 
     for (candidateName in samCandidateNames) {
         if (metIncorrectMember) break
@@ -256,9 +256,6 @@ private fun FirRegularClass.findSingleAbstractMethodByNames(
         classUseSiteMemberScope.processPropertiesByName(candidateName) {
             if ((it as? FirPropertySymbol)?.fir?.modality == Modality.ABSTRACT) {
                 metIncorrectMember = true
-                ProcessorAction.STOP
-            } else {
-                ProcessorAction.NEXT
             }
         }
 
@@ -273,14 +270,12 @@ private fun FirRegularClass.findSingleAbstractMethodByNames(
 
             if (firFunction.modality != Modality.ABSTRACT || firFunction
                     .isPublicInObject(checkOnlyName = false)
-            ) return@processFunctionsByName ProcessorAction.NEXT
+            ) return@processFunctionsByName
 
             if (resultMethod != null) {
                 metIncorrectMember = true
-                ProcessorAction.STOP
             } else {
                 resultMethod = firFunction
-                ProcessorAction.NEXT
             }
         }
     }

@@ -448,6 +448,7 @@ abstract class IrFileDeserializer(
 
         val symbol = deserializeIrSymbol(proto.symbol) as IrFunctionSymbol
         val origin = if (proto.hasOrigin()) deserializeIrStatementOrigin(proto.origin) else null
+        val reflectionTarget = if (proto.hasReflectionTarget()) deserializeIrSymbol(proto.reflectionTarget) as IrFunctionSymbol else null
         val callable = IrFunctionReferenceImpl(
             start,
             end,
@@ -455,6 +456,7 @@ abstract class IrFileDeserializer(
             symbol,
             proto.memberAccess.typeArguments.typeArgumentCount,
             proto.memberAccess.valueArgumentCount,
+            reflectionTarget,
             origin
         )
         deserializeMemberAccessCommon(callable, proto.memberAccess)
@@ -980,7 +982,8 @@ abstract class IrFileDeserializer(
                     isData = proto.isData,
                     isExternal = proto.isExternal,
                     isInline = proto.isInline,
-                    isExpect = proto.isExpect
+                    isExpect = proto.isExpect,
+                    isFun = proto.isFun
                 )
             }.usingParent {
                 proto.declarationContainer.declarationList.mapTo(declarations) { deserializeDeclaration(it) }

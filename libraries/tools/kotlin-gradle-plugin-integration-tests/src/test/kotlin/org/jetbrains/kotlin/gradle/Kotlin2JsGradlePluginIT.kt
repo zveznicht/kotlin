@@ -244,7 +244,7 @@ abstract class AbstractKotlin2JsGradlePluginIT(private val irBackend: Boolean) :
             assertSuccessful()
             checkIrCompilationMessage()
             if (irBackend) {
-                assertFileExists(kotlinClassesDir() + "manifest")
+                assertFileExists(kotlinClassesDir() + "default/manifest")
             } else {
                 assertFileExists(kotlinClassesDir() + "kotlin2JsNoOutputFileProject.js")
             }
@@ -265,7 +265,7 @@ abstract class AbstractKotlin2JsGradlePluginIT(private val irBackend: Boolean) :
                 ":compileTestKotlin2Js"
             )
             if (irBackend) {
-                assertFileExists("build/kotlin2js/main/manifest")
+                assertFileExists("build/kotlin2js/main/default/manifest")
             } else {
                 assertFileExists("build/kotlin2js/main/module.js")
             }
@@ -527,6 +527,15 @@ abstract class AbstractKotlin2JsGradlePluginIT(private val irBackend: Boolean) :
 
             assertFileExists("app/build/distributions/app.js")
             assertFileExists("app/build/distributions/app.js.map")
+        }
+
+        build("clean", "browserDistribution") {
+            assertTasksExecuted(
+                ":app:processResources",
+                ":app:browserDistribution"
+            )
+
+            assertFileExists("app/build/distributions/index.html")
         }
     }
 }

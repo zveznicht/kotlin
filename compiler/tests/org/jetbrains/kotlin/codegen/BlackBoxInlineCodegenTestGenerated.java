@@ -2119,6 +2119,11 @@ public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxInlineCo
             runTest("compiler/testData/codegen/boxInline/nonLocalReturns/explicitLocalReturn.kt");
         }
 
+        @TestMetadata("fromInterfaceDefaultGetter.kt")
+        public void testFromInterfaceDefaultGetter() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/nonLocalReturns/fromInterfaceDefaultGetter.kt");
+        }
+
         @TestMetadata("justReturnInLambda.kt")
         public void testJustReturnInLambda() throws Exception {
             runTest("compiler/testData/codegen/boxInline/nonLocalReturns/justReturnInLambda.kt");
@@ -2586,24 +2591,6 @@ public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxInlineCo
         }
     }
 
-    @TestMetadata("compiler/testData/codegen/boxInline/nullChecks")
-    @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
-    public static class NullChecks extends AbstractBlackBoxInlineCodegenTest {
-        private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
-        }
-
-        public void testAllFilesPresentInNullChecks() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/boxInline/nullChecks"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
-        }
-
-        @TestMetadata("parameterNullCheck_1_4.kt")
-        public void testParameterNullCheck_1_4() throws Exception {
-            runTest("compiler/testData/codegen/boxInline/nullChecks/parameterNullCheck_1_4.kt");
-        }
-    }
-
     @TestMetadata("compiler/testData/codegen/boxInline/optimizations")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
@@ -2875,6 +2862,11 @@ public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxInlineCo
             runTest("compiler/testData/codegen/boxInline/reified/kt9637_2.kt");
         }
 
+        @TestMetadata("nonCapturingObjectInLambda.kt")
+        public void testNonCapturingObjectInLambda() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/reified/nonCapturingObjectInLambda.kt");
+        }
+
         @TestMetadata("packages.kt")
         public void testPackages() throws Exception {
             runTest("compiler/testData/codegen/boxInline/reified/packages.kt");
@@ -2935,6 +2927,11 @@ public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxInlineCo
             @TestMetadata("simpleSafe.kt")
             public void testSimpleSafe() throws Exception {
                 runTest("compiler/testData/codegen/boxInline/reified/checkCast/simpleSafe.kt");
+            }
+
+            @TestMetadata("simple_1_3.kt")
+            public void testSimple_1_3() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/reified/checkCast/simple_1_3.kt");
             }
         }
 
@@ -3231,6 +3228,11 @@ public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxInlineCo
         @TestMetadata("classFromDefaultPackage.kt")
         public void testClassFromDefaultPackage() throws Exception {
             runTest("compiler/testData/codegen/boxInline/smap/classFromDefaultPackage.kt");
+        }
+
+        @TestMetadata("crossroutines.kt")
+        public void testCrossroutines() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/smap/crossroutines.kt");
         }
 
         @TestMetadata("defaultFunction.kt")
@@ -4316,6 +4318,11 @@ public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxInlineCo
             @TestMetadata("privateInCrossInline.kt")
             public void testPrivateInCrossInline() throws Exception {
                 runTest("compiler/testData/codegen/boxInline/syntheticAccessors/withinInlineLambda/privateInCrossInline.kt");
+            }
+
+            @TestMetadata("protectedMembersFromSuper.kt")
+            public void testProtectedMembersFromSuper() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/syntheticAccessors/withinInlineLambda/protectedMembersFromSuper.kt");
             }
 
             @TestMetadata("superCall.kt")

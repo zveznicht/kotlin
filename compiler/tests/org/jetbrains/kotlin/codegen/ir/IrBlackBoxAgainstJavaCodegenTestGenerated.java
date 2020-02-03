@@ -1035,6 +1035,24 @@ public class IrBlackBoxAgainstJavaCodegenTestGenerated extends AbstractIrBlackBo
         }
     }
 
+    @TestMetadata("compiler/testData/codegen/boxAgainstJava/throws")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Throws extends AbstractIrBlackBoxAgainstJavaCodegenTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM_IR, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInThrows() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/boxAgainstJava/throws"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+        }
+
+        @TestMetadata("delegationAndThrows.kt")
+        public void testDelegationAndThrows() throws Exception {
+            runTest("compiler/testData/codegen/boxAgainstJava/throws/delegationAndThrows.kt");
+        }
+    }
+
     @TestMetadata("compiler/testData/codegen/boxAgainstJava/typealias")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
@@ -1128,6 +1146,11 @@ public class IrBlackBoxAgainstJavaCodegenTestGenerated extends AbstractIrBlackBo
             @TestMetadata("protectedPropertyInPackage.kt")
             public void testProtectedPropertyInPackage() throws Exception {
                 runTest("compiler/testData/codegen/boxAgainstJava/visibility/protectedAndPackage/protectedPropertyInPackage.kt");
+            }
+
+            @TestMetadata("protectedPropertyInPackageFromCrossinline.kt")
+            public void testProtectedPropertyInPackageFromCrossinline() throws Exception {
+                runTest("compiler/testData/codegen/boxAgainstJava/visibility/protectedAndPackage/protectedPropertyInPackageFromCrossinline.kt");
             }
 
             @TestMetadata("protectedStaticClass.kt")

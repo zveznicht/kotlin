@@ -13,8 +13,11 @@ import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersion
 import org.jetbrains.kotlin.gradle.plugin.LanguageSettingsBuilder
+import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinNativeCompile
+import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
+import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 
 internal class DefaultLanguageSettingsBuilder : LanguageSettingsBuilder {
     private var languageVersionImpl: LanguageVersion? = null
@@ -103,7 +106,12 @@ internal fun applyLanguageSettingsToKotlinTask(
     }
 
     languageSettingsBuilder.experimentalAnnotationsInUse.forEach { annotationName ->
-        freeCompilerArgs += "-Xuse-experimental=$annotationName"
+        freeCompilerArgs += "-Xopt-in=$annotationName"
+    }
+    KotlinBuildStatsService.getInstance()?.apply {
+        report(BooleanMetrics.KOTLIN_PROGRESSIVE_MODE, languageSettingsBuilder.progressiveMode)
+        apiVersion?.also { v -> report(StringMetrics.KOTLIN_API_VERSION, v) }
+        languageVersion?.also { v -> report(StringMetrics.KOTLIN_LANGUAGE_VERSION, v) }
     }
 }
 

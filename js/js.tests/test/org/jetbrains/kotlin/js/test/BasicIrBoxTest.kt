@@ -7,12 +7,10 @@ package org.jetbrains.kotlin.js.test
 
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.common.phaser.toPhaseMap
+import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.js.messageCollectorLogger
-import org.jetbrains.kotlin.ir.backend.js.compile
-import org.jetbrains.kotlin.ir.backend.js.generateKLib
-import org.jetbrains.kotlin.ir.backend.js.jsPhases
-import org.jetbrains.kotlin.ir.backend.js.jsResolveLibraries
+import org.jetbrains.kotlin.ir.backend.js.*
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
 import org.jetbrains.kotlin.js.config.JsConfig
 import org.jetbrains.kotlin.js.facade.MainCallParameters
@@ -115,7 +113,8 @@ abstract class BasicIrBoxTest(
 
             val compiledModule = compile(
                 project = config.project,
-                files = filesToCompile,
+                mainModule = MainModule.SourceFiles(filesToCompile),
+                analyzer = AnalyzerWithCompilerReport(config.configuration),
                 configuration = config.configuration,
                 phaseConfig = phaseConfig,
                 allDependencies = resolvedLibraries,
@@ -143,6 +142,7 @@ abstract class BasicIrBoxTest(
             generateKLib(
                 project = config.project,
                 files = filesToCompile,
+                analyzer = AnalyzerWithCompilerReport(config.configuration),
                 configuration = config.configuration,
                 allDependencies = resolvedLibraries,
                 friendDependencies = emptyList(),

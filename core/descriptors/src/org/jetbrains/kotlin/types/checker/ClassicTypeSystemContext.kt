@@ -404,6 +404,11 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return this.constructor.projection
     }
 
+    override fun CapturedTypeMarker.typeParameter(): TypeParameterMarker? {
+        require(this is NewCapturedType, this::errorMessage)
+        return this.constructor.typeParameter
+    }
+
     override fun CapturedTypeMarker.captureStatus(): CaptureStatus {
         require(this is NewCapturedType, this::errorMessage)
         return this.captureStatus
@@ -549,6 +554,11 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
     override fun TypeConstructorMarker.isInlineClass(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return (declarationDescriptor as? ClassDescriptor)?.isInline == true
+    }
+
+    override fun TypeConstructorMarker.isInnerClass(): Boolean {
+        require(this is TypeConstructor, this::errorMessage)
+        return (declarationDescriptor as? ClassDescriptor)?.isInner == true
     }
 
     override fun TypeParameterMarker.getRepresentativeUpperBound(): KotlinTypeMarker {

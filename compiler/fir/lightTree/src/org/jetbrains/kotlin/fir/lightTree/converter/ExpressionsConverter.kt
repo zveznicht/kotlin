@@ -611,8 +611,8 @@ class ExpressionsConverter(
         var isNegate = false
         var firExpression: FirExpression = FirErrorExpressionImpl(null, FirSimpleDiagnostic("No range in condition with range", DiagnosticKind.Syntax))
         whenCondition.forEachChildren {
-            when (it.tokenType) {
-                NOT_IN -> isNegate = true
+            when {
+                it.tokenType == OPERATION_REFERENCE && it.asText == NOT_IN.value -> isNegate = true
                 else -> if (it.isExpression()) firExpression = getAsFirExpression(it)
             }
         }
@@ -776,7 +776,8 @@ class ExpressionsConverter(
                         FirFunctionCallImpl(null).apply {
                             calleeReference = FirSimpleNamedReference(null, Name.identifier("next"), null)
                             explicitReceiver = generateResolvedAccessExpression(null, iteratorVal)
-                        }
+                        },
+                        parameter!!.firValueParameter.returnTypeRef
                     )
                     if (multiDeclaration != null) {
                         val destructuringBlock = generateDestructuringBlock(

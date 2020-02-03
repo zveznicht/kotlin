@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.fir.tree.generator
 
 import org.jetbrains.kotlin.fir.tree.generator.context.AbstractFirTreeBuilder
 import org.jetbrains.kotlin.fir.tree.generator.model.*
+import org.jetbrains.kotlin.fir.tree.generator.printer.GENERATED_MESSAGE
+import org.jetbrains.kotlin.fir.tree.generator.printer.printElements
 import java.io.File
 
 
@@ -36,6 +38,12 @@ private fun printInterfaceClassGraph(builder: AbstractFirTreeBuilder) {
     }
     val elements = builder.elements + builder.elements.flatMap { it.allParents }
 
+    data class Edge(val from: String, val to: String) {
+        override fun toString(): String {
+            return "$from -> $to"
+        }
+    }
+
     File("FirTree.dot").printWriter().use { printer ->
         with(printer) {
             println("digraph FirTree {")
@@ -43,11 +51,17 @@ private fun printInterfaceClassGraph(builder: AbstractFirTreeBuilder) {
                 println("    ${it.type} [color=${it.kind!!.toColor()}]")
             }
             println()
+            val edges = mutableSetOf<Edge>()
             elements.forEach { element ->
                 element.allParents.forEach { parent ->
-                    println("    ${parent.type} -> ${element.type}")
+                    edges += Edge(parent.type, element.type)
                 }
             }
+            edges.forEach {
+                print("    ")
+                println(it)
+            }
+
             println("}")
         }
     }

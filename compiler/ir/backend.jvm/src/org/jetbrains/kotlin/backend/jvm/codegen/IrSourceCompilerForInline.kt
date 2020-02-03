@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.codegen.ClassBuilder
 import org.jetbrains.kotlin.codegen.OwnerKind
 import org.jetbrains.kotlin.codegen.coroutines.INVOKE_SUSPEND_METHOD_NAME
 import org.jetbrains.kotlin.codegen.inline.*
+import org.jetbrains.kotlin.codegen.inline.coroutines.FOR_INLINE_SUFFIX
 import org.jetbrains.kotlin.codegen.serialization.JvmSerializationBindings
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
@@ -21,16 +22,15 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithSource
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
-import org.jetbrains.kotlin.ir.util.isSuspend
-import org.jetbrains.kotlin.ir.util.nameForIrSerialization
-import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.ir.util.render
-import org.jetbrains.kotlin.load.java.JvmAbi
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.DescriptorUtils
+import org.jetbrains.kotlin.resolve.jvm.diagnostics.ErrorsJvm.SUSPENSION_POINT_INSIDE_MONITOR
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodGenericSignature
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature
@@ -68,8 +68,7 @@ class IrSourceCompilerForInline(
                 root.classCodegen.type.internalName,
                 root.signature.asmMethod.name,
                 root.signature.asmMethod.descriptor,
-                //compilationContextFunctionDescriptor.isInlineOrInsideInline()
-                false,
+                compilationContextFunctionDescriptor.isInlineOrInsideInline(),
                 compilationContextFunctionDescriptor.isSuspend,
                 findElement()?.let { CodegenUtil.getLineNumberForElement(it, false) } ?: 0
             )
@@ -80,10 +79,26 @@ class IrSourceCompilerForInline(
 
     private fun makeInlineNode(function: IrFunction, classCodegen: ClassCodegen, isLambda: Boolean): SMAPAndMethodNode {
         var node: MethodNode? = null
-        val functionCodegen = object : FunctionCodegen(function, classCodegen, codegen.takeIf { isLambda }) {
+        // Do not inline the generated state-machine, which was generated to support java interop of inline suspend functions.
+        // Instead, find its $$forInline companion (they share the same attributeOwnerId), which is generated for the inliner to use.
+        val forInlineFunction =
+            if (function.isSuspend)
+                function.parentAsClass.functions.find {
+                    it.name.asString() == function.name.asString() + FOR_INLINE_SUFFIX &&
+                            it.attributeOwnerId == (function as? IrAttributeContainer)?.attributeOwnerId
+                } ?: function
+            else function
+        val functionCodegen = object : FunctionCodegen(forInlineFunction, classCodegen, codegen.takeIf { isLambda }) {
             override fun createMethod(flags: Int, signature: JvmMethodGenericSignature): MethodVisitor {
                 val asmMethod = signature.asmMethod
-                node = MethodNode(Opcodes.API_VERSION, flags, asmMethod.name, asmMethod.descriptor, signature.genericsSignature, null)
+                node = MethodNode(
+                    Opcodes.API_VERSION,
+                    flags,
+                    asmMethod.name.removeSuffix(FOR_INLINE_SUFFIX),
+                    asmMethod.descriptor,
+                    signature.genericsSignature,
+                    null
+                )
                 return wrapWithMaxLocalCalc(node!!)
             }
         }
@@ -146,7 +161,9 @@ class IrSourceCompilerForInline(
 
     // TODO: Find a way to avoid using PSI here
     override fun reportSuspensionPointInsideMonitor(stackTraceElement: String) {
-        org.jetbrains.kotlin.codegen.coroutines.reportSuspensionPointInsideMonitor(findElement()!!, state, stackTraceElement)
+        codegen.context.psiErrorBuilder
+            .at(callElement.symbol.owner as IrDeclaration)
+            .report(SUSPENSION_POINT_INSIDE_MONITOR, stackTraceElement)
     }
 
     private fun findElement() = (callElement.symbol.descriptor.original as? DeclarationDescriptorWithSource)?.source?.getPsi() as? KtElement

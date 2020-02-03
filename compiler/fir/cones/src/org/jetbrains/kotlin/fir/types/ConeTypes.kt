@@ -66,7 +66,7 @@ sealed class ConeKotlinType : ConeKotlinTypeProjection(),
 
     abstract val nullability: ConeNullability
 
-    override fun toString(): String {
+    final override fun toString(): String {
         return render()
     }
 }
@@ -90,10 +90,6 @@ class ConeClassErrorType(val reason: String) : ConeClassLikeType() {
 
     override val nullability: ConeNullability
         get() = ConeNullability.UNKNOWN
-
-    override fun toString(): String {
-        return "<ERROR CLASS: $reason>"
-    }
 }
 
 abstract class ConeLookupTagBasedType : ConeSimpleKotlinType() {
@@ -144,7 +140,8 @@ fun ConeKotlinType.lowerBoundIfFlexible() = (this as? ConeFlexibleType)?.lowerBo
 
 class ConeCapturedTypeConstructor(
     val projection: ConeKotlinTypeProjection,
-    var supertypes: List<ConeKotlinType>? = null
+    var supertypes: List<ConeKotlinType>? = null,
+    val typeParameterMarker: TypeParameterMarker? = null
 ) : CapturedTypeConstructorMarker
 
 class ConeCapturedType(
@@ -153,11 +150,15 @@ class ConeCapturedType(
     override val nullability: ConeNullability = ConeNullability.NOT_NULL,
     val constructor: ConeCapturedTypeConstructor
 ) : ConeSimpleKotlinType(), CapturedTypeMarker {
-    constructor(captureStatus: CaptureStatus, lowerType: ConeKotlinType?, projection: ConeKotlinTypeProjection) : this(
+    constructor(
+        captureStatus: CaptureStatus, lowerType: ConeKotlinType?, projection: ConeKotlinTypeProjection,
+        typeParameterMarker: TypeParameterMarker
+    ) : this(
         captureStatus,
         lowerType,
         constructor = ConeCapturedTypeConstructor(
-            projection
+            projection,
+            typeParameterMarker = typeParameterMarker
         )
     )
 
@@ -165,25 +166,20 @@ class ConeCapturedType(
         get() = emptyArray()
 }
 
-class ConeTypeVariableType(
+data class ConeTypeVariableType(
     override val nullability: ConeNullability,
     override val lookupTag: ConeClassifierLookupTag
 ) : ConeLookupTagBasedType() {
     override val typeArguments: Array<out ConeKotlinTypeProjection> get() = emptyArray()
 }
 
-class ConeDefinitelyNotNullType private constructor(val original: ConeKotlinType) : ConeSimpleKotlinType(), DefinitelyNotNullTypeMarker {
+data class ConeDefinitelyNotNullType(val original: ConeKotlinType) : ConeSimpleKotlinType(), DefinitelyNotNullTypeMarker {
     override val typeArguments: Array<out ConeKotlinTypeProjection>
         get() = original.typeArguments
     override val nullability: ConeNullability
         get() = ConeNullability.NOT_NULL
 
-    companion object {
-        fun create(original: ConeKotlinType): ConeDefinitelyNotNullType {
-            if (original is ConeFlexibleType) return create(original.lowerBound)
-            return ConeDefinitelyNotNullType(original)
-        }
-    }
+    companion object
 }
 
 class ConeRawType(lowerBound: ConeKotlinType, upperBound: ConeKotlinType) : ConeFlexibleType(lowerBound, upperBound), RawTypeMarker
@@ -216,6 +212,10 @@ class ConeStubType(val variable: ConeTypeVariable, override val nullability: Con
 open class ConeTypeVariable(name: String) : TypeVariableMarker {
     val typeConstructor = ConeTypeVariableTypeConstructor(name)
     val defaultType = ConeTypeVariableType(ConeNullability.NOT_NULL, typeConstructor)
+
+    override fun toString(): String {
+        return defaultType.toString()
+    }
 }
 
 class ConeTypeVariableTypeConstructor(val debugName: String) : ConeClassifierLookupTag(), TypeVariableTypeConstructorMarker {

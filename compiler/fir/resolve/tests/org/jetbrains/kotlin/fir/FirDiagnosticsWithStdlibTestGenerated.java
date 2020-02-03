@@ -30,12 +30,17 @@ public class FirDiagnosticsWithStdlibTestGenerated extends AbstractFirDiagnostic
     }
 
     public void testAllFilesPresentInStdlib() throws Exception {
-        KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/resolve/testData/resolve/stdlib"), Pattern.compile("^([^.]+)\\.kt$"), null, true, "contracts");
+        KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/resolve/testData/resolve/stdlib"), Pattern.compile("^([^.]+)\\.kt$"), null, true, "contracts", "smartcasts");
     }
 
     @TestMetadata("anonymousInDelegate.kt")
     public void testAnonymousInDelegate() throws Exception {
         runTest("compiler/fir/resolve/testData/resolve/stdlib/anonymousInDelegate.kt");
+    }
+
+    @TestMetadata("arrayFilterCapturedType.kt")
+    public void testArrayFilterCapturedType() throws Exception {
+        runTest("compiler/fir/resolve/testData/resolve/stdlib/arrayFilterCapturedType.kt");
     }
 
     @TestMetadata("arrayFirstOrNull.kt")
@@ -51,6 +56,11 @@ public class FirDiagnosticsWithStdlibTestGenerated extends AbstractFirDiagnostic
     @TestMetadata("backingField.kt")
     public void testBackingField() throws Exception {
         runTest("compiler/fir/resolve/testData/resolve/stdlib/backingField.kt");
+    }
+
+    @TestMetadata("classLiteralForParameter.kt")
+    public void testClassLiteralForParameter() throws Exception {
+        runTest("compiler/fir/resolve/testData/resolve/stdlib/classLiteralForParameter.kt");
     }
 
     @TestMetadata("companionLoad.kt")
@@ -81,6 +91,11 @@ public class FirDiagnosticsWithStdlibTestGenerated extends AbstractFirDiagnostic
     @TestMetadata("factoryFunctionOverloads.kt")
     public void testFactoryFunctionOverloads() throws Exception {
         runTest("compiler/fir/resolve/testData/resolve/stdlib/factoryFunctionOverloads.kt");
+    }
+
+    @TestMetadata("functionAndFunctionN.kt")
+    public void testFunctionAndFunctionN() throws Exception {
+        runTest("compiler/fir/resolve/testData/resolve/stdlib/functionAndFunctionN.kt");
     }
 
     @TestMetadata("functionX.kt")
@@ -191,6 +206,11 @@ public class FirDiagnosticsWithStdlibTestGenerated extends AbstractFirDiagnostic
     @TestMetadata("simpleLazy.kt")
     public void testSimpleLazy() throws Exception {
         runTest("compiler/fir/resolve/testData/resolve/stdlib/simpleLazy.kt");
+    }
+
+    @TestMetadata("toSortedMapWithComparator.kt")
+    public void testToSortedMapWithComparator() throws Exception {
+        runTest("compiler/fir/resolve/testData/resolve/stdlib/toSortedMapWithComparator.kt");
     }
 
     @TestMetadata("topLevelResolve.kt")
@@ -444,6 +464,11 @@ public class FirDiagnosticsWithStdlibTestGenerated extends AbstractFirDiagnostic
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/resolve/testData/resolve/stdlib/j+k"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
         }
 
+        @TestMetadata("capturedFlexible.kt")
+        public void testCapturedFlexible() throws Exception {
+            runTest("compiler/fir/resolve/testData/resolve/stdlib/j+k/capturedFlexible.kt");
+        }
+
         @TestMetadata("complexFlexibleInference.kt")
         public void testComplexFlexibleInference() throws Exception {
             runTest("compiler/fir/resolve/testData/resolve/stdlib/j+k/complexFlexibleInference.kt");
@@ -587,19 +612,19 @@ public class FirDiagnosticsWithStdlibTestGenerated extends AbstractFirDiagnostic
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/resolve/testData/resolve/stdlib/problems"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
         }
 
-        @TestMetadata("classLiteralForParameter.kt")
-        public void testClassLiteralForParameter() throws Exception {
-            runTest("compiler/fir/resolve/testData/resolve/stdlib/problems/classLiteralForParameter.kt");
-        }
-
         @TestMetadata("cloneArray.kt")
         public void testCloneArray() throws Exception {
             runTest("compiler/fir/resolve/testData/resolve/stdlib/problems/cloneArray.kt");
         }
 
-        @TestMetadata("tryWithLambdaInside.kt")
-        public void testTryWithLambdaInside() throws Exception {
-            runTest("compiler/fir/resolve/testData/resolve/stdlib/problems/tryWithLambdaInside.kt");
+        @TestMetadata("delegateTypeMismatch.kt")
+        public void testDelegateTypeMismatch() throws Exception {
+            runTest("compiler/fir/resolve/testData/resolve/stdlib/problems/delegateTypeMismatch.kt");
+        }
+
+        @TestMetadata("inapplicableRemoveAll.kt")
+        public void testInapplicableRemoveAll() throws Exception {
+            runTest("compiler/fir/resolve/testData/resolve/stdlib/problems/inapplicableRemoveAll.kt");
         }
 
         @TestMetadata("weakHashMap.kt")

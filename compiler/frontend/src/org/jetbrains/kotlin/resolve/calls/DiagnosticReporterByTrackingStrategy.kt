@@ -148,7 +148,7 @@ class DiagnosticReporterByTrackingStrategy(
                 val expression = ambiguityDiagnostic.argument.psiExpression.safeAs<KtCallableReferenceExpression>()
                 val candidates = ambiguityDiagnostic.candidates.map { it.candidate }
                 reportIfNonNull(expression) {
-                    trace.report(CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY.on(it.callableReference, candidates))
+                    trace.reportDiagnosticOnce(CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY.on(it.callableReference, candidates))
                     trace.record(BindingContext.AMBIGUOUS_REFERENCE_TARGET, it.callableReference, candidates)
                 }
             }
@@ -181,6 +181,20 @@ class DiagnosticReporterByTrackingStrategy(
 
             ResolvedToSamWithVarargDiagnostic::class.java -> {
                 trace.report(TYPE_INFERENCE_CANDIDATE_WITH_SAM_AND_VARARG.on(callArgument.psiCallArgument.valueArgument.asElement()))
+            }
+
+            NotEnoughInformationForLambdaParameter::class.java -> {
+                val unknownParameterTypeDiagnostic = diagnostic as NotEnoughInformationForLambdaParameter
+                val lambdaArgument = unknownParameterTypeDiagnostic.lambdaArgument
+                val parameterIndex = unknownParameterTypeDiagnostic.parameterIndex
+
+                val argumentExpression = KtPsiUtil.deparenthesize(lambdaArgument.psiCallArgument.valueArgument.getArgumentExpression())
+                if (argumentExpression !is KtLambdaExpression) return
+
+                val parameter = argumentExpression.valueParameters.getOrNull(parameterIndex)
+                reportIfNonNull(parameter) {
+                    trace.report(CANNOT_INFER_PARAMETER_TYPE.on(it))
+                }
             }
         }
     }
@@ -232,7 +246,7 @@ class DiagnosticReporterByTrackingStrategy(
                 val call = if (call.callElement is KtBinaryExpression) null else call
                 smartCastManager.checkAndRecordPossibleCast(
                     dataFlowValue, smartCastDiagnostic.smartCastType, argumentExpression, context, call,
-                    recordExpressionType = true
+                    recordExpressionType = false
                 )
             }
             is ReceiverExpressionKotlinCallArgument -> {
@@ -273,6 +287,7 @@ class DiagnosticReporterByTrackingStrategy(
                         is ArgumentConstraintPosition -> position.argument
                         is ReceiverConstraintPosition -> position.argument
                         is LHSArgumentConstraintPosition -> position.argument
+                        is LambdaArgumentConstraintPosition -> position.lambda.atom
                         else -> null
                     }
                 argument?.let {

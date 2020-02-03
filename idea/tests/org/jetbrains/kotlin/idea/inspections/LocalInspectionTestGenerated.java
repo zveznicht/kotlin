@@ -6758,19 +6758,29 @@ public class LocalInspectionTestGenerated extends AbstractLocalInspectionTest {
             runTest("idea/testData/inspectionsLocal/redundantCompanionReference/javaFakeGetter.kt");
         }
 
-        @TestMetadata("javaFakeSetter.kt")
-        public void testJavaFakeSetter() throws Exception {
-            runTest("idea/testData/inspectionsLocal/redundantCompanionReference/javaFakeSetter.kt");
-        }
-
         @TestMetadata("javaGetter.kt")
         public void testJavaGetter() throws Exception {
             runTest("idea/testData/inspectionsLocal/redundantCompanionReference/javaGetter.kt");
         }
 
+        @TestMetadata("javaGetter2.kt")
+        public void testJavaGetter2() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantCompanionReference/javaGetter2.kt");
+        }
+
         @TestMetadata("javaSetter.kt")
         public void testJavaSetter() throws Exception {
             runTest("idea/testData/inspectionsLocal/redundantCompanionReference/javaSetter.kt");
+        }
+
+        @TestMetadata("javaSetterWithoutGetter.kt")
+        public void testJavaSetterWithoutGetter() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantCompanionReference/javaSetterWithoutGetter.kt");
+        }
+
+        @TestMetadata("kotlinGetter.kt")
+        public void testKotlinGetter() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantCompanionReference/kotlinGetter.kt");
         }
 
         @TestMetadata("methodArgument.kt")
@@ -12255,6 +12265,109 @@ public class LocalInspectionTestGenerated extends AbstractLocalInspectionTest {
         @TestMetadata("when5.kt")
         public void testWhen5() throws Exception {
             runTest("idea/testData/inspectionsLocal/throwableNotThrown/when5.kt");
+        }
+    }
+
+    @TestMetadata("idea/testData/inspectionsLocal/trailingComma")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class TrailingComma extends AbstractLocalInspectionTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
+        }
+
+        @TestMetadata("addComma.kt")
+        public void testAddComma() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/addComma.kt");
+        }
+
+        @TestMetadata("addComma2.kt")
+        public void testAddComma2() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/addComma2.kt");
+        }
+
+        @TestMetadata("addComma3.kt")
+        public void testAddComma3() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/addComma3.kt");
+        }
+
+        @TestMetadata("addComma4.kt")
+        public void testAddComma4() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/addComma4.kt");
+        }
+
+        @TestMetadata("addComma5.kt")
+        public void testAddComma5() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/addComma5.kt");
+        }
+
+        @TestMetadata("addComma6.kt")
+        public void testAddComma6() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/addComma6.kt");
+        }
+
+        public void testAllFilesPresentInTrailingComma() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/testData/inspectionsLocal/trailingComma"), Pattern.compile("^([\\w\\-_]+)\\.(kt|kts)$"), null, true);
+        }
+
+        @TestMetadata("changeCommaPosition.kt")
+        public void testChangeCommaPosition() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/changeCommaPosition.kt");
+        }
+
+        @TestMetadata("changeCommaPosition2.kt")
+        public void testChangeCommaPosition2() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/changeCommaPosition2.kt");
+        }
+
+        @TestMetadata("changeCommaPosition3.kt")
+        public void testChangeCommaPosition3() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/changeCommaPosition3.kt");
+        }
+
+        @TestMetadata("changeCommaPosition4.kt")
+        public void testChangeCommaPosition4() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/changeCommaPosition4.kt");
+        }
+
+        @TestMetadata("changeCommaPosition5.kt")
+        public void testChangeCommaPosition5() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/changeCommaPosition5.kt");
+        }
+
+        @TestMetadata("missingLineBreak.kt")
+        public void testMissingLineBreak() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/missingLineBreak.kt");
+        }
+
+        @TestMetadata("missingLineBreak2.kt")
+        public void testMissingLineBreak2() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/missingLineBreak2.kt");
+        }
+
+        @TestMetadata("missingLineBreak3.kt")
+        public void testMissingLineBreak3() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/missingLineBreak3.kt");
+        }
+
+        @TestMetadata("removeComma.kt")
+        public void testRemoveComma() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/removeComma.kt");
+        }
+
+        @TestMetadata("removeComma2.kt")
+        public void testRemoveComma2() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/removeComma2.kt");
+        }
+
+        @TestMetadata("removeComma3.kt")
+        public void testRemoveComma3() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/removeComma3.kt");
+        }
+
+        @TestMetadata("removeComma4.kt")
+        public void testRemoveComma4() throws Exception {
+            runTest("idea/testData/inspectionsLocal/trailingComma/removeComma4.kt");
         }
     }
 

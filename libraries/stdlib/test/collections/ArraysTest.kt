@@ -477,7 +477,7 @@ class ArraysTest {
         expect(3.8) { arrayOf(1, 2, 5, 8, 3).average() }
         expect(2.1) { arrayOf(1.6, 2.6, 3.6, 0.6).average() }
         expect(100.0) { arrayOf<Byte>(100, 100, 100, 100, 100, 100).average() }
-        expect(0) { arrayOf<Short>(1, -1, 2, -2, 3, -3).average().toShort() }
+        expect(0) { arrayOf<Short>(1, -1, 2, -2, 3, -3).average().toInt() }
         // TODO: Property based tests
         // for each arr with size 1 arr.average() == arr[0]
         // for each arr with size > 0  arr.average() = arr.sum().toDouble() / arr.size()
@@ -663,6 +663,29 @@ class ArraysTest {
         }
 
         assertFailsWith<NoSuchElementException> { emptyArray<Any>().random() }
+    }
+
+    @Test fun randomOrNull() {
+        Array(100) { it }.let { array ->
+            val tosses = List(10) { array.randomOrNull() }
+            assertTrue(tosses.distinct().size > 1, "Should be some distinct elements in $tosses")
+
+            val seed = Random.nextInt()
+            val random1 = Random(seed)
+            val random2 = Random(seed)
+
+            val tosses1 = List(10) { array.randomOrNull(random1) }
+            val tosses2 = List(10) { array.randomOrNull(random2) }
+
+            assertEquals(tosses1, tosses2)
+        }
+
+        arrayOf("x").let { singletonArray ->
+            val tosses = List(10) { singletonArray.randomOrNull() }
+            assertEquals(singletonArray.toList(), tosses.distinct())
+        }
+
+        assertNull(emptyArray<Any>().randomOrNull())
     }
 
 

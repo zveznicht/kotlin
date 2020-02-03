@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.ir.util
 
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.impl.DeclarationDescriptorVisitorEmptyBodies
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
@@ -17,15 +18,18 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
+import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.source.PsiSourceElement
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.utils.DFS
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
  * Binds the arguments explicitly represented in the IR to the parameters of the accessed function.
@@ -150,6 +154,14 @@ fun IrExpression.isNullConst() = this is IrConst<*> && this.kind == IrConstKind.
 fun IrExpression.isTrueConst() = this is IrConst<*> && this.kind == IrConstKind.Boolean && this.value == true
 
 fun IrExpression.isFalseConst() = this is IrConst<*> && this.kind == IrConstKind.Boolean && this.value == false
+
+fun IrExpression.coerceToUnit(builtins: IrBuiltIns): IrExpression {
+    val valueType = getKotlinType(this)
+    return coerceToUnitIfNeeded(valueType, builtins)
+}
+
+private fun getKotlinType(irExpression: IrExpression) =
+    irExpression.type.toKotlinType()
 
 fun IrExpression.coerceToUnitIfNeeded(valueType: KotlinType, irBuiltIns: IrBuiltIns): IrExpression {
     return if (KotlinTypeChecker.DEFAULT.isSubtypeOf(valueType, irBuiltIns.unitType.toKotlinType()))
@@ -379,6 +391,10 @@ fun IrFunction.isFakeOverriddenFromAny(): Boolean {
 
 fun IrCall.isSuperToAny() = superQualifierSymbol?.let { this.symbol.owner.isFakeOverriddenFromAny() } ?: false
 
+
+fun IrDeclaration.hasInterfaceParent() =
+    parent.safeAs<IrClass>()?.isInterface == true
+
 fun IrDeclaration.isEffectivelyExternal(): Boolean {
 
     fun IrFunction.effectiveParentDeclaration(): IrDeclaration? =
@@ -600,15 +616,16 @@ private fun IrMemberAccessExpression.copyTypeAndValueArgumentsFrom(
     }
 }
 
-val IrDeclaration.file: IrFile
-    get() = parent.let {
-        when (it) {
-            is IrFile -> it
-            is IrPackageFragment -> TODO("Unknown file")
-            is IrDeclaration -> it.file
-            else -> TODO("Unexpected declaration parent")
-        }
+val IrDeclaration.fileOrNull: IrFile?
+    get() = when (val parent = parent) {
+        is IrFile -> parent
+        is IrPackageFragment -> null
+        is IrDeclaration -> parent.fileOrNull
+        else -> TODO("Unexpected declaration parent")
     }
+
+val IrDeclaration.file: IrFile
+    get() = fileOrNull ?: TODO("Unknown file")
 
 val IrFunction.allTypeParameters: List<IrTypeParameter>
     get() = if (this is IrConstructor)
@@ -626,3 +643,39 @@ val IrFunctionReference.typeSubstitutionMap: Map<IrTypeParameterSymbol, IrType>
 
 val IrFunctionAccessExpression.typeSubstitutionMap: Map<IrTypeParameterSymbol, IrType>
     get() = getTypeSubstitutionMap(symbol.owner)
+
+// Note: there is not enough information in a descriptor to choose between an enum entry and its corresponding class,
+// so the entry itself is chosen in that case.
+fun SymbolTable.referenceMember(descriptor: DeclarationDescriptor, correspondingClassForEnum: Boolean = false): IrSymbol =
+    descriptor.accept(
+        object : DeclarationDescriptorVisitorEmptyBodies<IrSymbol, Unit?>() {
+            override fun visitClassDescriptor(descriptor: ClassDescriptor, data: Unit?) =
+                if (DescriptorUtils.isEnumEntry(descriptor) && !correspondingClassForEnum)
+                    referenceEnumEntry(descriptor)
+                else
+                    referenceClass(descriptor)
+
+            override fun visitConstructorDescriptor(constructorDescriptor: ConstructorDescriptor, data: Unit?) =
+                referenceConstructor(descriptor as ClassConstructorDescriptor)
+
+            override fun visitFunctionDescriptor(descriptor: FunctionDescriptor, data: Unit?) = referenceSimpleFunction(descriptor)
+
+            override fun visitPropertyDescriptor(descriptor: PropertyDescriptor, data: Unit?) = referenceProperty(descriptor)
+
+            override fun visitTypeParameterDescriptor(descriptor: TypeParameterDescriptor, data: Unit?) = referenceTypeParameter(descriptor)
+
+            override fun visitTypeAliasDescriptor(descriptor: TypeAliasDescriptor, data: Unit?) = referenceTypeAlias(descriptor)
+
+            override fun visitDeclarationDescriptor(descriptor: DeclarationDescriptor?, data: Unit?): IrSymbol {
+                throw AssertionError("Unexpected member descriptor: $descriptor")
+            }
+        },
+        null
+    )
+
+fun SymbolTable.findOrDeclareExternalPackageFragment(descriptor: PackageFragmentDescriptor) =
+    referenceExternalPackageFragment(descriptor).also {
+        if (!it.isBound) {
+            declareExternalPackageFragment(descriptor)
+        }
+    }.owner

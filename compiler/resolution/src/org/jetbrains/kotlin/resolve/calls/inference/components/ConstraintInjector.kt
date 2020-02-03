@@ -70,7 +70,7 @@ class ConstraintInjector(
         incorporatePosition: IncorporationConstraintPosition
     ) {
         val possibleNewConstraints = Stack<Pair<TypeVariableMarker, Constraint>>()
-        val typeCheckerContext = TypeCheckerContext(c, incorporatePosition, lowerType, upperType, possibleNewConstraints, mutableSetOf())
+        val typeCheckerContext = TypeCheckerContext(c, incorporatePosition, lowerType, upperType, possibleNewConstraints)
         typeCheckerContext.runIsSubtypeOf(lowerType, upperType)
 
         while (possibleNewConstraints.isNotEmpty()) {
@@ -82,11 +82,11 @@ class ConstraintInjector(
 
             // it is important, that we add constraint here(not inside TypeCheckerContext), because inside incorporation we read constraints
             constraints.addConstraint(constraint)?.let {
-                constraintIncorporator.incorporate(typeCheckerContext, typeVariable, it)
+                if (!constraint.isNullabilityConstraint) {
+                    constraintIncorporator.incorporate(typeCheckerContext, typeVariable, it)
+                }
             }
         }
-
-        incorporatePosition.inputTypePositions = typeCheckerContext.preservedInputTypePositions
     }
 
     private fun updateAllowedTypeDepth(c: Context, initialType: KotlinTypeMarker) = with(c) {
@@ -122,8 +122,7 @@ class ConstraintInjector(
         val position: IncorporationConstraintPosition,
         val baseLowerType: KotlinTypeMarker,
         val baseUpperType: KotlinTypeMarker,
-        val possibleNewConstraints: MutableList<Pair<TypeVariableMarker, Constraint>>,
-        val preservedInputTypePositions: MutableSet<ConstraintPosition>
+        val possibleNewConstraints: MutableList<Pair<TypeVariableMarker, Constraint>>
     ) : AbstractTypeCheckerContextForConstraintSystem(), ConstraintIncorporator.Context, TypeSystemInferenceExtensionContext by c {
 
         val baseContext: AbstractTypeCheckerContext = newBaseTypeCheckerContext(isErrorTypeEqualsToAnything, isStubTypeEqualsToAnything)
@@ -234,10 +233,10 @@ class ConstraintInjector(
             val newConstraint = Constraint(
                 kind, targetType, position,
                 derivedFrom = derivedFrom,
-                isNullabilityConstraint = isNullabilityConstraint
+                isNullabilityConstraint = isNullabilityConstraint,
+                inputTypePositionBeforeIncorporation = inputTypePosition
             )
             possibleNewConstraints.add(typeVariable to newConstraint)
-            inputTypePosition?.let { preservedInputTypePositions.add(it) }
         }
 
         override val allTypeVariablesWithConstraints: Collection<VariableWithConstraints>
@@ -269,6 +268,6 @@ class ConstraintInjector(
 data class ConstraintContext(
     val kind: ConstraintKind,
     val derivedFrom: Set<TypeVariableMarker>,
-    val inputTypePosition: ConstraintPosition? = null,
+    val inputTypePositionBeforeIncorporation: OnlyInputTypeConstraintPosition? = null,
     val isNullabilityConstraint: Boolean
 )

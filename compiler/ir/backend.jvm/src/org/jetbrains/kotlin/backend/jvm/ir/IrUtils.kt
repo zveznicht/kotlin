@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.backend.jvm.JvmSymbols
 import org.jetbrains.kotlin.backend.jvm.codegen.isInlineOnly
 import org.jetbrains.kotlin.backend.jvm.codegen.isJvmInterface
 import org.jetbrains.kotlin.backend.jvm.descriptors.JvmDeclarationFactory
-import org.jetbrains.kotlin.backend.jvm.lower.inlineclasses.hasMangledParameters
 import org.jetbrains.kotlin.backend.jvm.lower.inlineclasses.unboxInlineClass
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.Visibilities
@@ -135,15 +134,14 @@ val IrType.isBoxedArray: Boolean
 fun IrType.getArrayElementType(irBuiltIns: IrBuiltIns): IrType =
     if (isBoxedArray)
         ((this as IrSimpleType).arguments.single() as IrTypeProjection).type
-    else
-        irBuiltIns.primitiveArrayElementTypes.getValue(this.classOrNull!!)
+    else {
+        val classifier = this.classOrNull!!
+        irBuiltIns.primitiveArrayElementTypes[classifier]
+            ?: throw AssertionError("Primitive array expected: $classifier")
+    }
 
 val IrStatementOrigin?.isLambda: Boolean
     get() = this == IrStatementOrigin.LAMBDA || this == IrStatementOrigin.ANONYMOUS_FUNCTION
-
-val IrConstructor.shouldBeHidden: Boolean
-    get() = !Visibilities.isPrivate(visibility) && !constructedClass.isInline && hasMangledParameters &&
-            origin != IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER
 
 // An IR builder with a reference to the JvmBackendContext
 class JvmIrBuilder(

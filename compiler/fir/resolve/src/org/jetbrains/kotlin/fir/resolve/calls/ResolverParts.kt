@@ -40,14 +40,19 @@ internal object CheckExplicitReceiverConsistency : ResolutionStage() {
         // TODO: add invoke cases
         when (receiverKind) {
             NO_EXPLICIT_RECEIVER -> {
-                if (explicitReceiver != null && explicitReceiver !is FirResolvedQualifier)
+                if (explicitReceiver != null && explicitReceiver !is FirResolvedQualifier) {
                     return sink.yieldApplicability(CandidateApplicability.WRONG_RECEIVER)
+                }
             }
             EXTENSION_RECEIVER, DISPATCH_RECEIVER -> {
-                if (explicitReceiver == null) return sink.yieldApplicability(CandidateApplicability.WRONG_RECEIVER)
+                if (explicitReceiver == null) {
+                    return sink.yieldApplicability(CandidateApplicability.WRONG_RECEIVER)
+                }
             }
             BOTH_RECEIVERS -> {
-                if (explicitReceiver == null) return sink.yieldApplicability(CandidateApplicability.WRONG_RECEIVER)
+                if (explicitReceiver == null) {
+                    return sink.yieldApplicability(CandidateApplicability.WRONG_RECEIVER)
+                }
                 // Here we should also check additional invoke receiver
             }
         }
@@ -194,7 +199,7 @@ internal object CheckCallableReferenceExpectedType : CheckerStage() {
 
         val resultingType: ConeKotlinType = when (fir) {
             is FirFunction -> createKFunctionType(fir, resultingReceiverType, returnTypeRef)
-            is FirProperty -> createKPropertyType(fir, resultingReceiverType, returnTypeRef)
+            is FirVariable<*> -> createKPropertyType(fir, resultingReceiverType, returnTypeRef)
             else -> ConeKotlinErrorType("Unknown callable kind: ${fir::class}")
         }.let(candidate.substitutor::substituteOrSelf)
 
@@ -234,13 +239,13 @@ internal object CheckCallableReferenceExpectedType : CheckerStage() {
 }
 
 private fun createKPropertyType(
-    property: FirProperty,
+    propertyOrField: FirVariable<*>,
     receiverType: ConeKotlinType?,
     returnTypeRef: FirResolvedTypeRef
 ): ConeKotlinType {
-    val propertyType = returnTypeRef.coneTypeSafe<ConeKotlinType>() ?: ConeKotlinErrorType("No type for of $property")
+    val propertyType = returnTypeRef.coneTypeSafe<ConeKotlinType>() ?: ConeKotlinErrorType("No type for of $propertyOrField")
     return createKPropertyType(
-        receiverType, propertyType, isMutable = property.isVar
+        receiverType, propertyType, isMutable = propertyOrField.isVar
     )
 }
 
@@ -284,11 +289,9 @@ internal object CheckVisibility : CheckerStage() {
     private fun ImplicitReceiverStack.canSeePrivateMemberOf(ownerId: ClassId): Boolean {
         for (implicitReceiverValue in receiversAsReversed()) {
             if (implicitReceiverValue !is ImplicitDispatchReceiverValue) continue
+            if (implicitReceiverValue.companionFromSupertype) continue
             val boundSymbol = implicitReceiverValue.boundSymbol
             if (boundSymbol.classId.isSame(ownerId)) {
-                return true
-            }
-            if (boundSymbol is FirRegularClassSymbol && boundSymbol.fir.companionObject?.symbol?.classId?.isSame(ownerId) == true) {
                 return true
             }
         }
@@ -316,6 +319,7 @@ internal object CheckVisibility : CheckerStage() {
         val visited = mutableSetOf<ClassId>()
         for (implicitReceiverValue in receiversAsReversed()) {
             if (implicitReceiverValue !is ImplicitDispatchReceiverValue) continue
+            if (implicitReceiverValue.companionFromSupertype) continue
             val boundSymbol = implicitReceiverValue.boundSymbol
             val superTypes = boundSymbol.fir.superConeTypes
             for (superType in superTypes) {

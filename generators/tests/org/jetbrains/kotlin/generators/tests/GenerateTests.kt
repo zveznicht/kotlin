@@ -7,10 +7,12 @@ package org.jetbrains.kotlin.generators.tests
 
 import org.jetbrains.kotlin.AbstractDataFlowValueRenderingTest
 import org.jetbrains.kotlin.addImport.AbstractAddImportTest
+import org.jetbrains.kotlin.addImportAlias.AbstractAddImportAliasTest
 import org.jetbrains.kotlin.allopen.AbstractBytecodeListingTestForAllOpen
 import org.jetbrains.kotlin.android.parcel.AbstractParcelBytecodeListingTest
 import org.jetbrains.kotlin.android.synthetic.test.AbstractAndroidBoxTest
 import org.jetbrains.kotlin.android.synthetic.test.AbstractAndroidBytecodeShapeTest
+import org.jetbrains.kotlin.android.synthetic.test.AbstractAndroidIrBoxTest
 import org.jetbrains.kotlin.android.synthetic.test.AbstractAndroidSyntheticPropertyDescriptorTest
 import org.jetbrains.kotlin.asJava.classes.AbstractUltraLightClassLoadingTest
 import org.jetbrains.kotlin.asJava.classes.AbstractUltraLightClassSanityTest
@@ -620,6 +622,10 @@ fun main(args: Array<String>) {
             model("codeInsight/outOfBlock", pattern = KT_OR_KTS)
         }
 
+        testClass<AbstractChangeLocalityDetectorTest> {
+            model("codeInsight/changeLocality", pattern = KT_OR_KTS)
+        }
+
         testClass<AbstractDataFlowValueRenderingTest> {
             model("dataFlowValueRendering")
         }
@@ -686,6 +692,10 @@ fun main(args: Array<String>) {
         }
         testClass<AbstractAddImportTest> {
             model("addImport", pattern = KT_WITHOUT_DOTS_IN_NAME)
+        }
+
+        testClass<AbstractAddImportAliasTest> {
+            model("addImportAlias", pattern = KT_WITHOUT_DOTS_IN_NAME)
         }
 
         testClass<AbstractSmartSelectionTest> {
@@ -1221,6 +1231,13 @@ fun main(args: Array<String>) {
             model("incremental/js", extension = null, excludeParentDirs = true)
         }
 
+        testClass<AbstractIncrementalJsKlibCompilerWithScopeExpansionRunnerTest> {
+            model("incremental/pureKotlin", extension = null, recursive = false)
+            model("incremental/classHierarchyAffected", extension = null, recursive = false)
+            model("incremental/js", extension = null, excludeParentDirs = true)
+            model("incremental/scopeExpansion", extension = null, excludeParentDirs = true)
+        }
+
         testClass<AbstractIncrementalJsCompilerRunnerWithFriendModulesDisabledTest> {
             model("incremental/js/friendsModuleDisabled", extension = null, recursive = false)
         }
@@ -1244,6 +1261,17 @@ fun main(args: Array<String>) {
         testClass<AbstractAndroidBoxTest> {
             model("codegen/android", recursive = false, extension = null, testMethod = "doCompileAgainstAndroidSdkTest")
             model("codegen/android", recursive = false, extension = null, testMethod = "doFakeInvocationTest", testClassName = "Invoke")
+        }
+
+        testClass<AbstractAndroidIrBoxTest> {
+            model(
+                "codegen/android", recursive = false, extension = null, testMethod = "doCompileAgainstAndroidSdkTest",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "codegen/android", recursive = false, extension = null, testMethod = "doFakeInvocationTest", testClassName = "Invoke",
+                targetBackend = TargetBackend.JVM_IR
+            )
         }
 
         testClass<AbstractAndroidBytecodeShapeTest> {

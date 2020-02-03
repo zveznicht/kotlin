@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper;
 import org.jetbrains.kotlin.codegen.state.TypeMapperUtilsKt;
 import org.jetbrains.kotlin.config.JvmDefaultMode;
 import org.jetbrains.kotlin.config.LanguageFeature;
+import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor;
 import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor;
@@ -73,6 +74,7 @@ import static org.jetbrains.kotlin.codegen.CodegenUtilKt.generateBridgeForMainFu
 import static org.jetbrains.kotlin.codegen.serialization.JvmSerializationBindings.METHOD_FOR_FUNCTION;
 import static org.jetbrains.kotlin.codegen.state.KotlinTypeMapper.isAccessor;
 import static org.jetbrains.kotlin.descriptors.CallableMemberDescriptor.Kind.DECLARATION;
+import static org.jetbrains.kotlin.descriptors.CallableMemberDescriptor.Kind.DELEGATION;
 import static org.jetbrains.kotlin.descriptors.ModalityKt.isOverridable;
 import static org.jetbrains.kotlin.resolve.DescriptorToSourceUtils.getSourceFromDescriptor;
 import static org.jetbrains.kotlin.resolve.DescriptorUtils.*;
@@ -785,30 +787,41 @@ public class FunctionCodegen {
             shift++;
         }
 
+        boolean isEnumName = true;
         KotlinTypeMapper typeMapper = state.getTypeMapper();
         for (int i = 0; i < params.size(); i++) {
             JvmMethodParameterSignature param = params.get(i);
             JvmMethodParameterKind kind = param.getKind();
             String parameterName;
 
-            if (kind == JvmMethodParameterKind.VALUE) {
-                ValueParameterDescriptor parameter = valueParameterIterator.next();
-                String nameForDestructuredParameter = VariableAsmNameManglingUtils.getNameForDestructuredParameterOrNull(parameter);
+            switch (kind) {
+                case VALUE:
+                    ValueParameterDescriptor parameter = valueParameterIterator.next();
+                    String nameForDestructuredParameter = VariableAsmNameManglingUtils.getNameForDestructuredParameterOrNull(parameter);
 
-                parameterName =
-                        nameForDestructuredParameter == null
-                        ? computeParameterName(i, parameter)
-                        : nameForDestructuredParameter;
-            }
-            else if (kind == JvmMethodParameterKind.RECEIVER) {
-                parameterName = AsmUtil.getNameForReceiverParameter(
-                        functionDescriptor, typeMapper.getBindingContext(), state.getLanguageVersionSettings());
-            }
-            else {
-                String lowercaseKind = kind.name().toLowerCase();
-                parameterName = needIndexForVar(kind)
-                                ? "$" + lowercaseKind + "$" + i
-                                : "$" + lowercaseKind;
+                    parameterName =
+                            nameForDestructuredParameter == null
+                            ? computeParameterName(i, parameter)
+                            : nameForDestructuredParameter;
+                    break;
+                case RECEIVER:
+                    parameterName = AsmUtil.getNameForReceiverParameter(
+                            functionDescriptor, typeMapper.getBindingContext(), state.getLanguageVersionSettings());
+                    break;
+                case OUTER:
+                    parameterName = CAPTURED_THIS_FIELD; //should be 'this$X' depending on inner class nesting
+
+                    break;
+                case ENUM_NAME_OR_ORDINAL:
+                    parameterName = isEnumName ? "$enum$name" : "$enum$ordinal";
+                    isEnumName = !isEnumName;
+                    break;
+                default:
+                    String lowercaseKind = kind.name().toLowerCase();
+                    parameterName = needIndexForVar(kind)
+                                    ? "$" + lowercaseKind + "$" + i
+                                    : "$" + lowercaseKind;
+                    break;
             }
 
             Type type = param.getAsmType();
@@ -1041,17 +1054,24 @@ public class FunctionCodegen {
     }
 
     @NotNull
-    public static String[] getThrownExceptions(@NotNull FunctionDescriptor function, @NotNull KotlinTypeMapper mapper) {
-        return ArrayUtil.toStringArray(CollectionsKt.map(getThrownExceptions(function), d -> mapper.mapClass(d).getInternalName()));
+    public static String[] getThrownExceptions(@NotNull FunctionDescriptor function, @NotNull KotlinTypeMapper typeMapper) {
+        return ArrayUtil.toStringArray(CollectionsKt.map(
+                getThrownExceptions(function, typeMapper.getLanguageVersionSettings()),
+                d -> typeMapper.mapClass(d).getInternalName()
+        ));
     }
 
     @NotNull
-    public static List<ClassDescriptor> getThrownExceptions(@NotNull FunctionDescriptor function) {
-        AnnotationDescriptor annotation = function.getAnnotations().findAnnotation(new FqName("kotlin.throws"));
-        if (annotation == null) {
-            annotation = function.getAnnotations().findAnnotation(new FqName("kotlin.jvm.Throws"));
+    public static List<ClassDescriptor> getThrownExceptions(
+            @NotNull FunctionDescriptor function,
+            @NotNull LanguageVersionSettings languageVersionSettings
+    ) {
+        if (function.getKind() == DELEGATION &&
+            languageVersionSettings.supportsFeature(LanguageFeature.DoNotGenerateThrowsForDelegatedKotlinMembers)) {
+            return Collections.emptyList();
         }
 
+        AnnotationDescriptor annotation = function.getAnnotations().findAnnotation(new FqName("kotlin.jvm.Throws"));
         if (annotation == null) return Collections.emptyList();
 
         Collection<ConstantValue<?>> values = annotation.getAllValueArguments().values();

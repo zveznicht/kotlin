@@ -75,10 +75,10 @@ dependencies {
     compile(project(":idea:jvm-debugger:jvm-debugger-core"))
     compile(project(":idea:jvm-debugger:jvm-debugger-evaluation"))
     compile(project(":idea:jvm-debugger:jvm-debugger-sequence"))
+    compile(project(":idea:jvm-debugger:jvm-debugger-coroutine"))
     compile(project(":j2k"))
     compile(project(":idea:idea-j2k"))
     compile(project(":idea:formatter"))
-    compile(project(":idea:fir-view"))
     compile(project(":compiler:fir:fir2ir"))
     compile(project(":compiler:fir:resolve"))
     compile(project(":compiler:fir:java"))
@@ -128,8 +128,7 @@ dependencies {
     testCompile(commonDep("junit:junit"))
     testCompileOnly(intellijPluginDep("coverage"))
 
-    testRuntime(project(":kotlin-native:kotlin-native-library-reader")) { isTransitive = false }
-    testRuntime(project(":kotlin-native:kotlin-native-utils")) { isTransitive = false }
+    testRuntime(project(":native:kotlin-native-utils")) { isTransitive = false }
 
     testRuntime(commonDep("org.jetbrains", "markdown"))
     testRuntime(project(":plugins:kapt3-idea")) { isTransitive = false }
@@ -189,10 +188,6 @@ dependencies {
         testRuntime(intellijPluginDep("git4idea"))
         testRuntime(intellijPluginDep("google-cloud-tools-core-as"))
         testRuntime(intellijPluginDep("google-login-as"))
-    }
-
-    if (Ide.AS36()) {
-        testRuntime(intellijPluginDep("android-wizardTemplate-plugin"))
     }
 
     performanceTestCompile(sourceSets["test"].output)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -7,9 +7,10 @@ package org.jetbrains.kotlin.backend.jvm.codegen
 
 import org.jetbrains.kotlin.backend.common.CodegenUtil
 import org.jetbrains.kotlin.backend.common.ir.copyTypeParametersFrom
-import org.jetbrains.kotlin.backend.common.ir.copyValueParametersFrom
+import org.jetbrains.kotlin.backend.common.ir.copyValueParametersInsertingContinuationFrom
 import org.jetbrains.kotlin.backend.common.ir.isSuspend
 import org.jetbrains.kotlin.backend.common.lower.VariableRemapper
+import org.jetbrains.kotlin.backend.common.lower.allOverridden
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.codegen.ClassBuilder
@@ -71,10 +72,14 @@ internal fun generateStateMachineForNamedFunction(
         internalNameForDispatchReceiver = classCodegen.visitor.thisName,
         putContinuationParameterToLvt = false,
         disableTailCallOptimizationForFunctionReturningUnit = irFunction.returnType.isUnit() &&
-                (irFunction as? IrSimpleFunction)?.overriddenSymbols?.let { symbols ->
-                    symbols.isNotEmpty() && symbols.any { !it.owner.returnType.isUnit() }
-                } == true
+                irFunction.anyOfOverriddenFunctionsReturnsNonUnit()
     )
+}
+
+internal fun IrFunction.anyOfOverriddenFunctionsReturnsNonUnit(): Boolean {
+    return (this as? IrSimpleFunction)?.allOverridden()?.toList()?.let { functions ->
+        functions.isNotEmpty() && functions.any { !it.returnType.isUnit() }
+    } == true
 }
 
 internal fun generateStateMachineForLambda(
@@ -135,10 +140,10 @@ internal fun IrFunction.getOrCreateSuspendFunctionViewIfNeeded(context: JvmBacke
     if (!isSuspend || origin == JvmLoweredDeclarationOrigin.SUSPEND_FUNCTION_VIEW ||
         origin == JvmLoweredDeclarationOrigin.FOR_INLINE_STATE_MACHINE_TEMPLATE_CAPTURES_CROSSINLINE_VIEW
     ) return this
-    return context.suspendFunctionOriginalToView[this] ?: suspendFunctionView(context)
+    return context.suspendFunctionOriginalToView[this] ?: suspendFunctionView(context, true)
 }
 
-private fun IrFunction.suspendFunctionView(context: JvmBackendContext): IrFunction {
+fun IrFunction.suspendFunctionView(context: JvmBackendContext, generateBody: Boolean): IrFunction {
     require(this.isSuspend && this is IrSimpleFunction)
     // For SuspendFunction{N}.invoke we need to generate INVOKEINTERFACE Function{N+1}.invoke(...Ljava/lang/Object;)...
     // instead of INVOKEINTERFACE Function{N+1}.invoke(...Lkotlin/coroutines/Continuation;)...
@@ -165,24 +170,31 @@ private fun IrFunction.suspendFunctionView(context: JvmBackendContext): IrFuncti
 
         it.copyAttributes(this)
         it.copyTypeParametersFrom(this)
-        it.copyValueParametersFrom(this)
-        // TODO: this should come before the default masks, if they exist; otherwise, this is not binary
-        //       compatible with the non-IR backend
-        it.addValueParameter(SUSPEND_FUNCTION_COMPLETION_PARAMETER_NAME, continuationType)
 
-        // Add the suspend function view to the map before transforming the body to make sure
-        // that recursive suspend functions do not lead to unbounded recursion at compile time.
-        context.recordSuspendFunctionView(this, it)
+        // Copy the value parameters and insert the continuation parameter. The continuation parameter
+        // goes before the default argument mask(s) and handler for default argument stubs.
+        // TODO: It would be nice if AddContinuationLowering could insert the continuation argument before default stub generation.
+        // That would avoid the reshuffling both here and in createSuspendFunctionClassViewIfNeeded.
+        var continuationValueParam: IrValueParameter? = null
+        it.copyValueParametersInsertingContinuationFrom(this) {
+            continuationValueParam = it.addValueParameter(SUSPEND_FUNCTION_COMPLETION_PARAMETER_NAME, continuationType)
+        }
 
-        val valueParametersMapping = explicitParameters.zip(it.explicitParameters).toMap()
-        it.body = body?.deepCopyWithSymbols(this)
-        it.body?.transformChildrenVoid(object : VariableRemapper(valueParametersMapping) {
-            // Do not cross class boundaries inside functions. Otherwise, callable references will try to access wrong $completion.
-            override fun visitClass(declaration: IrClass): IrStatement = declaration
+        if (generateBody) {
+            // Add the suspend function view to the map before transforming the body to make sure
+            // that recursive suspend functions do not lead to unbounded recursion at compile time.
+            context.recordSuspendFunctionView(this, it)
 
-            override fun visitCall(expression: IrCall): IrExpression =
-                super.visitCall(expression.createSuspendFunctionCallViewIfNeeded(context, it, callerIsInlineLambda = false))
-        })
+            val valueParametersMapping = explicitParameters.zip(it.explicitParameters.filter { it != continuationValueParam }).toMap()
+            it.body = body?.deepCopyWithSymbols(this)
+            it.body?.transformChildrenVoid(object : VariableRemapper(valueParametersMapping) {
+                // Do not cross class boundaries inside functions. Otherwise, callable references will try to access wrong $completion.
+                override fun visitClass(declaration: IrClass): IrStatement = declaration
+
+                override fun visitCall(expression: IrCall): IrExpression =
+                    super.visitCall(expression.createSuspendFunctionCallViewIfNeeded(context, it, callerIsInlineLambda = false))
+            })
+        }
     }
 }
 
@@ -198,18 +210,30 @@ internal fun IrCall.createSuspendFunctionCallViewIfNeeded(
         it.copyTypeArgumentsFrom(this)
         it.dispatchReceiver = dispatchReceiver
         it.extensionReceiver = extensionReceiver
-        for (i in 0 until valueArgumentsCount) {
-            it.putValueArgument(i, getValueArgument(i))
-        }
+        // Locate the caller continuation parameter. The continuation parameter is before default argument mask(s) and handler params.
+        val callerNumberOfMasks = caller.valueParameters.count { it.origin == IrDeclarationOrigin.MASK_FOR_DEFAULT_FUNCTION }
+        val callerContinuationIndex = caller.valueParameters.size - 1 - (if (callerNumberOfMasks != 0) callerNumberOfMasks + 1 else 0)
         val continuationParameter =
             when {
                 caller.isInvokeSuspendOfLambda() || caller.isInvokeSuspendOfContinuation() ||
                         caller.isInvokeSuspendForInlineOfLambda() ->
                     IrGetValueImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, caller.dispatchReceiverParameter!!.symbol)
                 callerIsInlineLambda -> context.fakeContinuation
-                else -> IrGetValueImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, caller.valueParameters.last().symbol)
+                else -> IrGetValueImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, caller.valueParameters[callerContinuationIndex].symbol)
             }
-        it.putValueArgument(valueArgumentsCount, continuationParameter)
+        // If the suspend function view that we are calling has default parameters, we need to make sure to pass the
+        // continuation before the default parameter mask(s) and handler.
+        val numberOfMasks = view.valueParameters.count { it.origin == IrDeclarationOrigin.MASK_FOR_DEFAULT_FUNCTION }
+        val continuationIndex = valueArgumentsCount - (if (numberOfMasks != 0) numberOfMasks + 1 else 0)
+        for (i in 0 until continuationIndex) {
+            it.putValueArgument(i, getValueArgument(i))
+        }
+        it.putValueArgument(continuationIndex, continuationParameter)
+        if (numberOfMasks != 0) {
+            for (i in 0 until numberOfMasks + 1) {
+                it.putValueArgument(valueArgumentsCount + i - 1, getValueArgument(continuationIndex + i))
+            }
+        }
     }
 }
 
@@ -243,7 +267,7 @@ internal fun generateFakeContinuationConstructorCall(
             load(continuationIndex, Type.getObjectType("kotlin/coroutines/Continuation"))
             invokespecial(continuationType.internalName, "<init>", "(Lkotlin/coroutines/Continuation;)V", false)
         }
-        pop()
         addFakeContinuationConstructorCallMarker(this, false)
+        pop()
     }
 }

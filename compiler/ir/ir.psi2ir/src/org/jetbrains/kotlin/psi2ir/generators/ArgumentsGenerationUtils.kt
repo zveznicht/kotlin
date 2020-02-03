@@ -23,10 +23,7 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.SyntheticFieldDescriptor
 import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
-import org.jetbrains.kotlin.ir.expressions.IrDeclarationReference
-import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrExpressionWithCopy
-import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.psi.KtElement
@@ -297,7 +294,7 @@ fun StatementGenerator.generateValueArgumentUsing(
     }
 
 fun StatementGenerator.castArgumentToFunctionalInterfaceForSamType(irExpression: IrExpression, samType: KotlinType): IrExpression {
-    val kotlinFunctionType = context.extensions.samConversion.getSubstitutedFunctionTypeForSamType(samType)
+    val kotlinFunctionType = samType.getSubstitutedFunctionTypeForSamType()
     val irFunctionType = context.typeTranslator.translateType(kotlinFunctionType)
     return irExpression.implicitCastTo(irFunctionType)
 }
@@ -408,7 +405,7 @@ fun StatementGenerator.generateSamConversionForValueArgumentsIfRequired(call: Ca
     val samConversion = context.extensions.samConversion
 
     val originalDescriptor = resolvedCall.resultingDescriptor
-    val underlyingDescriptor = samConversion.getOriginalForSamAdapter(originalDescriptor) ?: originalDescriptor
+    val underlyingDescriptor = originalDescriptor.getOriginalForFunctionInterfaceAdapter() ?: originalDescriptor
 
     val originalValueParameters = originalDescriptor.valueParameters
     val underlyingValueParameters = underlyingDescriptor.valueParameters
@@ -446,7 +443,9 @@ fun StatementGenerator.generateSamConversionForValueArgumentsIfRequired(call: Ca
             if (!originalValueParameters[i].type.isFunctionTypeOrSubtype) continue
         }
 
-        val samKotlinType = samConversion.getSamTypeInfoForValueParameter(underlyingValueParameter) ?: continue
+        val samKotlinType = samConversion.getSamTypeForValueParameter(underlyingValueParameter)
+            ?: underlyingValueParameter.varargElementType // If we have a vararg, vararg element type will be taken
+            ?: underlyingValueParameter.type
 
         val originalArgument = call.irValueArgumentsByIndex[i] ?: continue
 
@@ -459,14 +458,44 @@ fun StatementGenerator.generateSamConversionForValueArgumentsIfRequired(call: Ca
 
         val irSamType = substitutedSamType.toIrType()
 
-        call.irValueArgumentsByIndex[i] =
+        fun samConvertScalarExpression(irArgument: IrExpression) =
             IrTypeOperatorCallImpl(
-                originalArgument.startOffset, originalArgument.endOffset,
+                irArgument.startOffset, irArgument.endOffset,
                 irSamType,
                 IrTypeOperator.SAM_CONVERSION,
                 irSamType,
-                castArgumentToFunctionalInterfaceForSamType(originalArgument, substitutedSamType)
+                castArgumentToFunctionalInterfaceForSamType(irArgument, substitutedSamType)
             )
+
+        call.irValueArgumentsByIndex[i] =
+            if (originalArgument !is IrVararg) {
+                samConvertScalarExpression(originalArgument)
+            } else {
+                if (underlyingValueParameter.varargElementType == null) {
+                    throw AssertionError("Vararg parameter expected for vararg argument: $underlyingValueParameter")
+                }
+
+                val substitutedVarargType =
+                    typeSubstitutor.substitute(underlyingValueParameter.type, Variance.INVARIANT)
+                        ?: throw AssertionError(
+                            "Failed to substitute vararg type in SAM conversion: " +
+                                    "type=${underlyingValueParameter.type}, " +
+                                    "substitutionContext=$substitutionContext"
+                        )
+
+                IrVarargImpl(
+                    originalArgument.startOffset, originalArgument.endOffset,
+                    substitutedVarargType.toIrType(),
+                    irSamType
+                ).apply {
+                    originalArgument.elements.mapTo(elements) {
+                        if (it is IrExpression)
+                            samConvertScalarExpression(it)
+                        else
+                            throw AssertionError("Unsupported: spread vararg element with SAM conversion")
+                    }
+                }
+            }
     }
 }
 
@@ -497,24 +526,21 @@ fun StatementGenerator.pregenerateCallReceivers(resolvedCall: ResolvedCall<*>): 
     return call
 }
 
-private fun unwrapSpecialDescriptor(
-    descriptor: CallableDescriptor,
-    samConversion: GeneratorExtensions.SamConversion
-): CallableDescriptor =
+private fun unwrapSpecialDescriptor(descriptor: CallableDescriptor): CallableDescriptor =
     when (descriptor) {
         is ImportedFromObjectCallableDescriptor<*> ->
-            unwrapSpecialDescriptor(descriptor.callableFromObject, samConversion)
+            unwrapSpecialDescriptor(descriptor.callableFromObject)
         is TypeAliasConstructorDescriptor ->
             descriptor.underlyingConstructorDescriptor
         else ->
-            samConversion.getOriginalForSamAdapter(descriptor)?.let { unwrapSpecialDescriptor(it, samConversion) } ?: descriptor
+            descriptor.getOriginalForFunctionInterfaceAdapter()?.let { unwrapSpecialDescriptor(it) } ?: descriptor
     }
 
 fun unwrapCallableDescriptorAndTypeArguments(resolvedCall: ResolvedCall<*>, samConversion: GeneratorExtensions.SamConversion): CallBuilder {
     val originalDescriptor = resolvedCall.resultingDescriptor
     val candidateDescriptor = resolvedCall.candidateDescriptor
 
-    val unwrappedDescriptor = unwrapSpecialDescriptor(originalDescriptor, samConversion)
+    val unwrappedDescriptor = unwrapSpecialDescriptor(originalDescriptor)
 
     val originalTypeArguments = resolvedCall.typeArguments
     val unsubstitutedUnwrappedDescriptor = unwrappedDescriptor.original

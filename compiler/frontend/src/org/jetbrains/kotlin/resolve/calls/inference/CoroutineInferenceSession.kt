@@ -19,18 +19,12 @@ import org.jetbrains.kotlin.resolve.calls.context.BasicCallResolutionContext
 import org.jetbrains.kotlin.resolve.calls.inference.components.KotlinConstraintSystemCompleter
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutor
 import org.jetbrains.kotlin.resolve.calls.inference.components.NewTypeSubstitutorByConstructorMap
-import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintKind
-import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintStorage
-import org.jetbrains.kotlin.resolve.calls.inference.model.NewConstraintSystemImpl
-import org.jetbrains.kotlin.resolve.calls.inference.model.NewTypeVariable
+import org.jetbrains.kotlin.resolve.calls.inference.model.*
 import org.jetbrains.kotlin.resolve.calls.model.*
 import org.jetbrains.kotlin.resolve.calls.tower.*
 import org.jetbrains.kotlin.resolve.calls.util.FakeCallableDescriptorForObject
 import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolver
-import org.jetbrains.kotlin.types.StubType
-import org.jetbrains.kotlin.types.TypeApproximator
-import org.jetbrains.kotlin.types.TypeConstructor
-import org.jetbrains.kotlin.types.UnwrappedType
+import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.expressions.DoubleColonExpressionResolver
 import org.jetbrains.kotlin.types.expressions.ExpressionTypingServices
 import org.jetbrains.kotlin.utils.addToStdlib.cast
@@ -58,7 +52,20 @@ class CoroutineInferenceSession(
     private val commonCalls = arrayListOf<PSICompletedCallInfo>()
     private val diagnostics = arrayListOf<KotlinCallDiagnostic>()
 
-    override fun shouldRunCompletion(candidate: KotlinResolutionCandidate): Boolean = true
+    override fun shouldRunCompletion(candidate: KotlinResolutionCandidate): Boolean {
+        val system = candidate.getSystem() as NewConstraintSystemImpl
+        val storage = system.getBuilder().currentStorage()
+        fun ResolvedAtom.hasPostponed(): Boolean {
+            if (this is PostponedResolvedAtom && !analyzed) return true
+            return subResolvedAtoms?.any { it.hasPostponed() } == true
+        }
+
+        return !storage.notFixedTypeVariables.keys.any {
+            val variable = storage.allTypeVariables[it]
+            val isPostponed = variable != null && variable in storage.postponedTypeVariables
+            !isPostponed && !kotlinConstraintSystemCompleter.variableFixationFinder.isTypeVariableHasProperConstraint(system, it)
+        } || candidate.getSubResolvedAtoms().any { it.hasPostponed() }
+    }
 
     override fun addCompletedCallInfo(callInfo: CompletedCallInfo) {
         require(callInfo is PSICompletedCallInfo) { "Wrong instance of callInfo: $callInfo" }
@@ -95,12 +102,18 @@ class CoroutineInferenceSession(
 
     override fun inferPostponedVariables(
         lambda: ResolvedLambdaAtom,
-        initialStorage: ConstraintStorage
+        initialStorage: ConstraintStorage,
+        diagnosticsHolder: KotlinDiagnosticsHolder
     ): Map<TypeConstructor, UnwrappedType> {
         val commonSystem = buildCommonSystem(initialStorage)
 
         val context = commonSystem.asConstraintSystemCompleterContext()
-        kotlinConstraintSystemCompleter.completeConstraintSystem(context, builtIns.unitType)
+        kotlinConstraintSystemCompleter.completeConstraintSystem(
+            context,
+            builtIns.unitType,
+            partiallyResolvedCallsInfo.map { it.callResolutionResult.resultCallAtom },
+            diagnosticsHolder
+        )
 
         updateCalls(lambda, commonSystem)
 
@@ -121,7 +134,8 @@ class CoroutineInferenceSession(
     private fun integrateConstraints(
         commonSystem: NewConstraintSystemImpl,
         storage: ConstraintStorage,
-        nonFixedToVariablesSubstitutor: NewTypeSubstitutor
+        nonFixedToVariablesSubstitutor: NewTypeSubstitutor,
+        shouldIntegrateAllConstraints: Boolean
     ) {
         storage.notFixedTypeVariables.values.forEach { commonSystem.registerVariable(it.typeVariable) }
 
@@ -132,7 +146,7 @@ class CoroutineInferenceSession(
         *
         * while substitutor from parameter map non-fixed types to the original type variable
         * */
-        val callSubstitutor = storage.buildResultingSubstitutor(commonSystem) // substitutor only for fixed variables
+        val callSubstitutor = storage.buildResultingSubstitutor(commonSystem, transformTypeVariablesToErrorTypes = false)
 
         for (initialConstraint in storage.initialConstraints) {
             val lower = nonFixedToVariablesSubstitutor.safeSubstitute(callSubstitutor.safeSubstitute(initialConstraint.a as UnwrappedType)) // TODO: SUB
@@ -152,6 +166,14 @@ class CoroutineInferenceSession(
                     }
             }
         }
+
+        if (shouldIntegrateAllConstraints) {
+            for ((variableConstructor, type) in storage.fixedTypeVariables) {
+                val typeVariable = storage.allTypeVariables.getValue(variableConstructor)
+                commonSystem.registerVariable(typeVariable)
+                commonSystem.addEqualityConstraint((typeVariable as NewTypeVariable).defaultType, type, CoroutinePosition())
+            }
+        }
     }
 
     private fun buildCommonSystem(initialStorage: ConstraintStorage): NewConstraintSystemImpl {
@@ -159,10 +181,13 @@ class CoroutineInferenceSession(
 
         val nonFixedToVariablesSubstitutor = createNonFixedTypeToVariableSubstitutor()
 
-        integrateConstraints(commonSystem, initialStorage, nonFixedToVariablesSubstitutor)
+        integrateConstraints(commonSystem, initialStorage, nonFixedToVariablesSubstitutor, false)
 
         for (call in commonCalls) {
-            integrateConstraints(commonSystem, call.callResolutionResult.constraintSystem, nonFixedToVariablesSubstitutor)
+            integrateConstraints(commonSystem, call.callResolutionResult.constraintSystem, nonFixedToVariablesSubstitutor, false)
+        }
+        for (call in partiallyResolvedCallsInfo) {
+            integrateConstraints(commonSystem, call.callResolutionResult.constraintSystem, nonFixedToVariablesSubstitutor, true)
         }
         for (diagnostic in diagnostics) {
             commonSystem.addError(diagnostic)
@@ -192,6 +217,16 @@ class CoroutineInferenceSession(
         }
 
         val lambdaAtomCompleter = createResolvedAtomCompleter(nonFixedTypesToResultSubstitutor, topLevelCallContext)
+        for (callInfo in partiallyResolvedCallsInfo) {
+            val resolvedCall = completeCall(callInfo, lambdaAtomCompleter) ?: continue
+            kotlinToResolvedCallTransformer.reportCallDiagnostic(
+                callInfo.context,
+                trace,
+                callInfo.callResolutionResult.resultCallAtom,
+                resolvedCall.resultingDescriptor,
+                commonSystem.diagnostics
+            )
+        }
         lambdaAtomCompleter.completeAll(lambda)
     }
 
@@ -203,20 +238,29 @@ class CoroutineInferenceSession(
         val resultingCallSubstitutor = completedCall.callResolutionResult.constraintSystem.fixedTypeVariables.entries
             .associate { it.key to nonFixedTypesToResultSubstitutor.safeSubstitute(it.value as UnwrappedType) } // TODO: SUB
 
-        val resultingSubstitutor = NewTypeSubstitutorByConstructorMap((resultingCallSubstitutor + nonFixedTypesToResult).cast()) // TODO: SUB
+        val resultingSubstitutor =
+            NewTypeSubstitutorByConstructorMap((resultingCallSubstitutor + nonFixedTypesToResult).cast()) // TODO: SUB
 
         val atomCompleter = createResolvedAtomCompleter(resultingSubstitutor, completedCall.context)
-        val resultCallAtom = completedCall.callResolutionResult.resultCallAtom
 
+        completeCall(completedCall, atomCompleter)
+    }
+
+    private fun completeCall(
+        callInfo: CallInfo,
+        atomCompleter: ResolvedAtomCompleter
+    ): ResolvedCall<*>? {
+        val resultCallAtom = callInfo.callResolutionResult.resultCallAtom
         resultCallAtom.subResolvedAtoms?.forEach { subResolvedAtom ->
             atomCompleter.completeAll(subResolvedAtom)
         }
-        atomCompleter.completeResolvedCall(resultCallAtom, completedCall.callResolutionResult.diagnostics)
+        val resolvedCall = atomCompleter.completeResolvedCall(resultCallAtom, callInfo.callResolutionResult.diagnostics)
 
-        val callTrace = completedCall.context.trace
+        val callTrace = callInfo.context.trace
         if (callTrace is TemporaryBindingTrace) {
             callTrace.commit()
         }
+        return resolvedCall
     }
 
     private fun createResolvedAtomCompleter(

@@ -1882,6 +1882,11 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
                 runTest("compiler/testData/diagnostics/testsWithStdLib/coroutines/inference/applyInsideCoroutine.kt");
             }
 
+            @TestMetadata("builderInferenceForMaterializeWithExpectedType.kt")
+            public void testBuilderInferenceForMaterializeWithExpectedType() throws Exception {
+                runTest("compiler/testData/diagnostics/testsWithStdLib/coroutines/inference/builderInferenceForMaterializeWithExpectedType.kt");
+            }
+
             @TestMetadata("callableReferenceToASuspendFunction.kt")
             public void testCallableReferenceToASuspendFunction() throws Exception {
                 runTest("compiler/testData/diagnostics/testsWithStdLib/coroutines/inference/callableReferenceToASuspendFunction.kt");
@@ -1900,6 +1905,11 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             @TestMetadata("correctMember.kt")
             public void testCorrectMember() throws Exception {
                 runTest("compiler/testData/diagnostics/testsWithStdLib/coroutines/inference/correctMember.kt");
+            }
+
+            @TestMetadata("elvisOperatorAgainstFlexibleType.kt")
+            public void testElvisOperatorAgainstFlexibleType() throws Exception {
+                runTest("compiler/testData/diagnostics/testsWithStdLib/coroutines/inference/elvisOperatorAgainstFlexibleType.kt");
             }
 
             @TestMetadata("extensionPriority.kt")
@@ -1950,6 +1960,11 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             @TestMetadata("kt32271.kt")
             public void testKt32271() throws Exception {
                 runTest("compiler/testData/diagnostics/testsWithStdLib/coroutines/inference/kt32271.kt");
+            }
+
+            @TestMetadata("kt35684.kt")
+            public void testKt35684() throws Exception {
+                runTest("compiler/testData/diagnostics/testsWithStdLib/coroutines/inference/kt35684.kt");
             }
 
             @TestMetadata("nestedLambdaInferenceWithListMap.kt")
@@ -2816,6 +2831,11 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             runTest("compiler/testData/diagnostics/testsWithStdLib/inference/kt3458.kt");
         }
 
+        @TestMetadata("kt35847.kt")
+        public void testKt35847() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/inference/kt35847.kt");
+        }
+
         @TestMetadata("kt4975.kt")
         public void testKt4975() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/inference/kt4975.kt");
@@ -3221,6 +3241,11 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/testsWithStdLib/reflection"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.fir\\.kts?$"), true);
         }
 
+        @TestMetadata("noReflectionInClassPath.kt")
+        public void testNoReflectionInClassPath() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithStdLib/reflection/noReflectionInClassPath.kt");
+        }
+
         @TestMetadata("typeOfWithNonReifiedParameter.kt")
         public void testTypeOfWithNonReifiedParameter() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/reflection/typeOfWithNonReifiedParameter.kt");
@@ -3282,11 +3307,6 @@ public class DiagnosticsTestWithStdLibUsingJavacGenerated extends AbstractDiagno
         @TestMetadata("kt34391.kt")
         public void testKt34391() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/regression/kt34391.kt");
-        }
-
-        @TestMetadata("kt9345.kt")
-        public void testKt9345() throws Exception {
-            runTest("compiler/testData/diagnostics/testsWithStdLib/regression/kt9345.kt");
         }
 
         @TestMetadata("kt9820_javaFunctionTypeInheritor.kt")

@@ -75,6 +75,11 @@ public class FirDiagnosticsWithCfgTestGenerated extends AbstractFirDiagnosticsWi
             runTest("compiler/fir/resolve/testData/resolve/cfg/loops.kt");
         }
 
+        @TestMetadata("postponedLambdas.kt")
+        public void testPostponedLambdas() throws Exception {
+            runTest("compiler/fir/resolve/testData/resolve/cfg/postponedLambdas.kt");
+        }
+
         @TestMetadata("propertiesAndInitBlocks.kt")
         public void testPropertiesAndInitBlocks() throws Exception {
             runTest("compiler/fir/resolve/testData/resolve/cfg/propertiesAndInitBlocks.kt");
@@ -216,6 +221,11 @@ public class FirDiagnosticsWithCfgTestGenerated extends AbstractFirDiagnosticsWi
         @TestMetadata("smartcastAfterReassignment.kt")
         public void testSmartcastAfterReassignment() throws Exception {
             runTest("compiler/fir/resolve/testData/resolve/smartcasts/smartcastAfterReassignment.kt");
+        }
+
+        @TestMetadata("smartcastFromArgument.kt")
+        public void testSmartcastFromArgument() throws Exception {
+            runTest("compiler/fir/resolve/testData/resolve/smartcasts/smartcastFromArgument.kt");
         }
 
         @TestMetadata("smartcastOnLambda.kt")

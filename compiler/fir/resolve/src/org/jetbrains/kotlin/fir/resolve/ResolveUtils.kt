@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.fir.resolve.calls.FirNamedReferenceWithCandidate
 import org.jetbrains.kotlin.fir.resolve.diagnostics.FirUnresolvedNameError
 import org.jetbrains.kotlin.fir.resolve.substitution.AbstractConeSubstitutor
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.resultType
-import org.jetbrains.kotlin.fir.scopes.impl.FirMemberScopeProvider
+import org.jetbrains.kotlin.fir.scopes.impl.FirDeclaredMemberScopeProvider
 import org.jetbrains.kotlin.fir.scopes.impl.withReplacedConeType
 import org.jetbrains.kotlin.fir.symbols.*
 import org.jetbrains.kotlin.fir.symbols.impl.*
@@ -51,7 +51,7 @@ inline fun <K, V, VA : V> MutableMap<K, V>.getOrPut(key: K, defaultValue: (K) ->
 val FirSession.firSymbolProvider: FirSymbolProvider by componentArrayAccessor()
 val FirSession.firProvider: FirProvider by componentArrayAccessor()
 val FirSession.correspondingSupertypesCache: FirCorrespondingSupertypesCache by componentArrayAccessor()
-val FirSession.memberScopeProvider: FirMemberScopeProvider by componentArrayAccessor()
+val FirSession.declaredMemberScopeProvider: FirDeclaredMemberScopeProvider by componentArrayAccessor()
 
 fun ConeClassLikeLookupTag.toSymbol(useSiteSession: FirSession): FirClassLikeSymbol<*>? {
     if (this is ConeClassLookupTagWithFixedSymbol) {
@@ -269,7 +269,7 @@ fun <T : ConeKotlinType> T.withArguments(arguments: Array<out ConeKotlinTypeProj
     return when (this) {
         is ConeClassErrorType -> this
         is ConeClassLikeTypeImpl -> ConeClassLikeTypeImpl(lookupTag, arguments, nullability.isNullable) as T
-        is ConeDefinitelyNotNullType -> ConeDefinitelyNotNullType.create(original.withArguments(arguments)) as T
+        is ConeDefinitelyNotNullType -> ConeDefinitelyNotNullType.create(original.withArguments(arguments))!! as T
         else -> error("Not supported: $this: ${this.render()}")
     }
 }
@@ -320,12 +320,12 @@ fun BodyResolveComponents.typeForQualifier(resolvedQualifier: FirResolvedQualifi
         val classSymbol = symbolProvider.getClassLikeSymbolByFqName(classId)
             ?: return FirErrorTypeRefImpl(source = null, diagnostic = FirSimpleDiagnostic("No type for qualifier", DiagnosticKind.Other))
         val declaration = classSymbol.phasedFir
-        typeForQualifierByDeclaration(declaration, resultType)?.let { return it }
+        if (declaration !is FirTypeAlias || resolvedQualifier.typeArguments.isEmpty()) {
+            typeForQualifierByDeclaration(declaration, resultType, session)?.let { return it }
+        }
     }
     // TODO: Handle no value type here
-    return resultType.resolvedTypeFromPrototype(
-        session.builtinTypes.unitType.type
-    )
+    return session.builtinTypes.unitType
 }
 
 internal fun typeForReifiedParameterReference(parameterReference: FirResolvedReifiedParameterReference): FirTypeRef {
@@ -334,7 +334,11 @@ internal fun typeForReifiedParameterReference(parameterReference: FirResolvedRei
     return resultType.resolvedTypeFromPrototype(typeParameterSymbol.constructType(emptyArray(), false))
 }
 
-internal fun typeForQualifierByDeclaration(declaration: FirDeclaration, resultType: FirTypeRef): FirTypeRef? {
+internal fun typeForQualifierByDeclaration(declaration: FirDeclaration, resultType: FirTypeRef, session: FirSession): FirTypeRef? {
+    if (declaration is FirTypeAlias) {
+        val expandedDeclaration = declaration.expandedConeType?.lookupTag?.toSymbol(session)?.fir ?: return null
+        return typeForQualifierByDeclaration(expandedDeclaration, resultType, session)
+    }
     if (declaration is FirRegularClass) {
         if (declaration.classKind == ClassKind.OBJECT) {
             return resultType.resolvedTypeFromPrototype(
@@ -355,7 +359,8 @@ internal fun typeForQualifierByDeclaration(declaration: FirDeclaration, resultTy
 fun <T : FirResolvable> BodyResolveComponents.typeFromCallee(access: T): FirResolvedTypeRef {
     val makeNullable: Boolean by lazy {
         if (access is FirQualifiedAccess && access.safe) {
-            val explicitReceiver = access.explicitReceiver!!
+            val explicitReceiver = access.explicitReceiver
+                ?: throw AssertionError("Safe call without explicit receiver: ${access.render()}")
             val receiverResultType = explicitReceiver.resultType
             if (receiverResultType is FirResolvedTypeRef) {
                 receiverResultType.type.isNullable

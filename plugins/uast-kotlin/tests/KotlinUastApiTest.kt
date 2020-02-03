@@ -267,6 +267,34 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
     }
 
     @Test
+    fun testEnumCallIdentifier() {
+        doTest("EnumValuesConstructors") { _, file ->
+            val enumEntry = file.findElementByTextFromPsi<UElement>("(\"system\")")
+            enumEntry.accept(object : AbstractUastVisitor() {
+                override fun visitCallExpression(node: UCallExpression): Boolean {
+                    val methodIdentifier = node.methodIdentifier
+                    assertEquals("SYSTEM", methodIdentifier?.name)
+                    return super.visitCallExpression(node)
+                }
+            })
+        }
+    }
+
+    @Test
+    fun testEnumCallWithBodyIdentifier() {
+        doTest("EnumValueMembers") { _, file ->
+            val enumEntry = file.findElementByTextFromPsi<UElement>("(\"foo\")")
+            enumEntry.accept(object : AbstractUastVisitor() {
+                override fun visitCallExpression(node: UCallExpression): Boolean {
+                    val methodIdentifier = node.methodIdentifier
+                    assertEquals("SHEET", methodIdentifier?.name)
+                    return super.visitCallExpression(node)
+                }
+            })
+        }
+    }
+
+    @Test
     fun testSimpleAnnotated() {
         doTest("SimpleAnnotated") { _, file ->
             file.findElementByTextFromPsi<UField>("@kotlin.SinceKotlin(\"1.0\")\n    val property: String = \"Mary\"").let { field ->
@@ -290,7 +318,6 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
         doTest("SuperCalls") { _, file ->
             file.checkUastSuperTypes("B", listOf("A"))
             file.checkUastSuperTypes("O", listOf("A"))
-            file.checkUastSuperTypes("innerObject ", listOf("A"))
             file.checkUastSuperTypes("InnerClass", listOf("A"))
             file.checkUastSuperTypes("object : A(\"textForAnon\")", listOf("A"))
         }
@@ -427,7 +454,6 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
         )
         assertArguments(listOf("\"%i %i %i\"", "\"\".chunked(2).toTypedArray()"), "format(\"%i %i %i\", *\"\".chunked(2).toTypedArray())")
         assertArguments(listOf("\"def\"", "8", "7.0"), "with2Receivers(8, 7.0F)")
-        assertArguments(listOf("\"foo\"", "1"), "object : Parent(b = 1, a = \"foo\")\n")
     }
 
     @Test
