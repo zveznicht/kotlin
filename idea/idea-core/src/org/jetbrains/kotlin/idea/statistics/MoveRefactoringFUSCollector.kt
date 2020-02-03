@@ -21,7 +21,7 @@ object MoveRefactoringFUSCollector {
         val data = mapOf(
             "lagging" to (timeFinished - timeStarted).toString(),
             "destination" to destination.toString(),
-            "number_of_files" to numberOfFiles.toString(),
+            "number_of_entities" to numberOfFiles.toString(),
             "are_settings_changed" to isDefault.toString()
         )
 
@@ -29,6 +29,10 @@ object MoveRefactoringFUSCollector {
     }
 
     enum class MoveRefactoringDestination {
-        PACKAGE, FILE
+        PACKAGE, FILE, DIRECTORY
+    }
+
+    enum class MovedEntity {
+        FUNCTION, CLASS, PACKAGE, MPPFUNCTION, MPPCLASS, MIXED
     }
 }
