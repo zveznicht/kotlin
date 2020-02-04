@@ -36,6 +36,7 @@ interface StageController {
     fun canAccessDeclarationsOf(irClass: IrClass): Boolean = true
 }
 
+@Suppress("NOTHING_TO_INLINE")
 inline fun <T> withInitialIr(noinline fn: () -> T): T {
     return stageController.withInitialIr(fn)
 }
