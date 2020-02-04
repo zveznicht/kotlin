@@ -383,11 +383,6 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             runTest("compiler/testData/codegen/box/arrays/arrayConstructorsSimple.kt");
         }
 
-        @TestMetadata("arrayConstructorsWithLocalLambdaAndReflection.kt")
-        public void testArrayConstructorsWithLocalLambdaAndReflection() throws Exception {
-            runTest("compiler/testData/codegen/box/arrays/arrayConstructorsWithLocalLambdaAndReflection.kt");
-        }
-
         @TestMetadata("arrayGetAssignMultiIndex.kt")
         public void testArrayGetAssignMultiIndex() throws Exception {
             runTest("compiler/testData/codegen/box/arrays/arrayGetAssignMultiIndex.kt");
@@ -23211,6 +23206,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             @TestMetadata("reflectOnDefaultWithInlineClassArgument.kt")
             public void testReflectOnDefaultWithInlineClassArgument() throws Exception {
                 runTest("compiler/testData/codegen/box/reflection/lambdaClasses/reflectOnDefaultWithInlineClassArgument.kt");
+            }
+
+            @TestMetadata("reflectOnLambdaInArrayConstructor.kt")
+            public void testReflectOnLambdaInArrayConstructor() throws Exception {
+                runTest("compiler/testData/codegen/box/reflection/lambdaClasses/reflectOnLambdaInArrayConstructor.kt");
             }
 
             @TestMetadata("reflectOnLambdaInField.kt")
