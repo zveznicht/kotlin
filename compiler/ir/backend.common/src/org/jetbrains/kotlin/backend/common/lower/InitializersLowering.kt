@@ -43,7 +43,8 @@ open class InitializersLowering(context: CommonBackendContext) : InitializersLow
                 return IrBlockImpl(irClass.startOffset, irClass.endOffset, context.irBuiltIns.unitType, null, instanceInitializerStatements)
                     .deepCopyWithSymbols(container).also {
                         // Handle declarations, copied from initializers
-                        // TODO WTF really
+                        // Otherwise local classes inside them won't get processed.
+                        // Yes, there are such cases - see testData/codegen/box/properties/complexPropertyInitializer.kt
                         it.acceptVoid(object : IrElementVisitorVoid {
                             override fun visitElement(element: IrElement) {
                                 element.acceptChildrenVoid(this)
