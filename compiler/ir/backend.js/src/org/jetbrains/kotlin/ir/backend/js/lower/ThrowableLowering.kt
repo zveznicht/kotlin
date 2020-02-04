@@ -34,7 +34,7 @@ class ThrowableLowering(val context: JsIrBackendContext) : BodyLoweringPass {
     )
 
     override fun lower(irBody: IrBody, container: IrDeclaration) {
-        container.classOrNull.let { enclosingClass ->
+        container.parentClassOrNull.let { enclosingClass ->
             irBody.transformChildren(Transformer(), enclosingClass ?: container.file)
         }
     }
