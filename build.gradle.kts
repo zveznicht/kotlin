@@ -493,6 +493,12 @@ tasks {
         }
     }
 
+//    register("showConfigurations") {
+////        doLast{
+//            hierarchy.each { println it}
+////        }
+//    }
+
     listOf("clean", "assemble", "install", "dist").forEach { taskName ->
         register("coreLibs${taskName.capitalize()}") {
             coreLibProjects.forEach { projectName -> dependsOn("$projectName:$taskName") }

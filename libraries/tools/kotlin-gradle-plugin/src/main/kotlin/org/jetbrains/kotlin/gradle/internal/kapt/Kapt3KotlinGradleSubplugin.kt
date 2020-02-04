@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.gradle.internal
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.AndroidSourceSet
 import com.android.builder.model.SourceProvider
-import com.intellij.openapi.util.SystemInfo
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -38,6 +37,7 @@ import java.io.File
 import java.io.ObjectOutputStream
 import java.util.*
 import javax.inject.Inject
+import org.gradle.api.JavaVersion
 
 // apply plugin: 'kotlin-kapt'
 class Kapt3GradleSubplugin @Inject internal constructor(private val registry: ToolingModelBuilderRegistry) : Plugin<Project> {
@@ -435,7 +435,7 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
 
         val dslJavacOptions = kaptExtension.getJavacOptions().toMutableMap()
         if (javaCompile != null && "-source" !in dslJavacOptions && "--source" !in dslJavacOptions && "--release" !in dslJavacOptions) {
-            val sourceOptionKey = if (SystemInfo.isJavaVersionAtLeast(12, 0, 0)) {
+            val sourceOptionKey = if (isAtLeastJava12) {
                 "--source"
             } else {
                 "-source"
@@ -547,6 +547,9 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
 
     override fun getPluginArtifact(): SubpluginArtifact =
         JetBrainsSubpluginArtifact(artifactId = KAPT_ARTIFACT_NAME)
+
+    private val isAtLeastJava12: Boolean
+        get() = JavaVersion.current() >= JavaVersion.VERSION_12
 }
 private val artifactType = Attribute.of("artifactType", String::class.java)
 
