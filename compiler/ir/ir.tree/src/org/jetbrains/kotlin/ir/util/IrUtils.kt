@@ -636,11 +636,11 @@ val IrDeclaration.fileOrNull: IrFile?
 val IrDeclaration.file: IrFile
     get() = fileOrNull ?: TODO("Unknown file")
 
-val IrDeclaration.classOrNull: IrClass?
+val IrDeclaration.parentClassOrNull: IrClass?
     get() = parent.let {
         when (it) {
             is IrClass -> it
-            is IrDeclaration -> it.classOrNull
+            is IrDeclaration -> it.parentClassOrNull
             else -> null
         }
     }
