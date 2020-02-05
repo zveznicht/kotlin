@@ -17,4 +17,7 @@ object JvmFlags {
 
     fun getPropertyFlags(isMovedFromInterfaceCompanion: Boolean): Int =
         IS_MOVED_FROM_INTERFACE_COMPANION.toFlags(isMovedFromInterfaceCompanion)
+
+    //Class
+    val IS_NEW_PLACE_FOR_BODY_GENERATION = Flags.FlagField.booleanFirst()
 }
