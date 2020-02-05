@@ -47,7 +47,7 @@ projectTest {
     jvmArgs!!.removeIf { it.contains("-Xmx") }
     maxHeapSize = "8g"
     minHeapSize = "4g"
-    jvmArgs("-XX:+UseCompressedOops", "-XX:+AlwaysPreTouch", "-XX:+UseTransparentHugePages")
+    jvmArgs("-XX:+UseCompressedOops", "-XX:+AlwaysPreTouch")
     dependsOn(":dist")
 
     run {
