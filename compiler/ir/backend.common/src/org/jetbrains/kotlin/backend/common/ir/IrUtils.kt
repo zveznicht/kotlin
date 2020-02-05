@@ -671,9 +671,10 @@ private fun IrSimpleFunction.copyAndRenameConflictingTypeParametersFrom(
             it.parent = this
         }
 
-        typeParameters.add(newTypeParameter)
         newParameters.add(newTypeParameter)
     }
+
+    typeParameters = typeParameters + newParameters
 
     return newParameters
 }
