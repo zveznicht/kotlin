@@ -18,6 +18,7 @@ internal class UnsafeLazyVar<T>(initializer: () -> T) {
     private val value: T
         get() {
             if (!isInitialized) {
+                /// why?
                 withInitialIr { _value = initializer!!() }
                 isInitialized = true
                 initializer = null

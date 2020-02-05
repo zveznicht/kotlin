@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
-
+////
 // Create primary constructor if it doesn't exist
 class PrimaryConstructorLowering(context: JsCommonBackendContext) : DeclarationTransformer {
 

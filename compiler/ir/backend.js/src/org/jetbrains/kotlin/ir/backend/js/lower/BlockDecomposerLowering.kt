@@ -7,8 +7,6 @@ package org.jetbrains.kotlin.ir.backend.js.lower
 
 import org.jetbrains.kotlin.backend.common.BodyLoweringPass
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
-import org.jetbrains.kotlin.backend.common.DeclarationContainerLoweringPass
-import org.jetbrains.kotlin.backend.common.DeclarationTransformer
 import org.jetbrains.kotlin.backend.common.ir.isElseBranch
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.IrElement
@@ -21,12 +19,15 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.isNothing
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.util.dump
+import org.jetbrains.kotlin.ir.util.patchDeclarationParents
+import org.jetbrains.kotlin.ir.util.transformFlat
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.utils.addIfNotNull
 
+////
 class JsBlockDecomposerLowering(val context: JsIrBackendContext) : AbstractBlockDecomposerLowering(context) {
     override fun unreachableExpression(): IrExpression =
         JsIrBuilder.buildCall(context.intrinsics.unreachable.symbol, context.irBuiltIns.nothingType)

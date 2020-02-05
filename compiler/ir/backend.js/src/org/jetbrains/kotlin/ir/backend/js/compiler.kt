@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.ir.backend.js
 
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
-import org.jetbrains.kotlin.backend.common.phaser.PhaserState
 import org.jetbrains.kotlin.backend.common.phaser.invokeToplevel
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.backend.js.lower.generateTests
@@ -15,17 +14,15 @@ import org.jetbrains.kotlin.ir.backend.js.lower.moveBodilessDeclarationsToSepara
 import org.jetbrains.kotlin.ir.backend.js.transformers.irToJs.IrModuleToJsTransformer
 import org.jetbrains.kotlin.ir.backend.js.utils.JsMainFunctionDetector
 import org.jetbrains.kotlin.ir.backend.js.utils.NameTables
-import org.jetbrains.kotlin.ir.backend.js.utils.isJsExport
-import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.StageController
+import org.jetbrains.kotlin.ir.declarations.stageController
 import org.jetbrains.kotlin.ir.util.ExternalDependenciesGenerator
-import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.generateTypicalIrProviderList
-import org.jetbrains.kotlin.ir.util.isEffectivelyExternal
 import org.jetbrains.kotlin.ir.util.patchDeclarationParents
 import org.jetbrains.kotlin.library.KotlinLibrary
 import org.jetbrains.kotlin.library.resolver.KotlinLibraryResolveResult
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtFile
 
 class CompilerResult(
     val jsCode: String?,
@@ -88,6 +85,7 @@ fun compile(
         // TODO should be done incrementally
         generateTests(context, moduleFragment)
 
+        ///???
         val controller = MutableController(context, pirLowerings)
         stageController = controller
 
@@ -95,6 +93,7 @@ fun compile(
 
         eliminateDeadDeclarations(moduleFragment, context, mainFunction)
 
+        /// let's create some dummy impl instead of creating anonymous objects
         stageController = object : StageController {
             override val currentStage: Int = controller.currentStage
         }

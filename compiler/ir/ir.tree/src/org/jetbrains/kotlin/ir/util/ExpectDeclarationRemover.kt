@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.resolve.checkers.ExpectedActualDeclarationChecker
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.multiplatform.ExpectedActualResolver
-
+///
 // `doRemove` means should expect-declaration be removed from IR
 class ExpectDeclarationRemover(
     val symbolTable: ReferenceSymbolTable,

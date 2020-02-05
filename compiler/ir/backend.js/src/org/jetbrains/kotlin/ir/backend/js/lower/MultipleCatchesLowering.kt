@@ -17,7 +17,8 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrCatchImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrElseBranchImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTryImpl
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
-import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.IrDynamicType
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 
 /**
@@ -116,6 +117,7 @@ class MultipleCatchesLowering(private val context: JsIrBackendContext) : BodyLow
             private fun buildImplicitCast(value: IrExpression, toType: IrType) =
                 JsIrBuilder.buildTypeOperator(toType, IrTypeOperator.IMPLICIT_CAST, value, toType)
 
+            ///
         }, container as? IrDeclarationParent ?: container.parent)
     }
 }

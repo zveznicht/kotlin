@@ -35,6 +35,7 @@ class CallsLowering(val context: JsIrBackendContext) : BodyLoweringPass {
         if (container is IrFunction && container.hasAnnotation(context.intrinsics.doNotIntrinsifyAnnotationSymbol)) return
 
         irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
+            /// do we have such nested funs?
             override fun visitFunction(declaration: IrFunction): IrStatement {
                 if (declaration.hasAnnotation(context.intrinsics.doNotIntrinsifyAnnotationSymbol))
                     return declaration

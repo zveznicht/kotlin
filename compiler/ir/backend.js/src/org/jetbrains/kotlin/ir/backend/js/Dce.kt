@@ -16,15 +16,19 @@ import org.jetbrains.kotlin.ir.types.classOrNull
 import org.jetbrains.kotlin.ir.types.classifierOrFail
 import org.jetbrains.kotlin.ir.types.classifierOrNull
 import org.jetbrains.kotlin.ir.util.*
-import org.jetbrains.kotlin.ir.visitors.*
+import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
+import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
+import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import java.util.*
 
+////
 fun eliminateDeadDeclarations(
     module: IrModuleFragment,
     context: JsIrBackendContext,
     mainFunction: IrSimpleFunction?
 ) {
 
+    /// why?
     val allRoots = stageController.withInitialIr { buildRoots(module, context, mainFunction) }
 
     val usefulDeclarations = usefulDeclarations(allRoots, context)
@@ -41,6 +45,7 @@ private fun IrField.isConstant(): Boolean {
 private fun buildRoots(module: IrModuleFragment, context: JsIrBackendContext, mainFunction: IrSimpleFunction?): Iterable<IrDeclaration> {
     val rootDeclarations =
         (module.files + context.packageLevelJsModules + context.externalPackageFragment.values).flatMapTo(mutableListOf()) { file ->
+            /// flatMap?
             file.declarations.flatMap { if (it is IrProperty) listOfNotNull(it.backingField, it.getter, it.setter) else listOf(it) }
                 .filter {
                     it is IrField && it.initializer != null && it.fqNameWhenAvailable?.asString()?.startsWith("kotlin") != true
@@ -121,6 +126,7 @@ fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendConte
     val constructedClasses = hashSetOf<IrClass>()
 
     fun IrDeclaration.enqueue() {
+        ///
         if ((this !is IrProperty || this.isExternal) && this !in result) {
             result.add(this)
             queue.addLast(this)
@@ -128,6 +134,7 @@ fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendConte
     }
 
     // Add roots, including nested declarations
+    ///
     stageController.withInitialIr {
         roots.withNested().forEach { it.enqueue() }
     }
@@ -143,6 +150,7 @@ fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendConte
         while (queue.isNotEmpty()) {
             val declaration = queue.pollFirst()
 
+            // dce drive only now?
             stageController.lazyLower(declaration)
 
             if (declaration is IrClass) {
@@ -188,6 +196,7 @@ fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendConte
                 else -> null
             }
 
+            /// shouldn't visiting body have same effect?
             (body as? IrBody)?.let { stageController.lazyLower(it) }
 
             body?.acceptVoid(object : IrElementVisitorVoid {
@@ -264,6 +273,8 @@ fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendConte
         }
 
         for (klass in constructedClasses) {
+            ///?
+            /// why we need to crate a copy?
             // TODO a better way to support inverse overrides.
             for (declaration in ArrayList(klass.declarations)) {
                 if (declaration in result) continue
@@ -293,6 +304,8 @@ fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendConte
                 }
             }
 
+
+            /// are hacks inside loop still required?
             // Special hack for `IntrinsicsJs.kt` support
             if (klass.superTypes.any { it.isSuspendFunctionTypeOrSubtype() }) {
                 ArrayList(klass.declarations).forEach {

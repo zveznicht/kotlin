@@ -352,7 +352,9 @@ class NameTables(
         if (name == null && signature is ParameterTypeBasedSignature && signature.suggestedName.startsWith("invoke"))
             return signature.suggestedName
 
+        /// maybe we need to hide under flag or remove next require? even better to report error from BE
         if (name == null) {
+            /// do you have a test?
             return sanitizeName(function.name.asString()) + "__error" // TODO one case is a virtual method of an abstract class with no implementation
         }
 

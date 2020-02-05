@@ -35,6 +35,7 @@ abstract class IrDeclarationBase<T : DeclarationCarrier<T>>(
     override var parentField: IrDeclarationParent? = null
 
     override var parent: IrDeclarationParent
+        /// remove verbosity? using delegates? extract setter? maybe it will become minor if we start generate all these ... code
         get() = getCarrier().parentField ?: throw UninitializedPropertyAccessException("Parent not initialized: $this")
         set(p) {
             if (getCarrier().parentField !== p) {
@@ -84,9 +85,11 @@ abstract class IrPersistingElementBase<T : Carrier<T>>(
 
     var loweredUpTo = stageController.currentStage
 
+    /// why `Any?`? `Array<T>?`
     private var values: Array<Any?>? = null
 
     val createdOn: Int = stageController.currentStage
+    ///
 //        get() = values?.let { (it[0] as T).lastModified } ?: lastModified
 
     abstract fun ensureLowered()
@@ -120,6 +123,7 @@ abstract class IrPersistingElementBase<T : Carrier<T>>(
         }
     }
 
+    /// naming
     protected fun setCarrier(): T {
         val stage = stageController.currentStage
 
@@ -133,6 +137,7 @@ abstract class IrPersistingElementBase<T : Carrier<T>>(
             error("retrospective modification")
         }
 
+        /// couldn't we do it right after reading current stage?
         if (stage == lastModified) {
             return this as T
         } else {
@@ -161,6 +166,8 @@ abstract class IrBodyBase<B : IrBodyBase<B>>(
     var container: IrDeclaration
         get() = getCarrier().containerField!!
         set(p) {
+            /// getCarrier().containerField vs container
+            ///
             if (getCarrier().containerField !== p) {
                 setCarrier().containerField = p
             }
@@ -174,6 +181,7 @@ abstract class IrBodyBase<B : IrBodyBase<B>>(
 
     override fun ensureLowered() {
         initializer?.let { initFn ->
+            /// how about concurrent mods?
             initializer = null
             stageController.withStage(createdOn) {
                 stageController.bodyLowering {

@@ -365,6 +365,7 @@ interface IrBuilderExtension {
     }
 
     fun IrFunction.copyTypeParamsFromDescriptor() {
+        // was it empty before?
         typeParameters += descriptor.typeParameters.map {
             IrTypeParameterImpl(
                 startOffset, endOffset,

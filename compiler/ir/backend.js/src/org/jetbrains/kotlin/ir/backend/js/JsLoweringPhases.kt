@@ -57,6 +57,7 @@ private fun makeCustomJsModulePhase(
 
 sealed class Lowering(val name: String) {
 
+    ///
     abstract val modulePhase: SameTypeNamedPhaseWrapper<JsIrBackendContext, IrModuleFragment>
 }
 
@@ -640,12 +641,13 @@ val loweringList = listOf<Lowering>(
     callsLoweringPhase,
     validateIrAfterLowering
 )
-
+////
 val pirLowerings = loweringList.filter { it is DeclarationLowering || it is BodyLowering } + staticMembersLoweringPhase
 
 val jsPhases = namedIrModulePhase(
     name = "IrModuleLowering",
     description = "IR module lowering",
+    /// reduce
     lower = loweringList.drop(1).fold(loweringList[0].modulePhase) { acc: CompilerPhase<JsIrBackendContext, IrModuleFragment, IrModuleFragment>, lowering ->
         acc.then(lowering.modulePhase)
     }

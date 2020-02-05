@@ -52,6 +52,7 @@ class PrimitiveCompanionLowering(val context: JsIrBackendContext) : BodyLowering
         val actualCompanion = getActualPrimitiveCompanion(companion)
             ?: return null
 
+        ///
         for (p in actualCompanion.properties) {
             p.getter?.let { if (it.name == function.name) return it }
             p.setter?.let { if (it.name == function.name) return it }
@@ -62,6 +63,7 @@ class PrimitiveCompanionLowering(val context: JsIrBackendContext) : BodyLowering
             .single { it.name == function.name }
     }
 
+    /// lower vs transform
     override fun lower(irBody: IrBody, container: IrDeclaration) {
         irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
             override fun visitGetObjectValue(expression: IrGetObjectValue): IrExpression {

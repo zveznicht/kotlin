@@ -11,12 +11,13 @@ interface BodyCarrier : Carrier<BodyCarrier> {
 
     var containerField: IrDeclaration?
 
+    /// looks strange
     override fun clone(): BodyCarrier {
         return BodyCarrierImpl(lastModified, containerField)
     }
 }
 
-class BodyCarrierImpl(
+private class BodyCarrierImpl(
     override val lastModified: Int,
     override var containerField: IrDeclaration?
 ) : BodyCarrier

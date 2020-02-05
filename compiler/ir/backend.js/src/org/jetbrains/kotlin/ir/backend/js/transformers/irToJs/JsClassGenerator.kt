@@ -143,6 +143,8 @@ class JsClassGenerator(private val irClass: IrClass, val context: JsGenerationCo
         return null
     }
 
+    /// TODO: maybe readd empty IrCtor instead?
+    /// did old version force lowering body of ctor?
     private fun maybeGeneratePrimaryConstructor() {
         if (!irClass.declarations.any { it is IrConstructor }) {
             val func = JsFunction(emptyScope, JsBlock(), "Ctor for ${irClass.name}")

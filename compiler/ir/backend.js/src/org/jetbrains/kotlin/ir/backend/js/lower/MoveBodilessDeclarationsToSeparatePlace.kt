@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.ir.util.isEffectivelyExternal
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.name.FqName
-
+///
 private val BODILESS_BUILTIN_CLASSES = listOf(
     "kotlin.String",
     "kotlin.Nothing",

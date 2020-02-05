@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.ir.expressions.IrBody
 // TODO make a IrDeclarationBase field? (requires IR factory)
 var stageController: StageController = object : StageController {}
 
+// class?
 interface StageController {
     val currentStage: Int get() = 0
 
@@ -31,11 +32,14 @@ interface StageController {
 
     fun canModify(element: IrElement): Boolean = true
 
+    ///???
     fun <T> unrestrictDeclarationListsAccess(fn: () -> T): T = fn()
 
+    ///
     fun canAccessDeclarationsOf(irClass: IrClass): Boolean = true
 }
 
+///
 inline fun <T> withInitialIr(noinline fn: () -> T): T {
     return stageController.withInitialIr(fn)
 }

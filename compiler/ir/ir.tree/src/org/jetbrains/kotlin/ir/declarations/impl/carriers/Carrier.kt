@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.ir.declarations.impl.carriers
 
+// why in? do we still need it?
 interface Carrier<in T : Carrier<T>> {
     val lastModified: Int
 

@@ -125,6 +125,7 @@ class K2JSCompilerArguments : CommonCompilerArguments() {
     @Argument(value = "-Xir-dce", description = "Perform experimental dead code elimination")
     var irDce: Boolean by FreezableVar(false)
 
+    ///
     @Argument(value = "-Xir-dce-driven", description = "Perform a more experimental faster dead code elimination")
     var irDceDriven: Boolean by FreezableVar(false)
 

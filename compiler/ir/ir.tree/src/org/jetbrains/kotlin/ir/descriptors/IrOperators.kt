@@ -47,7 +47,9 @@ abstract class IrBuiltInOperatorBase : IrDeclaration {
     override val metadata: MetadataSource? get() = null
 }
 
+/// object
 private class NullValueDelegate<T> {
+    /// inline
     operator fun getValue(thisRef: Any?, property: KProperty<*>): T? = null
     operator fun setValue(thisRef: Any?, property: KProperty<*>, v: T?) {
         error("IrBuiltInOperators are not supposed to be mutated")

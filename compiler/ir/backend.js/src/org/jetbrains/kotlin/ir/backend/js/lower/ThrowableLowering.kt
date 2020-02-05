@@ -12,10 +12,14 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.expressions.*
-import org.jetbrains.kotlin.ir.expressions.impl.*
+import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
+import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.types.isNullableString
 import org.jetbrains.kotlin.ir.types.makeNotNull
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.util.classOrNull
+import org.jetbrains.kotlin.ir.util.file
+import org.jetbrains.kotlin.ir.util.isThrowable
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 
 
@@ -34,6 +38,7 @@ class ThrowableLowering(val context: JsIrBackendContext) : BodyLoweringPass {
     )
 
     override fun lower(irBody: IrBody, container: IrDeclaration) {
+        /// enclosingClass? file?
         container.classOrNull.let { enclosingClass ->
             irBody.transformChildren(Transformer(), enclosingClass ?: container.file)
         }

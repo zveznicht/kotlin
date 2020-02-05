@@ -44,12 +44,14 @@ class JsIrBackendContext(
     override val configuration: CompilerConfiguration, // TODO: remove configuration from backend context
     override val scriptMode: Boolean = false
 ) : JsCommonBackendContext {
+    /// remove?
     override val transformedFunction
         get() = error("Use Mapping.inlineClassMemberToStatic instead")
 
     override val lateinitNullableFields
         get() = error("Use Mapping.lateInitFieldToNullableField instead")
 
+    ///
     override val extractedLocalClasses: MutableSet<IrClass> = hashSetOf()
 
     override val builtIns = module.builtIns
@@ -59,6 +61,7 @@ class JsIrBackendContext(
     val devMode = configuration[JSConfigurationKeys.DEVELOPER_MODE] ?: false
 
     val externalPackageFragment = mutableMapOf<IrFileSymbol, IrFile>()
+    ///
     val externalDeclarations = hashSetOf<IrDeclaration>()
     val bodilessBuiltInsPackageFragment: IrPackageFragment = run {
 
@@ -356,4 +359,5 @@ class JsIrBackendContext(
     }
 }
 
+///
 fun <T> lazy2(fn: () -> T) = lazy { stageController.withInitialIr(fn) }

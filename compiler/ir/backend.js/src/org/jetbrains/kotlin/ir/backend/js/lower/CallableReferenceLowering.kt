@@ -498,6 +498,7 @@ class CallableReferenceLowering(val context: JsIrBackendContext) : BodyLoweringP
 
         closureFunction.valueParameters += unboundParamDeclarations
 
+        /// where is cache?
         val callTarget = declaration
 
         val target = callTarget.symbol

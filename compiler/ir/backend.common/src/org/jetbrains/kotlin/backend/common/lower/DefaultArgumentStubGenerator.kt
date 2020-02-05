@@ -206,6 +206,7 @@ private fun IrFunction.findBaseFunctionWithDefaultArguments(skipInlineMethods: B
         if (isInline && skipInlineMethods) return null
         if (skipExternalMethods && isExternalOrInheritedFromExternal()) return null
 
+        /// just wondering could we swap this and next ifs?
         if (this is IrSimpleFunction) {
             overriddenSymbols.forEach {
                 val base = it.owner
@@ -307,6 +308,7 @@ open class DefaultParameterInjector(
         // in an interface does not leave an abstract method after being moved to DefaultImpls (see InterfaceLowering).
         // Calling the fake override on an implementation of that interface would then result in a call to a method
         // that does not actually exist as DefaultImpls is not part of the inheritance hierarchy.
+        ///
         val stubFunction = declaration.findBaseFunctionWithDefaultArguments(skipInline, skipExternalMethods)?.generateDefaultsFunction(context, skipInline, skipExternalMethods, forceSetOverrideSymbols, visibility) ?: return null
 
         log { "$declaration -> $stubFunction" }

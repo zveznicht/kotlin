@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.ir.util.UniqId
 import org.jetbrains.kotlin.name.FqName
 
+/// does wasm work?
 class WasmBackendContext(
     val module: ModuleDescriptor,
     override val irBuiltIns: IrBuiltIns,
