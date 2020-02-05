@@ -37,7 +37,8 @@ val modulesToInclude =
         ":compiler:cli-args-metadata",
         ":compiler:cli-config-base",
         ":compiler:cli-config-jvm",
-        ":kotlin-compiler-runner"
+        ":kotlin-compiler-runner",
+        ":kotlin-build-base"
     )
 
 dependencies {
@@ -45,7 +46,6 @@ dependencies {
     compile(project(":kotlin-gradle-plugin-model"))
     compile(project(":kotlin-daemon-client"))
     compileOnly(project(":daemon-common"))
-    compile(project(":kotlin-build-base"))
 
     compile(kotlinStdlib())
     compile(project(":native:kotlin-native-utils"))
@@ -60,7 +60,6 @@ dependencies {
     compileOnly(project(":kotlin-scripting-compiler"))
     compileOnly(project(":kotlin-gradle-statistics"))
     embedded(project(":kotlin-gradle-statistics"))
-
 
     compile("com.google.code.gson:gson:${rootProject.extra["versions.jar.gson"]}")
     compile("de.undercouch:gradle-download-task:4.0.2")
