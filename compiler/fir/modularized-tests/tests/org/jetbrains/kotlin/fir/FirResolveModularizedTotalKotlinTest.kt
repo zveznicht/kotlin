@@ -48,6 +48,8 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
     private var bestPass: Int = 0
 
     private fun runAnalysis(moduleData: ModuleData, environment: KotlinCoreEnvironment, useLightTree: Boolean = false) {
+        System.gc()
+
         val project = environment.project
         val ktFiles = environment.getSourceFiles()
 
@@ -125,7 +127,6 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
 
     override fun beforePass() {
         if (DUMP_FIR) dump = MultiModuleHtmlFirDump(File(FIR_HTML_DUMP_PATH))
-        System.gc()
     }
 
     override fun afterPass(pass: Int) {
