@@ -10,7 +10,7 @@ enum class JvmDefaultMode(val description: String) {
     ENABLE("enable"),
     ENABLE_WITH_DEFAULT_IMPLS("compatibility"),
     DEFAULT_FOR_ALL("all"),
-    DEFAULT_FOR_ALL_NO_DEFAULT_IMPL("all-no-default");
+    DEFAULT_FOR_ALL_NO_DEFAULT_IMPL("all-no-default-impls");
 
     val isEnabled
         get() = this != DISABLE
