@@ -1,0 +1,11 @@
+diff --git a/core/util.runtime/src/org/jetbrains/kotlin/utils/numbers.kt b/core/util.runtime/src/org/jetbrains/kotlin/utils/numbers.kt
+index 30e872e9725..54d269747b3 100644
+--- a/core/util.runtime/src/org/jetbrains/kotlin/utils/numbers.kt
++++ b/core/util.runtime/src/org/jetbrains/kotlin/utils/numbers.kt
+@@ -23,3 +23,5 @@ fun extractRadix(value: String): NumberWithRadix = when {
+     value.startsWith("0b") || value.startsWith("0B") -> NumberWithRadix(value.substring(2), 2)
+     else -> NumberWithRadix(value, 10)
+ }
++
++fun unusedPublicFun() {}
+\ No newline at end of file
