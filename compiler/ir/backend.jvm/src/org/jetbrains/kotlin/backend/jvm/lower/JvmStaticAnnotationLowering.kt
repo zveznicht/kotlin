@@ -71,7 +71,7 @@ private class CompanionObjectJvmStaticLowering(val context: JvmBackendContext) :
             updateFrom(target)
             returnType = target.returnType
             origin = JvmLoweredDeclarationOrigin.JVM_STATIC_WRAPPER
-            name = Name.identifier(context.methodSignatureMapper.mapFunctionName(target))
+            name = target.name
             modality = if (irClass.isInterface) Modality.OPEN else target.modality
             isInline = false
             isExternal = false
