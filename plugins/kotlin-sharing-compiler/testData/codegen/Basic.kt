@@ -1,3 +1,7 @@
 // WITH_RUNTIME
+// CURIOUS_ABOUT getB, setB
 
-class Bar()
+import kotlinx.sharing.*
+
+@Shared
+data class Bar(var b: String)

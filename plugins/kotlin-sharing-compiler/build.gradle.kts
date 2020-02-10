@@ -5,6 +5,10 @@ plugins {
     id("jps-compatible")
 }
 
+repositories {
+    mavenLocal()
+}
+
 dependencies {
     compileOnly(intellijCoreDep()) { includeJars("intellij-core", "asm-all", rootProject = rootProject) }
 
@@ -20,7 +24,7 @@ dependencies {
 
     testCompile(projectTests(":compiler:tests-common"))
     testCompile(commonDep("junit:junit"))
-//    testCompile("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.11.0")
+    testCompile("org.jetbrains.kotlinx:kotlinx-sharing-jvm:0.0.1-SNAPSHOT")
 
     testRuntimeOnly(intellijCoreDep()) { includeJars("intellij-core") }
 

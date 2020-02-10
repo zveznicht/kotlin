@@ -1,3 +1,42 @@
 public final class Bar : java/lang/Object {
-    public void <init>()
+    private java.lang.String b
+
+    private boolean isReadOnly
+
+    public void <init>(java.lang.String b)
+
+    public final java.lang.String component1()
+
+    public final Bar copy(java.lang.String b)
+
+    public static Bar copy$default(Bar p0, java.lang.String p1, int p2, java.lang.Object p3)
+
+    public boolean equals(java.lang.Object other)
+
+    public final java.lang.String getB() {
+        LABEL (L0)
+        LINENUMBER (7)
+          ALOAD (0)
+          GETFIELD (b, Ljava/lang/String;)
+          ARETURN
+        LABEL (L1)
+    }
+
+    public int hashCode()
+
+    public final void setB(java.lang.String <set-?>) {
+        LABEL (L0)
+          ALOAD (1)
+          LDC (<set-?>)
+          INVOKESTATIC (kotlin/jvm/internal/Intrinsics, checkNotNullParameter, (Ljava/lang/Object;Ljava/lang/String;)V)
+        LABEL (L1)
+        LINENUMBER (7)
+          ALOAD (0)
+          ALOAD (1)
+          PUTFIELD (b, Ljava/lang/String;)
+          RETURN
+        LABEL (L2)
+    }
+
+    public java.lang.String toString()
 }
