@@ -11,18 +11,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementVisitor
 import org.jetbrains.kotlin.codegen.SamCodegenUtil
 import org.jetbrains.kotlin.config.LanguageFeature
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
-import org.jetbrains.kotlin.idea.codeInsight.forceEnableSamAdapters
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.resolve.frontendService
 import org.jetbrains.kotlin.idea.util.getResolutionScope
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
-import org.jetbrains.kotlin.load.java.sam.SamAdapterDescriptor
 import org.jetbrains.kotlin.load.java.sam.SamConstructorDescriptor
-import org.jetbrains.kotlin.load.java.sam.JavaSingleAbstractMethodUtils
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.anyDescendantOfType
@@ -33,16 +27,16 @@ import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTraceContext
 import org.jetbrains.kotlin.resolve.bindingContextUtil.getDataFlowInfoBefore
 import org.jetbrains.kotlin.resolve.calls.CallResolver
+import org.jetbrains.kotlin.resolve.calls.callUtil.getParameterForArgument
 import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.calls.model.isReallySuccess
 import org.jetbrains.kotlin.resolve.calls.tower.NewResolvedCallImpl
 import org.jetbrains.kotlin.resolve.calls.util.DelegatingCall
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.resolve.scopes.SyntheticScopes
-import org.jetbrains.kotlin.resolve.scopes.collectSyntheticMemberFunctions
-import org.jetbrains.kotlin.resolve.scopes.collectSyntheticStaticFunctions
-import org.jetbrains.kotlin.synthetic.SamAdapterExtensionFunctionDescriptor
-import org.jetbrains.kotlin.types.TypeUtils
+import org.jetbrains.kotlin.resolve.sam.SamConversionOracle
+import org.jetbrains.kotlin.resolve.sam.SamConversionResolver
+import org.jetbrains.kotlin.resolve.sam.getFunctionTypeForPossibleSamType
+import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.utils.keysToMapExceptNulls
 
 class RedundantSamConstructorInspection : AbstractKotlinInspection() {
@@ -168,53 +162,46 @@ class RedundantSamConstructorInspection : AbstractKotlinInspection() {
             val valueArguments = functionCall.valueArguments
             if (valueArguments.none { canBeSamConstructorCall(it) }) return emptyList()
 
-            val bindingContext = functionCall.analyze(BodyResolveMode.PARTIAL)
-            val functionResolvedCall = functionCall.getResolvedCall(bindingContext) ?: return emptyList()
-            if (!functionResolvedCall.isReallySuccess()) return emptyList()
+            val resolutionFacade = functionCall.getResolutionFacade()
+            val oracle = resolutionFacade.frontendService<SamConversionOracle>()
+            val resolver = resolutionFacade.frontendService<SamConversionResolver>()
 
-            val samConstructorCallArgumentMap = valueArguments.keysToMapExceptNulls { it.toCallExpression() }.filterValues { call ->
-                call.getResolvedCall(bindingContext)?.resultingDescriptor?.original is SamConstructorDescriptor
+            val bindingContext = functionCall.analyze(resolutionFacade, BodyResolveMode.PARTIAL)
+            val functionResolvedCall = functionCall.getResolvedCall(bindingContext)?.takeIf { it.isReallySuccess() } ?: return emptyList()
+
+            /**
+             * Checks that SAM conversion for [arg] and [call] in the argument position is possible
+             * and does not loose any information.
+             */
+            fun samConversionIsPossible(arg: KtValueArgument, call: KtCallExpression): Boolean {
+                val samConstructor =
+                    call.getResolvedCall(bindingContext)?.resultingDescriptor?.original as? SamConstructorDescriptor ?: return false
+
+                val samConstructorReturnType = samConstructor.returnType?.unwrap()?.takeUnless { it.isNullable() } ?: return false
+                val expectedNotNullableType = functionResolvedCall.getParameterForArgument(arg)?.type?.lowerIfFlexible() ?: return false
+
+                if (resolver.getFunctionTypeForPossibleSamType(expectedNotNullableType, oracle) == null) return false
+
+                return samConstructorReturnType == expectedNotNullableType
             }
 
-            if (samConstructorCallArgumentMap.isEmpty()) return emptyList()
-
-            if (samConstructorCallArgumentMap.values.any(::containsLabeledReturnPreventingConversion)) return emptyList()
-
-            val originalFunctionDescriptor = functionResolvedCall.resultingDescriptor.original as? FunctionDescriptor ?: return emptyList()
-            val containingClass = originalFunctionDescriptor.containingDeclaration as? ClassDescriptor ?: return emptyList()
-
-            val syntheticScopes =
-                functionCall.getResolutionFacade().getFrontendService(SyntheticScopes::class.java).forceEnableSamAdapters()
-
-            // SAM adapters for static functions
-            val contributedFunctions = syntheticScopes.collectSyntheticStaticFunctions(containingClass.staticScope)
-            for (staticFunWithSameName in contributedFunctions) {
-                if (staticFunWithSameName is SamAdapterDescriptor<*>) {
-                    if (isSamAdapterSuitableForCall(
-                            staticFunWithSameName,
-                            originalFunctionDescriptor,
-                            samConstructorCallArgumentMap.size
-                        )
-                    ) {
-                        return samConstructorCallArgumentMap.takeIf { canBeReplaced(functionCall, it) }?.values ?: emptyList()
-                    }
-                }
+            val argumentsWithSamConstructors = valueArguments.keysToMapExceptNulls { arg ->
+                arg.toCallExpression()?.takeIf { call -> samConversionIsPossible(arg, call) }
             }
 
-            // SAM adapters for member functions
-            val syntheticExtensions = syntheticScopes.collectSyntheticMemberFunctions(
-                listOf(containingClass.defaultType),
-                functionResolvedCall.resultingDescriptor.name,
-                NoLookupLocation.FROM_IDE
-            )
-            for (syntheticExtension in syntheticExtensions) {
-                val samAdapter = syntheticExtension as? SamAdapterExtensionFunctionDescriptor ?: continue
-                if (isSamAdapterSuitableForCall(samAdapter, originalFunctionDescriptor, samConstructorCallArgumentMap.size)) {
-                    return samConstructorCallArgumentMap.takeIf { canBeReplaced(functionCall, it) }?.values ?: emptyList()
-                }
+            val haveToConvertAllArguments = !functionCall.languageVersionSettings.supportsFeature(LanguageFeature.SamConversionPerArgument)
+
+            val argumentsThatCanBeConverted = if (haveToConvertAllArguments) {
+                argumentsWithSamConstructors.takeIf { it.values.none(::containsLabeledReturnPreventingConversion) }.orEmpty()
+            } else {
+                argumentsWithSamConstructors.filterValues { !containsLabeledReturnPreventingConversion(it) }
             }
 
-            return emptyList()
+            return when {
+                argumentsThatCanBeConverted.isEmpty() -> emptyList()
+                !canBeReplaced(functionCall, argumentsThatCanBeConverted) -> emptyList()
+                else -> argumentsThatCanBeConverted.values
+            }
         }
 
         private fun canBeSamConstructorCall(argument: KtValueArgument) = argument.toCallExpression()?.samConstructorValueArgument() != null
@@ -229,18 +216,6 @@ class RedundantSamConstructorInspection : AbstractKotlinInspection() {
                 argumentExpression.selectorExpression
             else
                 argumentExpression) as? KtCallExpression
-        }
-
-        private fun isSamAdapterSuitableForCall(
-            samAdapter: FunctionDescriptor,
-            originalFunction: FunctionDescriptor,
-            samConstructorsCount: Int
-        ): Boolean {
-            val samAdapterOriginalFunction = SamCodegenUtil.getOriginalIfSamAdapter(samAdapter)?.original
-            if (samAdapterOriginalFunction != originalFunction) return false
-
-            val parametersWithSamTypeCount = originalFunction.valueParameters.count { JavaSingleAbstractMethodUtils.isSamType(it.type) }
-            return parametersWithSamTypeCount == samConstructorsCount
         }
 
         private fun containsLabeledReturnPreventingConversion(it: KtCallExpression): Boolean {

@@ -7841,6 +7841,36 @@ public class LocalInspectionTestGenerated extends AbstractLocalInspectionTest {
             runTest("idea/testData/inspectionsLocal/redundantSamConstructor/conversionPerArgumentDisabled3.kt");
         }
 
+        @TestMetadata("conversionPerArgumentEnabled1.kt")
+        public void testConversionPerArgumentEnabled1() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantSamConstructor/conversionPerArgumentEnabled1.kt");
+        }
+
+        @TestMetadata("conversionPerArgumentEnabled2.kt")
+        public void testConversionPerArgumentEnabled2() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantSamConstructor/conversionPerArgumentEnabled2.kt");
+        }
+
+        @TestMetadata("conversionPerArgumentEnabled3.kt")
+        public void testConversionPerArgumentEnabled3() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantSamConstructor/conversionPerArgumentEnabled3.kt");
+        }
+
+        @TestMetadata("conversionPerArgumentEnabled4.kt")
+        public void testConversionPerArgumentEnabled4() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantSamConstructor/conversionPerArgumentEnabled4.kt");
+        }
+
+        @TestMetadata("javaInterfacesHierarchy.kt")
+        public void testJavaInterfacesHierarchy() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantSamConstructor/javaInterfacesHierarchy.kt");
+        }
+
+        @TestMetadata("kotlinFunInterface.kt")
+        public void testKotlinFunInterface() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantSamConstructor/kotlinFunInterface.kt");
+        }
+
         @TestMetadata("labeledReturn1.kt")
         public void testLabeledReturn1() throws Exception {
             runTest("idea/testData/inspectionsLocal/redundantSamConstructor/labeledReturn1.kt");
@@ -7879,6 +7909,11 @@ public class LocalInspectionTestGenerated extends AbstractLocalInspectionTest {
         @TestMetadata("simple2.kt")
         public void testSimple2() throws Exception {
             runTest("idea/testData/inspectionsLocal/redundantSamConstructor/simple2.kt");
+        }
+
+        @TestMetadata("simple3.kt")
+        public void testSimple3() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantSamConstructor/simple3.kt");
         }
     }
 
