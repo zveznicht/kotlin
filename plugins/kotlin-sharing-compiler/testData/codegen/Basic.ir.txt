@@ -32,10 +32,19 @@ public final class Bar : java/lang/Object {
         LABEL (L1)
         LINENUMBER (7)
           ALOAD (0)
+          GETFIELD (isReadOnly, Z)
+          IFEQ (L2)
+          NEW
+          DUP
+          LDC (Already readonly)
+          INVOKESPECIAL (java/lang/IllegalArgumentException, <init>, (Ljava/lang/String;)V)
+          ATHROW
+        LABEL (L2)
+          ALOAD (0)
           ALOAD (1)
           PUTFIELD (b, Ljava/lang/String;)
           RETURN
-        LABEL (L2)
+        LABEL (L3)
     }
 
     public java.lang.String toString()

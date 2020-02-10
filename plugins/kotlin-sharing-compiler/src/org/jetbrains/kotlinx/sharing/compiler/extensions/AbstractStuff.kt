@@ -14,12 +14,18 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
+import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.expressions.IrBlockBody
+import org.jetbrains.kotlin.ir.expressions.impl.IrBlockBodyImpl
+import org.jetbrains.kotlin.ir.symbols.IrSymbol
+import org.jetbrains.kotlin.ir.util.statements
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
+import org.jetbrains.kotlinx.sharing.compiler.backend.ir.ExtendedBodyBuilder
 import org.jetbrains.kotlinx.sharing.compiler.backend.ir.IrBuilderExtension
 import java.util.*
 
@@ -69,11 +75,20 @@ abstract class CompilerPlugin : IrGenerationExtension, SyntheticResolveExtension
 
 abstract class IrTransformer : IrBuilderExtension, ClassLoweringPass {
     fun createMissingParts(irClass: IrClass, pluginDescriptors: Collection<DeclarationDescriptor>) {
-        val irDecls = pluginDescriptors.map { desc ->
+        val declarations = pluginDescriptors.map { desc ->
             if (desc !is PropertyDescriptor) TODO()
             createPropertyForBackend(irClass, desc)
         }
-        irClass.declarations.addAll(irDecls)
+        irClass.declarations.addAll(declarations)
+    }
+
+    inline fun IrSimpleFunction.prepend(statements: ExtendedBodyBuilder.() -> Unit) {
+        val oldBody = body?.statements.orEmpty()
+        body = IrBlockBodyImpl(startOffset, endOffset, buildBodyIn(symbol, statements).statements + oldBody)
+    }
+
+    inline fun buildBodyIn(scopeSymbol: IrSymbol, blockBody: ExtendedBodyBuilder.() -> Unit): IrBlockBody {
+        return ExtendedBodyBuilder(compilerContext, scopeSymbol).apply { blockBody() }.doBuild()
     }
 }
 

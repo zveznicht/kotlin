@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.*
 
 
-object PLUGIN_ORIGIN : IrDeclarationOriginImpl("RENAME ME")
+object PLUGIN_ORIGIN : IrDeclarationOriginImpl("FROM_PLUGIN")
 
 interface IrBuilderExtension {
     val compilerContext: IrPluginContext
