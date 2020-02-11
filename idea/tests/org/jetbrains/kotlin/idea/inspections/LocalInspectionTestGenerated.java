@@ -7886,6 +7886,11 @@ public class LocalInspectionTestGenerated extends AbstractLocalInspectionTest {
             runTest("idea/testData/inspectionsLocal/redundantSamConstructor/nestedInterface.kt");
         }
 
+        @TestMetadata("otherParamType.kt")
+        public void testOtherParamType() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantSamConstructor/otherParamType.kt");
+        }
+
         @TestMetadata("resolutionAmbiguity1.kt")
         public void testResolutionAmbiguity1() throws Exception {
             runTest("idea/testData/inspectionsLocal/redundantSamConstructor/resolutionAmbiguity1.kt");

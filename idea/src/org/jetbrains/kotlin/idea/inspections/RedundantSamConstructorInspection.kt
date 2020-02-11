@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.resolve.sam.SamConversionOracle
 import org.jetbrains.kotlin.resolve.sam.SamConversionResolver
 import org.jetbrains.kotlin.resolve.sam.getFunctionTypeForPossibleSamType
 import org.jetbrains.kotlin.types.*
+import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
 import org.jetbrains.kotlin.utils.keysToMapExceptNulls
 
 class RedundantSamConstructorInspection : AbstractKotlinInspection() {
@@ -172,17 +173,29 @@ class RedundantSamConstructorInspection : AbstractKotlinInspection() {
             /**
              * Checks that SAM conversion for [arg] and [call] in the argument position is possible
              * and does not loose any information.
+             *
+             * We want to do as many cheap checks as possible before actually trying to resolve substituted call in [canBeReplaced].
+             *
+             * Several cases where we do not want the conversion:
+             *
+             * - Expected argument type is inferred from the argument; for example when the expected type is `T`, and SAM constructor
+             * helps to deduce it.
+             * - Expected argument type is a base type for the actual argument type; for example when expected type is `Any`, and removing
+             * SAM constructor will lead to passing object of different type.
              */
             fun samConversionIsPossible(arg: KtValueArgument, call: KtCallExpression): Boolean {
                 val samConstructor =
                     call.getResolvedCall(bindingContext)?.resultingDescriptor?.original as? SamConstructorDescriptor ?: return false
 
                 val samConstructorReturnType = samConstructor.returnType?.unwrap()?.takeUnless { it.isNullable() } ?: return false
-                val expectedNotNullableType = functionResolvedCall.getParameterForArgument(arg)?.type?.lowerIfFlexible() ?: return false
+
+                // we take original parameter descriptor to get type parameter instead of inferred type (e.g. `T` instead of `Runnable`)
+                val originalParameterDescriptor = functionResolvedCall.getParameterForArgument(arg)?.original ?: return false
+                val expectedNotNullableType = originalParameterDescriptor.type.makeNotNullable().unwrap()
 
                 if (resolver.getFunctionTypeForPossibleSamType(expectedNotNullableType, oracle) == null) return false
 
-                return samConstructorReturnType == expectedNotNullableType
+                return samConstructorReturnType.constructor == expectedNotNullableType.constructor
             }
 
             val argumentsWithSamConstructors = valueArguments.keysToMapExceptNulls { arg ->
