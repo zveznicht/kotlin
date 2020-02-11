@@ -7861,6 +7861,11 @@ public class LocalInspectionTestGenerated extends AbstractLocalInspectionTest {
             runTest("idea/testData/inspectionsLocal/redundantSamConstructor/conversionPerArgumentEnabled4.kt");
         }
 
+        @TestMetadata("genericParameter.kt")
+        public void testGenericParameter() throws Exception {
+            runTest("idea/testData/inspectionsLocal/redundantSamConstructor/genericParameter.kt");
+        }
+
         @TestMetadata("javaInterfacesHierarchy.kt")
         public void testJavaInterfacesHierarchy() throws Exception {
             runTest("idea/testData/inspectionsLocal/redundantSamConstructor/javaInterfacesHierarchy.kt");
@@ -7884,11 +7889,6 @@ public class LocalInspectionTestGenerated extends AbstractLocalInspectionTest {
         @TestMetadata("nestedInterface.kt")
         public void testNestedInterface() throws Exception {
             runTest("idea/testData/inspectionsLocal/redundantSamConstructor/nestedInterface.kt");
-        }
-
-        @TestMetadata("otherParamType.kt")
-        public void testOtherParamType() throws Exception {
-            runTest("idea/testData/inspectionsLocal/redundantSamConstructor/otherParamType.kt");
         }
 
         @TestMetadata("resolutionAmbiguity1.kt")
