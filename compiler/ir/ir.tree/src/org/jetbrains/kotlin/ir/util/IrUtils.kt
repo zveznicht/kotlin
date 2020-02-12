@@ -296,7 +296,26 @@ fun IrSimpleFunction.collectRealOverrides(toSkip: (IrSimpleFunction) -> Boolean 
 // This implementation is from kotlin-native
 // TODO: use this implementation instead of any other
 fun IrSimpleFunction.resolveFakeOverride(toSkip: (IrSimpleFunction) -> Boolean = { false }): IrSimpleFunction? {
-    return collectRealOverrides(toSkip).singleOrNull { it.modality != Modality.ABSTRACT }
+    return collectRealOverrides(toSkip)
+        .filter { it.modality != Modality.ABSTRACT }
+        .let { realOverrides ->
+            // Kotlin forbids conflicts between overrides, but they may trickle down from Java.
+            realOverrides.firstOrNull { it.parent.safeAs<IrClass>()?.isInterface != true } ?: realOverrides.firstOrNull()
+        }
+}
+
+// In Java code, clone() may be overridden without declaring the class Cloneable, and that leads to problems in override resolution.
+private fun Collection<IrSimpleFunction>.handleSpecialCaseForClone(): Collection<IrSimpleFunction> = when {
+    isEmpty() -> this
+    first().let { it.name.asString() != "clone" || it.valueParameters.isNotEmpty() || it.extensionReceiverParameter != null } -> this
+    else -> {
+        val nonAbstracts = filter { it.modality != Modality.ABSTRACT }
+        if (nonAbstracts.size <= 1) nonAbstracts
+        else nonAbstracts.filterNot {
+            val classFqName = it.parentAsClass.fqNameWhenAvailable?.asString()
+            classFqName == "java.lang.Cloneable" || classFqName == "kotlin.Cloneable"
+        }
+    }
 }
 
 fun IrSimpleFunction.isOrOverridesSynthesized(): Boolean {
