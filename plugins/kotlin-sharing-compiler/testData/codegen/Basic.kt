@@ -1,7 +1,9 @@
 // WITH_RUNTIME
-// CURIOUS_ABOUT getB, setB
+// CURIOUS_ABOUT setA, setB, setC, <init>
 
 import kotlinx.sharing.*
 
 @Shared
-data class Bar(var b: String)
+class Bar(val a: String, var b: String) {
+    var c: Int = 42
+}

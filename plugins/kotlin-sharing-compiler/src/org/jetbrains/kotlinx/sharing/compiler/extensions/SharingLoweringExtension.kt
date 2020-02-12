@@ -21,9 +21,9 @@ class SharingCompilerPlugin : CompilerPlugin() {
     override fun isApplied(toClass: ClassDescriptor): Boolean =
         toClass.annotations.hasAnnotation(FqName("kotlinx.sharing.Shared"))
 
-    override fun getIrTransformer(context: IrPluginContext): IrTransformer = SharingTransformer(context)
+    override fun createIrTransformer(context: IrPluginContext): IrTransformer = SharingTransformer(context)
 
-    override fun getCreator(): PluginDeclarationsCreator = SharingDeclarations()
+    override val creator: PluginDeclarationsCreator = SharingDeclarations()
 }
 
 class SharingPluginComponentRegistrar : ComponentRegistrar {

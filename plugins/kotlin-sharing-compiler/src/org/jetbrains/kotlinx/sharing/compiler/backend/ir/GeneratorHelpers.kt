@@ -12,12 +12,10 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.declarations.impl.IrPropertyImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrTypeParameterImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
-import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
 import org.jetbrains.kotlin.ir.types.IrType
@@ -204,130 +202,6 @@ interface IrBuilderExtension {
                 compilerContext.symbolTable.referenceConstructor(anyConstructor)
             )
         }
-    }
-
-    fun createPropertyForBackend(
-        owner: IrClass,
-        frontendProperty: PropertyDescriptor
-    ): IrProperty {
-        val irProperty = compilerContext.symbolTable.declareProperty(owner.startOffset, owner.endOffset, PLUGIN_ORIGIN, frontendProperty)
-        irProperty.parent = owner
-        irProperty.backingField = generatePropertyBackingField(frontendProperty, irProperty).apply {
-            parent = owner
-            correspondingPropertySymbol = irProperty.symbol
-        }
-        val fieldSymbol = irProperty.backingField!!.symbol
-        irProperty.getter = frontendProperty.getter?.let { generatePropertyAccessor(it, fieldSymbol) }
-            ?.apply { parent = owner }
-        irProperty.setter = frontendProperty.setter?.let { generatePropertyAccessor(it, fieldSymbol) }
-            ?.apply { parent = owner }
-        return irProperty
-    }
-
-    fun generateSimplePropertyWithBackingField(
-        ownerSymbol: IrValueSymbol,
-        propertyDescriptor: PropertyDescriptor,
-        propertyParent: IrClass
-    ): IrProperty {
-        val irProperty = IrPropertyImpl(
-            propertyParent.startOffset, propertyParent.endOffset,
-            PLUGIN_ORIGIN, false,
-            propertyDescriptor
-        )
-        irProperty.parent = propertyParent
-        irProperty.backingField = generatePropertyBackingField(propertyDescriptor, irProperty).apply {
-            parent = propertyParent
-            correspondingPropertySymbol = irProperty.symbol
-        }
-        val fieldSymbol = irProperty.backingField!!.symbol
-        irProperty.getter = propertyDescriptor.getter?.let { generatePropertyAccessor(it, fieldSymbol) }
-            ?.apply { parent = propertyParent }
-        irProperty.setter = propertyDescriptor.setter?.let { generatePropertyAccessor(it, fieldSymbol) }
-            ?.apply { parent = propertyParent }
-        return irProperty
-    }
-
-    private fun generatePropertyBackingField(
-        propertyDescriptor: PropertyDescriptor,
-        originProperty: IrProperty
-    ): IrField {
-        return compilerContext.symbolTable.declareField(
-            originProperty.startOffset,
-            originProperty.endOffset,
-            PLUGIN_ORIGIN,
-            propertyDescriptor,
-            propertyDescriptor.type.toIrType()
-        )
-    }
-
-    fun generatePropertyAccessor(
-        descriptor: PropertyAccessorDescriptor,
-        fieldSymbol: IrFieldSymbol
-    ): IrSimpleFunction {
-        val declaration = compilerContext.symbolTable.declareSimpleFunctionWithOverrides(fieldSymbol.owner.startOffset,
-                                                                                         fieldSymbol.owner.endOffset,
-                                                                                         PLUGIN_ORIGIN, descriptor)
-        return declaration.buildWithScope { irAccessor ->
-            irAccessor.createParameterDeclarations(receiver = null)
-            irAccessor.returnType = irAccessor.descriptor.returnType!!.toIrType()
-            irAccessor.body = when (descriptor) {
-                is PropertyGetterDescriptor -> generateDefaultGetterBody(descriptor, irAccessor)
-                is PropertySetterDescriptor -> generateDefaultSetterBody(descriptor, irAccessor)
-                else -> throw AssertionError("Should be getter or setter: $descriptor")
-            }
-        }
-    }
-
-    private fun generateDefaultGetterBody(
-        getter: PropertyGetterDescriptor,
-        irAccessor: IrSimpleFunction
-    ): IrBlockBody {
-        val property = getter.correspondingProperty
-
-        val startOffset = irAccessor.startOffset
-        val endOffset = irAccessor.endOffset
-        val irBody = IrBlockBodyImpl(startOffset, endOffset)
-
-        val receiver = generateReceiverExpressionForFieldAccess(irAccessor.dispatchReceiverParameter!!.symbol, property)
-
-        irBody.statements.add(
-            IrReturnImpl(
-                startOffset, endOffset, compilerContext.irBuiltIns.nothingType,
-                irAccessor.symbol,
-                IrGetFieldImpl(
-                    startOffset, endOffset,
-                    compilerContext.symbolTable.referenceField(property),
-                    property.type.toIrType(),
-                    receiver
-                )
-            )
-        )
-        return irBody
-    }
-
-    private fun generateDefaultSetterBody(
-        setter: PropertySetterDescriptor,
-        irAccessor: IrSimpleFunction
-    ): IrBlockBody {
-        val property = setter.correspondingProperty
-
-        val startOffset = irAccessor.startOffset
-        val endOffset = irAccessor.endOffset
-        val irBody = IrBlockBodyImpl(startOffset, endOffset)
-
-        val receiver = generateReceiverExpressionForFieldAccess(irAccessor.dispatchReceiverParameter!!.symbol, property)
-
-        val irValueParameter = irAccessor.valueParameters.single()
-        irBody.statements.add(
-            IrSetFieldImpl(
-                startOffset, endOffset,
-                compilerContext.symbolTable.referenceField(property),
-                receiver,
-                IrGetValueImpl(startOffset, endOffset, irValueParameter.type, irValueParameter.symbol),
-                compilerContext.irBuiltIns.unitType
-            )
-        )
-        return irBody
     }
 
     fun generateReceiverExpressionForFieldAccess(
