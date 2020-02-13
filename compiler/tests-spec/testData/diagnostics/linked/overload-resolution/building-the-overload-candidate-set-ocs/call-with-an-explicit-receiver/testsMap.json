@@ -10,7 +10,7 @@
         },
         {
           "specVersion": "0.1-268",
-          "casesNumber": 1,
+          "casesNumber": 3,
           "description": "sets of local, explicitly imported, declared in the package scope and star-imported extension callables",
           "unexpectedBehaviour": false
         },
@@ -36,7 +36,7 @@
         },
         {
           "specVersion": "0.1-268",
-          "casesNumber": 3,
+          "casesNumber": 5,
           "description": "sets of non-extension member callables, local, explicitly imported, declared in the package scope and star-imported extension callables",
           "path": "compiler/tests-spec/testData/diagnostics/linked/overload-resolution/building-the-overload-candidate-set-ocs/call-with-an-explicit-receiver/p-6/pos/1.5.kt",
           "unexpectedBehaviour": false
@@ -69,7 +69,7 @@
         },
         {
           "specVersion": "0.1-268",
-          "casesNumber": 3,
+          "casesNumber": 5,
           "description": "sets of non-extension member callables, local, explicitly imported, declared in the package scope and star-imported extension callables",
           "unexpectedBehaviour": false
         },
@@ -83,7 +83,7 @@
       "3": [
         {
           "specVersion": "0.1-268",
-          "casesNumber": 1,
+          "casesNumber": 3,
           "description": "sets of local, explicitly imported, declared in the package scope and star-imported extension callables",
           "path": "compiler/tests-spec/testData/diagnostics/linked/overload-resolution/building-the-overload-candidate-set-ocs/call-with-an-explicit-receiver/p-6/pos/2.4.kt",
           "unexpectedBehaviour": false

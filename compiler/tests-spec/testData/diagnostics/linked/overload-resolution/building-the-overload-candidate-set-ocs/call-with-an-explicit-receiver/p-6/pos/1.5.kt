@@ -17,7 +17,7 @@
  * DESCRIPTION: sets of non-extension member callables, local, explicitly imported, declared in the package scope and star-imported extension callables
  */
 
-// TESTCASE NUMBER: 1, 2, 3
+// TESTCASE NUMBER: 1, 2, 3, 4, 5
 
 // FILE: Marker.kt
 package libPackage
@@ -65,4 +65,18 @@ fun case2() {
 fun case3() {
     fun Marker.<!EXTENSION_SHADOWED_BY_MEMBER!>foo<!>() = println("local extension marker.foo")
     Marker().<!DEBUG_INFO_AS_CALL("fqName: libPackage.Marker.foo; typeCall: function; ")!>foo()<!>
+}
+
+// TESTCASE NUMBER: 4
+fun case4(marker : Marker?) {
+    marker?.<!DEBUG_INFO_AS_CALL("fqName: libPackage.Marker.foo; typeCall: function; ")!>foo()<!>
+}
+
+// TESTCASE NUMBER: 5
+fun case5(marker : Marker?) {
+    fun bar(){
+        fun Marker.<!EXTENSION_SHADOWED_BY_MEMBER!>foo<!>() = println("local extension marker.foo")
+        marker?.<!DEBUG_INFO_AS_CALL("fqName: libPackage.Marker.foo; typeCall: function; ")!>foo()<!>
+    }
+    marker?.<!DEBUG_INFO_AS_CALL("fqName: libPackage.Marker.foo; typeCall: function; ")!>foo()<!>
 }

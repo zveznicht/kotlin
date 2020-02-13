@@ -8,9 +8,10 @@
  * SPEC VERSION: 0.1-268
  * PLACE:  overload-resolution, building-the-overload-candidate-set-ocs, call-with-an-explicit-receiver -> paragraph 6 -> sentence 2
  * RELEVANT PLACES:  overload-resolution, building-the-overload-candidate-set-ocs, call-with-an-explicit-receiver -> paragraph 6 -> sentence 3
- *  overload-resolution, building-the-overload-candidate-set-ocs, call-with-an-explicit-receiver -> paragraph 6 -> sentence 4
- *  overload-resolution, building-the-overload-candidate-set-ocs, call-with-an-explicit-receiver -> paragraph 6 -> sentence 5
- *  overload-resolution, building-the-overload-candidate-set-ocs, call-with-an-explicit-receiver -> paragraph 11 -> sentence 1
+ * overload-resolution, building-the-overload-candidate-set-ocs, call-with-an-explicit-receiver -> paragraph 6 -> sentence 4
+ * overload-resolution, building-the-overload-candidate-set-ocs, call-with-an-explicit-receiver -> paragraph 6 -> sentence 5
+ * overload-resolution, building-the-overload-candidate-set-ocs, call-with-an-explicit-receiver -> paragraph 11 -> sentence 1
+ * overload-resolution, receivers -> paragraph 5 -> sentence 1
  * NUMBER: 4
  * DESCRIPTION: sets of local, explicitly imported, declared in the package scope and star-imported extension callables
  */
@@ -44,10 +45,27 @@ import libPackage.*
 
 private fun String?.orEmpty(): String = "my top-level (pack scope) Extension for $this"
 
-// TESTCASE NUMBER: 1
+// TESTCASE NUMBER: 2
 class Case2() {
     fun String?.orEmpty(): String = "my local extension for $this"
     fun case2(s: String?) {
         s.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case2.orEmpty; typeCall: function; ")!>orEmpty()<!>
+    }
+}
+
+// TESTCASE NUMBER: 3
+class Case3() {
+    fun String?.orEmpty(): String = "my local extension for $this"
+    fun case3(s: String?) {
+        s.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.orEmpty; typeCall: function; ")!>orEmpty()<!>
+        fun innerFirst(s: String?){
+            fun String?.orEmpty(): String = "my local inner extension for $this"
+            <!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.innerFirst.s; typeCall: typeCall is unknown; ")!>s<!>?.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.innerFirst.orEmpty; typeCall: function; ")!>orEmpty()<!>
+        }
+        fun innerSecond(){
+            fun String?.orEmpty(): String = "my local inner extension for $this"
+            <!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.s; typeCall: typeCall is unknown; ")!>s<!>.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.innerSecond.orEmpty; typeCall: function; ")!>orEmpty()<!>
+        }
+        s.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.orEmpty; typeCall: function; ")!>orEmpty()<!>
     }
 }
