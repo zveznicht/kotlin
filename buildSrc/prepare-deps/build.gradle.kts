@@ -9,6 +9,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 import javax.xml.stream.XMLOutputFactory
 
+import org.jetbrains.kotlin.gradle.tasks.internal.CleanableStore
+import org.jetbrains.kotlin.gradle.tasks.CleanOldStoredDataTask
+
 plugins {
     base
 }
@@ -105,7 +108,7 @@ val nodeJSPlugin by configurations.creating
 val intellijRuntimeAnnotations = "intellij-runtime-annotations"
 
 val dependenciesDir = (findProperty("kotlin.build.dependencies.dir") as String?)?.let(::File)
-    ?: rootProject.rootDir.parentFile.resolve("dependencies")
+    ?:  rootProject.gradle.gradleUserHomeDir.resolve("kotlin-build-dependency")
 
 val customDepsRepoDir = dependenciesDir.resolve("repo")
 
@@ -147,9 +150,10 @@ val makeIntellijCore = buildIvyRepositoryTask(intellijCore, customDepsOrg, custo
 val makeIntellijAnnotations by tasks.registering(Copy::class) {
     dependsOn(makeIntellijCore)
 
-    from(repoDir.resolve("intellij-core/$intellijVersion/artifacts/annotations.jar"))
+    val intellijCoreRepo = CleanableStore[repoDir.resolve("intellij-core").absolutePath][intellijVersion].use()
+    from(intellijCoreRepo.resolve("artifacts/annotations.jar"))
 
-    val targetDir = File(repoDir, "$intellijRuntimeAnnotations/$intellijVersion")
+    val targetDir = CleanableStore[repoDir.resolve(intellijRuntimeAnnotations).absolutePath][intellijVersion].use()
     into(targetDir)
 
     val ivyFile = File(targetDir, "$intellijRuntimeAnnotations.ivy.xml")
@@ -186,8 +190,8 @@ val makeIde = if (androidStudioBuild != null) {
         customDepsOrg,
         customDepsRepoDir,
         if (androidStudioOs == "mac")
-            ::skipContentsDirectory 
-        else 
+            ::skipContentsDirectory
+        else
             ::skipToplevelDirectory
     )
 } else {
@@ -239,7 +243,7 @@ fun buildIvyRepositoryTask(
 ) = tasks.register("buildIvyRepositoryFor${configuration.name.capitalize()}") {
 
     fun ResolvedArtifact.moduleDirectory(): File =
-        File(repoDirectory, "$organization/${moduleVersion.id.name}/${moduleVersion.id.version}")
+        CleanableStore[repoDirectory.resolve("$organization/${moduleVersion.id.name}").absolutePath][moduleVersion.id.version].use()
 
     dependsOn(configuration)
     inputs.files(configuration)
