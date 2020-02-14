@@ -11695,6 +11695,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
     public static class FunInterface extends AbstractLightAnalysisModeTest {
+        @TestMetadata("funInterfaceInheritance.kt")
+        public void ignoreFunInterfaceInheritance() throws Exception {
+            runTest("compiler/testData/codegen/box/funInterface/funInterfaceInheritance.kt");
+        }
+
         private void runTest(String testDataFilePath) throws Exception {
             KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
         }
@@ -11723,6 +11728,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             runTest("compiler/testData/codegen/box/funInterface/inlinedSamWrapper.kt");
         }
 
+        @TestMetadata("multimodule.kt")
+        public void testMultimodule() throws Exception {
+            runTest("compiler/testData/codegen/box/funInterface/multimodule.kt");
+        }
+
         @TestMetadata("nullableSam.kt")
         public void testNullableSam() throws Exception {
             runTest("compiler/testData/codegen/box/funInterface/nullableSam.kt");
@@ -11731,6 +11741,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         @TestMetadata("partialSam.kt")
         public void testPartialSam() throws Exception {
             runTest("compiler/testData/codegen/box/funInterface/partialSam.kt");
+        }
+
+        @TestMetadata("primitiveConversions.kt")
+        public void testPrimitiveConversions() throws Exception {
+            runTest("compiler/testData/codegen/box/funInterface/primitiveConversions.kt");
         }
 
         @TestMetadata("receiverEvaluatedOnce.kt")
