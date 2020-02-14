@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.resolve.descriptorUtil.isEffectivelyExternal
+import org.jetbrains.kotlin.types.TypeUtils
 
 typealias ReportError = (element: IrElement, message: String) -> Unit
 
@@ -53,7 +54,7 @@ class CheckIrElementVisitor(
         if (!config.checkTypes)
             return
 
-        if (actualType != expectedType) {
+        if (!actualType.isSubtypeOf(expectedType, irBuiltIns)) {
             reportError(this, "unexpected type: expected ${expectedType.render()}, got ${actualType.render()}")
         }
     }
@@ -132,14 +133,7 @@ class CheckIrElementVisitor(
     override fun visitGetField(expression: IrGetField) {
         super.visitGetField(expression)
 
-        val fieldType = expression.symbol.owner.type
-        // TODO: We don't have the proper type substitution yet, so skip generics for now.
-        if (fieldType is IrSimpleType &&
-                fieldType.classifier is IrClassSymbol &&
-                fieldType.arguments.isEmpty()
-        ) {
-            expression.ensureTypeIs(fieldType)
-        }
+        expression.ensureTypeIs(expression.symbol.owner.type)
     }
 
     override fun visitSetField(expression: IrSetField) {
