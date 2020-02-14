@@ -5,19 +5,20 @@
 
 package org.jetbrains.kotlinx.stm.compiler.extensions
 
-import org.jetbrains.kotlin.backend.common.BackendContext
 import org.jetbrains.kotlin.backend.common.ClassLoweringPass
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.runOnFilePostfix
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlinx.stm.compiler.backend.ir.StmIrGenerator
+import org.jetbrains.kotlinx.stm.compiler.SHARED_MUTABLE_ANNOTATION
 
 /**
  * Copy of [runOnFilePostfix], but this implementation first lowers declaration, then its children.
@@ -36,21 +37,27 @@ fun ClassLoweringPass.runOnFileInOrder(irFile: IrFile) {
 }
 
 private class StmClassLowering(
-    val context: BackendContext,
-    val bindingContext: BindingContext
+    val pluginContext: IrPluginContext
 ) :
     IrElementTransformerVoid(), ClassLoweringPass {
     override fun lower(irClass: IrClass) {
-        StmIrGenerator.generate(irClass, context, bindingContext)
+        if (!irClass.descriptor.annotations.hasAnnotation(SHARED_MUTABLE_ANNOTATION)) return
+
+        StmIrGenerator.generate(
+            irClass,
+            pluginContext,
+            pluginContext.symbolTable
+        )
     }
 }
 
 open class StmLoweringExtension : IrGenerationExtension {
     override fun generate(
-        file: IrFile,
-        backendContext: BackendContext,
-        bindingContext: BindingContext
+        moduleFragment: IrModuleFragment,
+        pluginContext: IrPluginContext
     ) {
-        StmClassLowering(backendContext, bindingContext).runOnFileInOrder(file)
+        val stmClassLowering = StmClassLowering(pluginContext)
+        for (file in moduleFragment.files)
+            stmClassLowering.runOnFileInOrder(file)
     }
 }

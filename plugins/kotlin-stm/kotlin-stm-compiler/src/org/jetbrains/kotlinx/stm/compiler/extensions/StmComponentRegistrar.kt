@@ -34,6 +34,7 @@ class StmComponentRegistrar : ComponentRegistrar {
         fun registerExtensions(project: Project) {
             SyntheticResolveExtension.registerExtension(project, StmResolveExtension())
 
+
             IrGenerationExtension.registerExtension(project, StmLoweringExtension())
         }
     }
