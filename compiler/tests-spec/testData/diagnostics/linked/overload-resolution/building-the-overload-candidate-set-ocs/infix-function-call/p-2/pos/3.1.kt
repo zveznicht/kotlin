@@ -14,6 +14,7 @@
  * DESCRIPTION: Local extension infix extension callables
  */
 
+// TESTCASE NUMBER: 0, 1, 2, 3, 4
 // FILE: Extensions.kt
 package libPackage
 
@@ -95,4 +96,27 @@ fun case4() {
     }
 }
 
+// FILE: TestCase5.kt
+// TESTCASE NUMBER: 5
+package testPackNew
 
+class A() {
+    fun foo(i: Int) {}
+    infix fun A.foo(i: Int) {}
+
+    fun bar(a: A) {
+        //todo: add info if function is infix one
+       <!DEBUG_INFO_AS_CALL("")!>a foo 1<!>
+    }
+
+    fun buz(a: A){
+        fun foo(i: Int) {}
+        //todo: add info if function is infix one
+        <!DEBUG_INFO_AS_CALL("")!>a foo 1<!>
+    }
+
+    fun boo(a: A){
+        infix fun A.foo(i: Int) {}
+        <!DEBUG_INFO_AS_CALL("fqName: testPackNew.A.boo.foo; typeCall: function; ")!>a foo 1<!>
+    }
+}
