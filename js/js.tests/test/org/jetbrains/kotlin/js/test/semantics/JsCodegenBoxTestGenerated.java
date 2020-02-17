@@ -3781,6 +3781,11 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/collections"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS, true);
         }
 
+        @TestMetadata("doubleInheritance.kt")
+        public void testDoubleInheritance() throws Exception {
+            runTest("compiler/testData/codegen/box/collections/doubleInheritance.kt");
+        }
+
         @TestMetadata("inSetWithSmartCast.kt")
         public void testInSetWithSmartCast() throws Exception {
             runTest("compiler/testData/codegen/box/collections/inSetWithSmartCast.kt");

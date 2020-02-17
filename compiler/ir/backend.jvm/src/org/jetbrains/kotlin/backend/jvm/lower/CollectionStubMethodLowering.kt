@@ -174,25 +174,20 @@ private class CollectionStubMethodLowering(val context: JvmBackendContext) : Cla
 
     // Compute stubs that should be generated, compare based on signature
     private fun generateRelevantStubMethods(irClass: IrClass): Set<IrSimpleFunction> {
-        val ourStubsForCollectionClasses = preComputedStubs.filter { (readOnlyClass, mutableClass) ->
-            irClass.superTypes.any { supertypeSymbol ->
-                val supertype = supertypeSymbol.classOrNull?.owner
-                // We need to generate stub methods for following 2 cases:
-                // current class's direct super type is a java class or kotlin interface, and is an subtype of an immutable collection
-                supertype != null
-                        && (supertype.comesFromJava() || supertype.isInterface)
-                        && supertypeSymbol.isSubtypeOfClass(readOnlyClass)
-                        && !irClass.symbol.isSubtypeOfClass(mutableClass)
-            }
-        }
+        val ourStubsForCollectionClasses = irClass.getStubsForCollectionClasses()
 
         // do a second filtering to ensure only most relevant classes are included.
         val redundantClasses = ourStubsForCollectionClasses.filter { (readOnlyClass) ->
             ourStubsForCollectionClasses.any { readOnlyClass != it.readOnlyClass && it.readOnlyClass.isSubtypeOfClass(readOnlyClass) }
         }.map { it.readOnlyClass }
 
+        // Filter out what's already defined in superclass.
+        val parentStubsForCollectionClasses = irClass.superClass()?.takeIf { !it.comesFromJava() }?.getStubsForCollectionClasses()
+            ?: emptySet()
+        val ourNewStubsForCollectionClasses = ourStubsForCollectionClasses - parentStubsForCollectionClasses
+
         // perform type substitution and type erasure here
-        return ourStubsForCollectionClasses.filter { (readOnlyClass) ->
+        return ourNewStubsForCollectionClasses.filter { (readOnlyClass) ->
             readOnlyClass !in redundantClasses
         }.flatMap { (readOnlyClass, mutableClass, mutableOnlyMethods) ->
             val substitutionMap = computeSubstitutionMap(readOnlyClass.owner, mutableClass.owner, irClass)
@@ -202,15 +197,38 @@ private class CollectionStubMethodLowering(val context: JvmBackendContext) : Cla
         }.toHashSet()
     }
 
-    fun IrClass.comesFromJava() = origin == IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB
+    private val stubsForCollectionClassesMap = mutableMapOf<IrClass, Set<StubsForCollectionClass>>()
+    private fun IrClass.getStubsForCollectionClasses() = stubsForCollectionClassesMap.getOrPut(this) {
+        preComputedStubs.filter { (readOnlyClass, mutableClass) ->
+            superTypes.any { supertypeSymbol ->
+                val supertype = supertypeSymbol.classOrNull?.owner
+                // We need to generate stub methods for following 2 cases:
+                // current class's direct super type is a java class or kotlin interface, and is an subtype of an immutable collection
+                supertype != null
+                        && (supertype.comesFromJava() || supertype.isInterface)
+                        && supertypeSymbol.isSubtypeOfClass(readOnlyClass)
+                        && !symbol.isSubtypeOfClass(mutableClass)
+            }
+        }.toSet()
+    }
 
-    private fun Collection<IrType>.findMostSpecificTypeForClass(classifier: IrClassSymbol): IrType {
-        val types = this.filter { it.classifierOrNull == classifier }
-        if (types.isEmpty()) error("No supertype of $classifier in $this")
-        if (types.size == 1) return types.first()
-        // Find the first type in the list such that it's a subtype of every other type in that list
-        return types.first { type ->
-            types.all { other -> type.isSubtypeOfClass(other.classOrNull!!) }
+    companion object {
+        fun IrClass.superClass() = superTypes.asSequence().mapNotNull {
+            (it as? IrSimpleType)?.classifier?.owner as? IrClass
+        }.singleOrNull {
+            !it.isInterface
+        }
+
+        fun IrClass.comesFromJava() = origin == IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB
+
+        private fun Collection<IrType>.findMostSpecificTypeForClass(classifier: IrClassSymbol): IrType {
+            val types = this.filter { it.classifierOrNull == classifier }
+            if (types.isEmpty()) error("No supertype of $classifier in $this")
+            if (types.size == 1) return types.first()
+            // Find the first type in the list such that it's a subtype of every other type in that list
+            return types.first { type ->
+                types.all { other -> type.isSubtypeOfClass(other.classOrNull!!) }
+            }
         }
     }
 }

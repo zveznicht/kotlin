@@ -4521,6 +4521,11 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
             runTest("compiler/testData/codegen/box/collections/charSequence.kt");
         }
 
+        @TestMetadata("doubleInheritance.kt")
+        public void testDoubleInheritance() throws Exception {
+            runTest("compiler/testData/codegen/box/collections/doubleInheritance.kt");
+        }
+
         @TestMetadata("implementCollectionThroughKotlin.kt")
         public void testImplementCollectionThroughKotlin() throws Exception {
             runTest("compiler/testData/codegen/box/collections/implementCollectionThroughKotlin.kt");
