@@ -834,11 +834,15 @@ public abstract class CodegenTestCase extends KtUsefulTestCase {
             public TestFile create(@NotNull String fileName, @NotNull String text, @NotNull Map<String, String> directives) {
                 return new TestFile(fileName, text);
             }
-        }, coroutinesPackage);
+        }, coroutinesPackage, parseDirectivesPerFiles());
         if (InTextDirectivesUtils.isDirectiveDefined(expectedText, "WITH_HELPERS")) {
             testFiles.add(new TestFile("CodegenTestHelpers.kt", TestHelperGeneratorKt.createTextForCodegenTestHelpers(getBackend())));
         }
         return testFiles;
+    }
+
+    protected boolean parseDirectivesPerFiles() {
+        return false;
     }
 
     @NotNull
