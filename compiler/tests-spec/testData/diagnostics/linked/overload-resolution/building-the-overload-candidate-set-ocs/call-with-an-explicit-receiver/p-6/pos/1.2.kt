@@ -25,26 +25,26 @@ class Case1() {
     val foo = object : Marker {}
 
     fun innerFun() {
-        <!DEBUG_INFO_AS_CALL("fqName: Case1.foo; typeCall: function; ")!>foo()<!>
-        this.<!DEBUG_INFO_AS_CALL("fqName: Case1.foo; typeCall: function; ")!>foo()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: Case1.foo; typeCall: function")!>foo()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: Case1.foo; typeCall: function")!>foo()<!>
     }
 
     inner class InnerClass0 {
         val foo = object : Marker {}
 
         fun innerClassFun() {
-            <!DEBUG_INFO_AS_CALL("fqName: Marker.invoke; typeCall: variable&invoke; ")!>foo()<!>
-            this.<!DEBUG_INFO_AS_CALL("fqName: Marker.invoke; typeCall: variable&invoke; ")!>foo()<!>
-            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: Case1.foo; typeCall: function; ")!>foo()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: Marker.invoke; typeCall: variable&invoke")!>foo()<!>
+            this.<!DEBUG_INFO_AS_CALL("fqName: Marker.invoke; typeCall: variable&invoke")!>foo()<!>
+            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: Case1.foo; typeCall: function")!>foo()<!>
         }
     }
     inner class InnerClass1 {
         fun foo() : Int =1
 
         fun innerClassFun() {
-            <!DEBUG_INFO_AS_CALL("fqName: Case1.InnerClass1.foo; typeCall: function; ")!>foo()<!>
-            this.<!DEBUG_INFO_AS_CALL("fqName: Case1.InnerClass1.foo; typeCall: function; ")!>foo()<!>
-            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: Case1.foo; typeCall: function; ")!>foo()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: Case1.InnerClass1.foo; typeCall: function")!>foo()<!>
+            this.<!DEBUG_INFO_AS_CALL("fqName: Case1.InnerClass1.foo; typeCall: function")!>foo()<!>
+            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: Case1.foo; typeCall: function")!>foo()<!>
         }
     }
 }

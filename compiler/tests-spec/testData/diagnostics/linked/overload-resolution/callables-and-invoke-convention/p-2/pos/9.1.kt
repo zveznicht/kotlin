@@ -22,8 +22,8 @@ class Case1() {
         foo, boo;
 
         fun f() {
-            <!DEBUG_INFO_AS_CALL("fqName: testPackage.Case1.A.invoke; typeCall: variable&invoke; ")!>foo()<!>
-            <!DEBUG_INFO_AS_CALL("fqName: testPackage.Case1.A.invoke; typeCall: function; ")!>foo.invoke()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: testPackage.Case1.A.invoke; typeCall: variable&invoke")!>foo()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: testPackage.Case1.A.invoke; typeCall: operator function")!>foo.invoke()<!>
         }
 
         operator fun invoke() {}
@@ -45,7 +45,7 @@ class Case2() {
         foo, boo, zoo;
 
         fun f() {
-            <!DEBUG_INFO_AS_CALL("fqName: testPackage.Case2.A.invoke; typeCall: variable&invoke; ")!>foo()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: testPackage.Case2.A.invoke; typeCall: variable&invoke")!>foo()<!>
         }
 
         operator fun invoke() {}

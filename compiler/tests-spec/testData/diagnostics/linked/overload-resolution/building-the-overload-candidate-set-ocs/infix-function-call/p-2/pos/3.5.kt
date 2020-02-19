@@ -31,6 +31,6 @@ import libPackage.*
 
 fun case1() {
     val regex = Regex("")
-    <!DEBUG_INFO_AS_CALL("fqName: libPackage.contains; typeCall: function; ")!>"" contains  regex<!>
+    <!DEBUG_INFO_AS_CALL("fqName: libPackage.contains; typeCall: infix operator extension function")!>"" contains  regex<!>
 }
 

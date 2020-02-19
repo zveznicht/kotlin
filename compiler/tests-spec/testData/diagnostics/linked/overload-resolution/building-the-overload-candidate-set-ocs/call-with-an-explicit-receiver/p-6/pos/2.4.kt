@@ -34,7 +34,7 @@ private fun String?.orEmpty(): String = "my top-level (pack scope) Extension for
 class Case1() {
     fun String?.orEmpty(): String = "my local extension for $this"
     fun case1(s: String?) {
-        s.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case1.orEmpty; typeCall: function; ")!>orEmpty()<!>
+        s.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case1.orEmpty; typeCall: extension function")!>orEmpty()<!>
     }
 }
 
@@ -49,7 +49,7 @@ private fun String?.orEmpty(): String = "my top-level (pack scope) Extension for
 class Case2() {
     fun String?.orEmpty(): String = "my local extension for $this"
     fun case2(s: String?) {
-        s.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case2.orEmpty; typeCall: function; ")!>orEmpty()<!>
+        s.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case2.orEmpty; typeCall: extension function")!>orEmpty()<!>
     }
 }
 
@@ -57,15 +57,15 @@ class Case2() {
 class Case3() {
     fun String?.orEmpty(): String = "my local extension for $this"
     fun case3(s: String?) {
-        s.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.orEmpty; typeCall: function; ")!>orEmpty()<!>
+        s.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.orEmpty; typeCall: extension function")!>orEmpty()<!>
         fun innerFirst(s: String?){
             fun String?.orEmpty(): String = "my local inner extension for $this"
-            <!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.innerFirst.s; typeCall: typeCall is unknown; ")!>s<!>?.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.innerFirst.orEmpty; typeCall: function; ")!>orEmpty()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.innerFirst.s; typeCall: typeCall is unknown")!>s<!>?.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.innerFirst.orEmpty; typeCall: extension function")!>orEmpty()<!>
         }
         fun innerSecond(){
             fun String?.orEmpty(): String = "my local inner extension for $this"
-            <!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.s; typeCall: typeCall is unknown; ")!>s<!>.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.innerSecond.orEmpty; typeCall: function; ")!>orEmpty()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.s; typeCall: typeCall is unknown")!>s<!>.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.case3.innerSecond.orEmpty; typeCall: extension function")!>orEmpty()<!>
         }
-        s.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.orEmpty; typeCall: function; ")!>orEmpty()<!>
+        s.<!DEBUG_INFO_AS_CALL("fqName: sentence3.Case3.orEmpty; typeCall: extension function")!>orEmpty()<!>
     }
 }

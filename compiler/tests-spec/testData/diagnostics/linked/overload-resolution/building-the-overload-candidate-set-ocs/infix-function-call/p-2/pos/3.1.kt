@@ -40,8 +40,8 @@ class Case1() {
 
     fun case1() {
         val a = A()
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: function; ")!>a foo 1<!>
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: function; ")!>A() foo 1<!>
+        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: infix function")!>a foo 1<!>
+        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: infix function")!>A() foo 1<!>
     }
 }
 // FILE: TestCase2.kt
@@ -55,8 +55,8 @@ interface Case2 {
 
     fun case2() {
         val a = A()
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: function; ")!>a foo 1<!>
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: function; ")!>A() foo 1<!>
+        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: infix function")!>a foo 1<!>
+        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: infix function")!>A() foo 1<!>
     }
 }
 
@@ -72,8 +72,8 @@ fun case3() {
     infix fun A.<!EXTENSION_SHADOWED_BY_MEMBER!>foo<!>(x: Int) = "my local scope contains"
 
     val a = A()
-    <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: function; ")!>a foo 1<!>
-    <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: function; ")!>A() foo 1<!>
+    <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: infix function")!>a foo 1<!>
+    <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: infix function")!>A() foo 1<!>
 }
 
 // FILE: TestCase4.kt
@@ -91,8 +91,8 @@ fun case4() {
     fun subfun() {
         infix fun A.<!EXTENSION_SHADOWED_BY_MEMBER!>foo<!>(x: Int) = "my local contains"
         val a = A()
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: function; ")!>a foo 1<!>
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: function; ")!>A() foo 1<!>
+        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: infix function")!>a foo 1<!>
+        <!DEBUG_INFO_AS_CALL("fqName: libPackage.A.foo; typeCall: infix function")!>A() foo 1<!>
     }
 }
 
@@ -106,17 +106,17 @@ class A() {
 
     fun bar(a: A) {
         //todo: add info if function is infix one
-       <!DEBUG_INFO_AS_CALL("")!>a foo 1<!>
+       <!DEBUG_INFO_AS_CALL("fqName: testPackNew.A.foo; typeCall: infix extension function")!>a foo 1<!>
     }
 
     fun buz(a: A){
         fun foo(i: Int) {}
         //todo: add info if function is infix one
-        <!DEBUG_INFO_AS_CALL("")!>a foo 1<!>
+        <!DEBUG_INFO_AS_CALL("fqName: testPackNew.A.foo; typeCall: infix extension function")!>a foo 1<!>
     }
 
     fun boo(a: A){
         infix fun A.foo(i: Int) {}
-        <!DEBUG_INFO_AS_CALL("fqName: testPackNew.A.boo.foo; typeCall: function; ")!>a foo 1<!>
+        <!DEBUG_INFO_AS_CALL("fqName: testPackNew.A.boo.foo; typeCall: infix extension function")!>a foo 1<!>
     }
 }

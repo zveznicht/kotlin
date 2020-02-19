@@ -23,5 +23,5 @@ import libPackage.* //nothing to import, extension is private
 
 // TESTCASE NUMBER: 1
 fun case2(s: String) {
-    <!DEBUG_INFO_AS_CALL("fqName: kotlin.text.orEmpty; typeCall: function; ")!>s.orEmpty()<!>
+    <!DEBUG_INFO_AS_CALL("fqName: kotlin.text.orEmpty; typeCall: inline extension function")!>s.orEmpty()<!>
 }

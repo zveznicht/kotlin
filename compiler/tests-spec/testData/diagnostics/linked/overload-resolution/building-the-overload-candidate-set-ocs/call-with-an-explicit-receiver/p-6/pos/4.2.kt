@@ -28,6 +28,6 @@ private fun String?.orEmpty(): String = "my top level extension for $this"
 
 // TESTCASE NUMBER: 1
 fun case2(s: String?) {
-    <!DEBUG_INFO_AS_CALL("fqName: sentence3.orEmpty; typeCall: function; ")!>s.orEmpty()<!>
+    <!DEBUG_INFO_AS_CALL("fqName: sentence3.orEmpty; typeCall: extension function")!>s.orEmpty()<!>
 }
 

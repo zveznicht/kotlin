@@ -28,16 +28,16 @@ open class Case1() {
     val markerObj = object : Marker {}
 
     fun innerFun() {
-        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke; ")!>foo()<!>
-        Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke; ")!>foo()<!>
-        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke; ")!>propVal()<!>
-        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke; ")!>propVal()<!>
-        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke; ")!>propVar()<!>
-        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke; ")!>propVar()<!>
-        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.function; typeCall: function; ")!>function()<!>
-        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.function; typeCall: function; ")!>function()<!>
-        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke; ")!>markerObj()<!>
-        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke; ")!>markerObj()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke")!>foo()<!>
+        Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke")!>foo()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke")!>propVal()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke")!>propVal()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke")!>propVar()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke")!>propVar()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.function; typeCall: function")!>function()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.function; typeCall: function")!>function()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke")!>markerObj()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke")!>markerObj()<!>
     }
 
     operator fun Int.invoke() {}
@@ -45,20 +45,20 @@ open class Case1() {
     inner class InnerClass {
 
         fun innerClassFun() {
-            <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke; ")!>foo()<!>
-            Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke; ")!>foo()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke")!>foo()<!>
+            Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke")!>foo()<!>
 
-            <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke; ")!>propVal()<!>
-            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke; ")!>propVal()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke")!>propVal()<!>
+            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke")!>propVal()<!>
 
-            <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke; ")!>propVar()<!>
-            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke; ")!>propVar()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke")!>propVar()<!>
+            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.invoke; typeCall: variable&invoke")!>propVar()<!>
 
-            <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.function; typeCall: function; ")!>function()<!>
-            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.function; typeCall: function; ")!>function()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.function; typeCall: function")!>function()<!>
+            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.function; typeCall: function")!>function()<!>
 
-            <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke; ")!>markerObj()<!>
-            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke; ")!>markerObj()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke")!>markerObj()<!>
+            this@Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke")!>markerObj()<!>
         }
     }
 }
@@ -70,20 +70,20 @@ interface Marker {
 class ExtendCase1() : Case1() {
 
     fun extFun() {
-        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke; ")!>foo()<!>
-        Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke; ")!>foo()<!>
-        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.invoke; typeCall: variable&invoke; ")!>propVal()<!>
-        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.invoke; typeCall: variable&invoke; ")!>propVal()<!>
-        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.invoke; typeCall: variable&invoke; ")!>propVar()<!>
-        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.invoke; typeCall: variable&invoke; ")!>propVar()<!>
-        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.function; typeCall: function; ")!>function()<!>
-        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.function; typeCall: function; ")!>function()<!>
-        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke; ")!>markerObj()<!>
-        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke; ")!>markerObj()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke")!>foo()<!>
+        Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke")!>foo()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.invoke; typeCall: variable&invoke")!>propVal()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.invoke; typeCall: variable&invoke")!>propVal()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.invoke; typeCall: variable&invoke")!>propVar()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.invoke; typeCall: variable&invoke")!>propVar()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.function; typeCall: function")!>function()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.ExtendCase1.function; typeCall: function")!>function()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke")!>markerObj()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Marker.invoke; typeCall: variable&invoke")!>markerObj()<!>
     }
 }
 
 fun case6() {
-    Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: function; ")!>invoke()<!>
-    Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke; ")!>foo()<!>
+    Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: operator function")!>invoke()<!>
+    Case1.<!DEBUG_INFO_AS_CALL("fqName: tests.test2.Case1.foo.invoke; typeCall: variable&invoke")!>foo()<!>
 }

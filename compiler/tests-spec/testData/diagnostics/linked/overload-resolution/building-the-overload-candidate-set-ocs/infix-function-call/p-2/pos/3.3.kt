@@ -40,7 +40,7 @@ import libPackage.contains
 
 fun case1() {
     val regex = Regex("")
-    <!DEBUG_INFO_AS_CALL("fqName: libPackage.contains; typeCall: function; ")!>"" contains  regex<!>
+    <!DEBUG_INFO_AS_CALL("fqName: libPackage.contains; typeCall: infix operator extension function")!>"" contains  regex<!>
 }
 
 // FILE: TestCase2.kt
@@ -56,6 +56,6 @@ fun case2() {
         return true
     }
     val regex = Regex("")
-    <!DEBUG_INFO_AS_CALL("fqName: sentence3.case2.contains; typeCall: function; ")!>"" contains  regex<!>
+    <!DEBUG_INFO_AS_CALL("fqName: sentence3.case2.contains; typeCall: infix operator extension function")!>"" contains  regex<!>
 }
 

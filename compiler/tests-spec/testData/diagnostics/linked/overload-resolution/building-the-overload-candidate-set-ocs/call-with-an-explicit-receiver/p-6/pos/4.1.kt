@@ -28,11 +28,11 @@ class Case1 {
 }
 
 fun case1() {
-    Case1().<!DEBUG_INFO_AS_CALL("fqName: tests.diag.invoke; typeCall: variable&invoke; ")!>foo()<!>
+    Case1().<!DEBUG_INFO_AS_CALL("fqName: tests.diag.invoke; typeCall: variable&invoke")!>foo()<!>
     val a = Case1()
-    a.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.invoke; typeCall: variable&invoke; ")!>foo()<!>
+    a.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.invoke; typeCall: variable&invoke")!>foo()<!>
     var b = Case1()
-    b.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.invoke; typeCall: variable&invoke; ")!>foo()<!>
+    b.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.invoke; typeCall: variable&invoke")!>foo()<!>
 }
 
 // TESTCASE NUMBER: 2
@@ -42,11 +42,11 @@ class Case2 {
 }
 
 fun case2() {
-    Case2().<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case2.foo; typeCall: function; ")!>foo()<!>
+    Case2().<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case2.foo; typeCall: function")!>foo()<!>
     val a = Case2()
-    a.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case2.foo; typeCall: function; ")!>foo()<!>
+    a.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case2.foo; typeCall: function")!>foo()<!>
     var b = Case2()
-    b.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case2.foo; typeCall: function; ")!>foo()<!>
+    b.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case2.foo; typeCall: function")!>foo()<!>
 }
 
 // TESTCASE NUMBER: 3
@@ -55,16 +55,16 @@ class Case3() {
     fun foo(): Int = 1
 
     fun f() {
-        this.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case3.foo; typeCall: function; ")!>foo()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case3.foo; typeCall: function")!>foo()<!>
     }
 }
 
 fun case3() {
-    Case3().<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case3.foo; typeCall: function; ")!>foo()<!>
+    Case3().<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case3.foo; typeCall: function")!>foo()<!>
     val a = Case3()
-    a.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case3.foo; typeCall: function; ")!>foo()<!>
+    a.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case3.foo; typeCall: function")!>foo()<!>
     var b = Case3()
-    b.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case3.foo; typeCall: function; ")!>foo()<!>
+    b.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case3.foo; typeCall: function")!>foo()<!>
 }
 
 // TESTCASE NUMBER: 4
@@ -72,16 +72,16 @@ class Case4() {
     val foo = object : Marker {}
 
     fun f() {
-       this.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Marker.invoke; typeCall: variable&invoke; ")!>foo()<!>
+       this.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Marker.invoke; typeCall: variable&invoke")!>foo()<!>
     }
 }
 
 fun case4() {
-    Case4().<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Marker.invoke; typeCall: variable&invoke; ")!>foo()<!>
+    Case4().<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Marker.invoke; typeCall: variable&invoke")!>foo()<!>
     val a = Case4()
-    a.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Marker.invoke; typeCall: variable&invoke; ")!>foo()<!>
+    a.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Marker.invoke; typeCall: variable&invoke")!>foo()<!>
     var b = Case4()
-    b.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Marker.invoke; typeCall: variable&invoke; ")!>foo()<!>
+    b.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Marker.invoke; typeCall: variable&invoke")!>foo()<!>
 }
 
 
@@ -91,19 +91,19 @@ class Case5() {
         operator fun invoke() {}
     }
 
-    fun innerFun() = this.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case5.foo; typeCall: function; ")!>foo()<!>
+    fun innerFun() = this.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case5.foo; typeCall: function")!>foo()<!>
 
     fun foo(): Int  = 1
 
 }
 
 fun case5() {
-    Case5().<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case5.foo; typeCall: function; ")!>foo()<!>
+    Case5().<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case5.foo; typeCall: function")!>foo()<!>
     val a = Case5()
-    a.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case5.foo; typeCall: function; ")!>foo()<!>
+    a.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case5.foo; typeCall: function")!>foo()<!>
 
     var b = Case5()
-    b.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case5.foo; typeCall: function; ")!>foo()<!>
+    b.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case5.foo; typeCall: function")!>foo()<!>
 }
 
 
@@ -113,10 +113,10 @@ class Case6() {
         operator fun invoke() {}
     }
 
-    fun innerFun() = <!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case6.foo.invoke; typeCall: variable&invoke; ")!>foo()<!>
+    fun innerFun() = <!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case6.foo.invoke; typeCall: variable&invoke")!>foo()<!>
 }
 
 fun case6() {
-    Case6.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case6.foo.invoke; typeCall: variable&invoke; ")!>foo()<!>
+    Case6.<!DEBUG_INFO_AS_CALL("fqName: tests.diag.Case6.foo.invoke; typeCall: variable&invoke")!>foo()<!>
 }
 

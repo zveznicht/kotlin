@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.resolve.calls.model.VariableAsFunctionResolvedCall
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValueFactory
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameUnsafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.expressions.typeInfoFactory.noTypeInfo
 import java.util.*
@@ -654,8 +655,19 @@ object CheckerTestUtil {
                 "variable&invoke"
             } else
                 when (resolvedCall.candidateDescriptor) {
-                    is PropertyDescriptor -> "variable"
-                    is FunctionDescriptor -> "function"
+                    is PropertyDescriptor -> {
+                        "variable"
+                    }
+                    is FunctionDescriptor -> {
+                        val functionDescriptor = resolvedCall.candidateDescriptor as FunctionDescriptor
+                        val res = StringBuilder()
+                        if (functionDescriptor.isInline) res.append("inline ")
+                        if (functionDescriptor.isInfix) res.append("infix ")
+                        if (functionDescriptor.isOperator) res.append("operator ")
+                        if (functionDescriptor.isExtension) res.append("extension ")
+                        res.append("function")
+                        return res.toString()
+                    }
                     else -> null
                 }
             return typeOfCall

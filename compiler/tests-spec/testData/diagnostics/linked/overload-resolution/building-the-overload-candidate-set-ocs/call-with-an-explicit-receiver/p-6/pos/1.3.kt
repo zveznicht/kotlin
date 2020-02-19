@@ -24,30 +24,30 @@ class Case1() {
     fun Marker.<!EXTENSION_SHADOWED_BY_MEMBER!>foo<!>() = println("local extension marker.foo")
 
     fun test() {
-        Marker().<!DEBUG_INFO_AS_CALL("fqName: Marker.foo; typeCall: function; ")!>foo()<!>
+        Marker().<!DEBUG_INFO_AS_CALL("fqName: Marker.foo; typeCall: function")!>foo()<!>
     }
 }
 
 fun case1() {
-    Marker().<!DEBUG_INFO_AS_CALL("fqName: Marker.foo; typeCall: function; ")!>foo()<!>
+    Marker().<!DEBUG_INFO_AS_CALL("fqName: Marker.foo; typeCall: function")!>foo()<!>
 }
 
 // TESTCASE NUMBER: 2
 class Case2() {
     fun test() {
         fun Marker.<!EXTENSION_SHADOWED_BY_MEMBER!>foo<!>() = println("local extension marker.foo")
-        Marker().<!DEBUG_INFO_AS_CALL("fqName: Marker.foo; typeCall: function; ")!>foo()<!>
+        Marker().<!DEBUG_INFO_AS_CALL("fqName: Marker.foo; typeCall: function")!>foo()<!>
     }
 }
 
 fun Marker.<!EXTENSION_SHADOWED_BY_MEMBER!>foo<!>() = println("top level extension marker.foo")
 
 fun case2() {
-    Marker().<!DEBUG_INFO_AS_CALL("fqName: Marker.foo; typeCall: function; ")!>foo()<!>
+    Marker().<!DEBUG_INFO_AS_CALL("fqName: Marker.foo; typeCall: function")!>foo()<!>
 }
 
 // TESTCASE NUMBER: 3
 fun case3() {
     fun Marker.<!EXTENSION_SHADOWED_BY_MEMBER!>foo<!>() = println("local extension marker.foo")
-    Marker().<!DEBUG_INFO_AS_CALL("fqName: Marker.foo; typeCall: function; ")!>foo()<!>
+    Marker().<!DEBUG_INFO_AS_CALL("fqName: Marker.foo; typeCall: function")!>foo()<!>
 }

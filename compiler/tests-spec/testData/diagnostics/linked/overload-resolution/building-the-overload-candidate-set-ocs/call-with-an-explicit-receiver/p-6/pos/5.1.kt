@@ -24,5 +24,5 @@ import libPackage.*
 
 // TESTCASE NUMBER: 1
 fun case2(s: String?) {
-    <!DEBUG_INFO_AS_CALL("fqName: libPackage.orEmpty; typeCall: function; ")!>s.orEmpty()<!>
+    <!DEBUG_INFO_AS_CALL("fqName: libPackage.orEmpty; typeCall: extension function")!>s.orEmpty()<!>
 }

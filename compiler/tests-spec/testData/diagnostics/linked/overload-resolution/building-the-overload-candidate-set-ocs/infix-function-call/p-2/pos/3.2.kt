@@ -45,7 +45,7 @@ class Case1() {
 
     fun case1() {
         val regex = Regex("")
-        <!DEBUG_INFO_AS_CALL("fqName: sentence3.Case1.contains; typeCall: function; ")!>"" contains  regex<!>
+        <!DEBUG_INFO_AS_CALL("fqName: sentence3.Case1.contains; typeCall: infix operator extension function")!>"" contains  regex<!>
     }
 }
 // FILE: TestCase2.kt
@@ -62,7 +62,7 @@ interface Case2 {
 
     fun case2() {
         val regex = Regex("")
-        <!DEBUG_INFO_AS_CALL("fqName: sentence3.Case2.contains; typeCall: function; ")!>"" contains  regex<!>
+        <!DEBUG_INFO_AS_CALL("fqName: sentence3.Case2.contains; typeCall: infix operator extension function")!>"" contains  regex<!>
     }
 }
 
@@ -83,7 +83,7 @@ fun case3() {
     }
 
     val regex = Regex("")
-    <!DEBUG_INFO_AS_CALL("fqName: testPack.case3.contains; typeCall: function; ")!>"" contains  regex<!>
+    <!DEBUG_INFO_AS_CALL("fqName: testPack.case3.contains; typeCall: infix operator extension function")!>"" contains  regex<!>
 }
 
 // FILE: TestCase4.kt
@@ -111,7 +111,7 @@ fun case4() {
         }
 
         val regex = Regex("")
-        <!DEBUG_INFO_AS_CALL("fqName: testPackNew.case4.subfun.contains; typeCall: function; ")!>"" contains  regex<!>
+        <!DEBUG_INFO_AS_CALL("fqName: testPackNew.case4.subfun.contains; typeCall: infix operator extension function")!>"" contains  regex<!>
 
     }
 }

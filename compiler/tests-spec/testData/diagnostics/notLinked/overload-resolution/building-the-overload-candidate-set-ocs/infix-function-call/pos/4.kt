@@ -53,15 +53,15 @@ fun case1() {
 
         fun case() {
             val b = B()
-            <!DEBUG_INFO_AS_CALL("fqName: libPackage.B.fooC; typeCall: function; ")!>b fooC 3<!>
-            <!DEBUG_INFO_AS_CALL("fqName: libPackage.C.invoke; typeCall: variable&invoke; ")!>b barC 3<!>
+            <!DEBUG_INFO_AS_CALL("fqName: libPackage.B.fooC; typeCall: infix function")!>b fooC 3<!>
+            <!DEBUG_INFO_AS_CALL("fqName: libPackage.C.invoke; typeCall: variable&invoke")!>b barC 3<!>
         }
     }
 
     fun case() {
         val b = B()
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage.B.fooC; typeCall: function; ")!>b fooC 3<!>
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage.C.invoke; typeCall: variable&invoke; ")!>b barC 3<!>
+        <!DEBUG_INFO_AS_CALL("fqName: libPackage.B.fooC; typeCall: infix function")!>b fooC 3<!>
+        <!DEBUG_INFO_AS_CALL("fqName: libPackage.C.invoke; typeCall: variable&invoke")!>b barC 3<!>
     }
 }
 
@@ -96,14 +96,14 @@ fun case2() {
         infix fun B.<!EXTENSION_SHADOWED_BY_MEMBER!>fooC<!>(i: Int) = {}
         fun case() {
             val b = B()
-            <!DEBUG_INFO_AS_CALL("fqName: libPackage.B.fooC; typeCall: function; ")!>b fooC 3<!>
-            <!DEBUG_INFO_AS_CALL("fqName: libPackage.C.invoke; typeCall: variable&invoke; ")!>b barC 3<!>
+            <!DEBUG_INFO_AS_CALL("fqName: libPackage.B.fooC; typeCall: infix function")!>b fooC 3<!>
+            <!DEBUG_INFO_AS_CALL("fqName: libPackage.C.invoke; typeCall: variable&invoke")!>b barC 3<!>
         }
     }
 
     fun case() {
         val b = B()
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage.B.fooC; typeCall: function; ")!>b fooC 3<!>
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage.C.invoke; typeCall: variable&invoke; ")!>b barC 3<!>
+        <!DEBUG_INFO_AS_CALL("fqName: libPackage.B.fooC; typeCall: infix function")!>b fooC 3<!>
+        <!DEBUG_INFO_AS_CALL("fqName: libPackage.C.invoke; typeCall: variable&invoke")!>b barC 3<!>
     }
 }

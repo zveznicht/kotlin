@@ -24,7 +24,7 @@ class Case1() {
     val foo = object : MarkerCase1 {}
 
     fun innerFun() {
-        this.<!DEBUG_INFO_AS_CALL("fqName: Case1.foo; typeCall: function; ")!>foo()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: Case1.foo; typeCall: function")!>foo()<!>
     }
 
 
@@ -33,7 +33,7 @@ class Case1() {
         operator fun MarkerCase1.invoke() {}
 
         fun innerClassFun() {
-            this.<!DEBUG_INFO_AS_CALL("fqName: Case1.InnerClass0.invoke; typeCall: variable&invoke; ")!>foo()<!>
+            this.<!DEBUG_INFO_AS_CALL("fqName: Case1.InnerClass0.invoke; typeCall: variable&invoke")!>foo()<!>
         }
     }
 
@@ -43,7 +43,7 @@ class Case1() {
         val foo = object : MarkerCase1 {}
 
         fun nestedClassFun(){
-            this.<!DEBUG_INFO_AS_CALL("fqName: Case1.invoke; typeCall: variable&invoke; ")!>foo()<!>
+            this.<!DEBUG_INFO_AS_CALL("fqName: Case1.invoke; typeCall: variable&invoke")!>foo()<!>
         }
     }
 }
@@ -52,8 +52,8 @@ interface MarkerCase1 {}
 
 fun case1(){
     operator fun MarkerCase1.invoke() {}
-    Case1().InnerClass0().<!DEBUG_INFO_AS_CALL("fqName: case1.invoke; typeCall: variable&invoke; ")!>foo()<!>
-    Case1().InnerClass1().<!DEBUG_INFO_AS_CALL("fqName: case1.invoke; typeCall: variable&invoke; ")!>foo()<!>
+    Case1().InnerClass0().<!DEBUG_INFO_AS_CALL("fqName: case1.invoke; typeCall: variable&invoke")!>foo()<!>
+    Case1().InnerClass1().<!DEBUG_INFO_AS_CALL("fqName: case1.invoke; typeCall: variable&invoke")!>foo()<!>
 }
 
 // TESTCASE NUMBER: 2
@@ -66,8 +66,8 @@ open class Case2() {
     open operator fun MarkerCase2.invoke() {}
 
     fun innerFun() {
-        <!DEBUG_INFO_AS_CALL("fqName: Case2.fooCase2; typeCall: function; ")!>fooCase2()<!>
-        this.<!DEBUG_INFO_AS_CALL("fqName: Case2.fooCase2; typeCall: function; ")!>fooCase2()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: Case2.fooCase2; typeCall: function")!>fooCase2()<!>
+        this.<!DEBUG_INFO_AS_CALL("fqName: Case2.fooCase2; typeCall: function")!>fooCase2()<!>
     }
 
     inner class InnerClass0 : Case2() {
@@ -78,8 +78,8 @@ open class Case2() {
         override operator fun MarkerCase2.invoke() {}
 
         fun innerClassFun() {
-            this@Case2.<!DEBUG_INFO_AS_CALL("fqName: Case2.fooCase2; typeCall: function; ")!>fooCase2()<!>
-            this.<!DEBUG_INFO_AS_CALL("fqName: Case2.InnerClass0.fooCase2; typeCall: function; ")!>fooCase2()<!>
+            this@Case2.<!DEBUG_INFO_AS_CALL("fqName: Case2.fooCase2; typeCall: function")!>fooCase2()<!>
+            this.<!DEBUG_INFO_AS_CALL("fqName: Case2.InnerClass0.fooCase2; typeCall: function")!>fooCase2()<!>
         }
     }
 
@@ -88,7 +88,7 @@ open class Case2() {
         val fooCase2 = object : MarkerCase2 {}
 
         fun nestedClassFun() {
-            this.<!DEBUG_INFO_AS_CALL("fqName: Case2.invoke; typeCall: variable&invoke; ")!>fooCase2()<!>
+            this.<!DEBUG_INFO_AS_CALL("fqName: Case2.invoke; typeCall: variable&invoke")!>fooCase2()<!>
         }
     }
 }
@@ -96,6 +96,6 @@ open class Case2() {
 
 fun case2() {
     operator fun Case2.MarkerCase2.invoke() {}
-    Case2().InnerClass0().<!DEBUG_INFO_AS_CALL("fqName: Case2.InnerClass0.fooCase2; typeCall: function; ")!>fooCase2()<!>
-    Case2().InnerClass1().<!DEBUG_INFO_AS_CALL("fqName: case2.invoke; typeCall: variable&invoke; ")!>fooCase2()<!>
+    Case2().InnerClass0().<!DEBUG_INFO_AS_CALL("fqName: Case2.InnerClass0.fooCase2; typeCall: function")!>fooCase2()<!>
+    Case2().InnerClass1().<!DEBUG_INFO_AS_CALL("fqName: case2.invoke; typeCall: variable&invoke")!>fooCase2()<!>
 }

@@ -30,7 +30,7 @@ class Case1() {
         zoo, boo;
 
         fun f() {
-            <!DEBUG_INFO_AS_CALL("fqName: libPackage.foo; typeCall: function; ")!>foo()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: libPackage.foo; typeCall: function")!>foo()<!>
         }
 
         operator fun invoke() {}
@@ -47,11 +47,11 @@ import libPackage.foo as zoo
 class Case2() {
     companion object zoo {
         fun f() {
-            <!DEBUG_INFO_AS_CALL("fqName: libPackage.foo; typeCall: function; ")!>zoo()<!>
+            <!DEBUG_INFO_AS_CALL("fqName: libPackage.foo; typeCall: function")!>zoo()<!>
         }
     }
 
     fun f() {
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage.foo; typeCall: function; ")!>zoo()<!>
+        <!DEBUG_INFO_AS_CALL("fqName: libPackage.foo; typeCall: function")!>zoo()<!>
     }
 }
