@@ -92,7 +92,6 @@ abstract class BuildSystemPlugin(context: Context) : Plugin(context) {
 
     protected fun addBuildSystemData(data: BuildSystemData) = pipelineTask(GenerationPhase.PREPARE) {
         runBefore(BuildSystemPlugin::createModules)
-        activityChecker = Checker.ALWAYS_AVAILABLE
         withAction {
             BuildSystemPlugin::buildSystemData.addValues(data)
         }
@@ -125,7 +124,7 @@ val BuildSystemType.isGradle
     get() = this == BuildSystemType.GradleGroovyDsl
             || this == BuildSystemType.GradleKotlinDsl
 
-val WritingContext.allModules
+val ReadingContext.allModules
     get() = BuildSystemPlugin::buildFiles.propertyValue.flatMap { buildFile ->
         buildFile.modules.modules
     }
