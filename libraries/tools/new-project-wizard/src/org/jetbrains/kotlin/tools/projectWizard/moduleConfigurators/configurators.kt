@@ -43,7 +43,6 @@ enum class TargetJvmVersion(val value: String) : DisplayableSettingItem {
         get() = value
 }
 
-interface AndroidModuleConfigurator : ModuleConfigurator
 
 interface ModuleConfiguratorWithModuleType : ModuleConfigurator {
     val moduleType: ModuleType
