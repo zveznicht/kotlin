@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.Variance
+import org.jetbrains.kotlin.types.createDynamicType
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrAnonymousInit as ProtoAnonymousInit
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBlock as ProtoBlock
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBlockBody as ProtoBlockBody
@@ -178,7 +179,7 @@ abstract class IrFileDeserializer(val logger: LoggingContext, val builtIns: IrBu
 
     private fun deserializeDynamicType(proto: ProtoDynamicType): IrDynamicType {
         val annotations = deserializeAnnotations(proto.annotationList)
-        return IrDynamicTypeImpl(null, annotations, Variance.INVARIANT)
+        return IrDynamicTypeImpl(createDynamicType(builtIns.builtIns), annotations, Variance.INVARIANT)
     }
 
     private fun deserializeErrorType(proto: ProtoErrorType): IrErrorType {

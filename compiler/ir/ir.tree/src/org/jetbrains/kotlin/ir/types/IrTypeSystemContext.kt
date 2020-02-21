@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.checker.convertVariance
+import org.jetbrains.kotlin.types.createDynamicType
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.ir.types.isPrimitiveType as irTypePredicates_isPrimitiveType
 
@@ -216,7 +217,7 @@ interface IrTypeSystemContext : TypeSystemContext, TypeSystemCommonSuperTypesCon
     override fun createFlexibleType(lowerBound: SimpleTypeMarker, upperBound: SimpleTypeMarker): KotlinTypeMarker {
         require(lowerBound.isNothing())
         require(upperBound is IrType && upperBound.isNullableAny())
-        return IrDynamicTypeImpl(null, emptyList(), Variance.INVARIANT)
+        return IrDynamicTypeImpl(createDynamicType(irBuiltIns.builtIns), emptyList(), Variance.INVARIANT)
     }
 
     override fun createSimpleType(

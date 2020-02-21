@@ -98,7 +98,7 @@ fun makeTypeProjection(type: IrType, variance: Variance): IrTypeProjection =
     when {
         type is IrTypeProjection && type.variance == variance -> type
         type is IrSimpleType -> type.toBuilder().apply { this.variance = variance }.buildTypeProjection()
-        type is IrDynamicType -> IrDynamicTypeImpl(null, type.annotations, variance)
+        type is IrDynamicType -> IrDynamicTypeImpl(type.originalKotlinType!!, type.annotations, variance)
         type is IrErrorType -> IrErrorTypeImpl(null, type.annotations, variance)
         else -> IrTypeProjectionImpl(type, variance)
     }
