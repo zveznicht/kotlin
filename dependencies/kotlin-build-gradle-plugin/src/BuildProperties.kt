@@ -105,7 +105,7 @@ class KotlinBuildProperties(
 
     val kotlinBootstrapVersion: String? = getLocalOrRoot("bootstrap.kotlin.version") as String?
 
-    val kotlinBootstrapLocalRepo: String? = get("bootstrap.kotlin.local.repo") as String?
+    val kotlinBootstrapLocalRepo: String? = get("bootstrap.kotlin.repo") as String?
 }
 
 private const val extensionName = "kotlinBuildProperties"
