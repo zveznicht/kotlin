@@ -90,7 +90,6 @@ repositories {
     maven("https://www.jetbrains.com/intellij-repository/$intellijReleaseType")
     maven("https://plugins.jetbrains.com/maven")
     maven("https://jetbrains.bintray.com/intellij-third-party-dependencies/")
-    maven("https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-dev")
 }
 
 val intellij by configurations.creating
@@ -110,7 +109,7 @@ val intellijRuntimeAnnotations = "intellij-runtime-annotations"
 
 val dependenciesDir = (findProperty("kotlin.build.dependencies.dir") as String?)?.let(::File)
     ?: (findProperty("agent.persistent.cache") as String?)?.let(::File)
-    ?: rootProject.gradle.gradleUserHomeDir.resolve("kotlin-build-dependency")
+    ?: rootProject.gradle.gradleUserHomeDir.resolve("kotlin-build-dependencies")
 
 val customDepsRepoDir = dependenciesDir.resolve("repo")
 
@@ -148,20 +147,20 @@ dependencies {
 }
 
 
-val cleanIntellijCore = tasks.register<CleanDataTask>("cleanIntellijCore"){
+val cleanupIntellijCore = tasks.register<CleanDataTask>("cleanupIntellijCore"){
     cleanableStoreProvider = provider {CleanableStore[repoDir.resolve("intellij-core").absolutePath]}
 }
 
-val cleanIntellijAnnotation = tasks.register<CleanDataTask>("cleanAnnotations"){
+val cleanupIntellijAnnotation = tasks.register<CleanDataTask>("cleanupIntellijAnnotation"){
     cleanableStoreProvider = provider {CleanableStore[repoDir.resolve(intellijRuntimeAnnotations).absolutePath]}
 }
 
-val cleanupStoreTask = tasks.register("cleanupStores"){
-    dependsOn(cleanIntellijCore)
-    dependsOn(cleanIntellijAnnotation)
+val cleanupDependencies = tasks.register("cleanupDependencies"){
+    dependsOn(cleanupIntellijCore)
+    dependsOn(cleanupIntellijAnnotation)
 }
 
-val makeIntellijCore = buildIvyRepositoryTaskAndRegisterCleanTask(intellijCore, customDepsOrg, customDepsRepoDir)
+val makeIntellijCore = buildIvyRepositoryTaskAndRegisterCleanupTask(intellijCore, customDepsOrg, customDepsRepoDir)
 
 val makeIntellijAnnotations by tasks.registering(Copy::class) {
     dependsOn(makeIntellijCore)
@@ -201,7 +200,7 @@ val mergeSources by tasks.creating(Jar::class.java) {
 val sourcesFile = mergeSources.outputs.files.singleFile
 
 val makeIde = if (androidStudioBuild != null) {
-    buildIvyRepositoryTaskAndRegisterCleanTask(
+    buildIvyRepositoryTaskAndRegisterCleanupTask(
         androidStudio,
         customDepsOrg,
         customDepsRepoDir,
@@ -212,9 +211,9 @@ val makeIde = if (androidStudioBuild != null) {
     )
 } else {
     val task = if (installIntellijUltimate) {
-        buildIvyRepositoryTaskAndRegisterCleanTask(intellijUltimate, customDepsOrg, customDepsRepoDir, null, sourcesFile)
+        buildIvyRepositoryTaskAndRegisterCleanupTask(intellijUltimate, customDepsOrg, customDepsRepoDir, null, sourcesFile)
     } else {
-        buildIvyRepositoryTaskAndRegisterCleanTask(intellij, customDepsOrg, customDepsRepoDir, null, sourcesFile)
+        buildIvyRepositoryTaskAndRegisterCleanupTask(intellij, customDepsOrg, customDepsRepoDir, null, sourcesFile)
     }
 
     task.configure {
@@ -224,7 +223,7 @@ val makeIde = if (androidStudioBuild != null) {
     task
 }
 
-val buildJpsStandalone = buildIvyRepositoryTaskAndRegisterCleanTask(jpsStandalone, customDepsOrg, customDepsRepoDir, null, sourcesFile)
+val buildJpsStandalone = buildIvyRepositoryTaskAndRegisterCleanupTask(jpsStandalone, customDepsOrg, customDepsRepoDir, null, sourcesFile)
 
 tasks.named("build") {
     dependsOn(
@@ -237,11 +236,11 @@ tasks.named("build") {
 }
 
 if (installIntellijUltimate) {
-    val buildNodeJsPlugin = buildIvyRepositoryTaskAndRegisterCleanTask(nodeJSPlugin, customDepsOrg, customDepsRepoDir, ::skipToplevelDirectory, sourcesFile)
+    val buildNodeJsPlugin = buildIvyRepositoryTaskAndRegisterCleanupTask(nodeJSPlugin, customDepsOrg, customDepsRepoDir, ::skipToplevelDirectory, sourcesFile)
     tasks.named("build"){dependsOn(buildNodeJsPlugin)}
 }
 
-tasks.named("build"){dependsOn(cleanupStoreTask)}
+tasks.named("build"){dependsOn(cleanupDependencies)}
 
 // Task to delete legacy repo locations
 tasks.register<Delete>("cleanLegacy") {
@@ -254,7 +253,7 @@ tasks.named<Delete>("clean") {
     delete(customDepsRepoDir)
 }
 
-fun buildIvyRepositoryTaskAndRegisterCleanTask(
+fun buildIvyRepositoryTaskAndRegisterCleanupTask(
     configuration: Configuration,
     organization: String,
     repoDirectory: File,
@@ -346,14 +345,14 @@ fun buildIvyRepositoryTaskAndRegisterCleanTask(
         }
     }
 
-     val cleanIvyRepositoryTask = tasks.register<CleanDataTask>("cleanIvyRepositoryFor${configuration.name.capitalize()}") {
+     val cleanupIvyRepositoryTask = tasks.register<CleanDataTask>("cleanupIvyRepositoryFor${configuration.name.capitalize()}") {
         cleanableStoreProvider = provider {
             configuration.resolvedConfiguration.resolvedArtifacts.single().storeDirectory()
         }
     }
 
-    cleanupStoreTask {
-        dependsOn(cleanIvyRepositoryTask)
+    cleanupDependencies {
+        dependsOn(cleanupIvyRepositoryTask)
     }
 
     return buildIvyRepositoryTask
