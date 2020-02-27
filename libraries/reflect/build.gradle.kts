@@ -56,7 +56,7 @@ dependencies {
     embedded(project(":core:util.runtime"))
     embedded("javax.inject:javax.inject:1")
     embedded(protobufLite())
-    
+
     compileOnly("org.jetbrains:annotations:13.0")
 }
 
@@ -145,7 +145,6 @@ val proguard by task<CacheableProguardTask> {
     injars(mapOf("filter" to "!META-INF/versions/**"), stripMetadata.get().outputs.files)
     injars(mapOf("filter" to "!META-INF/**,!**/*.kotlin_builtins"), proguardAdditionalInJars)
     outjars(proguardOutput)
-    outputs.file(proguardOutput)
 
     jdkHome = File(JDK_16)
     libraryjars(mapOf("filter" to "!META-INF/versions/**"), proguardDeps)
@@ -203,7 +202,7 @@ val intermediate = when {
 val result by task<Jar> {
     dependsOn(intermediate)
     from {
-        zipTree(intermediate.get().outputs.files.singleFile)
+        zipTree(intermediate.get().singleOutputFile())
     }
     callGroovy("manifestAttributes", manifest, project, "Main")
 }
@@ -211,8 +210,10 @@ val result by task<Jar> {
 val modularJar by task<Jar> {
     dependsOn(intermediate)
     archiveClassifier.set("modular")
-    from(zipTree(intermediate.get().outputs.files.single()))
-    from(zipTree(reflectShadowJar.get().archivePath)) {
+    from {
+        zipTree(intermediate.get().singleOutputFile())
+    }
+    from(zipTree(provider { reflectShadowJar.get().archiveFile.get().asFile })) {
         include("META-INF/versions/**")
     }
     callGroovy("manifestAttributes", manifest, project, "Main", true)

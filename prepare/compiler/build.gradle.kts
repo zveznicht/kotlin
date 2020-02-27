@@ -243,17 +243,30 @@ val packCompiler by task<Jar> {
 
 val proguard by task<CacheableProguardTask> {
     dependsOn(packCompiler)
-    configuration("$rootDir/compiler/compiler.pro")
-
-    val outputJar = fileFrom(buildDir, "libs", "$compilerBaseName-after-proguard.jar")
-    val packedCompilerFile = packCompiler.get().outputs.files.singleFile
-
-    inputs.files(packedCompilerFile)
-        .withNormalizer(ClasspathNormalizer::class.java)
-
-    outputs.file(outputJar)
 
     jdkHome = File(JDK_18)
+
+    configuration("$projectDir/compiler.pro")
+
+    injars(
+        mapOf("filter" to """
+            !org/apache/log4j/jmx/Agent*,
+            !org/apache/log4j/net/JMS*,
+            !org/apache/log4j/net/SMTP*,
+            !org/apache/log4j/or/jms/MessageRenderer*,
+            !org/jdom/xpath/Jaxen*,
+            !org/jline/builtins/ssh/**,
+            !org/mozilla/javascript/xml/impl/xmlbeans/**,
+            !net/sf/cglib/**,
+            !META-INF/maven**,
+            **.class,**.properties,**.kt,**.kotlin_*,**.jnilib,**.so,**.dll,**.txt,**.caps,
+            META-INF/services/**,META-INF/native/**,META-INF/extensions/**,META-INF/MANIFEST.MF,
+            messages/**""".trimIndent()),
+        provider { packCompiler.get().outputs.files.singleFile }
+    )
+
+    outjars(fileFrom(buildDir, "libs", "$compilerBaseName-after-proguard.jar"))
+
     libraryjars(mapOf("filter" to "!META-INF/versions/**"), proguardLibraries)
     libraryjars(
         files(
@@ -264,12 +277,6 @@ val proguard by task<CacheableProguardTask> {
     )
 
     printconfiguration("$buildDir/compiler.pro.dump")
-
-    // This properties are used by proguard config compiler.pro
-    doFirst {
-        System.setProperty("kotlin-compiler-jar-before-shrink", packedCompilerFile.canonicalPath)
-        System.setProperty("kotlin-compiler-jar", outputJar.canonicalPath)
-    }
 }
 
 val pack = if (kotlinBuildProperties.proguard) proguard else packCompiler
@@ -279,7 +286,7 @@ val jar = runtimeJar {
     dependsOn(pack)
 
     from {
-        zipTree(pack.get().outputs.files.singleFile)
+        zipTree(pack.get().singleOutputFile())
     }
 
     manifest.attributes["Class-Path"] = compilerManifestClassPath
