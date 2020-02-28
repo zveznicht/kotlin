@@ -59,7 +59,17 @@ class IrLazyFunction(
 
 
     override var overriddenSymbols: List<IrSimpleFunctionSymbol> by lazyVar {
-        descriptor.overriddenDescriptors.mapTo(arrayListOf()) {
+        // Workaround for KT-31646
+        val adjustedOverriddenDescriptors = mutableListOf<FunctionDescriptor>()
+        for (overriddenDescriptor in descriptor.overriddenDescriptors) {
+            if (overriddenDescriptor.containingDeclaration == descriptor.containingDeclaration &&
+                    stubGenerator.symbolTable.signaturer.composeSignature(overriddenDescriptor) == symbol.signature) {
+                adjustedOverriddenDescriptors.addAll(overriddenDescriptor.overriddenDescriptors)
+            } else {
+                adjustedOverriddenDescriptors.add(overriddenDescriptor)
+            }
+        }
+        adjustedOverriddenDescriptors.mapTo(arrayListOf()) {
             stubGenerator.generateFunctionStub(it.original).symbol
         }
     }

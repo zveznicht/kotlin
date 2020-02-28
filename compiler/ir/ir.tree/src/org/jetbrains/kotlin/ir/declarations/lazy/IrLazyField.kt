@@ -50,7 +50,17 @@ class IrLazyField(
     }
 
     override var overriddenSymbols: List<IrFieldSymbol> by lazyVar {
-        symbol.descriptor.overriddenDescriptors.map {
+        // Workaround for KT-31646
+        val adjustedOverriddenDescriptors = mutableListOf<PropertyDescriptor>()
+        for (overriddenDescriptor in descriptor.overriddenDescriptors) {
+            if (overriddenDescriptor.containingDeclaration == descriptor.containingDeclaration &&
+                stubGenerator.symbolTable.signaturer.composeSignature(overriddenDescriptor) == symbol.signature) {
+                adjustedOverriddenDescriptors.addAll(overriddenDescriptor.overriddenDescriptors)
+            } else {
+                adjustedOverriddenDescriptors.add(overriddenDescriptor)
+            }
+        }
+        adjustedOverriddenDescriptors.map {
             stubGenerator.generateFieldStub(it.original).symbol
         }.toMutableList()
     }
