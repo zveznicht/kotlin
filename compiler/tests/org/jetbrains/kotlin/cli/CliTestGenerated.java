@@ -305,6 +305,11 @@ public class CliTestGenerated extends AbstractCliTest {
             runTest("compiler/testData/cli/jvm/inlineCycle.args");
         }
 
+        @TestMetadata("inlineCycle_ir.args")
+        public void testInlineCycle_ir() throws Exception {
+            runTest("compiler/testData/cli/jvm/inlineCycle_ir.args");
+        }
+
         @TestMetadata("internalArgDisableLanguageFeature.args")
         public void testInternalArgDisableLanguageFeature() throws Exception {
             runTest("compiler/testData/cli/jvm/internalArgDisableLanguageFeature.args");
@@ -358,6 +363,21 @@ public class CliTestGenerated extends AbstractCliTest {
         @TestMetadata("invalidMetadataVersion.args")
         public void testInvalidMetadataVersion() throws Exception {
             runTest("compiler/testData/cli/jvm/invalidMetadataVersion.args");
+        }
+
+        @TestMetadata("irApiVersionUnsupported.args")
+        public void testIrApiVersionUnsupported() throws Exception {
+            runTest("compiler/testData/cli/jvm/irApiVersionUnsupported.args");
+        }
+
+        @TestMetadata("irLanguageVersionUnsupported.args")
+        public void testIrLanguageVersionUnsupported() throws Exception {
+            runTest("compiler/testData/cli/jvm/irLanguageVersionUnsupported.args");
+        }
+
+        @TestMetadata("irSupported.args")
+        public void testIrSupported() throws Exception {
+            runTest("compiler/testData/cli/jvm/irSupported.args");
         }
 
         @TestMetadata("javaSrcWrongPackage.args")
@@ -555,6 +575,11 @@ public class CliTestGenerated extends AbstractCliTest {
             runTest("compiler/testData/cli/jvm/nonLocalDisabled.args");
         }
 
+        @TestMetadata("nonLocalDisabled_ir.args")
+        public void testNonLocalDisabled_ir() throws Exception {
+            runTest("compiler/testData/cli/jvm/nonLocalDisabled_ir.args");
+        }
+
         @TestMetadata("nonexistentPathInModule.args")
         public void testNonexistentPathInModule() throws Exception {
             runTest("compiler/testData/cli/jvm/nonexistentPathInModule.args");
@@ -710,6 +735,11 @@ public class CliTestGenerated extends AbstractCliTest {
             runTest("compiler/testData/cli/jvm/wrongAbiVersion.args");
         }
 
+        @TestMetadata("wrongAnnotationArgumentInCtor.args")
+        public void testWrongAnnotationArgumentInCtor() throws Exception {
+            runTest("compiler/testData/cli/jvm/wrongAnnotationArgumentInCtor.args");
+        }
+
         @TestMetadata("wrongArgument.args")
         public void testWrongArgument() throws Exception {
             runTest("compiler/testData/cli/jvm/wrongArgument.args");
@@ -771,6 +801,16 @@ public class CliTestGenerated extends AbstractCliTest {
         @TestMetadata("inlineCycle.args")
         public void testInlineCycle() throws Exception {
             runTest("compiler/testData/cli/js/inlineCycle.args");
+        }
+
+        @TestMetadata("irApiVersionUnsupported.args")
+        public void testIrApiVersionUnsupported() throws Exception {
+            runTest("compiler/testData/cli/js/irApiVersionUnsupported.args");
+        }
+
+        @TestMetadata("irLanguageVersionUnsupported.args")
+        public void testIrLanguageVersionUnsupported() throws Exception {
+            runTest("compiler/testData/cli/js/irLanguageVersionUnsupported.args");
         }
 
         @TestMetadata("jsExtraHelp.args")
@@ -936,6 +976,11 @@ public class CliTestGenerated extends AbstractCliTest {
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/cli/js-dce"), Pattern.compile("^(.+)\\.args$"), null, false);
         }
 
+        @TestMetadata("dceExtraHelp.args")
+        public void testDceExtraHelp() throws Exception {
+            runTest("compiler/testData/cli/js-dce/dceExtraHelp.args");
+        }
+
         @TestMetadata("dceHelp.args")
         public void testDceHelp() throws Exception {
             runTest("compiler/testData/cli/js-dce/dceHelp.args");
@@ -954,11 +999,6 @@ public class CliTestGenerated extends AbstractCliTest {
         @TestMetadata("invalidFilename.args")
         public void testInvalidFilename() throws Exception {
             runTest("compiler/testData/cli/js-dce/invalidFilename.args");
-        }
-
-        @TestMetadata("jsExtraHelp.args")
-        public void testJsExtraHelp() throws Exception {
-            runTest("compiler/testData/cli/js-dce/jsExtraHelp.args");
         }
 
         @TestMetadata("nonExistingSourcePath.args")

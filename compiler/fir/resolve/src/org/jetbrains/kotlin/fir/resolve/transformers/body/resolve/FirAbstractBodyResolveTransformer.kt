@@ -5,29 +5,27 @@
 
 package org.jetbrains.kotlin.fir.resolve.transformers.body.resolve
 
-import org.jetbrains.kotlin.fir.FirCallResolver
-import org.jetbrains.kotlin.fir.FirQualifiedNameResolver
-import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.FirSymbolOwner
+import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.resolve.*
-import org.jetbrains.kotlin.fir.resolve.calls.InferenceComponents
 import org.jetbrains.kotlin.fir.resolve.calls.ResolutionStageRunner
 import org.jetbrains.kotlin.fir.resolve.dfa.FirDataFlowAnalyzer
 import org.jetbrains.kotlin.fir.resolve.inference.FirCallCompleter
+import org.jetbrains.kotlin.fir.resolve.inference.InferenceComponents
 import org.jetbrains.kotlin.fir.resolve.transformers.*
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirLocalScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirTypeResolveScopeForBodyResolve
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.types.FirTypeRef
-import org.jetbrains.kotlin.fir.types.impl.FirImplicitTypeRefImpl
+import org.jetbrains.kotlin.fir.types.builder.buildImplicitTypeRef
 
 abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAbstractPhaseTransformer<ResolutionMode>(phase) {
     abstract val components: BodyResolveTransformerComponents
 
+    @set:PrivateForInline
     abstract var implicitTypeOnly: Boolean
         internal set
 
@@ -52,6 +50,7 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
         }
     }
 
+    @UseExperimental(PrivateForInline::class)
     internal inline fun <T> withFullBodyResolve(crossinline l: () -> T): T {
         if (!implicitTypeOnly) return l()
         implicitTypeOnly = false
@@ -97,8 +96,9 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
         val topLevelScopes: MutableList<FirScope> = mutableListOf()
         val localScopes: MutableList<FirLocalScope> = mutableListOf()
 
-        override val noExpectedType: FirTypeRef = FirImplicitTypeRefImpl(null)
+        override val noExpectedType: FirTypeRef = buildImplicitTypeRef()
 
+        @set:PrivateForInline
         override lateinit var file: FirFile
             internal set
 
@@ -128,15 +128,17 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
             IntegerLiteralTypeApproximationTransformer(symbolProvider, inferenceComponents.ctx)
         override val integerOperatorsTypeUpdater: IntegerOperatorsTypeUpdater = IntegerOperatorsTypeUpdater(integerLiteralTypeApproximator)
 
-        @PublishedApi
-        internal var containerIfAny: FirDeclaration? = null
+        @set:PrivateForInline
+        var containerIfAny: FirDeclaration? = null
 
         override var container: FirDeclaration
             get() = containerIfAny!!
             private set(value) {
+                @UseExperimental(PrivateForInline::class)
                 containerIfAny = value
             }
 
+        @UseExperimental(PrivateForInline::class)
         inline fun <T> withContainer(declaration: FirDeclaration, crossinline f: () -> T): T {
             val prevContainer = containerIfAny
             containerIfAny = declaration

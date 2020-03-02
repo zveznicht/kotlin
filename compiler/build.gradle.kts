@@ -67,7 +67,10 @@ dependencies {
         testCompileOnly(project(it))
     }
     testCompileOnly(intellijCoreDep()) { includeJars("intellij-core") }
-    testCompileOnly(intellijDep()) { includeJars("openapi", "idea", "idea_rt", "util", "asm-all", rootProject = rootProject) }
+    Platform[193].orLower {
+        testCompileOnly(intellijDep()) { includeJars("openapi", rootProject = rootProject) }
+    }
+    testCompileOnly(intellijDep()) { includeJars("idea", "idea_rt", "util", "asm-all", rootProject = rootProject) }
 
     Platform[192].orHigher {
         testRuntimeOnly(intellijPluginDep("java"))
@@ -115,3 +118,11 @@ projectTest(parallel = true) {
 val generateTests by generator("org.jetbrains.kotlin.generators.tests.GenerateCompilerTestsKt")
 
 testsJar()
+
+projectTest("firBlackBoxTest", parallel = true) {
+    dependsOn(":dist")
+    workingDir = rootDir
+    filter {
+        includeTestsMatching("org.jetbrains.kotlin.codegen.ir.FirBlackBoxCodegenTestGenerated")
+    }
+}

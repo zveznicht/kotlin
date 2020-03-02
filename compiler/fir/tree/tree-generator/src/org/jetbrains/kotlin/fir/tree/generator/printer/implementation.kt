@@ -45,10 +45,14 @@ fun SmartPrinter.printImplementation(implementation: Implementation) {
     }
 
     with(implementation) {
+        if (requiresOptIn) {
+            println("@UseExperimental(FirImplementationDetail::class)")
+        }
+        if (!isPublic) {
+            print("internal ")
+        }
         print("${kind!!.title} $type")
         print(element.typeParameters)
-        val fieldsWithoutDefault = allFields.filter { it.defaultValue == null && !it.isLateinit }
-        val fieldsWithDefault = allFields.filter { it.defaultValue != null || it.isLateinit }
 
         val isInterface = kind == Implementation.Kind.Interface
         val isAbstract = kind == Implementation.Kind.AbstractClass
@@ -60,11 +64,13 @@ fun SmartPrinter.printImplementation(implementation: Implementation) {
         }
 
         if (!isInterface && !isAbstract && fieldsWithoutDefault.isNotEmpty()) {
+            if (isPublic) {
+                print(" @FirImplementationDetail constructor")
+            }
             println("(")
             withIndent {
                 fieldsWithoutDefault.forEachIndexed { i, field ->
-                    val end = if (i == fieldsWithoutDefault.size - 1) "" else ","
-                    printField(field, isImplementation = true, override = true, end = end)
+                    printField(field, isImplementation = true, override = true, end = ",")
                 }
             }
             print(")")
@@ -92,7 +98,10 @@ fun SmartPrinter.printImplementation(implementation: Implementation) {
             }
 
             element.allFields.filter { it.type.contains("Symbol") && it !is FieldList }
-                .takeIf { it.isNotEmpty() && !isInterface && !isAbstract && !element.type.contains("Reference") }
+                .takeIf {
+                    it.isNotEmpty() && !isInterface && !isAbstract &&
+                            !element.type.contains("Reference") && !element.type.contains("ResolvedQualifier")
+                }
                 ?.let { symbolFields ->
                     println("init {")
                     for (symbolField in symbolFields) {

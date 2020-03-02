@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.fir.references.impl.FirSimpleNamedReference
 import org.jetbrains.kotlin.fir.resolve.directExpansionType
 import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.toSymbol
-import org.jetbrains.kotlin.fir.resolve.withNullability
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.resolve.diagnostics.FirAmbiguityError
 import org.jetbrains.kotlin.fir.resolve.diagnostics.FirInapplicableCandidateError
@@ -1003,7 +1002,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
         }
     }
 
-    private fun FlowContent.describeVerbose(symbol: FirCallableSymbol<*>, fir: FirMemberFunction<*>) {
+    private fun FlowContent.describeVerbose(symbol: FirCallableSymbol<*>, fir: FirFunction<*>) {
         describeTypeParameters(fir)
 
         fir.receiverTypeRef?.let {
@@ -1412,11 +1411,10 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
 
     private fun FlowContent.generate(resolvedQualifier: FirResolvedQualifier) {
         resolved {
-            val symbolProvider = session.firSymbolProvider
-            val classId = resolvedQualifier.classId
-            if (classId != null) {
-                symbolRef(symbolProvider.getClassLikeSymbolByFqName(classId)) {
-                    fqn(classId.relativeClassName)
+            val symbol = resolvedQualifier.symbol
+            if (symbol != null) {
+                symbolRef(symbol) {
+                    fqn(resolvedQualifier.classId?.relativeClassName ?: FqName("<???>"))
                 }
             } else {
                 fqn(resolvedQualifier.packageFqName)
@@ -1476,9 +1474,14 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
                 is FirOperatorCall -> generate(expression)
                 is FirBinaryLogicExpression -> generate(expression)
                 is FirCheckNotNullCall -> generate(expression)
+                is FirVarargArgumentsExpression -> generate(expression)
                 else -> inlineUnsupported(expression)
             }
         }
+    }
+
+    private fun FlowContent.generate(varargArgumentExpression: FirVarargArgumentsExpression) {
+        generateList(varargArgumentExpression.arguments, separator = ",") { generate(it) }
     }
 
     private fun FlowContent.generate(binaryLogicExpression: FirBinaryLogicExpression) {

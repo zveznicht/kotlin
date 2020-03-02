@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.resolve.calls.inference
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.MissingSupertypesResolver
 import org.jetbrains.kotlin.resolve.TemporaryBindingTrace
@@ -54,6 +55,9 @@ class CoroutineInferenceSession(
 
     override fun shouldRunCompletion(candidate: KotlinResolutionCandidate): Boolean {
         val system = candidate.getSystem() as NewConstraintSystemImpl
+
+        if (system.hasContradiction) return true
+
         val storage = system.getBuilder().currentStorage()
         fun ResolvedAtom.hasPostponed(): Boolean {
             if (this is PostponedResolvedAtom && !analyzed) return true
@@ -90,10 +94,10 @@ class CoroutineInferenceSession(
     }
 
     private fun skipCall(callInfo: SingleCallResolutionResult): Boolean {
-        // FakeCallableDescriptorForObject can't introduce new information for inference, so it's safe to complete it fully
-        if (callInfo.resultCallAtom.candidateDescriptor is FakeCallableDescriptorForObject) return true
-
-        return false
+        // FakeCallableDescriptorForObject and LocalVariableDescriptor can't introduce new information for inference,
+        // so it's safe to complete it fully
+        val descriptor = callInfo.resultCallAtom.candidateDescriptor
+        return descriptor is FakeCallableDescriptorForObject || descriptor is LocalVariableDescriptor
     }
 
     override fun currentConstraintSystem(): ConstraintStorage {
@@ -104,8 +108,12 @@ class CoroutineInferenceSession(
         lambda: ResolvedLambdaAtom,
         initialStorage: ConstraintStorage,
         diagnosticsHolder: KotlinDiagnosticsHolder
-    ): Map<TypeConstructor, UnwrappedType> {
-        val commonSystem = buildCommonSystem(initialStorage)
+    ): Map<TypeConstructor, UnwrappedType>? {
+        val (commonSystem, effectivelyEmptyConstraintSystem) = buildCommonSystem(initialStorage)
+        if (effectivelyEmptyConstraintSystem) {
+            updateCalls(lambda, commonSystem)
+            return null
+        }
 
         val context = commonSystem.asConstraintSystemCompleterContext()
         kotlinConstraintSystemCompleter.completeConstraintSystem(
@@ -136,7 +144,7 @@ class CoroutineInferenceSession(
         storage: ConstraintStorage,
         nonFixedToVariablesSubstitutor: NewTypeSubstitutor,
         shouldIntegrateAllConstraints: Boolean
-    ) {
+    ): Boolean {
         storage.notFixedTypeVariables.values.forEach { commonSystem.registerVariable(it.typeVariable) }
 
         /*
@@ -148,11 +156,15 @@ class CoroutineInferenceSession(
         * */
         val callSubstitutor = storage.buildResultingSubstitutor(commonSystem, transformTypeVariablesToErrorTypes = false)
 
+        var introducedConstraint = false
+
         for (initialConstraint in storage.initialConstraints) {
             val lower = nonFixedToVariablesSubstitutor.safeSubstitute(callSubstitutor.safeSubstitute(initialConstraint.a as UnwrappedType)) // TODO: SUB
             val upper = nonFixedToVariablesSubstitutor.safeSubstitute(callSubstitutor.safeSubstitute(initialConstraint.b as UnwrappedType)) // TODO: SUB
 
             if (commonSystem.isProperType(lower) && commonSystem.isProperType(upper)) continue
+
+            introducedConstraint = true
 
             when (initialConstraint.constraintKind) {
                 ConstraintKind.LOWER -> error("LOWER constraint shouldn't be used, please use UPPER")
@@ -172,28 +184,38 @@ class CoroutineInferenceSession(
                 val typeVariable = storage.allTypeVariables.getValue(variableConstructor)
                 commonSystem.registerVariable(typeVariable)
                 commonSystem.addEqualityConstraint((typeVariable as NewTypeVariable).defaultType, type, CoroutinePosition())
+                introducedConstraint = true
             }
         }
+
+        return introducedConstraint
     }
 
-    private fun buildCommonSystem(initialStorage: ConstraintStorage): NewConstraintSystemImpl {
+    private fun buildCommonSystem(initialStorage: ConstraintStorage): Pair<NewConstraintSystemImpl, Boolean> {
         val commonSystem = NewConstraintSystemImpl(callComponents.constraintInjector, builtIns)
 
         val nonFixedToVariablesSubstitutor = createNonFixedTypeToVariableSubstitutor()
 
         integrateConstraints(commonSystem, initialStorage, nonFixedToVariablesSubstitutor, false)
 
+        var effectivelyEmptyCommonSystem = true
+
         for (call in commonCalls) {
-            integrateConstraints(commonSystem, call.callResolutionResult.constraintSystem, nonFixedToVariablesSubstitutor, false)
+            val hasConstraints =
+                integrateConstraints(commonSystem, call.callResolutionResult.constraintSystem, nonFixedToVariablesSubstitutor, false)
+            if (hasConstraints) effectivelyEmptyCommonSystem = false
         }
         for (call in partiallyResolvedCallsInfo) {
-            integrateConstraints(commonSystem, call.callResolutionResult.constraintSystem, nonFixedToVariablesSubstitutor, true)
+            val hasConstraints =
+                integrateConstraints(commonSystem, call.callResolutionResult.constraintSystem, nonFixedToVariablesSubstitutor, true)
+            if (hasConstraints) effectivelyEmptyCommonSystem = false
         }
+
         for (diagnostic in diagnostics) {
             commonSystem.addError(diagnostic)
         }
 
-        return commonSystem
+        return commonSystem to effectivelyEmptyCommonSystem
     }
 
     private fun updateCalls(lambda: ResolvedLambdaAtom, commonSystem: NewConstraintSystemImpl) {
@@ -241,7 +263,10 @@ class CoroutineInferenceSession(
         val resultingSubstitutor =
             NewTypeSubstitutorByConstructorMap((resultingCallSubstitutor + nonFixedTypesToResult).cast()) // TODO: SUB
 
-        val atomCompleter = createResolvedAtomCompleter(resultingSubstitutor, completedCall.context)
+        val atomCompleter = createResolvedAtomCompleter(
+            resultingSubstitutor,
+            completedCall.context.replaceBindingTrace(topLevelCallContext.trace)
+        )
 
         completeCall(completedCall, atomCompleter)
     }
@@ -277,9 +302,8 @@ class CoroutineInferenceSession(
 
 class ComposedSubstitutor(val left: NewTypeSubstitutor, val right: NewTypeSubstitutor) : NewTypeSubstitutor {
     override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? {
-        return left.substituteNotNullTypeWithConstructor(
-            right.substituteNotNullTypeWithConstructor(constructor)?.constructor ?: constructor
-        )
+        val rightSubstitution = right.substituteNotNullTypeWithConstructor(constructor)
+        return left.substituteNotNullTypeWithConstructor(rightSubstitution?.constructor ?: constructor) ?: rightSubstitution
     }
 
     override val isEmpty: Boolean get() = left.isEmpty && right.isEmpty

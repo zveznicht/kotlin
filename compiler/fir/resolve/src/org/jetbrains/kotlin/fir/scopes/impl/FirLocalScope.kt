@@ -17,14 +17,18 @@ class FirLocalScope : FirScope() {
     val functions = mutableMapOf<Name, MutableList<FirFunctionSymbol<*>>>()
     val classes = mutableMapOf<Name, FirRegularClassSymbol>()
 
-    fun storeDeclaration(declaration: FirNamedDeclaration) {
-        when (declaration) {
-            is FirVariable<*> -> properties[declaration.name] = declaration.symbol
-            is FirSimpleFunction -> functions.getOrPut(declaration.name) {
-                mutableListOf()
-            }.add(declaration.symbol as FirNamedFunctionSymbol)
-            is FirRegularClass -> classes[declaration.name] = declaration.symbol
-        }
+    fun storeClass(klass: FirRegularClass) {
+        classes[klass.name] = klass.symbol
+    }
+
+    fun storeFunction(function: FirSimpleFunction) {
+        functions.getOrPut(function.name) {
+            mutableListOf()
+        }.add(function.symbol as FirNamedFunctionSymbol)
+    }
+
+    fun storeVariable(variable: FirVariable<*>) {
+        properties[variable.name] = variable.symbol
     }
 
     fun storeBackingField(property: FirProperty) {
@@ -37,7 +41,7 @@ class FirLocalScope : FirScope() {
         }
     }
 
-    override fun processPropertiesByName(name: Name, processor: (FirCallableSymbol<*>) -> Unit) {
+    override fun processPropertiesByName(name: Name, processor: (FirVariableSymbol<*>) -> Unit) {
         val property = properties[name]
         if (property != null) {
             processor(property)

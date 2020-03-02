@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.backend.jvm
 
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
+import org.jetbrains.kotlin.backend.common.DefaultMapping
+import org.jetbrains.kotlin.backend.common.Mapping
 import org.jetbrains.kotlin.backend.common.ir.Ir
 import org.jetbrains.kotlin.backend.common.lower.irThrow
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
@@ -17,6 +19,7 @@ import org.jetbrains.kotlin.backend.jvm.descriptors.JvmSharedVariablesManager
 import org.jetbrains.kotlin.backend.jvm.intrinsics.IrIntrinsicMethods
 import org.jetbrains.kotlin.backend.jvm.lower.inlineclasses.InlineClassAbi
 import org.jetbrains.kotlin.backend.jvm.lower.inlineclasses.MemoizedInlineClassReplacements
+import org.jetbrains.kotlin.backend.jvm.lower.suspendFunctionOriginal
 import org.jetbrains.kotlin.codegen.ClassBuilder
 import org.jetbrains.kotlin.codegen.inline.NameGenerator
 import org.jetbrains.kotlin.codegen.state.GenerationState
@@ -31,7 +34,6 @@ import org.jetbrains.kotlin.ir.builders.irNull
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrConstructorImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
-import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
 import org.jetbrains.kotlin.ir.symbols.*
@@ -57,6 +59,9 @@ class JvmBackendContext(
 ) : CommonBackendContext {
     override val transformedFunction: MutableMap<IrFunctionSymbol, IrSimpleFunctionSymbol>
         get() = TODO("not implemented")
+
+    override val extractedLocalClasses: MutableSet<IrClass> = hashSetOf()
+
     override val scriptMode: Boolean = false
     override val lateinitNullableFields = mutableMapOf<IrField, IrField>()
 
@@ -64,8 +69,10 @@ class JvmBackendContext(
     val typeMapper = IrTypeMapper(this)
     val methodSignatureMapper = MethodSignatureMapper(this)
 
-    override val declarationFactory: JvmDeclarationFactory = JvmDeclarationFactory(methodSignatureMapper)
+    override val declarationFactory: JvmDeclarationFactory = JvmDeclarationFactory(methodSignatureMapper, state.languageVersionSettings)
     override val sharedVariablesManager = JvmSharedVariablesManager(state.module, builtIns, irBuiltIns)
+
+    override val mapping: Mapping = DefaultMapping()
 
     val psiErrorBuilder = PsiErrorBuilder(psiSourceManager, state.diagnostics)
 
@@ -95,6 +102,7 @@ class JvmBackendContext(
 
     internal val multifileFacadesToAdd = mutableMapOf<JvmClassName, MutableList<IrClass>>()
     internal val multifileFacadeForPart = mutableMapOf<IrClass, JvmClassName>()
+    internal val multifileFacadeClassForPart = mutableMapOf<IrClass, IrClass>()
     internal val multifileFacadeMemberToPartMember = mutableMapOf<IrFunction, IrFunction>()
 
     internal val hiddenConstructors = mutableMapOf<IrConstructor, IrConstructorImpl>()
@@ -108,8 +116,7 @@ class JvmBackendContext(
     val suspendLambdaToOriginalFunctionMap = mutableMapOf<IrFunctionReference, IrFunction>()
     val continuationClassBuilders = mutableMapOf<IrSimpleFunction, ClassBuilder>()
     val suspendFunctionOriginalToView = mutableMapOf<IrFunction, IrFunction>()
-    val suspendFunctionViewToOriginal = mutableMapOf<IrFunction, IrFunction>()
-    val suspendTailCallsWithUnitReplacement = mutableSetOf<IrAttributeContainer>()
+    val suspendFunctionOriginalToStub = mutableMapOf<IrFunction, IrFunction>()
     val fakeContinuation: IrExpression = createFakeContinuation(this)
 
     val staticDefaultStubs = mutableMapOf<IrFunctionSymbol, IrFunction>()
@@ -117,8 +124,13 @@ class JvmBackendContext(
     val inlineClassReplacements = MemoizedInlineClassReplacements()
 
     internal fun recordSuspendFunctionView(function: IrFunction, view: IrFunction) {
-        suspendFunctionOriginalToView[function] = view
-        suspendFunctionViewToOriginal[view] = function
+        val attribute = function.suspendFunctionOriginal()
+        suspendFunctionOriginalToStub.remove(attribute)
+        suspendFunctionOriginalToView[attribute] = view
+    }
+
+    internal fun recordSuspendFunctionViewStub(function: IrFunction, stub: IrFunction) {
+        suspendFunctionOriginalToStub[function.suspendFunctionOriginal()] = stub
     }
 
     internal fun referenceClass(descriptor: ClassDescriptor): IrClassSymbol =

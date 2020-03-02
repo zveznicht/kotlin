@@ -352,4 +352,18 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
         }
         return result
     }
+
+    override fun checkIrSupport(languageVersionSettings: LanguageVersionSettings, collector: MessageCollector) {
+        if (!useIR) return
+
+        if (languageVersionSettings.languageVersion < LanguageVersion.KOTLIN_1_3
+            || languageVersionSettings.apiVersion < ApiVersion.KOTLIN_1_3
+        ) {
+            collector.report(
+                CompilerMessageSeverity.STRONG_WARNING,
+                "IR backend does not support language or API version lower than 1.3. " +
+                        "This can lead to unexpected behavior or compilation failures"
+            )
+        }
+    }
 }

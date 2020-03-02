@@ -69,7 +69,7 @@ class FirDoubleColonExpressionResolver(
 
     private fun shouldTryResolveLHSAsExpression(expression: FirCallableReferenceAccess): Boolean {
         val lhs = expression.explicitReceiver ?: return false
-        return lhs.canBeConsideredProperExpression() /* && !expression.hasQuestionMarks */
+        return lhs.canBeConsideredProperExpression() && !expression.safe
     }
 
     private fun shouldTryResolveLHSAsType(expression: FirCallableReferenceAccess): Boolean {
@@ -119,8 +119,7 @@ class FirDoubleColonExpressionResolver(
     }
 
     private fun FirResolvedQualifier.expandedRegularClassIfAny(): FirRegularClass? {
-        val classId = classId ?: return null
-        var fir = session.firSymbolProvider.getClassLikeSymbolByFqName(classId)?.fir
+        var fir = symbol?.fir ?: return null
         while (fir is FirTypeAlias) {
             fir = fir.expandedConeType?.lookupTag?.toSymbol(session)?.fir ?: return null
         }
@@ -168,7 +167,7 @@ class FirDoubleColonExpressionResolver(
                     else -> ConeStarProjection
                 }
             },
-            isNullable = false // TODO: Use org.jetbrains.kotlin.psi.KtDoubleColonExpression.getHasQuestionMarks
+            isNullable = expression.safe
         )
 
         return DoubleColonLHS.Type(type)

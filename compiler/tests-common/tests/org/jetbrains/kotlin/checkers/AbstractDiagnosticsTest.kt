@@ -15,6 +15,10 @@ import org.jetbrains.kotlin.TestsCompilerError
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.analyzer.common.CommonResolverForModuleFactory
 import org.jetbrains.kotlin.builtins.jvm.JvmBuiltIns
+import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
+import org.jetbrains.kotlin.cli.common.messages.GroupingMessageCollector
+import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
+import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.compiler.NoScopeRecordCliBindingTrace
 import org.jetbrains.kotlin.cli.jvm.compiler.TopDownAnalyzerFacadeForJVM
 import org.jetbrains.kotlin.config.*
@@ -32,6 +36,7 @@ import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
 import org.jetbrains.kotlin.diagnostics.DiagnosticUtils
 import org.jetbrains.kotlin.diagnostics.Errors.*
+import org.jetbrains.kotlin.fir.AbstractFirOldFrontendDiagnosticsTest
 import org.jetbrains.kotlin.frontend.java.di.createContainerForLazyResolveWithJava
 import org.jetbrains.kotlin.frontend.java.di.initJvmBuiltInsForTopDownAnalysis
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
@@ -61,7 +66,9 @@ import org.jetbrains.kotlin.test.util.RecursiveDescriptorComparator.RECURSIVE
 import org.jetbrains.kotlin.test.util.RecursiveDescriptorComparator.RECURSIVE_ALL
 import org.jetbrains.kotlin.utils.keysToMap
 import org.junit.Assert
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.PrintStream
 import java.util.*
 import java.util.function.Predicate
 import java.util.regex.Pattern
@@ -77,6 +84,10 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
         } catch (t: Throwable) {
             throw TestsCompilerError(t)
         }
+    }
+
+    protected open fun shouldValidateFirTestData(testDataFile: File): Boolean {
+        return false
     }
 
     private fun analyzeAndCheckUnhandled(testDataFile: File, files: List<TestFile>) {
@@ -169,6 +180,15 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
         // main checks
         var ok = true
 
+        val diagnosticsFullTextByteArrayStream = ByteArrayOutputStream()
+        val diagnosticsFullTextPrintStream = PrintStream(diagnosticsFullTextByteArrayStream)
+        var shouldCheckDiagnosticsFullText = false
+        val diagnosticsFullTextCollector =
+            GroupingMessageCollector(
+                PrintingMessageCollector(diagnosticsFullTextPrintStream, MessageRenderer.SYSTEM_INDEPENDENT_RELATIVE_PATHS, true),
+                false
+            )
+
         val actualText = StringBuilder()
         for (testFile in files) {
             val module = testFile.module
@@ -183,14 +203,20 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
             }
             val moduleDescriptor = modules[module]!!
 
+            val moduleBindingContext = moduleBindings[module]!!
             ok = ok and testFile.getActualText(
-                moduleBindings[module]!!,
+                moduleBindingContext,
                 implementingModulesBindings,
                 actualText,
                 shouldSkipJvmSignatureDiagnostics(groupedByModule) || isCommonModule,
                 languageVersionSettingsByModule[module]!!,
                 moduleDescriptor
             )
+
+            if (testFile.renderDiagnosticsFullText) {
+                shouldCheckDiagnosticsFullText = true
+                AnalyzerWithCompilerReport.reportDiagnostics(moduleBindingContext.diagnostics, diagnosticsFullTextCollector)
+            }
         }
 
         var exceptionFromDynamicCallDescriptorsValidation: Throwable? = null
@@ -199,6 +225,15 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
             checkDynamicCallDescriptors(expectedFile, files)
         } catch (e: Throwable) {
             exceptionFromDynamicCallDescriptorsValidation = e
+        }
+
+        if (shouldCheckDiagnosticsFullText) {
+            diagnosticsFullTextCollector.flush()
+            diagnosticsFullTextPrintStream.flush()
+            KotlinTestUtils.assertEqualsToFile(
+                File(FileUtil.getNameWithoutExtension(testDataFile.absolutePath) + ".diag.txt"),
+                String(diagnosticsFullTextByteArrayStream.toByteArray())
+            )
         }
 
         KotlinTestUtils.assertEqualsToFile(getExpectedDiagnosticsFile(testDataFile), actualText.cleanupInferenceDiagnostics()) { s ->
@@ -215,16 +250,36 @@ abstract class AbstractDiagnosticsTest : BaseDiagnosticsTest() {
         performAdditionalChecksAfterDiagnostics(
             testDataFile, files, groupedByModule, modules, moduleBindings, languageVersionSettingsByModule
         )
-        checkOriginalAndFirTestdataIdentity(testDataFile)
+        if (shouldValidateFirTestData(testDataFile)) {
+            checkFirTestdata(testDataFile, files)
+        }
     }
 
-    private fun checkOriginalAndFirTestdataIdentity(testDataFile: File) {
+    private fun checkFirTestdata(testDataFile: File, files: List<TestFile>) {
         val firTestDataFile = File(testDataFile.absolutePath.replace(".kt", ".fir.kt"))
-        if (!firTestDataFile.exists()) return
+        val firFailFile = File(testDataFile.absolutePath.replace(".kt", ".fir.fail"))
+        when {
+            firFailFile.exists() -> return
+            firTestDataFile.exists() -> checkOriginalAndFirTestdataIdentity(testDataFile, firTestDataFile)
+            else -> runFirTestAndGenerateTestData(testDataFile, firTestDataFile, files)
+        }
+    }
+
+    private fun checkOriginalAndFirTestdataIdentity(testDataFile: File, firTestDataFile: File) {
         val originalTestData = loadTestDataWithoutDiagnostics(testDataFile)
         val firTestData = loadTestDataWithoutDiagnostics(firTestDataFile)
         val message = "Original and fir test data doesn't identical. Please, add changes from ${testDataFile.name} to ${firTestDataFile.name}"
         TestCase.assertEquals(message, originalTestData, firTestData)
+    }
+
+    private fun runFirTestAndGenerateTestData(testDataFile: File, firTestDataFile: File, files: List<TestFile>) {
+        val testRunner = object : AbstractFirOldFrontendDiagnosticsTest() {
+            init {
+                environment = this@AbstractDiagnosticsTest.environment
+            }
+        }
+        FileUtil.copy(testDataFile, firTestDataFile)
+        testRunner.analyzeAndCheckUnhandled(firTestDataFile, files)
     }
 
     private fun StringBuilder.cleanupInferenceDiagnostics(): String = replace(Regex("NI;([\\S]*), OI;\\1([,!])")) { it.groupValues[1] + it.groupValues[2] }

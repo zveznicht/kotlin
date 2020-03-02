@@ -8,6 +8,11 @@ package org.jetbrains.kotlin.fir.backend
 import com.intellij.psi.PsiCompiledElement
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.FirClass
+import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
+import org.jetbrains.kotlin.fir.declarations.FirVariable
+import org.jetbrains.kotlin.fir.expressions.FirConstExpression
+import org.jetbrains.kotlin.fir.expressions.FirConstKind
 import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.references.FirReference
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
@@ -18,6 +23,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
+import org.jetbrains.kotlin.ir.expressions.IrConstKind
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.IrErrorType
 import org.jetbrains.kotlin.ir.types.IrType
@@ -28,6 +34,7 @@ import org.jetbrains.kotlin.ir.types.impl.IrStarProjectionImpl
 import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffsetSkippingComments
 import org.jetbrains.kotlin.types.Variance
@@ -189,4 +196,61 @@ fun FirVariableSymbol<*>.toBackingFieldSymbol(declarationStorage: Fir2IrDeclarat
 
 fun FirVariableSymbol<*>.toValueSymbol(declarationStorage: Fir2IrDeclarationStorage): IrSymbol {
     return declarationStorage.getIrValueSymbol(this)
+}
+
+fun FirConstExpression<*>.getIrConstKind(): IrConstKind<*> = when (kind) {
+    FirConstKind.IntegerLiteral -> {
+        val type = typeRef.coneTypeUnsafe<ConeIntegerLiteralType>()
+        type.getApproximatedType().toConstKind()!!.toIrConstKind()
+    }
+    else -> kind.toIrConstKind()
+}
+
+private fun FirConstKind<*>.toIrConstKind(): IrConstKind<*> = when (this) {
+    FirConstKind.Null -> IrConstKind.Null
+    FirConstKind.Boolean -> IrConstKind.Boolean
+    FirConstKind.Char -> IrConstKind.Char
+    FirConstKind.Byte -> IrConstKind.Byte
+    FirConstKind.Short -> IrConstKind.Short
+    FirConstKind.Int -> IrConstKind.Int
+    FirConstKind.Long -> IrConstKind.Long
+    FirConstKind.String -> IrConstKind.String
+    FirConstKind.Float -> IrConstKind.Float
+    FirConstKind.Double -> IrConstKind.Double
+    FirConstKind.IntegerLiteral -> throw IllegalArgumentException()
+}
+
+internal fun FirClass<*>.collectCallableNamesFromSupertypes(session: FirSession, result: MutableList<Name> = mutableListOf()): List<Name> {
+    for (superTypeRef in superTypeRefs) {
+        superTypeRef.collectCallableNamesFromThisAndSupertypes(session, result)
+    }
+    return result
+}
+
+private fun FirTypeRef.collectCallableNamesFromThisAndSupertypes(
+    session: FirSession,
+    result: MutableList<Name> = mutableListOf()
+): List<Name> {
+    if (this is FirResolvedTypeRef) {
+        val superType = type
+        if (superType is ConeClassLikeType) {
+            when (val superSymbol = superType.lookupTag.toSymbol(session)) {
+                is FirClassSymbol -> {
+                    val superClass = superSymbol.fir as FirClass<*>
+                    for (declaration in superClass.declarations) {
+                        when (declaration) {
+                            is FirSimpleFunction -> result += declaration.name
+                            is FirVariable<*> -> result += declaration.name
+                        }
+                    }
+                    superClass.collectCallableNamesFromSupertypes(session, result)
+                }
+                is FirTypeAliasSymbol -> {
+                    val superAlias = superSymbol.fir
+                    superAlias.expandedTypeRef.collectCallableNamesFromThisAndSupertypes(session, result)
+                }
+            }
+        }
+    }
+    return result
 }

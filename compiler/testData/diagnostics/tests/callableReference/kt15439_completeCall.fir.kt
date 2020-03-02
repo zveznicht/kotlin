@@ -5,7 +5,7 @@ fun test() {
     val (x, y) =
             Pair(1,
                  if (1 == 1)
-                     <!UNRESOLVED_REFERENCE!>Pair<String, String>::first<!>
+                     Pair<String, String>::first
                  else
-                     <!UNRESOLVED_REFERENCE!>Pair<String, String>::second<!>)
+                     Pair<String, String>::second)
 }

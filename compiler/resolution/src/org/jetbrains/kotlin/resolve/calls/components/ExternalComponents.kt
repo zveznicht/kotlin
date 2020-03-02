@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.resolve.calls.inference.model.NewTypeVariable
 import org.jetbrains.kotlin.resolve.calls.model.*
 import org.jetbrains.kotlin.resolve.calls.results.SimpleConstraintSystem
 import org.jetbrains.kotlin.resolve.calls.tower.ImplicitScopeTower
+import org.jetbrains.kotlin.resolve.constants.IntegerValueTypeConstant
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.StubType
 import org.jetbrains.kotlin.types.UnwrappedType
@@ -46,6 +47,8 @@ interface KotlinResolutionStatelessCallbacks {
 
 data class ReturnArgumentsInfo(
     val nonErrorArguments: List<KotlinCallArgument>,
+    val lastExpression: KotlinCallArgument?,
+    val lastExpressionCoercedToUnit: Boolean,
     val returnArgumentsExist: Boolean
 )
 
@@ -75,4 +78,6 @@ interface KotlinResolutionCallbacks {
     fun getExpectedTypeFromAsExpressionAndRecordItInTrace(resolvedAtom: ResolvedCallAtom): UnwrappedType?
 
     fun disableContractsIfNecessary(resolvedAtom: ResolvedCallAtom)
+
+    fun convertSignedConstantToUnsigned(argument: KotlinCallArgument): IntegerValueTypeConstant?
 }

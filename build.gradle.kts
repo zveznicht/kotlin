@@ -172,14 +172,14 @@ extra["versions.org.springframework"] = "4.2.0.RELEASE"
 extra["versions.jflex"] = "1.7.0"
 extra["versions.markdown"] = "0.1.25"
 extra["versions.trove4j"] = "1.0.20181211"
-extra["versions.completion-ranking-kotlin"] = "0.0.2"
+extra["versions.completion-ranking-kotlin"] = "0.1.2"
 extra["versions.r8"] = "1.5.70"
 
 // NOTE: please, also change KTOR_NAME in pathUtil.kt and all versions in corresponding jar names in daemon tests.
 extra["versions.ktor-network"] = "1.0.1"
 
 if (!project.hasProperty("versions.kotlin-native")) {
-    extra["versions.kotlin-native"] = "1.4-dev-14287"
+    extra["versions.kotlin-native"] = "1.4-dev-14579"
 }
 
 val intellijUltimateEnabled by extra(project.kotlinBuildProperties.intellijUltimateEnabled)
@@ -197,11 +197,11 @@ extra["IntellijCoreDependencies"] =
         "jdom",
         "jna",
         "log4j",
-        "picocontainer",
+        if (Platform[201].orHigher()) null else "picocontainer",
         "snappy-in-java",
         "streamex",
         "trove4j"
-    )
+    ).filterNotNull()
 
 
 extra["compilerModules"] = arrayOf(
@@ -536,7 +536,8 @@ tasks {
     }
 
     register("wasmCompilerTest") {
-        dependsOn(":js:js.tests:wasmTest")
+//  TODO: fix once
+//        dependsOn(":js:js.tests:wasmTest")
     }
 
     register("firCompilerTest") {
@@ -545,7 +546,18 @@ tasks {
         dependsOn(":compiler:fir:fir2ir:test")
         dependsOn(":compiler:fir:lightTree:test")
     }
-    
+
+    register("firAllTest") {
+        dependsOn(
+            ":compiler:fir:psi2fir:test",
+            ":compiler:fir:lightTree:test",
+            ":compiler:fir:resolve:test",
+            ":compiler:fir:fir2ir:test",
+            ":compiler:firBlackBox:test",
+            ":idea:firTest"
+        )
+    }
+
     register("compilerFrontendVisualizerTest") {
         dependsOn("compiler:visualizer:test")
     }
@@ -615,7 +627,7 @@ tasks {
     register("konan-tests") {
         dependsOn("dist")
         dependsOn(
-            ":native:kotlin-native-commonizer:test"
+            ":native:kotlin-klib-commonizer:test"
         )
     }
 
@@ -654,6 +666,13 @@ tasks {
             "idea-plugin-main-tests",
             "idea-plugin-additional-tests",
             "idea-new-project-wizard-tests"
+        )
+    }
+
+    register("idea-plugin-performance-tests") {
+        dependsOn("dist")
+        dependsOn(
+            ":idea:performanceTests:performanceTest"
         )
     }
 

@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.resolve.calls.inference.model.NewConstraintError
 import org.jetbrains.kotlin.resolve.calls.inference.model.TypeVariableForCallableReferenceReturnType
 import org.jetbrains.kotlin.resolve.calls.inference.model.TypeVariableForLambdaReturnType
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
+import org.jetbrains.kotlin.resolve.constants.IntegerValueTypeConstant
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeConstructor
 import org.jetbrains.kotlin.types.TypeSubstitutor
@@ -70,6 +71,7 @@ abstract class ResolvedCallAtom : ResolvedAtom() {
     abstract val freshVariablesSubstitutor: FreshVariableNewTypeSubstitutor
     abstract val knownParametersSubstitutor: TypeSubstitutor
     abstract val argumentsWithConversion: Map<KotlinCallArgument, SamConversionDescription>
+    abstract val argumentsWithConstantConversion: Map<KotlinCallArgument, IntegerValueTypeConstant>
 }
 
 class SamConversionDescription(
@@ -80,6 +82,12 @@ class SamConversionDescription(
 class ResolvedExpressionAtom(override val atom: ExpressionKotlinCallArgument) : ResolvedAtom() {
     init {
         setAnalyzedResults(listOf())
+    }
+}
+
+class ResolvedSubCallArgument(override val atom: SubKotlinCallArgument) : ResolvedAtom() {
+    init {
+        setAnalyzedResults(listOf(atom.callResult))
     }
 }
 

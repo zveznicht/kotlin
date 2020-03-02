@@ -149,11 +149,11 @@ open class KotlinNativeTargetConfigurator<T : KotlinNativeTarget>(
         }
     }
 
-    internal fun Project.createKlibCompilationTask(compilation: AbstractKotlinNativeCompilation): TaskProvider<out KotlinNativeCompile> {
-        val compileTask = project.registerTask<KotlinNativeCompile>(
+    internal fun Project.createKlibCompilationTask(compilation: AbstractKotlinNativeCompilation): KotlinNativeCompile {
+        val compileTask = project.tasks.create(
             compilation.compileKotlinTaskName,
             KotlinNativeCompile::class.java
-        ) { task ->
+        ).also { task ->
             task.compilation = compilation
             task.group = BasePlugin.BUILD_GROUP
             task.description = "Compiles a klibrary from the '${compilation.name}' " +
@@ -178,7 +178,7 @@ open class KotlinNativeTargetConfigurator<T : KotlinNativeTarget>(
             project.tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).apply {
                 dependsOn(compileTask)
             }
-            createRegularKlibArtifact(compilation, compileTask.get() /*TODO don't instantiate the task eagerly*/)
+            createRegularKlibArtifact(compilation, compileTask)
         }
 
         return compileTask
@@ -324,15 +324,7 @@ open class KotlinNativeTargetConfigurator<T : KotlinNativeTarget>(
 
     override fun defineConfigurationsForTarget(target: T) {
         super.defineConfigurationsForTarget(target)
-        val configurations = target.project.configurations
-
-        // The configuration and the main compilation are created by the base class.
-        val mainCompilation = target.compilations.getByName(MAIN_COMPILATION_NAME)
-        configurations.getByName(target.apiElementsConfigurationName).apply {
-            //  K/N compiler doesn't divide libraries into implementation and api ones. So we need to add implementation
-            // dependencies into the outgoing configuration.
-            extendsFrom(configurations.getByName(mainCompilation.implementationConfigurationName))
-        }
+        implementationToApiElements(target)
     }
 
     private fun warnAboutIncorrectDependencies(target: KotlinNativeTarget) = target.project.whenEvaluated {

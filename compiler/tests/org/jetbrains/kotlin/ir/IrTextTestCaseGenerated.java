@@ -130,6 +130,11 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
             runTest("compiler/testData/ir/irText/classes/enumWithSecondaryCtor.kt");
         }
 
+        @TestMetadata("fakeOverridesForJavaStaticMembers.kt")
+        public void testFakeOverridesForJavaStaticMembers() throws Exception {
+            runTest("compiler/testData/ir/irText/classes/fakeOverridesForJavaStaticMembers.kt");
+        }
+
         @TestMetadata("implicitNotNullOnDelegatedImplementation.kt")
         public void testImplicitNotNullOnDelegatedImplementation() throws Exception {
             runTest("compiler/testData/ir/irText/classes/implicitNotNullOnDelegatedImplementation.kt");
@@ -158,6 +163,11 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
         @TestMetadata("inlineClass.kt")
         public void testInlineClass() throws Exception {
             runTest("compiler/testData/ir/irText/classes/inlineClass.kt");
+        }
+
+        @TestMetadata("inlineClassSyntheticMethods.kt")
+        public void testInlineClassSyntheticMethods() throws Exception {
+            runTest("compiler/testData/ir/irText/classes/inlineClassSyntheticMethods.kt");
         }
 
         @TestMetadata("innerClass.kt")
@@ -1484,6 +1494,11 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
                 KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/irText/expressions/funInterface"), Pattern.compile("^(.+)\\.kt$"), null, true);
             }
 
+            @TestMetadata("arrayAsVarargAfterSamArgument_fi.kt")
+            public void testArrayAsVarargAfterSamArgument_fi() throws Exception {
+                runTest("compiler/testData/ir/irText/expressions/funInterface/arrayAsVarargAfterSamArgument_fi.kt");
+            }
+
             @TestMetadata("basicFunInterfaceConversion.kt")
             public void testBasicFunInterfaceConversion() throws Exception {
                 runTest("compiler/testData/ir/irText/expressions/funInterface/basicFunInterfaceConversion.kt");
@@ -1525,6 +1540,11 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
 
             public void testAllFilesPresentInSam() throws Exception {
                 KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/irText/expressions/sam"), Pattern.compile("^(.+)\\.kt$"), null, true);
+            }
+
+            @TestMetadata("arrayAsVarargAfterSamArgument.kt")
+            public void testArrayAsVarargAfterSamArgument() throws Exception {
+                runTest("compiler/testData/ir/irText/expressions/sam/arrayAsVarargAfterSamArgument.kt");
             }
 
             @TestMetadata("genericSamProjectedOut.kt")
@@ -1806,24 +1826,19 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
             runTest("compiler/testData/ir/irText/types/asOnPlatformType.kt");
         }
 
-        @TestMetadata("enhancedNullability.kt")
-        public void testEnhancedNullability() throws Exception {
-            runTest("compiler/testData/ir/irText/types/enhancedNullability.kt");
+        @TestMetadata("castsInsideCoroutineInference.kt")
+        public void testCastsInsideCoroutineInference() throws Exception {
+            runTest("compiler/testData/ir/irText/types/castsInsideCoroutineInference.kt");
         }
 
-        @TestMetadata("explicitEqualsAndCompareToCallsOnPlatformTypeReceiver.kt")
-        public void testExplicitEqualsAndCompareToCallsOnPlatformTypeReceiver() throws Exception {
-            runTest("compiler/testData/ir/irText/types/explicitEqualsAndCompareToCallsOnPlatformTypeReceiver.kt");
+        @TestMetadata("coercionToUnitInLambdaReturnValue.kt")
+        public void testCoercionToUnitInLambdaReturnValue() throws Exception {
+            runTest("compiler/testData/ir/irText/types/coercionToUnitInLambdaReturnValue.kt");
         }
 
         @TestMetadata("genericPropertyReferenceType.kt")
         public void testGenericPropertyReferenceType() throws Exception {
             runTest("compiler/testData/ir/irText/types/genericPropertyReferenceType.kt");
-        }
-
-        @TestMetadata("implicitNotNullOnPlatformType.kt")
-        public void testImplicitNotNullOnPlatformType() throws Exception {
-            runTest("compiler/testData/ir/irText/types/implicitNotNullOnPlatformType.kt");
         }
 
         @TestMetadata("intersectionType1_NI.kt")
@@ -1856,19 +1871,19 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
             runTest("compiler/testData/ir/irText/types/intersectionType3_OI.kt");
         }
 
+        @TestMetadata("kt36143.kt")
+        public void testKt36143() throws Exception {
+            runTest("compiler/testData/ir/irText/types/kt36143.kt");
+        }
+
         @TestMetadata("localVariableOfIntersectionType_NI.kt")
         public void testLocalVariableOfIntersectionType_NI() throws Exception {
             runTest("compiler/testData/ir/irText/types/localVariableOfIntersectionType_NI.kt");
         }
 
-        @TestMetadata("nullabilityAssertionOnExtensionReceiver.kt")
-        public void testNullabilityAssertionOnExtensionReceiver() throws Exception {
-            runTest("compiler/testData/ir/irText/types/nullabilityAssertionOnExtensionReceiver.kt");
-        }
-
-        @TestMetadata("platformTypeReceiver.kt")
-        public void testPlatformTypeReceiver() throws Exception {
-            runTest("compiler/testData/ir/irText/types/platformTypeReceiver.kt");
+        @TestMetadata("receiverOfIntersectionType.kt")
+        public void testReceiverOfIntersectionType() throws Exception {
+            runTest("compiler/testData/ir/irText/types/receiverOfIntersectionType.kt");
         }
 
         @TestMetadata("smartCastOnFakeOverrideReceiver.kt")
@@ -1884,6 +1899,59 @@ public class IrTextTestCaseGenerated extends AbstractIrTextTestCase {
         @TestMetadata("smartCastOnReceiverOfGenericType.kt")
         public void testSmartCastOnReceiverOfGenericType() throws Exception {
             runTest("compiler/testData/ir/irText/types/smartCastOnReceiverOfGenericType.kt");
+        }
+
+        @TestMetadata("starProjection_OI.kt")
+        public void testStarProjection_OI() throws Exception {
+            runTest("compiler/testData/ir/irText/types/starProjection_OI.kt");
+        }
+
+        @TestMetadata("compiler/testData/ir/irText/types/nullChecks")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class NullChecks extends AbstractIrTextTestCase {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInNullChecks() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/irText/types/nullChecks"), Pattern.compile("^(.+)\\.kt$"), null, true);
+            }
+
+            @TestMetadata("enhancedNullability.kt")
+            public void testEnhancedNullability() throws Exception {
+                runTest("compiler/testData/ir/irText/types/nullChecks/enhancedNullability.kt");
+            }
+
+            @TestMetadata("enhancedNullabilityInDestructuringAssignment.kt")
+            public void testEnhancedNullabilityInDestructuringAssignment() throws Exception {
+                runTest("compiler/testData/ir/irText/types/nullChecks/enhancedNullabilityInDestructuringAssignment.kt");
+            }
+
+            @TestMetadata("enhancedNullabilityInForLoop.kt")
+            public void testEnhancedNullabilityInForLoop() throws Exception {
+                runTest("compiler/testData/ir/irText/types/nullChecks/enhancedNullabilityInForLoop.kt");
+            }
+
+            @TestMetadata("explicitEqualsAndCompareToCallsOnPlatformTypeReceiver.kt")
+            public void testExplicitEqualsAndCompareToCallsOnPlatformTypeReceiver() throws Exception {
+                runTest("compiler/testData/ir/irText/types/nullChecks/explicitEqualsAndCompareToCallsOnPlatformTypeReceiver.kt");
+            }
+
+            @TestMetadata("implicitNotNullOnPlatformType.kt")
+            public void testImplicitNotNullOnPlatformType() throws Exception {
+                runTest("compiler/testData/ir/irText/types/nullChecks/implicitNotNullOnPlatformType.kt");
+            }
+
+            @TestMetadata("nullabilityAssertionOnExtensionReceiver.kt")
+            public void testNullabilityAssertionOnExtensionReceiver() throws Exception {
+                runTest("compiler/testData/ir/irText/types/nullChecks/nullabilityAssertionOnExtensionReceiver.kt");
+            }
+
+            @TestMetadata("platformTypeReceiver.kt")
+            public void testPlatformTypeReceiver() throws Exception {
+                runTest("compiler/testData/ir/irText/types/nullChecks/platformTypeReceiver.kt");
+            }
         }
     }
 }

@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
-import org.jetbrains.kotlin.ir.types.impl.originalKotlinType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.SpecialNames
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
@@ -261,8 +260,8 @@ fun IrClass.isSubclassOf(ancestor: IrClass): Boolean {
     return this.hasAncestorInSuperTypes()
 }
 
-fun IrSimpleFunction.collectRealOverrides(): Set<IrSimpleFunction> {
-    if (isReal) return setOf(this)
+fun IrSimpleFunction.collectRealOverrides(toSkip: (IrSimpleFunction) -> Boolean = { false }): Set<IrSimpleFunction> {
+    if (isReal && !toSkip(this)) return setOf(this)
 
     val visited = mutableSetOf<IrSimpleFunction>()
     val realOverrides = mutableSetOf<IrSimpleFunction>()
@@ -270,7 +269,7 @@ fun IrSimpleFunction.collectRealOverrides(): Set<IrSimpleFunction> {
     fun collectRealOverrides(func: IrSimpleFunction) {
         if (!visited.add(func)) return
 
-        if (func.isReal) {
+        if (func.isReal && !toSkip(func)) {
             realOverrides += func
         } else {
             func.overriddenSymbols.forEach { collectRealOverrides(it.owner) }
@@ -296,8 +295,13 @@ fun IrSimpleFunction.collectRealOverrides(): Set<IrSimpleFunction> {
 
 // This implementation is from kotlin-native
 // TODO: use this implementation instead of any other
-fun IrSimpleFunction.resolveFakeOverride(): IrSimpleFunction? {
-    return collectRealOverrides().singleOrNull { it.modality != Modality.ABSTRACT }
+fun IrSimpleFunction.resolveFakeOverride(toSkip: (IrSimpleFunction) -> Boolean = { false }): IrSimpleFunction? {
+    return collectRealOverrides(toSkip)
+        .filter { it.modality != Modality.ABSTRACT }
+        .let { realOverrides ->
+            // Kotlin forbids conflicts between overrides, but they may trickle down from Java.
+            realOverrides.singleOrNull { it.parent.safeAs<IrClass>()?.isInterface != true } ?: realOverrides.singleOrNull()
+        }
 }
 
 fun IrSimpleFunction.isOrOverridesSynthesized(): Boolean {
@@ -555,35 +559,18 @@ fun IrFunctionAccessExpression.copyTypeAndValueArgumentsFrom(
     src: IrFunctionAccessExpression,
     receiversAsArguments: Boolean = false,
     argumentsAsReceivers: Boolean = false
-) = copyTypeAndValueArgumentsFrom(
-    src,
-    src.symbol.owner,
-    symbol.owner,
-    receiversAsArguments,
-    argumentsAsReceivers
-)
+) {
+    copyTypeArgumentsFrom(src)
+    copyValueArgumentsFrom(src, src.symbol.owner, symbol.owner, receiversAsArguments, argumentsAsReceivers)
+}
 
-fun IrFunctionReference.copyTypeAndValueArgumentsFrom(
-    src: IrFunctionReference,
-    receiversAsArguments: Boolean = false,
-    argumentsAsReceivers: Boolean = false
-) = copyTypeAndValueArgumentsFrom(
-    src,
-    src.symbol.owner,
-    symbol.owner,
-    receiversAsArguments,
-    argumentsAsReceivers
-)
-
-private fun IrMemberAccessExpression.copyTypeAndValueArgumentsFrom(
+fun IrMemberAccessExpression.copyValueArgumentsFrom(
     src: IrMemberAccessExpression,
     srcFunction: IrFunction,
     destFunction: IrFunction,
     receiversAsArguments: Boolean = false,
     argumentsAsReceivers: Boolean = false
 ) {
-    copyTypeArgumentsFrom(src)
-
     var destValueArgumentIndex = 0
     var srcValueArgumentIndex = 0
 
@@ -626,6 +613,15 @@ val IrDeclaration.fileOrNull: IrFile?
 
 val IrDeclaration.file: IrFile
     get() = fileOrNull ?: TODO("Unknown file")
+
+val IrDeclaration.parentClassOrNull: IrClass?
+    get() = parent.let {
+        when (it) {
+            is IrClass -> it
+            is IrDeclaration -> it.parentClassOrNull
+            else -> null
+        }
+    }
 
 val IrFunction.allTypeParameters: List<IrTypeParameter>
     get() = if (this is IrConstructor)
@@ -679,3 +675,6 @@ fun SymbolTable.findOrDeclareExternalPackageFragment(descriptor: PackageFragment
             declareExternalPackageFragment(descriptor)
         }
     }.owner
+
+val IrDeclaration.isFileClass: Boolean
+    get() = origin == IrDeclarationOrigin.FILE_CLASS || origin == IrDeclarationOrigin.SYNTHETIC_FILE_CLASS

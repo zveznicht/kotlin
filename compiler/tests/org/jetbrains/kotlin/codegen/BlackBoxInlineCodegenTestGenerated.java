@@ -3653,6 +3653,16 @@ public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxInlineCo
             runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/crossinlineSuspendLambdaInsideCrossinlineSuspendLambda.kt", "kotlin.coroutines");
         }
 
+        @TestMetadata("doubleRegenerationWithNonSuspendingLambda.kt")
+        public void testDoubleRegenerationWithNonSuspendingLambda_1_2() throws Exception {
+            runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/doubleRegenerationWithNonSuspendingLambda.kt", "kotlin.coroutines.experimental");
+        }
+
+        @TestMetadata("doubleRegenerationWithNonSuspendingLambda.kt")
+        public void testDoubleRegenerationWithNonSuspendingLambda_1_3() throws Exception {
+            runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/doubleRegenerationWithNonSuspendingLambda.kt", "kotlin.coroutines");
+        }
+
         @TestMetadata("enclodingMethod.kt")
         public void testEnclodingMethod_1_2() throws Exception {
             runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/enclodingMethod.kt", "kotlin.coroutines.experimental");
@@ -3758,6 +3768,16 @@ public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxInlineCo
             runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/inlineSuspendOfSuspend.kt", "kotlin.coroutines");
         }
 
+        @TestMetadata("jvmName.kt")
+        public void testJvmName_1_2() throws Exception {
+            runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/jvmName.kt", "kotlin.coroutines.experimental");
+        }
+
+        @TestMetadata("jvmName.kt")
+        public void testJvmName_1_3() throws Exception {
+            runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/jvmName.kt", "kotlin.coroutines");
+        }
+
         @TestMetadata("kt26658.kt")
         public void testKt26658() throws Exception {
             runTest("compiler/testData/codegen/boxInline/suspend/kt26658.kt");
@@ -3811,6 +3831,16 @@ public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxInlineCo
         @TestMetadata("returnValue.kt")
         public void testReturnValue_1_3() throws Exception {
             runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/returnValue.kt", "kotlin.coroutines");
+        }
+
+        @TestMetadata("tryCatchReceiver.kt")
+        public void testTryCatchReceiver_1_2() throws Exception {
+            runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/tryCatchReceiver.kt", "kotlin.coroutines.experimental");
+        }
+
+        @TestMetadata("tryCatchReceiver.kt")
+        public void testTryCatchReceiver_1_3() throws Exception {
+            runTestWithPackageReplacement("compiler/testData/codegen/boxInline/suspend/tryCatchReceiver.kt", "kotlin.coroutines");
         }
 
         @TestMetadata("tryCatchStackTransform.kt")

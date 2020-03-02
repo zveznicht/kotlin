@@ -299,18 +299,18 @@ internal class InsertImplicitCasts(
             null
 
     private fun IrExpression.cast(
-        expectedType: KotlinType?,
-        originalExpectedType: KotlinType? = expectedType,
+        possiblyNonDenotableExpectedType: KotlinType?,
+        originalExpectedType: KotlinType? = possiblyNonDenotableExpectedType,
         isLambdaReturnValue: Boolean = false
     ): IrExpression {
-        if (expectedType == null) return this
-        if (expectedType.isError) return this
+        if (possiblyNonDenotableExpectedType == null) return this
+        if (possiblyNonDenotableExpectedType.isError) return this
+
+        val expectedType = typeTranslator.approximate(possiblyNonDenotableExpectedType)
 
         if (this is IrFunctionExpression && originalExpectedType != null) {
             recordExpectedLambdaReturnTypeIfAppropriate(expectedType, originalExpectedType)
         }
-
-        // TODO here we can have non-denotable KotlinTypes (both in 'this@cast.type' and 'expectedType').
 
         val notNullableExpectedType = expectedType.makeNotNullable()
 
@@ -326,10 +326,10 @@ internal class InsertImplicitCasts(
                 else
                     implicitCast(expectedType, IrTypeOperator.IMPLICIT_DYNAMIC_CAST)
 
-            (valueType.isNullabilityFlexible() && valueType.containsNull()) && !expectedType.containsNull() ->
+            valueType.isNullabilityFlexible() && valueType.containsNull() && !expectedType.acceptsNullValues() ->
                 implicitNonNull(valueType, expectedType)
 
-            (valueType.hasEnhancedNullability() && !isLambdaReturnValue) && !expectedType.containsNull() ->
+            (valueType.hasEnhancedNullability() && !isLambdaReturnValue) && !expectedType.acceptsNullValues() ->
                 implicitNonNull(valueType, expectedType)
 
             KotlinTypeChecker.DEFAULT.isSubtypeOf(valueType, expectedType.makeNullable()) ->
@@ -358,6 +358,9 @@ internal class InsertImplicitCasts(
             expectedFunctionExpressionReturnType[function.descriptor] = returnTypeFromExpected.toIrType()
         }
     }
+
+    private fun KotlinType.acceptsNullValues() =
+        containsNull() || hasEnhancedNullability()
 
     private fun KotlinType.hasEnhancedNullability() =
         generatorExtensions.enhancedNullability.hasEnhancedNullability(this)

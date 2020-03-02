@@ -1,18 +1,19 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.backend.jvm.codegen
 
+import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.backend.common.CodegenUtil
 import org.jetbrains.kotlin.backend.common.ir.ir2string
+import org.jetbrains.kotlin.backend.jvm.lower.getOrCreateSuspendFunctionViewIfNeeded
 import org.jetbrains.kotlin.codegen.BaseExpressionCodegen
 import org.jetbrains.kotlin.codegen.ClassBuilder
 import org.jetbrains.kotlin.codegen.OwnerKind
-import org.jetbrains.kotlin.codegen.coroutines.INVOKE_SUSPEND_METHOD_NAME
 import org.jetbrains.kotlin.codegen.inline.*
 import org.jetbrains.kotlin.codegen.inline.coroutines.FOR_INLINE_SUFFIX
 import org.jetbrains.kotlin.codegen.serialization.JvmSerializationBindings
@@ -20,15 +21,20 @@ import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptorWithSource
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
+import org.jetbrains.kotlin.diagnostics.DiagnosticUtils
+import org.jetbrains.kotlin.incremental.components.LocationInfo
 import org.jetbrains.kotlin.incremental.components.LookupLocation
-import org.jetbrains.kotlin.incremental.components.NoLookupLocation
+import org.jetbrains.kotlin.incremental.components.Position
 import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.util.functions
+import org.jetbrains.kotlin.ir.util.isSuspend
+import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.psi.KtElement
+import org.jetbrains.kotlin.psi.doNotAnalyze
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.ErrorsJvm.SUSPENSION_POINT_INSIDE_MONITOR
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
@@ -48,9 +54,24 @@ class IrSourceCompilerForInline(
     private val data: BlockInfo
 ) : SourceCompilerForInline {
 
-    //TODO: KotlinLookupLocation(callElement)
     override val lookupLocation: LookupLocation
-        get() = NoLookupLocation.FROM_BACKEND
+        get() = object : LookupLocation {
+            override val location: LocationInfo?
+                get() {
+                    val ktFile = codegen.classCodegen.context.psiSourceManager.getKtFile(codegen.irFunction.fileParent)
+                        ?.takeUnless { it.doNotAnalyze != null } ?: return null
+
+                    return object : LocationInfo {
+                        override val filePath = ktFile.virtualFilePath
+
+                        override val position: Position
+                            get() = DiagnosticUtils.getLineAndColumnInPsiFile(
+                                ktFile,
+                                TextRange(callElement.startOffset, callElement.endOffset)
+                            ).let { Position(it.line, it.column) }
+                    }
+                }
+        }
 
     override val callElementText: String
         get() = ir2string(callElement)
@@ -68,8 +89,8 @@ class IrSourceCompilerForInline(
                 root.classCodegen.type.internalName,
                 root.signature.asmMethod.name,
                 root.signature.asmMethod.descriptor,
-                compilationContextFunctionDescriptor.isInlineOrInsideInline(),
-                compilationContextFunctionDescriptor.isSuspend,
+                root.irFunction.descriptor.isInlineOrInsideInline(),
+                root.irFunction.isSuspend,
                 findElement()?.let { CodegenUtil.getLineNumberForElement(it, false) } ?: 0
             )
         }
@@ -86,7 +107,7 @@ class IrSourceCompilerForInline(
                 function.parentAsClass.functions.find {
                     it.name.asString() == function.name.asString() + FOR_INLINE_SUFFIX &&
                             it.attributeOwnerId == (function as? IrAttributeContainer)?.attributeOwnerId
-                } ?: function
+                } ?: function.getOrCreateSuspendFunctionViewIfNeeded(classCodegen.context)
             else function
         val functionCodegen = object : FunctionCodegen(forInlineFunction, classCodegen, codegen.takeIf { isLambda }) {
             override fun createMethod(flags: Int, signature: JvmMethodGenericSignature): MethodVisitor {
@@ -151,11 +172,6 @@ class IrSourceCompilerForInline(
 
     override fun getContextLabels(): Set<String> {
         val name = codegen.irFunction.name.asString()
-        if (name == INVOKE_SUSPEND_METHOD_NAME) {
-            codegen.context.suspendLambdaToOriginalFunctionMap[codegen.irFunction.parentAsClass.attributeOwnerId]?.let {
-                return setOf(it.name.asString())
-            }
-        }
         return setOf(name)
     }
 

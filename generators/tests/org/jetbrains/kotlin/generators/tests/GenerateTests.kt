@@ -64,6 +64,7 @@ import org.jetbrains.kotlin.idea.debugger.test.AbstractFileRankingTest
 import org.jetbrains.kotlin.idea.decompiler.navigation.AbstractNavigateToDecompiledLibraryTest
 import org.jetbrains.kotlin.idea.decompiler.navigation.AbstractNavigateToLibrarySourceTest
 import org.jetbrains.kotlin.idea.decompiler.navigation.AbstractNavigateToLibrarySourceTestWithJS
+import org.jetbrains.kotlin.idea.decompiler.navigation.AbstractNavigateJavaToLibrarySourceTest
 import org.jetbrains.kotlin.idea.decompiler.stubBuilder.AbstractClsStubBuilderTest
 import org.jetbrains.kotlin.idea.decompiler.stubBuilder.AbstractLoadJavaClsStubTest
 import org.jetbrains.kotlin.idea.decompiler.textBuilder.AbstractCommonDecompiledTextFromJsMetadataTest
@@ -192,7 +193,6 @@ fun main(args: Array<String>) {
             )
             model("stepping/stepOut", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doStepOutTest")
             model("stepping/stepOver", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doStepOverTest")
-            model("stepping/stepOverForce", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doStepOverForceTest")
             model("stepping/filters", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doStepIntoTest")
             model("stepping/custom", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doCustomTest")
         }
@@ -332,6 +332,10 @@ fun main(args: Array<String>) {
             model("decompiler/navigation/usercode")
         }
 
+        testClass<AbstractNavigateJavaToLibrarySourceTest>(annotations = listOf(muteExtraSuffix(".libsrc"))) {
+            model("decompiler/navigation/userJavaCode", pattern = "^(.+)\\.java$")
+        }
+
         testClass<AbstractNavigateToLibrarySourceTestWithJS>(annotations = listOf(muteExtraSuffix(".libsrcjs"))) {
             model("decompiler/navigation/usercode", testClassName = "UsercodeWithJSModule")
         }
@@ -449,6 +453,7 @@ fun main(args: Array<String>) {
             model("codeInsight/moveUpDown/closingBraces", testMethod = "doTestExpression")
             model("codeInsight/moveUpDown/expressions", pattern = KT_OR_KTS, testMethod = "doTestExpression")
             model("codeInsight/moveUpDown/parametersAndArguments", testMethod = "doTestExpression")
+            model("codeInsight/moveUpDown/trailingComma", testMethod = "doTestExpressionWithTrailingComma")
         }
 
         testClass<AbstractMoveLeftRightTest> {
@@ -586,8 +591,16 @@ fun main(args: Array<String>) {
         testClass<AbstractFormatterTest> {
             model("formatter", pattern = """^([^\.]+)\.after\.kt.*$""")
             model(
+                "formatter/trailingComma", pattern = """^([^\.]+)\.call\.after\.kt.*$""",
+                testMethod = "doTestCallSite", testClassName = "FormatterCallSite"
+            )
+            model(
                 "formatter", pattern = """^([^\.]+)\.after\.inv\.kt.*$""",
                 testMethod = "doTestInverted", testClassName = "FormatterInverted"
+            )
+            model(
+                "formatter/trailingComma", pattern = """^([^\.]+)\.call\.after\.inv\.kt.*$""",
+                testMethod = "doTestInvertedCallSite", testClassName = "FormatterInvertedCallSite"
             )
         }
 
@@ -1367,7 +1380,7 @@ fun main(args: Array<String>) {
         }
     }
 
-    testGroup("idea/performanceTests", "idea/testData") {
+    testGroup("idea/performanceTests/test", "idea/testData") {
         testClass<AbstractPerformanceJavaToKotlinCopyPasteConversionTest> {
             model("copyPaste/conversion", testMethod = "doPerfTest", pattern = """^([^\.]+)\.java$""")
         }
@@ -1391,7 +1404,7 @@ fun main(args: Array<String>) {
 
     }
 
-    testGroup("idea/performanceTests", "idea/idea-completion/testData") {
+    testGroup("idea/performanceTests/test", "idea/idea-completion/testData") {
         testClass<AbstractPerformanceCompletionIncrementalResolveTest> {
             model("incrementalResolve", testMethod = "doPerfTest")
         }
