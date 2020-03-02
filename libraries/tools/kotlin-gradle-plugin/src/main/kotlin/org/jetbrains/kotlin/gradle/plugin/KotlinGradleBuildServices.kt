@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.compilerRunner.GradleCompilerRunner
 import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskExecutionResults
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskLoggers
-import org.jetbrains.kotlin.gradle.report.configureBuildReporter
+import org.jetbrains.kotlin.gradle.report.configureReporing
 import org.jetbrains.kotlin.gradle.utils.relativeToRoot
 import org.jetbrains.kotlin.utils.addToStdlib.sumByLong
 import java.lang.management.ManagementFactory
@@ -79,7 +79,7 @@ internal class KotlinGradleBuildServices private constructor(
         TaskLoggers.clear()
         TaskExecutionResults.clear()
 
-        configureBuildReporter(gradle, log)
+        configureReporing(gradle)
     }
 
     override fun buildFinished(result: BuildResult) {

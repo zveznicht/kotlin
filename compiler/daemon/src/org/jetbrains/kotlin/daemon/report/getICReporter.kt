@@ -16,21 +16,25 @@
 
 package org.jetbrains.kotlin.daemon.report
 
+import org.jetbrains.kotlin.build.report.BuildReporter
+import org.jetbrains.kotlin.build.report.RemoteBuildReporter
+import org.jetbrains.kotlin.build.report.RemoteICReporter
+import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporterImpl
+import org.jetbrains.kotlin.build.report.metrics.DoNothingBuildMetricsReporter
 import org.jetbrains.kotlin.daemon.common.*
-import java.io.File
 import java.util.*
 
-fun getICReporter(
+fun getBuildReporter(
     servicesFacade: CompilerServicesFacadeBase,
     compilationResults: CompilationResults,
     compilationOptions: IncrementalCompilationOptions
-): RemoteICReporter {
+): RemoteBuildReporter {
     val root = compilationOptions.modulesInfo.projectRoot
-    val reporters = ArrayList<RemoteICReporter>()
+    val icReporters = ArrayList<RemoteICReporter>()
 
     if (ReportCategory.IC_MESSAGE.code in compilationOptions.reportCategories) {
         val isVerbose = compilationOptions.reportSeverity == ReportSeverity.DEBUG.code
-        reporters.add(DebugMessagesICReporter(servicesFacade, root, isVerbose = isVerbose))
+        icReporters.add(DebugMessagesICReporter(servicesFacade, root, isVerbose = isVerbose))
     }
 
     val requestedResults = compilationOptions
@@ -38,7 +42,7 @@ fun getICReporter(
         .mapNotNullTo(HashSet()) { resultCode ->
             CompilationResultCategory.values().getOrNull(resultCode)
         }
-    requestedResults.mapTo(reporters) { requestedResult ->
+    requestedResults.mapNotNullTo(icReporters) { requestedResult ->
         when (requestedResult) {
             CompilationResultCategory.IC_COMPILE_ITERATION -> {
                 CompileIterationICReporter(compilationResults)
@@ -49,10 +53,16 @@ fun getICReporter(
             CompilationResultCategory.VERBOSE_BUILD_REPORT_LINES -> {
                 BuildReportICReporter(compilationResults, root, isVerbose = true)
             }
+            CompilationResultCategory.BUILD_METRICS -> null // see below
         }
     }
 
-    return CompositeICReporter(reporters)
+    val areBuildMetricsNeeded = CompilationResultCategory.BUILD_METRICS in requestedResults
+    val metricsReporter =
+        (if (areBuildMetricsNeeded) BuildMetricsReporterImpl() else DoNothingBuildMetricsReporter)
+            .let { RemoteBuildMetricsReporterAdapter(it, areBuildMetricsNeeded, compilationResults) }
+
+    return RemoteBuildReporter(CompositeICReporter(icReporters), metricsReporter)
 }
 
 

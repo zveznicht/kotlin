@@ -15,6 +15,10 @@ import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.workers.WorkerExecutor
 import org.jetbrains.kotlin.build.DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
+import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporter
+import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporterImpl
+import org.jetbrains.kotlin.build.report.metrics.BuildTime
+import org.jetbrains.kotlin.build.report.metrics.measure
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
@@ -83,6 +87,10 @@ abstract class AbstractKotlinCompileTool<T : CommonToolArguments>
 
     @get:Input
     internal var useFallbackCompilerSearch: Boolean = false
+
+    @get:Internal
+    override val metrics: BuildMetricsReporter =
+        BuildMetricsReporterImpl()
 
     @get:Classpath
     @get:InputFiles
@@ -264,7 +272,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
         // To prevent this, we backup outputs before incremental build and restore when exception is thrown
         val outputsBackup: TaskOutputsBackup? =
             if (incremental && inputs.isIncremental)
-                kotlinLogger.logTime("Backing up outputs for incremental build") {
+                metrics.measure(BuildTime.GRADLE_OUTPUT_BACKUP) {
                     TaskOutputsBackup(allOutputFiles())
                 }
             else null
@@ -277,7 +285,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
             executeImpl(inputs)
         } catch (t: Throwable) {
             if (outputsBackup != null) {
-                kotlinLogger.logTime("Restoring previous outputs on error") {
+                metrics.measure(BuildTime.GRADLE_OUTPUT_BACKUP_RESTORE) {
                     outputsBackup.restoreOutputs()
                 }
             }

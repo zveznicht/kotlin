@@ -6,11 +6,16 @@
 package org.jetbrains.kotlin.daemon.report.experimental
 
 import kotlinx.coroutines.*
+import org.jetbrains.kotlin.build.report.BuildReporter
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.daemon.common.*
 import org.jetbrains.kotlin.daemon.report.CompositeICReporter
-import org.jetbrains.kotlin.daemon.report.RemoteICReporter
-import org.jetbrains.kotlin.incremental.ICReporterBase
+import org.jetbrains.kotlin.build.report.ICReporterBase
+import org.jetbrains.kotlin.build.report.RemoteBuildReporter
+import org.jetbrains.kotlin.build.report.RemoteICReporter
+import org.jetbrains.kotlin.build.report.metrics.BuildMetricsReporter
+import org.jetbrains.kotlin.build.report.metrics.DoNothingBuildMetricsReporter
+import org.jetbrains.kotlin.build.report.metrics.RemoteBuildMetricsReporter
 import java.io.File
 
 internal class DebugMessagesICReporterAsync(
@@ -106,7 +111,7 @@ fun getICReporterAsync(
     servicesFacade: CompilerServicesFacadeBaseAsync,
     compilationResults: CompilationResultsAsync?,
     compilationOptions: IncrementalCompilationOptions
-): RemoteICReporter {
+): RemoteBuildReporter {
     val root = compilationOptions.modulesInfo.projectRoot
     val reporters = ArrayList<RemoteICReporter>()
 
@@ -120,7 +125,7 @@ fun getICReporterAsync(
         .mapNotNullTo(HashSet()) { resultCode ->
             CompilationResultCategory.values().getOrNull(resultCode)
         }
-    requestedResults.mapTo(reporters) { requestedResult ->
+    requestedResults.mapNotNullTo(reporters) { requestedResult ->
         when (requestedResult) {
             CompilationResultCategory.IC_COMPILE_ITERATION -> {
                 CompileIterationICReporterAsync(compilationResults)
@@ -131,8 +136,16 @@ fun getICReporterAsync(
             CompilationResultCategory.VERBOSE_BUILD_REPORT_LINES -> {
                 BuildReportICReporterAsync(compilationResults, root, isVerbose = true)
             }
+            CompilationResultCategory.BUILD_METRICS -> null // see below
         }
     }
 
-    return CompositeICReporter(reporters)
+    val icReporter = CompositeICReporter(reporters)
+    val metricsReporter = DoNothingRemoteBuildMetricsReporter
+    return RemoteBuildReporter(icReporter, metricsReporter)
+}
+
+object DoNothingRemoteBuildMetricsReporter : BuildMetricsReporter by DoNothingBuildMetricsReporter, RemoteBuildMetricsReporter {
+    override fun flush() {
+    }
 }
