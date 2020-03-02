@@ -79,7 +79,7 @@ open class KaptWithKotlincTask : KaptTask(), CompilerArgumentAwareWithInput<K2JV
     private var processIncrementally = false
 
     private val javaPackagePrefix by project.optionalProvider { kotlinCompileTask.javaPackagePrefix }
-    private val buildReportMode by project.optionalProvider { kotlinCompileTask.buildReportMode }
+    private val reportingSettings by project.provider { kotlinCompileTask.reportingSettings }
 
     @TaskAction
     fun compile(inputs: IncrementalTaskInputs) {
@@ -99,7 +99,7 @@ open class KaptWithKotlincTask : KaptTask(), CompilerArgumentAwareWithInput<K2JV
         val outputItemCollector = OutputItemsCollectorImpl()
         val environment = GradleCompilerEnvironment(
             compilerClasspath, messageCollector, outputItemCollector,
-            buildReportMode = buildReportMode,
+            reportingSettings = reportingSettings,
             outputFiles = allOutputFiles()
         )
         if (environment.toolsJar == null && !isAtLeastJava9) {
