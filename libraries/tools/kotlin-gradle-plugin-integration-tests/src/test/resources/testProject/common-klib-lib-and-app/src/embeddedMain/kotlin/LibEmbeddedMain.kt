@@ -9,13 +9,13 @@ import kotlinx.cinterop.CArrayPointer
 
 actual class LibCommonMainExpect : LibCommonMainIface {
     actual fun libCommonMainExpectFun(): Unit {
-        println("actualized in linuxMain")
+        println("actualized in embeddedMain")
         libCommonMainTopLevelFun()
         println(CArrayPointer::class)
     }
 
-    fun additionalFunInLinuxActual() {
-        println("additional fun in lib iosMain")
+    fun additionalFunInEmbeddedActual() {
+        println("additional fun in lib embeddedMain")
     }
 }
 
