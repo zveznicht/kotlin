@@ -13,39 +13,17 @@
  * HELPERS: checkType
  */
 
+// FILE: KotlinClass.kt
 // TESTCASE NUMBER: 1
 fun case1() {
     val condition: Any = true
-    while (condition && "true") {
+    while (<!TYPE_MISMATCH!>condition<!> && <!TYPE_MISMATCH!>"true"<!>) {
     }
 }
 
 // TESTCASE NUMBER: 2
 fun case2() {
     val condition: Boolean? = true
-    while (condition) {
+    while (<!TYPE_MISMATCH, TYPE_MISMATCH!>condition<!>) {
     }
-}
-
-// FILE: JavaClass.java
-public class JavaClass {
-    public static Boolean CONDITION = false;
-    public static Boolean CONDITION_NULL;
-}
-
-// FILE: KotlinClass.kt
-// TESTCASE NUMBER: 3
-fun case3() {
-    //todo:  fix  Test isn't negative because it doesn't contain error elements. TEST CASES: 1, 2, 3
-    val c1 = JavaClass.CONDITION
-    val c2 = JavaClass.CONDITION_NULL
-
-    while (c1){}
-    while (c2){}
-
-    c1 checkType { check<Boolean>() }
-    c2 checkType { check<Boolean ?>() }
-
-    <!DEBUG_INFO_EXPRESSION_TYPE("(kotlin.Boolean..kotlin.Boolean?)")!>c1<!>
-    <!DEBUG_INFO_EXPRESSION_TYPE("(kotlin.Boolean..kotlin.Boolean?)")!>c2<!>
 }

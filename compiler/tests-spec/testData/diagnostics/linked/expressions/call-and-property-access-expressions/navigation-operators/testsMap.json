@@ -41,6 +41,13 @@
           "description": "",
           "path": "compiler/tests-spec/testData/diagnostics/linked/expressions/call-and-property-access-expressions/navigation-operators/p-6/pos/1.1.kt",
           "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-222",
+          "casesNumber": 0,
+          "description": "Kt9517",
+          "path": "compiler/testData/diagnostics/tests/resolve/invoke/kt9517.kt",
+          "unexpectedBehaviour": false
         }
       ]
     }
@@ -91,6 +98,13 @@
           "casesNumber": 2,
           "description": "check case when a.c has semantic when used as an expression: \"A fully-qualified type, property or object name\"",
           "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-220",
+          "casesNumber": 0,
+          "description": "Class vs package",
+          "path": "compiler/testData/diagnostics/tests/callableReference/classVsPackage.kt",
+          "unexpectedBehaviour": false
         }
       ],
       "2": [
@@ -106,6 +120,48 @@
           "casesNumber": 2,
           "description": "check case when a.c has semantic when used as an expression: \"A fully-qualified type, property or object name\"",
           "path": "compiler/tests-spec/testData/diagnostics/linked/expressions/call-and-property-access-expressions/navigation-operators/p-3/pos/1.1.kt",
+          "unexpectedBehaviour": false
+        },
+        {
+          "specVersion": "0.1-220",
+          "casesNumber": 0,
+          "description": "Class vs package",
+          "path": "compiler/testData/diagnostics/tests/callableReference/classVsPackage.kt",
+          "unexpectedBehaviour": false
+        }
+      ]
+    }
+  },
+  "9": {
+    "pos": {
+      "4": [
+        {
+          "specVersion": "0.1-220",
+          "casesNumber": 0,
+          "description": "Class vs package",
+          "path": "compiler/testData/diagnostics/tests/callableReference/classVsPackage.kt",
+          "unexpectedBehaviour": false
+        }
+      ],
+      "2": [
+        {
+          "specVersion": "0.1-220",
+          "casesNumber": 0,
+          "description": "Correct info after array like call",
+          "path": "compiler/testData/diagnostics/tests/callableReference/correctInfoAfterArrayLikeCall.kt",
+          "unexpectedBehaviour": false
+        }
+      ]
+    }
+  },
+  "8": {
+    "pos": {
+      "1": [
+        {
+          "specVersion": "0.1-220",
+          "casesNumber": 0,
+          "description": "Correct info after array like call",
+          "path": "compiler/testData/diagnostics/tests/callableReference/correctInfoAfterArrayLikeCall.kt",
           "unexpectedBehaviour": false
         }
       ]

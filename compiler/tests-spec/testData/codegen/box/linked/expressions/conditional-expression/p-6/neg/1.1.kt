@@ -2,7 +2,7 @@
 // WITH_RUNTIME
 
 /*
- * KOTLIN CODEGEN BOX SPEC TEST (POSITIVE)
+ * KOTLIN CODEGEN BOX SPEC TEST (NEGATIVE)
  *
  * SPEC VERSION: 0.1-220
  * PLACE: expressions, conditional-expression -> paragraph 6 -> sentence 1

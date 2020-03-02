@@ -26,5 +26,5 @@ fun case1(x: mainModule.<!UNRESOLVED_REFERENCE!>CaseUnknown<!>, x1: <!UNRESOLVED
     val z : mainModule.Case1 = mainModule.<!UNRESOLVED_REFERENCE!>CaseUnknown<!>()
 
     val y1 : <!UNRESOLVED_REFERENCE!>unknownPack<!>.<!DEBUG_INFO_MISSING_UNRESOLVED!>Case2<!> = mainModule.Case1()
-    val z1 : mainModule.Case1 = <!UNRESOLVED_REFERENCE!>unknownPack<!>.<!DEBUG_INFO_ELEMENT_WITH_ERROR_TYPE!>Case1<!>()
+    val z1 : mainModule.Case1 = <!UNRESOLVED_REFERENCE!>unknownPack<!>.<!DEBUG_INFO_MISSING_UNRESOLVED!>Case1<!>()
 }
