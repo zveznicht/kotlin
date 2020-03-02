@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.incremental
 
+import org.jetbrains.kotlin.build.report.ICReporter
 import org.jetbrains.kotlin.incremental.storage.BasicMapsOwner
 import org.jetbrains.kotlin.incremental.storage.FileToCanonicalPathConverter
 import org.jetbrains.kotlin.serialization.SerializerExtensionProtocol
