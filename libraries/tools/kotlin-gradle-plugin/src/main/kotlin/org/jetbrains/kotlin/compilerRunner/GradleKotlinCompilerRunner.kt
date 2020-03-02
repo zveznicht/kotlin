@@ -136,7 +136,7 @@ internal open class GradleCompilerRunner(protected val task: Task) {
             incrementalModuleInfo = modulesInfo,
             outputFiles = environment.outputFiles.toList(),
             taskPath = task.path,
-            buildReportMode = environment.buildReportMode,
+            reportingSettings = environment.reportingSettings,
             kotlinScriptExtensions = environment.kotlinScriptExtensions,
             allWarningsAsErrors = compilerArgs.allWarningsAsErrors
         )
