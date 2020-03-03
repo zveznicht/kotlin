@@ -133,9 +133,9 @@ dependencies {
 
     proguardLibraries(project(":kotlin-annotations-jvm"))
 
-    compilerVersion(project(":core:compiler.version"))
+    compilerVersion(project(":compiler:compiler.version"))
     compilerModules
-        .filter { it != ":core:compiler.version" } // Version will be added directly to the final jar excluding proguard and relocation
+        .filter { it != ":compiler:compiler.version" } // Version will be added directly to the final jar excluding proguard and relocation
         .forEach {
             fatJarContents(project(it)) { isTransitive = false }
         }

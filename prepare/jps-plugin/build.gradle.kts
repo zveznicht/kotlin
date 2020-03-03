@@ -21,7 +21,7 @@ val projectsToShadow = listOf(
     ":kotlin-preloader",
     ":compiler:util",
     ":core:util.runtime",
-    ":core:compiler.version"
+    ":compiler:compiler.version"
 )
 
 dependencies {
