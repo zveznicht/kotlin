@@ -25,14 +25,20 @@ import androidx.compose.plugins.kotlin.compiler.lower.ComposerParamTransformer
 import androidx.compose.plugins.kotlin.frames.FrameIrTransformer
 import org.jetbrains.kotlin.backend.common.BackendContext
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
+import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.ir.declarations.IrFile
+import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.util.DeepCopySymbolRemapper
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DelegatingBindingTrace
 
 class ComposeIrGenerationExtension : IrGenerationExtension {
-    override fun generate(
+    override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
+        TODO("Unimplemented in new API")
+    }
+
+    fun generate(
         file: IrFile,
         backendContext: BackendContext,
         bindingContext: BindingContext

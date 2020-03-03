@@ -31,7 +31,7 @@ import java.util.Collection;
 /**
  * Error messages
  */
-public interface ComposeErrors {
+public interface ComposeErrorsLegacy {
     DiagnosticFactory0<PsiElement> OPEN_MODEL = DiagnosticFactory0.create(ERROR);
     DiagnosticFactory0<KtElement>
             SUSPEND_FUNCTION_USED_AS_SFC = DiagnosticFactory0.create(ERROR);

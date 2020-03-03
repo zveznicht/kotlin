@@ -51,10 +51,7 @@ import org.jetbrains.kotlin.descriptors.impl.AnonymousFunctionDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ValueParameterDescriptorImpl
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
-import org.jetbrains.kotlin.ir.builders.IrBlockBodyBuilder
-import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
-import org.jetbrains.kotlin.ir.builders.irBlock
-import org.jetbrains.kotlin.ir.builders.irBlockBody
+import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.IrAnnotationContainer
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.declarations.IrFunction
@@ -247,10 +244,10 @@ abstract class AbstractComposeLowering(
         extensionReceiverParameter = descriptor.extensionReceiverParameter?.irValueParameter()
 
         assert(valueParameters.isEmpty())
-        descriptor.valueParameters.mapTo(valueParameters) { it.irValueParameter() }
+        valueParameters = descriptor.valueParameters.map { it.irValueParameter() }
 
         assert(typeParameters.isEmpty())
-        descriptor.typeParameters.mapTo(typeParameters) { it.irTypeParameter() }
+        typeParameters = descriptor.typeParameters.map { it.irTypeParameter() }
     }
 
     protected fun IrBuilderWithScope.irLambdaExpression(
@@ -278,7 +275,7 @@ abstract class AbstractComposeLowering(
         ).also {
             it.parent = scope.getLocalDeclarationParent()
             it.createParameterDeclarations()
-            it.body = DeclarationIrBuilder(this@AbstractComposeLowering.context, symbol)
+            it.body = DeclarationIrBuilder(this@AbstractComposeLowering.context as IrGeneratorContext, symbol)
                 .irBlockBody { body(it) }
         }
 
@@ -294,8 +291,8 @@ abstract class AbstractComposeLowering(
                 endOffset = endOffset,
                 type = type,
                 symbol = symbol,
-                descriptor = descriptor,
                 typeArgumentsCount = descriptor.typeParametersCount,
+                reflectionTarget = symbol,
                 origin = IrStatementOrigin.LAMBDA
             )
         }

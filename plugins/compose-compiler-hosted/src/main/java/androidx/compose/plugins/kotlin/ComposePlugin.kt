@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.extensions.StorageComponentContainerContributor
-import org.jetbrains.kotlin.psi2ir.extensions.SyntheticIrExtension
 import androidx.compose.plugins.kotlin.frames.analysis.FrameModelChecker
 import androidx.compose.plugins.kotlin.frames.analysis.FramePackageAnalysisHandlerExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
