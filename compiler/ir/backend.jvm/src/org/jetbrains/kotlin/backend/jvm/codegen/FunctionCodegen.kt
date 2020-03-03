@@ -147,6 +147,8 @@ open class FunctionCodegen(
             // We do not generate continuation and state-machine for synthetic accessors, bridges, and delegated members,
             // in a sense, they are tail-call
             !isKnownToBeTailCall() &&
+            // This is inline-only function
+            !isEffectivelyInlineOnly() &&
             // This is suspend lambda parameter of inline function
             origin != IrDeclarationOrigin.LOCAL_FUNCTION_FOR_LAMBDA &&
             // This is just a template for inliner
