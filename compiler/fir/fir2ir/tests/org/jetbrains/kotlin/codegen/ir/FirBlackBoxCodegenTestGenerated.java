@@ -16385,6 +16385,11 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
         public void testTrivialInstanceOf() throws Exception {
             runTest("compiler/testData/codegen/box/nullCheckOptimization/trivialInstanceOf.kt");
         }
+
+        @TestMetadata("varModifiedAfterCheck.kt")
+        public void testVarModifiedAfterCheck() throws Exception {
+            runTest("compiler/testData/codegen/box/nullCheckOptimization/varModifiedAfterCheck.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/objectIntrinsics")
