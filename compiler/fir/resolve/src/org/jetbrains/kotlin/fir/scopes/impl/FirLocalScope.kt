@@ -19,29 +19,34 @@ class FirLocalScope(
     functions: PersistentMultimap<Name, FirFunctionSymbol<*>>,
     classes: PersistentMap<Name, FirRegularClassSymbol>
 ) : FirScope() {
-    var properties: PersistentMap<Name, FirVariableSymbol<*>> = properties
-        private set
-    var functions: PersistentMultimap<Name, FirFunctionSymbol<*>> = functions
-        private set
-    var classes: PersistentMap<Name, FirRegularClassSymbol> = classes
-        private set
+    val properties: PersistentMap<Name, FirVariableSymbol<*>> = properties
+    val functions: PersistentMultimap<Name, FirFunctionSymbol<*>> = functions
+    val classes: PersistentMap<Name, FirRegularClassSymbol> = classes
 
     constructor() : this(persistentMapOf(), PersistentMultimap(), persistentMapOf())
 
-    fun storeClass(klass: FirRegularClass) {
-        classes = classes.put(klass.name, klass.symbol)
+    fun storeClass(klass: FirRegularClass): FirLocalScope {
+        return FirLocalScope(
+            properties, functions, classes.put(klass.name, klass.symbol)
+        )
     }
 
-    fun storeFunction(function: FirSimpleFunction) {
-        functions = functions.put(function.name, function.symbol as FirNamedFunctionSymbol)
+    fun storeFunction(function: FirSimpleFunction): FirLocalScope {
+        return FirLocalScope(
+            properties, functions.put(function.name, function.symbol as FirNamedFunctionSymbol), classes
+        )
     }
 
-    fun storeVariable(variable: FirVariable<*>) {
-        properties = properties.put(variable.name, variable.symbol)
+    fun storeVariable(variable: FirVariable<*>): FirLocalScope {
+        return FirLocalScope(
+            properties.put(variable.name, variable.symbol), functions, classes
+        )
     }
 
-    fun storeBackingField(property: FirProperty) {
-        properties = properties.put(NAME_FOR_BACKING_FIELD, property.backingFieldSymbol)
+    fun storeBackingField(property: FirProperty): FirLocalScope {
+        return FirLocalScope(
+            properties.put(NAME_FOR_BACKING_FIELD, property.backingFieldSymbol), functions, classes
+        )
     }
 
     override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> Unit) {
@@ -62,9 +67,5 @@ class FirLocalScope(
         if (klass != null) {
             processor(klass)
         }
-    }
-
-    fun snapshot(): FirLocalScope {
-        return FirLocalScope(properties, functions, classes)
     }
 }

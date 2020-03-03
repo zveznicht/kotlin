@@ -7,9 +7,7 @@ package org.jetbrains.kotlin.fir.resolve.transformers.body.resolve
 
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.kotlin.fir.*
-import org.jetbrains.kotlin.fir.declarations.FirDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirFile
-import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
+import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.ResolutionStageRunner
 import org.jetbrains.kotlin.fir.resolve.dfa.FirDataFlowAnalyzer
@@ -194,17 +192,31 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
 
         override fun createLocalContextSnapshot(): FirLocalContextImpl {
             return FirLocalContextImpl(
-                localScopes.snapshot(),
+                localScopes,
                 implicitReceiverStack.snapshot()
             )
         }
 
-        private fun FirLocalScopes.snapshot(): FirLocalScopes {
-            var snapshot = persistentListOf<FirLocalScope>()
-            for (localScope in this) {
-                snapshot = snapshot.add(localScope)
-            }
-            return snapshot
+        fun storeClass(klass: FirRegularClass) {
+            updateLastScope { storeClass(klass) }
+        }
+
+        fun storeFunction(function: FirSimpleFunction) {
+            updateLastScope { storeFunction(function) }
+        }
+
+        fun storeVariable(variable: FirVariable<*>) {
+            updateLastScope { storeVariable(variable) }
+        }
+
+        fun storeBackingField(property: FirProperty) {
+            updateLastScope { storeBackingField(property) }
+        }
+
+        @UseExperimental(PrivateForInline::class)
+        private inline fun updateLastScope(transform: FirLocalScope.() -> FirLocalScope) {
+            val lastScope = localScopes.lastOrNull() ?: return
+            localScopes = localScopes.set(localScopes.size - 1, lastScope.transform())
         }
     }
 }
