@@ -5,38 +5,47 @@
 
 package org.jetbrains.kotlin.fir.scopes.impl
 
+import kotlinx.collections.immutable.PersistentMap
+import kotlinx.collections.immutable.persistentMapOf
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.NAME_FOR_BACKING_FIELD
+import org.jetbrains.kotlin.fir.resolve.PersistentMultimap
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.name.Name
 
-class FirLocalScope : FirScope() {
+class FirLocalScope(
+    properties: PersistentMap<Name, FirVariableSymbol<*>>,
+    functions: PersistentMultimap<Name, FirFunctionSymbol<*>>,
+    classes: PersistentMap<Name, FirRegularClassSymbol>
+) : FirScope() {
+    var properties: PersistentMap<Name, FirVariableSymbol<*>> = properties
+        private set
+    var functions: PersistentMultimap<Name, FirFunctionSymbol<*>> = functions
+        private set
+    var classes: PersistentMap<Name, FirRegularClassSymbol> = classes
+        private set
 
-    val properties = mutableMapOf<Name, FirVariableSymbol<*>>()
-    val functions = mutableMapOf<Name, MutableList<FirFunctionSymbol<*>>>()
-    val classes = mutableMapOf<Name, FirRegularClassSymbol>()
+    constructor() : this(persistentMapOf(), PersistentMultimap(), persistentMapOf())
 
     fun storeClass(klass: FirRegularClass) {
-        classes[klass.name] = klass.symbol
+        classes = classes.put(klass.name, klass.symbol)
     }
 
     fun storeFunction(function: FirSimpleFunction) {
-        functions.getOrPut(function.name) {
-            mutableListOf()
-        }.add(function.symbol as FirNamedFunctionSymbol)
+        functions = functions.put(function.name, function.symbol as FirNamedFunctionSymbol)
     }
 
     fun storeVariable(variable: FirVariable<*>) {
-        properties[variable.name] = variable.symbol
+        properties = properties.put(variable.name, variable.symbol)
     }
 
     fun storeBackingField(property: FirProperty) {
-        properties[NAME_FOR_BACKING_FIELD] = property.backingFieldSymbol
+        properties = properties.put(NAME_FOR_BACKING_FIELD, property.backingFieldSymbol)
     }
 
     override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> Unit) {
-        for (function in functions[name].orEmpty()) {
+        for (function in functions[name]) {
             processor(function)
         }
     }
@@ -53,5 +62,9 @@ class FirLocalScope : FirScope() {
         if (klass != null) {
             processor(klass)
         }
+    }
+
+    fun snapshot(): FirLocalScope {
+        return FirLocalScope(properties, functions, classes)
     }
 }

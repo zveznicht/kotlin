@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.resolve.transformers.body.resolve
 
+import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirFile
@@ -50,6 +51,16 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
         }
     }
 
+    protected inline fun <T> withLocalScopeCleanup(crossinline l: () -> T): T {
+        return components.withLocalScopesCleanup(l)
+    }
+
+    protected fun addLocalScope(localScope: FirLocalScope?) {
+        if (localScope == null) return
+        components.addLocalScope(localScope)
+    }
+
+
     @UseExperimental(PrivateForInline::class)
     internal inline fun <T> withFullBodyResolve(crossinline l: () -> T): T {
         if (!implicitTypeOnly) return l()
@@ -62,7 +73,7 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
     }
 
     protected inline val topLevelScopes: MutableList<FirScope> get() = components.topLevelScopes
-    protected inline val localScopes: MutableList<FirLocalScope> get() = components.localScopes
+    protected inline val localScopes: List<FirLocalScope> get() = components.localScopes
 
     protected inline val noExpectedType: FirTypeRef get() = components.noExpectedType
 
@@ -94,8 +105,10 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
         override val scopeSession: ScopeSession,
         val transformer: FirBodyResolveTransformer
     ) : BodyResolveComponents {
-        val topLevelScopes: MutableList<FirScope> = mutableListOf()
-        val localScopes: MutableList<FirLocalScope> = mutableListOf()
+        override val topLevelScopes: MutableList<FirScope> = mutableListOf()
+
+        @set:PrivateForInline
+        override var localScopes: FirLocalScopes = persistentListOf()
 
         override val noExpectedType: FirTypeRef = buildImplicitTypeRef()
 
@@ -117,12 +130,10 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
         private val qualifiedResolver: FirQualifiedNameResolver = FirQualifiedNameResolver(this)
         override val callResolver: FirCallResolver = FirCallResolver(
             this,
-            topLevelScopes,
-            localScopes,
             qualifiedResolver
         )
         val typeResolverTransformer = FirSpecificTypeResolverTransformer(
-            FirTypeResolveScopeForBodyResolve(topLevelScopes, implicitReceiverStack, localScopes), session
+            FirTypeResolveScopeForBodyResolve(this), session
         )
         override val callCompleter: FirCallCompleter = FirCallCompleter(transformer, this)
         override val dataFlowAnalyzer: FirDataFlowAnalyzer<*> = FirDataFlowAnalyzer.createFirDataFlowAnalyzer(this)
@@ -159,6 +170,32 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
             } finally {
                 this.implicitReceiverStack = existedStack
             }
+        }
+
+        @UseExperimental(PrivateForInline::class)
+        inline fun <R> withLocalScopes(localScopes: FirLocalScopes, l: () -> R): R {
+            val initialLocalScopes = this.localScopes
+            this.localScopes = localScopes
+            return try {
+                l()
+            } finally {
+                this.localScopes = initialLocalScopes
+            }
+        }
+
+        @UseExperimental(PrivateForInline::class)
+        inline fun <R> withLocalScopesCleanup(l: () -> R): R {
+            val initialLocalScopes = localScopes
+            return try {
+                l()
+            } finally {
+                localScopes = initialLocalScopes
+            }
+        }
+
+        @UseExperimental(PrivateForInline::class)
+        fun addLocalScope(localScope: FirLocalScope) {
+            localScopes = localScopes.add(localScope)
         }
     }
 }
