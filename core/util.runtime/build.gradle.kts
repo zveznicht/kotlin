@@ -9,7 +9,6 @@ jvmTarget = "1.6"
 javaHome = rootProject.extra["JDK_16"] as String
 
 dependencies {
-    api(project(":compiler:compiler.version"))
     compileOnly(kotlinStdlib())
 }
 
