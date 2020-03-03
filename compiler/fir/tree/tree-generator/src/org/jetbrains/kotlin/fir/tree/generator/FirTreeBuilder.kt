@@ -141,4 +141,5 @@ object FirTreeBuilder : AbstractFirTreeBuilder() {
     val composedSuperTypeRef = element("ComposedSuperTypeRef", TypeRef, typeRef)
 
     val contractDescription = element("ContractDescription", Contracts)
+    val localContext = element("LocalContext", Expression)
 }

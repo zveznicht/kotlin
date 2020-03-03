@@ -86,6 +86,7 @@ fun FirAnonymousFunction.copy(
         this.label = label
         this.controlFlowGraphReference = controlFlowGraphReference
         this.invocationKind = invocationKind
+        localContext = this@copy.localContext
     }
 }
 

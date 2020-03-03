@@ -162,24 +162,18 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
         }
 
         @UseExperimental(PrivateForInline::class)
-        inline fun <T> withImplicitReceiverStack(implicitReceiverStack: ImplicitReceiverStack, f: () -> T): T {
+        inline fun <T> withLocalContext(localContext: FirLocalContextImpl, f: () -> T): T {
             val existedStack = this.implicitReceiverStack
-            this.implicitReceiverStack = implicitReceiverStack
+            val existedLocalScopes = this.localScopes
+
+            implicitReceiverStack = localContext.implicitReceiverStack
+            localScopes = localContext.localScopes
+
             return try {
                 f()
             } finally {
-                this.implicitReceiverStack = existedStack
-            }
-        }
-
-        @UseExperimental(PrivateForInline::class)
-        inline fun <R> withLocalScopes(localScopes: FirLocalScopes, l: () -> R): R {
-            val initialLocalScopes = this.localScopes
-            this.localScopes = localScopes
-            return try {
-                l()
-            } finally {
-                this.localScopes = initialLocalScopes
+                implicitReceiverStack = existedStack
+                localScopes = existedLocalScopes
             }
         }
 
@@ -196,6 +190,21 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
         @UseExperimental(PrivateForInline::class)
         fun addLocalScope(localScope: FirLocalScope) {
             localScopes = localScopes.add(localScope)
+        }
+
+        override fun createLocalContextSnapshot(): FirLocalContextImpl {
+            return FirLocalContextImpl(
+                localScopes.snapshot(),
+                implicitReceiverStack.snapshot()
+            )
+        }
+
+        private fun FirLocalScopes.snapshot(): FirLocalScopes {
+            var snapshot = persistentListOf<FirLocalScope>()
+            for (localScope in this) {
+                snapshot = snapshot.add(localScope)
+            }
+            return snapshot
         }
     }
 }

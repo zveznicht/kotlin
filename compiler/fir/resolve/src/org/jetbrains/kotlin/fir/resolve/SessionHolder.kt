@@ -52,5 +52,5 @@ interface BodyResolveComponents : SessionHolder {
     val <D> AbstractFirBasedSymbol<D>.phasedFir: D where D : FirDeclaration, D : FirSymbolOwner<D>
         get() = phasedFir(FirResolvePhase.DECLARATIONS)
 
-    fun getLocalScopesSnapshot(): FirLocalScopes
+    fun createLocalContextSnapshot(): FirLocalContextImpl
 }

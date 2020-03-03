@@ -191,7 +191,8 @@ object BuilderConfigurator : AbstractBuilderConfigurator<FirTreeBuilder>(FirTree
             parents += functionBuilder
             defaultNull("invocationKind", "label", "body")
             default("controlFlowGraphReference", "FirEmptyControlFlowGraphReference")
-            useTypes(emptyCfgReferenceType)
+            default("localContext", "FirEmptyLocalContext")
+            useTypes(emptyCfgReferenceType, emptyLocalContextType)
         }
 
         builder(propertyAccessor) {

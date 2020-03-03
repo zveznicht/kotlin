@@ -119,6 +119,7 @@ import org.jetbrains.kotlin.fir.types.FirResolvedFunctionTypeRef
 import org.jetbrains.kotlin.fir.types.FirImplicitTypeRef
 import org.jetbrains.kotlin.fir.types.FirComposedSuperTypeRef
 import org.jetbrains.kotlin.fir.contracts.FirContractDescription
+import org.jetbrains.kotlin.fir.expressions.FirLocalContext
 import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
 
 /*
@@ -582,6 +583,10 @@ abstract class FirTransformer<in D> : FirVisitor<CompositeTransformResult<FirEle
         return transformElement(contractDescription, data)
     }
 
+    open fun transformLocalContext(localContext: FirLocalContext, data: D): CompositeTransformResult<FirLocalContext> {
+        return transformElement(localContext, data)
+    }
+
     final override fun visitElement(element: FirElement, data: D): CompositeTransformResult<FirElement> {
         return transformElement(element, data)
     }
@@ -1036,6 +1041,10 @@ abstract class FirTransformer<in D> : FirVisitor<CompositeTransformResult<FirEle
 
     final override fun visitContractDescription(contractDescription: FirContractDescription, data: D): CompositeTransformResult<FirContractDescription> {
         return transformContractDescription(contractDescription, data)
+    }
+
+    final override fun visitLocalContext(localContext: FirLocalContext, data: D): CompositeTransformResult<FirLocalContext> {
+        return transformLocalContext(localContext, data)
     }
 
 }

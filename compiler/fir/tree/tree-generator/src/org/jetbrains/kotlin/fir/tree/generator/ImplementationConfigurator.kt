@@ -481,6 +481,11 @@ object ImplementationConfigurator : AbstractFirTreeImplementationConfigurator() 
         }
 
         noImpl(userTypeRef)
+
+        impl(localContext, "FirEmptyLocalContext") {
+            kind = Object
+            noSource()
+        }
     }
 
     private fun configureAllImplementations() {
