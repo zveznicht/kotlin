@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.ide.konan
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
-import org.jetbrains.kotlin.ide.konan.index.KotlinNativeMetaFileIndex
+import org.jetbrains.kotlin.ide.konan.index.KlibMetaFileIndex
 import org.jetbrains.kotlin.idea.configuration.LibraryKindSearchScope
 import org.jetbrains.kotlin.idea.configuration.hasKotlinFilesOnlyInTests
 import org.jetbrains.kotlin.idea.util.runReadActionInSmartMode
@@ -26,5 +26,5 @@ private val KOTLIN_NATIVE_FQ_NAMES = listOf(
 ).map { FqName(it) }
 
 fun hasKotlinNativeMetadataFile(project: Project, scope: GlobalSearchScope): Boolean = project.runReadActionInSmartMode {
-    KOTLIN_NATIVE_FQ_NAMES.any { KotlinNativeMetaFileIndex.hasSomethingInPackage(it, scope) }
+    KOTLIN_NATIVE_FQ_NAMES.any { KlibMetaFileIndex.hasSomethingInPackage(it, scope) }
 }
