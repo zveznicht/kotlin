@@ -59,7 +59,6 @@ internal fun loadCompilerVersion(compilerClasspath: List<File>): String {
                         val bytes = jar.getInputStream(jar.getEntry(versionClassFileName)).use { it.readBytes() }
                         checkVersion(bytes)
                     }
-
                 }
             } else if (cpFile.isDirectory) {
                 val versionFile = File(cpFile, KotlinCompilerVersion.VERSION_FILE_PATH)
