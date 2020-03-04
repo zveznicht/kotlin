@@ -39,8 +39,7 @@ import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.checkKotlinPackageUsage
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.OUTPUT
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.WARNING
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.*
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.OutputMessageUtil
 import org.jetbrains.kotlin.cli.common.output.writeAll
@@ -613,9 +612,16 @@ object KotlinToJVMBytecodeCompiler {
         module: Module?
     ): GenerationState {
         // The IR backend does not handle .kts files yet.
+        var isIR = (configuration.getBoolean(JVMConfigurationKeys.IR) ||
+                configuration.getBoolean(CommonConfigurationKeys.USE_FIR))
         val anyKts = sourceFiles.any { it.isScript() }
-        val isIR = (configuration.getBoolean(JVMConfigurationKeys.IR) ||
-                configuration.getBoolean(CommonConfigurationKeys.USE_FIR)) && !anyKts
+        if (isIR && anyKts) {
+            environment.messageCollector.report(
+                STRONG_WARNING,
+                "IR backend does not support .kts scripts, switching to old JVM backend"
+            )
+            isIR = false
+        }
         val generationState = GenerationState.Builder(
             environment.project,
             ClassBuilderFactories.BINARIES,
