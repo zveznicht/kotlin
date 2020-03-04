@@ -116,22 +116,22 @@ open class DexMethodCountStats : DefaultTask() {
             val stats = lines.take(statsLineCount).map { it.getStatValue() }.toList()
 
             val total = stats[0]
+            logger.lifecycle("Artifact $artifactOrArchiveName, total methods: $total")
+
             if (project.kotlinBuildProperties.isTeamcityBuild) {
                 println("##teamcity[buildStatisticValue key='DexMethodCount_${artifactOrArchiveName}' value='$total']")
-            } else {
-                logger.lifecycle("Artifact $artifactOrArchiveName, total methods: $total")
             }
 
             ownPackages?.let { packages ->
                 val totalOwnPackages = stats[1]
                 val totalOtherPackages = stats[2]
 
+                logger.lifecycle("Artifact $artifactOrArchiveName, total methods from packages ${packages.joinToString { "$it.*" }}: $totalOwnPackages")
+                logger.lifecycle("Artifact $artifactOrArchiveName, total methods from other packages: $totalOtherPackages")
+
                 if (project.kotlinBuildProperties.isTeamcityBuild) {
                     println("##teamcity[buildStatisticValue key='DexMethodCount_${artifactOrArchiveName}_OwnPackages' value='$totalOwnPackages']")
                     println("##teamcity[buildStatisticValue key='DexMethodCount_${artifactOrArchiveName}_OtherPackages' value='$totalOtherPackages']")
-                } else {
-                    logger.lifecycle("Artifact $artifactOrArchiveName, total methods from packages ${packages.joinToString { "$it.*" }}: $totalOwnPackages")
-                    logger.lifecycle("Artifact $artifactOrArchiveName, total methods from other packages: $totalOtherPackages")
                 }
             }
         }
