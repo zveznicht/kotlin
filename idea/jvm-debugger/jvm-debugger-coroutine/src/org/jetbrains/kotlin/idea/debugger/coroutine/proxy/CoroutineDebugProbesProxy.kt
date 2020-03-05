@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.idea.debugger.coroutine.data.CoroutineInfoData
 import org.jetbrains.kotlin.idea.debugger.coroutine.util.logger
 import org.jetbrains.kotlin.idea.debugger.evaluate.ExecutionContext
 
-class CoroutineDebugProbesProxy(val suspendContext: XSuspendContext) {
+class CoroutineDebugProbesProxy(val suspendContext: SuspendContextImpl) {
     private val log by logger
 
     private var executionContext: ExecutionContext = executionContext()

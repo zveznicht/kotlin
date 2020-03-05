@@ -128,7 +128,7 @@ class XCoroutineView(val project: Project, val session: XDebugSession) :
         }
     }
 
-    fun renewRoot(suspendContext: XSuspendContext) {
+    fun renewRoot(suspendContext: SuspendContextImpl) {
         panel.tree.setRoot(XCoroutinesRootNode(suspendContext), false)
         if (treeState != null) {
             restorer?.dispose()
@@ -137,7 +137,7 @@ class XCoroutineView(val project: Project, val session: XDebugSession) :
     }
 
     override fun dispose() {
-        if(restorer != null) {
+        if (restorer != null) {
             restorer?.dispose()
             restorer = null
         }
@@ -161,12 +161,12 @@ class XCoroutineView(val project: Project, val session: XDebugSession) :
 
     inner class EmptyNode : XValueContainerNode<XValueContainer>(panel.tree, null, true, object : XValueContainer() {})
 
-    inner class XCoroutinesRootNode(suspendContext: XSuspendContext) :
+    inner class XCoroutinesRootNode(suspendContext: SuspendContextImpl) :
         XValueContainerNode<CoroutineGroupContainer>(panel.tree, null, false, CoroutineGroupContainer(suspendContext, "Default group"))
 
-    inner class CoroutineGroupContainer(val suspendContext: XSuspendContext, val groupName: String) : XValueContainer() {
+    inner class CoroutineGroupContainer(val suspendContext: SuspendContextImpl, val groupName: String) : XValueContainer() {
         override fun computeChildren(node: XCompositeNode) {
-            if (suspendContext is SuspendContextImpl && suspendContext.suspendPolicy == EventRequest.SUSPEND_ALL) {
+            if (suspendContext.suspendPolicy == EventRequest.SUSPEND_ALL) {
                 val groups = XValueChildrenList.singleton(CoroutineContainer(suspendContext, groupName))
                 node.addChildren(groups, true)
             } else {
@@ -179,7 +179,7 @@ class XCoroutineView(val project: Project, val session: XDebugSession) :
     }
 
     inner class CoroutineContainer(
-        val suspendContext: XSuspendContext,
+        val suspendContext: SuspendContextImpl,
         val groupName: String
     ) : RendererContainer(renderer.renderGroup(groupName)) {
 
@@ -205,20 +205,20 @@ class XCoroutineView(val project: Project, val session: XDebugSession) :
 
     inner class FramesContainer(
         private val infoData: CoroutineInfoData,
-        private val suspendContext: XSuspendContext
+        private val suspendContext: SuspendContextImpl
     ) : RendererContainer(renderer.render(infoData)) {
 
         override fun computeChildren(node: XCompositeNode) {
             managerThreadExecutor.on(suspendContext).schedule {
                 val debugProbesProxy = CoroutineDebugProbesProxy(suspendContext)
                 val children = XValueChildrenList()
-                debugProbesProxy.frameBuilder().build(infoData)
+                var stackFrames = debugProbesProxy.frameBuilder().build(infoData)
                 val creationStack = mutableListOf<CreationCoroutineStackFrameItem>()
-                infoData.stackFrameList.forEach {
-                    if (it is CreationCoroutineStackFrameItem)
-                        creationStack.add(it)
-                    else if (it is CoroutineStackFrameItem)
-                        children.add(CoroutineFrameValue(it))
+                for (frame in stackFrames) {
+                    if (frame is CreationCoroutineStackFrameItem)
+                        creationStack.add(frame)
+                    else if (frame is CoroutineStackFrameItem)
+                        children.add(CoroutineFrameValue(frame))
                 }
                 children.add(CreationFramesContainer(infoData, creationStack))
                 node.addChildren(children, true)
@@ -382,32 +382,11 @@ class XCoroutineView(val project: Project, val session: XDebugSession) :
         val position =
             applicationThreadExecutor.readAction { getPosition(frame.stackTraceElement.className, frame.stackTraceElement.lineNumber) }
                 ?: return null
-        val continuation = ContinuationHolder.lookup(executionContext, frame.lastObservedFrameFieldRef, frame.stackTraceElement) ?: return null
+        val continuation =
+            ContinuationHolder.lookup(executionContext, frame.lastObservedFrameFieldRef, frame.stackTraceElement, frame.frame.threadProxy())
+                ?: return null
 
-        val getStackTraceElementMethodRef =
-            (continuation.value().type() as ClassType).concreteMethodByName("getStackTraceElement", "()Ljava/lang/StackTraceElement;")
-
-        val asyncStackTraceContext = continuation.context(getStackTraceElementMethodRef)
-        val vars = asyncStackTraceContext?.getSpilledVariables() ?: return null
-        return SyntheticStackFrame(frame.emptyDescriptor(), vars, position)
-    }
-
-
-    fun isApplicable(method: Method): Boolean {
-        return suspendOrInvokeSuspend(method)
-    }
-
-    private fun suspendOrInvokeSuspend(method: Method): Boolean =
-        "Lkotlin/coroutines/Continuation;)" in method.signature() ||
-                (method.name() == "invokeSuspend" && method.signature() == "(Ljava/lang/Object;)Ljava/lang/Object;") // suspend fun or invokeSuspend
-
-    private fun findMethod(context: ExecutionContext, frame: StackTraceElement): Method {
-        val clazz = context.findClass(frame.className) as ClassType
-        val method = clazz.methodsByName(frame.methodName).last {
-            val loc = it.location().lineNumber()
-            loc < 0 && frame.lineNumber < 0 || loc > 0 && loc <= frame.lineNumber
-        } // pick correct method if an overloaded one is given
-        return method
+        return SyntheticStackFrame(frame.emptyDescriptor(), continuation.getSpilledVariables() ?: return null, position)
     }
 }
 

@@ -5,12 +5,17 @@
 
 package org.jetbrains.kotlin.idea.debugger.coroutine.data
 
+import com.intellij.debugger.engine.DebugProcessImpl
+import com.intellij.debugger.engine.JVMStackFrameInfoProvider
+import com.intellij.debugger.engine.JavaStackFrame
 import com.intellij.debugger.jdi.StackFrameProxyImpl
 import com.intellij.debugger.memory.utils.StackFrameItem
 import com.intellij.debugger.ui.impl.watch.MethodsTracker
 import com.intellij.debugger.ui.impl.watch.StackFrameDescriptorImpl
+import com.intellij.ui.ColoredTextContainer
 import com.intellij.xdebugger.frame.XNamedValue
 import com.intellij.xdebugger.frame.XStackFrame
+import com.intellij.xdebugger.impl.frame.XDebuggerFramesList.ItemWithSeparatorAbove
 import com.sun.jdi.Location
 import com.sun.jdi.ObjectReference
 import org.jetbrains.kotlin.idea.debugger.*
@@ -53,7 +58,31 @@ class RestoredCoroutineStackFrameItem(
 }
 
 class DefaultCoroutineStackFrameItem(location: Location, spilledVariables: List<XNamedValue>) :
-    CoroutineStackFrameItem(location, spilledVariables)
+    CoroutineStackFrameItem(location, spilledVariables) {
+
+    override fun createFrame(debugProcess: DebugProcessImpl): XStackFrame {
+        return AfterCoroutineStackFrame(debugProcess, this)
+    }
+}
+
+class AfterCoroutineStackFrameItem(val frame: StackFrameProxyImpl, spilledVariables: List<XNamedValue> = emptyList()) :
+    CoroutineStackFrameItem(frame.location(), spilledVariables) {
+
+    override fun createFrame(debugProcess: DebugProcessImpl): XStackFrame {
+        return AfterCoroutineStackFrame(debugProcess, this)
+    }
+}
+
+class AfterCoroutineStackFrame(debugProcess: DebugProcessImpl, item: StackFrameItem ) : StackFrameItem.CapturedStackFrame(debugProcess, item) {
+
+    override fun hasSeparatorAbove(): Boolean =
+        false
+
+    override fun getCaptionAboveOf(): String =
+        "habahaba"
+
+}
+
 
 sealed class CoroutineStackFrameItem(val location: Location, val spilledVariables: List<XNamedValue>) :
     StackFrameItem(location, spilledVariables) {

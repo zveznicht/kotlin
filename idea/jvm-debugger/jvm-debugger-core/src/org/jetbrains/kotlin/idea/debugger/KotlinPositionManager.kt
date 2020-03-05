@@ -39,8 +39,6 @@ import org.jetbrains.kotlin.idea.core.util.CodeInsightUtils
 import org.jetbrains.kotlin.idea.core.util.getLineCount
 import org.jetbrains.kotlin.idea.core.util.getLineStartOffset
 import org.jetbrains.kotlin.idea.debugger.breakpoints.getLambdasAtLineIfAny
-import org.jetbrains.kotlin.idea.debugger.coroutine.CoroutineAsyncStackTraceProvider
-import org.jetbrains.kotlin.idea.debugger.coroutine.proxy.AsyncStackTraceContext
 import org.jetbrains.kotlin.idea.debugger.evaluate.KotlinDebuggerCaches
 import org.jetbrains.kotlin.idea.debugger.stackFrame.KotlinStackFrame
 import org.jetbrains.kotlin.idea.decompiler.classFile.KtClsFile
@@ -70,8 +68,6 @@ class KotlinPositionManager(private val myDebugProcess: DebugProcess) : MultiReq
         allKotlinFilesScope
     )
 
-    private val coroutineAsyncStackTraceProvider = CoroutineAsyncStackTraceProvider()
-
     override fun getAcceptedFileTypes(): Set<FileType> = KotlinFileTypeFactory.KOTLIN_FILE_TYPES_SET
 
     override fun evaluateCondition(
@@ -84,13 +80,9 @@ class KotlinPositionManager(private val myDebugProcess: DebugProcess) : MultiReq
     }
 
     override fun createStackFrame(frame: StackFrameProxyImpl, debugProcess: DebugProcessImpl, location: Location): XStackFrame? =
-        if (location.isInKotlinSources()) {
-            val asyncContext = coroutineAsyncStackTraceProvider.asyncStackTraceContext(frame, debugProcess.debuggerContext.suspendContext);
-            if (asyncContext != null)
-                asyncContext.buildXStackFrame(frame)
-            else
-                KotlinStackFrame(frame)
-        } else
+        if (location.isInKotlinSources())
+            KotlinStackFrame(frame)
+        else
             null
 
     override fun getSourcePosition(location: Location?): SourcePosition? {
