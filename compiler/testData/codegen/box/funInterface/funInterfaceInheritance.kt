@@ -1,5 +1,7 @@
 // !LANGUAGE: +NewInference +FunctionalInterfaceConversion +SamConversionPerArgument +SamConversionForKotlinFunctions
-// SKIP_DCE_DRIVEN
+
+// IGNORE_BACKEND: JVM, JVM_IR
+// IGNORE_BACKEND_FIR: JVM_IR
 
 fun interface Base {
     fun doStuff(): String
