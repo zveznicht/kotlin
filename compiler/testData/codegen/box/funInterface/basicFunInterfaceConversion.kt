@@ -1,5 +1,5 @@
 // !LANGUAGE: +NewInference +FunctionalInterfaceConversion +SamConversionPerArgument +SamConversionForKotlinFunctions
-// SKIP_DCE_DRIVEN
+// IGNORE_BACKEND_FIR: JVM_IR
 
 fun interface Foo {
     fun invoke(): String

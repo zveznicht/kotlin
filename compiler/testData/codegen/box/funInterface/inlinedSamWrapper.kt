@@ -1,6 +1,6 @@
 // !LANGUAGE: +NewInference +FunctionalInterfaceConversion +SamConversionPerArgument +SamConversionForKotlinFunctions
-// WITH_RUNTIME
-// SKIP_DCE_DRIVEN
+// TARGET_BACKEND: JVM
+// IGNORE_BACKEND_FIR: JVM_IR
 
 fun interface MyRunnable {
     fun invoke()
