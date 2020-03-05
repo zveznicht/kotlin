@@ -85,9 +85,7 @@ class FunctionCodegen(
             }
         }
 
-        val continuationClassCodegen = lazy {
-            ClassCodegen.getOrCreate(irFunction.continuationClass(), context, irFunction).also { it.generate() }
-        }
+        val continuationClassCodegen = lazy { ClassCodegen.getOrCreate(irFunction.continuationClass(), context, irFunction) }
         if (!state.classBuilderMode.generateBodies || flags.and(Opcodes.ACC_ABSTRACT) != 0 || irFunction.isExternal) {
             generateAnnotationDefaultValueIfNeeded(methodVisitor)
         } else {
@@ -123,7 +121,7 @@ class FunctionCodegen(
         }
         methodVisitor.visitEnd()
         if (continuationClassCodegen.isInitialized()) {
-            continuationClassCodegen.value.done()
+            continuationClassCodegen.value.generate()
         }
         return methodNode
     }
