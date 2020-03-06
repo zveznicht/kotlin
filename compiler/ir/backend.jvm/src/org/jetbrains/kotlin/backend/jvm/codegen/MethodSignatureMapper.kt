@@ -113,7 +113,10 @@ class MethodSignatureMapper(private val context: JvmBackendContext) {
 
         if (function.isTopLevel) {
             if (Visibilities.isPrivate(function.visibility) && newName != "<clinit>" &&
-                (function.parent as? IrClass)?.attributeOwnerId in context.multifileFacadeForPart
+                (function.parent as? IrClass)?.attributeOwnerId in context.multifileFacadeForPart &&
+                // Do not add `$className` after `$$forInline`, otherwise, inliner would not be able to find the template
+                function.origin != JvmLoweredDeclarationOrigin.FOR_INLINE_STATE_MACHINE_TEMPLATE &&
+                function.origin != JvmLoweredDeclarationOrigin.FOR_INLINE_STATE_MACHINE_TEMPLATE_CAPTURES_CROSSINLINE
             ) {
                 return "$newName$${function.parentAsClass.name.asString()}"
             }
