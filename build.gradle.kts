@@ -678,10 +678,7 @@ tasks {
     }
 
     register("idea-plugin-performance-tests") {
-        dependsOn("dist")
-        dependsOn(
-            ":idea:performanceTests:performanceTest"
-        )
+        dependsOn(":idea:performanceTests:performanceTest")
     }
 
     register("android-ide-tests") {
