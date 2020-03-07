@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider
 import org.jetbrains.kotlin.gradle.tasks.CacheBuilder
 import org.jetbrains.kotlin.gradle.tasks.addArg
 import org.jetbrains.kotlin.gradle.utils.lifecycleWithDuration
+import org.jetbrains.kotlin.konan.library.KONAN_PLATFORM_LIBS_NAME_PREFIX
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import org.jetbrains.kotlin.konan.target.customerDistribution
@@ -55,7 +56,7 @@ internal class PlatformLibrariesGenerator(val project: Project, val konanTarget:
             .map { it.name }.toSet()
 
         // TODO: Check that all directories in presentPlatformLibs are real klibs when klib componentization is merged.
-        return presentDefs.all { it in presentPlatformLibs }
+        return presentDefs.all { "$KONAN_PLATFORM_LIBS_NAME_PREFIX$it" in presentPlatformLibs }
     }
 
     /**
