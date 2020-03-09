@@ -13,11 +13,10 @@ import com.intellij.debugger.jdi.GeneratedLocation
 import com.intellij.debugger.jdi.StackFrameProxyImpl
 import com.intellij.debugger.jdi.ThreadReferenceProxyImpl
 import com.intellij.util.containers.ContainerUtil
-import com.intellij.xdebugger.frame.XStackFrame
 import com.sun.jdi.*
 import org.jetbrains.kotlin.idea.debugger.coroutine.CoroutineAsyncStackTraceProvider
 import org.jetbrains.kotlin.idea.debugger.coroutine.data.*
-import org.jetbrains.kotlin.idea.debugger.coroutine.proxy.data.ContinuationHolder
+import org.jetbrains.kotlin.idea.debugger.coroutine.proxy.isPreFlight
 import org.jetbrains.kotlin.idea.debugger.safeLineNumber
 import org.jetbrains.kotlin.idea.debugger.safeLocation
 import org.jetbrains.kotlin.idea.debugger.safeMethod
@@ -48,7 +47,7 @@ class CoroutineBuilder(val suspendContext: SuspendContextImpl) {
             for (i in 0 until realFrames.size) {
                 val runningStackFrameProxy = realFrames[i]
                 val jStackFrame = executionStack.createStackFrame(runningStackFrameProxy)
-                if (ContinuationHolder.lookupPreFlight(runningStackFrameProxy.location().method())) {
+                if (runningStackFrameProxy.location().isPreFlight()) {
                     preflightFound = true
                     continue
                 }
@@ -71,7 +70,12 @@ class CoroutineBuilder(val suspendContext: SuspendContextImpl) {
                     preflightFound = false
                 }
                 if (!(coroutineStackInserted && isInvokeSuspendNegativeLineMethodFrame(runningStackFrameProxy)))
-                    coroutineStackFrameList.add(RunningCoroutineStackFrameItem(runningStackFrameProxy, jStackFrame))
+                    coroutineStackFrameList.add(
+                        RunningCoroutineStackFrameItem(
+                            runningStackFrameProxy,
+                            jStackFrame
+                        )
+                    )
                 coroutineStackInserted = false
             }
         } else if ((coroutine.state == CoroutineInfoData.State
@@ -95,7 +99,13 @@ class CoroutineBuilder(val suspendContext: SuspendContextImpl) {
 
         coroutine.stackTrace.subList(creationFrameSeparatorIndex + 1, coroutine.stackTrace.size).forEach {
             val location = createLocation(it)
-            coroutineStackFrameList.add(CreationCoroutineStackFrameItem(topRunningFrame, it, location))
+            coroutineStackFrameList.add(
+                CreationCoroutineStackFrameItem(
+                    topRunningFrame,
+                    it,
+                    location
+                )
+            )
         }
         coroutine.stackFrameList.addAll(coroutineStackFrameList)
         return coroutineStackFrameList

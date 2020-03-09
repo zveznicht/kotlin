@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.idea.debugger.coroutine.proxy
 import com.intellij.debugger.engine.SuspendContextImpl
 import com.intellij.debugger.engine.evaluation.EvaluationContextImpl
 import com.intellij.debugger.jdi.StackFrameProxyImpl
-import com.intellij.xdebugger.frame.XSuspendContext
 import com.sun.jdi.*
 import org.jetbrains.kotlin.idea.debugger.coroutine.command.CoroutineBuilder
 import org.jetbrains.kotlin.idea.debugger.coroutine.data.CoroutineInfoCache
@@ -186,7 +185,7 @@ class CoroutineDebugProbesProxy(val suspendContext: SuspendContextImpl) {
         (executionContext.invokeMethod(args, refs.sizeRef, emptyList()) as IntegerValue).value()
 
     private fun executionContext() :  ExecutionContext {
-        val evaluationContextImpl = EvaluationContextImpl(suspendContext as SuspendContextImpl, suspendContext.frameProxy)
+        val evaluationContextImpl = EvaluationContextImpl(suspendContext, suspendContext.frameProxy)
         return ExecutionContext(evaluationContextImpl, suspendContext.frameProxy as StackFrameProxyImpl)
     }
 

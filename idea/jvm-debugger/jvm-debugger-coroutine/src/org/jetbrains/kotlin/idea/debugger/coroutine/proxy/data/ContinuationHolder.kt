@@ -6,42 +6,50 @@
 package org.jetbrains.kotlin.idea.debugger.coroutine.proxy.data
 
 import com.intellij.debugger.engine.JavaValue
+import com.intellij.debugger.engine.SuspendContextImpl
 import com.intellij.debugger.jdi.GeneratedLocation
 import com.intellij.debugger.jdi.StackFrameProxyImpl
 import com.intellij.debugger.jdi.ThreadReferenceProxyImpl
+import com.intellij.debugger.ui.impl.watch.MethodsTracker
+import com.intellij.debugger.ui.impl.watch.StackFrameDescriptorImpl
 import com.intellij.xdebugger.frame.XNamedValue
+import com.intellij.xdebugger.frame.XStackFrame
 import com.sun.jdi.*
-import org.jetbrains.kotlin.codegen.coroutines.CONTINUATION_VARIABLE_NAME
-import org.jetbrains.kotlin.idea.debugger.SUSPEND_LAMBDA_CLASSES
 import org.jetbrains.kotlin.idea.debugger.coroutine.data.CoroutineStackFrameItem
 import org.jetbrains.kotlin.idea.debugger.coroutine.data.DefaultCoroutineStackFrameItem
+import org.jetbrains.kotlin.idea.debugger.coroutine.proxy.*
+import org.jetbrains.kotlin.idea.debugger.coroutine.util.CoroutineExecutionContext
 import org.jetbrains.kotlin.idea.debugger.coroutine.util.logger
 import org.jetbrains.kotlin.idea.debugger.evaluate.ExecutionContext
 import org.jetbrains.kotlin.idea.debugger.isSubtype
-import org.jetbrains.kotlin.idea.debugger.safeVisibleVariableByName
 
-data class ContinuationHolder(val continuation: ObjectReference, val context: ExecutionContext, val threadProxy: ThreadReferenceProxyImpl) {
+data class ContinuationHolder(val continuation: ObjectReference, val context: CoroutineExecutionContext) {
     val log by logger
 
     fun getAsyncStackTraceIfAny(): List<CoroutineStackFrameItem> {
         val frames = mutableListOf<CoroutineStackFrameItem>()
         try {
-            collectFramesRecursively(frames)
+            collectFrames(frames)
         } catch (e: Exception) {
             log.error("Error while looking for variables.", e)
         }
         return frames
     }
 
-    private fun collectFramesRecursively(consumer: MutableList<CoroutineStackFrameItem>) {
+    private fun collectFrames(consumer: MutableList<CoroutineStackFrameItem>) {
         var completion = this
-        val debugMetadataKtType = debugMetadataKtType() ?: return;
+        val debugMetadataKtType = debugMetadataKtType() ?: return
         while (completion.isBaseContinuationImpl()) {
             val location = createLocation(completion, debugMetadataKtType)
 
             location?.let {
                 val spilledVariables = getSpilledVariables(completion, debugMetadataKtType) ?: emptyList()
-                consumer.add(DefaultCoroutineStackFrameItem(location, spilledVariables))
+                consumer.add(
+                    DefaultCoroutineStackFrameItem(
+                        location,
+                        spilledVariables
+                    )
+                )
             }
             completion = completion.findCompletion() ?: return
         }
@@ -59,12 +67,10 @@ data class ContinuationHolder(val continuation: ObjectReference, val context: Ex
     }
 
     private fun invokeGetStackTraceElement(continuation: ContinuationHolder, debugMetadataKtType: ClassType): ObjectReference? {
-
         val stackTraceElement =
             context.invokeMethodAsObject(debugMetadataKtType, "getStackTraceElement", continuation.value()) ?: return null
 
         stackTraceElement.referenceType().takeIf { it.name() == StackTraceElement::class.java.name } ?: return null
-
         context.keepReference(stackTraceElement)
         return stackTraceElement
     }
@@ -91,9 +97,9 @@ data class ContinuationHolder(val continuation: ObjectReference, val context: Ex
         val spilledVariables = ArrayList<XNamedValue>(length)
 
         for (index in 0 until length) {
-            val (fieldName, variableName) = getFieldVariableName(rawSpilledVariables, index) ?: continue;
+            val (fieldName, variableName) = getFieldVariableName(rawSpilledVariables, index) ?: continue
 
-            val valueDescriptor = ContinuationValueDescriptorImpl(context.project, continuation, fieldName, variableName);
+            val valueDescriptor = ContinuationValueDescriptorImpl(context.project, continuation, fieldName, variableName)
 
             spilledVariables += JavaValue.create(
                 null,
@@ -136,7 +142,11 @@ data class ContinuationHolder(val continuation: ObjectReference, val context: Ex
         val type = continuation.type()
         if (type is ClassType && isBaseContinuationImpl(type)) {
             val completionField = type.fieldByName(COMPLETION_FIELD_NAME) ?: return null
-            return ContinuationHolder(continuation.getValue(completionField) as? ObjectReference ?: return null, context, threadProxy)
+            return ContinuationHolder(
+                continuation.getValue(
+                    completionField
+                ) as? ObjectReference ?: return null, context
+            )
         }
         return null
     }
@@ -164,47 +174,60 @@ data class ContinuationHolder(val continuation: ObjectReference, val context: Ex
 //                context.keepReference(continuation)
 //                return ContinuationHolder(continuation, context, threadProxy)
 //            } else {
-                return null
+            return null
 //            }
         }
 
-        fun lookupForResumeContinuation(context: ExecutionContext, method: Method, threadProxy: ThreadReferenceProxyImpl): ContinuationHolder? {
-            if (isResumeMethodFrame(method)) {
-                var continuation = getVariableValue(context.frameProxy, COMPLETION_FIELD_NAME) ?: return null
+        fun lookupForResumeMethodContinuation(
+            suspendContext: SuspendContextImpl?,
+            frame: StackFrameProxyImpl
+        ): ContinuationHolder? {
+            if (suspendContext != null && frame.location().isResumeWith()) {
+                val context = suspendContext.executionContext()
+                var continuation = frame.variableValue(COMPLETION_FIELD_NAME) ?: return null
                 context.keepReference(continuation)
-                return ContinuationHolder(continuation, context, threadProxy)
+                return ContinuationHolder(continuation, context)
             } else
                 return null
         }
 
-        fun lookupPreFlight(method: Method) =
-            isInvokeSuspendMethod(method) && method.location().lineNumber() == -1
+        fun coroutineExitFrame(
+            frame: StackFrameProxyImpl,
+            suspendContext : SuspendContextImpl
+        ): XStackFrame? {
+            if (frame.location().isPreFlight()) {
+                var frames = frame.threadProxy().frames()
+                val indexOfCurrentFrame = frames.indexOf(frame)
+                if (frames.size > indexOfCurrentFrame) {
+                    val nextFrame = frames[indexOfCurrentFrame + 1] ?: return null
+                    val ch = lookupForResumeMethodContinuation(
+                        suspendContext,
+                        nextFrame
+                    ) ?: return null
 
-        fun isResumeMethodFrame(method: Method) =
-            method.name() == "resumeWith"
-
-        private fun getVariableValue(sfp: StackFrameProxyImpl, variableName: String): ObjectReference? {
-            val continuationVariable = sfp.safeVisibleVariableByName(variableName) ?: return null
-            return sfp.getValue(continuationVariable) as? ObjectReference ?: return null
-        }
-
-        private fun isInvokeSuspendMethod(method: Method): Boolean =
-            method.name() == "invokeSuspend" && method.signature() == "(Ljava/lang/Object;)Ljava/lang/Object;"
-
-        /**
-         * @TODO
-         * Checks if the method has a Continuation as input parameter.
-         */
-        private fun isSuspendMethod(method: Method): Boolean {
-            val argTypes = method.argumentTypes()
-            for (arg in argTypes) {
-                println(arg)
+                    val coroutineStackTrace = ch.getAsyncStackTraceIfAny()
+                    val topRestoredFrame = coroutineStackTrace.first()
+                    val firstRestoredFrame =
+                        object : StackFrameProxyImpl(frame.threadProxy(), frame.stackFrame, frame.indexFromBottom) {
+                            val location = topRestoredFrame.location
+                            override fun location(): Location {
+                                return location
+                            }
+                        }
+                    var descriptor = StackFrameDescriptorImpl(firstRestoredFrame, MethodsTracker())
+                    return CoroutinePreflightFrame(
+                        frame,
+                        nextFrame,
+                        indexOfCurrentFrame,
+                        coroutineStackTrace.drop(1),
+                        descriptor,
+                        topRestoredFrame
+                    )
+                }
             }
-            return "Lkotlin/coroutines/Continuation;)" in method.signature()
+            return null
         }
 
-        private fun isSuspendLambda(referenceType: ReferenceType): Boolean =
-            SUSPEND_LAMBDA_CLASSES.any { referenceType.isSubtype(it) }
 
         /**
          * Find continuation for the [frame]
@@ -212,52 +235,54 @@ data class ContinuationHolder(val continuation: ObjectReference, val context: Ex
          * @return null if matching continuation is not found or is not BaseContinuationImpl
          */
         fun lookup(
-            context: ExecutionContext,
+            context: SuspendContextImpl,
             initialContinuation: ObjectReference?,
-            frame: StackTraceElement,
-            threadProxy: ThreadReferenceProxyImpl
+//            frame: StackTraceElement,
+//            threadProxy: ThreadReferenceProxyImpl
         ): ContinuationHolder? {
             var continuation = initialContinuation ?: return null
-            val classLine = ClassNameLineNumber(frame.className, frame.lineNumber)
+//            val classLine = ClassNameLineNumber(frame.className, frame.lineNumber)
+            val executionContext = context.executionContext()
 
             do {
-                val position = getClassAndLineNumber(context, continuation)
+//                val position = getClassAndLineNumber(executionContext, continuation)
                 // while continuation is BaseContinuationImpl and it's frame equals to the current
-                continuation = getNextFrame(context, continuation) ?: return null
-            } while (isSubtypeOfBaseContinuationImpl(continuation.type()) && position != classLine)
+                continuation = getNextFrame(
+                    executionContext,
+                    continuation
+                ) ?: return null
+            } while (isSubtypeOfBaseContinuationImpl(continuation.type())  /* && position != classLine */)
 
 
             return if (isSubtypeOfBaseContinuationImpl(continuation.type()))
-                ContinuationHolder(continuation, context, threadProxy)
+                ContinuationHolder(
+                    continuation,
+                    executionContext
+                )
             else
                 return null
         }
 
-        /**
-         * Finds previous Continuation for this Continuation (completion field in BaseContinuationImpl)
-         * @return null if given ObjectReference is not a BaseContinuationImpl instance or completion is null
-         */
-        private fun getNextFrame(context: ExecutionContext, continuation: ObjectReference): ObjectReference? {
-            if (!isSubtypeOfBaseContinuationImpl(continuation.type()))
-                return null
-            val type = continuation.type() as ClassType
-            val next = type.concreteMethodByName("getCompletion", "()Lkotlin/coroutines/Continuation;")
-            return context.invokeMethod(continuation, next, emptyList()) as? ObjectReference
-        }
-
-        fun isSubtypeOfBaseContinuationImpl(type: Type) =
-            type.isSubtype(BASE_CONTINUATION_IMPL_CLASS_NAME)
-
         data class ClassNameLineNumber(val className: String?, val lineNumber: Int?)
 
         private fun getClassAndLineNumber(context: ExecutionContext, continuation: ObjectReference): ClassNameLineNumber {
-            val objectReference = findStackTraceElement(context, continuation) ?: return ClassNameLineNumber(null, null)
+            val objectReference = findStackTraceElement(
+                context,
+                continuation
+            )
+                ?: return ClassNameLineNumber(
+                    null,
+                    null
+                )
             val classStackTraceElement = context.findClass("java.lang.StackTraceElement") as ClassType
             val getClassName = classStackTraceElement.concreteMethodByName("getClassName", "()Ljava/lang/String;")
             val getLineNumber = classStackTraceElement.concreteMethodByName("getLineNumber", "()I")
             val className = (context.invokeMethod(objectReference, getClassName, emptyList()) as StringReference).value()
             val lineNumber = (context.invokeMethod(objectReference, getLineNumber, emptyList()) as IntegerValue).value()
-            return ClassNameLineNumber(className, lineNumber)
+            return ClassNameLineNumber(
+                className,
+                lineNumber
+            )
         }
 
         private fun findStackTraceElement(context: ExecutionContext, continuation: ObjectReference): ObjectReference? {
@@ -265,9 +290,8 @@ data class ContinuationHolder(val continuation: ObjectReference, val context: Ex
             val methodGetStackTraceElement = classType.concreteMethodByName("getStackTraceElement", "()Ljava/lang/StackTraceElement;")
             return context.invokeMethod(continuation, methodGetStackTraceElement, emptyList()) as? ObjectReference
         }
-
-
     }
 }
 
 data class FieldVariable(val fieldName: String, val variableName: String)
+
