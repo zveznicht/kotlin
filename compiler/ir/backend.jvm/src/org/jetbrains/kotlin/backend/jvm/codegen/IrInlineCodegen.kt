@@ -6,8 +6,11 @@
 package org.jetbrains.kotlin.backend.jvm.codegen
 
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.backend.common.lower.BOUND_RECEIVER_PARAMETER
+import org.jetbrains.kotlin.backend.common.lower.BOUND_VALUE_PARAMETER
 import org.jetbrains.kotlin.codegen.*
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
+import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.lower.suspendFunctionViewOrStub
 import org.jetbrains.kotlin.backend.jvm.ir.isInlineParameter
 import org.jetbrains.kotlin.backend.jvm.ir.isLambda
@@ -16,6 +19,7 @@ import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.WrappedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.expressions.*
@@ -88,13 +92,24 @@ class IrInlineCodegen(
         if (isInlineParameter && isInlineIrExpression(argumentExpression)) {
             val irReference: IrFunctionReference =
                 (argumentExpression as IrBlock).statements.filterIsInstance<IrFunctionReference>().single()
-            val boundReceiver = argumentExpression.statements.filterIsInstance<IrVariable>().singleOrNull()
+            val boundReceiver =
+                argumentExpression.statements.filterIsInstance<IrVariable>().singleOrNull() ?: if (irReference.symbol.owner
+                        .origin == JvmLoweredDeclarationOrigin.GENERATED_MEMBER_IN_CALLABLE_REFERENCE &&
+                    irReference.symbol.owner
+                        .explicitParameters.firstOrNull()?.origin.let { it == BOUND_RECEIVER_PARAMETER || it == BOUND_VALUE_PARAMETER }
+                ) {
+                    irReference.getValueArgument(0)
+                } else null
             val lambdaInfo =
                 rememberClosure(irReference, parameterType, irValueParameter, boundReceiver) as IrExpressionLambdaImpl
 
             if (boundReceiver != null) {
                 activeLambda = lambdaInfo
-                putCapturedValueOnStack(boundReceiver.initializer!!, lambdaInfo.capturedParamsInDesc.single(), 0)
+                putCapturedValueOnStack(
+                    if (boundReceiver is IrVariable) boundReceiver.initializer!! else boundReceiver as IrExpression,
+                    lambdaInfo.capturedParamsInDesc.single(),
+                    0
+                )
                 activeLambda = null
             }
         } else {
@@ -195,7 +210,7 @@ class IrInlineCodegen(
         irReference: IrFunctionReference,
         type: Type,
         parameter: IrValueParameter,
-        boundReceiver: IrVariable?
+        boundReceiver: IrStatement?
     ): LambdaInfo {
         val referencedFunction = irReference.symbol.owner
         return IrExpressionLambdaImpl(

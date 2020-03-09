@@ -6,6 +6,9 @@
 package org.jetbrains.kotlin.codegen.inline
 
 import org.jetbrains.kotlin.codegen.*
+import org.jetbrains.kotlin.codegen.coroutines.EXPERIMENTAL_CONTINUATION_ASM_TYPE
+import org.jetbrains.kotlin.codegen.coroutines.RELEASE_CONTINUATION_ASM_TYPE
+import org.jetbrains.kotlin.codegen.coroutines.SUSPEND_FUNCTION_COMPLETION_PARAMETER_NAME
 import org.jetbrains.kotlin.codegen.coroutines.continuationAsmType
 import org.jetbrains.kotlin.codegen.inline.FieldRemapper.Companion.foldName
 import org.jetbrains.kotlin.codegen.inline.coroutines.*
@@ -262,7 +265,8 @@ class MethodInliner(
                     val valueParamShift = max(nextLocalIndex, markerShift)//NB: don't inline cause it changes
                     val parameterTypesFromDesc = info.invokeMethod.argumentTypes
                     putStackValuesIntoLocalsForLambdaOnInvoke(
-                        listOf(*parameterTypesFromDesc), valueParameters, invokeParameters, valueParamShift, this, coroutineDesc
+                        listOf(*parameterTypesFromDesc), valueParameters, invokeParameters, valueParamShift, this, coroutineDesc,
+                        info.isSuspend && !info.isBoundCallableReference
                     )
 
                     if (parameterTypesFromDesc.isEmpty()) {
@@ -384,6 +388,18 @@ class MethodInliner(
             override fun visitMaxs(stack: Int, locals: Int) {
                 lambdasFinallyBlocks = resultNode.tryCatchBlocks.size
                 super.visitMaxs(stack, locals)
+            }
+
+            override fun visitLocalVariable(
+                name: String?,
+                descriptor: String?,
+                signature: String?,
+                start: Label?,
+                end: Label?,
+                index: Int
+            ) {
+                if (name == SUSPEND_FUNCTION_COMPLETION_PARAMETER_NAME) return
+                super.visitLocalVariable(name, descriptor, signature, start, end, index)
             }
         }
 
@@ -1148,7 +1164,8 @@ class MethodInliner(
             directOrderOfInvokeParameters: List<ValueParameterDescriptor>,
             shift: Int,
             iv: InstructionAdapter,
-            descriptor: String
+            descriptor: String,
+            reuseContinuationParameterFromOuterContext: Boolean
         ) {
             val actualParams = Type.getArgumentTypes(descriptor)
             assert(actualParams.size == directOrder.size) {
@@ -1175,10 +1192,17 @@ class MethodInliner(
                     invokeParameterKotlinType = null
                 }
 
-                if (typeOnStack != type || invokeParameterKotlinType != argumentKotlinType) {
-                    StackValue.onStack(typeOnStack, invokeParameterKotlinType).put(type, argumentKotlinType, iv)
+                if (index == directOrder.lastIndex && reuseContinuationParameterFromOuterContext) {
+                    assert(type == RELEASE_CONTINUATION_ASM_TYPE || type == EXPERIMENTAL_CONTINUATION_ASM_TYPE) {
+                        "Expected continuation, but got $type"
+                    }
+                    iv.pop()
+                } else {
+                    if (typeOnStack != type || invokeParameterKotlinType != argumentKotlinType) {
+                        StackValue.onStack(typeOnStack, invokeParameterKotlinType).put(type, argumentKotlinType, iv)
+                    }
+                    iv.store(currentShift, type)
                 }
-                iv.store(currentShift, type)
             }
         }
 
