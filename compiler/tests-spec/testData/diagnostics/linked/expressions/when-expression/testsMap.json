@@ -263,14 +263,6 @@
           "unexpectedBehaviour": false
         }
       ],
-      "9": [
-        {
-          "specVersion": "0.1-100",
-          "casesNumber": 2,
-          "description": "\u0027When\u0027 with bound value and allowed break and continue expression (without labels) in \u0027when condition\u0027.",
-          "unexpectedBehaviour": false
-        }
-      ],
       "7": [
         {
           "specVersion": "0.1-201",
@@ -479,7 +471,7 @@
           "specVersion": "0.1-100",
           "casesNumber": 25,
           "description": "When without bound value, various expressions in the control structure body.",
-          "unexpectedBehaviour": false
+          "unexpectedBehaviour": true
         },
         {
           "specVersion": "0.1-152",
@@ -543,7 +535,7 @@
           "specVersion": "0.1-100",
           "casesNumber": 25,
           "description": "\u0027When\u0027 with bound value and with different variants of expressions in the control structure body.",
-          "unexpectedBehaviour": false
+          "unexpectedBehaviour": true
         },
         {
           "specVersion": "0.1-152",
