@@ -551,7 +551,7 @@ object KotlinToJVMBytecodeCompiler {
 
         val resolvedKlibs = environment.configuration.get(JVMConfigurationKeys.KLIB_PATHS)?.let { klibPaths ->
             jvmResolveLibraries(klibPaths, collector.toLogger())
-        }
+        }?.getFullList() ?: emptyList()
 
         val analyzerWithCompilerReport = AnalyzerWithCompilerReport(collector, environment.configuration.languageVersionSettings)
         analyzerWithCompilerReport.analyzeAndReport(sourceFiles) {
@@ -570,7 +570,7 @@ object KotlinToJVMBytecodeCompiler {
                 environment.configuration,
                 environment::createPackagePartProvider,
                 sourceModuleSearchScope = scope,
-                klibList = resolvedKlibs?.getFullList() ?: emptyList()
+                klibList = resolvedKlibs
             )
         }
 
