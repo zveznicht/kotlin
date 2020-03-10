@@ -72,10 +72,11 @@ public class TestFiles {
             commonPrefixOrWholeFile = expectedText;
         }
         else {
-            int processedChars = parseDirectivesPerFile ? matcher.start() : 0;
+            boolean firstFileProcessed = false;
+            int processedChars = 0;
             M module = null;
 
-            commonPrefixOrWholeFile = expectedText.substring(0, processedChars);
+            commonPrefixOrWholeFile = expectedText.substring(0, matcher.start());
 
             // Many files
             while (true) {
@@ -107,10 +108,10 @@ public class TestFiles {
 
 
                 testFiles.add(factory.createFile(module, fileName, fileText, parseDirectivesPerFile ?
-                                                                             parseDirectivesAndFlags(commonPrefixOrWholeFile + fileText)
+                                                                             parseDirectivesAndFlags(firstFileProcessed ? commonPrefixOrWholeFile + fileText : fileText)
                                                                                                     : allFilesOrCommonPrefixDirectives));
                 processedChars = end;
-
+                firstFileProcessed = true;
                 if (!nextFileExists) break;
             }
             assert processedChars == expectedText.length() : "Characters skipped from " +

@@ -791,10 +791,6 @@ public abstract class CodegenTestCase extends KotlinBaseTest<KotlinBaseTest.Test
         return testFiles;
     }
 
-    protected boolean parseDirectivesPerFiles() {
-        return false;
-    }
-
     @NotNull
     protected File getJavaSourcesOutputDirectory() {
         return createTempDirectory("java-files");

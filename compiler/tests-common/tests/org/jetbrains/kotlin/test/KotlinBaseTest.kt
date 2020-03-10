@@ -69,6 +69,9 @@ abstract class KotlinBaseTest<F : KotlinBaseTest.TestFile> : KtUsefulTestCase() 
         return if (addReflect) ConfigurationKind.ALL else if (addRuntime) ConfigurationKind.NO_KOTLIN_REFLECT else ConfigurationKind.JDK_ONLY
     }
 
+    protected open fun parseDirectivesPerFiles(): Boolean {
+        return false
+    }
 
     open class TestFile @JvmOverloads constructor(
         @JvmField val name: String,

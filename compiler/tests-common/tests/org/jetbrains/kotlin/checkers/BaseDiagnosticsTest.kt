@@ -101,6 +101,10 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
         analyzeAndCheck(wholeFile, files)
     }
 
+    override fun parseDirectivesPerFiles(): Boolean {
+        return true
+    }
+
     protected open fun shouldSkipTest(wholeFile: File, files: List<TestFile>) : Boolean = false
 
     protected abstract fun analyzeAndCheck(testDataFile: File, files: List<TestFile>)

@@ -154,7 +154,7 @@ abstract class KotlinMultiFileTestWithJava<M : KotlinBaseTest.TestModule, F : Ko
                 KotlinTestUtils.mkdirs(file.parentFile)
                 file.writeText(content, Charsets.UTF_8)
             }
-        }, coroutinesPackage)
+        }, false, coroutinesPackage, parseDirectivesPerFiles())
     }
 
     companion object {
