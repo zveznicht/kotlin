@@ -83,17 +83,6 @@ internal abstract class AbstractScriptConfigurationManager(
         forceSync: Boolean = false
     )
 
-    /**
-     * Will be called on user action
-     * Load configuration event it is already cached or inputs are up-to-date
-     *
-     * @param loader is used to load configuration. Other loaders aren't taken into account.
-     */
-    protected abstract fun forceReloadConfiguration(
-        file: KtFile,
-        loader: ScriptConfigurationLoader
-    )
-
     @Deprecated("Use getScriptClasspath(KtFile) instead")
     override fun getScriptClasspath(file: VirtualFile): List<VirtualFile> {
         val ktFile = project.getKtFile(file) ?: return emptyList()
@@ -132,19 +121,6 @@ internal abstract class AbstractScriptConfigurationManager(
         }
 
         return getAppliedConfiguration(virtualFile)?.configuration
-    }
-
-    override fun forceReloadConfiguration(
-        file: VirtualFile,
-        loader: ScriptConfigurationLoader
-    ): ScriptCompilationConfigurationWrapper? {
-        val ktFile = project.getKtFile(file, null) ?: return null
-
-        rootsIndexer.transaction {
-            forceReloadConfiguration(ktFile, loader)
-        }
-
-        return getAppliedConfiguration(file)?.configuration
     }
 
     override val updater: ScriptConfigurationUpdater = object : ScriptConfigurationUpdater {
