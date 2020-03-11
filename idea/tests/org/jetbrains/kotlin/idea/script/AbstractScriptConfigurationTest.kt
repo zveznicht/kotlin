@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.idea.core.script.IdeScriptReportSink
 import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManager.Companion.updateScriptDependenciesSynchronously
 import org.jetbrains.kotlin.idea.core.script.ScriptDefinitionContributor
 import org.jetbrains.kotlin.idea.core.script.ScriptDefinitionsManager
-import org.jetbrains.kotlin.idea.core.script.isScriptChangesNotifierDisabled
 import org.jetbrains.kotlin.idea.core.script.settings.KotlinScriptingSettings
 import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingUtil
 import org.jetbrains.kotlin.idea.test.PluginTestCaseBase
@@ -148,7 +147,6 @@ abstract class AbstractScriptConfigurationTest : KotlinCompletionTestCase() {
 
     override fun setUp() {
         super.setUp()
-        ApplicationManager.getApplication().isScriptChangesNotifierDisabled = true
 
         settings = KotlinScriptingSettings.getInstance(project).state
 
@@ -164,8 +162,6 @@ abstract class AbstractScriptConfigurationTest : KotlinCompletionTestCase() {
     }
 
     override fun tearDown() {
-        ApplicationManager.getApplication().isScriptChangesNotifierDisabled = false
-
         System.setProperty("kotlin.script.classpath", oldScripClasspath ?: "")
 
         settings?.let {
