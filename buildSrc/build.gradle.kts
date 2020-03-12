@@ -5,7 +5,8 @@ buildscript {
     val cacheRedirectorEnabled = findProperty("cacheRedirectorEnabled")?.toString()?.toBoolean() == true
 
     extra["defaultSnapshotVersion"] = kotlinBuildProperties.defaultSnapshotVersion
-    kotlinBootstrapFrom(BootstrapOption.BintrayBootstrap(kotlinBuildProperties.kotlinBootstrapVersion!!, cacheRedirectorEnabled))
+    kotlinBootstrapFrom(BootstrapOption.BintrayBootstrap(kotlinBuildProperties.kotlinBootstrapVersion!!, cacheRedirectorEnabled),
+                        kotlinBuildProperties)
 
     repositories {
         if (cacheRedirectorEnabled) {
@@ -22,7 +23,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.15")
+        classpath("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.16")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${project.bootstrapKotlinVersion}")
         classpath("org.jetbrains.kotlin:kotlin-sam-with-receiver:${project.bootstrapKotlinVersion}")
     }
@@ -93,7 +94,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib", embeddedKotlinVersion))
-    implementation("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.15")
+    implementation("org.jetbrains.kotlin:kotlin-build-gradle-plugin:0.0.16")
 
     implementation("net.rubygrapefruit:native-platform:${property("versions.native-platform")}")
     implementation("net.rubygrapefruit:native-platform-windows-amd64:${property("versions.native-platform")}")

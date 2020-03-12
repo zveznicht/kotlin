@@ -21,25 +21,23 @@ val Project.internalKotlinRepo: String?
     get() = "https://teamcity.jetbrains.com/guestAuth/app/rest/builds/buildType:(id:Kotlin_KotlinPublic_Compiler),number:$bootstrapKotlinVersion," +
             "branch:default:any/artifacts/content/internal/repo"
 
-fun Project.kotlinBootstrapFrom(defaultSource: BootstrapOption) {
-    val customVersion = findProperty("bootstrap.kotlin.version") as String?
-    val customRepo = findProperty("bootstrap.kotlin.repo") as String?
-    val teamCityVersion = findProperty("bootstrap.teamcity.kotlin.version") as String?
-    val teamCityBuild = findProperty("bootstrap.teamcity.build.number") as String?
-    val teamCityProject = findProperty("bootstrap.teamcity.project") as String?
+fun Project.kotlinBootstrapFrom(defaultSource: BootstrapOption, kotlinBuildProperties: KotlinBuildProperties) {
 
     val bootstrapSource = when {
-        hasProperty("bootstrap.local") -> BootstrapOption.Local(
-            findProperty("bootstrap.local.version") as String?,
-            findProperty("bootstrap.local.path") as String?
+        kotlinBuildProperties.localBootstrap -> BootstrapOption.Local(
+            kotlinBuildProperties.localBootstrapVersion,
+            kotlinBuildProperties.localBootstrapPath
         )
-        teamCityVersion != null -> BootstrapOption.TeamCity(
-            teamCityVersion,
-            teamCityBuild,
-            projectExtId = teamCityProject,
+        kotlinBuildProperties.teamCityBootstrapVersion != null -> BootstrapOption.TeamCity(
+            kotlinBuildProperties.teamCityBootstrapVersion,
+            kotlinBuildProperties.teamCityBootstrapBuildNumber,
+            projectExtId = kotlinBuildProperties.teamCityBootstrapProject,
             onlySuccessBootstrap = false
         )
-        customVersion != null -> BootstrapOption.Custom(kotlinVersion = customVersion, repo = customRepo)
+        kotlinBuildProperties.customBootstrapVersion != null -> BootstrapOption.Custom(
+            kotlinVersion = kotlinBuildProperties.customBootstrapVersion,
+            repo = kotlinBuildProperties.customBootstrapRepo
+        )
         else -> defaultSource
     }
 

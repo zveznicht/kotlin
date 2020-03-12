@@ -40,6 +40,8 @@ class KotlinBuildProperties(
     private fun getBoolean(key: String, default: Boolean = false): Boolean =
         this[key]?.toString()?.trim()?.toBoolean() ?: default
 
+    private fun hasProperty(key: String): Boolean = getLocalOrRoot(key) != null
+
     val isJpsBuildEnabled: Boolean = getBoolean("jpsBuild")
 
     val isInIdeaSync: Boolean = run {
@@ -108,6 +110,22 @@ class KotlinBuildProperties(
     val kotlinBootstrapVersion: String? = getLocalOrRoot("bootstrap.kotlin.default.version") as String?
 
     val defaultSnapshotVersion: String? = getLocalOrRoot("defaultSnapshotVersion") as String?
+
+    val customBootstrapVersion: String? = getLocalOrRoot("bootstrap.kotlin.version") as String?
+
+    val customBootstrapRepo: String? = getLocalOrRoot("bootstrap.kotlin.repo") as String?
+
+    val localBootstrap: Boolean = hasProperty("bootstrap.local")
+
+    val localBootstrapVersion: String? = getLocalOrRoot("bootstrap.local.version") as String?
+
+    val localBootstrapPath: String? = getLocalOrRoot("bootstrap.local.path") as String?
+
+    val teamCityBootstrapVersion: String? = getLocalOrRoot("bootstrap.teamcity.kotlin.version") as String?
+
+    val teamCityBootstrapBuildNumber: String? = getLocalOrRoot("bootstrap.teamcity.build.number") as String?
+
+    val teamCityBootstrapProject: String? = getLocalOrRoot("bootstrap.teamcity.project") as String?
 }
 
 private const val extensionName = "kotlinBuildProperties"
