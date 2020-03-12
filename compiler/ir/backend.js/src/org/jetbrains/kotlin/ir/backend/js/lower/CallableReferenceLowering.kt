@@ -27,10 +27,7 @@ import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrTypeProjection
 import org.jetbrains.kotlin.ir.types.classOrNull
-import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.explicitParameters
-import org.jetbrains.kotlin.ir.util.isSuspend
-import org.jetbrains.kotlin.ir.util.parentAsClass
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.Name
@@ -139,6 +136,7 @@ class CallableReferenceLowering(private val context: CommonBackendContext) : Bod
 
             if (boundReceiver != null) {
                 boundReceiverField = addField(BOUND_RECEIVER_NAME, boundReceiver.type).apply {
+                    boundReceiver.patchDeclarationParents(this)
                     initializer = IrExpressionBodyImpl(boundReceiver.startOffset, boundReceiver.endOffset, boundReceiver)
                     parent = this@createReceiverField
                 }

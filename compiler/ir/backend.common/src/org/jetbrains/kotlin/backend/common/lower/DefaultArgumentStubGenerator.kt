@@ -105,17 +105,16 @@ open class DefaultArgumentStubGenerator(
                         val defaultFlag =
                             irCallOp(this@DefaultArgumentStubGenerator.context.ir.symbols.intAnd, context.irBuiltIns.intType, mask, bit)
 
-                        val expressionBody = valueParameter.defaultValue!!
-                        expressionBody.patchDeclarationParents(newIrFunction)
-                        expressionBody.transformChildrenVoid(object : IrElementTransformerVoid() {
+                        val expression = valueParameter.defaultValue!!.expression.deepCopyWithSymbols(newIrFunction)
+                        expression.transform(object : IrElementTransformerVoid() {
                             override fun visitGetValue(expression: IrGetValue): IrExpression {
                                 log { "GetValue: ${expression.symbol.owner}" }
                                 val valueSymbol = variables[expression.symbol.owner] ?: return expression
                                 return irGet(valueSymbol)
                             }
-                        })
+                        }, null)
 
-                        selectArgumentOrDefault(defaultFlag, parameter, expressionBody.expression)
+                        selectArgumentOrDefault(defaultFlag, parameter, expression)
                     } else {
                         parameter
                     }

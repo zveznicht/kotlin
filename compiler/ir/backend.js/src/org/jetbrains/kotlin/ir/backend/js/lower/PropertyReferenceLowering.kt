@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.declarations.buildValueParameter
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.declarations.IrValueParameter
 import org.jetbrains.kotlin.ir.expressions.*
@@ -35,15 +36,20 @@ class PropertyReferenceLowering(private val context: JsIrBackendContext) : BodyL
 
     private val throwISE = context.throwISEsymbol
 
-    private val newDeclarations = mutableListOf<IrDeclaration>()
-
     override fun lower(irBody: IrBody, container: IrDeclaration) {
-        newDeclarations.clear()
-        irBody.transformChildrenVoid(PropertyReferenceTransformer())
+        val currentParent = container as? IrDeclarationParent ?: container.parent
+        val newDeclarations = PropertyReferenceTransformer(currentParent).process(irBody)
         implicitDeclarationFile.declarations.addAll(newDeclarations)
     }
 
-    private inner class PropertyReferenceTransformer : IrElementTransformerVoid() {
+    private inner class PropertyReferenceTransformer(var currentParent: IrDeclarationParent) : IrElementTransformerVoid() {
+
+        val newDeclarations = mutableListOf<IrDeclaration>()
+
+        fun process(irBody: IrBody): List<IrDeclaration> {
+            irBody.transformChildrenVoid(this)
+            return newDeclarations
+        }
 
         private fun buildFactoryFunction(reference: IrPropertyReference): IrSimpleFunction {
             val property = reference.symbol.owner
@@ -242,7 +248,7 @@ class PropertyReferenceLowering(private val context: JsIrBackendContext) : BodyL
                 name = Name.identifier("${delegatedVar.name}\$stub")
             }
 
-            function.parent = delegatedVar.parent
+            function.parent = currentParent
 
             function.body = with(context.createIrBuilder(function.symbol)) {
                 irBlockBody {
