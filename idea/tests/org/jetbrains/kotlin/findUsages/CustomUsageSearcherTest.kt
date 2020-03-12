@@ -12,7 +12,7 @@ class CustomUsageSearcherTest : KotlinLightCodeInsightFixtureTestCaseBase() {
     fun testAddCustomUsagesForKotlin() {
 //        TODO("[VD] There are diff API for ExtensionTestUtil in 191, 192, 193")
 //        val customUsageSearcher = object : CustomUsageSearcher() {
-//            override fun processElementUsages(element: PsiElement, processor: Processor<Usage>, options: FindUsagesOptions) {
+//            override fun processElementUsages(element: PsiElement, processor: ProcessorInCompat<Usage>, options: FindUsagesOptions) {
 //                runReadAction { processor.process(UsageInfo2UsageAdapter(UsageInfo(element))) }
 //            }
 //        }
