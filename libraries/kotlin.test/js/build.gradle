@@ -59,11 +59,9 @@ task libraryJarWithIr(type: Zip, dependsOn: libraryJarWithoutIr) {
     duplicatesStrategy DuplicatesStrategy.FAIL
 
     from zipTree(libraryJarWithoutIr.archiveFile)
-    if (rootProject.includeStdlibJsIr) {
-        def irKlib = tasks.getByPath(":kotlin-stdlib-js-ir:generateKotlinTestKLib")
-        dependsOn(irKlib)
-        from fileTree(irKlib.outputs.files.singleFile.path)
-    }
+    def irKlib = tasks.getByPath(":kotlin-test:kotlin-test-js-ir:compileKotlinJs")
+    dependsOn(irKlib)
+    from fileTree(irKlib.outputs.files.first().path)
 }
 
 jar.dependsOn(libraryJarWithIr)
@@ -76,7 +74,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 artifacts {
     runtime libraryJarWithIr
     archives libraryJarWithIr
-    distLibrary libraryJarWithoutIr
+    distLibrary libraryJarWithIr
     archives sourcesJar
     sources sourcesJar
     distJs(file(compileKotlin2Js.kotlinOptions.outputFile)) {
