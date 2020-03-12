@@ -47,6 +47,9 @@ internal class PlatformLibrariesGenerator(val project: Project, val konanTarget:
             .map { it.nameWithoutExtension }.toSet()
     }
 
+    private fun Set<String>.toPlatformLibNames(): Set<String> =
+        mapTo(mutableSetOf()) { "$KONAN_PLATFORM_LIBS_NAME_PREFIX$it" }
+
     /**
      * Checks that all platform libs for [konanTarget] actually exist in the [distribution].
      */
@@ -56,7 +59,7 @@ internal class PlatformLibrariesGenerator(val project: Project, val konanTarget:
             .map { it.name }.toSet()
 
         // TODO: Check that all directories in presentPlatformLibs are real klibs when klib componentization is merged.
-        return presentDefs.all { "$KONAN_PLATFORM_LIBS_NAME_PREFIX$it" in presentPlatformLibs }
+        return presentDefs.toPlatformLibNames().all { it in presentPlatformLibs }
     }
 
     /**
@@ -71,7 +74,7 @@ internal class PlatformLibrariesGenerator(val project: Project, val konanTarget:
             File(project.konanHome), konanTarget, true, project.konanCacheKind
         )
         val presentCacheFiles = cacheDirectory.listFiles().orEmpty().map { it.name }.toSet()
-        return presentDefs.all {
+        return presentDefs.toPlatformLibNames().all {
             CacheBuilder.getCacheFileName(it, project.konanCacheKind, konanTarget) in presentCacheFiles
         }
     }
