@@ -141,7 +141,9 @@ class CallableReferenceLowering(private val context: CommonBackendContext) : Bod
             val boundReceiver = funRef.run { dispatchReceiver ?: extensionReceiver }
 
             if (boundReceiver != null) {
-                boundReceiverField = addField(BOUND_RECEIVER_NAME, boundReceiver.type)
+                boundReceiverField = addField(BOUND_RECEIVER_NAME, boundReceiver.type).apply {
+                    boundReceiver.patchDeclarationParents(this)
+                }
             }
         }
 
