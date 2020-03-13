@@ -21,21 +21,20 @@ val Project.internalKotlinRepo: String?
     get() = "https://teamcity.jetbrains.com/guestAuth/app/rest/builds/buildType:(id:Kotlin_KotlinPublic_Compiler),number:$bootstrapKotlinVersion," +
             "branch:default:any/artifacts/content/internal/repo"
 
-fun Project.kotlinBootstrapFrom(defaultSource: BootstrapOption, kotlinBuildProperties: KotlinBuildProperties) {
-
+fun Project.kotlinBootstrapFrom(defaultSource: BootstrapOption) {
     val bootstrapSource = when {
         kotlinBuildProperties.localBootstrap -> BootstrapOption.Local(
             kotlinBuildProperties.localBootstrapVersion,
             kotlinBuildProperties.localBootstrapPath
         )
         kotlinBuildProperties.teamCityBootstrapVersion != null -> BootstrapOption.TeamCity(
-            kotlinBuildProperties.teamCityBootstrapVersion,
+            kotlinBuildProperties.teamCityBootstrapVersion!!,
             kotlinBuildProperties.teamCityBootstrapBuildNumber,
             projectExtId = kotlinBuildProperties.teamCityBootstrapProject,
             onlySuccessBootstrap = false
         )
         kotlinBuildProperties.customBootstrapVersion != null -> BootstrapOption.Custom(
-            kotlinVersion = kotlinBuildProperties.customBootstrapVersion,
+            kotlinVersion = kotlinBuildProperties.customBootstrapVersion!!,
             repo = kotlinBuildProperties.customBootstrapRepo
         )
         else -> defaultSource
