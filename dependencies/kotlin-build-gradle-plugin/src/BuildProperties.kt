@@ -33,14 +33,13 @@ class KotlinBuildProperties(
         }
     }
 
-    private operator fun get(key: String): Any? = localProperties.getProperty(key) ?: propertiesProvider.getProperty(key)
-
-    private fun getLocalOrRoot(key: String): Any? = get(key) ?: rootProperties.getProperty(key)
+    private operator fun get(key: String): Any? =
+        localProperties.getProperty(key) ?: propertiesProvider.getProperty(key) ?: rootProperties.getProperty(key)
 
     private fun getBoolean(key: String, default: Boolean = false): Boolean =
         this[key]?.toString()?.trim()?.toBoolean() ?: default
 
-    private fun hasProperty(key: String): Boolean = getLocalOrRoot(key) != null
+    private fun hasProperty(key: String): Boolean = get(key) != null
 
     val isJpsBuildEnabled: Boolean = getBoolean("jpsBuild")
 
@@ -107,25 +106,25 @@ class KotlinBuildProperties(
 
     val buildCachePassword: String? = get("kotlin.build.cache.password") as String?
 
-    val kotlinBootstrapVersion: String? = getLocalOrRoot("bootstrap.kotlin.default.version") as String?
+    val kotlinBootstrapVersion: String? = get("bootstrap.kotlin.default.version") as String?
 
-    val defaultSnapshotVersion: String? = getLocalOrRoot("defaultSnapshotVersion") as String?
+    val defaultSnapshotVersion: String? = get("defaultSnapshotVersion") as String?
 
-    val customBootstrapVersion: String? = getLocalOrRoot("bootstrap.kotlin.version") as String?
+    val customBootstrapVersion: String? = get("bootstrap.kotlin.version") as String?
 
-    val customBootstrapRepo: String? = getLocalOrRoot("bootstrap.kotlin.repo") as String?
+    val customBootstrapRepo: String? = get("bootstrap.kotlin.repo") as String?
 
     val localBootstrap: Boolean = hasProperty("bootstrap.local")
 
-    val localBootstrapVersion: String? = getLocalOrRoot("bootstrap.local.version") as String?
+    val localBootstrapVersion: String? = get("bootstrap.local.version") as String?
 
-    val localBootstrapPath: String? = getLocalOrRoot("bootstrap.local.path") as String?
+    val localBootstrapPath: String? = get("bootstrap.local.path") as String?
 
-    val teamCityBootstrapVersion: String? = getLocalOrRoot("bootstrap.teamcity.kotlin.version") as String?
+    val teamCityBootstrapVersion: String? = get("bootstrap.teamcity.kotlin.version") as String?
 
-    val teamCityBootstrapBuildNumber: String? = getLocalOrRoot("bootstrap.teamcity.build.number") as String?
+    val teamCityBootstrapBuildNumber: String? = get("bootstrap.teamcity.build.number") as String?
 
-    val teamCityBootstrapProject: String? = getLocalOrRoot("bootstrap.teamcity.project") as String?
+    val teamCityBootstrapProject: String? = get("bootstrap.teamcity.project") as String?
 }
 
 private const val extensionName = "kotlinBuildProperties"
