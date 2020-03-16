@@ -26,7 +26,10 @@ import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.isCommon
 import org.jetbrains.kotlin.platform.oldFashionedDescription
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtCallableDeclaration
+import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
+import org.jetbrains.kotlin.psi.KtExpression
+import org.jetbrains.kotlin.psi.KtReferenceExpression
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.kotlin.resolve.AnalyzingUtils
@@ -640,49 +643,46 @@ object CheckerTestUtil {
         expression: PsiElement,
         bindingContext: BindingContext,
     ): Pair<FqNameUnsafe?, String?> {
-
-        /**
-         * if resolvedCall is VariableAsFunctionResolvedCall  -- then typeOfCall is variable + invoke
-         * if resolvedCall.candidateDescriptor is PropertyDescriptor -- then typeOfCall is variable
-         * if resolvedCall.candidateDescriptor is FunctionDescriptor -- then typeOfCall is function
-         */
-        fun getTypeOfCall(expression: KtExpression): String? {
-            val resolvedCall = expression.getResolvedCall(bindingContext) ?: return null
-            val typeOfCall: String?
-            typeOfCall = if (resolvedCall is VariableAsFunctionResolvedCall) {
-                "variable&invoke"
-            } else
-                when (resolvedCall.candidateDescriptor) {
-                    is PropertyDescriptor -> {
-                        "variable"
-                    }
-                    is FunctionDescriptor -> {
-                        val functionDescriptor = resolvedCall.candidateDescriptor as FunctionDescriptor
-                        val res = StringBuilder()
-                        if (functionDescriptor.isInline) res.append("inline ")
-                        if (functionDescriptor.isInfix) res.append("infix ")
-                        if (functionDescriptor.isOperator) res.append("operator ")
-                        if (functionDescriptor.isExtension) res.append("extension ")
-                        res.append("function")
-                        return res.toString()
-                    }
-                    else -> null
-                }
-            return typeOfCall
-        }
-
-        val pair: Pair<Call?, String?> =
+        val callToTypeOfCall =
             when (expression) {
                 is KtCallableReferenceExpression -> {
-                    Pair((expression).callableReference.getCall(bindingContext), getTypeOfCall(expression))
+                    expression.callableReference.getCall(bindingContext) to getTypeOfCall(expression, bindingContext)
                 }
                 is KtExpression -> {
-                    Pair((expression).getCall(bindingContext), getTypeOfCall(expression))
+                    expression.getCall(bindingContext) to getTypeOfCall(expression, bindingContext)
                 }
-                else -> throw Exception("Getting fqName is failed")
+                else -> null
             }
-        val fqNameUnsafe = bindingContext[BindingContext.RESOLVED_CALL, pair.first]?.candidateDescriptor?.fqNameUnsafe
-        return Pair(fqNameUnsafe, pair.second)
+        val fqNameUnsafe = bindingContext[BindingContext.RESOLVED_CALL, callToTypeOfCall?.first]?.candidateDescriptor?.fqNameUnsafe
+        return fqNameUnsafe to callToTypeOfCall?.second
 
+    }
+
+    /**
+     * if resolvedCall is VariableAsFunctionResolvedCall  -- then typeOfCall is variable + invoke
+     * if resolvedCall.candidateDescriptor is PropertyDescriptor -- then typeOfCall is variable
+     * if resolvedCall.candidateDescriptor is FunctionDescriptor -- then typeOfCall is function
+     */
+    fun getTypeOfCall(expression: KtExpression, bindingContext: BindingContext): String? {
+        val resolvedCall = expression.getResolvedCall(bindingContext) ?: return null
+        return if (resolvedCall is VariableAsFunctionResolvedCall) {
+            "variable&invoke"
+        } else {
+            when (val functionDescriptor = resolvedCall.candidateDescriptor) {
+                is PropertyDescriptor -> {
+                    "variable"
+                }
+                is FunctionDescriptor -> {
+                    return buildString {
+                        if (functionDescriptor.isInline) append("inline ")
+                        if (functionDescriptor.isInfix) append("infix ")
+                        if (functionDescriptor.isOperator) append("operator ")
+                        if (functionDescriptor.isExtension) append("extension ")
+                        append("function")
+                    }
+                }
+                else -> null
+            }
+        }
     }
 }

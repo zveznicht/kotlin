@@ -32,7 +32,7 @@ class DebugInfoDiagnosticFactory1 : DiagnosticFactory1<PsiElement, String>,
         bindingContext: BindingContext,
         dataFlowValueFactory: DataFlowValueFactory?,
         languageVersionSettings: LanguageVersionSettings?,
-        moduleDescriptor: ModuleDescriptorImpl?,
+        moduleDescriptor: ModuleDescriptorImpl?
     ) = when (name) {
         "EXPRESSION_TYPE" -> {
             val (type, dataFlowTypes) = CheckerTestUtil.getTypeInfo(
@@ -40,7 +40,7 @@ class DebugInfoDiagnosticFactory1 : DiagnosticFactory1<PsiElement, String>,
                 bindingContext,
                 dataFlowValueFactory,
                 languageVersionSettings,
-                moduleDescriptor,
+                moduleDescriptor
             )
 
             this.on(expression, Renderers.renderExpressionType(type, dataFlowTypes))
