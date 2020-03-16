@@ -922,7 +922,10 @@ open class CInteropProcess : DefaultTask() {
     @TaskAction
     fun processInterop() {
         val args = mutableListOf<String>().apply {
+            val buildDir = File(outputFile.parentFile, "${outputFile.name}-build")
             addArg("-o", outputFile.absolutePath)
+            addArg("-generated", File(buildDir, "kotlin").absolutePath)
+            addArg("-natives", File(buildDir, "natives").absolutePath)
 
             addArgIfNotNull("-target", konanTarget.visibleName)
             addArgIfNotNull("-def", defFile.canonicalPath)
