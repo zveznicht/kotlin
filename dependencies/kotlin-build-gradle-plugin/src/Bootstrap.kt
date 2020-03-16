@@ -22,19 +22,21 @@ val Project.internalKotlinRepo: String?
             "branch:default:any/artifacts/content/internal/repo"
 
 fun Project.kotlinBootstrapFrom(defaultSource: BootstrapOption) {
+    val teamCityBootstrapVersion = kotlinBuildProperties.teamCityBootstrapVersion
+    val customBootstrapVersion = kotlinBuildProperties.customBootstrapVersion
     val bootstrapSource = when {
         kotlinBuildProperties.localBootstrap -> BootstrapOption.Local(
             kotlinBuildProperties.localBootstrapVersion,
             kotlinBuildProperties.localBootstrapPath
         )
-        kotlinBuildProperties.teamCityBootstrapVersion != null -> BootstrapOption.TeamCity(
-            kotlinBuildProperties.teamCityBootstrapVersion!!,
+        teamCityBootstrapVersion != null -> BootstrapOption.TeamCity(
+            teamCityBootstrapVersion,
             kotlinBuildProperties.teamCityBootstrapBuildNumber,
             projectExtId = kotlinBuildProperties.teamCityBootstrapProject,
             onlySuccessBootstrap = false
         )
-        kotlinBuildProperties.customBootstrapVersion != null -> BootstrapOption.Custom(
-            kotlinVersion = kotlinBuildProperties.customBootstrapVersion!!,
+        customBootstrapVersion != null -> BootstrapOption.Custom(
+            kotlinVersion = customBootstrapVersion,
             repo = kotlinBuildProperties.customBootstrapRepo
         )
         else -> defaultSource
