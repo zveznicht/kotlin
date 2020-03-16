@@ -125,6 +125,8 @@ class KotlinBuildProperties(
     val teamCityBootstrapBuildNumber: String? = get("bootstrap.teamcity.build.number") as String?
 
     val teamCityBootstrapProject: String? = get("bootstrap.teamcity.project") as String?
+
+    val rootProjectDir: File = propertiesProvider.rootProjectDir
 }
 
 private const val extensionName = "kotlinBuildProperties"

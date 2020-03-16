@@ -102,10 +102,11 @@ sealed class BootstrapOption {
      */
     class Local(val kotlinVersion: String? = null, val localPath: String? = null) : BootstrapOption() {
         override fun applyToProject(project: Project) {
+            val rootProjectDir = project.kotlinBuildProperties.rootProjectDir
             val repoPath = if (localPath != null)
-                project.projectDir.resolve(localPath).canonicalFile
+                rootProjectDir.resolve(localPath).canonicalFile
             else
-                project.buildDir.resolve("repo")
+                rootProjectDir.resolve("build").resolve("repo")
 
             project.bootstrapKotlinRepo = repoPath.toURI().toString()
             project.bootstrapKotlinVersion = kotlinVersion ?: project.property("defaultSnapshotVersion") as String
