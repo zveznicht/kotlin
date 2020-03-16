@@ -29,58 +29,129 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.MultiRangeReference
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.parentOfType
 import com.intellij.util.containers.MultiMap
-import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
-import org.jetbrains.kotlin.config.KotlinFacetSettingsProvider
+import org.jetbrains.kotlin.asJava.getJvmSignatureDiagnostics
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.diagnostics.Severity
+import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
+import org.jetbrains.kotlin.idea.caches.resolve.analyzeElementWithAllCompilerChecks
 import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithAllCompilerChecks
+import org.jetbrains.kotlin.idea.caches.resolve.analyzeWithContent
+import org.jetbrains.kotlin.idea.core.util.range
 import org.jetbrains.kotlin.idea.fir.FirResolution
 import org.jetbrains.kotlin.idea.fir.firResolveState
 import org.jetbrains.kotlin.idea.fir.getOrBuildFirWithDiagnostics
+import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
 import org.jetbrains.kotlin.idea.quickfix.QuickFixes
 import org.jetbrains.kotlin.idea.references.mainReference
-import org.jetbrains.kotlin.idea.util.module
+import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.diagnostics.Diagnostics
 import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.lang.reflect.*
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 
 open class KotlinPsiChecker : Annotator, HighlightRangeExtension {
+    private var highlightingStarted = false
+    private var set: ConcurrentHashMap<Diagnostic, Unit> = ConcurrentHashMap()
 
     override fun annotate(element: PsiElement, holder: AnnotationHolder) {
-        val file = element.containingFile as? KtFile ?: return
-
-        if (!KotlinHighlightingUtil.shouldHighlight(file)) return
-
         if (FirResolution.enabled) {
-            annotateElementUsingFrontendIR(element, file, holder)
-        } else {
-            annotateElement(element, file, holder)
+            annotateFir(element, holder)
+            return
         }
+
+        val textRange = element.range
+        val toRemove = mutableSetOf<Diagnostic>()
+        set.keys.forEach { diagnostic ->
+            if (textRange.contains(diagnostic.psiElement.range)) {
+                annotateElement(diagnostic.psiElement, holder, setOf(diagnostic), true)
+                toRemove += diagnostic
+            }
+        }
+        toRemove.forEach { set.remove(it) }
+
+        if (!highlightingStarted) {
+            highlightingStarted = true
+            val file = element.containingFile as? KtFile ?: return
+            Thread {
+                val start = System.currentTimeMillis()
+                file.analyzeElementWithAllCompilerChecks(
+                    { diagnostic ->
+                        set[diagnostic] = Unit
+                    })
+
+                println("Highlighting time" + ": " + (System.currentTimeMillis() - start))
+            }.run()
+            return
+        }
+
+        val file = element as? KtFile ?: return
+
+        if (!KotlinHighlightingUtil.shouldHighlightFile(file)) return
+
+        annotateFile(file, holder)
     }
 
-    private fun annotateElement(
-        element: PsiElement,
-        containingFile: KtFile,
+    private fun annotateFir(element: PsiElement, holder: AnnotationHolder) {
+        val file = element.containingFile as? KtFile ?: return
+
+        if (!KotlinHighlightingUtil.shouldHighlightFile(file)) return
+
+        annotateElementUsingFrontendIR(element, file, holder)
+    }
+
+    private fun annotateFile(
+        file: KtFile,
         holder: AnnotationHolder
     ) {
-        val analysisResult = containingFile.analyzeWithAllCompilerChecks()
+        val analysisResult = file.analyzeWithAllCompilerChecks(
+            { diagnostic ->
+                annotateElement(diagnostic.psiElement, holder, setOf(diagnostic), true)
+            })
         if (analysisResult.isError()) {
             throw ProcessCanceledException(analysisResult.error)
         }
 
         val bindingContext = analysisResult.bindingContext
+        val diagnostics = bindingContext.diagnostics
+        val afterAnalysisVisitor = getAfterAnalysisVisitor(holder, bindingContext)
 
-        getAfterAnalysisVisitor(holder, bindingContext).forEach { visitor -> element.accept(visitor) }
+        val annotatorVisitor = object : KtTreeVisitorVoid() {
+            override fun visitKtElement(element: KtElement) {
+                afterAnalysisVisitor.forEach { visitor -> element.accept(visitor) }
+                annotateElement(element, holder, diagnostics)
+                super.visitKtElement(element)
+            }
+        }
 
-        annotateElement(element, holder, bindingContext.diagnostics)
+        annotatorVisitor.visitKtFile(file)
+
+        if (TargetPlatformDetector.getPlatform(file).isJvm()) {
+            val moduleScope = file.getModuleInfo().contentScope()
+
+            val duplicationDiagnosticsVisitor = object : KtTreeVisitorVoid() {
+                override fun visitKtElement(element: KtElement) {
+                    val otherDiagnostics = when (element) {
+                        is KtDeclaration -> element.analyzeWithContent() //todo:
+                        is KtFile -> element.analyzeWithContent()
+                        else -> return
+                    }.diagnostics
+
+                    annotateElement(
+                        file, holder, getJvmSignatureDiagnostics(element, otherDiagnostics, moduleScope) ?: return
+                    )
+                }
+            }
+
+            duplicationDiagnosticsVisitor.visitKtFile(file)
+        }
     }
 
     private fun annotateElementUsingFrontendIR(
@@ -98,7 +169,7 @@ open class KotlinPsiChecker : Annotator, HighlightRangeExtension {
         if (KotlinHighlightingUtil.shouldHighlightErrors(element)) {
             ElementAnnotator(element, holder) { param ->
                 shouldSuppressUnusedParameter(param)
-            }.registerDiagnosticsAnnotations(diagnostics)
+            }.registerDiagnosticsAnnotations(diagnostics, false)
         }
     }
 
@@ -109,19 +180,21 @@ open class KotlinPsiChecker : Annotator, HighlightRangeExtension {
     protected open fun shouldSuppressUnusedParameter(parameter: KtParameter): Boolean = false
 
     fun annotateElement(element: PsiElement, holder: AnnotationHolder, diagnostics: Diagnostics) {
-        val diagnosticsForElement = diagnostics.forElement(element).toSet()
+        annotateElement(element, holder, diagnostics.forElement(element).toSet(), false)
+    }
+
+    fun annotateElement(element: PsiElement, holder: AnnotationHolder, diagnosticsForElement: Set<Diagnostic>, noFixes: Boolean) {
+        if (diagnosticsForElement.isEmpty()) return
 
         if (element is KtNameReferenceExpression) {
-            val unresolved = diagnostics.any { it.factory == Errors.UNRESOLVED_REFERENCE }
+            val unresolved = diagnosticsForElement.any { it.factory == Errors.UNRESOLVED_REFERENCE }
             element.putUserData(UNRESOLVED_KEY, if (unresolved) Unit else null)
         }
-
-        if (diagnosticsForElement.isEmpty()) return
 
         if (KotlinHighlightingUtil.shouldHighlightErrors(element)) {
             ElementAnnotator(element, holder) { param ->
                 shouldSuppressUnusedParameter(param)
-            }.registerDiagnosticsAnnotations(diagnosticsForElement)
+            }.registerDiagnosticsAnnotations(diagnosticsForElement, noFixes)
         }
     }
 
@@ -227,11 +300,11 @@ private class ElementAnnotator(
     private val holder: AnnotationHolder,
     private val shouldSuppressUnusedParameter: (KtParameter) -> Boolean
 ) {
-    fun registerDiagnosticsAnnotations(diagnostics: Collection<Diagnostic>) {
-        diagnostics.groupBy { it.factory }.forEach { group -> registerDiagnosticAnnotations(group.value) }
+    fun registerDiagnosticsAnnotations(diagnostics: Collection<Diagnostic>, noFixes: Boolean) {
+        diagnostics.groupBy { it.factory }.forEach { group -> registerDiagnosticAnnotations(group.value, noFixes) }
     }
 
-    private fun registerDiagnosticAnnotations(diagnostics: List<Diagnostic>) {
+    private fun registerDiagnosticAnnotations(diagnostics: List<Diagnostic>, noFixes: Boolean) {
         assert(diagnostics.isNotEmpty())
 
         val validDiagnostics = diagnostics.filter { it.isValid }
@@ -239,9 +312,6 @@ private class ElementAnnotator(
 
         val diagnostic = diagnostics.first()
         val factory = diagnostic.factory
-
-        // hack till the root cause #KT-21246 is fixed
-        if (isIrCompileClassDiagnosticForModulesWithEnabledIR(diagnostic)) return
 
         assert(diagnostics.all { it.psiElement == element && it.factory == factory })
 
@@ -304,29 +374,26 @@ private class ElementAnnotator(
             Severity.INFO -> AnnotationPresentationInfo(ranges, highlightType = ProblemHighlightType.INFORMATION)
         }
 
-        setUpAnnotations(diagnostics, presentationInfo)
+        setUpAnnotations(diagnostics, presentationInfo, noFixes)
     }
 
-    private fun setUpAnnotations(diagnostics: List<Diagnostic>, data: AnnotationPresentationInfo) {
-        val fixesMap = try {
-            createQuickFixes(diagnostics)
-        } catch (e: Exception) {
-            if (e is ControlFlowException) {
-                throw e
+    private fun setUpAnnotations(diagnostics: List<Diagnostic>, data: AnnotationPresentationInfo, noFixes: Boolean) {
+        val fixesMap =
+            if (noFixes) {
+                MultiMap<Diagnostic, IntentionAction>()
+            } else {
+                try {
+                    createQuickFixes(diagnostics)
+                } catch (e: Exception) {
+                    if (e is ControlFlowException) {
+                        throw e
+                    }
+                    LOG.error(e)
+                    MultiMap<Diagnostic, IntentionAction>()
+                }
             }
-            LOG.error(e)
-            MultiMap<Diagnostic, IntentionAction>()
-        }
 
         data.processDiagnostics(holder, diagnostics, fixesMap)
-    }
-
-    private fun isIrCompileClassDiagnosticForModulesWithEnabledIR(diagnostic: Diagnostic): Boolean {
-        if (diagnostic.factory != Errors.IR_COMPILED_CLASS) return false
-        val module = element.module ?: return false
-        val moduleFacetSettings = KotlinFacetSettingsProvider.getInstance(element.project)?.getSettings(module) ?: return false
-        return moduleFacetSettings.isCompilerSettingPresent(K2JVMCompilerArguments::useIR)
-                || moduleFacetSettings.isCompilerSettingPresent(K2JVMCompilerArguments::allowJvmIrDependencies)
     }
 
     companion object {

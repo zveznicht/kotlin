@@ -118,7 +118,7 @@ internal class ProjectResolutionFacade(
 
     internal fun getAnalysisResultsForElements(
         elements: Collection<KtElement>,
-        callback: (Diagnostic) -> Unit
+        callback: ((Diagnostic) -> Unit)?
     ): AnalysisResult {
         assert(elements.isNotEmpty()) { "elements collection should not be empty" }
         val slruCache = synchronized(analysisResults) {
@@ -138,16 +138,6 @@ internal class ProjectResolutionFacade(
 
         //TODO: (module refactoring) several elements are passed here in debugger
         return AnalysisResult.success(bindingContext, findModuleDescriptor(elements.first().getModuleInfo()))
-    }
-
-    internal fun fetchAnalysisResultsForElement(element: KtElement): AnalysisResult? {
-        val slruCache = synchronized(analysisResults) {
-            analysisResults.upToDateOrNull?.get() ?: return null
-        }
-        val perFileCache = synchronized(slruCache) {
-            slruCache[element.containingKtFile]
-        }
-        return perFileCache.fetchAnalysisResults(element)
     }
 
     override fun toString(): String {
