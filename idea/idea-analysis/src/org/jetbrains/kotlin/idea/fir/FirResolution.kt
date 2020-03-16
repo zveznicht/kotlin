@@ -17,5 +17,5 @@ object FirResolution {
 
     private var changedEnabledValue: Boolean? = null*/
 
-    val enabled: Boolean = Registry.`is`(optionName, /* defaultValue = */ true)
+    var enabled: Boolean = Registry.`is`(optionName, /* defaultValue = */ true)
 }
