@@ -26,10 +26,7 @@ import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.isCommon
 import org.jetbrains.kotlin.platform.oldFashionedDescription
-import org.jetbrains.kotlin.psi.KtCallableDeclaration
-import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtReferenceExpression
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.kotlin.resolve.AnalyzingUtils
@@ -179,7 +176,6 @@ object CheckerTestUtil {
 
         val factoryList = listOf(
             BindingContext.EXPRESSION_TYPE_INFO to DebugInfoDiagnosticFactory1.EXPRESSION_TYPE,
-            BindingContext.EXPRESSION_TYPE_INFO to DebugInfoDiagnosticFactory1.AS_CALL,
             BindingContext.SMARTCAST to DebugInfoDiagnosticFactory0.SMARTCAST,
             BindingContext.IMPLICIT_RECEIVER_SMARTCAST to DebugInfoDiagnosticFactory0.IMPLICIT_RECEIVER_SMARTCAST,
             BindingContext.SMARTCAST_NULL to DebugInfoDiagnosticFactory0.CONSTANT,
@@ -202,6 +198,24 @@ object CheckerTestUtil {
                     )
                     debugAnnotations.add(ActualDiagnostic(diagnostic, platform, withNewInference))
                 }
+            }
+        }
+
+        val callFactory = DebugInfoDiagnosticFactory1.AS_CALL
+        val calls = bindingContext.getSliceContents(BindingContext.RESOLVED_CALL)
+        for ((call, _) in calls) {
+            val callElement = call.callElement as? KtExpression ?: continue
+            val needRender = !callFactory.withExplicitDefinitionOnly
+                    || diagnosedRanges?.get(callElement.startOffset..callElement.endOffset)?.contains(callFactory.name) == true
+            if (PsiTreeUtil.isAncestor(root, callElement, false) && needRender) {
+                val diagnostic = callFactory.createDiagnostic(
+                    callElement,
+                    bindingContext,
+                    dataFlowValueFactory,
+                    languageVersionSettings,
+                    moduleDescriptor
+                )
+                debugAnnotations.add(ActualDiagnostic(diagnostic, platform, withNewInference))
             }
         }
 
