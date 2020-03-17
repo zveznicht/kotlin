@@ -77,8 +77,11 @@ internal abstract class KotlinToolRunner(
             spec.classpath = project.files(classpath)
             spec.jvmArgs(jvmArgs)
             spec.systemProperties(
-                System.getProperties().asSequence()
-                    .map { (k, v) -> k.toString() to v.toString() }
+                // Another thread may execute K/N compiler in-process and change the properties at this moment.
+                // So we can't iterate over System.getProperties directly because this iterating is not thread safe.
+                // TODO: Remove this when we get rid of using properties.
+                System.getProperties().stringPropertyNames().asSequence()
+                    .mapNotNull { k -> k to (System.getProperty(k) ?: return@mapNotNull null) }
                     .filter { (k, _) -> k !in systemPropertiesBlacklist }
                     .escapeQuotesForWindows()
                     .toMap()
@@ -110,8 +113,10 @@ internal abstract class KotlinToolRunner(
 
         systemProperties.forEach { (k, v) -> oldProperties[k] = System.getProperty(v) }
 
-        System.getProperties().toList()
-            .map { (k, v) -> k.toString() to v.toString() }
+        // We can't iterate over System.getProperties directly because this iterating isn't thread safe.
+        // TODO: Remove this when we get rid of using properties.
+        System.getProperties().stringPropertyNames()
+            .mapNotNull { k -> k to (System.getProperty(k) ?: return@mapNotNull null) }
             .filter { (k, _) -> k in systemPropertiesBlacklist }
             .forEach { (k, v) ->
                 oldProperties[k] = v
