@@ -18,7 +18,6 @@ import org.gradle.api.tasks.TaskProvider
 import org.gradle.api.tasks.TaskState
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.util.ConfigureUtil
-import org.jetbrains.kotlin.fir.resolve.getOrPut
 import org.jetbrains.kotlin.gradle.dsl.*
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.internal.KotlinCompilationsModuleGroups
@@ -48,17 +47,20 @@ abstract class AbstractKotlinCompilation<T : KotlinCommonOptions>(
         get() = compileKotlinTask.kotlinOptions
 
     override fun kotlinOptions(configure: T.() -> Unit) =
-        configure(kotlinOptions)
+        // TODO: properly extract kotlinOptions from the task
+        compileKotlinTaskProvider.configure { configure(kotlinOptions) }
 
     @Suppress("UNCHECKED_CAST")
     override val compileKotlinTask: KotlinCompile<T>
-        get() = (target.project.tasks.getByName(compileKotlinTaskName) as KotlinCompile<T>)
+        get() = compileKotlinTaskProvider.get()
 
-    val compileKotlinTaskHolder: TaskProvider<KotlinCompile<T>>
+    @Suppress("UNCHECKED_CAST")
+    override val compileKotlinTaskProvider: TaskProvider<out KotlinCompile<T>>
         get() = target.project.locateTask(compileKotlinTaskName)!!
 
     // Don't declare this property in the constructor to avoid NPE
     // when an overriding property of a subclass is accessed instead.
+    @Suppress("CanBePrimaryConstructorProperty")
     override val target: KotlinTarget = target
 
     private val attributeContainer = HierarchyAttributeContainer(target.attributes)
@@ -112,7 +114,7 @@ abstract class AbstractKotlinCompilation<T : KotlinCommonOptions>(
             // To configure a task that may have not yet been created at this point, use 'withType-matching-all`:
             .withType(AbstractKotlinCompile::class.java)
             .matching { it.name == compileKotlinTaskName }
-            .all { compileKotlinTask ->
+            .configureEach { compileKotlinTask ->
                 compileKotlinTask.configureAction()
             }
     }

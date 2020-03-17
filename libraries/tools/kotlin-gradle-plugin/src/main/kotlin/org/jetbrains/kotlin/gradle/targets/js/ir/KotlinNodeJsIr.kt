@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsBinaryMode
 import org.jetbrains.kotlin.gradle.targets.js.dsl.KotlinJsNodeDsl
 import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsExec
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
+import org.jetbrains.kotlin.gradle.tasks.dependsOn
 import javax.inject.Inject
 
 open class KotlinNodeJsIr @Inject constructor(target: KotlinJsIrTarget) :
@@ -21,7 +22,7 @@ open class KotlinNodeJsIr @Inject constructor(target: KotlinJsIrTarget) :
     private val runTaskName = disambiguateCamelCased("run")
 
     override fun runTask(body: NodeJsExec.() -> Unit) {
-        (project.tasks.getByName(runTaskName) as NodeJsExec).body()
+        project.tasks.withType(NodeJsExec::class.java).named(runTaskName).configure(body)
     }
 
     override fun configureDefaultTestFramework(it: KotlinJsTest) {
@@ -47,8 +48,7 @@ open class KotlinNodeJsIr @Inject constructor(target: KotlinJsIrTarget) :
     ) {
         compilation.binaries.getIrBinaries(KotlinJsBinaryMode.PRODUCTION)
             .all { productionExecutable ->
-                val assembleTask = project.tasks.getByName(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)
-                assembleTask.dependsOn(productionExecutable.linkTask)
+                project.tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).dependsOn(productionExecutable.linkTask)
             }
     }
 }

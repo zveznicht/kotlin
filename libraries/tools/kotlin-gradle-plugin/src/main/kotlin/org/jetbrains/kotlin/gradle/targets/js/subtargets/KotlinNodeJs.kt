@@ -21,7 +21,7 @@ open class KotlinNodeJs @Inject constructor(target: KotlinJsTarget) :
     private val runTaskName = disambiguateCamelCased("run")
 
     override fun runTask(body: NodeJsExec.() -> Unit) {
-        (project.tasks.getByName(runTaskName) as NodeJsExec).body()
+        project.tasks.withType(NodeJsExec::class.java).named(runTaskName).configure(body)
     }
 
     override fun testTask(body: KotlinJsTest.() -> Unit) {
