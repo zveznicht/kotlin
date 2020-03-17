@@ -242,30 +242,6 @@ org.jetbrains.kotlin.idea.slicer.SlicerNullnessGroupingTestGenerated.testSeconda
 org.jetbrains.kotlin.idea.slicer.SlicerNullnessGroupingTestGenerated.testSecondaryConstructorParameterWithDefault, IDEA-234737 element.parent must not be null
 org.jetbrains.kotlin.idea.slicer.SlicerTreeTestGenerated.testInflow_SecondaryConstructorParameter, IDEA-234737 element.parent must not be null
 org.jetbrains.kotlin.idea.slicer.SlicerTreeTestGenerated.testInflow_SecondaryConstructorParameterWithDefault, IDEA-234737 element.parent must not be null
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testAnnotationArgBySpELRefInXMLConf_AnnotationArgBySpELRefInXMLConf, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testAnnotationArgBySpELRefInXMLConf_AnnotationArgBySpELRefInXMLConf, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testIsPropertyWithXmlRefsBySpelRef_IsPropertyWithXmlRefBySpelRef, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testIsPropertyWithXmlRefsBySpelRef_IsPropertyWithXmlRefBySpelRef, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testJavaSpelRefToJavaAnnotated_JavaSpelRefToJavaAnnotated, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testJavaSpelRefToJavaAnnotated_JavaSpelRefToJavaAnnotated, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testJavaSpelRefToJava_JavaSpelRefToJava, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testJavaSpelRefToJava_JavaSpelRefToJava, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testJavaSpelRefToKtAnnotated_JavaSpelRefToKtAnnotated, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testJavaSpelRefToKtAnnotated_JavaSpelRefToKtAnnotated, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testJavaSpelRefToKt_JavaSpelRefToKt, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testJavaSpelRefToKt_JavaSpelRefToKt, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testKtSpelRefToJavaAnnotated_KtSpelRefToJavaAnnotated, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testKtSpelRefToJavaAnnotated_KtSpelRefToJavaAnnotated, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testKtSpelRefToJava_KtSpelRefToJava, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testKtSpelRefToJava_KtSpelRefToJava, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testKtSpelRefToKtAnnotated_KtSpelRefToKtAnnotated, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testKtSpelRefToKtAnnotated_KtSpelRefToKtAnnotated, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testKtSpelRefToKt_KtSpelRefToKt, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testKtSpelRefToKt_KtSpelRefToKt, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testParameterWithXmlRefsBySpelRef_ParameterWithXmlRefBySpelRef, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testParameterWithXmlRefsBySpelRef_ParameterWithXmlRefBySpelRef, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testPropertyWithXmlRefsBySpelRef_PropertyWithXmlRefBySpelRef, Rename failed in Spring
-org.jetbrains.kotlin.idea.spring.tests.rename.SpringRenameTestGenerated.testPropertyWithXmlRefsBySpelRef_PropertyWithXmlRefBySpelRef, Rename failed in Spring
 org.jetbrains.kotlin.jps.build.IncrementalConstantSearchTest.testJavaConstantChangedUsedInKotlin, Incremental compilation in 201
 org.jetbrains.kotlin.jps.build.IncrementalJvmJpsTestGenerated.WithJava.JavaUsedInKotlin.testConstantChanged, Incremental compilation in 201
 org.jetbrains.kotlin.nj2k.NewJavaToKotlinConverterSingleFileTestGenerated.Function.testExternalFunctionalInterface, NJ2K in 201
