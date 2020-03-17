@@ -1,3 +1,6 @@
+// !WITH_NEW_INFERENCE
+// NI_EXPECTED_FILE
+
 class A<T, U : Any> {
     fun foo() = <!OTHER_ERROR!>T<!>::toString
 

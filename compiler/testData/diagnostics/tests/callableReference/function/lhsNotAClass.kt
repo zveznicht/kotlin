@@ -1,7 +1,10 @@
-class A<T, U : Any> {
-    fun foo() = <!CALLABLE_REFERENCE_LHS_NOT_A_CLASS!>T::<!UNRESOLVED_REFERENCE!>toString<!><!>
+// !WITH_NEW_INFERENCE
+// NI_EXPECTED_FILE
 
-    fun bar() = <!CALLABLE_REFERENCE_LHS_NOT_A_CLASS!>U::<!UNRESOLVED_REFERENCE!>toString<!><!>
+class A<T, U : Any> {
+    fun foo() = <!CALLABLE_REFERENCE_LHS_NOT_A_CLASS!>T::<!OI;UNRESOLVED_REFERENCE!>toString<!><!>
+
+    fun bar() = <!CALLABLE_REFERENCE_LHS_NOT_A_CLASS!>U::<!OI;UNRESOLVED_REFERENCE!>toString<!><!>
 }
 
 fun <T> foo() = <!CALLABLE_REFERENCE_LHS_NOT_A_CLASS!>T::<!UNRESOLVED_REFERENCE!>toString<!><!>
