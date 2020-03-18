@@ -147,6 +147,7 @@ public class IdeErrorMessages {
                                       "<tr><td>Found:</td><td>{2}</td></tr></table></html>", STRING, HTML_RENDER_TYPE, HTML_RENDER_TYPE);
 
         MAP.put(OVERLOAD_RESOLUTION_AMBIGUITY, "<html>Overload resolution ambiguity. All these functions match. <ul>{0}</ul></html>", HTML_AMBIGUOUS_CALLS);
+        MAP.put(CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY, "<html>Overload resolution ambiguity. All these functions match. <ul>{0}</ul></html>", HTML_AMBIGUOUS_REFERENCES);
         MAP.put(NONE_APPLICABLE, "<html>None of the following functions can be called with the arguments supplied. <ul>{0}</ul></html>",
                 HTML_NONE_APPLICABLE_CALLS);
         MAP.put(CANNOT_COMPLETE_RESOLVE, "<html>Cannot choose among the following candidates without completing type inference: <ul>{0}</ul></html>", HTML_AMBIGUOUS_CALLS);
