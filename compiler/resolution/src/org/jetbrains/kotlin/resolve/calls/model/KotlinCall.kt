@@ -71,6 +71,9 @@ fun KotlinCall.checkCallInvariants() {
 
         }
 
+        /*KotlinCallKind.CALLABLE_REFERENCE -> {
+
+        }*/
         KotlinCallKind.UNSUPPORTED -> error("Call with UNSUPPORTED kind")
     }
 }

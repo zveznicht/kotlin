@@ -17,6 +17,8 @@ import org.jetbrains.kotlin.config.LanguageFeature;
 import org.jetbrains.kotlin.config.LanguageVersionSettings;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.annotations.Annotations;
+import org.jetbrains.kotlin.descriptors.impl.FunctionDescriptorImpl;
+import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl;
 import org.jetbrains.kotlin.name.Name;
 import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus;
 import org.jetbrains.kotlin.psi.*;
@@ -59,7 +61,7 @@ import static org.jetbrains.kotlin.types.TypeUtils.NO_EXPECTED_TYPE;
 
 @SuppressWarnings("RedundantTypeArguments")
 public class CallResolver {
-    private ExpressionTypingServices expressionTypingServices;
+    public ExpressionTypingServices expressionTypingServices;
     private TypeResolver typeResolver;
     private ArgumentTypeResolver argumentTypeResolver;
     private GenericCandidateResolver genericCandidateResolver;

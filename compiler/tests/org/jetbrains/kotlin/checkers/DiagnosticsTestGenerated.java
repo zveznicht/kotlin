@@ -18477,6 +18477,11 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
                 runTest("compiler/testData/diagnostics/tests/resolve/callableReferenceInCST.kt");
             }
 
+            @TestMetadata("callableReferencesInBranches.kt")
+            public void testCallableReferencesInBranches() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/resolve/callableReferencesInBranches.kt");
+            }
+
             @TestMetadata("capturedTypesInLambdaParameter.kt")
             public void testCapturedTypesInLambdaParameter() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/resolve/capturedTypesInLambdaParameter.kt");

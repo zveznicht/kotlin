@@ -1,9 +1,11 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER
+// !WITH_NEW_INFERENCE
+// NI_EXPECTED_FILE
 
 fun foo() {}
 fun foo(s: String) {}
 
-val x1 = ::<!OVERLOAD_RESOLUTION_AMBIGUITY!>foo<!>
+val x1 = ::<!NI;CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY, OI;OVERLOAD_RESOLUTION_AMBIGUITY!>foo<!>
 val x2: () -> Unit = ::foo
 val x3: (String) -> Unit = ::foo
-val x4: (Int) -> Unit = ::<!NONE_APPLICABLE!>foo<!>
+val x4: (Int) -> Unit = ::<!NI;CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY, OI;NONE_APPLICABLE!>foo<!>

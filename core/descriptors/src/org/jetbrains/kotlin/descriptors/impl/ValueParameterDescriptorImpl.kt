@@ -102,8 +102,7 @@ open class ValueParameterDescriptorImpl(
     override fun getOriginal() = if (original === this) this else original.original
 
     override fun substitute(substitutor: TypeSubstitutor): ValueParameterDescriptor {
-        if (substitutor.isEmpty) return this
-        throw UnsupportedOperationException() // TODO
+        return this
     }
 
     override fun <R, D> accept(visitor: DeclarationDescriptorVisitor<R, D>, data: D): R {

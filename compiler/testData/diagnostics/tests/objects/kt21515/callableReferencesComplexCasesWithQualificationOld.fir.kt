@@ -1,4 +1,6 @@
 // !LANGUAGE: -ProhibitVisibilityOfNestedClassifiersFromSupertypesOfCompanion
+// !WITH_NEW_INFERENCE
+// NI_EXPECTED_FILE
 
 // ===== Case 1: LHS is a class
 //

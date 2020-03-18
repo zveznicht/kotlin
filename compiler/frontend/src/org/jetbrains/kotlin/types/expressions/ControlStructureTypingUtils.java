@@ -70,7 +70,7 @@ public class ControlStructureTypingUtils {
     private static final Logger LOG = Logger.getInstance(ControlStructureTypingUtils.class);
 
     public enum ResolveConstruct {
-        IF("if"), ELVIS("elvis"), EXCL_EXCL("ExclExcl"), WHEN("when"), TRY("try");
+        IF("if"), ELVIS("elvis"), EXCL_EXCL("ExclExcl"), WHEN("when"), TRY("try"), CALLABLE_REFERENCE("callableReference");
 
         private final String name;
         private final Name specialFunctionName;
@@ -192,7 +192,7 @@ public class ControlStructureTypingUtils {
         return TypeSubstitutor.create(ImmutableMap.of(typeParameterConstructor, typeProjection));
     }
 
-    private SimpleFunctionDescriptorImpl createFunctionDescriptorForSpecialConstruction(
+    /* package */ SimpleFunctionDescriptorImpl createFunctionDescriptorForSpecialConstruction(
             @NotNull ResolveConstruct construct,
             @NotNull List<String> argumentNames,
             @NotNull List<Boolean> isArgumentNullable

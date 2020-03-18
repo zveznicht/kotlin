@@ -1,4 +1,5 @@
 // KT-11075 NONE_APPLICABLE reported for callable reference to an overloaded generic function with expected type provided
+// !WITH_NEW_INFERENCE
 
 object TestCallableReferences {
     fun <A> foo(x: A) = x

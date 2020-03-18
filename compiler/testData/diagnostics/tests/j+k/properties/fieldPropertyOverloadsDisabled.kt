@@ -23,6 +23,6 @@ fun main(c: CollectionWithSize) {
     CompressionType.ZIP.<!OVERLOAD_RESOLUTION_AMBIGUITY!>name<!> <!DEBUG_INFO_MISSING_UNRESOLVED!>checkType<!> { <!UNRESOLVED_REFERENCE!>_<!><Double>() }
     c.<!OVERLOAD_RESOLUTION_AMBIGUITY!>size<!> <!DEBUG_INFO_MISSING_UNRESOLVED!>checkType<!> { <!UNRESOLVED_REFERENCE!>_<!><String>() }
 
-    CompressionType.ZIP::<!OVERLOAD_RESOLUTION_AMBIGUITY!>name<!> <!DEBUG_INFO_MISSING_UNRESOLVED!>checkType<!> { <!UNRESOLVED_REFERENCE!>_<!><kotlin.reflect.KProperty0<Double>>() }
-    c::<!OVERLOAD_RESOLUTION_AMBIGUITY!>size<!> <!DEBUG_INFO_MISSING_UNRESOLVED!>checkType<!> { <!UNRESOLVED_REFERENCE!>_<!><kotlin.reflect.KProperty0<String>>() }
+    CompressionType.ZIP::<!CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY!>name<!> <!DEBUG_INFO_MISSING_UNRESOLVED!>checkType<!> { <!UNRESOLVED_REFERENCE!>_<!><kotlin.reflect.KProperty0<Double>>() }
+    c::<!CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY!>size<!> <!DEBUG_INFO_MISSING_UNRESOLVED!>checkType<!> { <!UNRESOLVED_REFERENCE!>_<!><kotlin.reflect.KProperty0<String>>() }
 }

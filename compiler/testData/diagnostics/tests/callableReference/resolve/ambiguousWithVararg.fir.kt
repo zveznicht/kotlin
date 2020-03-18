@@ -1,4 +1,6 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER
+// !WITH_NEW_INFERENCE
+// NI_EXPECTED_FILE
 
 fun fun1() {}
 fun fun1(x: Int) {}

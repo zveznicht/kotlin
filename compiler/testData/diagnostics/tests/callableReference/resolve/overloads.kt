@@ -24,7 +24,7 @@ fun test() {
 
     B::bar checkType { _<KFunction1<B, Unit>>() }
 
-    B::<!OVERLOAD_RESOLUTION_AMBIGUITY!>bas<!>
+    B::<!CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY!>bas<!>
 
-    ::<!OVERLOAD_RESOLUTION_AMBIGUITY!>fas<!>
+    ::<!CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY!>fas<!>
 }

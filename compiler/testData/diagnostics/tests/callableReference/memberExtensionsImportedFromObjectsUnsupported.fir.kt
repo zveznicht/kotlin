@@ -1,4 +1,5 @@
 // !DIAGNOSTICS: -UNUSED_EXPRESSION
+// !WITH_NEW_INFERENCE
 
 import Obj.ext
 import A.Companion.ext2

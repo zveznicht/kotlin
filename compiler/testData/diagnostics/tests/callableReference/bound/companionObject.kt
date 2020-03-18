@@ -1,5 +1,6 @@
 // !CHECK_TYPE
 // !DIAGNOSTICS: -UNUSED_EXPRESSION
+// !WITH_NEW_INFERENCE
 
 package test
 
@@ -35,5 +36,5 @@ fun test() {
     val r7 = c::foo
     checkSubtype<() -> String>(r7)
 
-    C::<!UNRESOLVED_REFERENCE!>bar<!>
+    C::<!OI;UNRESOLVED_REFERENCE!>bar<!>
 }

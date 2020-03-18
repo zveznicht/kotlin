@@ -1,4 +1,6 @@
 // !DIAGNOSTICS: -UNUSED_EXPRESSION
+// !WITH_NEW_INFERENCE
+
 // FILE: simpleName.kt
 
 package foo

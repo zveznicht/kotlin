@@ -1,3 +1,4 @@
+// NI_EXPECTED_FILE
 // FILE: Foo.kt
 
 package test

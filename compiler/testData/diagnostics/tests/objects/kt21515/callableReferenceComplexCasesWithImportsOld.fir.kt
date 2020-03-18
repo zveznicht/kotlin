@@ -1,4 +1,6 @@
 // !LANGUAGE: -ProhibitVisibilityOfNestedClassifiersFromSupertypesOfCompanion
+// !WITH_NEW_INFERENCE
+// NI_EXPECTED_FILE
 
 import A.Base.Companion.FromABaseCompanion
 import B.Base.Companion.FromBBaseCompanion

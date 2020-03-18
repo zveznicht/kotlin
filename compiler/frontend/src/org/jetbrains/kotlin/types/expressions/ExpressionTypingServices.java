@@ -41,7 +41,7 @@ import static org.jetbrains.kotlin.types.expressions.CoercionStrategy.COERCION_T
 public class ExpressionTypingServices {
 
     private final ExpressionTypingFacade expressionTypingFacade;
-    private final ExpressionTypingComponents expressionTypingComponents;
+    public final ExpressionTypingComponents expressionTypingComponents;
 
     @NotNull private final AnnotationChecker annotationChecker;
     @NotNull private final StatementFilter statementFilter;

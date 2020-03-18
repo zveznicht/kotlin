@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.extensions.internal.CandidateInterceptor
 import org.jetbrains.kotlin.incremental.components.LookupLocation
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.BindingContext.NEW_INFERENCE_CATCH_EXCEPTION_PARAMETER
 import org.jetbrains.kotlin.resolve.calls.ArgumentTypeResolver
@@ -757,7 +756,7 @@ class PSICallResolver(
 
         return CallableReferenceKotlinCallArgumentImpl(
             ASTScopeTower(context), valueArgument, startDataFlowInfo, newDataFlowInfo,
-            ktExpression, argumentName, lhsNewResult, name
+            ktExpression, argumentName, lhsNewResult, lhsResult, name
         )
     }
 

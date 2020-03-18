@@ -76,6 +76,24 @@ class KotlinCallResolver(
                     )
                 }
             }
+            /*KotlinCallKind.CALLABLE_REFERENCE -> {
+                PrioritizedCompositeScopeTowerProcessor(
+                    createSimpleFunctionProcessor(
+                        scopeTower,
+                        kotlinCall.name,
+                        candidateFactory,
+                        kotlinCall.explicitReceiver?.receiver,
+                        classValueReceiver = false
+                    ),
+                    createVariableProcessor(
+                        scopeTower,
+                        kotlinCall.name,
+                        candidateFactory,
+                        kotlinCall.explicitReceiver?.receiver,
+                        classValueReceiver = false
+                    )
+                )
+            }*/
             KotlinCallKind.UNSUPPORTED -> throw UnsupportedOperationException()
         }
 

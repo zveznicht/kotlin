@@ -1,4 +1,6 @@
 // !LANGUAGE: -ProhibitVisibilityOfNestedClassifiersFromSupertypesOfCompanion
+// !WITH_NEW_INFERENCE
+// NI_EXPECTED_FILE
 
 // ===== Case 1: LHS is a class
 //
@@ -48,7 +50,7 @@ object C {
     }
 
     class Derived : Base() {
-        val a = C.Base.Companion.FromBaseCompanion::<!UNRESOLVED_REFERENCE!>foo<!>
+        val a = C.Base.Companion.FromBaseCompanion::<!OI;UNRESOLVED_REFERENCE!>foo<!>
     }
 }
 

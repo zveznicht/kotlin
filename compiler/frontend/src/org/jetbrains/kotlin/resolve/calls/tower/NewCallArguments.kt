@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.resolve.lazy.ForceResolveUtil
 import org.jetbrains.kotlin.resolve.scopes.receivers.*
 import org.jetbrains.kotlin.types.ErrorUtils
 import org.jetbrains.kotlin.types.UnwrappedType
+import org.jetbrains.kotlin.types.expressions.DoubleColonLHS
 import org.jetbrains.kotlin.types.expressions.KotlinTypeInfo
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -134,6 +135,7 @@ class CallableReferenceKotlinCallArgumentImpl(
     val ktCallableReferenceExpression: KtCallableReferenceExpression,
     override val argumentName: Name?,
     override val lhsResult: LHSResult,
+    val oldLHS: DoubleColonLHS?,
     override val rhsName: Name
 ) : CallableReferenceKotlinCallArgument, PSIKotlinCallArgument()
 

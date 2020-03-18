@@ -1,4 +1,5 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER
+// !WITH_NEW_INFERENCE
 
 class A1 {
     fun <T> a1(t: T): Unit {}

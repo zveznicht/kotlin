@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.ValueArgument
+import org.jetbrains.kotlin.psi.psiUtil.checkReservedYield
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.MissingSupertypesResolver
@@ -294,8 +295,16 @@ class ResolvedAtomCompleter(
         resolvedAtom: ResolvedCallableReferenceAtom
     ) {
         val callableCandidate = resolvedAtom.candidate
+        val psiCallArgument = resolvedAtom.atom.psiCallArgument as CallableReferenceKotlinCallArgumentImpl
+        val callableReferenceExpression = psiCallArgument.ktCallableReferenceExpression
+
         if (callableCandidate == null) {
-            // todo report meanfull diagnostic here
+            doubleColonExpressionResolver.reportUnsupportedCallableReferenceIfNeeded(
+                callableReferenceExpression,
+                topLevelCallContext,
+                psiCallArgument.oldLHS,
+                null
+            )
             return
         }
         val resultTypeParameters =
@@ -312,9 +321,6 @@ class ResolvedAtomCompleter(
             firstSubstitution,
             secondSubstitution
         )
-
-        val psiCallArgument = resolvedAtom.atom.psiCallArgument as CallableReferenceKotlinCallArgumentImpl
-        val callableReferenceExpression = psiCallArgument.ktCallableReferenceExpression
 
         // write down type for callable reference expression
         val resultType = resultSubstitutor.safeSubstitute(callableCandidate.reflectionCandidateType, Variance.INVARIANT)
@@ -380,6 +386,15 @@ class ResolvedAtomCompleter(
             topLevelCallContext.trace,
             callableReferenceExpression
         )
+
+        doubleColonExpressionResolver.reportUnsupportedCallableReferenceIfNeeded(
+            callableReferenceExpression,
+            topLevelCallContext,
+            psiCallArgument.oldLHS,
+            callableCandidate.candidate
+        )
+
+        checkReservedYield(reference, topLevelCallContext.trace)
 
         kotlinToResolvedCallTransformer.runCallCheckers(resolvedCall, topLevelCallCheckerContext)
     }

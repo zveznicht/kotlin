@@ -1,3 +1,5 @@
+// !WITH_NEW_INFERENCE
+
 package test
 
 class Foo {

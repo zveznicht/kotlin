@@ -1,4 +1,6 @@
 // !LANGUAGE: -ProhibitVisibilityOfNestedClassifiersFromSupertypesOfCompanion
+// !WITH_NEW_INFERENCE
+// NI_EXPECTED_FILE
 
 import A.Base.Companion.FromABaseCompanion
 import B.Base.Companion.FromBBaseCompanion
@@ -53,7 +55,7 @@ object C {
     }
 
     class Derived : Base() {
-        val a = FromCBaseCompanion::<!UNRESOLVED_REFERENCE!>foo<!>
+        val a = FromCBaseCompanion::<!OI;UNRESOLVED_REFERENCE!>foo<!>
     }
 }
 

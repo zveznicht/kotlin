@@ -1,4 +1,6 @@
 // !LANGUAGE: +ProhibitVisibilityOfNestedClassifiersFromSupertypesOfCompanion
+// !WITH_NEW_INFERENCE
+// NI_EXPECTED_FILE
 // See KT-21515 for a class diagram and details
 
 // class is to prevent accidental short-name import
@@ -115,28 +117,28 @@ class C : O.B() {
     val n = FromCompanionC::foo
 
     // INVISIBLE: direct superclasses themselves.
-    val a = <!UNRESOLVED_REFERENCE!>A<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
-    val b = <!UNRESOLVED_REFERENCE!>A<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val a = <!UNRESOLVED_REFERENCE!>A<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val b = <!UNRESOLVED_REFERENCE!>A<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
 
     // DEPRECATED: Classifiers from companions of direct superclasses
-    val e = <!UNRESOLVED_REFERENCE!>FromCompanionA<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
-    val f = <!UNRESOLVED_REFERENCE!>FromCompanionB<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val e = <!UNRESOLVED_REFERENCE!>FromCompanionA<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val f = <!UNRESOLVED_REFERENCE!>FromCompanionB<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
 
     // INVISIBLE: "cousin" supertypes themselves
-    val g = <!UNRESOLVED_REFERENCE!>Alpha<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
-    val h = <!UNRESOLVED_REFERENCE!>Beta<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
-    val i = <!UNRESOLVED_REFERENCE!>Gamma<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val g = <!UNRESOLVED_REFERENCE!>Alpha<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val h = <!UNRESOLVED_REFERENCE!>Beta<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val i = <!UNRESOLVED_REFERENCE!>Gamma<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
 
     // DEPRECATED: classifiers from "cousin" superclasses
-    val k = <!UNRESOLVED_REFERENCE!>FromAlpha<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
-    val l = <!UNRESOLVED_REFERENCE!>FromBeta<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
-    val m = <!UNRESOLVED_REFERENCE!>FromGamma<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val k = <!UNRESOLVED_REFERENCE!>FromAlpha<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val l = <!UNRESOLVED_REFERENCE!>FromBeta<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val m = <!UNRESOLVED_REFERENCE!>FromGamma<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
 
     // INVISIBLE: We don't see classifiers from companions of "cousin" superclasses
-    val o = <!UNRESOLVED_REFERENCE!>FromCompanionAlpha<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
-    val p = <!UNRESOLVED_REFERENCE!>FromCompanionBeta<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
-    val q = <!UNRESOLVED_REFERENCE!>FromCompanionGamma<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val o = <!UNRESOLVED_REFERENCE!>FromCompanionAlpha<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val p = <!UNRESOLVED_REFERENCE!>FromCompanionBeta<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val q = <!UNRESOLVED_REFERENCE!>FromCompanionGamma<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
 
     // DEPRECATED: Classifiers from supertypes of our own companion
-    val r = <!UNRESOLVED_REFERENCE!>FromDelta<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
+    val r = <!UNRESOLVED_REFERENCE!>FromDelta<!>::<!OI;DEBUG_INFO_MISSING_UNRESOLVED!>foo<!>
 }

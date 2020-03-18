@@ -1,3 +1,4 @@
+// !WITH_NEW_INFERENCE
 // FILE: J.java
 
 public interface J {

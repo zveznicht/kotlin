@@ -1,4 +1,5 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER -UNUSED_EXPRESSION
+// !WITH_NEW_INFERENCE
 
 // FILE: foo.kt
 
@@ -53,7 +54,7 @@ fun foo(
     test.ClassAlias::func
 
     test.ClassSample.Nested::func
-    test.ClassAlias.<!UNRESOLVED_REFERENCE!>Nested<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>func<!>
+    test.ClassAlias.<!UNRESOLVED_REFERENCE!>Nested<!>::<!NI;UNRESOLVED_REFERENCE, OI;DEBUG_INFO_MISSING_UNRESOLVED!>func<!>
 
     test.ObjectSample::Nested
     test.ObjectAlias::Nested
@@ -62,7 +63,7 @@ fun foo(
     test.ObjectAlias::func
 
     test.ObjectSample.Nested::func
-    test.ObjectAlias.<!UNRESOLVED_REFERENCE!>Nested<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>func<!>
+    test.ObjectAlias.<!UNRESOLVED_REFERENCE!>Nested<!>::<!NI;UNRESOLVED_REFERENCE, OI;DEBUG_INFO_MISSING_UNRESOLVED!>func<!>
 
     test.EnumSample::Nested
     test.EnumAlias::<!UNRESOLVED_REFERENCE!>Nested<!>
@@ -71,5 +72,5 @@ fun foo(
     test.EnumAlias::func
 
     test.EnumSample.Nested::func
-    test.EnumAlias.<!UNRESOLVED_REFERENCE!>Nested<!>::<!DEBUG_INFO_MISSING_UNRESOLVED!>func<!>
+    test.EnumAlias.<!UNRESOLVED_REFERENCE!>Nested<!>::<!NI;UNRESOLVED_REFERENCE, OI;DEBUG_INFO_MISSING_UNRESOLVED!>func<!>
 }

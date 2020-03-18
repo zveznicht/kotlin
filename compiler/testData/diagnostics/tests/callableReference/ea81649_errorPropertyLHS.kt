@@ -15,6 +15,6 @@ data class User(val surname: String)
 
 fun foo() {
     bar<String> {
-        <!DEBUG_INFO_MISSING_UNRESOLVED!>User<!>::<!OVERLOAD_RESOLUTION_AMBIGUITY!>surname<!>
+        <!DEBUG_INFO_MISSING_UNRESOLVED!>User<!>::<!CALLABLE_REFERENCE_RESOLUTION_AMBIGUITY!>surname<!>
     }
 }

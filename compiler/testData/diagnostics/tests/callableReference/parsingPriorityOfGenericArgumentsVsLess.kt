@@ -1,3 +1,5 @@
+// !WITH_NEW_INFERENCE
+
 package test
 
 class Foo {
@@ -5,5 +7,5 @@ class Foo {
 }
 
 fun test() {
-    Foo::<!TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>bar<!> <!SYNTAX!>< <!DEBUG_INFO_MISSING_UNRESOLVED!>Int<!> ><!> <!SYNTAX!>(2 <!DEBUG_INFO_MISSING_UNRESOLVED!>+<!> 2)<!>
+    Foo::<!OI;TYPE_INFERENCE_NO_INFORMATION_FOR_PARAMETER!>bar<!> <!SYNTAX!>< <!DEBUG_INFO_MISSING_UNRESOLVED!>Int<!> ><!> <!SYNTAX!>(2 <!DEBUG_INFO_MISSING_UNRESOLVED!>+<!> 2)<!>
 }
