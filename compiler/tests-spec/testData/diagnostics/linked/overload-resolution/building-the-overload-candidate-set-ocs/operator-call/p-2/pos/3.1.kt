@@ -51,8 +51,8 @@ class Case() {
             <!DEBUG_INFO_AS_CALL("fqName: testPackCase1.Case.E.plus; typeCall: operator function")!>e+1<!>
         }
         <!DEBUG_INFO_AS_CALL("fqName: testPackCase1.Case.E.plus; typeCall: operator function")!>e+1<!>
-        <!DEBUG_INFO_AS_CALL("fqName: testPackCase1.Case.E.plus; typeCall: operator function")!>e.plus(1)<!>
-        <!DEBUG_INFO_AS_CALL("fqName: testPackCase1.Case.Inv.invoke; typeCall: operator function")!>e.plus?.invoke(1)<!> //ok
+        e.<!DEBUG_INFO_AS_CALL("fqName: testPackCase1.Case.E.plus; typeCall: operator function")!>plus(1)<!>
+        e.plus?.<!DEBUG_INFO_AS_CALL("fqName: testPackCase1.Case.Inv.invoke; typeCall: operator function")!>invoke(1)<!> //ok
     }
 }
 
@@ -142,8 +142,8 @@ class Case() {
             <!DEBUG_INFO_AS_CALL("fqName: testPackCase5.Case.E.plusAssign; typeCall: operator function")!>e+=1<!>
         }
         <!DEBUG_INFO_AS_CALL("fqName: testPackCase5.Case.E.plusAssign; typeCall: operator function")!>e+=1<!>
-        <!DEBUG_INFO_AS_CALL("fqName: testPackCase5.Case.E.plusAssign; typeCall: operator function")!>e.plusAssign(1)<!>
-        <!DEBUG_INFO_AS_CALL("fqName: testPackCase5.Case.Inv.invoke; typeCall: operator function")!>e.plusAssign?.invoke(1)<!> //ok
+        e.<!DEBUG_INFO_AS_CALL("fqName: testPackCase5.Case.E.plusAssign; typeCall: operator function")!>plusAssign(1)<!>
+        e.plusAssign?.<!DEBUG_INFO_AS_CALL("fqName: testPackCase5.Case.Inv.invoke; typeCall: operator function")!>invoke(1)<!> //ok
     }
 }
 
@@ -228,12 +228,12 @@ fun case(){
     val iterable: Iterable = Iterable(Inv('c'))
 
     fun foo(){
-        <!DEBUG_INFO_AS_CALL("fqName: testPackCase10.Iterable.iterator; typeCall: operator function")!>iterable.iterator()<!>
+        iterable.<!DEBUG_INFO_AS_CALL("fqName: testPackCase10.Iterable.iterator; typeCall: operator function")!>iterator()<!>
         for (i in iterable) {
             println(i)
         }
     }
-    <!DEBUG_INFO_AS_CALL("fqName: testPackCase10.Iterable.iterator; typeCall: operator function")!>iterable.iterator()<!>
+    iterable.<!DEBUG_INFO_AS_CALL("fqName: testPackCase10.Iterable.iterator; typeCall: operator function")!>iterator()<!>
     for (i in iterable) {
         println(i)
     }

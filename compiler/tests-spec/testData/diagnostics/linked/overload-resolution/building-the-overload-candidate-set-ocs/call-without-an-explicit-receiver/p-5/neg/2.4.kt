@@ -28,7 +28,7 @@ import libPackageCase1Explicit.emptyArray
 class Case1(){
 
     fun case1() {
-        <!DEBUG_INFO_AS_CALL("fqName: fqName is unknown; typeCall: typeCall is unknown")!><!OVERLOAD_RESOLUTION_AMBIGUITY!>emptyArray<!><Int>()<!>
+        <!OVERLOAD_RESOLUTION_AMBIGUITY!>emptyArray<!><Int>()
     }
 }
 
@@ -66,7 +66,7 @@ import libPackageCase2Explicit.emptyArray
 class Case2(){
 
     fun case1() {
-        <!DEBUG_INFO_AS_CALL("fqName: fqName is unknown; typeCall: typeCall is unknown")!><!OVERLOAD_RESOLUTION_AMBIGUITY!>emptyArray<!><Int>()<!>
+        <!OVERLOAD_RESOLUTION_AMBIGUITY!>emptyArray<!><Int>()
     }
 }
 

@@ -30,6 +30,6 @@ import libPackageExplicit.padEnd
 
 // TESTCASE NUMBER: 1
 fun case1(s: String) {
-    <!DEBUG_INFO_AS_CALL("fqName: libPackageExplicit.padEnd; typeCall: extension function")!>s.padEnd(lengthParam = 5)<!>
+    s.<!DEBUG_INFO_AS_CALL("fqName: libPackageExplicit.padEnd; typeCall: extension function")!>padEnd(lengthParam = 5)<!>
 }
 

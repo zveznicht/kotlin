@@ -26,6 +26,6 @@ public fun String.padEnd(lengthParam: Int, padChar: Char = ' '): String = TODO()
 
 // TESTCASE NUMBER: 1
 fun case2(s: String) {
-    <!DEBUG_INFO_AS_CALL("fqName: tests.padEnd; typeCall: extension function")!>s.padEnd(lengthParam = 5)<!>
+    s.<!DEBUG_INFO_AS_CALL("fqName: tests.padEnd; typeCall: extension function")!>padEnd(lengthParam = 5)<!>
 }
 

@@ -53,6 +53,6 @@ import libPackageCase1ExplicitDuplicate.emptyArray
 class Case1(){
 
     fun case1() {
-        <!DEBUG_INFO_AS_CALL("fqName: fqName is unknown; typeCall: typeCall is unknown")!><!OVERLOAD_RESOLUTION_AMBIGUITY!>emptyArray<!><Int>()<!>
+        <!OVERLOAD_RESOLUTION_AMBIGUITY!>emptyArray<!><Int>()
     }
 }

@@ -24,7 +24,7 @@ class Case1() {
 
         fun f() {
             <!DEBUG_INFO_AS_CALL("fqName: testPackage.Case1.foo.invoke; typeCall: variable&invoke")!>foo()<!>
-            <!DEBUG_INFO_AS_CALL("fqName: testPackage.Case1.foo.invoke; typeCall: operator function")!>foo.invoke()<!>
+            foo.<!DEBUG_INFO_AS_CALL("fqName: testPackage.Case1.foo.invoke; typeCall: operator function")!>invoke()<!>
         }
     }
 }

@@ -23,5 +23,5 @@ import libPackage.*
 
 // TESTCASE NUMBER: 1
 fun case2(s: String) {
-    <!DEBUG_INFO_AS_CALL("fqName: kotlin.text.padEnd; typeCall: extension function")!>s.padEnd(length = 5)<!>
+    s.<!DEBUG_INFO_AS_CALL("fqName: kotlin.text.padEnd; typeCall: extension function")!>padEnd(length = 5)<!>
 }

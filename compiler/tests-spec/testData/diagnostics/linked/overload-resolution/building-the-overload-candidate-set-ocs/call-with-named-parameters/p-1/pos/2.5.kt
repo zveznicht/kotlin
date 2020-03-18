@@ -24,5 +24,5 @@ import libPackage.*
 
 // TESTCASE NUMBER: 1
 fun case2(s: String) {
-    <!DEBUG_INFO_AS_CALL("fqName: libPackage.padEnd; typeCall: extension function")!>s.padEnd(lengthParam = 5)<!>
+    s.<!DEBUG_INFO_AS_CALL("fqName: libPackage.padEnd; typeCall: extension function")!>padEnd(lengthParam = 5)<!>
 }

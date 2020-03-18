@@ -29,6 +29,6 @@ import libPackage.*
 class Case() {
 
     fun foo() {
-        <!DEBUG_INFO_AS_CALL("fqName: kotlin.text.contains; typeCall: inline operator extension function")!>"".contains(Regex(""))<!>
+        "".<!DEBUG_INFO_AS_CALL("fqName: kotlin.text.contains; typeCall: inline operator extension function")!>contains(Regex(""))<!>
     }
 }

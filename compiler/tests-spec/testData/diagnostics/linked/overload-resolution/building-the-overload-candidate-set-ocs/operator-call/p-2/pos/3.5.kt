@@ -63,7 +63,7 @@ import libPackage1.*
 class Case() {
 
     fun foo() {
-        <!DEBUG_INFO_AS_CALL("fqName: libPackage1.contains; typeCall: inline operator extension function")!>"".contains(Regex(""))<!>
+        "".<!DEBUG_INFO_AS_CALL("fqName: libPackage1.contains; typeCall: inline operator extension function")!>contains(Regex(""))<!>
     }
 }
 
