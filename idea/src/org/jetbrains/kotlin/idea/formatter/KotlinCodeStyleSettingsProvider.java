@@ -42,7 +42,9 @@ public class KotlinCodeStyleSettingsProvider extends CodeStyleSettingsProvider {
 
     @Override
     public CustomCodeStyleSettings createCustomSettings(CodeStyleSettings settings) {
-        return new KotlinCodeStyleSettings(settings);
+        KotlinCodeStyleSettings kotlinCodeStyleSettings = new KotlinCodeStyleSettings(settings);
+        KotlinStyleGuideCodeStyle.Companion.applyToKotlinCustomSettings(kotlinCodeStyleSettings, true);
+        return kotlinCodeStyleSettings;
     }
 
     @NotNull

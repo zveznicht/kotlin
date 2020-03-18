@@ -8,9 +8,7 @@ package org.jetbrains.kotlin.idea.formatter
 import com.intellij.application.options.IndentOptionsEditor
 import com.intellij.application.options.SmartIndentOptionsEditor
 import com.intellij.openapi.application.ApplicationBundle
-import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable
-import com.intellij.psi.codeStyle.CommonCodeStyleSettings
-import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider
+import com.intellij.psi.codeStyle.*
 import org.jetbrains.kotlin.idea.KotlinBundle
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.formatter.KotlinCodeStyleSettings
@@ -398,9 +396,14 @@ class KotlinLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvide
 
     override fun getIndentOptionsEditor(): IndentOptionsEditor = SmartIndentOptionsEditor()
 
+    override fun createCustomSettings(settings: CodeStyleSettings?) = KotlinCodeStyleSettings(settings).apply {
+        KotlinStyleGuideCodeStyle.applyToKotlinCustomSettings(this)
+    }
+
     override fun getDefaultCommonSettings(): CommonCodeStyleSettings {
         return KotlinCommonCodeStyleSettings().apply {
             initIndentOptions()
+            KotlinStyleGuideCodeStyle.applyToCommonSettings(this)
         }
     }
 }
