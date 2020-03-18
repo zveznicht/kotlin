@@ -34,7 +34,7 @@ import java.util.*
 
 abstract class CompilerPlugin : IrGenerationExtension, SyntheticResolveExtension {
 
-    // todo: convert to WritableSlice from binding context?
+    // todo: unnecessary after KT-37255?
     private val tracked: MutableMap<ClassDescriptor, MutableSet<DeclarationDescriptor>> = hashMapOf()
 
     final override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
@@ -64,12 +64,15 @@ abstract class CompilerPlugin : IrGenerationExtension, SyntheticResolveExtension
         result: MutableSet<PropertyDescriptor>
     ) {
         if (!isApplied(thisDescriptor)) return
-        // todo: add actual extension point to contribute names?
         if (name !in creator.propertiesNames) return
         if (result.isNotEmpty()) error("Can't add plugin-defined function with the same name $name as user-defined one")
         val added = listOfNotNull(creator.createPropertyForFrontend(thisDescriptor, name, bindingContext))
         tracked.getOrPut(thisDescriptor, ::hashSetOf).addAll(added)
         result.addAll(added)
+    }
+
+    override fun getSyntheticPropertiesNames(thisDescriptor: ClassDescriptor): List<Name> {
+        return creator.propertiesNames.toList()
     }
 
     abstract fun isApplied(toClass: ClassDescriptor): Boolean
