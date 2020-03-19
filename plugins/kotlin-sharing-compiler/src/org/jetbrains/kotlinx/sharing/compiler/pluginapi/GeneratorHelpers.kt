@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlinx.sharing.compiler.backend.ir
+package org.jetbrains.kotlinx.sharing.compiler.pluginapi
 
 import org.jetbrains.kotlin.backend.common.deepCopyWithVariables
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
@@ -159,7 +159,13 @@ interface IrBuilderExtension {
 
     fun IrBuilderWithScope.irWhen(typeHint: IrType? = null, block: BranchBuilder.() -> Unit): IrWhen {
         val whenExpr = IrWhenImpl(startOffset, endOffset, typeHint ?: compilerContext.irBuiltIns.unitType)
-        val builder = BranchBuilder(whenExpr, context, scope, startOffset, endOffset)
+        val builder = BranchBuilder(
+            whenExpr,
+            context,
+            scope,
+            startOffset,
+            endOffset
+        )
         builder.block()
         return whenExpr
     }

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
 import org.jetbrains.kotlin.ir.builders.irBoolean
+import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.builders.irSetField
 import org.jetbrains.kotlin.ir.builders.irString
 import org.jetbrains.kotlin.ir.declarations.IrClass
@@ -21,26 +22,31 @@ import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.impl.IrExpressionBodyImpl
 import org.jetbrains.kotlin.ir.util.findDeclaration
 import org.jetbrains.kotlin.ir.util.parentAsClass
-import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
-import org.jetbrains.kotlinx.sharing.compiler.extensions.IrTransformer
-import org.jetbrains.kotlinx.sharing.compiler.extensions.PluginDeclarationsCreator
+import org.jetbrains.kotlinx.sharing.compiler.pluginapi.IrTransformer
+import org.jetbrains.kotlinx.sharing.compiler.pluginapi.PluginDeclarationsCreator
+import org.jetbrains.kotlinx.sharing.compiler.pluginapi.SyntheticPropertyDescriptor
 
 class SharingDeclarations : PluginDeclarationsCreator {
     override val propertiesNames: Set<Name> = setOf(readOnlyName)
-    override val functionNames: Set<Name> = setOf(setReadOnly)
+    override val functionNames: Set<Name> = setOf(setReadOnly, share)
 
     override fun createPropertyForFrontend(owner: ClassDescriptor, name: Name, context: BindingContext): PropertyDescriptor? = when (name) {
-        readOnlyName -> SyntheticPropertyDescriptor(owner, readOnlyName, owner.builtIns.booleanType, isVar = true)
+        readOnlyName -> SyntheticPropertyDescriptor(
+            owner,
+            readOnlyName,
+            owner.builtIns.booleanType,
+            isVar = true
+        )
         else -> null
     }
 
     override fun createFunctionForFrontend(owner: ClassDescriptor, name: Name, context: BindingContext): SimpleFunctionDescriptor? =
         when (name) {
             setReadOnly -> createReadOnlyFunction(owner, context)
+            share -> createShareFunction(owner)
             else -> null
         }
 
@@ -56,9 +62,22 @@ class SharingDeclarations : PluginDeclarationsCreator {
         return f
     }
 
+    private fun createShareFunction(owner: ClassDescriptor): SimpleFunctionDescriptor {
+        val f = SimpleFunctionDescriptorImpl.create(
+            owner,
+            Annotations.EMPTY,
+            share,
+            CallableMemberDescriptor.Kind.SYNTHESIZED,
+            owner.source
+        )
+        f.initialize(null, owner.thisAsReceiverParameter, listOf(), listOf(), owner.defaultType, Modality.FINAL, Visibilities.PUBLIC)
+        return f
+    }
+
     companion object {
         internal val readOnlyName = Name.identifier("isReadOnly")
         internal val setReadOnly = Name.identifier("setReadOnly")
+        internal val share = Name.identifier("share")
     }
 
 }
@@ -80,11 +99,21 @@ class SharingTransformer(compilerContext: IrPluginContext) : IrTransformer(compi
     }
 
     override fun defineFunctionBody(functionDescriptor: SimpleFunctionDescriptor, irFunction: IrSimpleFunction): IrBody? =
-        if (irFunction.name != SharingDeclarations.setReadOnly) null
-        else irFunction.buildBody {
-            val readOnlyProp = irFunction.parentAsClass.findDeclaration<IrProperty> { it.name == Name.identifier("isReadOnly") }!!
-            +irSetField(irThis, readOnlyProp.backingField!!, irBoolean(true))
+        when (irFunction.name) {
+            SharingDeclarations.setReadOnly -> defineSetReadOnlyBody(irFunction)
+            SharingDeclarations.share -> defineShareBody(functionDescriptor, irFunction)
+            else -> null
         }
+
+    private fun defineShareBody(functionDescriptor: SimpleFunctionDescriptor, irFunction: IrSimpleFunction): IrBody? =
+        irFunction.buildBody {
+            +irReturn(irThis) // todo
+        }
+
+    private fun defineSetReadOnlyBody(irFunction: IrSimpleFunction) = irFunction.buildBody {
+        val readOnlyProp = irFunction.parentAsClass.findDeclaration<IrProperty> { it.name == Name.identifier("isReadOnly") }!!
+        +irSetField(irThis, readOnlyProp.backingField!!, irBoolean(true))
+    }
 
     private fun transformPropSetter(
         readOnlyProp: IrProperty,
@@ -98,16 +127,4 @@ class SharingTransformer(compilerContext: IrPluginContext) : IrTransformer(compi
             ) // todo: change to ISE or domain-specific
         )
     }
-}
-
-// todo: move
-fun IrPluginContext.searchClass(packageName: String, className: String): ClassDescriptor {
-    return requireNotNull(
-        moduleDescriptor.findClassAcrossModuleDependencies(
-            ClassId(
-                FqName(packageName),
-                Name.identifier(className)
-            )
-        )
-    ) { "Can't locate class $className" }
 }

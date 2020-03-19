@@ -97,4 +97,6 @@ public final class Bar : java/lang/Object {
           RETURN
         LABEL (L2)
     }
+
+    public final Bar share()
 }

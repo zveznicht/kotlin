@@ -16,6 +16,9 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 import org.jetbrains.kotlinx.sharing.compiler.backend.ir.SharingDeclarations
 import org.jetbrains.kotlinx.sharing.compiler.backend.ir.SharingTransformer
+import org.jetbrains.kotlinx.sharing.compiler.pluginapi.CompilerPlugin
+import org.jetbrains.kotlinx.sharing.compiler.pluginapi.IrTransformer
+import org.jetbrains.kotlinx.sharing.compiler.pluginapi.PluginDeclarationsCreator
 
 class SharingCompilerPlugin : CompilerPlugin() {
     override fun isApplied(toClass: ClassDescriptor): Boolean =
@@ -26,6 +29,7 @@ class SharingCompilerPlugin : CompilerPlugin() {
     override val creator: PluginDeclarationsCreator = SharingDeclarations()
 }
 
+// todo: commonize this
 class SharingPluginComponentRegistrar : ComponentRegistrar {
     override fun registerProjectComponents(project: MockProject, configuration: CompilerConfiguration) {
         registerExtensions(project)
