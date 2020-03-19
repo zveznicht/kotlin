@@ -7,7 +7,6 @@ package org.jetbrains.kotlinx.sharing.compiler.pluginapi
 
 import org.jetbrains.kotlin.backend.common.deepCopyWithVariables
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
-import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.ir.builders.*
@@ -30,39 +29,6 @@ object PLUGIN_ORIGIN : IrDeclarationOriginImpl("FROM_PLUGIN")
 
 interface IrBuilderExtension {
     val compilerContext: IrPluginContext
-
-
-
-    fun IrClass.contributeFunction(
-        descriptor: FunctionDescriptor,
-        declareNew: Boolean = true,
-        bodyGen: IrBlockBodyBuilder.(IrFunction) -> Unit
-    ) {
-        error("")
-    }
-
-    fun IrClass.contributeConstructor(
-        descriptor: ClassConstructorDescriptor,
-        declareNew: Boolean = true,
-        overwriteValueParameters: Boolean = false,
-        bodyGen: IrBlockBodyBuilder.(IrConstructor) -> Unit
-    ) {
-        val c = if (declareNew) compilerContext.symbolTable.declareConstructor(
-            this.startOffset,
-            this.endOffset,
-            PLUGIN_ORIGIN,
-            descriptor
-        ) else compilerContext.symbolTable.referenceConstructor(descriptor).owner
-        c.parent = this
-        c.returnType = descriptor.returnType.toIrType()
-        if (declareNew || overwriteValueParameters) c.createParameterDeclarations(
-            receiver = null,
-            overwriteValueParameters = overwriteValueParameters,
-            copyTypeParameters = false
-        )
-        c.body = DeclarationIrBuilder(compilerContext, c.symbol, this.startOffset, this.endOffset).irBlockBody(this.startOffset, this.endOffset) { bodyGen(c) }
-        this.addMember(c)
-    }
 
     fun IrBuilderWithScope.irInvoke(
         dispatchReceiver: IrExpression? = null,

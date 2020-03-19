@@ -7,42 +7,29 @@ public final class Bar : java/lang/Object {
 
     private boolean isReadOnly
 
-    public void <init>(java.lang.String a, java.lang.String b) {
-        LABEL (L0)
-          ALOAD (1)
-          LDC (a)
-          INVOKESTATIC (kotlin/jvm/internal/Intrinsics, checkNotNullParameter, (Ljava/lang/Object;Ljava/lang/String;)V)
-          ALOAD (2)
-          LDC (b)
-          INVOKESTATIC (kotlin/jvm/internal/Intrinsics, checkNotNullParameter, (Ljava/lang/Object;Ljava/lang/String;)V)
-          ALOAD (0)
-        LABEL (L1)
-        LINENUMBER (6)
-          INVOKESPECIAL (java/lang/Object, <init>, ()V)
-        LABEL (L2)
-        LINENUMBER (7)
-          ALOAD (0)
-          ALOAD (1)
-          PUTFIELD (a, Ljava/lang/String;)
-          ALOAD (0)
-          ALOAD (2)
-          PUTFIELD (b, Ljava/lang/String;)
-        LABEL (L3)
-        LINENUMBER (8)
-          ALOAD (0)
-          BIPUSH (42)
-          PUTFIELD (c, I)
-        LABEL (L4)
-        LINENUMBER (7)
-          RETURN
-        LABEL (L5)
-    }
+    public void <init>(java.lang.String a, java.lang.String b, int c)
+
+    public void <init>(java.lang.String p0, java.lang.String p1, int p2, int p3, kotlin.jvm.internal.DefaultConstructorMarker p4)
+
+    public final java.lang.String component1()
+
+    public final java.lang.String component2()
+
+    public final int component3()
+
+    public final Bar copy(java.lang.String a, java.lang.String b, int c)
+
+    public static Bar copy$default(Bar p0, java.lang.String p1, java.lang.String p2, int p3, int p4, java.lang.Object p5)
+
+    public boolean equals(java.lang.Object other)
 
     public final java.lang.String getA()
 
     public final java.lang.String getB()
 
     public final int getC()
+
+    public int hashCode()
 
     public final void setB(java.lang.String <set-?>) {
         LABEL (L0)
@@ -69,7 +56,7 @@ public final class Bar : java/lang/Object {
 
     public final void setC(int <set-?>) {
         LABEL (L0)
-        LINENUMBER (8)
+        LINENUMBER (7)
           ALOAD (0)
           GETFIELD (isReadOnly, Z)
           IFEQ (L1)
@@ -93,10 +80,28 @@ public final class Bar : java/lang/Object {
           ICONST_1
           PUTFIELD (isReadOnly, Z)
         LABEL (L1)
-        LINENUMBER (9)
+        LINENUMBER (7)
           RETURN
         LABEL (L2)
     }
 
-    public final Bar share()
+    public final Bar share() {
+        LABEL (L0)
+        LINENUMBER (6)
+          ALOAD (0)
+          ACONST_NULL
+          ACONST_NULL
+          ICONST_0
+          BIPUSH (7)
+          ACONST_NULL
+          INVOKESTATIC (Bar, copy$default, (LBar;Ljava/lang/String;Ljava/lang/String;IILjava/lang/Object;)LBar;)
+          ASTORE (1)
+          ALOAD (1)
+          INVOKEVIRTUAL (Bar, setReadOnly, ()V)
+          ALOAD (1)
+          ARETURN
+        LABEL (L1)
+    }
+
+    public java.lang.String toString()
 }

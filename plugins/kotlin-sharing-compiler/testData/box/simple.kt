@@ -2,9 +2,7 @@
 import kotlinx.sharing.*
 
 @Shared
-class Bar(val a: String, var b: String) {
-    var c: Int = 42
-}
+data class Bar(val a: String, var b: String, var c: Int = 42)
 
 fun box(): String {
     val bar = Bar("a", "b")

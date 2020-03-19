@@ -8,6 +8,7 @@ package org.jetbrains.kotlinx.sharing.compiler.pluginapi
 import org.jetbrains.kotlin.backend.common.ClassLoweringPass
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
@@ -16,6 +17,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.declareSimpleFunctionWithOverrides
@@ -211,6 +213,26 @@ abstract class IrTransformer(override val compilerContext: IrPluginContext) : Ir
             )
         )
         return irBody
+    }
+
+    /**
+     * Returns `null` if there is no overloads or more than one matching overload
+     */
+    inline fun ClassDescriptor.referenceFunction(
+        functionName: Name,
+        isValidOverload: (FunctionDescriptor) -> Boolean = { true }
+    ): IrFunctionSymbol? {
+        val candidate = this.unsubstitutedMemberScope.getContributedFunctions(functionName, NoLookupLocation.FROM_BACKEND).asSequence()
+            .singleOrNull(isValidOverload) ?: return null
+        return compilerContext.symbolTable.referenceSimpleFunction(candidate)
+    }
+
+    fun ClassDescriptor.referenceProperty(
+        name: Name,
+    ): IrPropertySymbol? {
+        val candidate =
+            this.unsubstitutedMemberScope.getContributedVariables(name, NoLookupLocation.FROM_BACKEND).singleOrNull() ?: return null
+        return compilerContext.symbolTable.referenceProperty(candidate)
     }
 }
 

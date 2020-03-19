@@ -22,7 +22,7 @@ import org.jetbrains.kotlinx.sharing.compiler.pluginapi.PluginDeclarationsCreato
 
 class SharingCompilerPlugin : CompilerPlugin() {
     override fun isApplied(toClass: ClassDescriptor): Boolean =
-        toClass.annotations.hasAnnotation(FqName("kotlinx.sharing.Shared"))
+        toClass.annotations.hasAnnotation(FqName("kotlinx.sharing.Shared")) && toClass.isData
 
     override fun createIrTransformer(context: IrPluginContext): IrTransformer = SharingTransformer(context)
 
