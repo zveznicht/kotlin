@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
+import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
@@ -25,6 +26,11 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi2ir.Psi2IrConfiguration
+import org.jetbrains.kotlin.psi2ir.generators.DeclarationGenerator
+import org.jetbrains.kotlin.psi2ir.generators.FunctionGenerator
+import org.jetbrains.kotlin.psi2ir.generators.GeneratorContext
+import org.jetbrains.kotlin.psi2ir.generators.GeneratorExtensions
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
 import org.jetbrains.kotlin.types.KotlinType
@@ -71,6 +77,26 @@ abstract class CompilerPlugin : IrGenerationExtension, SyntheticResolveExtension
         result.addAll(added)
     }
 
+    override fun generateSyntheticMethods(
+        thisDescriptor: ClassDescriptor,
+        name: Name,
+        bindingContext: BindingContext,
+        fromSupertypes: List<SimpleFunctionDescriptor>,
+        result: MutableCollection<SimpleFunctionDescriptor>
+    ) {
+        if (!isApplied(thisDescriptor)) return
+        if (name !in creator.functionNames) return
+        // todo: support overloads
+//        if (result.isNotEmpty()) error("Can't add plugin-defined function with the same name $name as user-defined one")
+        val added = listOfNotNull(creator.createFunctionForFrontend(thisDescriptor, name, bindingContext))
+        tracked.getOrPut(thisDescriptor, ::hashSetOf).addAll(added)
+        result.addAll(added)
+    }
+
+    override fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> {
+        return creator.functionNames.toList()
+    }
+
     override fun getSyntheticPropertiesNames(thisDescriptor: ClassDescriptor): List<Name> {
         return creator.propertiesNames.toList()
     }
@@ -82,13 +108,25 @@ abstract class CompilerPlugin : IrGenerationExtension, SyntheticResolveExtension
     abstract val creator: PluginDeclarationsCreator
 }
 
-abstract class IrTransformer : IrBuilderExtension, ClassLoweringPass {
+abstract class IrTransformer(override val compilerContext: IrPluginContext) : IrBuilderExtension, ClassLoweringPass {
     fun createMissingParts(irClass: IrClass, pluginDescriptors: Collection<DeclarationDescriptor>) {
-        val declarations = pluginDescriptors.map { desc ->
-            if (desc !is PropertyDescriptor) TODO()
-            createPropertyForBackend(irClass, desc)
+        pluginDescriptors.sortedBy { if (it is PropertyDescriptor) -1 else 1 }.forEach { desc ->
+            val res: IrDeclaration = when (desc) {
+                is PropertyDescriptor -> createPropertyForBackend(irClass, desc)
+                is SimpleFunctionDescriptor -> createFunctionForBackend(irClass, desc)
+                else -> TODO()
+            }
+            irClass.declarations.add(res)
         }
-        irClass.declarations.addAll(declarations)
+        // todo: remove sorting hack
+//        val declarations: List<IrDeclaration> = pluginDescriptors.sortedBy { if (it is PropertyDescriptor) -1 else 1 }.map<DeclarationDescriptor, IrDeclaration> { desc ->
+//            when (desc) {
+//                is PropertyDescriptor -> createPropertyForBackend(irClass, desc)
+//                is SimpleFunctionDescriptor -> createFunctionForBackend(irClass, desc)
+//                else -> TODO()
+//            }
+//        }
+//        irClass.declarations.addAll(declarations)
     }
 
     inline fun IrSimpleFunction.prepend(statements: ExtendedBodyBuilder.() -> Unit) {
@@ -102,6 +140,19 @@ abstract class IrTransformer : IrBuilderExtension, ClassLoweringPass {
 
     inline fun IrSymbolOwner.buildExpression(builder: IrSingleStatementBuilder.() -> IrExpression): IrExpression {
         return IrSingleStatementBuilder(compilerContext, Scope(this.symbol), startOffset, endOffset).build(builder)
+    }
+
+    // todo: add owner
+    open fun defineBackingField(propertyDescriptor: PropertyDescriptor, irProperty: IrProperty, createdField: IrField) = Unit
+
+    open fun defineFunctionBody(functionDescriptor: SimpleFunctionDescriptor, irFunction: IrSimpleFunction): IrBody? = null
+
+    private fun createFunctionForBackend(owner: IrClass, frontendFunction: SimpleFunctionDescriptor): IrSimpleFunction {
+        val f: IrSimpleFunction = owner.declareSimpleFunctionWithExternalOverrides(frontendFunction)
+        f.parent = owner
+        f.buildWithScope { functionGenerator.generateFunctionParameterDeclarationsAndReturnType(f, null, null) }
+        f.body = defineFunctionBody(frontendFunction, f)
+        return f
     }
 
     private fun createPropertyForBackend(
@@ -122,6 +173,35 @@ abstract class IrTransformer : IrBuilderExtension, ClassLoweringPass {
         return irProperty
     }
 
+    private fun IrClass.declareSimpleFunctionWithExternalOverrides(descriptor: FunctionDescriptor): IrSimpleFunction {
+        return compilerContext.symbolTable.declareSimpleFunction(startOffset, endOffset, PLUGIN_ORIGIN, descriptor)
+            .also { f ->
+                f.overriddenSymbols = descriptor.overriddenDescriptors.map {
+                    compilerContext.symbolTable.referenceSimpleFunction(it.original)
+                }
+            }
+    }
+
+    private val functionGenerator: FunctionGenerator by lazy {
+        with(compilerContext) {
+            FunctionGenerator(
+                DeclarationGenerator(
+                    GeneratorContext(
+                        Psi2IrConfiguration(),
+                        moduleDescriptor,
+                        bindingContext,
+                        languageVersionSettings,
+                        symbolTable,
+                        GeneratorExtensions(),
+                        typeTranslator,
+                        typeTranslator.constantValueGenerator,
+                        irBuiltIns
+                    )
+                )
+            )
+        }
+    }
+
     private fun generatePropertyBackingField(
         propertyDescriptor: PropertyDescriptor,
         originProperty: IrProperty
@@ -134,9 +214,6 @@ abstract class IrTransformer : IrBuilderExtension, ClassLoweringPass {
             propertyDescriptor.type.toIrType()
         ).apply { defineBackingField(propertyDescriptor, originProperty, this) }
     }
-
-    // todo: add owner
-    open fun defineBackingField(propertyDescriptor: PropertyDescriptor, irProperty: IrProperty, createdField: IrField) = Unit
 
     private fun generatePropertyAccessor(
         descriptor: PropertyAccessorDescriptor,
@@ -211,9 +288,13 @@ abstract class IrTransformer : IrBuilderExtension, ClassLoweringPass {
 
 interface PluginDeclarationsCreator {
     // todo: add others
-    val propertiesNames: Set<Name>
+    // todo: should ClassDescriptor be here?
+    val propertiesNames: Set<Name> get() = setOf()
 
-    fun createPropertyForFrontend(owner: ClassDescriptor, name: Name, context: BindingContext): PropertyDescriptor?
+    val functionNames: Set<Name> get() = setOf()
+
+    fun createPropertyForFrontend(owner: ClassDescriptor, name: Name, context: BindingContext): PropertyDescriptor? = null
+    fun createFunctionForFrontend(owner: ClassDescriptor, name: Name, context: BindingContext): SimpleFunctionDescriptor? = null
 }
 
 // todo: Split with generator helpers

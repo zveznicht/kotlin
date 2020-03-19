@@ -1,5 +1,5 @@
 // WITH_RUNTIME
-// CURIOUS_ABOUT setA, setB, setC, <init>
+// CURIOUS_ABOUT setA, setB, setC, <init>, setReadOnly
 
 import kotlinx.sharing.*
 

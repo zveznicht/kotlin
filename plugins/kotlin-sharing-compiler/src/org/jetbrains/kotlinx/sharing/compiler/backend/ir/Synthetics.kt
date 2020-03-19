@@ -1,3 +1,8 @@
+/*
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
+ */
+
 package org.jetbrains.kotlinx.sharing.compiler.backend.ir
 
 import org.jetbrains.kotlin.descriptors.*
@@ -11,9 +16,9 @@ import org.jetbrains.kotlin.types.KotlinType
 /**
  * Simple property descriptor with backing field without getters/setters for ir generation purposes
  */
-class SimpleSyntheticPropertyDescriptor(
+class SyntheticPropertyDescriptor(
     owner: ClassDescriptor,
-    name: String,
+    name: Name,
     type: KotlinType,
     isVar: Boolean = false,
     visibility: Visibility = Visibilities.PRIVATE
@@ -24,11 +29,11 @@ class SimpleSyntheticPropertyDescriptor(
     Modality.FINAL,
     visibility,
     isVar,
-    Name.identifier(name),
+    name,
     CallableMemberDescriptor.Kind.SYNTHESIZED,
     owner.source,
     false, false, false, false, false, false
-    ) {
+) {
 
     private val _backingField = FieldDescriptorImpl(Annotations.EMPTY, this)
 

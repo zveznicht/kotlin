@@ -85,4 +85,16 @@ public final class Bar : java/lang/Object {
           RETURN
         LABEL (L2)
     }
+
+    public final void setReadOnly() {
+        LABEL (L0)
+        LINENUMBER (6)
+          ALOAD (0)
+          ICONST_1
+          PUTFIELD (isReadOnly, Z)
+        LABEL (L1)
+        LINENUMBER (9)
+          RETURN
+        LABEL (L2)
+    }
 }

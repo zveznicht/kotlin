@@ -23,8 +23,6 @@ import org.jetbrains.kotlin.ir.types.toKotlinType
 import org.jetbrains.kotlin.ir.types.typeWith
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.psi2ir.Psi2IrConfiguration
-import org.jetbrains.kotlin.psi2ir.generators.*
 import org.jetbrains.kotlin.types.*
 
 
@@ -33,53 +31,14 @@ object PLUGIN_ORIGIN : IrDeclarationOriginImpl("FROM_PLUGIN")
 interface IrBuilderExtension {
     val compilerContext: IrPluginContext
 
-    private fun IrClass.declareSimpleFunctionWithExternalOverrides(descriptor: FunctionDescriptor): IrSimpleFunction {
-        return compilerContext.symbolTable.declareSimpleFunction(startOffset, endOffset, PLUGIN_ORIGIN, descriptor)
-            .also { f ->
-                f.overriddenSymbols = descriptor.overriddenDescriptors.map {
-                    compilerContext.symbolTable.referenceSimpleFunction(it.original)
-                }
-            }
-    }
 
-    private fun createFunctionGenerator(): FunctionGenerator = with(compilerContext) {
-        return FunctionGenerator(
-            DeclarationGenerator(
-                GeneratorContext(
-                    Psi2IrConfiguration(),
-                    moduleDescriptor,
-                    bindingContext,
-                    languageVersionSettings,
-                    symbolTable,
-                    GeneratorExtensions(),
-                    typeTranslator,
-                    typeTranslator.constantValueGenerator,
-                    irBuiltIns
-                )
-            )
-        )
-    }
 
     fun IrClass.contributeFunction(
         descriptor: FunctionDescriptor,
         declareNew: Boolean = true,
         bodyGen: IrBlockBodyBuilder.(IrFunction) -> Unit
     ) {
-        val f: IrSimpleFunction = if (declareNew) declareSimpleFunctionWithExternalOverrides(
-            descriptor
-        ) else compilerContext.symbolTable.referenceSimpleFunction(descriptor).owner
-        f.parent = this
-        if (declareNew) {
-            f.buildWithScope {
-                createFunctionGenerator().generateFunctionParameterDeclarationsAndReturnType(f, null, null)
-            }
-        }
-
-        f.body = DeclarationIrBuilder(compilerContext, f.symbol, this.startOffset, this.endOffset).irBlockBody(
-            this.startOffset,
-            this.endOffset
-        ) { bodyGen(f) }
-        this.addMember(f)
+        error("")
     }
 
     fun IrClass.contributeConstructor(
