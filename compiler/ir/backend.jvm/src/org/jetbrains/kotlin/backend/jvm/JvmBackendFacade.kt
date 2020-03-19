@@ -44,6 +44,7 @@ object JvmBackendFacade {
             deserializer.deserializeIrModuleHeader(it)
         }
         val irProviders = listOf(deserializer, stubGenerator)
+        stubGenerator.setIrProviders(irProviders)
 
         for (extension in IrGenerationExtension.getInstances(state.project)) {
             psi2ir.addPostprocessingStep { module ->
@@ -61,19 +62,6 @@ object JvmBackendFacade {
                 )
             }
         }
-
-        val stubGenerator = DeclarationStubGenerator(
-            psi2irContext.moduleDescriptor, psi2irContext.symbolTable, psi2irContext.irBuiltIns.languageVersionSettings, extensions
-        )
-        stubGenerator.setIrProviders(irProviders)
-        val deserializer = JvmIrLinker(
-            EmptyLoggingContext, psi2irContext.irBuiltIns, psi2irContext.symbolTable
-        )
-        psi2irContext.moduleDescriptor.allDependencyModules.filter { it.getCapability(KlibModuleOrigin.CAPABILITY) != null }.forEach {
-            deserializer.deserializeIrModuleHeader(it)
-        }
-        val irProviders = listOf(deserializer, stubGenerator)
-        stubGenerator.setIrProviders(irProviders)
 
         val irModuleFragment = psi2ir.generateModuleFragment(
             psi2irContext, files,
