@@ -162,6 +162,8 @@ import org.jetbrains.kotlin.tools.projectWizard.cli.AbstractBuildFileGenerationT
 import org.jetbrains.kotlinx.serialization.AbstractSerializationPluginBytecodeListingTest
 import org.jetbrains.kotlinx.serialization.AbstractSerializationPluginDiagnosticTest
 import org.jetbrains.kotlinx.serialization.AbstractSerializationIrBytecodeListingTest
+import org.jetbrains.kotlinx.sharing.AbstractBlackBoxTestForSharingPlugin
+import org.jetbrains.kotlinx.sharing.AbstractBytecodeListingTestForSharingPlugin
 
 fun main(args: Array<String>) {
     System.setProperty("java.awt.headless", "true")
@@ -1167,6 +1169,19 @@ fun main(args: Array<String>) {
 
         testClass<AbstractSerializationIrBytecodeListingTest> {
             model("codegen")
+        }
+    }
+
+    testGroup(
+                "plugins/kotlin-sharing-compiler/test",
+                "plugins/kotlin-sharing-compiler/testData"
+    ) {
+        testClass<AbstractBytecodeListingTestForSharingPlugin> {
+            model("codegen", targetBackend = TargetBackend.JVM_IR)
+        }
+
+        testClass<AbstractBlackBoxTestForSharingPlugin> {
+            model("box", targetBackend = TargetBackend.JVM_IR)
         }
     }
 /*

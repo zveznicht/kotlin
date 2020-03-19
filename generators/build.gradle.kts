@@ -24,6 +24,10 @@ fun extraSourceSet(name: String, extendMain: Boolean = true): Pair<SourceSet, Co
 val (builtinsSourceSet, builtinsApi) = extraSourceSet("builtins", extendMain = false)
 val (evaluateSourceSet, evaluateApi) = extraSourceSet("evaluate")
 
+repositories {
+    mavenLocal()
+}
+
 dependencies {
     // for GeneratorsFileUtil
     compile(kotlinStdlib())
@@ -53,6 +57,7 @@ dependencies {
     testCompile(projectTests(":kotlin-noarg-compiler-plugin"))
     testCompile(projectTests(":kotlin-sam-with-receiver-compiler-plugin"))
     testCompile(projectTests(":kotlinx-serialization-compiler-plugin"))
+    testCompile(projectTests(":kotlinx-sharing-compiler-plugin"))
     testCompile(projectTests(":idea:jvm-debugger:jvm-debugger-test"))
     testCompile(projectTests(":generators:test-generator"))
     testCompile(projectTests(":idea"))

@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.codegen.AbstractAsmLikeInstructionListingTest
 import org.jetbrains.kotlin.test.TargetBackend
 import java.io.File
 
-abstract class AbstractSharingIrBytecodeListingTest : AbstractAsmLikeInstructionListingTest() {
+abstract class AbstractBytecodeListingTestForSharingPlugin : AbstractAsmLikeInstructionListingTest() {
     override fun getExpectedTextFileName(wholeFile: File): String {
         return wholeFile.nameWithoutExtension + ".ir.txt"
     }

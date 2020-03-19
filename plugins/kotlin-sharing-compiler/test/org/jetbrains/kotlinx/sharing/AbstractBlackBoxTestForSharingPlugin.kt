@@ -9,7 +9,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.codegen.AbstractBlackBoxCodegenTest
 import org.jetbrains.kotlin.test.TargetBackend
 
-abstract class AbstractBlackBoxCodegenTestForSharingPlugin : AbstractBlackBoxCodegenTest() {
+abstract class AbstractBlackBoxTestForSharingPlugin : AbstractBlackBoxCodegenTest() {
     override fun setupEnvironment(environment: KotlinCoreEnvironment) = environment.setupForSharingPlugin()
 
     override fun getBackend(): TargetBackend = TargetBackend.JVM_IR

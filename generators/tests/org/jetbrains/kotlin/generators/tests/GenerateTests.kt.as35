@@ -1169,6 +1169,19 @@ fun main(args: Array<String>) {
             model("codegen")
         }
     }
+
+    testGroup(
+            "plugins/kotlin-sharing-compiler/test",
+            "plugins/kotlin-sharing-compiler/testData"
+    ) {
+        testClass<AbstractBytecodeListingTestForSharingPlugin> {
+            model("codegen", targetBackend = TargetBackend.JVM_IR)
+        }
+
+        testClass<AbstractBlackBoxTestForSharingPlugin> {
+            model("box", targetBackend = TargetBackend.JVM_IR)
+        }
+    }
 /*
     testGroup("plugins/android-extensions/android-extensions-idea/tests", "plugins/android-extensions/android-extensions-idea/testData") {
         testClass<AbstractAndroidCompletionTest> {
