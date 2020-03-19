@@ -92,7 +92,10 @@ class SharingTransformer(compilerContext: IrPluginContext) : IrTransformer(compi
     ) = subjectSetter.prepend {
         +irIfThen(
             irThis.getProperty(readOnlyProp),
-            invoke(context.irBuiltIns.illegalArgumentExceptionSymbol, irString("Already readonly"))
+            invoke(
+                context.irBuiltIns.illegalArgumentExceptionSymbol,
+                irString("Already readonly")
+            ) // todo: change to ISE or domain-specific
         )
     }
 }

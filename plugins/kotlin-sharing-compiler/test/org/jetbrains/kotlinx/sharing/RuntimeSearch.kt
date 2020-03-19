@@ -6,7 +6,10 @@
 package org.jetbrains.kotlinx.sharing
 
 import junit.framework.TestCase
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
+import org.jetbrains.kotlin.cli.jvm.config.JvmClasspathRoot
 import org.jetbrains.kotlin.utils.PathUtil
+import org.jetbrains.kotlinx.sharing.compiler.extensions.SharingPluginComponentRegistrar
 import org.junit.Test
 import java.io.File
 
@@ -26,4 +29,9 @@ internal fun getLibraryRuntimeJar(): File? = try {
     PathUtil.getResourcePathForClass(Class.forName("kotlinx.sharing.Shared"))
 } catch (e: ClassNotFoundException) {
     null
+}
+
+fun KotlinCoreEnvironment.setupForSharingPlugin() {
+    SharingPluginComponentRegistrar.registerExtensions(project)
+    updateClasspath(listOf(JvmClasspathRoot(getLibraryRuntimeJar()!!)))
 }

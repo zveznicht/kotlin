@@ -6,16 +6,11 @@
 package org.jetbrains.kotlinx.sharing
 
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.codegen.AbstractAsmLikeInstructionListingTest
+import org.jetbrains.kotlin.codegen.AbstractBlackBoxCodegenTest
 import org.jetbrains.kotlin.test.TargetBackend
-import java.io.File
 
-abstract class AbstractSharingIrBytecodeListingTest : AbstractAsmLikeInstructionListingTest() {
-    override fun getExpectedTextFileName(wholeFile: File): String {
-        return wholeFile.nameWithoutExtension + ".ir.txt"
-    }
+abstract class AbstractBlackBoxCodegenTestForSharingPlugin : AbstractBlackBoxCodegenTest() {
+    override fun setupEnvironment(environment: KotlinCoreEnvironment) = environment.setupForSharingPlugin()
 
     override fun getBackend(): TargetBackend = TargetBackend.JVM_IR
-
-    override fun setupEnvironment(environment: KotlinCoreEnvironment) = environment.setupForSharingPlugin()
 }
