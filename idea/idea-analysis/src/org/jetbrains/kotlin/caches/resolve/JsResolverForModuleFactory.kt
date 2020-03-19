@@ -87,7 +87,8 @@ internal fun <M : ModuleInfo> createPackageFragmentProvider(
             val klibMetadataModuleDescriptorFactory = KlibMetadataModuleDescriptorFactoryImpl(
                 metadataFactories.DefaultDescriptorFactory,
                 metadataFactories.DefaultPackageFragmentsFactory,
-                metadataFactories.flexibleTypeDeserializer
+                metadataFactories.flexibleTypeDeserializer,
+                metadataFactories.platformDependentTypeTransformer
             )
 
             val packageFragmentNames = parseModuleHeader(library.moduleHeaderData).packageFragmentNameList
