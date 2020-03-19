@@ -39,4 +39,9 @@ public class BlackBoxCodegenTestForSharingPluginGenerated extends AbstractBlackB
     public void testSimple() throws Exception {
         runTest("plugins/kotlin-sharing-compiler/testData/box/simple.kt");
     }
+
+    @TestMetadata("share.kt")
+    public void testShare() throws Exception {
+        runTest("plugins/kotlin-sharing-compiler/testData/box/share.kt");
+    }
 }
