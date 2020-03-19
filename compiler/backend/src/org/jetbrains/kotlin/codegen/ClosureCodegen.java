@@ -70,7 +70,9 @@ public class ClosureCodegen extends MemberCodegen<KtElement> {
     protected final Type asmType;
     protected final int visibilityFlag;
     private final boolean shouldHaveBoundReferenceReceiver;
+    private final boolean isRegularFunctionReference;
     private final boolean isOptimizedFunctionReference;
+    private final boolean isLambdaFunctionReference;
 
     private Method constructor;
     protected Type superClassAsmType;
@@ -120,9 +122,17 @@ public class ClosureCodegen extends MemberCodegen<KtElement> {
         assert closure != null : "Closure must be calculated for class: " + classDescriptor;
 
         this.shouldHaveBoundReferenceReceiver = CallableReferenceUtilKt.isForBoundCallableReference(closure);
+
+        ClassifierDescriptor superClassDescriptor = superClassType.getConstructor().getDeclarationDescriptor();
+        this.isRegularFunctionReference =
+                functionReferenceTarget != null &&
+                superClassDescriptor == state.getJvmRuntimeTypes().getFunctionReference();
         this.isOptimizedFunctionReference =
                 functionReferenceTarget != null &&
-                superClassType.getConstructor().getDeclarationDescriptor() == state.getJvmRuntimeTypes().getFunctionReferenceImpl();
+                superClassDescriptor == state.getJvmRuntimeTypes().getFunctionReferenceImpl();
+        this.isLambdaFunctionReference =
+                functionReferenceTarget != null &&
+                superClassDescriptor == state.getJvmRuntimeTypes().getLambda();
 
         this.asmType = typeMapper.mapClass(classDescriptor);
 
@@ -184,7 +194,7 @@ public class ClosureCodegen extends MemberCodegen<KtElement> {
     protected void generateClosureBody() {
         functionCodegen.generateMethod(JvmDeclarationOriginKt.OtherOrigin(element, funDescriptor), funDescriptor, strategy);
 
-        if (functionReferenceTarget != null && !isOptimizedFunctionReference) {
+        if (isRegularFunctionReference) {
             generateFunctionReferenceMethods(functionReferenceTarget);
         }
 
@@ -495,7 +505,8 @@ public class ClosureCodegen extends MemberCodegen<KtElement> {
             List<Type> superCtorArgTypes = new ArrayList<>();
             if (superClassAsmType.equals(LAMBDA) || superClassAsmType.equals(FUNCTION_REFERENCE) ||
                 superClassAsmType.equals(FUNCTION_REFERENCE_IMPL) ||
-                CoroutineCodegenUtilKt.isCoroutineSuperClass(state.getLanguageVersionSettings(), superClassAsmType.getInternalName())) {
+                CoroutineCodegenUtilKt.isCoroutineSuperClass(state.getLanguageVersionSettings(), superClassAsmType.getInternalName())
+            ) {
                 int arity = calculateArity();
                 iv.iconst(arity);
                 superCtorArgTypes.add(Type.INT_TYPE);
