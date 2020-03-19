@@ -19,8 +19,8 @@ val l: (A) -> Unit =
     if (1 < 2)
     {
 //        materialize()
-//        ::foo
-        id(::foo)
+        ::foo
+//        id(::foo)
     }
     else
     {

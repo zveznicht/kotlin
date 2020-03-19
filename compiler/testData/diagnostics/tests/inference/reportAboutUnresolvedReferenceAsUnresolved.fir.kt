@@ -1,5 +1,3 @@
-// !WITH_NEW_INFERENCE
-
 fun <T, U> T.map(f: (T) -> U) = f(this)
 
 fun consume(s: String) {}

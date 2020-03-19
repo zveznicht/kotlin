@@ -12,6 +12,8 @@ import org.jetbrains.kotlin.diagnostics.reportDiagnosticOnce
 import org.jetbrains.kotlin.psi.Call
 import org.jetbrains.kotlin.psi.KtCallableReferenceExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.resolve.BindingContext.CALL
+import org.jetbrains.kotlin.resolve.BindingContext.RESOLVED_CALL
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -25,7 +27,7 @@ class TracingStrategyForCallableReferenceWithNewInference(
             ?: error("Incorrect argument of synthetic call for top-level callable reference. Call: $call")
 
     override fun <D : CallableDescriptor?> bindResolvedCall(trace: BindingTrace, resolvedCall: ResolvedCall<D>) {
-        // Do nothing for fake wrapper
+        trace.record(RESOLVED_CALL, call, resolvedCall)
     }
 
     override fun <D : CallableDescriptor?> unresolvedReferenceWrongReceiver(
@@ -40,7 +42,7 @@ class TracingStrategyForCallableReferenceWithNewInference(
     }
 
     override fun bindCall(trace: BindingTrace, call: Call) {
-        // Do nothing for fake wrapper
+        trace.record(CALL, call.calleeExpression, call)
     }
 
     override fun <D : CallableDescriptor?> bindReference(trace: BindingTrace, resolvedCall: ResolvedCall<D>) {

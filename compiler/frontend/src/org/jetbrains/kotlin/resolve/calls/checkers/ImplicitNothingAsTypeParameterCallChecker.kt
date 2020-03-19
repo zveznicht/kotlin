@@ -138,7 +138,9 @@ object ImplicitNothingAsTypeParameterCallChecker : CallChecker {
                     ?: return@mapNotNull null
             val expectedTypeForArgument = resolvedCall.getParameterForArgument(argument.valueArgument)?.type ?: return@mapNotNull null
 
-            getSubResolvedAtomsToAnalyze(resolvedCallForArgument, expectedTypeForArgument, bindingContext)
+            if (resolvedCallForArgument != resolvedCall) {
+                getSubResolvedAtomsToAnalyze(resolvedCallForArgument, expectedTypeForArgument, bindingContext)
+            } else null
         }.flatten()
 
         val extensionReceiver = resolvedCall.resolvedCallAtom.extensionReceiverArgument?.psiExpression

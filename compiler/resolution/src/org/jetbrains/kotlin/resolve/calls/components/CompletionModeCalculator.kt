@@ -30,7 +30,7 @@ class CompletionModeCalculator {
         ): ConstraintSystemCompletionMode = with(candidate) {
             val csCompleterContext = getSystem().asConstraintSystemCompleterContext()
 
-            if (candidate.isErrorCandidate() || !candidate.isSuccessful) return ConstraintSystemCompletionMode.FULL
+            if (candidate.isErrorCandidate()) return ConstraintSystemCompletionMode.FULL
 
             // Presence of expected type means that we are trying to complete outermost call => completion mode should be full
             if (expectedType != null) return ConstraintSystemCompletionMode.FULL
