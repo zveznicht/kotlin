@@ -5,7 +5,7 @@ object TestCallableReferences {
     fun <A> foo(x: A) = x
     fun <B> foo(x: List<B>) = x
 
-    fun test0(): (String) -> String = TestCallableReferences::foo
+    fun test0(): (String) -> String = <!NI;TYPE_MISMATCH!>TestCallableReferences::foo<!>
 
     fun <T> test1(): (List<T>) -> List<T> = TestCallableReferences::foo
 }

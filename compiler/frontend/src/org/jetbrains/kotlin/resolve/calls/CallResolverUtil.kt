@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.resolve.scopes.utils.getImplicitReceiversHierarchy
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.TypeUtils.DONT_CARE
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
+import org.jetbrains.kotlin.types.expressions.ControlStructureTypingUtils
 import org.jetbrains.kotlin.types.expressions.OperatorConventions
 import org.jetbrains.kotlin.types.typeUtil.contains
 
@@ -200,6 +201,8 @@ fun getEffectiveExpectedType(
     argument: ValueArgument,
     context: ResolutionContext<*>
 ): KotlinType {
+    if (isCallableReferenceSpecialCallParameter(parameterDescriptor))
+        return context.expectedType
     return getEffectiveExpectedTypeForSingleArgument(parameterDescriptor, argument, context.languageVersionSettings, context.trace)
 }
 
@@ -227,6 +230,9 @@ fun getEffectiveExpectedTypeForSingleArgument(
 private fun getExpectedType(parameterDescriptor: ValueParameterDescriptor): KotlinType {
     return parameterDescriptor.varargElementType ?: parameterDescriptor.type
 }
+
+private fun isCallableReferenceSpecialCallParameter(parameterDescriptor: ValueParameterDescriptor): Boolean =
+    parameterDescriptor.containingDeclaration.name == ControlStructureTypingUtils.ResolveConstruct.CALLABLE_REFERENCE.specialFunctionName
 
 private fun arrayAssignmentToVarargInNamedFormInAnnotation(
     parameterDescriptor: ValueParameterDescriptor,
