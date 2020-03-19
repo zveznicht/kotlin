@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.calls.checkers.isRestrictsSuspensionReceiver
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameOrNull
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.types.KotlinType
 
@@ -31,7 +32,7 @@ class JvmRuntimeTypes(
     private val languageVersionSettings: LanguageVersionSettings,
     forceNoOptimizedCallableReferences: Boolean
 ) {
-    private val kotlinJvmInternalPackage = MutablePackageFragmentDescriptor(module, FqName("kotlin.jvm.internal"))
+    private val kotlinJvmInternalPackage = MutablePackageFragmentDescriptor(module, FqName(KOTLIN_JVM_INTERNAL))
     private val kotlinCoroutinesJvmInternalPackage =
         MutablePackageFragmentDescriptor(module, languageVersionSettings.coroutinesJvmInternalPackageFqName())
 
@@ -49,8 +50,8 @@ class JvmRuntimeTypes(
 
     private val lambda: ClassDescriptor by internal("Lambda")
 
-    private val functionReference: ClassDescriptor by internal("FunctionReference")
-    val functionReferenceImpl: ClassDescriptor by internal("FunctionReferenceImpl")
+    private val functionReference: ClassDescriptor by internal(FUNCTION_REFERENCE)
+    val functionReferenceImpl: ClassDescriptor by internal(FUNCTION_REFERENCE_IMPL)
 
     private val localVariableReference: ClassDescriptor by internal("LocalVariableReference")
     private val mutableLocalVariableReference: ClassDescriptor by internal("MutableLocalVariableReference")
@@ -139,7 +140,8 @@ class JvmRuntimeTypes(
     fun getSupertypesForFunctionReference(
         referencedFunction: FunctionDescriptor,
         anonymousFunctionDescriptor: AnonymousFunctionDescriptor,
-        isBound: Boolean
+        isBound: Boolean,
+        isAdaptedCallableReference: Boolean
     ): Collection<KotlinType> {
         val receivers = computeExpectedNumberOfReceivers(referencedFunction, isBound)
 
@@ -155,7 +157,11 @@ class JvmRuntimeTypes(
         )
 
         val suspendFunctionType = if (referencedFunction.isSuspend) suspendFunctionInterface?.defaultType else null
-        val superClass = if (generateOptimizedCallableReferenceSuperClasses) functionReferenceImpl else functionReference
+        val superClass = when {
+            isAdaptedCallableReference -> lambda
+            generateOptimizedCallableReferenceSuperClasses -> functionReferenceImpl
+            else -> functionReference
+        }
         return listOfNotNull(superClass.defaultType, functionType, suspendFunctionType)
     }
 
@@ -176,4 +182,20 @@ class JvmRuntimeTypes(
 
         return classes[arity].defaultType
     }
+}
+
+const val KOTLIN_JVM_INTERNAL = "kotlin.jvm.internal"
+const val FUNCTION_REFERENCE = "FunctionReference"
+const val FUNCTION_REFERENCE_IMPL = "FunctionReferenceImpl"
+
+fun isFunctionReferenceType(classType: KotlinType): Boolean {
+    val descriptor = classType.constructor.declarationDescriptor
+    return descriptor is ClassDescriptor && isFunctionReferenceClass(descriptor)
+}
+
+fun isFunctionReferenceClass(classDescriptor: ClassDescriptor): Boolean {
+    val name = classDescriptor.name.asString()
+    if (name != FUNCTION_REFERENCE && name != FUNCTION_REFERENCE_IMPL) return false
+    val fqName = classDescriptor.fqNameOrNull() ?: return false
+    return fqName.parent().asString() != KOTLIN_JVM_INTERNAL
 }

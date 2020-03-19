@@ -184,7 +184,9 @@ public class ClosureCodegen extends MemberCodegen<KtElement> {
     protected void generateClosureBody() {
         functionCodegen.generateMethod(JvmDeclarationOriginKt.OtherOrigin(element, funDescriptor), funDescriptor, strategy);
 
-        if (functionReferenceTarget != null && !isOptimizedFunctionReference) {
+        if (functionReferenceTarget != null && !isOptimizedFunctionReference &&
+            !JvmRuntimeTypesKt.isFunctionReferenceType(superClassType)
+        ) {
             generateFunctionReferenceMethods(functionReferenceTarget);
         }
 
