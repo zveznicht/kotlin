@@ -16,8 +16,10 @@ import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrBody
+import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.impl.IrExpressionBodyImpl
 import org.jetbrains.kotlin.ir.util.findDeclaration
+import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
@@ -79,12 +81,16 @@ class SharingDeclarations : PluginDeclarationsCreator {
 }
 
 class SharingTransformer(compilerContext: IrPluginContext) : IrTransformer(compilerContext) {
-    // todo: add owner
-    override fun defineBackingField(propertyDescriptor: PropertyDescriptor, irProperty: IrProperty, createdField: IrField) {
+    override fun definePropertyInitializer(
+        propertyDescriptor: PropertyDescriptor,
+        irProperty: IrProperty,
+        createdField: IrField
+    ): IrExpressionBody? =
         if (propertyDescriptor.name == SharingDeclarations.isReadOnly)
         // todo: remove 'impl' part
-            createdField.initializer = IrExpressionBodyImpl(createdField.buildExpression { irBoolean(false) })
-    }
+            IrExpressionBodyImpl(createdField.buildExpression { irBoolean(false) })
+        else
+            null
 
     override fun lower(irClass: IrClass) {
         val readOnlyProp = irClass.findDeclaration<IrProperty> { it.name == Name.identifier("isReadOnly") }!!
@@ -105,15 +111,16 @@ class SharingTransformer(compilerContext: IrPluginContext) : IrTransformer(compi
         irFunction.buildBody {
             val copyF = functionDescriptor.containingClass?.referenceFunction(Name.identifier("copy"))!!
             val setReadOnlyF = functionDescriptor.containingClass?.referenceFunction(SharingDeclarations.setReadOnly)!!
-            val tempVar = irTemporaryVar(irInvoke(irThis, copyF), "copy")
-            +irInvoke(irGet(tempVar), setReadOnlyF)
+            val tempVar = irTemporaryVar(irThis.invoke(copyF), "copy")
+            +irGet(tempVar).invoke(setReadOnlyF)
             +irReturn(irGet(tempVar))
         }
 
     private fun defineSetReadOnlyBody(functionDescriptor: SimpleFunctionDescriptor, irFunction: IrSimpleFunction) = irFunction.buildBody {
-        val readOnlyProp = functionDescriptor.containingClass?.referenceProperty(SharingDeclarations.isReadOnly)!!
-        // todo: remove owner check here
-        +irSetField(irThis, readOnlyProp.owner.backingField!!, irBoolean(true))
+        // todo: remove necessity for property here, leave only symbol?
+//        val readOnlyProp = functionDescriptor.containingClass?.referenceProperty(SharingDeclarations.isReadOnly)!!
+        val readOnlyProp = irFunction.parentAsClass.findDeclaration<IrProperty> { it.name == Name.identifier("isReadOnly") }!!
+        +irThis.setProperty(readOnlyProp, irBoolean(true))
     }
 
     private fun transformPropSetter(

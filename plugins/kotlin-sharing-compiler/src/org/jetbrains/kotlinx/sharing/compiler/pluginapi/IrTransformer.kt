@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
@@ -34,23 +35,16 @@ import org.jetbrains.kotlin.types.KotlinType
 
 abstract class IrTransformer(override val compilerContext: IrPluginContext) : IrBuilderExtension, ClassLoweringPass {
     fun createMissingParts(irClass: IrClass, pluginDescriptors: Collection<DeclarationDescriptor>) {
-        pluginDescriptors.sortedBy { if (it is PropertyDescriptor) -1 else 1 }.forEach { desc ->
-            val res: IrDeclaration = when (desc) {
+        val created: List<Pair<DeclarationDescriptor, IrDeclaration>> = pluginDescriptors.map { desc ->
+            desc to when (desc) {
                 is PropertyDescriptor -> createPropertyForBackend(irClass, desc)
                 is SimpleFunctionDescriptor -> createFunctionForBackend(irClass, desc)
                 else -> TODO()
-            }
-            irClass.declarations.add(res)
+            } as IrDeclaration
         }
-        // todo: remove sorting hack
-//        val declarations: List<IrDeclaration> = pluginDescriptors.sortedBy { if (it is PropertyDescriptor) -1 else 1 }.map<DeclarationDescriptor, IrDeclaration> { desc ->
-//            when (desc) {
-//                is PropertyDescriptor -> createPropertyForBackend(irClass, desc)
-//                is SimpleFunctionDescriptor -> createFunctionForBackend(irClass, desc)
-//                else -> TODO()
-//            }
-//        }
-//        irClass.declarations.addAll(declarations)
+        created.forEach { (_, ir) -> irClass.declarations.add(ir) }
+        created.forEach { (desc, ir) -> if (ir is IrSimpleFunction) ir.body = defineFunctionBody(desc as SimpleFunctionDescriptor, ir) }
+        // this is also looks hacky, but less than sorting
     }
 
     inline fun IrSimpleFunction.prepend(statements: ExtendedBodyBuilder.() -> Unit) {
@@ -66,8 +60,12 @@ abstract class IrTransformer(override val compilerContext: IrPluginContext) : Ir
         return IrSingleStatementBuilder(compilerContext, Scope(this.symbol), startOffset, endOffset).build(builder)
     }
 
-    // todo: add owner
-    open fun defineBackingField(propertyDescriptor: PropertyDescriptor, irProperty: IrProperty, createdField: IrField) = Unit
+    open fun definePropertyInitializer(
+        propertyDescriptor: PropertyDescriptor,
+        irProperty: IrProperty,
+        createdField: IrField
+    ): IrExpressionBody? =
+        null
 
     open fun defineFunctionBody(functionDescriptor: SimpleFunctionDescriptor, irFunction: IrSimpleFunction): IrBody? = null
 
@@ -75,7 +73,6 @@ abstract class IrTransformer(override val compilerContext: IrPluginContext) : Ir
         val f: IrSimpleFunction = owner.declareSimpleFunctionWithExternalOverrides(frontendFunction)
         f.parent = owner
         f.buildWithScope { functionGenerator.generateFunctionParameterDeclarationsAndReturnType(f, null, null) }
-        f.body = defineFunctionBody(frontendFunction, f)
         return f
     }
 
@@ -142,7 +139,7 @@ abstract class IrTransformer(override val compilerContext: IrPluginContext) : Ir
             PLUGIN_ORIGIN,
             propertyDescriptor,
             propertyDescriptor.type.toIrType()
-        ).apply { defineBackingField(propertyDescriptor, originProperty, this) }
+        ).apply { definePropertyInitializer(propertyDescriptor, originProperty, this) }
     }
 
     private fun generatePropertyAccessor(
@@ -253,6 +250,12 @@ class ExtendedBodyBuilder(val compilerContext: IrPluginContext, val scopeSymbol:
     fun IrExpression.getProperty(property: IrProperty): IrExpression {
         return if (property.getter != null) irGet(property.getter!!.returnType, this, property.getter!!.symbol)
         else irGetField(this, property.backingField!!)
+    }
+
+    // hope KT-37225 about unbound symbols won't bite me
+    fun IrExpression.setProperty(property: IrProperty, value: IrExpression): IrExpression {
+        return if (property.setter != null) irSet(property.setter!!.returnType, this, property.setter!!.symbol, value)
+        else irSetField(this, property.backingField!!, value)
     }
 
     fun KotlinType.toIrType() = compilerContext.typeTranslator.translateType(this)
