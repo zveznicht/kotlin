@@ -13,7 +13,7 @@
 
 // TESTCASE NUMBER: 1
 fun case_1(x: Class?) {
-    if (x != null) <!DEBUG_INFO_EXPRESSION_TYPE("kotlin.reflect.KFunction0<(kotlin.Int) -> (kotlin.Int) -> kotlin.Int>")!><!DEBUG_INFO_SMARTCAST!>x<!>::fun_1<!>
+    if (x != null) <!DEBUG_INFO_EXPRESSION_TYPE("kotlin.reflect.KFunction0<(kotlin.Int) -> (kotlin.Int) -> kotlin.Int>")!><!DEBUG_INFO_EXPRESSION_TYPE("Class & Class?")!>x<!>::fun_1<!>
 }
 
 /*

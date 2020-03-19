@@ -214,6 +214,9 @@ public class ControlStructureTypingUtils {
         List<ValueParameterDescriptor> valueParameters = new ArrayList<>(argumentNames.size());
         for (int i = 0; i < argumentNames.size(); i++) {
             KotlinType argumentType = isArgumentNullable.get(i) ? nullableType : type;
+            argumentType = construct == ResolveConstruct.CALLABLE_REFERENCE
+                           ? TypeUtilsKt.replaceAnnotations(argumentType, AnnotationsForResolveKt.getExactInAnnotations())
+                           : argumentType;
             ValueParameterDescriptorImpl valueParameter = new ValueParameterDescriptorImpl(
                     function, null, i, Annotations.Companion.getEMPTY(), Name.identifier(argumentNames.get(i)),
                     argumentType,
@@ -225,7 +228,7 @@ public class ControlStructureTypingUtils {
             valueParameters.add(valueParameter);
         }
         KotlinType returnType =
-                construct == ResolveConstruct.ELVIS || construct == ResolveConstruct.CALLABLE_REFERENCE
+                construct == ResolveConstruct.ELVIS
                 ? TypeUtilsKt.replaceAnnotations(type, AnnotationsForResolveKt.getExactInAnnotations())
                 : type;
         function.initialize(
