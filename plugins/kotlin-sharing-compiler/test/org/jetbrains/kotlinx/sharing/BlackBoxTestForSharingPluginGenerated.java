@@ -33,6 +33,11 @@ public class BlackBoxTestForSharingPluginGenerated extends AbstractBlackBoxTestF
                                                              Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
     }
 
+    @TestMetadata("nested.kt")
+    public void testNested() throws Exception {
+        runTest("plugins/kotlin-sharing-compiler/testData/box/nested.kt");
+    }
+
     @TestMetadata("share.kt")
     public void testShare() throws Exception {
         runTest("plugins/kotlin-sharing-compiler/testData/box/share.kt");

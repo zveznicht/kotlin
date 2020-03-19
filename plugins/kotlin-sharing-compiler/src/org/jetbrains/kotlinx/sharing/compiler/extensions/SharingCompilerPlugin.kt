@@ -14,15 +14,20 @@ import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.extensions.SyntheticResolveExtension
+import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlinx.sharing.compiler.backend.ir.SharingDeclarations
 import org.jetbrains.kotlinx.sharing.compiler.backend.ir.SharingTransformer
 import org.jetbrains.kotlinx.sharing.compiler.pluginapi.CompilerPlugin
 import org.jetbrains.kotlinx.sharing.compiler.pluginapi.IrTransformer
 import org.jetbrains.kotlinx.sharing.compiler.pluginapi.PluginDeclarationsCreator
 
+internal val ClassDescriptor.isShared: Boolean get() = annotations.hasAnnotation(FqName("kotlinx.sharing.Shared")) && isData
+internal val KotlinType.constructedClass: ClassDescriptor? get() = constructor.declarationDescriptor as? ClassDescriptor
+internal val KotlinType.isShared: Boolean get() = constructedClass?.isShared == true
+
 class SharingCompilerPlugin : CompilerPlugin() {
-    override fun isApplied(toClass: ClassDescriptor): Boolean =
-        toClass.annotations.hasAnnotation(FqName("kotlinx.sharing.Shared")) && toClass.isData
+    override fun isApplied(toClass: ClassDescriptor): Boolean = toClass.isShared
+
 
     override fun createIrTransformer(context: IrPluginContext): IrTransformer = SharingTransformer(context)
 

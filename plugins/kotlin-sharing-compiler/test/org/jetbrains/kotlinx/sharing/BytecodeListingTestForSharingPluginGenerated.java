@@ -37,4 +37,9 @@ public class BytecodeListingTestForSharingPluginGenerated extends AbstractByteco
     public void testBasic() throws Exception {
         runTest("plugins/kotlin-sharing-compiler/testData/codegen/Basic.kt");
     }
+
+    @TestMetadata("nested.kt")
+    public void testNested() throws Exception {
+        runTest("plugins/kotlin-sharing-compiler/testData/codegen/nested.kt");
+    }
 }

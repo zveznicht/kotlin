@@ -7,6 +7,7 @@ package org.jetbrains.kotlinx.sharing.compiler.backend.ir
 
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.lower.irIfThen
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.annotations.Annotations
 import org.jetbrains.kotlin.descriptors.impl.SimpleFunctionDescriptorImpl
@@ -16,16 +17,23 @@ import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrProperty
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrBody
+import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.impl.IrExpressionBodyImpl
 import org.jetbrains.kotlin.ir.util.findDeclaration
 import org.jetbrains.kotlin.ir.util.parentAsClass
+import org.jetbrains.kotlin.js.descriptorUtils.getJetTypeFqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlinx.sharing.compiler.extensions.constructedClass
+import org.jetbrains.kotlinx.sharing.compiler.extensions.isShared
+import org.jetbrains.kotlinx.sharing.compiler.pluginapi.ExtendedBodyBuilder
 import org.jetbrains.kotlinx.sharing.compiler.pluginapi.IrTransformer
 import org.jetbrains.kotlinx.sharing.compiler.pluginapi.PluginDeclarationsCreator
 import org.jetbrains.kotlinx.sharing.compiler.pluginapi.SyntheticPropertyDescriptor
+
 
 class SharingDeclarations : PluginDeclarationsCreator {
     override val propertiesNames: Set<Name> = setOf(isReadOnly)
@@ -109,12 +117,44 @@ class SharingTransformer(compilerContext: IrPluginContext) : IrTransformer(compi
 
     private fun defineShareBody(functionDescriptor: SimpleFunctionDescriptor, irFunction: IrSimpleFunction): IrBody? =
         irFunction.buildBody {
+            // todo: optimize if already readonly
             val copyF = functionDescriptor.containingClass?.referenceFunction(Name.identifier("copy"))!!
             val setReadOnlyF = functionDescriptor.containingClass?.referenceFunction(SharingDeclarations.setReadOnly)!!
-            val tempVar = irTemporaryVar(irThis.invoke(copyF), "copy")
+            val args = shareArgsForCopyInvocation(irFunction.parentAsClass)
+            val tempVar = irTemporaryVar(irThis.invoke(copyF, *args.toTypedArray()), "copy")
             +irGet(tempVar).invoke(setReadOnlyF)
             +irReturn(irGet(tempVar))
         }
+
+    private fun ExtendedBodyBuilder.shareArgsForCopyInvocation(thisClassDefinition: IrClass): List<IrExpression> {
+        val copyParams = thisClassDefinition.sharableProperties()
+        return copyParams.map {
+            val type = it.descriptor.type
+            when {
+                type.isSharedByReference -> irThis.getProperty(it)
+                type.isShared -> {
+                    val shareFuncInOther = type.constructedClass!!.referenceFunction(SharingDeclarations.share)!!
+                    irThis.getProperty(it).invoke(shareFuncInOther)
+                }
+                else -> error("Non-sharable type ${type.getJetTypeFqName(false)}")
+            }
+        }
+    }
+
+
+    private val KotlinType.isSharedByReference: Boolean
+        get() = KotlinBuiltIns.isPrimitiveType(this) || KotlinBuiltIns.isString(this) || this.hasShareByReferenceAnnotation
+
+    private val KotlinType.hasShareByReferenceAnnotation: Boolean
+        get() = false // stub
+
+    private fun IrClass.sharableProperties(): List<IrProperty> {
+        // currently this is only data classes primary ctor parameters, but may be SerializableProperties for @Serializable classes
+        return descriptor.unsubstitutedPrimaryConstructor?.valueParameters.orEmpty().asSequence()
+            .mapNotNull { parameter -> compilerContext.bindingContext[BindingContext.VALUE_PARAMETER_AS_PROPERTY, parameter] }
+            .map { compilerContext.symbolTable.referenceProperty(it).owner }
+            .toList()
+    }
 
     private fun defineSetReadOnlyBody(functionDescriptor: SimpleFunctionDescriptor, irFunction: IrSimpleFunction) = irFunction.buildBody {
         // todo: remove necessity for property here, leave only symbol?
