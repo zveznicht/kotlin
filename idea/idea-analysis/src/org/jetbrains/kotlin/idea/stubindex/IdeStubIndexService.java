@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.fileClasses.JvmFileClassInfo;
 import org.jetbrains.kotlin.fileClasses.JvmFileClassUtil;
+import org.jetbrains.kotlin.idea.core.KotlinIndicesHelperKt;
 import org.jetbrains.kotlin.lexer.KtTokens;
 import org.jetbrains.kotlin.load.java.JvmAbi;
 import org.jetbrains.kotlin.name.FqName;
@@ -150,6 +151,10 @@ public class IdeStubIndexService extends StubIndexService {
             if (stub.mayHaveContract()) {
                 sink.occurrence(KotlinProbablyContractedFunctionShortNameIndex.getInstance().getKey(), name);
             }
+
+            if (KotlinIndicesHelperKt.getParentObject(stub.getPsi()) != null) {
+                sink.occurrence(KotlinObjectMembersShortNameIndex.getInstance().getKey(), name);
+            }
         }
 
         if (stub.isTopLevel()) {
@@ -191,6 +196,10 @@ public class IdeStubIndexService extends StubIndexService {
 
             if (TypeIndexUtilKt.isProbablyNothing(stub.getPsi().getTypeReference())) {
                 sink.occurrence(KotlinProbablyNothingPropertyShortNameIndex.getInstance().getKey(), name);
+            }
+
+            if (KotlinIndicesHelperKt.getParentObject(stub.getPsi()) != null) {
+                sink.occurrence(KotlinObjectMembersShortNameIndex.getInstance().getKey(), name);
             }
         }
 

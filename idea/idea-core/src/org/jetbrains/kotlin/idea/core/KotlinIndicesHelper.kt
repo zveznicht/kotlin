@@ -422,8 +422,7 @@ class KotlinIndicesHelper(
                 if (!nameFilter(name)) continue
 
                 for (declaration in index.get(name, project, scope)) {
-                    val objectDeclaration = declaration.parent.parent as? KtObjectDeclaration ?: continue
-                    if (objectDeclaration.isObjectLiteral()) continue
+                    val objectDeclaration = declaration.parentObject ?: continue
                     if (filterOutPrivate && declaration.hasModifier(KtTokens.PRIVATE_KEYWORD)) continue
                     if (!filter(declaration, objectDeclaration)) continue
                     for (descriptor in declaration.resolveToDescriptors<CallableDescriptor>()) {
@@ -435,11 +434,8 @@ class KotlinIndicesHelper(
             }
         }
 
-        if (descriptorKindFilter.kindMask.and(DescriptorKindFilter.FUNCTIONS_MASK) != 0) {
-            processIndex(KotlinFunctionShortNameIndex.getInstance())
-        }
-        if (descriptorKindFilter.kindMask.and(DescriptorKindFilter.VARIABLES_MASK) != 0) {
-            processIndex(KotlinPropertyShortNameIndex.getInstance())
+        if (descriptorKindFilter.kindMask and (DescriptorKindFilter.FUNCTIONS_MASK or DescriptorKindFilter.VARIABLES_MASK) != 0) {
+            processIndex(KotlinObjectMembersShortNameIndex.getInstance())
         }
     }
 
@@ -514,3 +510,5 @@ class KotlinIndicesHelper(
     }
 }
 
+val KtNamedDeclaration.parentObject: KtObjectDeclaration?
+    get() = (parent?.parent as? KtObjectDeclaration)?.takeUnless { it.isObjectLiteral() }
