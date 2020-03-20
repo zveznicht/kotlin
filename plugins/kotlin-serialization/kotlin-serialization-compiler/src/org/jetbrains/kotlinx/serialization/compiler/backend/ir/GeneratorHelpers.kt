@@ -643,7 +643,7 @@ interface IrBuilderExtension {
 
             }
             if (serializerClassOriginal.classId == referenceArraySerializerId) {
-                args = listOf(classReference(kType.arguments[0].type)) + args
+                args = listOf(classReference(TypeUtils.makeNullable(kType.arguments[0].type))) + args
                 typeArgs = listOf(typeArgs[0].makeNotNull()) + typeArgs
             }
 
