@@ -27,3 +27,5 @@ private class Your {
 
     val x = ""
 }
+
+const val constString = "constString"

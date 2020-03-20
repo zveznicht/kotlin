@@ -102,6 +102,10 @@ class ExplicitApiDeclarationChecker : DeclarationChecker {
 
             val callableMemberDescriptor = descriptor as? CallableMemberDescriptor
 
+            // although const vals can't have getters, we need to exclude auto-created ones
+            if (callableMemberDescriptor is PropertyGetterDescriptor && callableMemberDescriptor.correspondingProperty.isConst) return false
+            if (callableMemberDescriptor is PropertyDescriptor && callableMemberDescriptor.isConst) return false
+
             val visibility = callableMemberDescriptor?.effectiveVisibility()?.toVisibility()
             return (checkForPublicApi && visibility?.isPublicAPI == true) || (checkForInternal && visibility == Visibilities.INTERNAL) ||
                     (checkForPrivate && visibility == Visibilities.PRIVATE)
