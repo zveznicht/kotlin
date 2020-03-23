@@ -255,37 +255,6 @@ public abstract class ExternalSystemTestCase extends UsefulTestCase {
         return myProjectRoot.getPath();
     }
 
-    protected String getParentPath() {
-        return myProjectRoot.getParent().getPath();
-    }
-
-    @SystemIndependent
-    protected String path(@NotNull String relativePath) {
-        return PathUtil.toSystemIndependentName(file(relativePath).getPath());
-    }
-
-    protected File file(@NotNull String relativePath) {
-        return new File(getProjectPath(), relativePath);
-    }
-
-    protected Module createModule(String name) {
-        return createModule(name, StdModuleTypes.JAVA);
-    }
-
-    protected Module createModule(final String name, final ModuleType type) {
-        try {
-            return WriteCommandAction.writeCommandAction(myProject).compute(() -> {
-                VirtualFile f = createProjectSubFile(name + "/" + name + ".iml");
-                Module module = ModuleManager.getInstance(myProject).newModule(f.getPath(), type.getId());
-                PsiTestUtil.addContentRoot(module, f.getParent());
-                return module;
-            });
-        }
-        catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     protected VirtualFile createProjectConfig(@NonNls String config) {
         return myProjectConfig = createConfigFile(myProjectRoot, config);
     }
