@@ -62,10 +62,6 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
 
     private Logger logger;
 
-    protected List<LibraryOrderEntry> getModuleLibDeps(String moduleName, String depName) {
-        return getModuleDep(moduleName, depName, LibraryOrderEntry.class);
-    }
-
     @NotNull
     private List<ModuleOrderEntry> getModuleModuleDeps(@NotNull String moduleName, @NotNull String depName) {
         return getModuleDep(moduleName, depName, ModuleOrderEntry.class);
@@ -99,47 +95,8 @@ public abstract class ExternalSystemImportingTestCase extends ExternalSystemTest
         return deps;
     }
 
-    private ContentEntry getContentRoot(String moduleName) {
-        ContentEntry[] ee = getContentRoots(moduleName);
-        List<String> roots = new ArrayList<>();
-        for (ContentEntry e : ee) {
-            roots.add(e.getUrl());
-        }
-
-        String message = "Several content roots found: [" + StringUtil.join(roots, ", ") + "]";
-        assertEquals(message, 1, ee.length);
-
-        return ee[0];
-    }
-
-    private ContentEntry getContentRoot(String moduleName, String path) {
-        for (ContentEntry e : getContentRoots(moduleName)) {
-            if (e.getUrl().equals(VfsUtilCore.pathToUrl(path))) return e;
-        }
-        throw new AssertionError("content root not found");
-    }
-
-    public ContentEntry[] getContentRoots(String moduleName) {
-        return getRootManager(moduleName).getContentEntries();
-    }
-
     protected ModuleRootManager getRootManager(String module) {
         return ModuleRootManager.getInstance(getModule(module));
-    }
-
-    protected void ignoreData(BooleanFunction<DataNode<?>> booleanFunction, final boolean ignored) {
-        final ExternalProjectInfo externalProjectInfo = ProjectDataManagerImpl.getInstance().getExternalProjectData(
-                myProject, getExternalSystemId(), getCurrentExternalProjectSettings().getExternalProjectPath());
-        assertNotNull(externalProjectInfo);
-
-        final DataNode<ProjectData> projectDataNode = externalProjectInfo.getExternalProjectStructure();
-        assertNotNull(projectDataNode);
-
-        final Collection<DataNode<?>> nodes = ExternalSystemApiUtil.findAllRecursively(projectDataNode, booleanFunction);
-        for (DataNode<?> node : nodes) {
-            node.visit(dataNode -> dataNode.setIgnored(ignored));
-        }
-        ServiceManager.getService(ProjectDataManager.class).importData(projectDataNode, myProject, true);
     }
 
     protected void importProject(@NonNls String config) throws IOException {
