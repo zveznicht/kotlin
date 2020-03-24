@@ -348,6 +348,7 @@ allprojects {
         internalKotlinRepo?.let(::maven)
 
         maven("file:///Users/yan/jb/repo")
+        maven("https://repo.labs.intellij.net/intellij-nightly-sdk")
     }
 
     configureJvmProject(javaHome!!, jvmTarget!!)

@@ -86,8 +86,8 @@ repositories {
             }
         }
     }
-
     maven("file:///Users/yan/jb/repo")
+    maven("https://repo.labs.intellij.net/intellij-nightly-sdk")
 
     maven("https://www.jetbrains.com/intellij-repository/$intellijReleaseType")
     maven("https://plugins.jetbrains.com/maven")
