@@ -21,13 +21,18 @@ import com.intellij.notification.NotificationsConfiguration
 import com.intellij.openapi.application.ReadAction.nonBlocking
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener
+import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.StartupActivity
 import com.intellij.util.concurrency.AppExecutorUtil
+import org.jetbrains.kotlin.idea.actions.internal.refactoringTesting.readAction
 import org.jetbrains.kotlin.idea.configuration.getModulesWithKotlinFiles
 import org.jetbrains.kotlin.idea.configuration.notifyOutdatedBundledCompilerIfNecessary
 import org.jetbrains.kotlin.idea.configuration.ui.notifications.notifyKotlinStyleUpdateIfNeeded
 import org.jetbrains.kotlin.idea.project.getAndCacheLanguageLevelByDependencies
+import org.jetbrains.kotlin.idea.util.ProgressIndicatorUtils
+import org.jetbrains.kotlin.idea.util.application.isUnitTestMode
+import org.jetbrains.kotlin.idea.util.runReadActionInSmartMode
 import java.util.concurrent.atomic.AtomicInteger
 
 class KotlinConfigurationCheckerStartupActivity : StartupActivity {
@@ -53,7 +58,7 @@ class KotlinConfigurationCheckerService(val project: Project) {
     private val syncDepth = AtomicInteger()
 
     fun performProjectPostOpenActions() {
-        nonBlocking {
+        val promise = nonBlocking {
             val modulesWithKotlinFiles = getModulesWithKotlinFiles(project)
             for (module in modulesWithKotlinFiles) {
                 module.getAndCacheLanguageLevelByDependencies()
@@ -63,6 +68,10 @@ class KotlinConfigurationCheckerService(val project: Project) {
             .expireWith(project)
             .coalesceBy(this)
             .submit(AppExecutorUtil.getAppExecutorService())
+
+        if (isUnitTestMode()) {
+            ProgressIndicatorUtils.awaitWithCheckCanceled(promise)
+        }
     }
 
     val isSyncing: Boolean get() = syncDepth.get() > 0
