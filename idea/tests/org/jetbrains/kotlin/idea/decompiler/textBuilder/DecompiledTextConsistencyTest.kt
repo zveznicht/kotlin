@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.IDEPackagePartProvider
 import org.jetbrains.kotlin.idea.decompiler.classFile.buildDecompiledTextForClassFile
 import org.jetbrains.kotlin.idea.test.KotlinWithJdkAndRuntimeLightProjectDescriptor
 import org.jetbrains.kotlin.idea.test.PluginTestCaseBase
+import org.jetbrains.kotlin.idea.util.getSourceRoot
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.load.java.descriptors.isFromJvmPackagePart
 import org.jetbrains.kotlin.load.kotlin.VirtualFileFinder
@@ -46,20 +47,31 @@ class DecompiledTextConsistencyTest : LightCodeInsightFixtureTestCase() {
             val classId = ClassId.topLevel(packageFacadeFqName)
             val classFile = VirtualFileFinder.SERVICE.getInstance(project).findVirtualFileWithHeader(classId)!!
 
+
             val module = TopDownAnalyzerFacadeForJVM.analyzeFilesWithJavaIntegration(
                 project, listOf(), BindingTraceContext(), KotlinTestUtils.newConfiguration(), ::IDEPackagePartProvider
             ).moduleDescriptor
 
-            val projectBasedText = buildDecompiledTextForClassFile(classFile, ResolverForDecompilerImpl(module)).text
-            val deserializedText = buildDecompiledTextForClassFile(classFile).text
-            Assert.assertEquals(projectBasedText, deserializedText)
+            try {
+                val projectBasedText = buildDecompiledTextForClassFile(classFile, ResolverForDecompilerImpl(module)).text
+                val deserializedText = buildDecompiledTextForClassFile(classFile).text
+                Assert.assertEquals(projectBasedText, deserializedText)
 
-            // sanity checks
-            if (topLevelMembers != null) {
-                Assert.assertTrue(topLevelMembers in projectBasedText)
+                // sanity checks
+                if (topLevelMembers != null) {
+                    Assert.assertTrue(topLevelMembers in projectBasedText)
+                }
+
+                Assert.assertFalse("ERROR" in projectBasedText)
+            } finally {
+                LOG.warn("XXX: " + classId.asString())
+                LOG.warn("XXX: " + project.name)
+                LOG.warn("XXX: " + classFile.getSourceRoot(project))
+                LOG.warn("XXX: " + classFile.path)
+                LOG.warn("XXX: " + classFile.url)
+                LOG.warn("XXX: " + classFile.canonicalPath)
+                LOG.warn("XXX: $module")
             }
-
-            Assert.assertFalse("ERROR" in projectBasedText)
         }
     }
 
