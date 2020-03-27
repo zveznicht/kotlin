@@ -10,11 +10,9 @@ import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import org.jetbrains.kotlin.spec.utils.models.LinkedSpecTest
-import org.jetbrains.kotlin.spec.utils.models.LinkedSpecTest.Companion.getInstanceForImplementationTest
 import org.jetbrains.kotlin.spec.utils.models.SpecPlace
 import org.jetbrains.kotlin.spec.utils.parsers.CommonParser
 import org.jetbrains.kotlin.spec.utils.parsers.CommonParser.parseImplementationTest
-import org.jetbrains.kotlin.spec.utils.parsers.ImplementationTestPatterns
 import java.io.File
 
 object TestsJsonMapGenerator {
@@ -85,12 +83,14 @@ object TestsJsonMapGenerator {
                 if (!file.isFile || file.extension != "kt") continue
 
                 val parserImplementationTest = parseImplementationTest(file, testArea)
-                val relevantPlaces = parserImplementationTest.relevantPlaces ?: listOf()
+                if (parserImplementationTest != null) {
+                    val relevantPlaces = parserImplementationTest.relevantPlaces ?: listOf()
 
-                (relevantPlaces + parserImplementationTest.place).forEach { specPlace ->
-                    testsMap.getOrCreateSpecTestObject(specPlace, testArea, parserImplementationTest.testType).add(
-                        getTestInfo(parseImplementationTest(file, testArea), file)
-                    )
+                    (relevantPlaces + parserImplementationTest.place).forEach { specPlace ->
+                        testsMap.getOrCreateSpecTestObject(specPlace, testArea, parserImplementationTest.testType).add(
+                            getTestInfo(parserImplementationTest, file)
+                        )
+                    }
                 }
             }
         }
