@@ -31,11 +31,13 @@ import org.jetbrains.kotlin.psi.psiUtil.isPropertyParameter
 import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jetbrains.uast.*
+import org.jetbrains.uast.internal.acceptList
 import org.jetbrains.uast.kotlin.expressions.KotlinLocalFunctionULambdaExpression
 import org.jetbrains.uast.kotlin.expressions.KotlinUElvisExpression
 import org.jetbrains.uast.kotlin.internal.KotlinUElementWithComments
 import org.jetbrains.uast.kotlin.psi.UastKotlinPsiParameter
 import org.jetbrains.uast.kotlin.psi.UastKotlinPsiVariable
+import org.jetbrains.uast.visitor.UastVisitor
 
 abstract class KotlinAbstractUElement(private val givenParent: UElement?) : KotlinUElementWithComments,
     JvmDeclarationUElementPlaceholder {
@@ -206,11 +208,12 @@ fun doConvertParent(element: UElement, parent: PsiElement?): UElement? {
         return result.tempVarAssignment
     }
 
-    if (result is KotlinUElvisExpression && parent is KtBinaryExpression) {
-        when (element.psi) {
-            parent.left -> return result.lhsDeclaration
-            parent.right -> return result.rhsIfExpression
-        }
+    if (result is KotlinUElvisExpression && parentUnwrapped is KtBinaryExpression) {
+        val branch: Sequence<PsiElement?> = element.psi?.parentsWithSelf.orEmpty().takeWhile { it != parentUnwrapped }
+        if(branch.contains(parentUnwrapped.left))
+            return result.lhsDeclaration
+        if(branch.contains(parentUnwrapped.right))
+            return result.rhsIfExpression
     }
 
     if ((result is UMethod || result is KotlinLocalFunctionULambdaExpression)
