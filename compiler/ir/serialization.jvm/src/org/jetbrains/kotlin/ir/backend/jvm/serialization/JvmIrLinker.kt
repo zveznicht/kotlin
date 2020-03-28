@@ -74,7 +74,7 @@ class JvmIrLinker(
     }
 
     override fun platformSpecificSymbol(symbol: IrSymbol): Boolean {
-        return symbol.descriptor.isJavaDescriptor()
+        return symbol.trueDescriptor.isJavaDescriptor()
     }
 
     private fun declareJavaFieldStub(symbol: IrFieldSymbol): IrField {
@@ -82,7 +82,7 @@ class JvmIrLinker(
             val old = stubGenerator.unboundSymbolGeneration
             try {
                 stubGenerator.unboundSymbolGeneration = true
-                generateFieldStub(symbol.descriptor)
+                generateFieldStub(symbol.trueDescriptor)
             } finally {
                 stubGenerator.unboundSymbolGeneration = old
             }
@@ -96,7 +96,7 @@ class JvmIrLinker(
     private inner class JvmCurrentModuleDeserializer(moduleFragment: IrModuleFragment, dependencies: Collection<IrModuleDeserializer>) :
         CurrentModuleDeserializer(moduleFragment, dependencies) {
         override fun declareIrSymbol(symbol: IrSymbol) {
-            val descriptor = symbol.descriptor
+            val descriptor = symbol.trueDescriptor
 
             if (descriptor.isJavaDescriptor()) {
                 // Wrap java declaration with lazy ir
@@ -151,11 +151,11 @@ class JvmIrLinker(
         }
 
         override fun declareIrSymbol(symbol: IrSymbol) {
-            assert(symbol.isPublicApi || symbol.descriptor.isJavaDescriptor())
+            assert(symbol.isPublicApi || symbol.trueDescriptor.isJavaDescriptor())
             if (symbol is IrFieldSymbol) {
                 declareJavaFieldStub(symbol)
             } else {
-                stubGenerator.generateMemberStub(symbol.descriptor)
+                stubGenerator.generateMemberStub(symbol.trueDescriptor)
             }
         }
 

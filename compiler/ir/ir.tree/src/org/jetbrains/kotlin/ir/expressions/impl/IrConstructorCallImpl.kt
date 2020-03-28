@@ -40,7 +40,9 @@ class IrConstructorCallImpl(
             constructorSymbol: IrConstructorSymbol,
             origin: IrStatementOrigin? = null
         ): IrConstructorCallImpl {
-            val constructorDescriptor = constructorSymbol.descriptor
+            // TODO !!!!!! This may be called from backend proper, not just from Psi2Ir,
+            // so initialDescriptor should not be accessed.
+            val constructorDescriptor = constructorSymbol.trueDescriptor
             val classTypeParametersCount = constructorDescriptor.constructedClass.original.declaredTypeParameters.size
             val totalTypeParametersCount = constructorDescriptor.typeParameters.size
             val valueParametersCount = constructorDescriptor.valueParameters.size

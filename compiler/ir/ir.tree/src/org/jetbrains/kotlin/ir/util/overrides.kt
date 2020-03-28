@@ -41,7 +41,7 @@ fun generateOverriddenFunctionSymbols(
     declaration: IrSimpleFunction,
     symbolTable: ReferenceSymbolTable
 ) {
-    declaration.overriddenSymbols = declaration.descriptor.overriddenDescriptors.map {
+    declaration.overriddenSymbols = declaration.symbol.trueDescriptor.overriddenDescriptors.map {
         symbolTable.referenceSimpleFunction(it.original)
     }
 }

@@ -96,7 +96,9 @@ abstract class WrappedDeclarationDescriptor<T : IrDeclaration>(annotations: Anno
             return _owner ?: error("$this is not bound")
         }
         private set(value) {
-            _owner?.let { error("$this is already bound to ${it.dump()}") }
+            _owner?.let {
+                error("$this is already bound to ${it.dump()}")
+            }
             _owner = value
         }
 

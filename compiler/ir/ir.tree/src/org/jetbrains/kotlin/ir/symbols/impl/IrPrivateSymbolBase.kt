@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.ir.util.render
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 abstract class IrSymbolBase<out D : DeclarationDescriptor>(
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: D
+    override val trueDescriptor: D
 ) : IrSymbol {
     override fun toString(): String {
         if (isBound) return owner.render()
@@ -37,19 +37,19 @@ abstract class IrSymbolBase<out D : DeclarationDescriptor>(
 }
 
 abstract class IrBindableSymbolBase<out D : DeclarationDescriptor, B : IrSymbolOwner>(
-    private val _descriptor: D,
-    private val doWrapDescriptor: (D) -> D? = { null }
+    initialDescriptor: D,
+    doWrapDescriptor: (D) -> D? = { null }
 ) :
-    IrBindableSymbol<D, B>, IrSymbolBase<D>(_descriptor) {
+    IrBindableSymbol<D, B>, IrSymbolBase<D>(initialDescriptor) {
 
     init {
-        assert(isOriginalDescriptor(_descriptor)) {
-            "Substituted descriptor $_descriptor for ${_descriptor.original}"
+        assert(isOriginalDescriptor(initialDescriptor)) {
+            "Substituted descriptor $initialDescriptor for ${initialDescriptor.original}"
         }
-        if (_descriptor !is WrappedDeclarationDescriptor<*>) {
-            val containingDeclaration = _descriptor.containingDeclaration
+        if (initialDescriptor !is WrappedDeclarationDescriptor<*>) {
+            val containingDeclaration = initialDescriptor.containingDeclaration
             assert(containingDeclaration == null || isOriginalDescriptor(containingDeclaration)) {
-                "Substituted containing declaration: $containingDeclaration\nfor descriptor: $_descriptor"
+                "Substituted containing declaration: $containingDeclaration\nfor descriptor: $initialDescriptor"
             }
         }
     }
@@ -60,17 +60,8 @@ abstract class IrBindableSymbolBase<out D : DeclarationDescriptor, B : IrSymbolO
                 descriptor is ValueParameterDescriptor && isOriginalDescriptor(descriptor.containingDeclaration) ||
                 descriptor == descriptor.original
 
-    private var wrappedDescriptor: D? = null
-
-    override val descriptor: D
-        get() = wrappedDescriptor ?: _descriptor
-
-    override fun wrapDescriptor() {
-        if (_descriptor !is WrappedDeclarationDescriptor<*> && wrappedDescriptor == null) {
-            wrappedDescriptor = doWrapDescriptor(_descriptor)
-            (wrappedDescriptor as? WrappedDeclarationDescriptor<IrDeclaration>)?.bind(owner as IrDeclaration)
-        }
-    }
+    override val descriptor: D =
+        initialDescriptor as? WrappedDeclarationDescriptor<*> as? D ?: doWrapDescriptor(initialDescriptor) ?: initialDescriptor
 
     private var _owner: B? = null
     override val owner: B
@@ -79,6 +70,9 @@ abstract class IrBindableSymbolBase<out D : DeclarationDescriptor, B : IrSymbolO
     override fun bind(owner: B) {
         if (_owner == null) {
             _owner = owner
+            if (descriptor != trueDescriptor) {
+                (descriptor as? WrappedDeclarationDescriptor<IrDeclaration>)?.bind(owner as IrDeclaration)
+            }
         } else {
             throw IllegalStateException("${javaClass.simpleName} is already bound: ${owner.render()}")
         }

@@ -32,6 +32,9 @@ interface IrSymbol {
     @ObsoleteDescriptorBasedAPI
     val descriptor: DeclarationDescriptor
 
+    @ObsoleteDescriptorBasedAPI
+    val trueDescriptor: DeclarationDescriptor
+
     val isBound: Boolean
 
     val signature: IdSignature
@@ -39,9 +42,6 @@ interface IrSymbol {
     val isPublicApi: Boolean
 
     fun <D, R> accept(visitor: IrSymbolVisitor<R, D>, data: D): R
-
-    // From now on, return a WrappedDescriptor as descriptor. Used to make sure no essential use is made of real descriptors.
-    fun wrapDescriptor() {}
 }
 
 interface IrBindableSymbol<out D : DeclarationDescriptor, B : IrSymbolOwner> : IrSymbol {
@@ -49,6 +49,9 @@ interface IrBindableSymbol<out D : DeclarationDescriptor, B : IrSymbolOwner> : I
 
     @ObsoleteDescriptorBasedAPI
     override val descriptor: D
+
+    @ObsoleteDescriptorBasedAPI
+    override val trueDescriptor: D
 
     fun bind(owner: B)
 }
@@ -101,6 +104,9 @@ interface IrClassifierSymbol :
 
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ClassifierDescriptor
+
+    @ObsoleteDescriptorBasedAPI
+    override val trueDescriptor: ClassifierDescriptor
 
     override fun <D, R> accept(visitor: IrSymbolVisitor<R, D>, data: D): R =
         visitor.visitClassifierSymbol(this, data)
@@ -158,6 +164,9 @@ interface IrReturnTargetSymbol :
 
     @ObsoleteDescriptorBasedAPI
     override val descriptor: FunctionDescriptor
+
+    @ObsoleteDescriptorBasedAPI
+    override val trueDescriptor: FunctionDescriptor
 
     override val owner: IrReturnTarget
 

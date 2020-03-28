@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.isNullable
 import org.jetbrains.kotlin.types.typeUtil.representativeUpperBound
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
  * A platform-, frontend-independent logic for generating synthetic members of data class: equals, hashCode, toString, componentN, and copy.
@@ -43,7 +44,7 @@ abstract class DataClassMembersGenerator(
 
     inline fun <T : IrDeclaration> T.buildWithScope(builder: (T) -> Unit): T =
         also { irDeclaration ->
-            symbolTable.withScope(irDeclaration) {
+            symbolTable.withScope(irDeclaration.safeAs<IrSymbolOwner>()!!.symbol.trueDescriptor) {
                 builder(irDeclaration)
             }
         }
@@ -173,7 +174,7 @@ abstract class DataClassMembersGenerator(
                 symbolTable.referenceSimpleFunction(it.original)
             }
 
-            val hasDispatchReceiver = hashCodeFunctionSymbol.descriptor.dispatchReceiverParameter != null
+            val hasDispatchReceiver = hashCodeFunctionSymbol.trueDescriptor.dispatchReceiverParameter != null
             return irCall(
                 hashCodeFunctionSymbol,
                 context.irBuiltIns.intType,
@@ -185,13 +186,13 @@ abstract class DataClassMembersGenerator(
                 } else {
                     putValueArgument(0, irValue)
                 }
-                commitSubstituted(this, substituted ?: hashCodeFunctionSymbol.descriptor)
+                commitSubstituted(this, substituted ?: hashCodeFunctionSymbol.trueDescriptor)
             }
         }
 
         fun generateToStringMethodBody(properties: List<PropertyDescriptor>) {
             val irConcat = irConcat()
-            irConcat.addArgument(irString(irClass.descriptor.name.asString() + "("))
+            irConcat.addArgument(irString(irClass.symbol.trueDescriptor.name.asString() + "("))
             var first = true
             for (property in properties) {
                 if (!first) irConcat.addArgument(irString(", "))
@@ -220,7 +221,7 @@ abstract class DataClassMembersGenerator(
     }
 
     fun getBackingField(property: PropertyDescriptor): IrField =
-        irClass.properties.single { it.descriptor == property }.backingField!!
+        irClass.properties.single { it.symbol.trueDescriptor == property }.backingField!!
 
     abstract fun declareSimpleFunction(startOffset: Int, endOffset: Int, functionDescriptor: FunctionDescriptor): IrFunction
 
