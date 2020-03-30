@@ -1270,10 +1270,10 @@ class ClassFileToSourceStubConverter(val kaptContext: KaptContextForStubGenerati
     }
 
     private fun getDefaultValue(type: Type): Any? = when (type) {
-        Type.BYTE_TYPE -> 0
+        Type.BYTE_TYPE -> 0.toByte()
         Type.BOOLEAN_TYPE -> false
         Type.CHAR_TYPE -> '\u0000'
-        Type.SHORT_TYPE -> 0
+        Type.SHORT_TYPE -> 0.toShort()
         Type.INT_TYPE -> 0
         Type.LONG_TYPE -> 0L
         Type.FLOAT_TYPE -> 0.0F

@@ -1,27 +1,33 @@
 object PrimitiveTypes {
     const val booleanFalse: Boolean = false
     const val booleanTrue: Boolean = true
+    val someBoolean: Boolean = System.getProperty("boolean").toBoolean()
 
     const val int0: Int = 0
     const val intMinus1000: Int = -1000
     const val intMinValue: Int = Int.MIN_VALUE
     const val intMaxValue: Int = Int.MAX_VALUE
     const val intHex: Int = 0xffffffff.toInt()
+    val someInt: Int = System.getProperty("int").toInt()
 
     const val byte0: Byte = 0.toByte()
     const val byte50: Byte = 50.toByte()
+    val someByte: Byte = System.getProperty("byte").toByte()
 
     const val short5: Short = 5.toShort()
+    val someShort: Short = System.getProperty("short").toShort()
 
     const val charC: Char = 'C'
     const val char0: Char = 0.toChar()
     const val char10: Char = 10.toChar()
     const val char13: Char = 13.toChar()
+    val someChar = System.getProperty("char").first()
 
     const val long0: Long = 0L
     const val longMaxValue: Long = Long.MAX_VALUE
     const val longMinValue: Long = Long.MIN_VALUE
     const val longHex: Long = 0xffffffff
+    val someLong = System.getProperty("long").toLong()
 
     const val float54 = 5.4f
     val floatMaxValue = Float.MAX_VALUE
@@ -38,4 +44,5 @@ object PrimitiveTypes {
     const val stringHelloWorld: String = "Hello, world!"
     const val stringQuotes: String = "quotes \" ''quotes"
     const val stringRN: String = "\r\n"
+    val someString: String = System.getProperty("string")
 }

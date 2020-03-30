@@ -4,22 +4,28 @@ import java.lang.System;
 public final class PrimitiveTypes {
     public static final boolean booleanFalse = false;
     public static final boolean booleanTrue = true;
+    private static final boolean someBoolean = false;
     public static final int int0 = 0;
     public static final int intMinus1000 = -1000;
     public static final int intMinValue = -2147483648;
     public static final int intMaxValue = 2147483647;
     public static final int intHex = -1;
+    private static final int someInt = 0;
     public static final byte byte0 = (byte)0;
     public static final byte byte50 = (byte)50;
+    private static final byte someByte = (byte)0;
     public static final short short5 = (short)5;
+    private static final short someShort = (short)0;
     public static final char charC = 'C';
     public static final char char0 = '\u0000';
     public static final char char10 = '\n';
     public static final char char13 = '\r';
+    private static final char someChar = '\u0000';
     public static final long long0 = 0L;
     public static final long longMaxValue = 9223372036854775807L;
     public static final long longMinValue = -9223372036854775808L;
     public static final long longHex = 4294967295L;
+    private static final long someLong = 0L;
     public static final float float54 = 5.4F;
     private static final float floatMaxValue = 0.0F;
     private static final float floatNan = 0.0F;
@@ -36,7 +42,33 @@ public final class PrimitiveTypes {
     public static final java.lang.String stringQuotes = "quotes \" \'\'quotes";
     @org.jetbrains.annotations.NotNull()
     public static final java.lang.String stringRN = "\r\n";
+    @org.jetbrains.annotations.NotNull()
+    private static final java.lang.String someString = null;
     public static final PrimitiveTypes INSTANCE = null;
+
+    public final boolean getSomeBoolean() {
+        return false;
+    }
+
+    public final int getSomeInt() {
+        return 0;
+    }
+
+    public final byte getSomeByte() {
+        return (byte)0;
+    }
+
+    public final short getSomeShort() {
+        return (short)0;
+    }
+
+    public final char getSomeChar() {
+        return '\u0000';
+    }
+
+    public final long getSomeLong() {
+        return 0L;
+    }
 
     public final float getFloatMaxValue() {
         return 0.0F;
@@ -68,6 +100,11 @@ public final class PrimitiveTypes {
 
     public final double getDoubleNegativeInfinity() {
         return 0.0;
+    }
+
+    @org.jetbrains.annotations.NotNull()
+    public final java.lang.String getSomeString() {
+        return null;
     }
 
     private PrimitiveTypes() {
