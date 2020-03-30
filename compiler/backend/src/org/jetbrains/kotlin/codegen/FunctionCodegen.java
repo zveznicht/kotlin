@@ -56,7 +56,9 @@ import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterKind;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterSignature;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature;
 import org.jetbrains.kotlin.types.KotlinType;
+import org.jetbrains.kotlin.types.SimpleType;
 import org.jetbrains.kotlin.types.TypeUtils;
+import org.jetbrains.kotlin.types.checker.KotlinTypeChecker;
 import org.jetbrains.org.objectweb.asm.Label;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 import org.jetbrains.org.objectweb.asm.Opcodes;
@@ -1021,7 +1023,7 @@ public class FunctionCodegen {
 
         boolean isSpecial = SpecialBuiltinMembers.getOverriddenBuiltinReflectingJvmDescriptor(descriptor) != null;
 
-        Set<Bridge<Method>> bridgesToGenerate;
+        Set<Bridge<Method, DescriptorBasedFunctionHandleForJvm>> bridgesToGenerate;
         if (!isSpecial) {
             bridgesToGenerate =
                     JvmBridgesImplKt.generateBridgesForFunctionDescriptorForJvm(descriptor, typeMapper::mapAsmMethod, state);
@@ -1030,22 +1032,24 @@ public class FunctionCodegen {
                 boolean isSpecialBridge =
                         BuiltinMethodsWithSpecialGenericSignature.getOverriddenBuiltinFunctionWithErasedValueParametersInJava(descriptor) != null;
 
-                for (Bridge<Method> bridge : bridgesToGenerate) {
-                    generateBridge(origin, descriptor, bridge.getFrom(), bridge.getTo(), isSpecialBridge, false);
+                for (Bridge<Method, DescriptorBasedFunctionHandleForJvm> bridge : bridgesToGenerate) {
+                    KotlinType bridgeReturnType = getBridgeReturnType(bridge);
+                    generateBridge(origin, descriptor, bridge.getFrom(), bridge.getTo(), bridgeReturnType, isSpecialBridge, false);
                 }
             }
         }
         else {
-            Set<BridgeForBuiltinSpecial<Method>> specials = BuiltinSpecialBridgesUtil.generateBridgesForBuiltinSpecial(
-                    descriptor, typeMapper::mapAsmMethod, state
-            );
+            Set<BridgeForBuiltinSpecial<Method>> specials =
+                    BuiltinSpecialBridgesUtil.generateBridgesForBuiltinSpecial(descriptor, typeMapper::mapAsmMethod, state);
 
             if (!specials.isEmpty()) {
                 PsiElement origin = descriptor.getKind() == DECLARATION ? getSourceFromDescriptor(descriptor) : null;
                 for (BridgeForBuiltinSpecial<Method> bridge : specials) {
                     generateBridge(
                             origin, descriptor, bridge.getFrom(), bridge.getTo(),
-                            bridge.isSpecial(), bridge.isDelegateToSuper());
+                            descriptor.getReturnType(), // TODO
+                            bridge.isSpecial(), bridge.isDelegateToSuper()
+                    );
                 }
             }
 
@@ -1060,6 +1064,20 @@ public class FunctionCodegen {
                 }
             }
         }
+    }
+
+    private KotlinType getBridgeReturnType(Bridge<Method, DescriptorBasedFunctionHandleForJvm> bridge) {
+        KotlinType result = state.getModule().getBuiltIns().getNullableAnyType();
+        for (DescriptorBasedFunctionHandleForJvm handle : bridge.getFromKotlin()) {
+            KotlinType returnType = handle.getDescriptor().getReturnType();
+            if (returnType == null) {
+                continue;
+            }
+            if (KotlinTypeChecker.DEFAULT.isSubtypeOf(returnType, result)) {
+                result = returnType;
+            }
+        }
+        return result;
     }
 
     public static boolean isThereOverriddenInKotlinClass(@NotNull CallableMemberDescriptor descriptor) {
@@ -1376,6 +1394,7 @@ public class FunctionCodegen {
             @NotNull FunctionDescriptor descriptor,
             @NotNull Method bridge,
             @NotNull Method delegateTo,
+            @NotNull KotlinType bridgeReturnType,
             boolean isSpecialBridge,
             boolean isStubDeclarationWithDelegationToSuper
     ) {
@@ -1452,7 +1471,7 @@ public class FunctionCodegen {
         }
 
         KotlinType returnType = descriptor.getReturnType();
-        StackValue.coerce(delegateTo.getReturnType(), returnType, bridge.getReturnType(), returnType, iv);
+        StackValue.coerce(delegateTo.getReturnType(), returnType, bridge.getReturnType(), bridgeReturnType, iv);
         iv.areturn(bridge.getReturnType());
 
         endVisit(mv, "bridge method", origin);

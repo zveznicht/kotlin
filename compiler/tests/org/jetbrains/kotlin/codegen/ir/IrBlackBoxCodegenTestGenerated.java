@@ -12626,6 +12626,59 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
             runTest("compiler/testData/codegen/box/inlineClasses/whenWithSubject.kt");
         }
 
+        @TestMetadata("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class BoxReturnValueOnOverride extends AbstractIrBlackBoxCodegenTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM_IR, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInBoxReturnValueOnOverride() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+            }
+
+            @TestMetadata("covariantOverrideErasedToAny.kt")
+            public void testCovariantOverrideErasedToAny() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/covariantOverrideErasedToAny.kt");
+            }
+
+            @TestMetadata("covariantOverrideErasedToInterface.kt")
+            public void testCovariantOverrideErasedToInterface() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/covariantOverrideErasedToInterface.kt");
+            }
+
+            @TestMetadata("covariantOverrideErasedToPrimitive.kt")
+            public void testCovariantOverrideErasedToPrimitive() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/covariantOverrideErasedToPrimitive.kt");
+            }
+
+            @TestMetadata("covariantOverrideListVsMutableList.kt")
+            public void testCovariantOverrideListVsMutableList() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/covariantOverrideListVsMutableList.kt");
+            }
+
+            @TestMetadata("covariantOverrideUnrelatedInterfaces.kt")
+            public void testCovariantOverrideUnrelatedInterfaces() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/covariantOverrideUnrelatedInterfaces.kt");
+            }
+
+            @TestMetadata("genericOverride.kt")
+            public void testGenericOverride() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/genericOverride.kt");
+            }
+
+            @TestMetadata("genericOverrideSpecialized.kt")
+            public void testGenericOverrideSpecialized() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/genericOverrideSpecialized.kt");
+            }
+
+            @TestMetadata("kt28483.kt")
+            public void testKt28483() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/kt28483.kt");
+            }
+        }
+
         @TestMetadata("compiler/testData/codegen/box/inlineClasses/callableReferences")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)
