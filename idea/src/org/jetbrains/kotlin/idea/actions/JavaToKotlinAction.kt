@@ -17,6 +17,8 @@
 package org.jetbrains.kotlin.idea.actions
 
 import com.intellij.codeInsight.navigation.NavigationUtil
+import com.intellij.diagnostic.*
+import com.intellij.icons.AllIcons
 import com.intellij.ide.highlighter.ArchiveFileType
 import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.ide.scratch.ScratchFileService
@@ -25,7 +27,10 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.command.CommandProcessor
+import com.intellij.openapi.diagnostic.ExceptionWithAttachments
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.Module
@@ -59,6 +64,7 @@ import org.jetbrains.kotlin.idea.util.isRunningInCidrIde
 import org.jetbrains.kotlin.j2k.*
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.UserDataProperty
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import java.io.IOException
 import java.util.*
@@ -221,6 +227,51 @@ class JavaToKotlinAction : AnAction() {
     }
 
     override fun actionPerformed(e: AnActionEvent) {
+        try {
+            performConversion(e)
+        } catch (exception: Throwable) {
+            val project = CommonDataKeys.PROJECT.getData(e.dataContext)
+            val report = Messages.showDialog(
+                project,
+                KotlinBundle.message("action.j2k.conversion.error.text"),
+                KotlinBundle.message("action.j2k.conversion.error.title"),
+                arrayOf(
+                    KotlinBundle.message("action.j2k.conversion.error.cancel"),
+                    KotlinBundle.message("action.j2k.conversion.error.report")
+                ),
+                1,
+                AllIcons.General.Error
+            ) == 1
+            if (report) {
+                reportException(exception)
+            }
+        }
+    }
+
+    private fun reportException(exception: Throwable) {
+        val messagePool = MessagePool.getInstance()
+        val logMessage = LogMessage.createEvent(
+            exception,
+            null,
+            *exception.safeAs<ExceptionWithAttachments>()?.attachments.orEmpty()
+        )
+        val listener = object : MessagePoolListener {
+            override fun entryWasRead() {}
+            override fun poolCleared() {}
+
+            override fun newEntryAdded() {
+                ApplicationManager.getApplication().invokeLater(
+                    { IdeMessagePanel(null, messagePool).openErrorsDialog(logMessage.data as? LogMessage) },
+                    ModalityState.NON_MODAL
+                )
+                messagePool.removeListener(this)
+            }
+        }
+        messagePool.addListener(listener)
+        messagePool.addIdeFatalMessage(logMessage)
+    }
+
+    private fun performConversion(e: AnActionEvent) {
         val javaFiles = selectedJavaFiles(e).filter { it.isWritable }.toList()
         val project = CommonDataKeys.PROJECT.getData(e.dataContext) ?: return
         val module = e.getData(LangDataKeys.MODULE) ?: return
@@ -311,3 +362,4 @@ class JavaToKotlinAction : AnAction() {
         return result
     }
 }
+
