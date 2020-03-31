@@ -10957,6 +10957,26 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             public void testKt28483() throws Exception {
                 runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/kt28483.kt");
             }
+
+            @TestMetadata("relatedReturnTypes1a.kt")
+            public void testRelatedReturnTypes1a() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/relatedReturnTypes1a.kt");
+            }
+
+            @TestMetadata("relatedReturnTypes1b.kt")
+            public void testRelatedReturnTypes1b() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/relatedReturnTypes1b.kt");
+            }
+
+            @TestMetadata("relatedReturnTypes2a.kt")
+            public void testRelatedReturnTypes2a() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/relatedReturnTypes2a.kt");
+            }
+
+            @TestMetadata("relatedReturnTypes2b.kt")
+            public void testRelatedReturnTypes2b() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/relatedReturnTypes2b.kt");
+            }
         }
 
         @TestMetadata("compiler/testData/codegen/box/inlineClasses/callableReferences")

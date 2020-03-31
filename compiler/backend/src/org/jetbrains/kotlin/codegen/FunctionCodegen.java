@@ -56,9 +56,7 @@ import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterKind;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterSignature;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature;
 import org.jetbrains.kotlin.types.KotlinType;
-import org.jetbrains.kotlin.types.SimpleType;
 import org.jetbrains.kotlin.types.TypeUtils;
-import org.jetbrains.kotlin.types.checker.KotlinTypeChecker;
 import org.jetbrains.org.objectweb.asm.Label;
 import org.jetbrains.org.objectweb.asm.MethodVisitor;
 import org.jetbrains.org.objectweb.asm.Opcodes;
@@ -70,6 +68,7 @@ import org.jetbrains.org.objectweb.asm.util.TraceMethodVisitor;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.jetbrains.kotlin.builtins.KotlinBuiltIns.isNullableAny;
 import static org.jetbrains.kotlin.codegen.AsmUtil.*;
@@ -1033,8 +1032,7 @@ public class FunctionCodegen {
                         BuiltinMethodsWithSpecialGenericSignature.getOverriddenBuiltinFunctionWithErasedValueParametersInJava(descriptor) != null;
 
                 for (Bridge<Method, DescriptorBasedFunctionHandleForJvm> bridge : bridgesToGenerate) {
-                    KotlinType bridgeReturnType = getBridgeReturnType(bridge);
-                    generateBridge(origin, descriptor, bridge.getFrom(), bridge.getTo(), bridgeReturnType, isSpecialBridge, false);
+                    generateBridge(origin, descriptor, bridge.getFrom(), bridge.getTo(), getBridgeReturnType(bridge), isSpecialBridge, false);
                 }
             }
         }
@@ -1067,17 +1065,32 @@ public class FunctionCodegen {
     }
 
     private KotlinType getBridgeReturnType(Bridge<Method, DescriptorBasedFunctionHandleForJvm> bridge) {
-        KotlinType result = state.getModule().getBuiltIns().getNullableAnyType();
-        for (DescriptorBasedFunctionHandleForJvm handle : bridge.getFromKotlin()) {
+        // Return type for the bridge affects inline class values boxing/unboxing in bridge.
+        // Here we take 1st available return type for the bridge.
+        // In correct cases it doesn't matter what particular return type to use,
+        // since either all return types are inline class itself,
+        // or all return types are supertypes of inline class (and can't be inline classes).
+
+        for (DescriptorBasedFunctionHandleForJvm handle : bridge.getOriginalFunctions()) {
             KotlinType returnType = handle.getDescriptor().getReturnType();
-            if (returnType == null) {
-                continue;
-            }
-            if (KotlinTypeChecker.DEFAULT.isSubtypeOf(returnType, result)) {
-                result = returnType;
+            if (returnType != null) {
+                return returnType;
             }
         }
-        return result;
+
+        if (state.getClassBuilderMode().mightBeIncorrectCode) {
+            // Don't care, 'Any?' would suffice.
+            return state.getModule().getBuiltIns().getNullableAnyType();
+        } else if (bridge.getOriginalFunctions().isEmpty()) {
+            throw new AssertionError("No overridden functions for the bridge method '" + bridge.getTo() + "'");
+        } else {
+            throw new AssertionError(
+                    "No return type for the bridge method '" + bridge.getTo() + "' found in the following overridden functions:\n" +
+                    bridge.getOriginalFunctions().stream()
+                            .map(handle -> handle.getDescriptor().toString())
+                            .collect(Collectors.joining("\n"))
+            );
+        }
     }
 
     public static boolean isThereOverriddenInKotlinClass(@NotNull CallableMemberDescriptor descriptor) {

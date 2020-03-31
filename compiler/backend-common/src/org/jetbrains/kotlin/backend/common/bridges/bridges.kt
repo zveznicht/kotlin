@@ -38,7 +38,7 @@ interface FunctionHandle {
 data class Bridge<out Signature, out Function : FunctionHandle>(
     val from: Signature,
     val to: Signature,
-    val fromKotlin: Set<Function>
+    val originalFunctions: Set<Function>
 ) {
     override fun toString() = "$from -> $to"
 }
