@@ -13863,6 +13863,11 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
                 runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/genericOverrideSpecialized.kt");
             }
 
+            @TestMetadata("inlineClassInOverriddenReturnTypes.kt")
+            public void testInlineClassInOverriddenReturnTypes() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/inlineClassInOverriddenReturnTypes.kt");
+            }
+
             @TestMetadata("kt28483.kt")
             public void testKt28483() throws Exception {
                 runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/kt28483.kt");
