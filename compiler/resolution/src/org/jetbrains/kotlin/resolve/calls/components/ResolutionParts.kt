@@ -237,6 +237,8 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
 
 internal object PostponedVariablesInitializerResolutionPart : ResolutionPart() {
     override fun KotlinResolutionCandidate.process(workIndex: Int) {
+        if (resolvedCall.freshVariablesSubstitutor.freshVariables.isEmpty()) return
+
         for ((argument, parameter) in resolvedCall.argumentToCandidateParameter) {
             if (!callComponents.statelessCallbacks.isCoroutineCall(argument, parameter)) continue
             val receiverType = parameter.type.getReceiverTypeFromFunctionType() ?: continue

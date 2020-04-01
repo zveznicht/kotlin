@@ -791,6 +791,9 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
         shouldApproximate: Boolean = true
     ): CallableDescriptor {
         val inferredTypeVariablesSubstitutor = substitutor ?: FreshVariableNewTypeSubstitutor.Empty
+        if (resolvedCallAtom.freshVariablesSubstitutor.isEmpty && inferredTypeVariablesSubstitutor.isEmpty && !shouldApproximate)
+            return this
+
         val compositeSubstitutor = inferredTypeVariablesSubstitutor.composeWith(resolvedCallAtom.knownParametersSubstitutor)
 
         return substitute(resolvedCallAtom.freshVariablesSubstitutor)

@@ -312,7 +312,7 @@ class KotlinConstraintSystemCompleter(
         collectVariablesFromContext: Boolean,
         topLevelAtoms: List<ResolvedAtom>
     ): List<TypeConstructorMarker> {
-        if (collectVariablesFromContext) return c.notFixedTypeVariables.keys.toList()
+        if (collectVariablesFromContext || !AbstractTypeChecker.RUN_SLOW_ASSERTIONS) return c.notFixedTypeVariables.keys.toList()
 
         fun ResolvedAtom.process(to: LinkedHashSet<TypeConstructor>) {
             val typeVariables = when (this) {

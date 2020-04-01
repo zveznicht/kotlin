@@ -28,8 +28,6 @@ class CompletionModeCalculator {
             returnType: UnwrappedType?,
             trivialConstraintTypeInferenceOracle: TrivialConstraintTypeInferenceOracle
         ): ConstraintSystemCompletionMode = with(candidate) {
-            val csCompleterContext = getSystem().asConstraintSystemCompleterContext()
-
             if (candidate.isErrorCandidate()) return ConstraintSystemCompletionMode.FULL
 
             // Presence of expected type means that we are trying to complete outermost call => completion mode should be full
@@ -43,7 +41,7 @@ class CompletionModeCalculator {
 
             // For nested call with variables in return type check possibility of full completion
             return CalculatorForNestedCall(
-                candidate, returnType, csCompleterContext, trivialConstraintTypeInferenceOracle
+                candidate, returnType, getSystem().asConstraintSystemCompleterContext(), trivialConstraintTypeInferenceOracle
             ).computeCompletionMode()
         }
     }

@@ -23,8 +23,10 @@ interface NewTypeSubstitutor: TypeSubstitutorMarker {
 
     val isEmpty: Boolean
 
-    private fun substitute(type: UnwrappedType, keepAnnotation: Boolean, runCapturedChecks: Boolean): UnwrappedType? =
-        when (type) {
+    private fun substitute(type: UnwrappedType, keepAnnotation: Boolean, runCapturedChecks: Boolean): UnwrappedType? {
+        if (isEmpty) return null
+
+        return when (type) {
             is SimpleType -> substitute(type, keepAnnotation, runCapturedChecks)
             is FlexibleType -> if (type is DynamicType || type is RawType) {
                 null
@@ -42,6 +44,7 @@ interface NewTypeSubstitutor: TypeSubstitutorMarker {
                 }
             }
         }
+    }
 
     private fun substitute(type: SimpleType, keepAnnotation: Boolean, runCapturedChecks: Boolean): UnwrappedType? {
         if (type.isError) return null
