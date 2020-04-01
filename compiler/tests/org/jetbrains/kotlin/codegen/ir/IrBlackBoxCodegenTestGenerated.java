@@ -12683,6 +12683,21 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
                 runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/kt28483.kt");
             }
 
+            @TestMetadata("kt31585.kt")
+            public void testKt31585() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/kt31585.kt");
+            }
+
+            @TestMetadata("kt35234.kt")
+            public void testKt35234() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/kt35234.kt");
+            }
+
+            @TestMetadata("kt35234a.kt")
+            public void testKt35234a() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/kt35234a.kt");
+            }
+
             @TestMetadata("relatedReturnTypes1a.kt")
             public void testRelatedReturnTypes1a() throws Exception {
                 runTest("compiler/testData/codegen/box/inlineClasses/boxReturnValueOnOverride/relatedReturnTypes1a.kt");
