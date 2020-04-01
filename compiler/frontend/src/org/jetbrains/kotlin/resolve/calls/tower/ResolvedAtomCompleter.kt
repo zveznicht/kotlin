@@ -122,7 +122,7 @@ class ResolvedAtomCompleter(
         }
 
         val resolutionContextForPartialCall =
-            topLevelCallContext.trace[BindingContext.PARTIAL_CALL_RESOLUTION_CONTEXT, resolvedCallAtom.atom.psiKotlinCall.psiCall]
+            topLevelCallContext.trace[BindingContext.PARTIAL_CALL_RESOLUTION_CONTEXT, resolvedCallAtom.atom.psiKotlinCall.psiCall]?.context
 
         val callCheckerContext = if (resolutionContextForPartialCall != null)
             CallCheckerContext(
@@ -141,6 +141,8 @@ class ResolvedAtomCompleter(
         kotlinToResolvedCallTransformer.runAdditionalReceiversCheckers(resolvedCall, topLevelCallContext)
 
         kotlinToResolvedCallTransformer.reportDiagnostics(topLevelCallContext, topLevelTrace, resolvedCall, diagnostics)
+
+        clearPartialContext(resolvedCallAtom)
 
         return resolvedCall
     }
@@ -167,6 +169,15 @@ class ResolvedAtomCompleter(
         val partialCallContainer = topLevelTrace[BindingContext.ONLY_RESOLVED_CALL, psiCall]
         if (partialCallContainer != null) {
             topLevelTrace.record(BindingContext.ONLY_RESOLVED_CALL, psiCall, PartialCallContainer.empty)
+        }
+    }
+
+    private fun clearPartialContext(resolvedCallAtom: ResolvedCallAtom) {
+        val psiCall = KotlinToResolvedCallTransformer.keyForPartiallyResolvedCall(resolvedCallAtom)
+
+        val partialCallContainer = topLevelTrace[BindingContext.PARTIAL_CALL_RESOLUTION_CONTEXT, psiCall]
+        if (partialCallContainer != null) {
+            topLevelTrace.record(BindingContext.PARTIAL_CALL_RESOLUTION_CONTEXT, psiCall, PartialContextContainer.EMPTY)
         }
     }
 

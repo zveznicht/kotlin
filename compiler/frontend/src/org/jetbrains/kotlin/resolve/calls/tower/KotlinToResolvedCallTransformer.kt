@@ -112,7 +112,7 @@ class KotlinToResolvedCallTransformer(
                 val psiCall = keyForPartiallyResolvedCall(candidate)
 
                 context.trace.record(BindingContext.ONLY_RESOLVED_CALL, psiCall, PartialCallContainer(baseResolvedCall))
-                context.trace.record(BindingContext.PARTIAL_CALL_RESOLUTION_CONTEXT, psiCall, context)
+                context.trace.record(BindingContext.PARTIAL_CALL_RESOLUTION_CONTEXT, psiCall, PartialContextContainer(context))
 
                 if (baseResolvedCall.forwardToInferenceSession) {
                     context.inferenceSession.addPartialCallInfo(
@@ -919,3 +919,8 @@ private fun CallableMemberDescriptor.isNotSimpleCall(): Boolean =
                 }
             } ?: false)
 
+class PartialContextContainer(val context: BasicCallResolutionContext?) {
+    companion object {
+        val EMPTY = PartialContextContainer(null)
+    }
+}
