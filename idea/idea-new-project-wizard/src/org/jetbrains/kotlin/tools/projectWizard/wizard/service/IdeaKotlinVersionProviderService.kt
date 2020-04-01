@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.tools.projectWizard.wizard.service
 
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.util.text.VersionComparatorUtil
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
@@ -25,7 +26,8 @@ import java.util.stream.Collectors
 
 class IdeaKotlinVersionProviderService : KotlinVersionProviderService, IdeaWizardService {
     override fun getKotlinVersion(): Version =
-        getKotlinVersionFromCompiler()
+        getPatchedKotlinVersion()
+            ?: getKotlinVersionFromCompiler()
             ?: VersionsDownloader.downloadLatestEapOrStableKotlinVersion()
             ?: Versions.KOTLIN
 
@@ -34,9 +36,17 @@ class IdeaKotlinVersionProviderService : KotlinVersionProviderService, IdeaWizar
             ?.takeUnless { it.contains(SNAPSHOT_TAG, ignoreCase = true) }
             ?.let { Version.fromString(it) }
 
+    private fun getPatchedKotlinVersion() =
+        System.getProperty(PATCHED_KOTLIN_VERSION_FOR_NEW_WIZARD_KEY, null)
+            ?.takeIf { ApplicationManager.getApplication().isInternal }
+            ?.let { Version.fromString(it) }
+
     companion object {
         @NonNls
         private const val SNAPSHOT_TAG = "snapshot"
+
+        @NonNls
+        private const val PATCHED_KOTLIN_VERSION_FOR_NEW_WIZARD_KEY = "kotlin.version.for.wizard"
     }
 }
 
