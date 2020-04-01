@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeConstructorMarker
 import org.jetbrains.kotlin.types.model.TypeVariableMarker
 import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
+import org.jetbrains.kotlin.utils.SmartList
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -439,7 +440,7 @@ class KotlinConstraintSystemCompleter(
                 }
             }
 
-            val notAnalyzedArguments = arrayListOf<PostponedResolvedAtom>()
+            val notAnalyzedArguments = SmartList<PostponedResolvedAtom>()
             for (primitive in topLevelAtoms) {
                 primitive.process(notAnalyzedArguments)
             }

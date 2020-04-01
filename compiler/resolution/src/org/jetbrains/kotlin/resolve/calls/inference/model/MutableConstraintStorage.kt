@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeConstructorMarker
 import org.jetbrains.kotlin.types.model.TypeVariableMarker
 import org.jetbrains.kotlin.types.typeUtil.unCapture
+import org.jetbrains.kotlin.utils.SmartList
 
 
 class MutableVariableWithConstraints private constructor(
@@ -139,5 +140,5 @@ internal class MutableConstraintStorage : ConstraintStorage {
     override val errors: MutableList<KotlinCallDiagnostic> = ArrayList()
     override val hasContradiction: Boolean get() = errors.any { !it.candidateApplicability.isSuccess }
     override val fixedTypeVariables: MutableMap<TypeConstructorMarker, KotlinTypeMarker> = LinkedHashMap()
-    override val postponedTypeVariables: ArrayList<TypeVariableMarker> = ArrayList()
+    override val postponedTypeVariables: MutableList<TypeVariableMarker> = SmartList()
 }
