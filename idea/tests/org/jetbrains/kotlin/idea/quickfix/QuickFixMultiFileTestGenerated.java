@@ -2583,6 +2583,11 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
                 public void testNoParenthesesAnnotation() throws Exception {
                     runTest("idea/testData/quickfix/deprecatedSymbolUsage/classUsages/wholeProject/noParenthesesAnnotation.before.Main.kt");
                 }
+
+                @TestMetadata("superTypeCall.before.Main.kt")
+                public void testSuperTypeCall() throws Exception {
+                    runTest("idea/testData/quickfix/deprecatedSymbolUsage/classUsages/wholeProject/superTypeCall.before.Main.kt");
+                }
             }
         }
 

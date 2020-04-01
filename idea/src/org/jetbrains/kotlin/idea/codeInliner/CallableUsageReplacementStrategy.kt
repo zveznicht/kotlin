@@ -36,12 +36,9 @@ class CallableUsageReplacementStrategy(
         val callElement = when (resolvedCall) {
             is VariableAsFunctionResolvedCall -> resolvedCall.variableCall.call.callElement
             else -> resolvedCall.call.callElement
-
         }
 
-        if (callElement !is KtExpression && callElement !is KtAnnotationEntry) {
-            return null
-        }
+        if (!CodeInliner.canBeReplaced(callElement)) return null
 
         //TODO: precheck pattern correctness for annotation entry
 

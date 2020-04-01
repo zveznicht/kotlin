@@ -135,9 +135,14 @@ class CodeInliner<TCallElement : KtElement>(
         val replacementPerformer = when (elementToBeReplaced) {
             is KtExpression -> ExpressionReplacementPerformer(codeToInline, elementToBeReplaced)
             is KtAnnotationEntry -> AnnotationEntryReplacementPerformer(codeToInline, elementToBeReplaced)
-            else -> error("Unsupported element")
+            is KtSuperTypeCallEntry -> SuperTypeCallEntryReplacementPerformer(codeToInline, elementToBeReplaced)
+            else -> {
+                assert(!canBeReplaced(elementToBeReplaced))
+                error("Unsupported element")
+            }
         }
 
+        assert(canBeReplaced(elementToBeReplaced))
         return replacementPerformer.doIt(postProcessing = { range ->
             val newRange = postProcessInsertedCode(range, lexicalScope)
             if (!newRange.isEmpty) {
@@ -619,5 +624,10 @@ class CodeInliner<TCallElement : KtElement>(
         // these keys are used on KtValueArgument
         private val MAKE_ARGUMENT_NAMED_KEY = Key<Unit>("MAKE_ARGUMENT_NAMED")
         private val DEFAULT_PARAMETER_VALUE_KEY = Key<Unit>("DEFAULT_PARAMETER_VALUE")
+
+        fun canBeReplaced(element: KtElement): Boolean = when (element) {
+            is KtExpression, is KtAnnotationEntry, is KtSuperTypeCallEntry -> true
+            else -> false
+        }
     }
 }
