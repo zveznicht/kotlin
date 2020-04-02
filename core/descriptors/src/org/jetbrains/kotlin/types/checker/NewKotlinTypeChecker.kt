@@ -30,9 +30,9 @@ import org.jetbrains.kotlin.types.AbstractTypeCheckerContext.SupertypesPolicy
 import org.jetbrains.kotlin.types.model.CaptureStatus
 import org.jetbrains.kotlin.types.typeUtil.makeNullable
 
-object SimpleClassicTypeSystemContext : ClassicTypeSystemContext
+object SimpleClassicTypeSystemContext : ClassicTypeSystemContext()
 
-class ClassicTypeSystemContextImpl(override val builtIns: KotlinBuiltIns) : ClassicTypeSystemContext
+class ClassicTypeSystemContextImpl(override val builtIns: KotlinBuiltIns) : ClassicTypeSystemContext()
 
 object StrictEqualityTypeChecker {
 

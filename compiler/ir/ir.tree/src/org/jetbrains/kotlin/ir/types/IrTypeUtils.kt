@@ -70,7 +70,7 @@ fun IrType.isSubtypeOf(superType: IrType, irBuiltIns: IrBuiltIns): Boolean {
 
 fun Collection<IrType>.commonSupertype(irBuiltIns: IrBuiltIns): IrType {
     return NewCommonSuperTypeCalculator.run {
-        IrTypeCheckerContext(irBuiltIns).commonSuperType(map { it }) as IrType
+        IrTypeSystemContext(irBuiltIns).commonSuperType(map { it }) as IrType
     }
 }
 

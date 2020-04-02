@@ -125,7 +125,7 @@ class ExpressionCodegen(
     override val inlineNameGenerator: NameGenerator = classCodegen.getRegeneratedObjectNameGenerator(irFunction)
 
     override val typeSystem: TypeSystemCommonBackendContext
-        get() = typeMapper.typeSystem
+        get() = typeMapper.typeSystem.baseContext
 
     override var lastLineNumber: Int = -1
 
@@ -1116,7 +1116,7 @@ class ExpressionCodegen(
 
         val mappings = TypeParameterMappings<IrType>()
         for ((key, type) in typeArguments.entries) {
-            val reificationArgument = typeMapper.typeSystem.extractReificationArgument(type)
+            val reificationArgument = typeMapper.typeSystem.baseContext.extractReificationArgument(type)
             if (reificationArgument == null) {
                 // type is not generic
                 val signatureWriter = BothSignatureWriter(BothSignatureWriter.Mode.TYPE)
@@ -1141,7 +1141,7 @@ class ExpressionCodegen(
             }
 
             override fun toKotlinType(type: IrType): KotlinType = type.toKotlinType()
-        }, IrTypeCheckerContext(context.irBuiltIns), state.languageVersionSettings)
+        }, IrTypeSystemContext(context.irBuiltIns), state.languageVersionSettings)
 
         return IrInlineCodegen(this, state, callee, methodOwner, signature, mappings, sourceCompiler, reifiedTypeInliner)
     }

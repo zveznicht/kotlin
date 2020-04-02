@@ -119,7 +119,7 @@ interface TypeSystemCommonSuperTypesContext : TypeSystemContext, TypeSystemTypeF
 // component implementation for TypeSystemInferenceExtensionContext
 interface TypeSystemInferenceExtensionContextDelegate : TypeSystemInferenceExtensionContext
 
-interface TypeSystemInferenceExtensionContext : TypeSystemContext, TypeSystemBuiltInsContext, TypeSystemCommonSuperTypesContext {
+interface TypeSystemInferenceExtensionContext : TypeSystemBuiltInsContext, TypeSystemCommonSuperTypesContext {
     fun KotlinTypeMarker.contains(predicate: (KotlinTypeMarker) -> Boolean): Boolean
 
     fun TypeConstructorMarker.isUnitTypeConstructor(): Boolean

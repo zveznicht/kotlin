@@ -20,9 +20,7 @@ import org.jetbrains.kotlin.types.checker.NewCapturedTypeConstructor
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 
-class ClassicTypeSystemContextForCS(override val builtIns: KotlinBuiltIns) : TypeSystemInferenceExtensionContextDelegate,
-    ClassicTypeSystemContext,
-    BuiltInsProvider {
+class ClassicTypeSystemContextForCS(override val builtIns: KotlinBuiltIns) : ClassicTypeSystemContext(), TypeSystemInferenceExtensionContextDelegate, BuiltInsProvider {
 
     override fun TypeVariableMarker.defaultType(): SimpleTypeMarker {
         require(this is NewTypeVariable, this::errorMessage)
@@ -82,8 +80,6 @@ class ClassicTypeSystemContextForCS(override val builtIns: KotlinBuiltIns) : Typ
         return StubType(typeVariable.freshTypeConstructor() as TypeConstructor, typeVariable.defaultType().isMarkedNullable())
     }
 }
-
-
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun Any?.errorMessage(): String {

@@ -161,7 +161,7 @@ class IrInlineCodegen(
                 expression.symbol.owner.typeParameters.map { it.symbol },
                 function.origin == IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER,
                 false,
-                codegen.typeMapper.typeSystem,
+                codegen.typeMapper.typeSystem.baseContext,
                 false
             )
         } finally {

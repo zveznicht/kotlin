@@ -140,25 +140,25 @@ class ConstraintInjector(
         type.typeDepth() <= maxTypeDepthFromInitialConstraints + ALLOWED_DEPTH_DELTA_FOR_INCORPORATION
 
     private inner class TypeCheckerContext(
-        val c: Context,
+        override val baseContext: Context,
         val position: IncorporationConstraintPosition,
         val baseLowerType: KotlinTypeMarker,
         val baseUpperType: KotlinTypeMarker,
         val addPossibleNewConstraints: (TypeVariableMarker, Constraint) -> Unit
-    ) : AbstractTypeCheckerContextForConstraintSystem(), ConstraintIncorporator.Context, TypeSystemInferenceExtensionContext by c {
+    ) : AbstractTypeCheckerContextForConstraintSystem(baseContext), ConstraintIncorporator.IncorporatorContext {
 
-        val baseContext: AbstractTypeCheckerContext = newBaseTypeCheckerContext(isErrorTypeEqualsToAnything, isStubTypeEqualsToAnything)
+        val baseTypeCheckerContext: AbstractTypeCheckerContext = baseContext.newBaseTypeCheckerContext(isErrorTypeEqualsToAnything, isStubTypeEqualsToAnything)
 
         override fun substitutionSupertypePolicy(type: SimpleTypeMarker): SupertypesPolicy {
-            return baseContext.substitutionSupertypePolicy(type)
+            return baseTypeCheckerContext.substitutionSupertypePolicy(type)
         }
 
         override fun areEqualTypeConstructors(a: TypeConstructorMarker, b: TypeConstructorMarker): Boolean {
-            return baseContext.areEqualTypeConstructors(a, b)
+            return baseTypeCheckerContext.areEqualTypeConstructors(a, b)
         }
 
         override fun prepareType(type: KotlinTypeMarker): KotlinTypeMarker {
-            return baseContext.prepareType(type)
+            return baseTypeCheckerContext.prepareType(type)
         }
 
         @OptIn(TypeRefinement::class)
@@ -177,7 +177,7 @@ class ConstraintInjector(
         ) {
             fun isSubtypeOf(upperType: KotlinTypeMarker) =
                 AbstractTypeChecker.isSubtypeOf(
-                    this@TypeCheckerContext as AbstractTypeCheckerContext,
+                    this,
                     lowerType,
                     upperType
                 )
@@ -190,19 +190,20 @@ class ConstraintInjector(
                      * It's necessary to solve constraint systems when flexibility isn't propagated through a type variable.
                      * It's OK in the old inference because it uses already substituted types, that are with the correct flexibility.
                      */
-                    val flexibleUpperType = createFlexibleType(upperType, upperType.withNullability(true))
+                    val flexibleUpperType = with(baseContext) { createFlexibleType(upperType, upperType.withNullability(true)) }
                     if (!isSubtypeOf(flexibleUpperType)) {
-                        c.addError(NewConstraintError(lowerType, flexibleUpperType, position))
+                        baseContext.addError(NewConstraintError(lowerType, flexibleUpperType, position))
                     }
                 } else {
-                    c.addError(NewConstraintError(lowerType, upperType, position))
+                    baseContext.addError(NewConstraintError(lowerType, upperType, position))
                 }
             }
         }
 
         // from AbstractTypeCheckerContextForConstraintSystem
-        override fun isMyTypeVariable(type: SimpleTypeMarker): Boolean =
-            type.mayBeTypeVariable() && c.allTypeVariables.containsKey(type.typeConstructor())
+        override fun isMyTypeVariable(type: SimpleTypeMarker): Boolean = with(baseContext) {
+            type.mayBeTypeVariable() && baseContext.allTypeVariables.containsKey(type.typeConstructor())
+        }
 
         override fun addUpperConstraint(typeVariable: TypeConstructorMarker, superType: KotlinTypeMarker) =
             addConstraint(typeVariable, superType, UPPER)
@@ -211,7 +212,7 @@ class ConstraintInjector(
             addConstraint(typeVariable, subType, LOWER)
 
         private fun isCapturedTypeFromSubtyping(type: KotlinTypeMarker) =
-            when ((type as? CapturedTypeMarker)?.captureStatus()) {
+            when ((type as? CapturedTypeMarker)?.captureStatus(baseContext)) {
                 null, CaptureStatus.FROM_EXPRESSION -> false
                 CaptureStatus.FOR_SUBTYPING -> true
                 CaptureStatus.FOR_INCORPORATION ->
@@ -219,8 +220,8 @@ class ConstraintInjector(
             }
 
         private fun addConstraint(typeVariableConstructor: TypeConstructorMarker, type: KotlinTypeMarker, kind: ConstraintKind) {
-            val typeVariable = c.allTypeVariables[typeVariableConstructor]
-                ?: error("Should by type variableConstructor: $typeVariableConstructor. ${c.allTypeVariables.values}")
+            val typeVariable = baseContext.allTypeVariables[typeVariableConstructor]
+                ?: error("Should by type variableConstructor: $typeVariableConstructor. ${baseContext.allTypeVariables.values}")
 
             addNewIncorporatedConstraint(typeVariable, type, ConstraintContext(kind, emptySet(), isNullabilityConstraint = false))
         }
@@ -232,7 +233,7 @@ class ConstraintInjector(
             shouldTryUseDifferentFlexibilityForUpperType: Boolean
         ) {
             if (lowerType === upperType) return
-            if (c.isAllowedType(lowerType) && c.isAllowedType(upperType)) {
+            if (baseContext.isAllowedType(lowerType) && baseContext.isAllowedType(upperType)) {
                 runIsSubtypeOf(lowerType, upperType, shouldTryUseDifferentFlexibilityForUpperType)
             }
         }
@@ -242,65 +243,67 @@ class ConstraintInjector(
             type: KotlinTypeMarker,
             constraintContext: ConstraintContext
         ) {
-            val (kind, derivedFrom, inputTypePosition, isNullabilityConstraint) = constraintContext
+            with(baseContext) {
+                val (kind, derivedFrom, inputTypePosition, isNullabilityConstraint) = constraintContext
 
-            var targetType = type
-            if (targetType.isUninferredParameter()) {
-                // there already should be an error, so there is no point in reporting one more
-                return
-            }
-
-            if (targetType.isError()) {
-                c.addError(ConstrainingTypeIsError(typeVariable, targetType, position))
-                return
-            }
-
-            if (type.contains(this::isCapturedTypeFromSubtyping)) {
-                // TypeVariable <: type -> if TypeVariable <: subType => TypeVariable <: type
-                if (kind == UPPER) {
-                    val subType =
-                        typeApproximator.approximateToSubType(type, TypeApproximatorConfiguration.SubtypeCapturedTypesApproximation)
-                    if (subType != null) {
-                        targetType = subType
-                    }
-                }
-
-                if (kind == LOWER) {
-                    val superType =
-                        typeApproximator.approximateToSuperType(type, TypeApproximatorConfiguration.SubtypeCapturedTypesApproximation)
-                    if (superType != null) { // todo rethink error reporting for Any cases
-                        targetType = superType
-                    }
-                }
-
-                if (targetType === type) {
-                    c.addError(CapturedTypeFromSubtyping(typeVariable, type, position))
+                var targetType = type
+                if (targetType.isUninferredParameter()) {
+                    // there already should be an error, so there is no point in reporting one more
                     return
                 }
-            }
 
-            val newConstraint = Constraint(
-                kind, targetType, position,
-                derivedFrom = derivedFrom,
-                isNullabilityConstraint = isNullabilityConstraint,
-                inputTypePositionBeforeIncorporation = inputTypePosition
-            )
-            addPossibleNewConstraints(typeVariable, newConstraint)
+                if (targetType.isError()) {
+                    baseContext.addError(ConstrainingTypeIsError(typeVariable, targetType, position))
+                    return
+                }
+
+                if (type.contains(::isCapturedTypeFromSubtyping)) {
+                    // TypeVariable <: type -> if TypeVariable <: subType => TypeVariable <: type
+                    if (kind == UPPER) {
+                        val subType =
+                            typeApproximator.approximateToSubType(type, TypeApproximatorConfiguration.SubtypeCapturedTypesApproximation)
+                        if (subType != null) {
+                            targetType = subType
+                        }
+                    }
+
+                    if (kind == LOWER) {
+                        val superType =
+                            typeApproximator.approximateToSuperType(type, TypeApproximatorConfiguration.SubtypeCapturedTypesApproximation)
+                        if (superType != null) { // todo rethink error reporting for Any cases
+                            targetType = superType
+                        }
+                    }
+
+                    if (targetType === type) {
+                        baseContext.addError(CapturedTypeFromSubtyping(typeVariable, type, position))
+                        return
+                    }
+                }
+
+                val newConstraint = Constraint(
+                    kind, targetType, position,
+                    derivedFrom = derivedFrom,
+                    isNullabilityConstraint = isNullabilityConstraint,
+                    inputTypePositionBeforeIncorporation = inputTypePosition
+                )
+                addPossibleNewConstraints(typeVariable, newConstraint)
+            }
         }
 
         override val allTypeVariablesWithConstraints: Collection<VariableWithConstraints>
-            get() = c.notFixedTypeVariables.values
+            get() = baseContext.notFixedTypeVariables.values
 
         override fun getTypeVariable(typeConstructor: TypeConstructorMarker): TypeVariableMarker? {
-            val typeVariable = c.allTypeVariables[typeConstructor]
-            if (typeVariable != null && !c.notFixedTypeVariables.containsKey(typeConstructor)) {
+            val typeVariable = baseContext.allTypeVariables[typeConstructor]
+            if (typeVariable != null && !baseContext.notFixedTypeVariables.containsKey(typeConstructor)) {
                 fixedTypeVariable(typeVariable)
             }
             return typeVariable
         }
 
         override fun getConstraintsForVariable(typeVariable: TypeVariableMarker) =
-            c.notFixedTypeVariables[typeVariable.freshTypeConstructor()]?.constraints
+            baseContext.notFixedTypeVariables[typeVariable.freshTypeConstructor(baseContext)]?.constraints
                 ?: fixedTypeVariable(typeVariable)
 
         fun fixedTypeVariable(variable: TypeVariableMarker): Nothing {

@@ -49,7 +49,7 @@ import org.jetbrains.org.objectweb.asm.commons.Method
 
 class MethodSignatureMapper(private val context: JvmBackendContext) {
     private val typeMapper: IrTypeMapper = context.typeMapper
-    private val typeSystem: IrTypeSystemContext = typeMapper.typeSystem
+    private val typeSystem: IrTypeSystemContext = typeMapper.typeSystem.baseContext
 
     fun mapAsmMethod(function: IrFunction): Method =
         mapSignatureSkipGeneric(function).asmMethod
