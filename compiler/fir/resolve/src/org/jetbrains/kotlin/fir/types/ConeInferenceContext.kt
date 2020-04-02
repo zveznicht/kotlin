@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.types
 
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.NoSubstitutor
 import org.jetbrains.kotlin.fir.resolve.substitution.AbstractConeSubstitutor
@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.types.AbstractTypeCheckerContext
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 
-interface ConeInferenceContext : TypeSystemInferenceExtensionContext, ConeTypeContext {
+class ConeInferenceContext(override val session: FirSession) : TypeSystemInferenceExtensionContext, ConeTypeContext {
 
     val symbolProvider: FirSymbolProvider get() = session.firSymbolProvider
 
@@ -90,7 +90,7 @@ interface ConeInferenceContext : TypeSystemInferenceExtensionContext, ConeTypeCo
         errorTypesEqualToAnything: Boolean,
         stubTypesEqualToAnything: Boolean
     ): AbstractTypeCheckerContext =
-        ConeTypeCheckerContext(errorTypesEqualToAnything, stubTypesEqualToAnything, session)
+        ConeTypeCheckerContext(this, errorTypesEqualToAnything, stubTypesEqualToAnything)
 
     override fun KotlinTypeMarker.canHaveUndefinedNullability(): Boolean {
         require(this is ConeKotlinType)
@@ -353,5 +353,12 @@ interface ConeInferenceContext : TypeSystemInferenceExtensionContext, ConeTypeCo
     override fun TypeConstructorMarker.getApproximatedIntegerLiteralType(): KotlinTypeMarker {
         require(this is ConeIntegerLiteralType)
         return this.getApproximatedType()
+    }
+
+    override fun createTypeWithAlternativeForIntersectionResult(
+        firstCandidate: KotlinTypeMarker,
+        secondCandidate: KotlinTypeMarker
+    ): KotlinTypeMarker {
+        TODO()
     }
 }

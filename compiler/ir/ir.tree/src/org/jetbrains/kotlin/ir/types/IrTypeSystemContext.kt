@@ -24,16 +24,14 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.types.AbstractTypeCheckerContext
 import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.checker.convertVariance
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.ir.types.isPrimitiveType as irTypePredicates_isPrimitiveType
 
-interface IrTypeSystemContext : TypeSystemContext, TypeSystemCommonSuperTypesContext, TypeSystemCommonBackendContext {
-
-    val irBuiltIns: IrBuiltIns
-
+class IrTypeSystemContext(val irBuiltIns: IrBuiltIns) : TypeSystemContext, TypeSystemCommonSuperTypesContext, TypeSystemCommonBackendContext {
     override val isErrorTypeAllowed: Boolean get() = true
 
     override fun KotlinTypeMarker.asSimpleType() = this as? SimpleTypeMarker
@@ -378,6 +376,20 @@ interface IrTypeSystemContext : TypeSystemContext, TypeSystemCommonSuperTypesCon
         val irClass = (this as IrType).classOrNull?.owner
         return irClass != null && (irClass.isInterface || irClass.isAnnotationClass)
     }
+
+    override fun newBaseTypeCheckerContext(
+        errorTypesEqualToAnything: Boolean,
+        stubTypesEqualToAnything: Boolean
+    ): AbstractTypeCheckerContext = IrTypeCheckerContext(this)
+
+    override fun KotlinTypeMarker.isUninferredParameter(): Boolean = false
+
+    override fun prepareType(type: KotlinTypeMarker): KotlinTypeMarker {
+        return type
+    }
+
+    override fun captureFromExpression(type: KotlinTypeMarker): KotlinTypeMarker? =
+        error("Captured type is unsupported in IR")
 }
 
 fun extractTypeParameters(klass: IrDeclarationParent): List<IrTypeParameter> {

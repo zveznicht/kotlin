@@ -85,7 +85,7 @@ class IrTypeMapper(private val context: JvmBackendContext) : KotlinTypeMapperBas
         if (sw.skipGenericSignature()) return
         with(KotlinTypeMapper) {
             for (typeParameter in irParameters) {
-                typeSystem.writeFormalTypeParameter(typeParameter.symbol, sw) { type, mode ->
+                typeSystem.baseContext.writeFormalTypeParameter(typeParameter.symbol, sw) { type, mode ->
                     mapType(type as IrType, mode, sw)
                 }
             }
@@ -120,7 +120,7 @@ class IrTypeMapper(private val context: JvmBackendContext) : KotlinTypeMapperBas
             return mapType(runtimeFunctionType, mode, sw)
         }
 
-        with(typeSystem) {
+        with(typeSystem.baseContext) {
             mapBuiltInType(type, AsmTypeFactory, mode)
         }?.let { builtInType ->
             return boxTypeIfNeeded(builtInType, mode.needPrimitiveBoxing).also { asmType ->
@@ -154,7 +154,7 @@ class IrTypeMapper(private val context: JvmBackendContext) : KotlinTypeMapperBas
 
             classifier is IrClass -> {
                 if (classifier.isInline && !mode.needInlineClassWrapping) {
-                    val expandedType = typeSystem.computeExpandedTypeForInlineClass(type) as IrType?
+                    val expandedType = typeSystem.baseContext.computeExpandedTypeForInlineClass(type) as IrType?
                     if (expandedType != null) {
                         return mapType(expandedType, mode.wrapInlineClassesMode(), sw)
                     }
@@ -212,7 +212,7 @@ class IrTypeMapper(private val context: JvmBackendContext) : KotlinTypeMapperBas
     }
 
     private fun hasNothingInNonContravariantPosition(irType: IrType): Boolean = with(KotlinTypeMapper) {
-        typeSystem.hasNothingInNonContravariantPosition(irType)
+        typeSystem.baseContext.hasNothingInNonContravariantPosition(irType)
     }
 
     private fun writeInnerParts(
@@ -258,7 +258,7 @@ class IrTypeMapper(private val context: JvmBackendContext) : KotlinTypeMapperBas
         parameters: List<IrTypeParameterSymbol>,
         mode: TypeMappingMode
     ) = with(KotlinTypeMapper) {
-        typeSystem.writeGenericArguments(sw, arguments, parameters, mode) { type, sw, mode ->
+        typeSystem.baseContext.writeGenericArguments(sw, arguments, parameters, mode) { type, sw, mode ->
             mapType(type as IrType, mode, sw)
         }
     }

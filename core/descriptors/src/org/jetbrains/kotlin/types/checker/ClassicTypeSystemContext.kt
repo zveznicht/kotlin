@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
-interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSystemCommonBackendContext {
+abstract class ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSystemCommonBackendContext {
     override val isErrorTypeAllowed: Boolean get() = true
 
     override fun TypeConstructorMarker.isDenotable(): Boolean {

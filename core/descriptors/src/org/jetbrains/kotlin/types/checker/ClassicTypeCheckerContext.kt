@@ -27,8 +27,9 @@ open class ClassicTypeCheckerContext(
     val errorTypeEqualsToAnything: Boolean,
     val stubTypeEqualsToAnything: Boolean = true,
     val allowedTypeVariable: Boolean = true,
-    val kotlinTypeRefiner: KotlinTypeRefiner = KotlinTypeRefiner.Default
-) : ClassicTypeSystemContext, AbstractTypeCheckerContext() {
+    val kotlinTypeRefiner: KotlinTypeRefiner = KotlinTypeRefiner.Default,
+    override val baseContext: ClassicTypeSystemContext = SimpleClassicTypeSystemContext
+) : AbstractTypeCheckerContext(baseContext) {
 
     override fun prepareType(type: KotlinTypeMarker): KotlinTypeMarker {
         require(type is KotlinType, type::errorMessage)
@@ -65,7 +66,7 @@ open class ClassicTypeCheckerContext(
     }
 
     override fun substitutionSupertypePolicy(type: SimpleTypeMarker): SupertypesPolicy.DoCustomTransform {
-        return classicSubstitutionSupertypePolicy(type)
+        return baseContext.classicSubstitutionSupertypePolicy(type)
     }
 
     override val KotlinTypeMarker.isAllowedTypeVariable: Boolean get() = this is UnwrappedType && allowedTypeVariable && constructor is NewTypeVariableConstructor

@@ -10,5 +10,6 @@ import org.jetbrains.kotlin.fir.types.ConeTypeCheckerContext
 import org.jetbrains.kotlin.fir.types.ConeTypeContext
 
 val FirSession.inferenceContext: ConeInferenceContext
-    get() = ConeTypeCheckerContext(isErrorTypeEqualsToAnything = false, isStubTypeEqualsToAnything = false, this)
+    get() = ConeInferenceContext(this)
+
 val FirSession.typeContext: ConeTypeContext get() = inferenceContext

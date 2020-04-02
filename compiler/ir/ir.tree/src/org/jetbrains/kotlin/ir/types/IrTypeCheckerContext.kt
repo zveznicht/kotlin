@@ -12,7 +12,10 @@ import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.SimpleTypeMarker
 import org.jetbrains.kotlin.types.model.TypeConstructorMarker
 
-class IrTypeCheckerContext(override val irBuiltIns: IrBuiltIns) : IrTypeSystemContext, AbstractTypeCheckerContext() {
+class IrTypeCheckerContext(override val baseContext: IrTypeSystemContext) : AbstractTypeCheckerContext(baseContext) {
+    constructor(irBuiltIns: IrBuiltIns) : this(IrTypeSystemContext(irBuiltIns))
+
+    private val irBuiltIns: IrBuiltIns = baseContext.irBuiltIns
 
     override fun substitutionSupertypePolicy(type: SimpleTypeMarker): SupertypesPolicy.DoCustomTransform {
         require(type is IrSimpleType)
@@ -27,21 +30,11 @@ class IrTypeCheckerContext(override val irBuiltIns: IrBuiltIns) : IrTypeSystemCo
         }
     }
 
-    override fun areEqualTypeConstructors(a: TypeConstructorMarker, b: TypeConstructorMarker) = super.isEqualTypeConstructors(a, b)
+    override fun areEqualTypeConstructors(a: TypeConstructorMarker, b: TypeConstructorMarker) = baseContext.isEqualTypeConstructors(a, b)
 
     override val isErrorTypeEqualsToAnything get() = false
     override val isStubTypeEqualsToAnything get() = false
 
     override val KotlinTypeMarker.isAllowedTypeVariable: Boolean
         get() = false
-
-    override fun newBaseTypeCheckerContext(
-        errorTypesEqualToAnything: Boolean,
-        stubTypesEqualToAnything: Boolean
-    ): AbstractTypeCheckerContext = IrTypeCheckerContext(irBuiltIns)
-
-    override fun KotlinTypeMarker.isUninferredParameter(): Boolean = false
-
-    override fun captureFromExpression(type: KotlinTypeMarker): KotlinTypeMarker? =
-        error("Captured type is unsupported in IR")
 }

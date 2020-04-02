@@ -13,10 +13,7 @@ import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
 import org.jetbrains.kotlin.fir.scopes.FirOverrideChecker
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.symbols.impl.*
-import org.jetbrains.kotlin.fir.types.ConeFlexibleType
-import org.jetbrains.kotlin.fir.types.ConeKotlinType
-import org.jetbrains.kotlin.fir.types.ConeTypeCheckerContext
-import org.jetbrains.kotlin.fir.types.coneTypeSafe
+import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext
@@ -36,7 +33,7 @@ class FirSuperTypeScope private constructor(
 
     private val absentClassifiers = mutableSetOf<Name>()
 
-    private val typeContext = ConeTypeCheckerContext(isErrorTypeEqualsToAnything = false, isStubTypeEqualsToAnything = false, session)
+    private val typeContext = ConeTypeCheckerContext(ConeInferenceContext(session), isErrorTypeEqualsToAnything = false, isStubTypeEqualsToAnything = false)
 
     override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> Unit) {
         if (!processCallablesByName(name, processor, absentFunctions, FirScope::processFunctionsByName)) {
