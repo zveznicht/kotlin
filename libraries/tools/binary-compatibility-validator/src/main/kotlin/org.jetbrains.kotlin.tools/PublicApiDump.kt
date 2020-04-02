@@ -97,8 +97,8 @@ fun List<ClassBinarySignature>.filterOutNonPublic(nonPublicPackages: List<String
 fun List<ClassBinarySignature>.dump() = dump(to = System.out)
 
 fun <T : Appendable> List<ClassBinarySignature>.dump(to: T): T = to.apply { this@dump.forEach {
-        append(it.signature).appendln(" {")
-        it.memberSignatures.sortedWith(MEMBER_SORT_ORDER).forEach { append("\t").appendln(it.signature) }
-        appendln("}\n")
+        append(it.signature).appendLine(" {")
+        it.memberSignatures.sortedWith(MEMBER_SORT_ORDER).forEach { append("\t").appendLine(it.signature) }
+        appendLine("}\n")
 }}
 

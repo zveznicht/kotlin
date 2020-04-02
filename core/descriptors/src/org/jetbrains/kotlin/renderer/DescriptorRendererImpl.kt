@@ -416,7 +416,7 @@ internal class DescriptorRendererImpl(
             if (annotation.fqName !in excluded && (annotationFilter == null || annotationFilter(annotation))) {
                 append(renderAnnotation(annotation, target))
                 if (eachAnnotationOnNewLine) {
-                    appendln()
+                    appendLine()
                 } else {
                     append(" ")
                 }

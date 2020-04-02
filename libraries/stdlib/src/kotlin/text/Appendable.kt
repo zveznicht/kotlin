@@ -65,6 +65,21 @@ public fun <T : Appendable> T.append(vararg value: CharSequence?): T {
     return this
 }
 
+/** Appends a linefeed character (`\n`) to this Appendable. */
+@SinceKotlin("1.4")
+@kotlin.internal.InlineOnly
+public inline fun Appendable.appendLine(): Appendable = append('\n')
+
+/** Appends value to the given Appendable and a linefeed character (`\n`) after it. */
+@SinceKotlin("1.4")
+@kotlin.internal.InlineOnly
+public inline fun Appendable.appendLine(value: CharSequence?): Appendable = append(value).appendLine()
+
+/** Appends value to the given Appendable and a linefeed character (`\n`) after it. */
+@SinceKotlin("1.4")
+@kotlin.internal.InlineOnly
+public inline fun Appendable.appendLine(value: Char): Appendable = append(value).appendLine()
+
 
 internal fun <T> Appendable.appendElement(element: T, transform: ((T) -> CharSequence)?) {
     when {
