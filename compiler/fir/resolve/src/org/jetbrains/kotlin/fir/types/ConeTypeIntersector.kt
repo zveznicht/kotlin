@@ -11,7 +11,7 @@ import kotlin.collections.LinkedHashSet
 
 object ConeTypeIntersector {
     fun intersectTypes(
-        context: ConeInferenceContext,
+        context: ConeTypeContext,
         types: List<ConeKotlinType>
     ): ConeKotlinType {
         when (types.size) {

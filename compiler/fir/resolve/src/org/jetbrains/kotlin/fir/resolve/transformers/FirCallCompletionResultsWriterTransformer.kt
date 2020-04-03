@@ -156,7 +156,7 @@ class FirCallCompletionResultsWriterTransformer(
         val typeArguments = computeTypeArguments(functionCall, subCandidate)
         val typeRef = typeCalculator.tryCalculateReturnType(declaration).let {
             if (functionCall.safe) {
-                val nullableType = it.coneTypeUnsafe<ConeKotlinType>().withNullability(ConeNullability.NULLABLE, session.inferenceContext)
+                val nullableType = it.coneTypeUnsafe<ConeKotlinType>().withNullability(ConeNullability.NULLABLE, session.typeContext)
                 it.withReplacedConeType(nullableType)
             } else {
                 it

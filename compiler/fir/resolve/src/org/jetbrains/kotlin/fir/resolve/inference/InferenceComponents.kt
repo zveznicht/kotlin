@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.fir.PrivateForInline
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.transformers.ReturnTypeCalculator
 import org.jetbrains.kotlin.fir.types.ConeClassErrorType
-import org.jetbrains.kotlin.fir.types.ConeInferenceContext
+import org.jetbrains.kotlin.fir.types.ConeTypeContext
 import org.jetbrains.kotlin.resolve.calls.inference.components.ConstraintIncorporator
 import org.jetbrains.kotlin.resolve.calls.inference.components.ConstraintInjector
 import org.jetbrains.kotlin.resolve.calls.inference.components.ResultTypeResolver
@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.types.checker.KotlinTypeRefiner
 import org.jetbrains.kotlin.types.model.SimpleTypeMarker
 
 class InferenceComponents(
-    val ctx: ConeInferenceContext,
+    val ctx: ConeTypeContext,
     val session: FirSession,
     val returnTypeCalculator: ReturnTypeCalculator,
     val scopeSession: ScopeSession

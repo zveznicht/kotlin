@@ -33,7 +33,7 @@ class FirSuperTypeScope private constructor(
 
     private val absentClassifiers = mutableSetOf<Name>()
 
-    private val typeContext = ConeTypeCheckerContext(ConeInferenceContext(session), isErrorTypeEqualsToAnything = false, isStubTypeEqualsToAnything = false)
+    private val typeContext = ConeTypeCheckerContext(ConeTypeContext(session), isErrorTypeEqualsToAnything = false, isStubTypeEqualsToAnything = false)
 
     override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> Unit) {
         if (!processCallablesByName(name, processor, absentFunctions, FirScope::processFunctionsByName)) {

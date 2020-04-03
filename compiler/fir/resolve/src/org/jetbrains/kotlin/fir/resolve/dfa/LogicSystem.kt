@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.fir.resolve.dfa
 
-import org.jetbrains.kotlin.fir.types.ConeInferenceContext
+import org.jetbrains.kotlin.fir.types.ConeTypeContext
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.commonSuperTypeOrNull
 
@@ -23,7 +23,7 @@ fun Flow.unwrapVariable(variable: RealVariable): RealVariable {
     return directAliasMap[variable] ?: variable
 }
 
-abstract class LogicSystem<FLOW : Flow>(protected val context: ConeInferenceContext) {
+abstract class LogicSystem<FLOW : Flow>(protected val context: ConeTypeContext) {
     // ------------------------------- Flow operations -------------------------------
 
     abstract fun createEmptyFlow(): FLOW
