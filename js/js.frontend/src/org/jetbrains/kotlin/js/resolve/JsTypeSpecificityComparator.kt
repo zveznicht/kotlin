@@ -17,14 +17,10 @@
 package org.jetbrains.kotlin.js.resolve
 
 import org.jetbrains.kotlin.resolve.calls.results.TypeSpecificityComparator
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlin.types.isDynamic
-import org.jetbrains.kotlin.types.isFlexible
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContext
-import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContextDelegate
 
-class JsTypeSpecificityComparator(val context: TypeSystemInferenceExtensionContextDelegate) : TypeSpecificityComparator {
+class JsTypeSpecificityComparator(val context: TypeSystemInferenceExtensionContext) : TypeSpecificityComparator {
 
     private fun TypeSystemInferenceExtensionContext.checkOnlyDynamicFlexibleType(type: KotlinTypeMarker) {
         if (type.asFlexibleType() != null) {

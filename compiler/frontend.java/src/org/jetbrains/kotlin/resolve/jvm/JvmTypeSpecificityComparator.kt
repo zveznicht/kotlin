@@ -18,9 +18,9 @@ package org.jetbrains.kotlin.resolve.jvm
 
 import org.jetbrains.kotlin.resolve.calls.results.TypeSpecificityComparator
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
-import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContextDelegate
+import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContext
 
-class JvmTypeSpecificityComparator(val context: TypeSystemInferenceExtensionContextDelegate) : TypeSpecificityComparator {
+class JvmTypeSpecificityComparator(val context: TypeSystemInferenceExtensionContext) : TypeSpecificityComparator {
 
     override fun isDefinitelyLessSpecific(specific: KotlinTypeMarker, general: KotlinTypeMarker): Boolean = with(context) {
         val simpleGeneral = general.asSimpleType()
