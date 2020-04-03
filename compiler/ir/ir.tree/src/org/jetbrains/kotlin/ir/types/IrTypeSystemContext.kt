@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.types.checker.convertVariance
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.ir.types.isPrimitiveType as irTypePredicates_isPrimitiveType
 
-class IrTypeSystemContext(val irBuiltIns: IrBuiltIns) : TypeSystemContext, TypeSystemCommonSuperTypesContext, TypeSystemCommonBackendContext {
+class IrTypeSystemContext(val irBuiltIns: IrBuiltIns) : TypeSystemCommonSuperTypesContext(), TypeSystemCommonBackendContext {
     override val baseContext: TypeSystemContext
         get() = this
 

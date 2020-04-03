@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.types.checker.NewCapturedTypeConstructor
 import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.utils.addToStdlib.cast
 
-class ClassicTypeSystemContextForCS(override val builtIns: KotlinBuiltIns) : ClassicTypeSystemContext(), TypeSystemInferenceExtensionContext, BuiltInsProvider {
+class ClassicTypeSystemContextForCS(override val builtIns: KotlinBuiltIns) : ClassicTypeSystemContext(), BuiltInsProvider {
 
     override fun TypeVariableMarker.defaultType(): SimpleTypeMarker {
         require(this is NewTypeVariable, this::errorMessage)
