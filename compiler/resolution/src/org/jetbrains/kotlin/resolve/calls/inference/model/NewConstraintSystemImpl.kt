@@ -29,7 +29,7 @@ class NewConstraintSystemImpl(
     NewConstraintSystem,
     ConstraintSystemBuilder,
     ConstraintInjector.Context,
-    ResultTypeResolver.ResultTypeResolverContext,
+    ResultTypeResolver.Context,
     KotlinConstraintSystemCompleter.Context,
     PostponedArgumentsAnalyzer.Context
 {

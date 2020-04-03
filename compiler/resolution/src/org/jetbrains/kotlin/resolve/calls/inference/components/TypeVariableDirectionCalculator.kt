@@ -110,7 +110,7 @@ class TypeVariableDirectionCalculator(
     ) = when (this) {
         is SimpleTypeMarker -> visitType(startDirection, action)
         is FlexibleTypeMarker -> {
-            with(c) {
+            with(c.baseContext) {
                 lowerBound().visitType(startDirection, action)
                 upperBound().visitType(startDirection, action)
             }
@@ -121,7 +121,7 @@ class TypeVariableDirectionCalculator(
     private fun SimpleTypeMarker.visitType(
         startDirection: ResolveDirection,
         action: (variable: Variable, direction: ResolveDirection) -> Unit
-    ): Unit = with(c) {
+    ): Unit = with(c.baseContext) {
         val constructor = typeConstructor()
         if (constructor.isIntersection()) {
             constructor.supertypes().forEach {

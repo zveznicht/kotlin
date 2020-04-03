@@ -325,9 +325,9 @@ internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
             }
 
             upperBounds.mapNotNull { constraint ->
-                if (constraint.type.typeConstructor(context) != variable) {
+                if (constraint.type.typeConstructor(context.baseContext) != variable) {
                     val suitableUpperBound = upperBounds.find { upperBound ->
-                        with(context) { upperBound.type.contains { it.typeConstructor() == variable } }
+                        with(context.baseContext) { upperBound.type.contains { it.typeConstructor() == variable } }
                     }?.type
 
                     if (suitableUpperBound != null) typeConstructor to suitableUpperBound else null
@@ -362,7 +362,7 @@ internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
     private fun NewConstraintSystem.getDependingOnTypeParameter(variable: TypeConstructor) =
         getBuilder().currentStorage().notFixedTypeVariables[variable]?.constraints?.mapNotNull {
             if (it.position.from is DeclaredUpperBoundConstraintPosition && it.kind == ConstraintKind.UPPER) {
-                it.type.typeConstructor(asConstraintSystemCompleterContext())
+                it.type.typeConstructor(asConstraintSystemCompleterContext().baseContext)
             } else null
         } ?: emptyList()
 
@@ -384,7 +384,7 @@ internal object CollectionTypeVariableUsagesInfo : ResolutionPart() {
             isContainedInInvariantOrContravariantPositionsAmongUpperBound(typeVariableConstructor, dependentTypeParameters)
         val isContainedAnyDependentTypeInReturnType = dependentTypeParameters.any { (typeParameter, _) ->
             returnType.contains {
-                it.typeConstructor(asConstraintSystemCompleterContext()) == getTypeParameterByVariable(typeParameter) && !it.isMarkedNullable
+                it.typeConstructor(asConstraintSystemCompleterContext().baseContext) == getTypeParameterByVariable(typeParameter) && !it.isMarkedNullable
             }
         }
 
