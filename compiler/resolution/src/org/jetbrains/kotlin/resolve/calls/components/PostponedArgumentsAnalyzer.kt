@@ -25,7 +25,9 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 class PostponedArgumentsAnalyzer(
     private val callableReferenceResolver: CallableReferenceResolver
 ) {
-    interface Context : TypeSystemInferenceExtensionContext {
+    interface Context {
+        val baseContext: TypeSystemInferenceExtensionContext
+
         fun buildCurrentSubstitutor(additionalBindings: Map<TypeConstructorMarker, StubTypeMarker>): TypeSubstitutorMarker
         fun buildNotFixedVariablesToStubTypesSubstitutor(): TypeSubstitutorMarker
         fun bindingStubsForPostponedVariables(): Map<TypeVariableMarker, StubTypeMarker>
@@ -72,9 +74,9 @@ class PostponedArgumentsAnalyzer(
         diagnosticHolder: KotlinDiagnosticsHolder
     ) {
         val stubsForPostponedVariables = c.bindingStubsForPostponedVariables()
-        val currentSubstitutor = c.buildCurrentSubstitutor(stubsForPostponedVariables.mapKeys { it.key.freshTypeConstructor(c) })
+        val currentSubstitutor = c.buildCurrentSubstitutor(stubsForPostponedVariables.mapKeys { it.key.freshTypeConstructor(c.baseContext) })
 
-        fun substitute(type: UnwrappedType) = currentSubstitutor.safeSubstitute(c, type) as UnwrappedType
+        fun substitute(type: UnwrappedType) = currentSubstitutor.safeSubstitute(c.baseContext, type) as UnwrappedType
 
         // Expected type has a higher priority against which lambda should be analyzed
         // Mostly, this is needed to report more specific diagnostics on lambda parameters
@@ -178,7 +180,7 @@ class PostponedArgumentsAnalyzer(
                 val variable = variableWithConstraints.typeVariable
 
                 c.getBuilder().unmarkPostponedVariable(variable)
-                c.getBuilder().addEqualityConstraint(variable.defaultType(c), resultType, CoroutinePosition())
+                c.getBuilder().addEqualityConstraint(variable.defaultType(c.baseContext), resultType, CoroutinePosition())
             }
         }
     }
