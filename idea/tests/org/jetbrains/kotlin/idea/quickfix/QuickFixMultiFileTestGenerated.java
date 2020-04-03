@@ -2805,6 +2805,19 @@ public class QuickFixMultiFileTestGenerated extends AbstractQuickFixMultiFileTes
             public void testPlatformType() throws Exception {
                 runTest("idea/testData/quickfix/deprecatedSymbolUsage/typeArguments/platformType.before.Main.kt");
             }
+
+            @TestMetadata("idea/testData/quickfix/deprecatedSymbolUsage/typeArguments/wholeProject")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class WholeProject extends AbstractQuickFixMultiFileTest {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest(this::doTestWithExtraFile, this, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInWholeProject() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/testData/quickfix/deprecatedSymbolUsage/typeArguments/wholeProject"), Pattern.compile("^(\\w+)\\.((before\\.Main\\.\\w+)|(test))$"), null, true);
+                }
+            }
         }
 
         @TestMetadata("idea/testData/quickfix/deprecatedSymbolUsage/vararg")
