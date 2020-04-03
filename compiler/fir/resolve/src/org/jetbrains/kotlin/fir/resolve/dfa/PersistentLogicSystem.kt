@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.fir.resolve.dfa
 
 import com.google.common.collect.ArrayListMultimap
 import kotlinx.collections.immutable.*
-import org.jetbrains.kotlin.fir.types.ConeInferenceContext
+import org.jetbrains.kotlin.fir.types.ConeTypeContext
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import java.util.*
 import kotlin.NoSuchElementException
@@ -95,7 +95,7 @@ class PersistentFlow : Flow {
     }
 }
 
-abstract class PersistentLogicSystem(context: ConeInferenceContext) : LogicSystem<PersistentFlow>(context) {
+abstract class PersistentLogicSystem(context: ConeTypeContext) : LogicSystem<PersistentFlow>(context) {
     override fun createEmptyFlow(): PersistentFlow {
         return PersistentFlow()
     }

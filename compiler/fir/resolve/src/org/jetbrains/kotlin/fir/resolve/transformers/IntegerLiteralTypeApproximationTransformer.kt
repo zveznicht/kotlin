@@ -31,7 +31,7 @@ import org.jetbrains.kotlin.types.AbstractTypeChecker
 
 class IntegerLiteralTypeApproximationTransformer(
     private val symbolProvider: FirSymbolProvider,
-    private val inferenceContext: ConeInferenceContext
+    private val typeContext: ConeTypeContext
 ) : FirTransformer<ConeKotlinType?>() {
     override fun <E : FirElement> transformElement(element: E, data: ConeKotlinType?): CompositeTransformResult<E> {
         return element.compose()
@@ -67,7 +67,7 @@ class IntegerLiteralTypeApproximationTransformer(
             }
             val function = symbol.fir
             val valueParameterType = function.valueParameters.first().returnTypeRef.coneTypeUnsafe<ConeClassLikeType>()
-            if (AbstractTypeChecker.isSubtypeOf(inferenceContext, argumentType!!, valueParameterType)) {
+            if (AbstractTypeChecker.isSubtypeOf(typeContext, argumentType!!, valueParameterType)) {
                 resultSymbol = symbol
                 return@processFunctionsByName
             }

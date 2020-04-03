@@ -31,7 +31,6 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.fir.symbols.invoke
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.*
-import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
@@ -349,7 +348,7 @@ class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransformer) :
                 resolved.resultType =
                     conversionTypeRef.withReplacedConeType(
                         conversionTypeRef.coneTypeUnsafe<ConeKotlinType>().withNullability(
-                            ConeNullability.NULLABLE, session.inferenceContext,
+                            ConeNullability.NULLABLE, session.typeContext,
                         ),
                     )
             }

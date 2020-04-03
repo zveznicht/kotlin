@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.fir.declarations.FirAnonymousFunction
 import org.jetbrains.kotlin.fir.declarations.FirFunction
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.*
-import org.jetbrains.kotlin.fir.inferenceContext
+import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.fullyExpandedType
 import org.jetbrains.kotlin.fir.resolve.inference.isBuiltinFunctionalType
@@ -129,7 +129,7 @@ private fun Candidate.resolveBlockArgument(
             SimpleConstraintSystemConstraintPosition,
             isReceiver = false,
             isDispatch = false,
-            nullableExpectedType = expectedType.type.withNullability(ConeNullability.NULLABLE, sink.components.session.inferenceContext),
+            nullableExpectedType = expectedType.type.withNullability(ConeNullability.NULLABLE, sink.components.session.typeContext),
             sink = sink
         )
         return
@@ -215,7 +215,7 @@ fun Candidate.resolvePlainArgumentType(
     val session = sink.components.session
     val capturedType = prepareCapturedType(argumentType)
 
-    val nullableExpectedType = expectedType.withNullability(ConeNullability.NULLABLE, session.inferenceContext)
+    val nullableExpectedType = expectedType.withNullability(ConeNullability.NULLABLE, session.typeContext)
     if (isReceiver && isSafeCall) {
         if (!isDispatch && !csBuilder.addSubtypeConstraintIfCompatible(capturedType, nullableExpectedType, position)) {
             sink.reportApplicability(CandidateApplicability.WRONG_RECEIVER) // TODO

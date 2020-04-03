@@ -242,7 +242,7 @@ private fun ConeClassLikeType.mapToCanonicalNoExpansionString(session: FirSessio
         } + "[]"
     }
 
-    val context = ConeInferenceContext(session)
+    val context = ConeTypeContext(session)
 
     with(context) {
         val typeConstructor = typeConstructor()

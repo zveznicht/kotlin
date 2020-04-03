@@ -27,7 +27,7 @@ object ConeNullabilityChecker {
     }
 }
 
-fun ConeInferenceContext.commonSuperTypeOrNull(types: List<ConeKotlinType>): ConeKotlinType? {
+fun ConeTypeContext.commonSuperTypeOrNull(types: List<ConeKotlinType>): ConeKotlinType? {
     return when (types.size) {
         0 -> null
         1 -> types.first()
@@ -37,7 +37,7 @@ fun ConeInferenceContext.commonSuperTypeOrNull(types: List<ConeKotlinType>): Con
     }
 }
 
-fun ConeInferenceContext.intersectTypesOrNull(types: List<ConeKotlinType>): ConeKotlinType? {
+fun ConeTypeContext.intersectTypesOrNull(types: List<ConeKotlinType>): ConeKotlinType? {
     return when (types.size) {
         0 -> null
         1 -> types.first()
@@ -114,7 +114,7 @@ fun ConeTypeContext.hasNullableSuperType(type: ConeKotlinType): Boolean {
     return false
 }
 
-fun <T : ConeKotlinType> T.withNullability(nullability: ConeNullability, typeContext: ConeInferenceContext? = null): T {
+fun <T : ConeKotlinType> T.withNullability(nullability: ConeNullability, typeContext: ConeTypeContext? = null): T {
     if (this.nullability == nullability) {
         return this
     }
@@ -152,7 +152,7 @@ fun <T : ConeKotlinType> T.withNullability(nullability: ConeNullability, typeCon
 }
 
 fun coneFlexibleOrSimpleType(
-    typeContext: ConeInferenceContext?,
+    typeContext: ConeTypeContext?,
     lowerBound: ConeKotlinType,
     upperBound: ConeKotlinType,
 ): ConeKotlinType {

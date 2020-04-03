@@ -60,7 +60,7 @@ class Fir2IrVisitor(
         private val UNARY_OPERATIONS: Set<FirOperation> = EnumSet.of(FirOperation.EXCL)
     }
 
-    private val integerApproximator = IntegerLiteralTypeApproximationTransformer(session.firSymbolProvider, session.inferenceContext)
+    private val integerApproximator = IntegerLiteralTypeApproximationTransformer(session.firSymbolProvider, session.typeContext)
 
     private val conversionScope = Fir2IrConversionScope()
 
