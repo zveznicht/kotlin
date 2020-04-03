@@ -93,7 +93,7 @@ class ConstraintSystemCompleter(private val components: BodyResolveComponents) {
         val hasProperAtom = postponedAtoms.any {
             when (it) {
                 is LambdaWithTypeVariableAsExpectedTypeAtom/*, is PostponedCallableReferenceAtom*/
-                -> it.expectedType.typeConstructor(c) == variable // TODO
+                -> it.expectedType.typeConstructor(c.baseContext) == variable // TODO
                 else -> false
             }
         }

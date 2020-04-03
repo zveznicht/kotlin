@@ -31,7 +31,9 @@ import org.jetbrains.kotlin.types.model.TypeVariableMarker
 class VariableFixationFinder(
     private val trivialConstraintTypeInferenceOracle: TrivialConstraintTypeInferenceOracle
 ) {
-    interface Context : TypeSystemInferenceExtensionContext {
+    interface Context {
+        val baseContext: TypeSystemInferenceExtensionContext
+
         val notFixedTypeVariables: Map<TypeConstructorMarker, VariableWithConstraints>
         val postponedTypeVariables: List<TypeVariableMarker>
         fun isReified(variable: TypeVariableMarker): Boolean
@@ -80,7 +82,7 @@ class VariableFixationFinder(
     fun isTypeVariableHasProperConstraint(context: Context, typeVariable: TypeConstructorMarker): Boolean {
         return with(context) {
             val dependencyProvider = TypeVariableDependencyInformationProvider(
-                notFixedTypeVariables, emptyList(), topLevelType = null, context
+                notFixedTypeVariables, emptyList(), topLevelType = null, context.baseContext
             )
             when (getTypeVariableReadiness(typeVariable, dependencyProvider)) {
                 TypeVariableFixationReadiness.FORBIDDEN, TypeVariableFixationReadiness.WITHOUT_PROPER_ARGUMENT_CONSTRAINT -> false
@@ -105,7 +107,7 @@ class VariableFixationFinder(
         if (allTypeVariables.isEmpty()) return null
 
         val dependencyProvider = TypeVariableDependencyInformationProvider(
-            notFixedTypeVariables, postponedArguments, topLevelType.takeIf { completionMode == PARTIAL }, this
+            notFixedTypeVariables, postponedArguments, topLevelType.takeIf { completionMode == PARTIAL }, baseContext
         )
 
         val candidate = allTypeVariables.maxBy { getTypeVariableReadiness(it, dependencyProvider) } ?: return null
@@ -128,16 +130,19 @@ class VariableFixationFinder(
     }
 
     private fun Context.hasDependencyToOtherTypeVariables(typeVariable: TypeConstructorMarker, kind: ConstraintKind): Boolean {
-        for (constraint in notFixedTypeVariables[typeVariable]?.constraints ?: return false) {
-            if (constraint.kind != kind || constraint.kind == ConstraintKind.EQUALITY) continue
-            if (constraint.type.lowerBoundIfFlexible().argumentsCount() != 0
-                && constraint.type.contains {
-                    it.typeConstructor() != typeVariable && notFixedTypeVariables.containsKey(it.typeConstructor())
-                }) {
-                return true
+        with(baseContext) {
+            for (constraint in notFixedTypeVariables[typeVariable]?.constraints ?: return false) {
+                if (constraint.kind != kind || constraint.kind == ConstraintKind.EQUALITY) continue
+                if (constraint.type.lowerBoundIfFlexible().argumentsCount() != 0
+                    && constraint.type.contains {
+                        it.typeConstructor() != typeVariable && notFixedTypeVariables.containsKey(it.typeConstructor())
+                    }
+                ) {
+                    return true
+                }
             }
+            return false
         }
-        return false
     }
 
     private fun Context.variableHasProperArgumentConstraints(variable: TypeConstructorMarker): Boolean =
@@ -148,8 +153,9 @@ class VariableFixationFinder(
                 && c.position.initialConstraint.position !is DeclaredUpperBoundConstraintPosition
                 && !c.isNullabilityConstraint
 
-    private fun Context.isProperType(type: KotlinTypeMarker): Boolean =
+    private fun Context.isProperType(type: KotlinTypeMarker): Boolean = with(baseContext) {
         !type.contains { notFixedTypeVariables.containsKey(it.typeConstructor()) }
+    }
 
     private fun Context.isReified(variable: TypeConstructorMarker): Boolean =
         notFixedTypeVariables[variable]?.typeVariable?.let { isReified(it) } ?: false
