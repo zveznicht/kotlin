@@ -122,45 +122,47 @@ private fun TypeSystemCommonBackendContext.putTypeOfReifiedTypeParameter(
 internal fun <KT : KotlinTypeMarker> TypeSystemCommonBackendContext.generateTypeOf(
     v: InstructionAdapter, type: KT, intrinsicsSupport: ReifiedTypeInliner.IntrinsicsSupport<KT>
 ): Int {
-    intrinsicsSupport.putClassInstance(v, type)
+    with (baseContext) {
+        intrinsicsSupport.putClassInstance(v, type)
 
-    val argumentsSize = type.argumentsCount()
-    val useArray = argumentsSize >= 3
-
-    if (useArray) {
-        v.iconst(argumentsSize)
-        v.newarray(K_TYPE_PROJECTION)
-    }
-
-    var maxStackSize = 3
-
-    for (i in 0 until argumentsSize) {
-        if (useArray) {
-            v.dup()
-            v.iconst(i)
-        }
-
-        val stackSize = doGenerateTypeProjection(v, type.getArgument(i), intrinsicsSupport)
-        maxStackSize = maxOf(maxStackSize, stackSize + i + 5)
+        val argumentsSize = type.argumentsCount()
+        val useArray = argumentsSize >= 3
 
         if (useArray) {
-            v.astore(K_TYPE_PROJECTION)
+            v.iconst(argumentsSize)
+            v.newarray(K_TYPE_PROJECTION)
         }
+
+        var maxStackSize = 3
+
+        for (i in 0 until argumentsSize) {
+            if (useArray) {
+                v.dup()
+                v.iconst(i)
+            }
+
+            val stackSize = doGenerateTypeProjection(v, type.getArgument(i), intrinsicsSupport)
+            maxStackSize = maxOf(maxStackSize, stackSize + i + 5)
+
+            if (useArray) {
+                v.astore(K_TYPE_PROJECTION)
+            }
+        }
+
+        val methodName = if (type.isMarkedNullable()) "nullableTypeOf" else "typeOf"
+
+        val projections = when (argumentsSize) {
+            0 -> emptyArray()
+            1 -> arrayOf(K_TYPE_PROJECTION)
+            2 -> arrayOf(K_TYPE_PROJECTION, K_TYPE_PROJECTION)
+            else -> arrayOf(AsmUtil.getArrayType(K_TYPE_PROJECTION))
+        }
+        val signature = Type.getMethodDescriptor(K_TYPE, JAVA_CLASS_TYPE, *projections)
+
+        v.invokestatic(REFLECTION, methodName, signature, false)
+
+        return maxStackSize
     }
-
-    val methodName = if (type.isMarkedNullable()) "nullableTypeOf" else "typeOf"
-
-    val projections = when (argumentsSize) {
-        0 -> emptyArray()
-        1 -> arrayOf(K_TYPE_PROJECTION)
-        2 -> arrayOf(K_TYPE_PROJECTION, K_TYPE_PROJECTION)
-        else -> arrayOf(AsmUtil.getArrayType(K_TYPE_PROJECTION))
-    }
-    val signature = Type.getMethodDescriptor(K_TYPE, JAVA_CLASS_TYPE, *projections)
-
-    v.invokestatic(REFLECTION, methodName, signature, false)
-
-    return maxStackSize
 }
 
 private fun <KT : KotlinTypeMarker> TypeSystemCommonBackendContext.doGenerateTypeProjection(
@@ -168,36 +170,38 @@ private fun <KT : KotlinTypeMarker> TypeSystemCommonBackendContext.doGenerateTyp
     projection: TypeArgumentMarker,
     intrinsicsSupport: ReifiedTypeInliner.IntrinsicsSupport<KT>
 ): Int {
-    // KTypeProjection members could be static, see KT-30083 and KT-30084
-    v.getstatic(K_TYPE_PROJECTION.internalName, "Companion", K_TYPE_PROJECTION_COMPANION.descriptor)
+    with(baseContext) {
+        // KTypeProjection members could be static, see KT-30083 and KT-30084
+        v.getstatic(K_TYPE_PROJECTION.internalName, "Companion", K_TYPE_PROJECTION_COMPANION.descriptor)
 
-    if (projection.isStarProjection()) {
-        v.invokevirtual(K_TYPE_PROJECTION_COMPANION.internalName, "getSTAR", Type.getMethodDescriptor(K_TYPE_PROJECTION), false)
-        return 1
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    val type = projection.getType() as KT
-    val typeParameterClassifier = type.typeConstructor().getTypeParameterClassifier()
-    val stackSize = if (typeParameterClassifier != null) {
-        if (typeParameterClassifier.isReified()) {
-            putTypeOfReifiedTypeParameter(v, typeParameterClassifier, type.isMarkedNullable())
-            2
-        } else {
-            // TODO: support non-reified type parameters in typeOf
-            @Suppress("UNCHECKED_CAST")
-            generateTypeOf(v, nullableAnyType() as KT, intrinsicsSupport)
+        if (projection.isStarProjection()) {
+            v.invokevirtual(K_TYPE_PROJECTION_COMPANION.internalName, "getSTAR", Type.getMethodDescriptor(K_TYPE_PROJECTION), false)
+            return 1
         }
-    } else {
-        generateTypeOf(v, type, intrinsicsSupport)
-    }
 
-    val methodName = when (projection.getVariance()) {
-        TypeVariance.INV -> "invariant"
-        TypeVariance.IN -> "contravariant"
-        TypeVariance.OUT -> "covariant"
-    }
-    v.invokevirtual(K_TYPE_PROJECTION_COMPANION.internalName, methodName, Type.getMethodDescriptor(K_TYPE_PROJECTION, K_TYPE), false)
+        @Suppress("UNCHECKED_CAST")
+        val type = projection.getType() as KT
+        val typeParameterClassifier = type.typeConstructor().getTypeParameterClassifier()
+        val stackSize = if (typeParameterClassifier != null) {
+            if (typeParameterClassifier.isReified()) {
+                putTypeOfReifiedTypeParameter(v, typeParameterClassifier, type.isMarkedNullable())
+                2
+            } else {
+                // TODO: support non-reified type parameters in typeOf
+                @Suppress("UNCHECKED_CAST")
+                generateTypeOf(v, nullableAnyType() as KT, intrinsicsSupport)
+            }
+        } else {
+            generateTypeOf(v, type, intrinsicsSupport)
+        }
 
-    return stackSize + 1
+        val methodName = when (projection.getVariance()) {
+            TypeVariance.INV -> "invariant"
+            TypeVariance.IN -> "contravariant"
+            TypeVariance.OUT -> "covariant"
+        }
+        v.invokevirtual(K_TYPE_PROJECTION_COMPANION.internalName, methodName, Type.getMethodDescriptor(K_TYPE_PROJECTION, K_TYPE), false)
+
+        return stackSize + 1
+    }
 }

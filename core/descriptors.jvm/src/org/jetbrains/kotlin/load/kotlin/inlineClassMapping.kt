@@ -33,43 +33,45 @@ fun TypeSystemCommonBackendContext.computeExpandedTypeForInlineClass(inlineClass
 private fun TypeSystemCommonBackendContext.computeExpandedTypeInner(
     kotlinType: KotlinTypeMarker, visitedClassifiers: HashSet<TypeConstructorMarker>
 ): KotlinTypeMarker? {
-    val classifier = kotlinType.typeConstructor()
-    if (!visitedClassifiers.add(classifier)) return null
+    with(baseContext) {
+        val classifier = kotlinType.typeConstructor()
+        if (!visitedClassifiers.add(classifier)) return null
 
-    val typeParameter = classifier.getTypeParameterClassifier()
+        val typeParameter = classifier.getTypeParameterClassifier()
 
-    return when {
-        typeParameter != null ->
-            computeExpandedTypeInner(typeParameter.getRepresentativeUpperBound(), visitedClassifiers)
-                ?.let { expandedUpperBound ->
-                    if (expandedUpperBound.isNullableType() || !kotlinType.isMarkedNullable())
-                        expandedUpperBound
-                    else
-                        expandedUpperBound.makeNullable()
+        return when {
+            typeParameter != null ->
+                computeExpandedTypeInner(typeParameter.getRepresentativeUpperBound(), visitedClassifiers)
+                    ?.let { expandedUpperBound ->
+                        if (expandedUpperBound.isNullableType() || !kotlinType.isMarkedNullable())
+                            expandedUpperBound
+                        else
+                            expandedUpperBound.makeNullable()
+                    }
+
+            classifier.isInlineClass() -> {
+                // kotlinType is the boxed inline class type
+
+                val underlyingType = kotlinType.getSubstitutedUnderlyingType() ?: return null
+                val expandedUnderlyingType = computeExpandedTypeInner(underlyingType, visitedClassifiers) ?: return null
+                when {
+                    !kotlinType.isNullableType() -> expandedUnderlyingType
+
+                    // Here inline class type is nullable. Apply nullability to the expandedUnderlyingType.
+
+                    // Nullable types become inline class boxes
+                    expandedUnderlyingType.isNullableType() -> kotlinType
+
+                    // Primitives become inline class boxes
+                    expandedUnderlyingType is SimpleTypeMarker && expandedUnderlyingType.isPrimitiveType() -> kotlinType
+
+                    // Non-null reference types become nullable reference types
+                    else -> expandedUnderlyingType.makeNullable()
                 }
-
-        classifier.isInlineClass() -> {
-            // kotlinType is the boxed inline class type
-
-            val underlyingType = kotlinType.getSubstitutedUnderlyingType() ?: return null
-            val expandedUnderlyingType = computeExpandedTypeInner(underlyingType, visitedClassifiers) ?: return null
-            when {
-                !kotlinType.isNullableType() -> expandedUnderlyingType
-
-                // Here inline class type is nullable. Apply nullability to the expandedUnderlyingType.
-
-                // Nullable types become inline class boxes
-                expandedUnderlyingType.isNullableType() -> kotlinType
-
-                // Primitives become inline class boxes
-                expandedUnderlyingType is SimpleTypeMarker && expandedUnderlyingType.isPrimitiveType() -> kotlinType
-
-                // Non-null reference types become nullable reference types
-                else -> expandedUnderlyingType.makeNullable()
             }
-        }
 
-        else -> kotlinType
+            else -> kotlinType
+        }
     }
 }
 

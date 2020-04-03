@@ -32,6 +32,9 @@ import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.ir.types.isPrimitiveType as irTypePredicates_isPrimitiveType
 
 class IrTypeSystemContext(val irBuiltIns: IrBuiltIns) : TypeSystemContext, TypeSystemCommonSuperTypesContext, TypeSystemCommonBackendContext {
+    override val baseContext: TypeSystemContext
+        get() = this
+
     override val isErrorTypeAllowed: Boolean get() = true
 
     override fun KotlinTypeMarker.asSimpleType() = this as? SimpleTypeMarker
