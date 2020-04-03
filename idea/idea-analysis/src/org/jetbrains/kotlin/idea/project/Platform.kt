@@ -24,6 +24,7 @@ import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.util.registry.Registry
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
@@ -245,10 +246,12 @@ private fun Module.computeLanguageVersionSettings(): LanguageVersionSettings {
 }
 
 private fun MutableMap<AnalysisFlag<*>, Any>.initIDESpecificAnalysisSettings(project: Project) {
-    if (KotlinMultiplatformAnalysisModeComponent.getMode(project) == KotlinMultiplatformAnalysisModeComponent.Mode.COMPOSITE) {
+    if (KotlinMultiplatformAnalysisModeComponent.getMode(project) == KotlinMultiplatformAnalysisModeComponent.Mode.COMPOSITE
+        || Registry.`is`("kotlin.use.type.refinement.for.library.resolution")
+    ) {
         put(AnalysisFlags.useTypeRefinement, true)
     }
-    putIfAbsent(AnalysisFlags.useTypeRefinement, true)
+
     put(AnalysisFlags.ideMode, true)
 }
 

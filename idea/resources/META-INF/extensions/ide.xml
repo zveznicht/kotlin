@@ -137,6 +137,10 @@
                      description="Allow a trailing comma on call-site"
                      defaultValue="false"
                      restartRequired="false"/>
+        <registryKey key="kotlin.use.type.refinement.for.library.resolution"
+                     description="Enable type refinement for resolving library dependencies on project sources"
+                     defaultValue="false"
+                     restartRequired="true"/>
 
         <registryKey key="kotlin.experimental.new.j2k"
                      description="Enable new Java to Kotlin converter"
