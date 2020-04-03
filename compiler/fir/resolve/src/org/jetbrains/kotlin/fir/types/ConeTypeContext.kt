@@ -33,7 +33,7 @@ class ErrorTypeConstructor(val reason: String) : TypeConstructorMarker {
     override fun toString(): String = reason
 }
 
-class ConeTypeContext(val session: FirSession) : TypeSystemInferenceExtensionContext, TypeCheckerProviderContext,
+class ConeTypeContext(val session: FirSession) : TypeSystemInferenceExtensionContext(), TypeCheckerProviderContext,
     TypeSystemCommonBackendContext {
 
     override val baseContext: TypeSystemContext
