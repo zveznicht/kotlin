@@ -15,5 +15,5 @@ interface BuiltInsProvider {
     val builtIns: KotlinBuiltIns
 }
 
-internal val ConstraintSystemBuilder.builtIns: KotlinBuiltIns get() = ((this as NewConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
-internal val NewConstraintSystem.builtIns: KotlinBuiltIns get() = ((this as NewConstraintSystemImpl).typeSystemContext as BuiltInsProvider).builtIns
+internal val ConstraintSystemBuilder.builtIns: KotlinBuiltIns get() = ((this as NewConstraintSystemImpl).baseContext as BuiltInsProvider).builtIns
+internal val NewConstraintSystem.builtIns: KotlinBuiltIns get() = ((this as NewConstraintSystemImpl).baseContext as BuiltInsProvider).builtIns

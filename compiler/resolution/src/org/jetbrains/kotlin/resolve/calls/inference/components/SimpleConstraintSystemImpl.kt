@@ -69,5 +69,5 @@ class SimpleConstraintSystemImpl(constraintInjector: ConstraintInjector, builtIn
     override val captureFromArgument get() = true
 
     override val context: TypeSystemInferenceExtensionContext
-        get() = system
+        get() = system.baseContext
 }

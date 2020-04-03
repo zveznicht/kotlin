@@ -209,6 +209,6 @@ class ConeSimpleConstraintSystemImpl(val system: NewConstraintSystemImpl) : Simp
         get() = true
 
     override val context: TypeSystemInferenceExtensionContext
-        get() = system
+        get() = system.baseContext
 
 }
