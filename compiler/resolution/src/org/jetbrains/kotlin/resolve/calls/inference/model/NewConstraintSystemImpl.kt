@@ -29,9 +29,13 @@ class NewConstraintSystemImpl(
     NewConstraintSystem,
     ConstraintSystemBuilder,
     ConstraintInjector.Context,
-    ResultTypeResolver.Context,
+    ResultTypeResolver.ResultTypeResolverContext,
     KotlinConstraintSystemCompleter.Context,
-    PostponedArgumentsAnalyzer.Context {
+    PostponedArgumentsAnalyzer.Context
+{
+    override val baseContext: TypeSystemInferenceExtensionContext
+        get() = typeSystemContext
+
     private val storage = MutableConstraintStorage()
     private var state = State.BUILDING
     private val typeVariablesTransaction: MutableList<TypeVariableMarker> = SmartList()
