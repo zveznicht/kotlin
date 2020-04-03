@@ -34,6 +34,9 @@ import kotlin.contracts.contract
 abstract class ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSystemCommonBackendContext {
     override val isErrorTypeAllowed: Boolean get() = true
 
+    override val baseContext: TypeSystemContext
+        get() = this
+
     override fun TypeConstructorMarker.isDenotable(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return this.isDenotable

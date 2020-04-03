@@ -1419,33 +1419,39 @@ class KotlinTypeMapper @JvmOverloads constructor(
         private fun TypeSystemCommonBackendContext.getVarianceForWildcard(
             parameter: TypeParameterMarker, projection: TypeArgumentMarker, mode: TypeMappingMode
         ): Variance {
-            val projectionKind = projection.getVariance().convertVariance()
-            val parameterVariance = parameter.getVariance().convertVariance()
+            with(baseContext) {
+                val projectionKind = projection.getVariance().convertVariance()
+                val parameterVariance = parameter.getVariance().convertVariance()
 
-            if (parameterVariance == Variance.INVARIANT) {
-                return projectionKind
-            }
-
-            if (mode.skipDeclarationSiteWildcards) {
-                return Variance.INVARIANT
-            }
-
-            if (projectionKind == Variance.INVARIANT || projectionKind == parameterVariance) {
-                if (mode.skipDeclarationSiteWildcardsIfPossible && !projection.isStarProjection()) {
-                    if (parameterVariance == Variance.OUT_VARIANCE && isMostPreciseCovariantArgument(projection.getType())) {
-                        return Variance.INVARIANT
-                    }
-
-                    if (parameterVariance == Variance.IN_VARIANCE && isMostPreciseContravariantArgument(projection.getType(), parameter)) {
-                        return Variance.INVARIANT
-                    }
+                if (parameterVariance == Variance.INVARIANT) {
+                    return projectionKind
                 }
-                return parameterVariance
-            }
 
-            // In<out X> = In<*>
-            // Out<in X> = Out<*>
-            return Variance.OUT_VARIANCE
+                if (mode.skipDeclarationSiteWildcards) {
+                    return Variance.INVARIANT
+                }
+
+                if (projectionKind == Variance.INVARIANT || projectionKind == parameterVariance) {
+                    if (mode.skipDeclarationSiteWildcardsIfPossible && !projection.isStarProjection()) {
+                        if (parameterVariance == Variance.OUT_VARIANCE && isMostPreciseCovariantArgument(projection.getType())) {
+                            return Variance.INVARIANT
+                        }
+
+                        if (parameterVariance == Variance.IN_VARIANCE && isMostPreciseContravariantArgument(
+                                projection.getType(),
+                                parameter
+                            )
+                        ) {
+                            return Variance.INVARIANT
+                        }
+                    }
+                    return parameterVariance
+                }
+
+                // In<out X> = In<*>
+                // Out<in X> = Out<*>
+                return Variance.OUT_VARIANCE
+            }
         }
 
         fun TypeSystemCommonBackendContext.writeGenericArguments(
@@ -1455,26 +1461,28 @@ class KotlinTypeMapper @JvmOverloads constructor(
             mode: TypeMappingMode,
             mapType: (KotlinTypeMarker, JvmSignatureWriter, TypeMappingMode) -> Type
         ) {
-            for ((parameter, argument) in parameters.zip(arguments)) {
-                if (argument.isStarProjection() ||
-                    // In<Nothing, Foo> == In<*, Foo> -> In<?, Foo>
-                    argument.getType().isNothing() && parameter.getVariance() == TypeVariance.IN
-                ) {
-                    signatureVisitor.writeUnboundedWildcard()
-                } else {
-                    val argumentMode = mode.updateArgumentModeFromAnnotations(argument.getType(), this)
-                    val projectionKind = getVarianceForWildcard(parameter, argument, argumentMode)
+            with(baseContext) {
+                for ((parameter, argument) in parameters.zip(arguments)) {
+                    if (argument.isStarProjection() ||
+                        // In<Nothing, Foo> == In<*, Foo> -> In<?, Foo>
+                        argument.getType().isNothing() && parameter.getVariance() == TypeVariance.IN
+                    ) {
+                        signatureVisitor.writeUnboundedWildcard()
+                    } else {
+                        val argumentMode = mode.updateArgumentModeFromAnnotations(argument.getType(), this@writeGenericArguments)
+                        val projectionKind = getVarianceForWildcard(parameter, argument, argumentMode)
 
-                    signatureVisitor.writeTypeArgument(projectionKind)
+                        signatureVisitor.writeTypeArgument(projectionKind)
 
-                    mapType(
-                        argument.getType(), signatureVisitor,
-                        argumentMode.toGenericArgumentMode(
-                            getEffectiveVariance(parameter.getVariance().convertVariance(), argument.getVariance().convertVariance())
+                        mapType(
+                            argument.getType(), signatureVisitor,
+                            argumentMode.toGenericArgumentMode(
+                                getEffectiveVariance(parameter.getVariance().convertVariance(), argument.getVariance().convertVariance())
+                            )
                         )
-                    )
 
-                    signatureVisitor.writeTypeArgumentEnd()
+                        signatureVisitor.writeTypeArgumentEnd()
+                    }
                 }
             }
         }
@@ -1617,31 +1625,33 @@ class KotlinTypeMapper @JvmOverloads constructor(
             sw: JvmSignatureWriter,
             mapType: (KotlinTypeMarker, TypeMappingMode) -> Type
         ) {
-            sw.writeFormalTypeParameter(typeParameter.getName().asString())
+            with(baseContext) {
+                sw.writeFormalTypeParameter(typeParameter.getName().asString())
 
-            sw.writeClassBound()
+                sw.writeClassBound()
 
-            for (i in 0 until typeParameter.upperBoundCount()) {
-                val type = typeParameter.getUpperBound(i)
-                if (type.typeConstructor().getTypeParameterClassifier() == null && !type.isInterfaceOrAnnotationClass()) {
-                    mapType(type, TypeMappingMode.GENERIC_ARGUMENT)
-                    break
+                for (i in 0 until typeParameter.upperBoundCount()) {
+                    val type = typeParameter.getUpperBound(i)
+                    if (type.typeConstructor().getTypeParameterClassifier() == null && !type.isInterfaceOrAnnotationClass()) {
+                        mapType(type, TypeMappingMode.GENERIC_ARGUMENT)
+                        break
+                    }
                 }
-            }
 
-            // "extends Object" is optional according to ClassFileFormat-Java5.pdf
-            // but javac complaints to signature:
-            // <P:>Ljava/lang/Object;
-            // TODO: avoid writing java/lang/Object if interface list is not empty
+                // "extends Object" is optional according to ClassFileFormat-Java5.pdf
+                // but javac complaints to signature:
+                // <P:>Ljava/lang/Object;
+                // TODO: avoid writing java/lang/Object if interface list is not empty
 
-            sw.writeClassBoundEnd()
+                sw.writeClassBoundEnd()
 
-            for (i in 0 until typeParameter.upperBoundCount()) {
-                val type = typeParameter.getUpperBound(i)
-                if (type.typeConstructor().getTypeParameterClassifier() != null || type.isInterfaceOrAnnotationClass()) {
-                    sw.writeInterfaceBound()
-                    mapType(type, TypeMappingMode.GENERIC_ARGUMENT)
-                    sw.writeInterfaceBoundEnd()
+                for (i in 0 until typeParameter.upperBoundCount()) {
+                    val type = typeParameter.getUpperBound(i)
+                    if (type.typeConstructor().getTypeParameterClassifier() != null || type.isInterfaceOrAnnotationClass()) {
+                        sw.writeInterfaceBound()
+                        mapType(type, TypeMappingMode.GENERIC_ARGUMENT)
+                        sw.writeInterfaceBoundEnd()
+                    }
                 }
             }
         }

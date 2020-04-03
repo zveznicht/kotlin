@@ -189,32 +189,34 @@ fun <T : Any> TypeSystemCommonBackendContext.mapBuiltInType(
     typeFactory: JvmTypeFactory<T>,
     mode: TypeMappingMode
 ): T? {
-    val constructor = type.typeConstructor()
-    if (!constructor.isClassTypeConstructor()) return null
+    with(baseContext) {
+        val constructor = type.typeConstructor()
+        if (!constructor.isClassTypeConstructor()) return null
 
-    val primitiveType = constructor.getPrimitiveType()
-    if (primitiveType != null) {
-        val jvmType = typeFactory.createFromString(JvmPrimitiveType.get(primitiveType).desc)
-        val isNullableInJava = type.isNullableType() || hasEnhancedNullability(type)
-        return typeFactory.boxTypeIfNeeded(jvmType, isNullableInJava)
-    }
-
-    val arrayElementType = constructor.getPrimitiveArrayType()
-    if (arrayElementType != null) {
-        return typeFactory.createFromString("[" + JvmPrimitiveType.get(arrayElementType).desc)
-    }
-
-    if (constructor.isUnderKotlinPackage()) {
-        val classId = constructor.getClassFqNameUnsafe()?.let(JavaToKotlinClassMap::mapKotlinToJava)
-        if (classId != null) {
-            if (!mode.kotlinCollectionsToJavaCollections && JavaToKotlinClassMap.mutabilityMappings.any { it.javaClass == classId })
-                return null
-
-            return typeFactory.createObjectType(JvmClassName.byClassId(classId).internalName)
+        val primitiveType = constructor.getPrimitiveType()
+        if (primitiveType != null) {
+            val jvmType = typeFactory.createFromString(JvmPrimitiveType.get(primitiveType).desc)
+            val isNullableInJava = type.isNullableType() || hasEnhancedNullability(type)
+            return typeFactory.boxTypeIfNeeded(jvmType, isNullableInJava)
         }
-    }
 
-    return null
+        val arrayElementType = constructor.getPrimitiveArrayType()
+        if (arrayElementType != null) {
+            return typeFactory.createFromString("[" + JvmPrimitiveType.get(arrayElementType).desc)
+        }
+
+        if (constructor.isUnderKotlinPackage()) {
+            val classId = constructor.getClassFqNameUnsafe()?.let(JavaToKotlinClassMap::mapKotlinToJava)
+            if (classId != null) {
+                if (!mode.kotlinCollectionsToJavaCollections && JavaToKotlinClassMap.mutabilityMappings.any { it.javaClass == classId })
+                    return null
+
+                return typeFactory.createObjectType(JvmClassName.byClassId(classId).internalName)
+            }
+        }
+
+        return null
+    }
 }
 
 fun computeInternalName(

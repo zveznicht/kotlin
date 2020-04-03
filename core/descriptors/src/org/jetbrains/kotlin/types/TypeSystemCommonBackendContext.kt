@@ -11,7 +11,9 @@ import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.model.*
 
-interface TypeSystemCommonBackendContext : TypeSystemContext {
+interface TypeSystemCommonBackendContext {
+    val baseContext: TypeSystemContext
+
     fun nullableAnyType(): SimpleTypeMarker
     fun arrayType(componentType: KotlinTypeMarker): SimpleTypeMarker
     fun KotlinTypeMarker.isArrayOrNullableArray(): Boolean
@@ -40,7 +42,7 @@ interface TypeSystemCommonBackendContext : TypeSystemContext {
         this is SimpleTypeMarker && isMarkedNullable()
 
     fun KotlinTypeMarker.makeNullable(): KotlinTypeMarker =
-        asSimpleType()?.withNullability(true) ?: this
+        with(baseContext) { asSimpleType()?.withNullability(true) ?: this@makeNullable }
 
     fun TypeConstructorMarker.getPrimitiveType(): PrimitiveType?
     fun TypeConstructorMarker.getPrimitiveArrayType(): PrimitiveType?

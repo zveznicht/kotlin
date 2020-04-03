@@ -37,35 +37,38 @@ import org.jetbrains.kotlin.types.checker.convertVariance
 import org.jetbrains.kotlin.types.getEffectiveVariance
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeParameterMarker
+import org.jetbrains.kotlin.types.model.TypeSystemContext
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns.FQ_NAMES as BUILTIN_NAMES
 
 // TODO: probably class upper bound should be used
 @Suppress("UNUSED_PARAMETER")
-fun TypeSystemCommonBackendContext.isMostPreciseContravariantArgument(type: KotlinTypeMarker, parameter: TypeParameterMarker): Boolean =
+fun TypeSystemContext.isMostPreciseContravariantArgument(type: KotlinTypeMarker, parameter: TypeParameterMarker): Boolean =
     type.typeConstructor().isAnyConstructor()
 
 fun TypeSystemCommonBackendContext.isMostPreciseCovariantArgument(type: KotlinTypeMarker): Boolean =
     !canHaveSubtypesIgnoringNullability(type)
 
 private fun TypeSystemCommonBackendContext.canHaveSubtypesIgnoringNullability(kotlinType: KotlinTypeMarker): Boolean {
-    val constructor = kotlinType.typeConstructor()
+    with(baseContext) {
+        val constructor = kotlinType.typeConstructor()
 
-    if (!constructor.isClassTypeConstructor() || !constructor.isFinalClassOrEnumEntryOrAnnotationClassConstructor()) return true
+        if (!constructor.isClassTypeConstructor() || !constructor.isFinalClassOrEnumEntryOrAnnotationClassConstructor()) return true
 
-    for (i in 0 until constructor.parametersCount()) {
-        val parameter = constructor.getParameter(i)
-        val argument = kotlinType.getArgument(i)
-        if (argument.isStarProjection()) return true
+        for (i in 0 until constructor.parametersCount()) {
+            val parameter = constructor.getParameter(i)
+            val argument = kotlinType.getArgument(i)
+            if (argument.isStarProjection()) return true
 
-        val projectionKind = argument.getVariance().convertVariance()
-        val type = argument.getType()
+            val projectionKind = argument.getVariance().convertVariance()
+            val type = argument.getType()
 
-        val effectiveVariance = getEffectiveVariance(parameter.getVariance().convertVariance(), projectionKind)
-        if (effectiveVariance == Variance.OUT_VARIANCE && !isMostPreciseCovariantArgument(type)) return true
-        if (effectiveVariance == Variance.IN_VARIANCE && !isMostPreciseContravariantArgument(type, parameter)) return true
+            val effectiveVariance = getEffectiveVariance(parameter.getVariance().convertVariance(), projectionKind)
+            if (effectiveVariance == Variance.OUT_VARIANCE && !isMostPreciseCovariantArgument(type)) return true
+            if (effectiveVariance == Variance.IN_VARIANCE && !isMostPreciseContravariantArgument(type, parameter)) return true
+        }
+
+        return false
     }
-
-    return false
 }
 
 val CallableDescriptor?.isMethodWithDeclarationSiteWildcards: Boolean
@@ -123,16 +126,18 @@ fun TypeSystemCommonBackendContext.extractTypeMappingModeFromAnnotation(
     outerType: KotlinTypeMarker,
     isForAnnotationParameter: Boolean
 ): TypeMappingMode? {
-    val suppressWildcards =
-        outerType.suppressWildcardsMode(this) ?: callableSuppressWildcardsMode ?: return null
+    with(baseContext) {
+        val suppressWildcards =
+            outerType.suppressWildcardsMode(this@extractTypeMappingModeFromAnnotation) ?: callableSuppressWildcardsMode ?: return null
 
-    if (outerType.argumentsCount() == 0) return TypeMappingMode.DEFAULT
+        if (outerType.argumentsCount() == 0) return TypeMappingMode.DEFAULT
 
-    return TypeMappingMode.createWithConstantDeclarationSiteWildcardsMode(
-        skipDeclarationSiteWildcards = suppressWildcards,
-        isForAnnotationParameter = isForAnnotationParameter,
-        needInlineClassWrapping = !outerType.typeConstructor().isInlineClass()
-    )
+        return TypeMappingMode.createWithConstantDeclarationSiteWildcardsMode(
+            skipDeclarationSiteWildcards = suppressWildcards,
+            isForAnnotationParameter = isForAnnotationParameter,
+            needInlineClassWrapping = !outerType.typeConstructor().isInlineClass()
+        )
+    }
 }
 
 private fun DeclarationDescriptor.suppressWildcardsMode(): Boolean? =

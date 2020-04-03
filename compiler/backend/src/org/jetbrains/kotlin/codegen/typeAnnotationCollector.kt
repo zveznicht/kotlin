@@ -67,22 +67,24 @@ abstract class TypeAnnotationCollector<T>(val context: TypeSystemCommonBackendCo
 
     private fun KotlinTypeMarker.gatherTypeAnnotations() {
         with(context) {
-            if (isFlexible()) {
-                return upperBoundIfFlexible().gatherTypeAnnotations()
-            } else if (typeConstructor().isInnerClass()) {
-                //skip inner classes for now it's not clear should type annotations on outer be supported or not
-                return
-            }
+            with (context.baseContext) {
+                if (isFlexible()) {
+                    return upperBoundIfFlexible().gatherTypeAnnotations()
+                } else if (typeConstructor().isInnerClass()) {
+                    //skip inner classes for now it's not clear should type annotations on outer be supported or not
+                    return
+                }
 
-            extractAnnotations().takeIf { it.isNotEmpty() }?.let { state.rememberAnnotations(it) }
+                extractAnnotations().takeIf { it.isNotEmpty() }?.let { state.rememberAnnotations(it) }
 
-            for (index in 0 until argumentsCount()) {
-                val type = getArgument(index)
-                //skip in/out variance for now it's not clear should type annotations on wildcard bound be supported or not
-                if (type.getVariance() == TypeVariance.INV) {
-                    when {
-                        this@gatherTypeAnnotations.isArrayOrNullableArray() -> type.getType().process("[")
-                        else -> type.getType().process("$index;")
+                for (index in 0 until argumentsCount()) {
+                    val type = getArgument(index)
+                    //skip in/out variance for now it's not clear should type annotations on wildcard bound be supported or not
+                    if (type.getVariance() == TypeVariance.INV) {
+                        when {
+                            this@gatherTypeAnnotations.isArrayOrNullableArray() -> type.getType().process("[")
+                            else -> type.getType().process("$index;")
+                        }
                     }
                 }
             }
