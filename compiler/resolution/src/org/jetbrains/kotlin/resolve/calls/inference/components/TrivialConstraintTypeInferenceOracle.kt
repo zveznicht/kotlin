@@ -11,8 +11,7 @@ import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContext
 import org.jetbrains.kotlin.types.model.TypeSystemInferenceExtensionContextDelegate
 
-class TrivialConstraintTypeInferenceOracle private constructor(context: TypeSystemInferenceExtensionContext) :
-    TypeSystemInferenceExtensionContext by context {
+class TrivialConstraintTypeInferenceOracle private constructor(private val baseContext: TypeSystemInferenceExtensionContext) {
     // This constructor is used for injection only in old FE
     constructor(context: TypeSystemInferenceExtensionContextDelegate) : this(context as TypeSystemInferenceExtensionContext)
 
@@ -20,7 +19,9 @@ class TrivialConstraintTypeInferenceOracle private constructor(context: TypeSyst
     // it's totally fine to go and resolve postponed argument without fixation T to Nothing(?).
     // In other words, constraint `Nothing(?) <: T` is *not* proper
     fun isNotInterestingConstraint(constraint: Constraint): Boolean {
-        return constraint.kind == ConstraintKind.LOWER && constraint.type.typeConstructor().isNothingConstructor()
+        with(baseContext) {
+            return constraint.kind == ConstraintKind.LOWER && constraint.type.typeConstructor().isNothingConstructor()
+        }
     }
 
     // This function controls the choice between sub and super result type
@@ -29,7 +30,9 @@ class TrivialConstraintTypeInferenceOracle private constructor(context: TypeSyst
     fun isSuitableResultedType(
         resultType: KotlinTypeMarker
     ): Boolean {
-        return !resultType.typeConstructor().isNothingConstructor()
+        with(baseContext) {
+            return !resultType.typeConstructor().isNothingConstructor()
+        }
     }
 
     // It's possible to generate Nothing-like constraints inside incorporation mechanism:
@@ -43,27 +46,31 @@ class TrivialConstraintTypeInferenceOracle private constructor(context: TypeSyst
         generatedConstraintType: KotlinTypeMarker,
         isSubtype: Boolean
     ): Boolean {
-        if (isSubtype && (generatedConstraintType.isNothing() || generatedConstraintType.isFlexibleNothing())) return true
-        if (!isSubtype && generatedConstraintType.isNullableAny()) return true
+        with(baseContext) {
+            if (isSubtype && (generatedConstraintType.isNothing() || generatedConstraintType.isFlexibleNothing())) return true
+            if (!isSubtype && generatedConstraintType.isNullableAny()) return true
 
-        // If types from constraints that will be used to generate new constraint already contains `Nothing(?)`,
-        // then we can't decide that resulting constraint will be useless
-        if (baseConstraint.type.contains { it.isNothingOrNullableNothing() }) return false
-        if (otherConstraint.type.contains { it.isNothingOrNullableNothing() }) return false
+            // If types from constraints that will be used to generate new constraint already contains `Nothing(?)`,
+            // then we can't decide that resulting constraint will be useless
+            if (baseConstraint.type.contains { it.isNothingOrNullableNothing() }) return false
+            if (otherConstraint.type.contains { it.isNothingOrNullableNothing() }) return false
 
-        // It's important to preserve constraints with nullable Nothing: `Nothing? <: T` (see implicitNothingConstraintFromReturn.kt test)
-        if (generatedConstraintType.containsOnlyNonNullableNothing()) return true
+            // It's important to preserve constraints with nullable Nothing: `Nothing? <: T` (see implicitNothingConstraintFromReturn.kt test)
+            if (generatedConstraintType.containsOnlyNonNullableNothing()) return true
 
-        return false
+            return false
+        }
     }
 
 
-    private fun KotlinTypeMarker.isNothingOrNullableNothing(): Boolean =
+    private fun KotlinTypeMarker.isNothingOrNullableNothing(): Boolean = with(baseContext) {
         typeConstructor().isNothingConstructor()
+    }
 
 
-    private fun KotlinTypeMarker.containsOnlyNonNullableNothing(): Boolean =
+    private fun KotlinTypeMarker.containsOnlyNonNullableNothing(): Boolean = with(baseContext) {
         contains { it.isNothing() } && !contains { it.isNullableNothing() }
+    }
 
 
     companion object {
