@@ -31,7 +31,7 @@ class ErrorTypeConstructor(val reason: String) : TypeConstructorMarker {
     override fun toString(): String = reason
 }
 
-interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, TypeCheckerProviderContext, TypeSystemCommonBackendContext {
+interface ConeTypeContext : TypeSystemContext, TypeCheckerProviderContext, TypeSystemCommonBackendContext {
     val session: FirSession
 
     override fun TypeConstructorMarker.isIntegerLiteralTypeConstructor(): Boolean {

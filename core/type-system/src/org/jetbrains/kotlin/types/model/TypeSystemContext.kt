@@ -40,36 +40,6 @@ enum class TypeVariance(val presentation: String) {
 }
 
 
-interface TypeSystemOptimizationContext {
-    /**
-     *  @return true is a.arguments == b.arguments, or false if not supported
-     */
-    fun identicalArguments(a: SimpleTypeMarker, b: SimpleTypeMarker) = false
-}
-
-interface TypeSystemBuiltInsContext {
-    fun nullableNothingType(): SimpleTypeMarker
-    fun nullableAnyType(): SimpleTypeMarker
-    fun nothingType(): SimpleTypeMarker
-    fun anyType(): SimpleTypeMarker
-}
-
-interface TypeSystemTypeFactoryContext {
-    fun createFlexibleType(lowerBound: SimpleTypeMarker, upperBound: SimpleTypeMarker): KotlinTypeMarker
-    fun createSimpleType(
-        constructor: TypeConstructorMarker,
-        arguments: List<TypeArgumentMarker>,
-        nullable: Boolean,
-        isExtensionFunction: Boolean = false
-    ): SimpleTypeMarker
-
-    fun createTypeArgument(type: KotlinTypeMarker, variance: TypeVariance): TypeArgumentMarker
-    fun createStarProjection(typeParameter: TypeParameterMarker): TypeArgumentMarker
-
-    fun createErrorTypeWithCustomConstructor(debugName: String, constructor: TypeConstructorMarker): KotlinTypeMarker
-}
-
-
 interface TypeCheckerProviderContext {
     fun newBaseTypeCheckerContext(
         errorTypesEqualToAnything: Boolean,
@@ -77,7 +47,7 @@ interface TypeCheckerProviderContext {
     ): AbstractTypeCheckerContext
 }
 
-interface TypeSystemCommonSuperTypesContext : TypeSystemContext, TypeSystemTypeFactoryContext, TypeCheckerProviderContext {
+interface TypeSystemCommonSuperTypesContext : TypeSystemContext, TypeCheckerProviderContext {
     /*
      * If set in false then if there is an error type in input types list of `commonSuperType` it will be return
      * That flag is needed for FIR where there are a problems with recursive class hierarchies
@@ -111,6 +81,19 @@ interface TypeSystemCommonSuperTypesContext : TypeSystemContext, TypeSystemTypeF
      * Used only in FIR
      */
     fun TypeConstructorMarker.toErrorType(): SimpleTypeMarker
+
+    fun createFlexibleType(lowerBound: SimpleTypeMarker, upperBound: SimpleTypeMarker): KotlinTypeMarker
+    fun createSimpleType(
+        constructor: TypeConstructorMarker,
+        arguments: List<TypeArgumentMarker>,
+        nullable: Boolean,
+        isExtensionFunction: Boolean = false
+    ): SimpleTypeMarker
+
+    fun createTypeArgument(type: KotlinTypeMarker, variance: TypeVariance): TypeArgumentMarker
+    fun createStarProjection(typeParameter: TypeParameterMarker): TypeArgumentMarker
+
+    fun createErrorTypeWithCustomConstructor(debugName: String, constructor: TypeConstructorMarker): KotlinTypeMarker
 }
 
 // This interface is only used to declare that implementing class is supposed to be used as a TypeSystemInferenceExtensionContext component
@@ -119,7 +102,7 @@ interface TypeSystemCommonSuperTypesContext : TypeSystemContext, TypeSystemTypeF
 // component implementation for TypeSystemInferenceExtensionContext
 interface TypeSystemInferenceExtensionContextDelegate : TypeSystemInferenceExtensionContext
 
-interface TypeSystemInferenceExtensionContext : TypeSystemBuiltInsContext, TypeSystemCommonSuperTypesContext {
+interface TypeSystemInferenceExtensionContext : TypeSystemCommonSuperTypesContext {
     fun KotlinTypeMarker.contains(predicate: (KotlinTypeMarker) -> Boolean): Boolean
 
     fun TypeConstructorMarker.isUnitTypeConstructor(): Boolean
@@ -178,13 +161,18 @@ interface TypeSystemInferenceExtensionContext : TypeSystemBuiltInsContext, TypeS
         firstCandidate: KotlinTypeMarker,
         secondCandidate: KotlinTypeMarker
     ): KotlinTypeMarker
+
+    fun nullableNothingType(): SimpleTypeMarker
+    fun nullableAnyType(): SimpleTypeMarker
+    fun nothingType(): SimpleTypeMarker
+    fun anyType(): SimpleTypeMarker
 }
 
 
 class ArgumentList(initialSize: Int) : ArrayList<TypeArgumentMarker>(initialSize), TypeArgumentListMarker
 
 
-interface TypeSystemContext : TypeSystemOptimizationContext {
+interface TypeSystemContext {
     fun KotlinTypeMarker.asSimpleType(): SimpleTypeMarker?
     fun KotlinTypeMarker.asFlexibleType(): FlexibleTypeMarker?
 
@@ -330,6 +318,11 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun prepareType(type: KotlinTypeMarker): KotlinTypeMarker
 
     fun SimpleTypeMarker.isPrimitiveType(): Boolean
+
+    /**
+     *  @return true is a.arguments == b.arguments, or false if not supported
+     */
+    fun identicalArguments(a: SimpleTypeMarker, b: SimpleTypeMarker) = false
 }
 
 enum class CaptureStatus {
