@@ -193,7 +193,7 @@ class CoroutineInferenceSession(
         *
         * while substitutor from parameter map non-fixed types to the original type variable
         * */
-        val callSubstitutor = storage.buildResultingSubstitutor(commonSystem, transformTypeVariablesToErrorTypes = false)
+        val callSubstitutor = storage.buildResultingSubstitutor(commonSystem.baseContext, transformTypeVariablesToErrorTypes = false)
 
         var introducedConstraint = false
 

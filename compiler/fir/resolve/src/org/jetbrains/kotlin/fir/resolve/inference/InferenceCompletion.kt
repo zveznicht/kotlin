@@ -105,7 +105,7 @@ class ConstraintSystemCompleter(private val components: BodyResolveComponents) {
 
         val postponedAtom = postponedAtoms.firstOrNull() ?: return false
         val csBuilder = (c as NewConstraintSystemImpl).getBuilder()
-        val expectedTypeVariableConstructor = postponedAtom.expectedType?.typeConstructor(c)?.takeIf { it in c.allTypeVariables } as? ConeTypeVariableTypeConstructor ?: variable
+        val expectedTypeVariableConstructor = postponedAtom.expectedType?.typeConstructor(c.baseContext)?.takeIf { it in c.allTypeVariables } as? ConeTypeVariableTypeConstructor ?: variable
         val expectedTypeVariable = csBuilder.currentStorage().allTypeVariables[expectedTypeVariableConstructor] as ConeTypeVariable? ?: return false
 
         val atomToAnalyze = when (postponedAtom) {
