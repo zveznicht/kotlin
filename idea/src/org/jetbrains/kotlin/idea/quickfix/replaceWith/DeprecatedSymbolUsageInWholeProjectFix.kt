@@ -10,7 +10,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.KotlinBundle
-import org.jetbrains.kotlin.idea.codeInliner.UsageReplacementStrategy
+import org.jetbrains.kotlin.idea.codeInliner.UsageReplacementStrategyFactory
 import org.jetbrains.kotlin.idea.codeInliner.replaceUsagesInWholeProject
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -36,9 +36,13 @@ class DeprecatedSymbolUsageInWholeProjectFix(
         return targetPsiElement() != null
     }
 
-    override fun invoke(replacementStrategy: UsageReplacementStrategy, project: Project, editor: Editor?) {
+    override fun invoke(
+        replacementStrategyFactory: UsageReplacementStrategyFactory,
+        project: Project,
+        editor: Editor?
+    ) {
         val psiElement = targetPsiElement()!!
-        replacementStrategy.replaceUsagesInWholeProject(
+        replacementStrategyFactory.replaceUsagesInWholeProject(
             psiElement,
             progressTitle = KotlinBundle.message("applying.0", text),
             commandName = text

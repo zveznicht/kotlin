@@ -22,7 +22,7 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.KotlinBundle
-import org.jetbrains.kotlin.idea.codeInliner.UsageReplacementStrategy
+import org.jetbrains.kotlin.idea.codeInliner.UsageReplacementStrategyFactory
 import org.jetbrains.kotlin.idea.core.moveCaret
 import org.jetbrains.kotlin.idea.core.targetDescriptors
 import org.jetbrains.kotlin.idea.quickfix.CleanupFix
@@ -40,9 +40,9 @@ class DeprecatedSymbolUsageFix(
 
     override fun getText() = KotlinBundle.message("replace.with.0", replaceWith.pattern)
 
-    override fun invoke(replacementStrategy: UsageReplacementStrategy, project: Project, editor: Editor?) {
+    override fun invoke(replacementStrategyFactory: UsageReplacementStrategyFactory, project: Project, editor: Editor?) {
         val element = element ?: return
-        val result = replacementStrategy.createReplacer(element)?.invoke()
+        val result = replacementStrategyFactory(element)?.createReplacer(element)?.invoke()
         if (result != null) {
             val offset = (result.getCalleeExpressionIfAny() ?: result).textOffset
             editor?.moveCaret(offset)

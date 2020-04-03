@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.codeInliner.CallableUsageReplacementStrategy
 import org.jetbrains.kotlin.idea.codeInliner.ClassUsageReplacementStrategy
 import org.jetbrains.kotlin.idea.codeInliner.UsageReplacementStrategy
+import org.jetbrains.kotlin.idea.codeInliner.UsageReplacementStrategyFactory
 import org.jetbrains.kotlin.idea.core.OptionalParametersHelper
 import org.jetbrains.kotlin.idea.quickfix.KotlinQuickFixAction
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -61,22 +62,24 @@ abstract class DeprecatedSymbolUsageFixBase(
         return strategy?.createReplacer(element) != null
     }
 
-    final override fun invoke(project: Project, editor: Editor?, file: KtFile) {
-        val element = element ?: return
-        val strategy = buildUsageReplacementStrategy(
-            element, replaceWith, recheckAnnotation = false, reformat = true, editor = editor
-        ) ?: return
-        invoke(strategy, project, editor)
-    }
+    final override fun invoke(project: Project, editor: Editor?, file: KtFile) = invoke(
+        {
+            buildUsageReplacementStrategy(
+                it, replaceWith, recheckAnnotation = false, reformat = true, editor = editor
+            )
+        },
+        project,
+        editor
+    )
 
-    protected abstract operator fun invoke(replacementStrategy: UsageReplacementStrategy, project: Project, editor: Editor?)
+    protected abstract operator fun invoke(replacementStrategyFactory: UsageReplacementStrategyFactory, project: Project, editor: Editor?)
 
     companion object {
         fun fetchReplaceWithPattern(
             descriptor: DeclarationDescriptor,
             project: Project,
             contextElement: KtSimpleNameExpression?,
-            replaceInWholeProject: Boolean
+            replaceInWholeProject: Boolean,
         ): ReplaceWith? {
             val annotation = descriptor.annotations.findAnnotation(KotlinBuiltIns.FQ_NAMES.deprecated) ?: return null
             val replaceWithValue =
@@ -192,18 +195,19 @@ abstract class DeprecatedSymbolUsageFixBase(
             val bindingContext = resolutionFacade.analyze(element, BodyResolveMode.PARTIAL)
             var target = element.mainReference.resolveToDescriptors(bindingContext).singleOrNull() ?: return null
 
-            var replacePatternFromSymbol =
-                fetchReplaceWithPattern(target, resolutionFacade.project, element, replaceWith.replaceInWholeProject)
-            if (replacePatternFromSymbol == null && target is ConstructorDescriptor) {
-                target = target.containingDeclaration
-                replacePatternFromSymbol =
-                    fetchReplaceWithPattern(target, resolutionFacade.project, element, replaceWith.replaceInWholeProject)
-            }
+            fun pattern(inWholeProject: Boolean): ReplaceWith? =
+                fetchReplaceWithPattern(target, resolutionFacade.project, element, inWholeProject)
+                    ?: if (target is ConstructorDescriptor) {
+                        target = target.containingDeclaration!!
+                        fetchReplaceWithPattern(target, resolutionFacade.project, element, inWholeProject)
+                    } else {
+                        null
+                    }
 
             // check that ReplaceWith hasn't changed
-            if (recheckAnnotation && replacePatternFromSymbol != replaceWith) return null
-
-            when (target) {
+            if (recheckAnnotation && replaceWith != pattern(replaceWith.replaceInWholeProject)) return null
+            val replaceWith = pattern(false) ?: replaceWith
+            when (val target = target) {
                 is CallableDescriptor -> {
                     val resolvedCall = element.getResolvedCall(bindingContext) ?: return null
                     if (!resolvedCall.isReallySuccess()) return null
@@ -269,7 +273,7 @@ abstract class DeprecatedSymbolUsageFixBase(
             classifier: ClassifierDescriptorWithTypeParameters,
             typeAlias: PsiElement,
             contextElement: KtSimpleNameExpression,
-            replaceInWholeProject: Boolean
+            replaceInWholeProject: Boolean,
         ): ConstructorDescriptor? {
             val specialReplaceWithForConstructor = classifier.constructors.filter {
                 fetchReplaceWithPattern(it, project, contextElement, replaceInWholeProject) != null
