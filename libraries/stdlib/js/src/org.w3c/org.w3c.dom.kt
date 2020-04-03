@@ -10,20 +10,14 @@ package org.w3c.dom
 
 import kotlin.js.*
 import org.khronos.webgl.*
-import org.w3c.css.masking.*
 import org.w3c.dom.clipboard.*
 import org.w3c.dom.css.*
-import org.w3c.dom.encryptedmedia.*
 import org.w3c.dom.events.*
 import org.w3c.dom.mediacapture.*
-import org.w3c.dom.mediasource.*
-import org.w3c.dom.parsing.*
 import org.w3c.dom.pointerevents.*
 import org.w3c.dom.svg.*
-import org.w3c.dom.url.*
 import org.w3c.fetch.*
 import org.w3c.files.*
-import org.w3c.notifications.*
 import org.w3c.performance.*
 import org.w3c.workers.*
 import org.w3c.xhr.*
@@ -34,9 +28,11 @@ public external abstract class HTMLAllCollection {
     fun namedItem(name: String): UnionElementOrHTMLCollection?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun HTMLAllCollection.get(index: Int): Element? = asDynamic()[index]
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun HTMLAllCollection.get(name: String): UnionElementOrHTMLCollection? = asDynamic()[name]
 
@@ -62,6 +58,7 @@ public external abstract class HTMLOptionsCollection : HTMLCollection {
     fun remove(index: Int)
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun HTMLOptionsCollection.set(index: Int, option: HTMLOptionElement?) { asDynamic()[index] = option }
 
@@ -146,9 +143,11 @@ public external abstract class HTMLUnknownElement : HTMLElement {
  */
 public external abstract class DOMStringMap
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun DOMStringMap.get(name: String): String? = asDynamic()[name]
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun DOMStringMap.set(name: String, value: String) { asDynamic()[name] = value }
 
@@ -1279,7 +1278,7 @@ public external abstract class HTMLTrackElement : HTMLElement {
 public external abstract class HTMLMediaElement : HTMLElement {
     open val error: MediaError?
     open var src: String
-    open var srcObject: MediaProvider?
+    open var srcObject: dynamic
     open val currentSrc: String
     open var crossOrigin: String?
     open val networkState: Short
@@ -1304,9 +1303,6 @@ public external abstract class HTMLMediaElement : HTMLElement {
     open val audioTracks: AudioTrackList
     open val videoTracks: VideoTrackList
     open val textTracks: TextTrackList
-    open val mediaKeys: MediaKeys?
-    open var onencrypted: ((Event) -> dynamic)?
-    open var onwaitingforkey: ((Event) -> dynamic)?
     fun load()
     fun canPlayType(type: String): CanPlayTypeResult
     fun fastSeek(time: Double)
@@ -1314,7 +1310,6 @@ public external abstract class HTMLMediaElement : HTMLElement {
     fun play(): Promise<Unit>
     fun pause()
     fun addTextTrack(kind: TextTrackKind, label: String = definedExternally, language: String = definedExternally): TextTrack
-    fun setMediaKeys(mediaKeys: MediaKeys?): Promise<Unit>
 
     companion object {
         val NETWORK_EMPTY: Short
@@ -1372,6 +1367,7 @@ public external abstract class AudioTrackList : EventTarget {
     fun getTrackById(id: String): AudioTrack?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun AudioTrackList.get(index: Int): AudioTrack? = asDynamic()[index]
 
@@ -1384,7 +1380,6 @@ public external abstract class AudioTrack : UnionAudioTrackOrTextTrackOrVideoTra
     open val label: String
     open val language: String
     open var enabled: Boolean
-    open val sourceBuffer: SourceBuffer?
 }
 
 /**
@@ -1399,6 +1394,7 @@ public external abstract class VideoTrackList : EventTarget {
     fun getTrackById(id: String): VideoTrack?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun VideoTrackList.get(index: Int): VideoTrack? = asDynamic()[index]
 
@@ -1411,7 +1407,6 @@ public external abstract class VideoTrack : UnionAudioTrackOrTextTrackOrVideoTra
     open val label: String
     open val language: String
     open var selected: Boolean
-    open val sourceBuffer: SourceBuffer?
 }
 
 public external abstract class TextTrackList : EventTarget {
@@ -1422,6 +1417,7 @@ public external abstract class TextTrackList : EventTarget {
     fun getTrackById(id: String): TextTrack?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun TextTrackList.get(index: Int): TextTrack? = asDynamic()[index]
 
@@ -1438,7 +1434,6 @@ public external abstract class TextTrack : EventTarget, UnionAudioTrackOrTextTra
     open val cues: TextTrackCueList?
     open val activeCues: TextTrackCueList?
     open var oncuechange: ((Event) -> dynamic)?
-    open val sourceBuffer: SourceBuffer?
     fun addCue(cue: TextTrackCue)
     fun removeCue(cue: TextTrackCue)
 }
@@ -1448,6 +1443,7 @@ public external abstract class TextTrackCueList {
     fun getCueById(id: String): TextTrackCue?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun TextTrackCueList.get(index: Int): TextTrackCue? = asDynamic()[index]
 
@@ -1493,6 +1489,7 @@ public external interface TrackEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun TrackEventInit(track: UnionAudioTrackOrTextTrackOrVideoTrack? = null, bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): TrackEventInit {
     val o = js("({})")
@@ -1835,9 +1832,11 @@ public external abstract class HTMLFormElement : HTMLElement {
     }
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun HTMLFormElement.get(index: Int): Element? = asDynamic()[index]
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun HTMLFormElement.get(name: String): UnionElementOrRadioNodeList? = asDynamic()[name]
 
@@ -2052,9 +2051,11 @@ public external abstract class HTMLSelectElement : HTMLElement, ItemArrayLike<El
     }
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun HTMLSelectElement.get(index: Int): Element? = asDynamic()[index]
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun HTMLSelectElement.set(index: Int, option: HTMLOptionElement?) { asDynamic()[index] = option }
 
@@ -2543,6 +2544,7 @@ public external interface RelatedEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun RelatedEventInit(relatedTarget: EventTarget? = null, bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): RelatedEventInit {
     val o = js("({})")
@@ -2685,6 +2687,7 @@ public external interface AssignedNodesOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun AssignedNodesOptions(flatten: Boolean? = false): AssignedNodesOptions {
     val o = js("({})")
@@ -2730,6 +2733,7 @@ public external interface CanvasRenderingContext2DSettings {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun CanvasRenderingContext2DSettings(alpha: Boolean? = true): CanvasRenderingContext2DSettings {
     val o = js("({})")
@@ -2936,6 +2940,7 @@ public external interface HitRegionOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun HitRegionOptions(path: Path2D? = null, fillRule: CanvasFillRule? = CanvasFillRule.NONZERO, id: String? = "", parentID: String? = null, cursor: String? = "inherit", control: Element? = null, label: String? = null, role: String? = null): HitRegionOptions {
     val o = js("({})")
@@ -2995,6 +3000,7 @@ public external interface ImageBitmapRenderingContextSettings {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun ImageBitmapRenderingContextSettings(alpha: Boolean? = true): ImageBitmapRenderingContextSettings {
     val o = js("({})")
@@ -3017,6 +3023,7 @@ public external interface ElementDefinitionOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun ElementDefinitionOptions(extends: String? = undefined): ElementDefinitionOptions {
     val o = js("({})")
@@ -3055,6 +3062,7 @@ public external abstract class DataTransferItemList {
     fun clear()
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun DataTransferItemList.get(index: Int): DataTransferItem? = asDynamic()[index]
 
@@ -3088,6 +3096,7 @@ public external interface DragEventInit : MouseEventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun DragEventInit(dataTransfer: DataTransfer? = null, screenX: Int? = 0, screenY: Int? = 0, clientX: Int? = 0, clientY: Int? = 0, button: Short? = 0, buttons: Short? = 0, relatedTarget: EventTarget? = null, region: String? = null, ctrlKey: Boolean? = false, shiftKey: Boolean? = false, altKey: Boolean? = false, metaKey: Boolean? = false, modifierAltGraph: Boolean? = false, modifierCapsLock: Boolean? = false, modifierFn: Boolean? = false, modifierFnLock: Boolean? = false, modifierHyper: Boolean? = false, modifierNumLock: Boolean? = false, modifierScrollLock: Boolean? = false, modifierSuper: Boolean? = false, modifierSymbol: Boolean? = false, modifierSymbolLock: Boolean? = false, view: Window? = null, detail: Int? = 0, bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): DragEventInit {
     val o = js("({})")
@@ -3191,6 +3200,7 @@ public external abstract class Window : EventTarget, GlobalEventHandlers, Window
     fun getComputedStyle(elt: Element, pseudoElt: String? = definedExternally): CSSStyleDeclaration
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun Window.get(name: String): dynamic = asDynamic()[name]
 
@@ -3251,6 +3261,7 @@ public external interface PopStateEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun PopStateEventInit(state: Any? = null, bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): PopStateEventInit {
     val o = js("({})")
@@ -3285,6 +3296,7 @@ public external interface HashChangeEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun HashChangeEventInit(oldURL: String? = "", newURL: String? = "", bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): HashChangeEventInit {
     val o = js("({})")
@@ -3316,6 +3328,7 @@ public external interface PageTransitionEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun PageTransitionEventInit(persisted: Boolean? = false, bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): PageTransitionEventInit {
     val o = js("({})")
@@ -3407,6 +3420,7 @@ public external interface ErrorEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun ErrorEventInit(message: String? = "", filename: String? = "", lineno: Int? = 0, colno: Int? = 0, error: Any? = null, bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): ErrorEventInit {
     val o = js("({})")
@@ -3445,6 +3459,7 @@ public external interface PromiseRejectionEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun PromiseRejectionEventInit(promise: Promise<Any?>?, reason: Any? = undefined, bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): PromiseRejectionEventInit {
     val o = js("({})")
@@ -3763,7 +3778,6 @@ public external abstract class Navigator : NavigatorID, NavigatorLanguage, Navig
     open val mediaDevices: MediaDevices
     open val maxTouchPoints: Int
     open val serviceWorker: ServiceWorkerContainer
-    fun requestMediaKeySystemAccess(keySystem: String, supportedConfigurations: Array<MediaKeySystemConfiguration>): Promise<MediaKeySystemAccess>
     fun getUserMedia(constraints: MediaStreamConstraints, successCallback: (MediaStream) -> Unit, errorCallback: (dynamic) -> Unit)
     fun vibrate(pattern: dynamic): Boolean
 }
@@ -3824,9 +3838,11 @@ public external abstract class PluginArray : ItemArrayLike<Plugin> {
     fun namedItem(name: String): Plugin?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun PluginArray.get(index: Int): Plugin? = asDynamic()[index]
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun PluginArray.get(name: String): Plugin? = asDynamic()[name]
 
@@ -3838,9 +3854,11 @@ public external abstract class MimeTypeArray : ItemArrayLike<MimeType> {
     fun namedItem(name: String): MimeType?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun MimeTypeArray.get(index: Int): MimeType? = asDynamic()[index]
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun MimeTypeArray.get(name: String): MimeType? = asDynamic()[name]
 
@@ -3855,9 +3873,11 @@ public external abstract class Plugin : ItemArrayLike<MimeType> {
     fun namedItem(name: String): MimeType?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun Plugin.get(index: Int): MimeType? = asDynamic()[index]
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun Plugin.get(name: String): MimeType? = asDynamic()[name]
 
@@ -3901,6 +3921,7 @@ public external interface ImageBitmapOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun ImageBitmapOptions(imageOrientation: ImageOrientation? = ImageOrientation.NONE, premultiplyAlpha: PremultiplyAlpha? = PremultiplyAlpha.DEFAULT, colorSpaceConversion: ColorSpaceConversion? = ColorSpaceConversion.DEFAULT, resizeWidth: Int? = undefined, resizeHeight: Int? = undefined, resizeQuality: ResizeQuality? = ResizeQuality.LOW): ImageBitmapOptions {
     val o = js("({})")
@@ -3950,6 +3971,7 @@ public external interface MessageEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun MessageEventInit(data: Any? = null, origin: String? = "", lastEventId: String? = "", source: UnionMessagePortOrWindowProxy? = null, ports: Array<MessagePort>? = arrayOf(), bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): MessageEventInit {
     val o = js("({})")
@@ -3989,6 +4011,7 @@ public external interface EventSourceInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun EventSourceInit(withCredentials: Boolean? = false): EventSourceInit {
     val o = js("({})")
@@ -4052,6 +4075,7 @@ public external interface CloseEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun CloseEventInit(wasClean: Boolean? = false, code: Short? = 0, reason: String? = "", bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): CloseEventInit {
     val o = js("({})")
@@ -4155,6 +4179,7 @@ public external interface WorkerOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun WorkerOptions(type: WorkerType? = WorkerType.CLASSIC, credentials: RequestCredentials? = RequestCredentials.OMIT): WorkerOptions {
     val o = js("({})")
@@ -4212,9 +4237,11 @@ public external abstract class Storage {
     fun setItem(key: String, value: String)
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun Storage.get(key: String): String? = asDynamic()[key]
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun Storage.set(key: String, value: String) { asDynamic()[key] = value }
 
@@ -4268,6 +4295,7 @@ public external interface StorageEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun StorageEventInit(key: String? = null, oldValue: String? = null, newValue: String? = null, url: String? = "", storageArea: Storage? = null, bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): StorageEventInit {
     val o = js("({})")
@@ -4495,6 +4523,7 @@ public external interface EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun EventInit(bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): EventInit {
     val o = js("({})")
@@ -4525,6 +4554,7 @@ public external interface CustomEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun CustomEventInit(detail: Any? = null, bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): CustomEventInit {
     val o = js("({})")
@@ -4541,6 +4571,7 @@ public external interface EventListenerOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun EventListenerOptions(capture: Boolean? = false): EventListenerOptions {
     val o = js("({})")
@@ -4557,6 +4588,7 @@ public external interface AddEventListenerOptions : EventListenerOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun AddEventListenerOptions(passive: Boolean? = false, once: Boolean? = false, capture: Boolean? = false): AddEventListenerOptions {
     val o = js("({})")
@@ -4629,6 +4661,7 @@ public external abstract class NodeList : ItemArrayLike<Node> {
     override fun item(index: Int): Node?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun NodeList.get(index: Int): Node? = asDynamic()[index]
 
@@ -4640,9 +4673,11 @@ public external abstract class HTMLCollection : ItemArrayLike<Element>, UnionEle
     fun namedItem(name: String): Element?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun HTMLCollection.get(index: Int): Element? = asDynamic()[index]
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun HTMLCollection.get(name: String): Element? = asDynamic()[name]
 
@@ -4682,6 +4717,7 @@ public external interface MutationObserverInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun MutationObserverInit(childList: Boolean? = false, attributes: Boolean? = undefined, characterData: Boolean? = undefined, subtree: Boolean? = false, attributeOldValue: Boolean? = undefined, characterDataOldValue: Boolean? = undefined, attributeFilter: Array<String>? = undefined): MutationObserverInit {
     val o = js("({})")
@@ -4772,6 +4808,7 @@ public external interface GetRootNodeOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun GetRootNodeOptions(composed: Boolean? = false): GetRootNodeOptions {
     val o = js("({})")
@@ -4923,7 +4960,7 @@ public external open class Document : Node, GlobalEventHandlers, DocumentAndElem
     fun adoptNode(node: Node): Node
     fun createAttribute(localName: String): Attr
     fun createAttributeNS(namespace: String?, qualifiedName: String): Attr
-    fun createEvent(`interface`: String): Event
+    fun createEvent(param_interface: String): Event
     fun createRange(): Range
     fun createNodeIterator(root: Node, whatToShow: Int = definedExternally, filter: NodeFilter? = definedExternally): NodeIterator
     fun createNodeIterator(root: Node, whatToShow: Int = definedExternally, filter: ((Node) -> Short)? = definedExternally): NodeIterator
@@ -4983,6 +5020,7 @@ public external open class Document : Node, GlobalEventHandlers, DocumentAndElem
     }
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun Document.get(name: String): dynamic = asDynamic()[name]
 
@@ -5018,10 +5056,11 @@ public external interface ElementCreationOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
-public inline fun ElementCreationOptions(`is`: String? = undefined): ElementCreationOptions {
+public inline fun ElementCreationOptions(param_is: String? = undefined): ElementCreationOptions {
     val o = js("({})")
-    o["is"] = `is`
+    o["is"] = param_is
     return o
 }
 
@@ -5223,6 +5262,7 @@ public external interface ShadowRootInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun ShadowRootInit(mode: ShadowRootMode?): ShadowRootInit {
     val o = js("({})")
@@ -5243,9 +5283,11 @@ public external abstract class NamedNodeMap : ItemArrayLike<Attr> {
     fun getNamedItem(qualifiedName: String): Attr?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun NamedNodeMap.get(index: Int): Attr? = asDynamic()[index]
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun NamedNodeMap.get(qualifiedName: String): Attr? = asDynamic()[qualifiedName]
 
@@ -5558,6 +5600,7 @@ public external abstract class DOMTokenList : ItemArrayLike<String> {
     override fun item(index: Int): String?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun DOMTokenList.get(index: Int): String? = asDynamic()[index]
 
@@ -5602,6 +5645,7 @@ public external interface DOMPointInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun DOMPointInit(x: Double? = 0.0, y: Double? = 0.0, z: Double? = 0.0, w: Double? = 1.0): DOMPointInit {
     val o = js("({})")
@@ -5651,6 +5695,7 @@ public external interface DOMRectInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun DOMRectInit(x: Double? = 0.0, y: Double? = 0.0, width: Double? = 0.0, height: Double? = 0.0): DOMRectInit {
     val o = js("({})")
@@ -5665,6 +5710,7 @@ public external interface DOMRectList : ItemArrayLike<DOMRect> {
     override fun item(index: Int): DOMRect?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun DOMRectList.get(index: Int): DOMRect? = asDynamic()[index]
 
@@ -5779,6 +5825,7 @@ public external interface ScrollOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun ScrollOptions(behavior: ScrollBehavior? = ScrollBehavior.AUTO): ScrollOptions {
     val o = js("({})")
@@ -5798,6 +5845,7 @@ public external interface ScrollToOptions : ScrollOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun ScrollToOptions(left: Double? = undefined, top: Double? = undefined, behavior: ScrollBehavior? = ScrollBehavior.AUTO): ScrollToOptions {
     val o = js("({})")
@@ -5844,6 +5892,7 @@ public external interface MediaQueryListEventInit : EventInit {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun MediaQueryListEventInit(media: String? = "", matches: Boolean? = false, bubbles: Boolean? = false, cancelable: Boolean? = false, composed: Boolean? = false): MediaQueryListEventInit {
     val o = js("({})")
@@ -5885,6 +5934,7 @@ public external interface ScrollIntoViewOptions : ScrollOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun ScrollIntoViewOptions(block: ScrollLogicalPosition? = ScrollLogicalPosition.CENTER, inline: ScrollLogicalPosition? = ScrollLogicalPosition.CENTER, behavior: ScrollBehavior? = ScrollBehavior.AUTO): ScrollIntoViewOptions {
     val o = js("({})")
@@ -5903,6 +5953,7 @@ public external interface BoxQuadOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun BoxQuadOptions(box: CSSBoxType? = CSSBoxType.BORDER, relativeTo: dynamic = undefined): BoxQuadOptions {
     val o = js("({})")
@@ -5920,6 +5971,7 @@ public external interface ConvertCoordinateOptions {
         set(value) = definedExternally
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline fun ConvertCoordinateOptions(fromBox: CSSBoxType? = CSSBoxType.BORDER, toBox: CSSBoxType? = CSSBoxType.BORDER): ConvertCoordinateOptions {
     val o = js("({})")
@@ -5957,6 +6009,7 @@ public external abstract class TouchList : ItemArrayLike<Touch> {
     override fun item(index: Int): Touch?
 }
 
+@Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
 @kotlin.internal.InlineOnly
 public inline operator fun TouchList.get(index: Int): Touch? = asDynamic()[index]
 
@@ -6357,8 +6410,6 @@ public external interface UnionElementOrHTMLCollection
 public external interface UnionElementOrRadioNodeList
 
 public external interface UnionHTMLOptGroupElementOrHTMLOptionElement
-
-public external interface MediaProvider
 
 public external interface UnionAudioTrackOrTextTrackOrVideoTrack
 
