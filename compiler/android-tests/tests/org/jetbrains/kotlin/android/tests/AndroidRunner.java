@@ -44,7 +44,7 @@ public class AndroidRunner {
     public static TestSuite suite() throws Throwable {
         PathManager pathManager = getPathManager();
 
-        CodegenTestsOnAndroidGenerator.generate(pathManager);
+        //CodegenTestsOnAndroidGenerator.generate(pathManager);
 
         System.out.println("Run tests on android...");
         TestSuite suite = CodegenTestsOnAndroidRunner.runTestsInEmulator(pathManager);

@@ -40,6 +40,7 @@ class CodegenTestsOnAndroidRunner private constructor(private val pathManager: P
         val rootSuite = TestSuite("Root")
 
         downloadDependencies()
+        return null!!;
 
         val emulatorType = if (isTeamcity) Emulator.ARM else Emulator.X86
         println("Using $emulatorType emulator!")
@@ -141,7 +142,8 @@ class CodegenTestsOnAndroidRunner private constructor(private val pathManager: P
         }
 
         val downloader = SDKDownloader(pathManager)
-        downloader.downloadAll()
+        downloader.downloadCmdLineToolsAndGradle()
+        downloader.installPackages()
         downloader.unzipAll()
         PermissionManager.setPermissions(pathManager)
     }

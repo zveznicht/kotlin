@@ -13,258 +13,206 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.jetbrains.kotlin.android.tests.download
 
-package org.jetbrains.kotlin.android.tests.download;
+import com.intellij.execution.configurations.GeneralCommandLine
+import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.kotlin.android.tests.PathManager
+import org.jetbrains.kotlin.android.tests.run.RunUtils
+import java.io.*
+import java.net.URL
+import java.net.URLConnection
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
-import com.intellij.openapi.util.SystemInfo;
-import com.intellij.openapi.util.io.FileUtil;
-import org.jetbrains.kotlin.android.tests.PathManager;
-import org.jetbrains.kotlin.android.tests.run.RunUtils;
-
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
-public class SDKDownloader {
-    private final String platformZipPath;
-    private final String armImage;
-    private final String x86Image;
-    private final String platformToolsZipPath;
-    private final String skdToolsZipPath;
-    private final String buildToolsZipPath;
-    private final String gradleZipPath;
-    private final String emulatorZipPath;
-
-    private final PathManager pathManager;
-
-    private static final String PLATFORM_TOOLS = "28.0.1";
-    private static final String SDK_TOOLS = "4333796"; //"26.1.1";
-    public static final String BUILD_TOOLS = "29.0.3";
-    private static final int ANDROID_VERSION = 19;
-    public static final String GRADLE_VERSION = "5.6.4";
-    public static final String EMULATOR_TOOLS_VERSION = "5264690"; //"28.0.23";
-
-
-    public SDKDownloader(PathManager pathManager) {
-        this.pathManager = pathManager;
-        platformZipPath = pathManager.getRootForDownload() + "/platform" + ANDROID_VERSION + ".zip";
-        armImage = pathManager.getRootForDownload() + "/arm-image.zip";
-        x86Image = pathManager.getRootForDownload() + "/x86-image.zip";
-        platformToolsZipPath = pathManager.getRootForDownload() + "/platform-tools" + PLATFORM_TOOLS + ".zip";
-        skdToolsZipPath = pathManager.getRootForDownload() + "/sdk-tools" + SDK_TOOLS + ".zip";
-        buildToolsZipPath = pathManager.getRootForDownload() + "/build-tools" + BUILD_TOOLS + ".zip";
-        gradleZipPath = pathManager.getRootForDownload() + "/gradle" + GRADLE_VERSION + ".zip";
-        emulatorZipPath = pathManager.getRootForDownload() + "/emulator" + EMULATOR_TOOLS_VERSION + ".zip";
+class SDKDownloader(private val pathManager: PathManager) {
+    private val gradleZipPath: String
+    private val cmdLineToolsZipPath: String
+    fun downloadSdkTools() {
+        download(
+            getDownloadUrl("https://dl.google.com/android/repository/commandlinetools-") + "-" + COMMAND_LINE_TOOLS + ".zip",
+            cmdLineToolsZipPath
+        )
     }
 
-    public void downloadPlatform() {
-        download("https://dl-ssl.google.com/android/repository/android-" + ANDROID_VERSION + "_r04.zip", platformZipPath);  //Same for all platforms
+    fun downloadGradle() {
+        download(
+            "https://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip",
+            gradleZipPath
+        )
     }
 
-    private void downloadAbi() {
-        download("https://dl.google.com/android/repository/sys-img/android/armeabi-v7a-" + ANDROID_VERSION + "_r05.zip", armImage);  //Same for all platforms
-        download("https://dl.google.com/android/repository/sys-img/android/x86-" + ANDROID_VERSION + "_r06.zip", x86Image);  //Same for all platforms
+    fun downloadCmdLineToolsAndGradle() {
+        downloadSdkTools()
+        downloadGradle()
     }
 
-    public void downloadPlatformTools() {
-        download(getDownloadUrl("https://dl-ssl.google.com/android/repository/platform-tools_r" + PLATFORM_TOOLS), platformToolsZipPath);
+    fun installPackages() {
+        val path = pathManager.cmdLineToolsBinFolder + "/sdkmanager"
+        RunUtils.execute(
+            GeneralCommandLine(
+                path, "platforms;android-19",
+                "build-tools;29.0.3",
+                "emulator;28.0.23",
+                "system-images;android-19;default;x86",
+                "system-images;android-19;default;armeabi-v7a"
+            )
+        )
+        downloadGradle()
     }
 
-    public void downloadSdkTools() {
-        download("https://dl.google.com/android/repository/sdk-tools-" + getPlatformName() + "-" + SDK_TOOLS + ".zip",
-                 skdToolsZipPath);
+    fun unzipAll() {
+        val androidSdkRoot = pathManager.androidSdkRoot
+        unzip(cmdLineToolsZipPath, pathManager.cmdLineToolsFolderInAndroidSdk)
+        File(pathManager.cmdLineToolsFolderInAndroidSdk + "/tools")
+            .renameTo(File(pathManager.cmdLineToolsFolderInAndroidSdk + "/latest"))
+        unzip(gradleZipPath, pathManager.dependenciesRoot)
     }
 
-    public void downloadBuildTools() {
-        download(getDownloadUrl("https://dl.google.com/android/repository/build-tools_r" + BUILD_TOOLS), buildToolsZipPath);
-    }
-    public void downloadEmulator() {
-        download("https://dl.google.com/android/repository/emulator-" + getPlatformName() + "-" + EMULATOR_TOOLS_VERSION + ".zip",
-                 emulatorZipPath);
+    fun deleteAll() {
+        delete(gradleZipPath)
     }
 
-    public void downloadGradle() {
-        download("https://services.gradle.org/distributions/gradle-" + GRADLE_VERSION + "-bin.zip", gradleZipPath);
-    }
-
-    private static String getDownloadUrl(String prefix) {
-        String suffix;
-        if (SystemInfo.isWindows) {
-            suffix = "-windows.zip";
+    protected fun unzip(pathToFile: String, outputFolder: String) {
+        println("Start unzipping: $pathToFile to $outputFolder")
+        val pathToUnzip: String
+        pathToUnzip = if (outputFolder == pathManager.platformFolderInAndroidSdk) {
+            outputFolder
+        } else {
+            outputFolder + "/" + FileUtil.getNameWithoutExtension(File(pathToFile))
         }
-        else if (SystemInfo.isMac) {
-            suffix = "-macosx.zip";
-        }
-        else if (SystemInfo.isUnix) {
-            suffix = "-linux.zip";
-        }
-        else {
-            throw new IllegalStateException("Your operating system isn't supported yet.");
-        }
-        return prefix + suffix;
-    }
-
-
-    private static String getPlatformName() {
-        if (SystemInfo.isWindows) {
-            return "windows";
-        }
-        else if (SystemInfo.isMac) {
-            return "darwin";
-        }
-        else if (SystemInfo.isUnix) {
-            return "linux";
-        }
-        else {
-            throw new IllegalStateException("Your operating system isn't supported yet.");
-        }
-    }
-
-    public void downloadAll() {
-        downloadSdkTools();
-        downloadAbi();
-        downloadPlatform();
-        downloadPlatformTools();
-        downloadBuildTools();
-        downloadGradle();
-        downloadEmulator();
-    }
-
-
-    public void unzipAll() {
-        String androidSdkRoot = pathManager.getAndroidSdkRoot();
-        unzip(platformZipPath, pathManager.getPlatformFolderInAndroidSdk());
-        new File(pathManager.getPlatformFolderInAndroidSdk() + "/android-4.4.2").renameTo(new File(pathManager.getPlatformFolderInAndroidSdk() + "/android-" + ANDROID_VERSION));
-
-        unzip(armImage, androidSdkRoot + "/system-images/android-" + ANDROID_VERSION + "/default/");
-        unzip(x86Image, androidSdkRoot + "/system-images/android-" + ANDROID_VERSION + "/default/");
-
-        unzip(platformToolsZipPath, androidSdkRoot);
-        unzip(skdToolsZipPath, androidSdkRoot);
-
-        unzip(gradleZipPath, pathManager.getDependenciesRoot());
-
-        //BUILD TOOLS
-        String buildTools = androidSdkRoot + "/build-tools/";
-        unzip(buildToolsZipPath, buildTools);
-        new File(pathManager.getBuildToolsFolderInAndroidSdk() + "/android-10").renameTo(new File(pathManager.getPlatformFolderInAndroidSdk() + "/" + BUILD_TOOLS));
-
-        unzip(emulatorZipPath, androidSdkRoot);
-    }
-
-    public void deleteAll() {
-        delete(platformZipPath);
-        delete(platformToolsZipPath);
-        delete(skdToolsZipPath);
-        delete(buildToolsZipPath);
-        delete(armImage);
-        delete(x86Image);
-        delete(gradleZipPath);
-    }
-
-    private static void download(String urlString, String output) {
-        System.out.println("Start downloading: " + urlString + " to " + output);
-        OutputStream outStream = null;
-        URLConnection urlConnection;
-
-        InputStream is;
-        try {
-            URL Url;
-            byte[] buf;
-            int read;
-            //int written = 0;
-            Url = new URL(urlString);
-
-            File outputFile = new File(output);
-            outputFile.getParentFile().mkdirs();
-            if (outputFile.exists()) {
-                System.out.println("File was already downloaded: " + output);
-                return;
-            }
-            outputFile.createNewFile();
-            FileOutputStream outputStream = new FileOutputStream(outputFile);
-            outStream = new BufferedOutputStream(outputStream);
-
-            urlConnection = Url.openConnection();
-            is = urlConnection.getInputStream();
-            buf = new byte[1024];
-            while ((read = is.read(buf)) != -1) {
-                outStream.write(buf, 0, read);
-                //written += read;
-            }
-        }
-        catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        finally {
-            RunUtils.close(outStream);
-        }
-        System.out.println("Finish downloading: " + urlString + " to " + output);
-    }
-
-    protected void unzip(String pathToFile, String outputFolder) {
-        System.out.println("Start unzipping: " + pathToFile + " to " + outputFolder);
-        String pathToUnzip;
-        if (outputFolder.equals(pathManager.getPlatformFolderInAndroidSdk())) {
-            pathToUnzip = outputFolder;
-        }
-        else {
-            pathToUnzip = outputFolder + "/" + FileUtil.getNameWithoutExtension(new File(pathToFile));
-        }
-        if (new File(pathToUnzip).listFiles() != null) {
-            System.out.println("File was already unzipped: " + pathToFile);
-            return;
+        if (File(pathToUnzip).listFiles() != null) {
+            println("File was already unzipped: $pathToFile")
+            return
         }
         try {
-            byte[] buf = new byte[1024];
-            ZipEntry zipEntry = null;
-            try (ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(pathToFile))) {
-                zipEntry = zipInputStream.getNextEntry();
-                while (zipEntry != null) {
-                    String entryName = zipEntry.getName();
-                    int n;
-                    File outputFile = new File(outputFolder + "/" + entryName);
-
-                    if (zipEntry.isDirectory()) {
-                        outputFile.mkdirs();
-                        zipInputStream.closeEntry();
-                        zipEntry = zipInputStream.getNextEntry();
-                        continue;
-                    }
-                    else {
-                        File parentFile = outputFile.getParentFile();
-                        if (parentFile != null && !parentFile.exists()) {
-                            parentFile.mkdirs();
+            val buf = ByteArray(1024)
+            var zipEntry: ZipEntry? = null
+            try {
+                ZipInputStream(FileInputStream(pathToFile)).use { zipInputStream ->
+                    zipEntry = zipInputStream.nextEntry
+                    while (zipEntry != null) {
+                        val entryName = zipEntry!!.name
+                        var n: Int
+                        val outputFile =
+                            File("$outputFolder/$entryName")
+                        if (zipEntry!!.isDirectory) {
+                            outputFile.mkdirs()
+                            zipInputStream.closeEntry()
+                            zipEntry = zipInputStream.nextEntry
+                            continue
+                        } else {
+                            val parentFile = outputFile.parentFile
+                            if (parentFile != null && !parentFile.exists()) {
+                                parentFile.mkdirs()
+                            }
+                            outputFile.createNewFile()
                         }
-                        outputFile.createNewFile();
-                    }
-
-                    try (FileOutputStream fileOutputStream = new FileOutputStream(outputFile)) {
-                        while ((n = zipInputStream.read(buf, 0, 1024)) > -1) {
-                            fileOutputStream.write(buf, 0, n);
+                        FileOutputStream(outputFile).use { fileOutputStream ->
+                            while (zipInputStream.read(
+                                    buf,
+                                    0,
+                                    1024
+                                ).also { n = it } > -1
+                            ) {
+                                fileOutputStream.write(
+                                    buf,
+                                    0,
+                                    n
+                                )
+                            }
                         }
+                        zipInputStream.closeEntry()
+                        zipEntry = zipInputStream.nextEntry
                     }
-                    zipInputStream.closeEntry();
-                    zipEntry = zipInputStream.getNextEntry();
                 }
-            }
-            catch (IOException e) {
+            } catch (e: IOException) {
                 if (zipEntry != null) {
-                    System.err.println("Entry name: " + zipEntry.getName());
+                    System.err.println("Entry name: " + zipEntry!!.name)
                 }
-                e.printStackTrace();
+                e.printStackTrace()
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.out.println("Finish unzipping: " + pathToFile + " to " + outputFolder);
+        println("Finish unzipping: $pathToFile to $outputFolder")
     }
 
-    private static void delete(String filePath) {
-        new File(filePath).delete();
+    companion object {
+        private const val PLATFORM_TOOLS = "28.0.1"
+        private const val SDK_TOOLS = "4333796" //"26.1.1";
+        const val BUILD_TOOLS = "29.0.3"
+        const val GRADLE_VERSION = "5.6.4"
+        const val EMULATOR_TOOLS_VERSION = "5264690" //"28.0.23";
+        const val COMMAND_LINE_TOOLS = "6200805_latest"
+        private fun getDownloadUrl(prefix: String): String {
+            val suffix: String
+            suffix = if (SystemInfo.isWindows) {
+                "windows"
+            } else if (SystemInfo.isMac) {
+                "mac"
+            } else if (SystemInfo.isUnix) {
+                "linux"
+            } else {
+                throw IllegalStateException("Your operating system isn't supported yet.")
+            }
+            return prefix + suffix
+        }
+
+        private val platformName: String
+            private get() = if (SystemInfo.isWindows) {
+                "windows"
+            } else if (SystemInfo.isMac) {
+                "darwin"
+            } else if (SystemInfo.isUnix) {
+                "linux"
+            } else {
+                throw IllegalStateException("Your operating system isn't supported yet.")
+            }
+
+        private fun download(urlString: String, output: String) {
+            println("Start downloading: $urlString to $output")
+            var outStream: OutputStream? = null
+            val urlConnection: URLConnection
+            val `is`: InputStream
+            try {
+                val Url: URL
+                val buf: ByteArray
+                var read: Int
+                //int written = 0;
+                Url = URL(urlString)
+                val outputFile = File(output)
+                outputFile.parentFile.mkdirs()
+                if (outputFile.exists()) {
+                    println("File was already downloaded: $output")
+                    return
+                }
+                outputFile.createNewFile()
+                val outputStream = FileOutputStream(outputFile)
+                outStream = BufferedOutputStream(outputStream)
+                urlConnection = Url.openConnection()
+                `is` = urlConnection.getInputStream()
+                buf = ByteArray(1024)
+                while (`is`.read(buf).also { read = it } != -1) {
+                    outStream.write(buf, 0, read)
+                    //written += read;
+                }
+            } catch (e: Exception) {
+                throw RuntimeException(e)
+            } finally {
+                RunUtils.close(outStream)
+            }
+            println("Finish downloading: $urlString to $output")
+        }
+
+        private fun delete(filePath: String) {
+            File(filePath).delete()
+        }
+    }
+
+    init {
+        gradleZipPath = pathManager.rootForDownload + "/gradle" + GRADLE_VERSION + ".zip"
+        cmdLineToolsZipPath = pathManager.rootForDownload + "/cmndlinetools" + COMMAND_LINE_TOOLS + ".zip"
     }
 }
-

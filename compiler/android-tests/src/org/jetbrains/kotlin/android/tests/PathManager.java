@@ -48,6 +48,14 @@ public class PathManager {
         return getAndroidSdkRoot() + "/tools";
     }
 
+    public String getCmdLineToolsFolderInAndroidSdk() {
+        return getAndroidSdkRoot() + "/cmdline-tools";
+    }
+
+    public String getCmdLineToolsBinFolder() {
+        return getAndroidSdkRoot() + "/cmdline-tools/latest/bin";
+    }
+
     public String getEmulatorFolderInAndroidSdk() {
         return getAndroidSdkRoot() + "/emulator";
     }
