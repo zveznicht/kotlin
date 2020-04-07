@@ -41,9 +41,9 @@ public class SDKDownloader {
 
     private static final String PLATFORM_TOOLS = "28.0.1";
     private static final String SDK_TOOLS = "4333796"; //"26.1.1";
-    public static final String BUILD_TOOLS = "28.0.3";
+    public static final String BUILD_TOOLS = "29.0.3";
     private static final int ANDROID_VERSION = 19;
-    public static final String GRADLE_VERSION = "5.1.1";
+    public static final String GRADLE_VERSION = "5.6.4";
     public static final String EMULATOR_TOOLS_VERSION = "5264690"; //"28.0.23";
 
 
@@ -149,6 +149,7 @@ public class SDKDownloader {
         //BUILD TOOLS
         String buildTools = androidSdkRoot + "/build-tools/";
         unzip(buildToolsZipPath, buildTools);
+        new File(pathManager.getBuildToolsFolderInAndroidSdk() + "/android-10").renameTo(new File(pathManager.getPlatformFolderInAndroidSdk() + "/" + BUILD_TOOLS));
 
         unzip(emulatorZipPath, androidSdkRoot);
     }
