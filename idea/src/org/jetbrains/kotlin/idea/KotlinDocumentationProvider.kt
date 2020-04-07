@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.codeInsight.DescriptorToSourceUtilsIde
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
+import org.jetbrains.kotlin.idea.decompiler.classFile.KtClsFile
 import org.jetbrains.kotlin.idea.decompiler.navigation.SourceNavigationHelper
 import org.jetbrains.kotlin.idea.kdoc.*
 import org.jetbrains.kotlin.idea.kdoc.KDocRenderer.appendKDocContent
@@ -42,6 +43,7 @@ import org.jetbrains.kotlin.renderer.ClassifierNamePolicy
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorUtils
+import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
 import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolver
 import org.jetbrains.kotlin.resolve.deprecation.deprecatedByAnnotationReplaceWithExpression
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -264,7 +266,7 @@ open class KotlinDocumentationProviderCompatBase : AbstractDocumentationProvider
                     }
                 }
             } else if (element is KtDeclaration) {
-                return renderKotlinDeclaration(element, quickNavigation)
+                return renderKotlinDeclaration(element, quickNavigation, originalElement)
             } else if (element is KtNameReferenceExpression && element.getReferencedName() == "it") {
                 return renderKotlinImplicitLambdaParameter(element, quickNavigation)
             } else if (element is KtLightDeclaration<*, *>) {
@@ -293,11 +295,18 @@ open class KotlinDocumentationProviderCompatBase : AbstractDocumentationProvider
             return null
         }
 
-        private fun renderKotlinDeclaration(declaration: KtExpression, quickNavigation: Boolean) = buildString {
-            insert(buildKotlinDeclaration(declaration, quickNavigation)) {}
-        }
+        private fun renderKotlinDeclaration(declaration: KtExpression, quickNavigation: Boolean, originalElement: PsiElement? = null) =
+            buildString {
+                insert(buildKotlinDeclaration(declaration, quickNavigation, originalElement)) {}
+            }
 
-        private fun buildKotlinDeclaration(declaration: KtExpression, quickNavigation: Boolean): KDocTemplate {
+        private fun buildKotlinDeclaration(
+            declaration: KtExpression,
+            quickNavigation: Boolean,
+            originalElement: PsiElement? = null
+        ): KDocTemplate {
+            tryBuildDeserializedDeclarationFromCall(declaration, quickNavigation, originalElement)?.let { return it }
+
             val context = declaration.analyze(BodyResolveMode.PARTIAL)
             val declarationDescriptor = context[BindingContext.DECLARATION_TO_DESCRIPTOR, declaration]
 
@@ -311,6 +320,26 @@ open class KotlinDocumentationProviderCompatBase : AbstractDocumentationProvider
             }
 
             return buildKotlin(context, declarationDescriptor, quickNavigation, declaration)
+        }
+
+        // Searching for resolved call instead of original declaration for deserialized ones is intended to solve the issue of
+        // library declarations depending on project sources. Resolving declaration through resolved call provides necessary context
+        // to find, for example, parameter types from source modules while analyzing declaration itself produces an error type for
+        // library-to-source dependencies.
+        private fun tryBuildDeserializedDeclarationFromCall(
+            declaration: KtExpression,
+            quickNavigation: Boolean,
+            originalElement: PsiElement? = null
+        ): KDocTemplate? {
+            if (declaration.getParentOfType<KtClsFile>(strict = false) != null && originalElement is KtReferenceExpression) {
+                val callResolutionContext = originalElement.analyze(BodyResolveMode.PARTIAL)
+                val resolvedCall = originalElement.getResolvedCall(callResolutionContext)
+                if (resolvedCall != null) {
+                    return buildKotlin(callResolutionContext, resolvedCall.resultingDescriptor, quickNavigation, declaration)
+                }
+            }
+            
+            return null
         }
 
         private fun renderKotlinImplicitLambdaParameter(element: KtReferenceExpression, quickNavigation: Boolean): String? {
