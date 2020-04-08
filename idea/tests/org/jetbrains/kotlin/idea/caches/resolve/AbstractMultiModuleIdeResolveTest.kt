@@ -11,9 +11,13 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.util.io.exists
 import org.jetbrains.kotlin.checkers.BaseDiagnosticsTest
+import org.jetbrains.kotlin.checkers.ReferenceVariantsProvider
+import org.jetbrains.kotlin.checkers.diagnostics.factories.DebugInfoDiagnosticFactory1
 import org.jetbrains.kotlin.checkers.utils.CheckerTestUtil
 import org.jetbrains.kotlin.checkers.utils.DiagnosticsRenderingConfiguration
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
+import org.jetbrains.kotlin.idea.codeInsight.ReferenceVariantsHelper
+import org.jetbrains.kotlin.idea.core.util.toVirtualFile
 import org.jetbrains.kotlin.idea.multiplatform.setupMppProjectFromTextFile
 import org.jetbrains.kotlin.idea.project.KotlinMultiplatformAnalysisModeComponent
 import org.jetbrains.kotlin.idea.resolve.frontendService
@@ -40,16 +44,13 @@ abstract class AbstractMultiModuleIdeResolveTest : AbstractMultiModuleTest() {
 
         project.allKotlinFiles()
 
-        for (module in ModuleManager.getInstance(project).modules) {
-            for (sourceRoot in module.sourceRoots) {
-                VfsUtilCore.processFilesRecursively(sourceRoot) { file ->
-                    if (file.isDirectory) return@processFilesRecursively true
+        val testFolder = File("/Users/victor.petukhov/IdeaProjects/kotlin-2/compiler/testData/diagnostics/_test")
 
-                    val tempSourceKtFile = PsiManager.getInstance(project).findFile(file) as KtFile
-                    checkFile(tempSourceKtFile, tempSourceKtFile.findCorrespondingFileInTestDir(sourceRoot, testRoot))
-                    true
-                }
-            }
+        testFolder.walkTopDown().forEach { file ->
+            if (file.isDirectory || file.extension != "kt") return@forEach
+
+            val tempSourceKtFile = PsiManager.getInstance(project).findFile(file.toVirtualFile()!!) as KtFile
+            checkFile(tempSourceKtFile, file)
         }
     }
 
@@ -77,6 +78,15 @@ abstract class AbstractMultiModuleIdeResolveTest : AbstractMultiModuleTest() {
         val directives = KotlinTestUtils.parseDirectives(file.text)
         val diagnosticsFilter = BaseDiagnosticsTest.parseDiagnosticFilterDirective(directives, allowUnderscoreUsage = false)
 
+        ReferenceVariantsProvider.registerInstance(
+            ReferenceVariantsHelper(
+                bindingContext,
+                resolutionFacade,
+                moduleDescriptor,
+                { _ -> true }
+            )
+        )
+
         val actualDiagnostics = CheckerTestUtil.getDiagnosticsIncludingSyntaxErrors(
             bindingContext,
             file,
@@ -101,6 +111,12 @@ abstract class AbstractMultiModuleIdeResolveTest : AbstractMultiModuleTest() {
             renderDiagnosticMessages = true
         ).toString()
 
+        File("${expectedFile.parentFile.absolutePath}/${expectedFile.nameWithoutExtension}.ti.txt").writeText(
+            DebugInfoDiagnosticFactory1.recordedTypes.map { (type, info) -> "${type}: ${info.first}, ${info.second}" }.joinToString("\n")
+        )
+
+        DebugInfoDiagnosticFactory1.recordedTypes.clear()
+
         KotlinTestUtils.assertEqualsToFile(expectedFile, actualTextWithDiagnostics)
     }
 }
@@ -120,7 +136,7 @@ abstract class AbstractHierarchicalExpectActualTest : AbstractMultiModuleIdeReso
 }
 
 abstract class AbstractMultiplatformAnalysisTest : AbstractMultiModuleIdeResolveTest() {
-    override fun getTestDataPath(): String = "${PluginTestCaseBase.getTestDataPathBase()}/multiplatform"
+    override fun getTestDataPath(): String = PluginTestCaseBase.getTestDataPathBase()
 
     override fun setUp() {
         super.setUp()

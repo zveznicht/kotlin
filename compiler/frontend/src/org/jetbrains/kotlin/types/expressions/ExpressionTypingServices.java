@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.resolve.calls.components.InferenceSession;
 import org.jetbrains.kotlin.resolve.calls.context.ContextDependency;
 import org.jetbrains.kotlin.resolve.calls.context.ResolutionContext;
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfo;
+import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowInfoFactory;
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValue;
 import org.jetbrains.kotlin.resolve.calls.tower.KotlinResolutionCallbacksImpl;
 import org.jetbrains.kotlin.resolve.calls.tower.LambdaContextInfo;
@@ -35,6 +36,7 @@ import org.jetbrains.kotlin.util.slicedMap.WritableSlice;
 import java.util.Iterator;
 import java.util.List;
 
+import static org.jetbrains.kotlin.resolve.BindingContext.EXPRESSION_TYPE_INFO;
 import static org.jetbrains.kotlin.types.TypeUtils.*;
 import static org.jetbrains.kotlin.types.expressions.CoercionStrategy.COERCION_TO_UNIT;
 
@@ -414,6 +416,11 @@ public class ExpressionTypingServices {
                 assert result.getType() == null || KotlinBuiltIns.isUnit(result.getType());
                 result = result.replaceType(expressionTypingComponents.builtIns.getUnitType());
             }
+        }
+
+        if (result.getType() == null && coercionStrategyForLastExpression == COERCION_TO_UNIT) {
+            context.trace.record(EXPRESSION_TYPE_INFO, statementExpression, new KotlinTypeInfo(expressionTypingComponents.builtIns.getUnitType(),
+                                                                                               DataFlowInfoFactory.EMPTY));
         }
         return result;
     }

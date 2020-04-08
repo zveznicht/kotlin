@@ -6,9 +6,13 @@
 package org.jetbrains.kotlin.checkers.diagnostics.factories
 
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.checkers.ReferenceVariantsProvider
 import org.jetbrains.kotlin.checkers.utils.CheckerTestUtil
 import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
+import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
+import org.jetbrains.kotlin.descriptors.impl.PropertyDescriptorImpl
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory1
 import org.jetbrains.kotlin.diagnostics.PositioningStrategies
 import org.jetbrains.kotlin.diagnostics.Severity
@@ -16,17 +20,21 @@ import org.jetbrains.kotlin.diagnostics.rendering.Renderers
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValueFactory
+import org.jetbrains.kotlin.resolve.lazy.descriptors.LazyClassDescriptor
+import java.security.MessageDigest
+import javax.xml.bind.DatatypeConverter
 
 class DebugInfoDiagnosticFactory1 : DiagnosticFactory1<PsiElement, String>,
     DebugInfoDiagnosticFactory {
     private val name: String
 
     override fun getName(): String {
-        return "DEBUG_INFO_$name"
+        return "INFO"
     }
 
     override val withExplicitDefinitionOnly: Boolean
 
+    @ExperimentalStdlibApi
     override fun createDiagnostic(
         expression: KtExpression,
         bindingContext: BindingContext,
@@ -35,15 +43,44 @@ class DebugInfoDiagnosticFactory1 : DiagnosticFactory1<PsiElement, String>,
         moduleDescriptor: ModuleDescriptorImpl?
     ) = when (name) {
         EXPRESSION_TYPE.name -> {
-            val (type, dataFlowTypes) = CheckerTestUtil.getTypeInfo(
+            val types = ReferenceVariantsProvider.instance?.getAvailableReferences(expression)!!
+
+            val result = types.map {
+                val type = when (it) {
+                    is LocalVariableDescriptor -> it.type
+                    is ValueParameterDescriptor -> it.type
+                    is PropertyDescriptorImpl -> it.type
+                    else -> "null"
+                }
+
+                "${it.name}: $type"
+            }.joinToString("; ")
+
+            val type = CheckerTestUtil.getTypeInfo(
                 expression,
                 bindingContext,
                 dataFlowValueFactory,
                 languageVersionSettings,
                 moduleDescriptor
-            )
+            ).first
 
-            this.on(expression, Renderers.renderExpressionType(type, dataFlowTypes))
+            val declarationDescriptor = type?.constructor?.declarationDescriptor
+            val supertypes = type?.constructor?.supertypes?.toString() ?: ""
+
+            if (declarationDescriptor is LazyClassDescriptor) {
+                val members = declarationDescriptor.declaredCallableMembers.joinToString {
+                    it.toString().replace(Regex(" defined in .*?$"), "")
+                }
+
+                val md = MessageDigest.getInstance("MD5")
+                md.update(members.encodeToByteArray())
+
+                val membersHash = DatatypeConverter.printHexBinary(md.digest()).toLowerCase()
+
+                recordedTypes[type.constructor.toString()] = membersHash to supertypes
+            }
+
+            this.on(expression, "$type$supertypes${if (result.isNotEmpty()) " | $result" else ""}")
         }
         CALL.name -> {
             val (fqName, typeCall) = CheckerTestUtil.getCallDebugInfo(expression, bindingContext)
@@ -71,6 +108,9 @@ class DebugInfoDiagnosticFactory1 : DiagnosticFactory1<PsiElement, String>,
             Severity.INFO,
             true
         )
+
+        var recordedTypes = mutableMapOf<String, Pair<String, String>>()
+
         val CALL = create(
             "CALL",
             Severity.INFO,
