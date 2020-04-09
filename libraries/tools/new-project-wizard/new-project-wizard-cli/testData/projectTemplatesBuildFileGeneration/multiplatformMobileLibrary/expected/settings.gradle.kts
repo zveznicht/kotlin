@@ -1,9 +1,12 @@
 pluginManagement {
     repositories {
+        mavenCentral()
         gradlePluginPortal()
         google()
         jcenter()
-        mavenCentral()
+        maven {
+            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+        }
     }
     resolutionStrategy {
         eachPlugin {
@@ -14,4 +17,3 @@ pluginManagement {
     }
 }
 rootProject.name = "MultiplatformMobileLibrary"
-
