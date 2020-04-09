@@ -47,7 +47,10 @@ abstract class AbstractBuildFileGenerationTest : UsefulTestCase() {
             tempDirectory.allBuildFiles(buildSystem), tempDirectory
         ) { path ->
             val fileContent = path.readFile()
-            fileContent.replace(Versions.KOTLIN.toString(), KOTLIN_VERSION_PLACEHOLDER)
+            fileContent.replace(
+                KotlinVersionProviderTestWizardService.TEST_KOTLIN_VERSION.toString(),
+                KOTLIN_VERSION_PLACEHOLDER
+            )
         }
     }
 

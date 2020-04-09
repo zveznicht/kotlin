@@ -8,7 +8,7 @@ repositories {
     mavenCentral()
     jcenter()
     maven {
-        url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+        url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
     }
     maven {
         url = uri("https://dl.bintray.com/kotlin/kotlin-js-wrappers")

@@ -14,7 +14,7 @@ repositories {
         url 'https://dl.bintray.com/kotlin/ktor'
     }
     maven {
-        url 'https://dl.bintray.com/kotlin/kotlin-eap'
+        url 'https://dl.bintray.com/kotlin/kotlin-dev'
     }
     maven {
         url 'https://dl.bintray.com/kotlin/kotlin-js-wrappers'

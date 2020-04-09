@@ -5,7 +5,7 @@ pluginManagement {
         google()
         jcenter()
         maven {
-            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
         }
     }
     resolutionStrategy {
