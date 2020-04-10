@@ -16000,6 +16000,11 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
                 runTest("compiler/testData/diagnostics/tests/override/AllPrivateFromSuperTypes.kt");
             }
 
+            @TestMetadata("anyMethodsInInterfaces.kt")
+            public void testAnyMethodsInInterfaces() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/override/anyMethodsInInterfaces.kt");
+            }
+
             @TestMetadata("ComplexValRedeclaration.kt")
             public void testComplexValRedeclaration() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/override/ComplexValRedeclaration.kt");

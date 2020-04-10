@@ -16,7 +16,13 @@
 
 package org.jetbrains.kotlin.resolve
 
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.descriptorUtil.overriddenTreeUniqueAsSequence
 import org.jetbrains.kotlin.utils.DFS
 import org.jetbrains.kotlin.utils.SmartSet
 import java.util.*
@@ -80,4 +86,26 @@ fun <H : Any> Collection<H>.selectMostSpecificInEachOverridableGroup(
         result.add(mostSpecific)
     }
     return result
+}
+
+fun Collection<CallableMemberDescriptor>.allOverridesOfPublicAnyMethodsInInterfaces() = all { it.isAnyOverrideInInterface() }
+fun ClassDescriptor.isInterface() = kind == ClassKind.INTERFACE
+private fun CallableMemberDescriptor.isAnyOverrideInInterface(): Boolean {
+    if ((containingDeclaration as? ClassDescriptor)?.isInterface() != true) return false
+    if (!mayBeAnOverrideFromAny()) return false
+
+    return overriddenTreeUniqueAsSequence(useOriginal = true).any {
+        val containingClass = it.containingDeclaration as? ClassDescriptor
+        containingClass != null && KotlinBuiltIns.isAny(containingClass)
+    }
+}
+
+private val TO_STRING = Name.identifier("toString")
+private val HASHCODE = Name.identifier("hashCode")
+private val EQUALS = Name.identifier("equals")
+
+private fun CallableMemberDescriptor.mayBeAnOverrideFromAny() = when (name) {
+    TO_STRING, HASHCODE -> valueParameters.isEmpty()
+    EQUALS -> valueParameters.size == 1
+    else -> false
 }

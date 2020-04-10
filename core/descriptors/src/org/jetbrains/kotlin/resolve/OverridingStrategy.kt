@@ -28,6 +28,8 @@ abstract class OverridingStrategy {
     open fun setOverriddenDescriptors(member: CallableMemberDescriptor, overridden: Collection<CallableMemberDescriptor>) {
         member.overriddenDescriptors = overridden
     }
+
+    open val ignoreAbstractAnyOverridesInInterfaces: Boolean get() = true
 }
 
 abstract class NonReportingOverrideStrategy : OverridingStrategy() {

@@ -663,7 +663,7 @@ public class OverridingUtil {
         boolean allInvisible = visibleOverridables.isEmpty();
         Collection<CallableMemberDescriptor> effectiveOverridden = allInvisible ? overridables : visibleOverridables;
 
-        Modality modality = determineModalityForFakeOverride(effectiveOverridden, current);
+        Modality modality = determineModalityForFakeOverride(effectiveOverridden, current, strategy);
         Visibility visibility = allInvisible ? Visibilities.INVISIBLE_FAKE : Visibilities.INHERITED;
 
         // FIXME doesn't work as expected for flexible types: should create a refined signature.
@@ -692,7 +692,8 @@ public class OverridingUtil {
     @NotNull
     private static Modality determineModalityForFakeOverride(
             @NotNull Collection<CallableMemberDescriptor> descriptors,
-            @NotNull ClassDescriptor current
+            @NotNull ClassDescriptor current,
+            @NotNull OverridingStrategy strategy
     ) {
         // Optimization: avoid creating hash sets in frequent cases when modality can be computed trivially
         boolean hasOpen = false;
@@ -730,7 +731,14 @@ public class OverridingUtil {
         for (CallableMemberDescriptor descriptor : descriptors) {
             allOverriddenDeclarations.addAll(getOverriddenDeclarations(descriptor));
         }
-        return getMinimalModality(filterOutOverridden(allOverriddenDeclarations), transformAbstractToClassModality, current.getModality());
+        Set<CallableMemberDescriptor> overrideLeaves = filterOutOverridden(allOverriddenDeclarations);
+
+        if (strategy.getIgnoreAbstractAnyOverridesInInterfaces() && !OverridingUtilsKt.isInterface(current)
+            && OverridingUtilsKt.allOverridesOfPublicAnyMethodsInInterfaces(overrideLeaves)) {
+            return Modality.OPEN;
+        }
+
+        return getMinimalModality(overrideLeaves, transformAbstractToClassModality, current.getModality());
     }
 
     @NotNull

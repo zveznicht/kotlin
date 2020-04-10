@@ -755,10 +755,10 @@ class OverrideResolver(
             allDeclarationSets: Collection<Set<CallableMemberDescriptor>>,
             allFilteredOverriddenDeclarations: Set<CallableMemberDescriptor>
         ): Boolean {
+            if (Collections.disjoint(allFilteredOverriddenDeclarations, declarationSet)) return false
             for (otherSet in allDeclarationSets) {
                 if (otherSet === declarationSet) continue
                 if (otherSet.containsAll(declarationSet)) return false
-                if (Collections.disjoint(allFilteredOverriddenDeclarations, declarationSet)) return false
             }
             return true
         }
