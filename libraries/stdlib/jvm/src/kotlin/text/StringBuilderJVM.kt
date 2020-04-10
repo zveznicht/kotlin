@@ -166,7 +166,7 @@ private object SystemProperties {
 
 /** Appends a line separator to this Appendable. */
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
@@ -175,7 +175,7 @@ public fun Appendable.appendln(): Appendable = append(SystemProperties.LINE_SEPA
 /** Appends value to the given Appendable and line separator after it. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
@@ -185,7 +185,7 @@ public inline fun Appendable.appendln(value: CharSequence?): Appendable = append
 /** Appends value to the given Appendable and line separator after it. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
@@ -194,7 +194,7 @@ public inline fun Appendable.appendln(value: Char): Appendable = append(value).a
 
 /** Appends a line separator to this StringBuilder. */
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
@@ -203,14 +203,14 @@ public fun StringBuilder.appendln(): StringBuilder = append(SystemProperties.LIN
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: StringBuffer?): StringBuilder = append(value).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a linefeed character (`\n`). */
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
 @SinceKotlin("1.4")
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendLine(value: StringBuffer?): StringBuilder = append(value).appendLine()
@@ -218,7 +218,7 @@ public inline fun StringBuilder.appendLine(value: StringBuffer?): StringBuilder 
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
@@ -228,7 +228,7 @@ public inline fun StringBuilder.appendln(value: CharSequence?): StringBuilder = 
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
@@ -238,7 +238,7 @@ public inline fun StringBuilder.appendln(value: String?): StringBuilder = append
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
@@ -248,14 +248,14 @@ public inline fun StringBuilder.appendln(value: Any?): StringBuilder = append(va
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: StringBuilder?): StringBuilder = append(value).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a linefeed character (`\n`). */
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
 @SinceKotlin("1.4")
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendLine(value: StringBuilder?): StringBuilder = append(value).appendLine()
@@ -263,7 +263,7 @@ public inline fun StringBuilder.appendLine(value: StringBuilder?): StringBuilder
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
@@ -273,7 +273,7 @@ public inline fun StringBuilder.appendln(value: CharArray): StringBuilder = appe
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
@@ -283,7 +283,7 @@ public inline fun StringBuilder.appendln(value: Char): StringBuilder = append(va
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
@@ -293,14 +293,14 @@ public inline fun StringBuilder.appendln(value: Boolean): StringBuilder = append
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Int): StringBuilder = append(value).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a linefeed character (`\n`). */
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
 @SinceKotlin("1.4")
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendLine(value: Int): StringBuilder = append(value).appendLine()
@@ -308,14 +308,14 @@ public inline fun StringBuilder.appendLine(value: Int): StringBuilder = append(v
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Short): StringBuilder = append(value.toInt()).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a linefeed character (`\n`). */
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
 @SinceKotlin("1.4")
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendLine(value: Short): StringBuilder = append(value.toInt()).appendLine()
@@ -323,14 +323,14 @@ public inline fun StringBuilder.appendLine(value: Short): StringBuilder = append
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Byte): StringBuilder = append(value.toInt()).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a linefeed character (`\n`). */
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
 @SinceKotlin("1.4")
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendLine(value: Byte): StringBuilder = append(value.toInt()).appendLine()
@@ -338,14 +338,14 @@ public inline fun StringBuilder.appendLine(value: Byte): StringBuilder = append(
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Long): StringBuilder = append(value).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a linefeed character (`\n`). */
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
 @SinceKotlin("1.4")
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendLine(value: Long): StringBuilder = append(value).appendLine()
@@ -353,14 +353,14 @@ public inline fun StringBuilder.appendLine(value: Long): StringBuilder = append(
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Float): StringBuilder = append(value).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a linefeed character (`\n`). */
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
 @SinceKotlin("1.4")
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendLine(value: Float): StringBuilder = append(value).appendLine()
@@ -368,14 +368,14 @@ public inline fun StringBuilder.appendLine(value: Float): StringBuilder = append
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
-    "Use appendLine instead. Note that the new method always appends the linefeed character '\\n' regardless of local platform",
+    "Use appendLine instead. Note that the new method always appends the line feed character '\\n' regardless of the system line separator.",
     ReplaceWith("appendLine"),
     level = DeprecationLevel.WARNING
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Double): StringBuilder = append(value).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a linefeed character (`\n`). */
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
 @SinceKotlin("1.4")
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendLine(value: Double): StringBuilder = append(value).appendLine()
