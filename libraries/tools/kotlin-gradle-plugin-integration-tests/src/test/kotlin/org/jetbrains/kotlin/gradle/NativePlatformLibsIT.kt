@@ -177,7 +177,13 @@ class NativePlatformLibsIT : BaseGradleIT() {
 
         build("tasks", "-Pkotlin.native.distribution.type=light", "-Pkotlin.native.version=$oldCompilerVersion") {
             assertSuccessful()
-            assertContainsRegex("Kotlin/Native distribution: .*kotlin-native-restricted-(macos|linux|windows)".toRegex())
+
+            // Restricted distribution is available for Mac hosts only.
+            if (HostManager.hostIsMac) {
+                assertContainsRegex("Kotlin/Native distribution: .*kotlin-native-restricted-(macos|linux|windows)".toRegex())
+            } else {
+                assertNotContains("Kotlin/Native distribution: .*kotlin-native-restricted-(macos|linux|windows)".toRegex())
+            }
         }
     }
 
