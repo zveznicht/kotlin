@@ -158,6 +158,47 @@ public actual inline fun StringBuilder.insertRange(index: Int, value: CharSequen
     this.insert(index, value, startIndex, endIndex)
 
 
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
+@SinceKotlin("1.4")
+@kotlin.internal.InlineOnly
+public inline fun StringBuilder.appendLine(value: StringBuffer?): StringBuilder = append(value).appendLine()
+
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
+@SinceKotlin("1.4")
+@kotlin.internal.InlineOnly
+public inline fun StringBuilder.appendLine(value: StringBuilder?): StringBuilder = append(value).appendLine()
+
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
+@SinceKotlin("1.4")
+@kotlin.internal.InlineOnly
+public inline fun StringBuilder.appendLine(value: Int): StringBuilder = append(value).appendLine()
+
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
+@SinceKotlin("1.4")
+@kotlin.internal.InlineOnly
+public inline fun StringBuilder.appendLine(value: Short): StringBuilder = append(value.toInt()).appendLine()
+
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
+@SinceKotlin("1.4")
+@kotlin.internal.InlineOnly
+public inline fun StringBuilder.appendLine(value: Byte): StringBuilder = append(value.toInt()).appendLine()
+
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
+@SinceKotlin("1.4")
+@kotlin.internal.InlineOnly
+public inline fun StringBuilder.appendLine(value: Long): StringBuilder = append(value).appendLine()
+
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
+@SinceKotlin("1.4")
+@kotlin.internal.InlineOnly
+public inline fun StringBuilder.appendLine(value: Float): StringBuilder = append(value).appendLine()
+
+/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
+@SinceKotlin("1.4")
+@kotlin.internal.InlineOnly
+public inline fun StringBuilder.appendLine(value: Double): StringBuilder = append(value).appendLine()
+
+
 private object SystemProperties {
     /** Line separator for current system. */
     @JvmField
@@ -210,11 +251,6 @@ public fun StringBuilder.appendln(): StringBuilder = append(SystemProperties.LIN
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: StringBuffer?): StringBuilder = append(value).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
-@SinceKotlin("1.4")
-@kotlin.internal.InlineOnly
-public inline fun StringBuilder.appendLine(value: StringBuffer?): StringBuilder = append(value).appendLine()
-
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
@@ -254,11 +290,6 @@ public inline fun StringBuilder.appendln(value: Any?): StringBuilder = append(va
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: StringBuilder?): StringBuilder = append(value).appendln()
-
-/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
-@SinceKotlin("1.4")
-@kotlin.internal.InlineOnly
-public inline fun StringBuilder.appendLine(value: StringBuilder?): StringBuilder = append(value).appendLine()
 
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
@@ -300,11 +331,6 @@ public inline fun StringBuilder.appendln(value: Boolean): StringBuilder = append
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Int): StringBuilder = append(value).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
-@SinceKotlin("1.4")
-@kotlin.internal.InlineOnly
-public inline fun StringBuilder.appendLine(value: Int): StringBuilder = append(value).appendLine()
-
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
@@ -314,11 +340,6 @@ public inline fun StringBuilder.appendLine(value: Int): StringBuilder = append(v
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Short): StringBuilder = append(value.toInt()).appendln()
-
-/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
-@SinceKotlin("1.4")
-@kotlin.internal.InlineOnly
-public inline fun StringBuilder.appendLine(value: Short): StringBuilder = append(value.toInt()).appendLine()
 
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
@@ -330,11 +351,6 @@ public inline fun StringBuilder.appendLine(value: Short): StringBuilder = append
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Byte): StringBuilder = append(value.toInt()).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
-@SinceKotlin("1.4")
-@kotlin.internal.InlineOnly
-public inline fun StringBuilder.appendLine(value: Byte): StringBuilder = append(value.toInt()).appendLine()
-
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
@@ -344,11 +360,6 @@ public inline fun StringBuilder.appendLine(value: Byte): StringBuilder = append(
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Long): StringBuilder = append(value).appendln()
-
-/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
-@SinceKotlin("1.4")
-@kotlin.internal.InlineOnly
-public inline fun StringBuilder.appendLine(value: Long): StringBuilder = append(value).appendLine()
 
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
@@ -360,11 +371,6 @@ public inline fun StringBuilder.appendLine(value: Long): StringBuilder = append(
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Float): StringBuilder = append(value).appendln()
 
-/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
-@SinceKotlin("1.4")
-@kotlin.internal.InlineOnly
-public inline fun StringBuilder.appendLine(value: Float): StringBuilder = append(value).appendLine()
-
 /** Appends [value] to this [StringBuilder], followed by a line separator. */
 @Suppress("DEPRECATION")
 @Deprecated(
@@ -374,8 +380,3 @@ public inline fun StringBuilder.appendLine(value: Float): StringBuilder = append
 )
 @kotlin.internal.InlineOnly
 public inline fun StringBuilder.appendln(value: Double): StringBuilder = append(value).appendln()
-
-/** Appends [value] to this [StringBuilder], followed by a line feed character (`\n`). */
-@SinceKotlin("1.4")
-@kotlin.internal.InlineOnly
-public inline fun StringBuilder.appendLine(value: Double): StringBuilder = append(value).appendLine()
