@@ -17,6 +17,6 @@ object CallCheckers {
     ) + EXPRESSIONS
 
     val FUNCTION_CALLS: List<FirFunctionCallChecker> = listOf<FirFunctionCallChecker>(
-
+        FirAbstractSuperCallChecker
     ) + QUALIFIED_ACCESS
 }

@@ -9,7 +9,7 @@ expect open class BaseAImpl() : BaseA
 
 class DerivedA1 : BaseAImpl()
 class DerivedA2 : BaseAImpl() {
-    override fun foo() = super.foo()
+    override fun foo() = super.<!ABSTRACT_SUPER_CALL!>foo()<!>
 }
 
 

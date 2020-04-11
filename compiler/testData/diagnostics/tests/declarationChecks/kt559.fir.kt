@@ -25,6 +25,6 @@ class B() : A() {
         super.i
 
         super.fff() //everything is ok
-        return super.foo()  //no error!!
+        return super.<!ABSTRACT_SUPER_CALL!>foo()<!>
     }
 }

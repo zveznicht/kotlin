@@ -6,16 +6,27 @@
 package org.jetbrains.kotlin.fir.analysis.checkers
 
 import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.FirSymbolOwner
+import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.declarations.FirClass
+import org.jetbrains.kotlin.fir.declarations.FirClassLikeDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
+import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
+import org.jetbrains.kotlin.fir.expressions.FirQualifiedAccessExpression
+import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
+import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.resolve.transformers.firClassLike
+import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.FirTypeRef
+import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 /**
@@ -105,4 +116,43 @@ fun ConeKotlinType.toRegularClass(session: FirSession): FirRegularClass? {
  */
 fun FirTypeRef.toRegularClass(session: FirSession): FirRegularClass? {
     return safeAs<FirResolvedTypeRef>()?.type?.toRegularClass(session)
+}
+
+/**
+ * Returns the ClassLikeDeclaration where the function has been defined
+ * or null if no proper declaration has been found.
+ */
+fun FirFunctionCall.getClassLikeDeclaration(context: CheckerContext): FirClassLikeDeclaration<*>? {
+    val classId = this.calleeReference.safeAs<FirResolvedNamedReference>()
+        ?.resolvedSymbol.safeAs<FirNamedFunctionSymbol>()
+        ?.callableId
+        ?.classId
+        ?: return null
+
+    if (!classId.isLocal) {
+        return context.session.firSymbolProvider.getClassLikeSymbolByFqName(classId)?.fir
+    }
+
+    return null
+}
+
+/**
+ * Returns FirSimpleFunction based on the given FirFunctionCall
+ */
+fun FirFunctionCall.getSimpleFunctionDeclaration(context: CheckerContext): FirSimpleFunction? {
+    return this.calleeReference.safeAs<FirResolvedNamedReference>()
+        ?.resolvedSymbol
+        ?.fir.safeAs()
+}
+
+/**
+ * Returns true if FirElement has the given modifier.
+ */
+fun FirElement.markedAs(token: KtModifierKeywordToken): Boolean {
+    val modifiers = source.getModifierList()
+        ?: return false
+
+    return modifiers.modifiers.any {
+        it.token == token
+    }
 }
