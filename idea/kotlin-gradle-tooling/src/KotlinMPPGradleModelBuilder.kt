@@ -601,11 +601,7 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
                 classifier
             )]?.dependencies?.map { dependencyMapper.getDependency(it) }?.filterNotNull() ?: emptySet()
 
-//            //TODO
-//            //TODO only in 201
-//            dependencyMapper.toDependencyMap().values.forEach {
-//                (it as? DefaultExternalProjectDependency)?.configurationName = "default"
-//            }
+            makeConfigurationNamesDefault(dependencyMapper)
         }
     }
 
