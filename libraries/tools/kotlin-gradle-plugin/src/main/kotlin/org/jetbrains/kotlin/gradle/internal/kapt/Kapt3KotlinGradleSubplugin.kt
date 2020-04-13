@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin.Companion.getKa
 import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin.Companion.getKaptGeneratedSourcesDir
 import org.jetbrains.kotlin.gradle.internal.Kapt3KotlinGradleSubplugin.Companion.KAPT_WORKER_DEPENDENCIES_CONFIGURATION_NAME
 import org.jetbrains.kotlin.gradle.internal.kapt.incremental.CLASS_STRUCTURE_ARTIFACT_TYPE
-import org.jetbrains.kotlin.gradle.internal.kapt.incremental.StructureArtifactTransform
+import org.jetbrains.kotlin.gradle.internal.kapt.incremental.StructureTransformAction
 import org.jetbrains.kotlin.gradle.model.builder.KaptModelBuilder
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.tasks.CompilerPluginOptions
@@ -447,7 +447,8 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
             if (kaptTask.isIncremental) {
                 kaptTask.pluginOptions.addPluginArgument(
                     getCompilerPluginId(),
-                    SubpluginOption("incrementalCache", kaptTask.incAptCache!!.absolutePath))
+                    SubpluginOption("incrementalCache", kaptTask.incAptCache!!.absolutePath)
+                )
             }
 
             val subpluginOptions = buildOptions("apt", dslJavacOptions)
@@ -471,15 +472,14 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
 
     private fun maybeRegisterTransform(project: Project) {
         if (!project.extensions.extraProperties.has("KaptStructureTransformAdded")) {
-            project.dependencies.registerTransform { variantTransform ->
-                variantTransform.artifactTransform(StructureArtifactTransform::class.java)
-                variantTransform.from.attribute(artifactType, "jar")
-                variantTransform.to.attribute(artifactType, CLASS_STRUCTURE_ARTIFACT_TYPE)
+            project.dependencies.registerTransform(StructureTransformAction::class.java) { transformSpec ->
+                transformSpec.from.attribute(artifactType, "jar")
+                transformSpec.to.attribute(artifactType, CLASS_STRUCTURE_ARTIFACT_TYPE)
             }
-            project.dependencies.registerTransform { variantTransform ->
-                variantTransform.artifactTransform(StructureArtifactTransform::class.java)
-                variantTransform.from.attribute(artifactType, "directory")
-                variantTransform.to.attribute(artifactType, CLASS_STRUCTURE_ARTIFACT_TYPE)
+
+            project.dependencies.registerTransform(StructureTransformAction::class.java) { transformSpec ->
+                transformSpec.from.attribute(artifactType, "directory")
+                transformSpec.to.attribute(artifactType, CLASS_STRUCTURE_ARTIFACT_TYPE)
             }
 
             project.extensions.extraProperties["KaptStructureTransformAdded"] = true
@@ -549,6 +549,7 @@ class Kapt3KotlinGradleSubplugin : KotlinGradleSubplugin<KotlinCompile> {
     override fun getPluginArtifact(): SubpluginArtifact =
         JetBrainsSubpluginArtifact(artifactId = KAPT_ARTIFACT_NAME)
 }
+
 private val artifactType = Attribute.of("artifactType", String::class.java)
 
 
