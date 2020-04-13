@@ -20,8 +20,6 @@ import org.jetbrains.kotlin.backend.common.BackendContext
 import org.jetbrains.kotlin.backend.common.BodyLoweringPass
 import org.jetbrains.kotlin.backend.common.lower.inline.isInlineParameter
 import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
-import org.jetbrains.kotlin.backend.common.pop
-import org.jetbrains.kotlin.backend.common.push
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
@@ -29,7 +27,6 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
 import org.jetbrains.kotlin.ir.symbols.IrVariableSymbol
 import org.jetbrains.kotlin.ir.util.dump
-import org.jetbrains.kotlin.ir.util.getArgumentsWithIr
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
@@ -62,9 +59,7 @@ class SharedVariablesLowering(val context: BackendContext) : BodyLoweringPass {
         }
 
         private fun collectSharedVariables() {
-            val parentsStack = mutableListOf<PossiblySkippedParent>()
-            val startParent = irDeclaration as? IrDeclarationParent ?: irDeclaration.parent
-            parentsStack.push(PossiblySkippedParent(startParent, false))
+            val skippedFunctionsParents = mutableMapOf<IrFunction, IrDeclarationParent>()
             irBody.accept(object : IrElementVisitor<Unit, IrDeclarationParent?> {
                 val relevantVars = HashSet<IrVariable>()
                 val relevantVals = HashSet<IrVariable>()
@@ -90,19 +85,16 @@ class SharedVariablesLowering(val context: BackendContext) : BodyLoweringPass {
                             && !param.isCrossinline
                             && arg is IrFunctionExpression
                         ) {
-                            parentsStack.push(PossiblySkippedParent(arg.function, true))
+                            skippedFunctionsParents[arg.function] = data!!
                             arg.function.acceptChildren(this, data)
-                            parentsStack.pop()
+                            skippedFunctionsParents.remove(arg.function)
                         } else
                             arg.accept(this, data)
                     }
                 }
 
                 override fun visitDeclaration(declaration: IrDeclaration, data: IrDeclarationParent?) {
-                    val nextParent = declaration as? IrDeclarationParent
-                    nextParent?.let { parentsStack.push(PossiblySkippedParent(nextParent, false)) }
-                    super.visitDeclaration(declaration, nextParent ?: data)
-                    nextParent?.let { parentsStack.pop() }
+                    super.visitDeclaration(declaration, declaration as? IrDeclarationParent ?: data)
                 }
 
                 override fun visitVariable(declaration: IrVariable, data: IrDeclarationParent?) {
@@ -137,17 +129,10 @@ class SharedVariablesLowering(val context: BackendContext) : BodyLoweringPass {
                     }
                 }
 
-                private fun getRealParent(variable: IrVariable): IrDeclarationParent {
-                    val parent = variable.parent
-                    for (i in parentsStack.size - 1 downTo 0)
-                        if (parentsStack[i].parent == parent) {
-                            for (j in i downTo 0)
-                                if (!parentsStack[j].skipped)
-                                    return parentsStack[j].parent
-                        }
-                    error("Unable to find parent for ${variable.dump()}")
-                }
-            }, startParent)
+                private fun getRealParent(variable: IrVariable) =
+                    variable.parent.let { skippedFunctionsParents[it] ?: it }
+
+            }, irDeclaration as? IrDeclarationParent ?: irDeclaration.parent)
         }
 
         private fun rewriteSharedVariables() {
