@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.backend.common.serialization.*
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.konan.KlibModuleOrigin
-import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.impl.IrModuleFragmentImpl
 import org.jetbrains.kotlin.ir.descriptors.*
@@ -65,19 +64,6 @@ class JvmIrLinker(currentModule: ModuleDescriptor?, logger: LoggingContext, buil
         return symbol.descriptor.isJavaDescriptor()
     }
 
-    private fun declareJavaFieldStub(symbol: IrFieldSymbol): IrField {
-        return with(stubGenerator) {
-            val old = stubGenerator.unboundSymbolGeneration
-            try {
-                stubGenerator.unboundSymbolGeneration = true
-                generateFieldStub(symbol.descriptor)
-            } finally {
-                stubGenerator.unboundSymbolGeneration = old
-            }
-        }
-    }
-
-
     override fun createCurrentModuleDeserializer(moduleFragment: IrModuleFragment, dependencies: Collection<IrModuleDeserializer>, extensions: Collection<IrExtensionGenerator>): IrModuleDeserializer =
         JvmCurrentModuleDeserializer(moduleFragment, dependencies, extensions)
 
@@ -89,7 +75,7 @@ class JvmIrLinker(currentModule: ModuleDescriptor?, logger: LoggingContext, buil
             if (descriptor.isJavaDescriptor()) {
                 // Wrap java declaration with lazy ir
                 if (symbol is IrFieldSymbol) {
-                    declareJavaFieldStub(symbol)
+                    stubGenerator.generateFieldStub(symbol.descriptor)
                 } else {
                     stubGenerator.generateMemberStub(descriptor)
                 }
@@ -138,7 +124,7 @@ class JvmIrLinker(currentModule: ModuleDescriptor?, logger: LoggingContext, buil
         override fun declareIrSymbol(symbol: IrSymbol) {
             assert(symbol.isPublicApi || symbol.descriptor.isJavaDescriptor())
             if (symbol is IrFieldSymbol) {
-                declareJavaFieldStub(symbol)
+                stubGenerator.generateFieldStub(symbol.descriptor)
             } else {
                 stubGenerator.generateMemberStub(symbol.descriptor)
             }

@@ -44,11 +44,9 @@ class DeclarationStubGenerator(
 ) : IrProvider {
     private val lazyTable = symbolTable.lazyWrapper
 
-    var unboundSymbolGeneration: Boolean
-        get() = lazyTable.stubGenerator != null
-        set(value) {
-            lazyTable.stubGenerator = if (value) this else null
-        }
+    init {
+        lazyTable.stubGenerator = this
+    }
 
     private lateinit var irProviders_: List<IrProvider>
 

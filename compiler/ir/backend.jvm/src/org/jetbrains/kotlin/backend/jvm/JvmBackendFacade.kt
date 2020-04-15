@@ -69,8 +69,6 @@ object JvmBackendFacade {
         val irModuleFragment = psi2ir.generateModuleFragment(psi2irContext, files, irProviders, expectDescriptorToSymbol = null, pluginExtensions)
         irLinker.postProcess()
 
-        stubGenerator.unboundSymbolGeneration = true
-
         // We need to compile all files we reference in Klibs
         irModuleFragment.files.addAll(dependencies.flatMap { it.files })
 

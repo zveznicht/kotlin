@@ -33,10 +33,7 @@ class ExternalDependenciesGenerator(
         if (languageVersionSettings.supportsFeature(LanguageFeature.NewInference)) {
             require(symbolTable.unboundTypeParameters.isEmpty()) { "Unbound type parameters are forbidden" }
         }
-        // There should be at most one DeclarationStubGenerator (none in closed world?)
-        irProviders.singleOrNull { it is DeclarationStubGenerator }?.let {
-            (it as DeclarationStubGenerator).unboundSymbolGeneration = true
-        }
+
         /*
             Deserializing a reference may lead to new unbound references, so we loop until none are left.
          */
