@@ -300,6 +300,11 @@ public class IncrementalJsCompilerRunnerTestGenerated extends AbstractIncrementa
             runTest("jps-plugin/testData/incremental/pureKotlin/inlineSuspendFunctionChanged/");
         }
 
+        @TestMetadata("inlineTransitiveLambda")
+        public void testInlineTransitiveLambda() throws Exception {
+            runTest("jps-plugin/testData/incremental/pureKotlin/inlineTransitiveLambda/");
+        }
+
         @TestMetadata("inlineTwoFunctionsOneChanged")
         public void testInlineTwoFunctionsOneChanged() throws Exception {
             runTest("jps-plugin/testData/incremental/pureKotlin/inlineTwoFunctionsOneChanged/");

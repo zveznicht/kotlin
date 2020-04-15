@@ -1,0 +1,38 @@
+================ Step #1 =================
+
+Cleaning output files:
+  out/production/module/InlineFun1Kt$inlineFun1$1.class
+  out/production/module/InlineFun1Kt.class
+  out/production/module/META-INF/module.kotlin_module
+  out/production/module/UseInlineFun2Kt$useInlineFun2$$inlined$inlineFun2$1.class
+  out/production/module/UseInlineFun2Kt.class
+End of files
+Compiling files:
+  src/inlineFun1.kt
+  src/useInlineFun2.kt
+End of files
+Marked as dirty by Kotlin:
+  src/inlineFun2.kt
+Exit code: ADDITIONAL_PASS_REQUIRED
+------------------------------------------
+Cleaning output files:
+  out/production/module/META-INF/module.kotlin_module
+  out/production/module/InlineFun2Kt.class
+End of files
+Compiling files:
+  src/inlineFun2.kt
+End of files
+Marked as dirty by Kotlin:
+  src/useInlineFun2.kt
+Exit code: ADDITIONAL_PASS_REQUIRED
+------------------------------------------
+Cleaning output files:
+  out/production/module/META-INF/module.kotlin_module
+  out/production/module/UseInlineFun2Kt$useInlineFun2$$inlined$inlineFun2$1.class
+  out/production/module/UseInlineFun2Kt.class
+End of files
+Compiling files:
+  src/useInlineFun2.kt
+End of files
+Exit code: OK
+------------------------------------------

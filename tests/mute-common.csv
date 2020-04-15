@@ -63,3 +63,6 @@ org.jetbrains.kotlin.idea.debugger.test.AsyncStackTraceTestGenerated.testAsyncLa
 org.jetbrains.kotlin.idea.debugger.test.AsyncStackTraceTestGenerated.testAsyncSimple, redesign test AsyncStackTraces
 org.jetbrains.kotlin.idea.debugger.test.KotlinSteppingTestGenerated.StepOver.testStepOverInlinedLambdaStdlib, fails after advancing bootstrap KT-37879
 org.jetbrains.kotlin.incremental.IncrementalJsKlibCompilerRunnerTestGenerated.ClassHierarchyAffected.testMethodRemoved, FO in klib required
+org.jetbrains.kotlin.jps.build.IncrementalJvmJpsTestGenerated.PureKotlin.testInlineTransitiveLambda, KT-38152
+org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunnerTestGenerated.PureKotlin.testInlineTransitiveLambda, KT-38152
+org.jetbrains.kotlin.incremental.IrIncrementalJvmCompilerRunnerTestGenerated.PureKotlin.testInlineTransitiveLambda, KT-38152

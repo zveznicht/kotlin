@@ -1,0 +1,2 @@
+fun useInlineFun2() =
+    inlineFun2 { 100 }
