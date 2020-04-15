@@ -99,7 +99,7 @@ class KotlinChangeSignatureUsageProcessor : ChangeSignatureUsageProcessor {
 
         initializedOriginalDescriptor = false
 
-        val result = HashSet<UsageInfo>()
+        val result = hashSetOf<UsageInfo>()
 
         result.add(OriginalJavaMethodDescriptorWrapper(info.method))
 
