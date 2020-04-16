@@ -24,15 +24,7 @@ import java.net.URL
 import java.util.stream.Collectors
 
 class IdeaKotlinVersionProviderService : KotlinVersionProviderService, IdeaWizardService {
-    override fun getKotlinVersion(): Version =
-        getKotlinVersionFromCompiler()
-            ?: VersionsDownloader.downloadLatestEapOrStableKotlinVersion()
-            ?: Versions.KOTLIN
-
-    private fun getKotlinVersionFromCompiler() =
-        KotlinCompilerVersion.getVersion()
-            ?.takeUnless { it.contains(SNAPSHOT_TAG, ignoreCase = true) }
-            ?.let { Version.fromString(it) }
+    override fun getKotlinVersion(): Version = Version("1.4-M1")
 
     companion object {
         @NonNls

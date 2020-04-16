@@ -47,9 +47,9 @@ object JsSingleplatformModuleConfigurator : JSConfigurator, ModuleConfiguratorWi
         module: Module
     ): List<BuildSystemIR> = irsList {
         "kotlin" {
-            "js" {
+            "target" {
                 +"browser {}"
-                +"binaries.executable()"
+                +"produceExecutable()"
             }
         }
     }

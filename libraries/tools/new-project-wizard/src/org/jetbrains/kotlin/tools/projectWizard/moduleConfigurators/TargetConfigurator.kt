@@ -112,7 +112,7 @@ object JsBrowserTargetConfigurator : JsTargetConfigurator, ModuleConfiguratorWit
         ) {
             "browser" {
                 if (isApplication(module)) {
-                    +"binaries.executable()"
+                    +"produceExecutable()"
                 }
             }
         }
@@ -137,7 +137,7 @@ object JsNodeTargetConfigurator : JsTargetConfigurator {
         ) {
             "nodejs" {
                 if (isApplication(module)) {
-                    +"binaries.executable()"
+                    +"produceExecutable()"
                 }
             }
         }
