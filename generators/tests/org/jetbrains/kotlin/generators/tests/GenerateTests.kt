@@ -1251,15 +1251,15 @@ fun main(args: Array<String>) {
     }
 
     testGroup("compiler/incremental-compilation-impl/test", "jps-plugin/testData") {
-        fun incrementalJvmTestData(targetBackend: TargetBackend): TestGroup.TestClass.() -> Unit = {
-            model("incremental/pureKotlin", extension = null, recursive = false, targetBackend = targetBackend)
-            model("incremental/classHierarchyAffected", extension = null, recursive = false, targetBackend = targetBackend)
-            model("incremental/inlineFunCallSite", extension = null, excludeParentDirs = true, targetBackend = targetBackend)
-            model("incremental/withJava", extension = null, excludeParentDirs = true, targetBackend = targetBackend)
-            model("incremental/incrementalJvmCompilerOnly", extension = null, excludeParentDirs = true, targetBackend = targetBackend)
+        fun incrementalJvmTestData(): TestGroup.TestClass.() -> Unit = {
+            model("incremental/pureKotlin", extension = null, recursive = false)
+            model("incremental/classHierarchyAffected", extension = null, recursive = false)
+            model("incremental/inlineFunCallSite", extension = null, excludeParentDirs = true)
+            model("incremental/withJava", extension = null, excludeParentDirs = true)
+            model("incremental/incrementalJvmCompilerOnly", extension = null, excludeParentDirs = true)
         }
-        testClass<AbstractIncrementalJvmCompilerRunnerTest>(init = incrementalJvmTestData(TargetBackend.JVM))
-        testClass<AbstractIrIncrementalJvmCompilerRunnerTest>(init = incrementalJvmTestData(TargetBackend.JVM_IR))
+        testClass<AbstractIncrementalJvmCompilerRunnerTest>(init = incrementalJvmTestData())
+        testClass<AbstractIrIncrementalJvmCompilerRunnerTest>(init = incrementalJvmTestData())
 
         testClass<AbstractIncrementalJsCompilerRunnerTest> {
             model("incremental/pureKotlin", extension = null, recursive = false)
