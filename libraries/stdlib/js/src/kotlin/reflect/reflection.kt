@@ -76,3 +76,15 @@ internal fun <T : Any> getKClass1(jClass: JsClass<T>): KClass<T> {
         SimpleKClassImpl(jClass)
     }
 }
+
+@PublishedApi
+internal fun <T : Annotation> KClass<*>.findAssociatedObject(annotationClass: KClass<T>): Any? {
+    return if (this is KClassImpl<*> && annotationClass is KClassImpl<T>) {
+        val key = annotationClass.jClass.asDynamic().`$metadata$`.associatedObjectKey?.unsafeCast<Int>() ?: return null
+        val map = this.jClass.asDynamic().`$metadata$`.associatedObjects ?: return null
+        val factory = map[key] ?: return null
+        return factory()
+    } else {
+        null
+    }
+}

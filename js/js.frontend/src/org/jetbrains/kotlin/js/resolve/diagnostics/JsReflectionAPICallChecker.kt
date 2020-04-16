@@ -18,7 +18,10 @@ package org.jetbrains.kotlin.js.resolve.diagnostics
 
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.builtins.ReflectionTypes
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors.UNSUPPORTED
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.calls.checkers.AbstractReflectionApiCallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
 import org.jetbrains.kotlin.storage.StorageManager
@@ -29,6 +32,15 @@ class JsReflectionAPICallChecker(
 ) : AbstractReflectionApiCallChecker(reflectionTypes, storageManager) {
     override val isWholeReflectionApiAvailable: Boolean
         get() = false
+
+    override fun isAllowedReflectionApi(descriptor: CallableDescriptor, containingClass: ClassDescriptor): Boolean {
+        return super.isAllowedReflectionApi(descriptor, containingClass) || descriptor.name.asString() == "findAssociatedObject"
+    }
+
+    override val allowedClasses: Set<FqName> = super.allowedClasses + setOf(
+        FqName("kotlin.reflect.AssociatedObjectKey"),
+        FqName("kotlin.reflect.ExperimentalAssociatedObjects")
+    )
 
     override fun report(element: PsiElement, context: CallCheckerContext) {
         context.trace.report(UNSUPPORTED.on(element, "This reflection API is not supported yet in JavaScript"))
