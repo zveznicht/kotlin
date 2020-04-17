@@ -18164,6 +18164,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
                     runTest("compiler/testData/codegen/box/jvm8/defaults/allCompatibility/privateFunInInterface.kt");
                 }
 
+                @TestMetadata("properSuperSignature.kt")
+                public void testProperSuperSignature() throws Exception {
+                    runTest("compiler/testData/codegen/box/jvm8/defaults/allCompatibility/properSuperSignature.kt");
+                }
+
                 @TestMetadata("propertyAnnotation.kt")
                 public void testPropertyAnnotation() throws Exception {
                     runTest("compiler/testData/codegen/box/jvm8/defaults/allCompatibility/propertyAnnotation.kt");
@@ -18446,6 +18451,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
                     runTest("compiler/testData/codegen/box/jvm8/defaults/noDefaultImpls/privateFunInInterface.kt");
                 }
 
+                @TestMetadata("properSuperSignature.kt")
+                public void testProperSuperSignature() throws Exception {
+                    runTest("compiler/testData/codegen/box/jvm8/defaults/noDefaultImpls/properSuperSignature.kt");
+                }
+
                 @TestMetadata("propertyAnnotation.kt")
                 public void testPropertyAnnotation() throws Exception {
                     runTest("compiler/testData/codegen/box/jvm8/defaults/noDefaultImpls/propertyAnnotation.kt");
@@ -18608,6 +18618,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             @TestMetadata("dontDelegateToDefaultMethods.kt")
             public void testDontDelegateToDefaultMethods() throws Exception {
                 runTest("compiler/testData/codegen/box/jvm8/javaDefaults/dontDelegateToDefaultMethods.kt");
+            }
+
+            @TestMetadata("genericSuperCall.kt")
+            public void testGenericSuperCall() throws Exception {
+                runTest("compiler/testData/codegen/box/jvm8/javaDefaults/genericSuperCall.kt");
             }
 
             @TestMetadata("inheritKotlin.kt")
