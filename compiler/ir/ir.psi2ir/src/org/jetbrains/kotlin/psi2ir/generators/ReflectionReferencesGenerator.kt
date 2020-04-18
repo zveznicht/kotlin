@@ -494,6 +494,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
             putTypeArguments(typeArguments) { it.toIrType() }
         }
 
+    // This patches up a frontend bug -- adapted references are mistakenly given a KFunction type.
     private fun KotlinType.maybeKFunctionTypeToFunctionType() = when {
         isKFunctionType -> kFunctionTypeToFunctionType(false)
         isKSuspendFunctionType -> kFunctionTypeToFunctionType(true)
