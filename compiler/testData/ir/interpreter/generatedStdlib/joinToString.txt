@@ -1,0 +1,17 @@
+FILE fqName:<root> fileName:/joinToString.kt
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a> visibility:public modality:FINAL <> () returnType:kotlin.String
+    correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-a> (): kotlin.String declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.String visibility:public [final,static]' type=kotlin.String origin=null
+  FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.String visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST String type=kotlin.String value="1, 2, 3"
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-b> visibility:public modality:FINAL <> () returnType:kotlin.String
+    correspondingProperty: PROPERTY name:b visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-b> (): kotlin.String declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.String visibility:public [final,static]' type=kotlin.String origin=null
+  FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.String visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST String type=kotlin.String value="-1.-2.-3"

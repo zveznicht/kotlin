@@ -1,0 +1,38 @@
+FILE fqName:<root> fileName:/first.kt
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a> visibility:public modality:FINAL <> () returnType:kotlin.Char
+    correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-a> (): kotlin.Char declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Char visibility:public [final,static]' type=kotlin.Char origin=null
+  FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Char visibility:public [final,static]
+    EXPRESSION_BODY
+      CONSTRUCTOR_CALL 'internal constructor <init> (value: kotlin.Int) [primary] declared in kotlin.Char' type=kotlin.Char origin=null
+        value: CONST Int type=kotlin.Int value=97
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-b> visibility:public modality:FINAL <> () returnType:kotlin.UInt
+    correspondingProperty: PROPERTY name:b visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-b> (): kotlin.UInt declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.UInt visibility:public [final,static]' type=kotlin.UInt origin=null
+  FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.UInt visibility:public [final,static]
+    EXPRESSION_BODY
+      CONSTRUCTOR_CALL 'internal constructor <init> (data: kotlin.Int) [primary] declared in kotlin.UInt' type=kotlin.UInt origin=null
+        data: CONST Int type=kotlin.Int value=0
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-c> visibility:public modality:FINAL <> () returnType:kotlin.Int
+    correspondingProperty: PROPERTY name:c visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-c> (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+  FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST Int type=kotlin.Int value=1
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-d> visibility:public modality:FINAL <> () returnType:kotlin.Int
+    correspondingProperty: PROPERTY name:d visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-d> (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+  FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.Int visibility:public [final,static]
+    EXPRESSION_BODY
+      ERROR_EXPR '
+Exception kotlin.NoSuchElementException: List is empty.
+	at _CollectionsKt.kotlin.collections.first(_Collections.kt:208)
+	at CollectionsKt.kotlin.collections.listOf(Collections.kt:84)' type=kotlin.Int

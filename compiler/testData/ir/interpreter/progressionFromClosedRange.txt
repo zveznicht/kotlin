@@ -1,0 +1,27 @@
+FILE fqName:<root> fileName:/progressionFromClosedRange.kt
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a> visibility:public modality:FINAL <> () returnType:kotlin.Int
+    correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-a> (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+  FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST Int type=kotlin.Int value=0
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-b> visibility:public modality:FINAL <> () returnType:kotlin.Long
+    correspondingProperty: PROPERTY name:b visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-b> (): kotlin.Long declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Long visibility:public [final,static]' type=kotlin.Long origin=null
+  FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Long visibility:public [final,static]
+    EXPRESSION_BODY
+      CONSTRUCTOR_CALL 'internal constructor <init> (low: kotlin.Int, high: kotlin.Int) [primary] declared in kotlin.Long' type=kotlin.Long origin=null
+        low: CONST Int type=kotlin.Int value=10
+        high: CONST Int type=kotlin.Int value=0
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-c> visibility:public modality:FINAL <> () returnType:kotlin.Int
+    correspondingProperty: PROPERTY name:c visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-c> (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+  FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST Int type=kotlin.Int value=1

@@ -1,0 +1,231 @@
+FILE fqName:<root> fileName:/localFunction.kt
+  FUN name:returnTheSameValueFun visibility:public modality:FINAL <> (num:kotlin.Int) returnType:kotlin.Function0<kotlin.Int>
+    annotations:
+      CompileTimeCalculation
+    VALUE_PARAMETER name:num index:0 type:kotlin.Int
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun returnTheSameValueFun (num: kotlin.Int): kotlin.Function0<kotlin.Int> declared in <root>'
+        CALL 'local final fun <no name provided>$factory ($num: kotlin.Int): <root>.<no name provided> declared in <root>' type=<root>.<no name provided> origin=CALLABLE_REFERENCE_CREATE
+          $num: GET_VAR 'num: kotlin.Int declared in <root>.returnTheSameValueFun' type=kotlin.Int origin=null
+  FUN name:multiplyByTwo visibility:public modality:FINAL <> (num:kotlin.Int) returnType:kotlin.Function0<kotlin.Int>
+    annotations:
+      CompileTimeCalculation
+    VALUE_PARAMETER name:num index:0 type:kotlin.Int
+    BLOCK_BODY
+      VAR name:a type:kotlin.Int [val]
+        CONST Int type=kotlin.Int value=2
+      VAR name:b type:kotlin.Int [val]
+        CONST Int type=kotlin.Int value=5
+      RETURN type=kotlin.Nothing from='public final fun multiplyByTwo (num: kotlin.Int): kotlin.Function0<kotlin.Int> declared in <root>'
+        CALL 'local final fun <no name provided>$factory ($num: kotlin.Int, $a: kotlin.Int): <root>.<no name provided> declared in <root>' type=<root>.<no name provided> origin=CALLABLE_REFERENCE_CREATE
+          $num: GET_VAR 'num: kotlin.Int declared in <root>.multiplyByTwo' type=kotlin.Int origin=null
+          $a: GET_VAR 'val a: kotlin.Int [val] declared in <root>.multiplyByTwo' type=kotlin.Int origin=null
+  FUN name:multiplyBy visibility:public modality:FINAL <> (multiply:kotlin.Function2<kotlin.Int, kotlin.Int, kotlin.Int>) returnType:kotlin.Function2<kotlin.Int, kotlin.Int, kotlin.Int> [inline]
+    annotations:
+      CompileTimeCalculation
+    VALUE_PARAMETER name:multiply index:0 type:kotlin.Function2<kotlin.Int, kotlin.Int, kotlin.Int> [noinline]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun multiplyBy (multiply: kotlin.Function2<kotlin.Int, kotlin.Int, kotlin.Int>): kotlin.Function2<kotlin.Int, kotlin.Int, kotlin.Int> [inline] declared in <root>'
+        GET_VAR 'multiply: kotlin.Function2<kotlin.Int, kotlin.Int, kotlin.Int> [noinline] declared in <root>.multiplyBy' type=kotlin.Function2<kotlin.Int, kotlin.Int, kotlin.Int> origin=null
+  FUN name:checkStackCorrectness visibility:public modality:FINAL <> () returnType:kotlin.Int
+    annotations:
+      CompileTimeCalculation
+    BLOCK_BODY
+      CALL 'public final fun Unit_getInstance (): kotlin.Unit declared in kotlin' type=kotlin.Unit origin=SYNTHESIZED_STATEMENT
+      VAR name:num type:kotlin.Int [val]
+        CONST Int type=kotlin.Int value=5
+      RETURN type=kotlin.Nothing from='public final fun checkStackCorrectness (): kotlin.Int declared in <root>'
+        GET_VAR 'val num: kotlin.Int [val] declared in <root>.checkStackCorrectness' type=kotlin.Int origin=null
+  FUN name:checkLaterInvoke visibility:public modality:FINAL <> () returnType:kotlin.String
+    annotations:
+      CompileTimeCalculation
+    BLOCK_BODY
+      VAR name:num type:kotlin.Int [val]
+        CONST Int type=kotlin.Int value=10
+      VAR name:function type:kotlin.Function0<kotlin.Int> [val]
+        CALL 'public final fun multiplyByTwo (num: kotlin.Int): kotlin.Function0<kotlin.Int> declared in <root>' type=kotlin.Function0<kotlin.Int> origin=null
+          num: GET_VAR 'val num: kotlin.Int [val] declared in <root>.checkLaterInvoke' type=kotlin.Int origin=null
+      VAR name:b type:kotlin.Int [val]
+        CONST Int type=kotlin.Int value=0
+      RETURN type=kotlin.Nothing from='public final fun checkLaterInvoke (): kotlin.String declared in <root>'
+        CALL 'public final fun jsPlus (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Any? declared in kotlin.internal.ir' type=kotlin.String origin=PLUS
+          arg0: CALL 'public final fun jsPlus (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Any? declared in kotlin.internal.ir' type=kotlin.String origin=PLUS
+            arg0: CALL 'public final fun jsPlus (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Any? declared in kotlin.internal.ir' type=kotlin.String origin=PLUS
+              arg0: CALL 'public final fun jsPlus (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Any? declared in kotlin.internal.ir' type=kotlin.String origin=PLUS
+                arg0: CALL 'public final fun jsPlus (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Any? declared in kotlin.internal.ir' type=kotlin.String origin=PLUS
+                  arg0: CONST String type=kotlin.String value="previous = "
+                  arg1: GET_VAR 'val num: kotlin.Int [val] declared in <root>.checkLaterInvoke' type=kotlin.Int origin=null
+                arg1: CONST String type=kotlin.String value="; multiplied by two = "
+              arg1: CALL 'public abstract fun invoke (): R of kotlin.Function0 [operator] declared in kotlin.Function0' type=kotlin.Int origin=null
+                $this: GET_VAR 'val function: kotlin.Function0<kotlin.Int> [val] declared in <root>.checkLaterInvoke' type=kotlin.Function0<kotlin.Int> origin=null
+            arg1: CONST String type=kotlin.String value="; b = "
+          arg1: GET_VAR 'val b: kotlin.Int [val] declared in <root>.checkLaterInvoke' type=kotlin.Int origin=null
+  FUN name:localInline visibility:public modality:FINAL <> () returnType:kotlin.String
+    annotations:
+      CompileTimeCalculation
+    BLOCK_BODY
+      VAR name:a type:kotlin.Int [val]
+        CONST Int type=kotlin.Int value=10
+      VAR name:b type:kotlin.Int [val]
+        CONST Int type=kotlin.Int value=20
+      VAR name:function type:kotlin.Int [val]
+        CONST Int type=kotlin.Int value=8
+      RETURN type=kotlin.Nothing from='public final fun localInline (): kotlin.String declared in <root>'
+        CALL 'public final fun jsPlus (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Any? declared in kotlin.internal.ir' type=kotlin.String origin=PLUS
+          arg0: CALL 'public final fun jsPlus (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Any? declared in kotlin.internal.ir' type=kotlin.String origin=PLUS
+            arg0: CONST String type=kotlin.String value="result = "
+            arg1: GET_VAR 'val function: kotlin.Int [val] declared in <root>.localInline' type=kotlin.Int origin=null
+          arg1: STRING_CONCATENATION type=kotlin.String
+            CONST String type=kotlin.String value="; (a, b) = ("
+            GET_VAR 'val a: kotlin.Int [val] declared in <root>.localInline' type=kotlin.Int origin=null
+            CONST String type=kotlin.String value=", "
+            GET_VAR 'val b: kotlin.Int [val] declared in <root>.localInline' type=kotlin.Int origin=null
+            CONST String type=kotlin.String value=")"
+  FUN name:getNumAfterLocalInvoke visibility:public modality:FINAL <> () returnType:kotlin.Int
+    annotations:
+      CompileTimeCalculation
+    BLOCK_BODY
+      VAR name:a type:kotlin.js.internal.$closureBox$ [val]
+        CONSTRUCTOR_CALL 'public constructor <init> (p: kotlin.Any?) [primary] declared in kotlin.js.internal.$closureBox$' type=kotlin.js.internal.$closureBox$ origin=null
+          p: CONST Int type=kotlin.Int value=1
+      CALL 'private final fun getNumAfterLocalInvoke$local ($a: kotlin.js.internal.$closureBox$): kotlin.Unit declared in <root>' type=kotlin.Unit origin=null
+        $a: GET_VAR 'val a: kotlin.js.internal.$closureBox$ [val] declared in <root>.getNumAfterLocalInvoke' type=kotlin.js.internal.$closureBox$ origin=null
+      RETURN type=kotlin.Nothing from='public final fun getNumAfterLocalInvoke (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD FIELD_FOR_OUTER_THIS name:v type:kotlin.Any? visibility:public' type=kotlin.Int origin=null
+          receiver: GET_VAR 'val a: kotlin.js.internal.$closureBox$ [val] declared in <root>.getNumAfterLocalInvoke' type=kotlin.js.internal.$closureBox$ origin=null
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a> visibility:public modality:FINAL <> () returnType:kotlin.Int
+    correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-a> (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+  FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST Int type=kotlin.Int value=2
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-b> visibility:public modality:FINAL <> () returnType:kotlin.Int
+    correspondingProperty: PROPERTY name:b visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-b> (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+  FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Int visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST Int type=kotlin.Int value=2
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-c> visibility:public modality:FINAL <> () returnType:kotlin.Int
+    correspondingProperty: PROPERTY name:c visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-c> (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+  FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Int visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST Int type=kotlin.Int value=5
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-d> visibility:public modality:FINAL <> () returnType:kotlin.String
+    correspondingProperty: PROPERTY name:d visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-d> (): kotlin.String declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.String visibility:public [final,static]' type=kotlin.String origin=null
+  FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.String visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST String type=kotlin.String value="previous = 10; multiplied by two = 20; b = 0"
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-e> visibility:public modality:FINAL <> () returnType:kotlin.String
+    correspondingProperty: PROPERTY name:e visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-e> (): kotlin.String declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:e type:kotlin.String visibility:public [final,static]' type=kotlin.String origin=null
+  FIELD PROPERTY_BACKING_FIELD name:e type:kotlin.String visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST String type=kotlin.String value="result = 8; (a, b) = (10, 20)"
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-f> visibility:public modality:FINAL <> () returnType:kotlin.Int
+    correspondingProperty: PROPERTY name:f visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-f> (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:f type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+  FIELD PROPERTY_BACKING_FIELD name:f type:kotlin.Int visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST Int type=kotlin.Int value=2
+  FUN name:getNumAfterLocalInvoke$local visibility:private modality:FINAL <> ($a:kotlin.js.internal.$closureBox$) returnType:kotlin.Unit
+    annotations:
+      CompileTimeCalculation
+    VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$a index:0 type:kotlin.js.internal.$closureBox$
+    BLOCK_BODY
+      VAR IR_TEMPORARY_VARIABLE name:tmp0 type:kotlin.Int [val]
+        GET_FIELD 'FIELD FIELD_FOR_OUTER_THIS name:v type:kotlin.Any? visibility:public' type=kotlin.Int origin=POSTFIX_INCR
+          receiver: GET_VAR '$a: kotlin.js.internal.$closureBox$ declared in <root>.getNumAfterLocalInvoke$local' type=kotlin.js.internal.$closureBox$ origin=null
+      SET_FIELD 'FIELD FIELD_FOR_OUTER_THIS name:v type:kotlin.Any? visibility:public' type=kotlin.Unit origin=POSTFIX_INCR
+        receiver: GET_VAR '$a: kotlin.js.internal.$closureBox$ declared in <root>.getNumAfterLocalInvoke$local' type=kotlin.js.internal.$closureBox$ origin=null
+        value: CALL 'public final fun jsBitOr (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Int declared in kotlin.internal.ir' type=kotlin.Int origin=SYNTHESIZED_STATEMENT
+          arg0: CALL 'public final fun jsPlus (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Any? declared in kotlin.internal.ir' type=kotlin.Int origin=POSTFIX_INCR
+            arg0: GET_VAR 'val tmp0: kotlin.Int [val] declared in <root>.getNumAfterLocalInvoke$local' type=kotlin.Int origin=null
+            arg1: CONST Int type=kotlin.Int value=1
+          arg1: CONST Int type=kotlin.Int value=0
+      CALL 'public final fun Unit_getInstance (): kotlin.Unit declared in kotlin' type=kotlin.Unit origin=SYNTHESIZED_STATEMENT
+  CLASS LAMBDA_IMPL CLASS name:<no name provided> modality:FINAL visibility:local superTypes:[kotlin.Any; kotlin.Function0<kotlin.Int>]
+    $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.<no name provided>
+    CONSTRUCTOR GENERATED_MEMBER_IN_CALLABLE_REFERENCE visibility:private <> ($num:kotlin.Int) returnType:<root>.<no name provided> [primary]
+      VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$num index:0 type:kotlin.Int
+      BLOCK_BODY
+        SET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$num type:kotlin.Int visibility:private [final]' type=kotlin.Unit origin=INITIALIZER_OF_FIELD_FOR_CAPTURED_VALUE
+          receiver: GET_VAR '<this>: <root>.<no name provided> declared in <root>.<no name provided>' type=<root>.<no name provided> origin=null
+          value: GET_VAR '$num: kotlin.Int declared in <root>.<no name provided>.<init>' type=kotlin.Int origin=null
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () [primary] declared in kotlin.Any'
+    FUN name:invoke visibility:public modality:FINAL <> ($this:<root>.<no name provided>) returnType:kotlin.Int [operator]
+      overridden:
+        public abstract fun invoke (): R of kotlin.Function0 [operator] declared in kotlin.Function0
+      $this: VALUE_PARAMETER LAMBDA_IMPL name:<this> type:<root>.<no name provided>
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun invoke (): kotlin.Int [operator] declared in <root>.<no name provided>'
+          GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$num type:kotlin.Int visibility:private [final]' type=kotlin.Int origin=null
+            receiver: GET_VAR '<this>: <root>.<no name provided> declared in <root>.<no name provided>.invoke' type=<root>.<no name provided> origin=null
+    FIELD FIELD_FOR_CAPTURED_VALUE name:$num type:kotlin.Int visibility:private [final]
+  CLASS LAMBDA_IMPL CLASS name:<no name provided> modality:FINAL visibility:local superTypes:[kotlin.Any; kotlin.Function0<kotlin.Int>]
+    $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:<root>.<no name provided>
+    CONSTRUCTOR GENERATED_MEMBER_IN_CALLABLE_REFERENCE visibility:private <> ($num:kotlin.Int, $a:kotlin.Int) returnType:<root>.<no name provided> [primary]
+      VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$num index:0 type:kotlin.Int
+      VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$a index:1 type:kotlin.Int
+      BLOCK_BODY
+        SET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$num type:kotlin.Int visibility:private [final]' type=kotlin.Unit origin=INITIALIZER_OF_FIELD_FOR_CAPTURED_VALUE
+          receiver: GET_VAR '<this>: <root>.<no name provided> declared in <root>.<no name provided>' type=<root>.<no name provided> origin=null
+          value: GET_VAR '$num: kotlin.Int declared in <root>.<no name provided>.<init>' type=kotlin.Int origin=null
+        SET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$a type:kotlin.Int visibility:private [final]' type=kotlin.Unit origin=INITIALIZER_OF_FIELD_FOR_CAPTURED_VALUE
+          receiver: GET_VAR '<this>: <root>.<no name provided> declared in <root>.<no name provided>' type=<root>.<no name provided> origin=null
+          value: GET_VAR '$a: kotlin.Int declared in <root>.<no name provided>.<init>' type=kotlin.Int origin=null
+        DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> () [primary] declared in kotlin.Any'
+    FUN name:invoke visibility:public modality:FINAL <> ($this:<root>.<no name provided>) returnType:kotlin.Int [operator]
+      overridden:
+        public abstract fun invoke (): R of kotlin.Function0 [operator] declared in kotlin.Function0
+      $this: VALUE_PARAMETER LAMBDA_IMPL name:<this> type:<root>.<no name provided>
+      BLOCK_BODY
+        RETURN type=kotlin.Nothing from='public final fun invoke (): kotlin.Int [operator] declared in <root>.<no name provided>'
+          CALL 'internal final fun imul (a_local: kotlin.Int, b_local: kotlin.Int): kotlin.Int declared in kotlin.js' type=kotlin.Int origin=MUL
+            a_local: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$num type:kotlin.Int visibility:private [final]' type=kotlin.Int origin=null
+              receiver: GET_VAR '<this>: <root>.<no name provided> declared in <root>.<no name provided>.invoke' type=<root>.<no name provided> origin=null
+            b_local: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$a type:kotlin.Int visibility:private [final]' type=kotlin.Int origin=null
+              receiver: GET_VAR '<this>: <root>.<no name provided> declared in <root>.<no name provided>.invoke' type=<root>.<no name provided> origin=null
+    FIELD FIELD_FOR_CAPTURED_VALUE name:$num type:kotlin.Int visibility:private [final]
+    FIELD FIELD_FOR_CAPTURED_VALUE name:$a type:kotlin.Int visibility:private [final]
+  FUN name:<no name provided>$factory visibility:local modality:FINAL <> ($num:kotlin.Int) returnType:<root>.<no name provided>
+    VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$num index:0 type:kotlin.Int
+    BLOCK_BODY
+      VAR SYNTHESIZED_DECLARATION name:i type:<root>.<no name provided> [val]
+        CONSTRUCTOR_CALL 'private constructor <init> ($num: kotlin.Int) [primary] declared in <root>.<no name provided>' type=<root>.<no name provided> origin=CALLABLE_REFERENCE_CREATE
+          $num: GET_VAR '$num: kotlin.Int declared in <root>.<no name provided>$factory' type=kotlin.Int origin=null
+      RETURN type=kotlin.Nothing from='local final fun <no name provided>$factory ($num: kotlin.Int): <root>.<no name provided> declared in <root>'
+        FUN_EXPR type=<root>.<no name provided> origin=CALLABLE_REFERENCE_CREATE
+          FUN name:<no name provided>$lambda visibility:local modality:FINAL <> () returnType:R of kotlin.Function0
+            BLOCK_BODY
+              RETURN type=kotlin.Nothing from='local final fun <no name provided>$lambda (): R of kotlin.Function0 declared in <root>.<no name provided>$factory'
+                CALL 'public final fun invoke (): kotlin.Int [operator] declared in <root>.<no name provided>' type=kotlin.Int origin=EXPLICIT_INVOKE
+                  $this: GET_VAR 'val i: <root>.<no name provided> [val] declared in <root>.<no name provided>$factory' type=<root>.<no name provided> origin=null
+  FUN name:<no name provided>$factory visibility:local modality:FINAL <> ($num:kotlin.Int, $a:kotlin.Int) returnType:<root>.<no name provided>
+    VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$num index:0 type:kotlin.Int
+    VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$a index:1 type:kotlin.Int
+    BLOCK_BODY
+      VAR SYNTHESIZED_DECLARATION name:i type:<root>.<no name provided> [val]
+        CONSTRUCTOR_CALL 'private constructor <init> ($num: kotlin.Int, $a: kotlin.Int) [primary] declared in <root>.<no name provided>' type=<root>.<no name provided> origin=CALLABLE_REFERENCE_CREATE
+          $num: GET_VAR '$num: kotlin.Int declared in <root>.<no name provided>$factory' type=kotlin.Int origin=null
+          $a: GET_VAR '$a: kotlin.Int declared in <root>.<no name provided>$factory' type=kotlin.Int origin=null
+      RETURN type=kotlin.Nothing from='local final fun <no name provided>$factory ($num: kotlin.Int, $a: kotlin.Int): <root>.<no name provided> declared in <root>'
+        FUN_EXPR type=<root>.<no name provided> origin=CALLABLE_REFERENCE_CREATE
+          FUN name:<no name provided>$lambda visibility:local modality:FINAL <> () returnType:R of kotlin.Function0
+            BLOCK_BODY
+              RETURN type=kotlin.Nothing from='local final fun <no name provided>$lambda (): R of kotlin.Function0 declared in <root>.<no name provided>$factory'
+                CALL 'public final fun invoke (): kotlin.Int [operator] declared in <root>.<no name provided>' type=kotlin.Int origin=EXPLICIT_INVOKE
+                  $this: GET_VAR 'val i: <root>.<no name provided> [val] declared in <root>.<no name provided>$factory' type=<root>.<no name provided> origin=null

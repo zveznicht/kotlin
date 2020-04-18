@@ -1,0 +1,33 @@
+FILE fqName:<root> fileName:/sequenceOf.kt
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-a> visibility:public modality:FINAL <> () returnType:kotlin.Int
+    correspondingProperty: PROPERTY name:a visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-a> (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+  FIELD PROPERTY_BACKING_FIELD name:a type:kotlin.Int visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST Int type=kotlin.Int value=1
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-b> visibility:public modality:FINAL <> () returnType:kotlin.Int
+    correspondingProperty: PROPERTY name:b visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-b> (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+  FIELD PROPERTY_BACKING_FIELD name:b type:kotlin.Int visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST Int type=kotlin.Int value=2
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-c> visibility:public modality:FINAL <> () returnType:kotlin.Boolean
+    correspondingProperty: PROPERTY name:c visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-c> (): kotlin.Boolean declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Boolean visibility:public [final,static]' type=kotlin.Boolean origin=null
+  FIELD PROPERTY_BACKING_FIELD name:c type:kotlin.Boolean visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST Boolean type=kotlin.Boolean value=false
+  FUN DEFAULT_PROPERTY_ACCESSOR name:<get-d> visibility:public modality:FINAL <> () returnType:kotlin.Int
+    correspondingProperty: PROPERTY name:d visibility:public modality:FINAL [const,val]
+    BLOCK_BODY
+      RETURN type=kotlin.Nothing from='public final fun <get-d> (): kotlin.Int declared in <root>'
+        GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.Int visibility:public [final,static]' type=kotlin.Int origin=null
+  FIELD PROPERTY_BACKING_FIELD name:d type:kotlin.Int visibility:public [final,static]
+    EXPRESSION_BODY
+      CONST Int type=kotlin.Int value=42
