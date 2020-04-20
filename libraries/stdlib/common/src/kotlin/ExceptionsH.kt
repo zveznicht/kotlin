@@ -110,7 +110,7 @@ public expect class UninitializedPropertyAccessException : RuntimeException {
 }
 
 /**
- * Thrown when a value of type `kotlin.Nothing` is returned by function or property.
+ * Thrown after invocation of a function or property that was expected to return `Nothing`, but returned something instead.
  */
 @SinceKotlin("1.4")
 @PublishedApi
