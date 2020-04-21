@@ -58,8 +58,8 @@ internal fun checkGradleCompatibility(
     val currentVersion = GradleVersion.current()
     if (currentVersion < minSupportedVersion) {
         throw GradleException(
-            "The current Gradle version $currentVersion is not compatible with $withComponent. " +
-                    "Please use Gradle $minSupportedVersion or newer, or the previous version of the Kotlin plugin."
+            "The current Gradle version ${currentVersion.version} is not compatible with $withComponent. " +
+                    "Please use Gradle ${minSupportedVersion.version} or newer, or the previous version of the Kotlin plugin."
         )
     }
 }

@@ -16,9 +16,12 @@ open class KotlinAndroid33GradleIT : KotlinAndroid32GradleIT() {
         get() = GradleVersionRequired.AtLeast("5.0")
 }
 
-open class KotlinAndroid32GradleIT : KotlinAndroid3GradleIT() {
+open class KotlinAndroid36GradleIT : KotlinAndroid33GradleIT() {
     override val androidGradlePluginVersion: AGPVersion
-        get() = AGPVersion.v3_2_0
+        get() = AGPVersion.v3_6_0
+
+    override val defaultGradleVersion: GradleVersionRequired
+        get() = GradleVersionRequired.AtLeast("6.0")
 
     @Test
     fun testAndroidWithNewMppApp() = with(Project("new-mpp-android", GradleVersionRequired.FOR_MPP_SUPPORT)) {
@@ -336,6 +339,11 @@ open class KotlinAndroid32GradleIT : KotlinAndroid3GradleIT() {
             assertTasksExecuted(lintTask) // Check that the lint task ran successfully, KT-27170
         }
     }
+}
+
+open class KotlinAndroid32GradleIT : KotlinAndroid3GradleIT() {
+    override val androidGradlePluginVersion: AGPVersion
+        get() = AGPVersion.v3_2_0
 
     @Test
     fun testKaptUsingApOptionProvidersAsNestedInputOutput() = with(Project("AndroidProject")) {
@@ -750,6 +758,10 @@ fun getSomething() = 10
     @Test
     fun testMultiplatformAndroidCompile() = with(Project("multiplatformAndroidProject")) {
         setupWorkingDir()
+
+        if (androidGradlePluginVersion >= AGPVersion.v3_6_0) {
+
+        }
 
         // Check that the common module is not added to the deprecated configuration 'compile' (KT-23719):
         gradleBuildScript("libAndroid").appendText(
