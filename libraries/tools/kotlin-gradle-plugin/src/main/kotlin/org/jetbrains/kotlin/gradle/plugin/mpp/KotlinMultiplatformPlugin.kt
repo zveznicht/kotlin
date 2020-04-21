@@ -76,12 +76,6 @@ class KotlinMultiplatformPlugin(
             addExtension("presets", presets)
 
             defaultJsCompilerType = PropertiesProvider(project).jsCompiler
-
-            isGradleMetadataAvailable =
-                featurePreviews.activeFeatures.find { it.name == "GRADLE_METADATA" }?.let { metadataFeature ->
-                    isGradleMetadataExperimental = true
-                    featurePreviews.isFeatureEnabled(metadataFeature)
-                } ?: true // the feature entry will be gone once the feature is stable
         }
 
         setupDefaultPresets(project)
@@ -181,12 +175,6 @@ class KotlinMultiplatformPlugin(
 
     private fun configurePublishingWithMavenPublish(project: Project) = project.pluginManager.withPlugin("maven-publish") { _ ->
 
-        if (isGradleVersionAtLeast(5, 3) &&
-            project.multiplatformExtension.run { isGradleMetadataExperimental && !isGradleMetadataAvailable }
-        ) {
-            SingleWarningPerBuild.show(project, GRADLE_NO_METADATA_WARNING)
-        }
-
         val targets = project.multiplatformExtension.targets
         val kotlinSoftwareComponent = project.multiplatformExtension.rootSoftwareComponent
 
@@ -197,13 +185,6 @@ class KotlinMultiplatformPlugin(
                 from(kotlinSoftwareComponent)
                 (this as MavenPublicationInternal).publishWithOriginalFileName()
                 kotlinSoftwareComponent.publicationDelegate = this@apply
-            }
-
-            // Publish the root publication only if Gradle metadata publishing is enabled:
-            project.tasks.withType(AbstractPublishToMaven::class.java).configureEach { publishTask ->
-                publishTask.onlyIf {
-                    publishTask.publication != rootPublication || project.multiplatformExtension.isGradleMetadataAvailable
-                }
             }
 
             // Enforce the order of creating the publications, since the metadata publication is used in the other publications:
@@ -303,17 +284,6 @@ class KotlinMultiplatformPlugin(
 
         internal fun sourceSetFreeCompilerArgsPropertyName(sourceSetName: String) =
             "kotlin.mpp.freeCompilerArgsForSourceSet.$sourceSetName"
-
-        internal const val GRADLE_NO_METADATA_WARNING = "This build consumes Gradle module metadata but does not produce " +
-                "it when publishing Kotlin multiplatform libraries. \n" +
-                "To enable Gradle module metadata in publications, add 'enableFeaturePreview(\"GRADLE_METADATA\")' " +
-                "to the settings.gradle file. \n" +
-                "See: https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#experimental-metadata-publishing-mode"
-
-        internal const val GRADLE_OLD_METADATA_WARNING = "This build is set up to publish a Kotlin multiplatform library " +
-                "with an outdated Gradle module metadata format, which newer Gradle versions won't be able to consume. \n" +
-                "Please update the Gradle version to 5.3 or newer. \n" +
-                "See: https://kotlinlang.org/docs/reference/building-mpp-with-gradle.html#experimental-metadata-publishing-mode"
     }
 }
 

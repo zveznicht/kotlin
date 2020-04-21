@@ -925,35 +925,6 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testPublishWithoutGradleMetadata() {
-        val libProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
-
-        with(libProject) {
-            setupWorkingDir()
-            projectDir.resolve("settings.gradle").modify { it.replace("enableFeaturePreview", "// enableFeaturePreview") }
-
-            build("publish") {
-                assertSuccessful()
-                val groupRepoDir = "repo/com/example"
-
-                // No root publication:
-                assertNoSuchFile("$groupRepoDir/sample-lib")
-
-                // Check that the platform publications have the metadata dependency
-                listOf("jvm6", "nodejs", "wasm32", nativeHostTargetName.toLowerCase()).forEach { targetAppendix ->
-                    val targetPomPath = "$groupRepoDir/sample-lib-$targetAppendix/1.0/sample-lib-$targetAppendix-1.0.pom"
-                    assertFileContains(
-                        targetPomPath,
-                        "<groupId>com.example</groupId>",
-                        "<artifactId>sample-lib-metadata</artifactId>",
-                        "<version>1.0</version>"
-                    )
-                }
-            }
-        }
-    }
-
-    @Test
     fun testEndorsedLibsController() {
         with(
             transformProjectWithPluginsDsl("new-mpp-native-endorsed", gradleVersion)
@@ -2392,22 +2363,6 @@ class NewMultiplatformIT : BaseGradleIT() {
         // Also check that the flag for keeping POMs intact works:
         doTestPomRewriting(mppProjectDependency = false, legacyPublishing = false, keepPomIntact = true)
         doTestPomRewriting(mppProjectDependency = false, legacyPublishing = true, keepPomIntact = true)
-    }
-
-    @Test
-    fun testSuggestionToEnableMetadata() = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
-        build {
-            assertNotContains(GRADLE_NO_METADATA_WARNING)
-
-            gradleSettingsScript().modify { it.replace("enableFeaturePreview(", "//") }
-            build {
-                if (testGradleVersionAtLeast("5.3-rc-2")) {
-                    assertContains(GRADLE_NO_METADATA_WARNING)
-                } else {
-                    assertNotContains(GRADLE_NO_METADATA_WARNING)
-                }
-            }
-        }
     }
 
     @Test
