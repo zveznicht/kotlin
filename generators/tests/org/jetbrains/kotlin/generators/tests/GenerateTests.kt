@@ -61,6 +61,8 @@ import org.jetbrains.kotlin.idea.debugger.evaluate.*
 import org.jetbrains.kotlin.idea.debugger.test.sequence.exec.AbstractSequenceTraceTestCase
 import org.jetbrains.kotlin.idea.debugger.test.*
 import org.jetbrains.kotlin.idea.debugger.test.AbstractFileRankingTest
+import org.jetbrains.kotlin.idea.debugger.test.ir.AbstractIrKotlinEvaluateExpressionTest
+import org.jetbrains.kotlin.idea.debugger.test.ir.AbstractIrKotlinSteppingTest
 import org.jetbrains.kotlin.idea.decompiler.navigation.AbstractNavigateToDecompiledLibraryTest
 import org.jetbrains.kotlin.idea.decompiler.navigation.AbstractNavigateToLibrarySourceTest
 import org.jetbrains.kotlin.idea.decompiler.navigation.AbstractNavigateToLibrarySourceTestWithJS
@@ -247,6 +249,60 @@ fun main(args: Array<String>) {
 
         testClass<AbstractXCoroutinesStackTraceTest> {
             model("xcoroutines")
+        }
+
+        //IR
+        testClass<AbstractIrKotlinSteppingTest> {
+            model(
+                "stepping/stepIntoAndSmartStepInto",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doStepIntoTest",
+                testClassName = "StepInto",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/stepIntoAndSmartStepInto",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doSmartStepIntoTest",
+                testClassName = "SmartStepInto",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/stepInto",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doStepIntoTest",
+                testClassName = "StepIntoOnly",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/stepOut",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doStepOutTest",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/stepOver",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doStepOverTest",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/filters",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doStepIntoTest",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/custom",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doCustomTest",
+                targetBackend = TargetBackend.JVM_IR
+            )
+        }
+
+        testClass<AbstractIrKotlinEvaluateExpressionTest> {
+            model("evaluation/singleBreakpoint", testMethod = "doSingleBreakpointTest", targetBackend = TargetBackend.JVM_IR)
+            model("evaluation/multipleBreakpoints", testMethod = "doMultipleBreakpointsTest", targetBackend = TargetBackend.JVM_IR)
         }
     }
 

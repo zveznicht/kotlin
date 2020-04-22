@@ -226,6 +226,55 @@ fun main(args: Array<String>) {
             // TODO: implement mapping logic for terminal operations
             model("sequence/streams/sequence", excludeDirs = listOf("terminal"))
         }
+
+        //IR
+        testClass<AbstractIrKotlinSteppingTest> {
+            model(
+                "stepping/stepIntoAndSmartStepInto",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doStepIntoTest",
+                testClassName = "StepInto",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/stepIntoAndSmartStepInto",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doSmartStepIntoTest",
+                testClassName = "SmartStepInto",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/stepInto",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doStepIntoTest",
+                testClassName = "StepIntoOnly",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/stepOut",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doStepOutTest",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/stepOver",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doStepOverTest",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/filters",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doStepIntoTest",
+                targetBackend = TargetBackend.JVM_IR
+            )
+            model(
+                "stepping/custom",
+                pattern = KT_WITHOUT_DOTS_IN_NAME,
+                testMethod = "doCustomTest",
+                targetBackend = TargetBackend.JVM_IR
+            )
+        }
     }
 
     testGroup("idea/tests", "idea/testData") {

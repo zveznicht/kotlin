@@ -16,7 +16,11 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.ArchiveFileSystem
 import com.intellij.psi.PsiManager
+import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
+import org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory
+import org.jetbrains.kotlin.backend.jvm.jvmPhases
 import org.jetbrains.kotlin.caches.resolve.KotlinCacheService
+import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.output.writeAllTo
 import org.jetbrains.kotlin.cli.jvm.compiler.findMainClass
 import org.jetbrains.kotlin.codegen.ClassBuilderFactories
@@ -106,7 +110,13 @@ class DebuggerTestCompilerFacility(files: List<TestFile>, private val jvmTarget:
     }
 
     // Returns the qualified name of the main test class.
-    fun compileTestSources(module: Module, srcDir: File, classesDir: File, libClassesDir: File): String = with(mainFiles) {
+    fun compileTestSources(
+        module: Module,
+        srcDir: File,
+        classesDir: File,
+        libClassesDir: File,
+        useIR: Boolean
+    ): String = with(mainFiles) {
         resources.copy(srcDir)
         resources.copy(classesDir) // sic!
         (kotlin + java).copy(srcDir)
@@ -135,7 +145,7 @@ class DebuggerTestCompilerFacility(files: List<TestFile>, private val jvmTarget:
         lateinit var mainClassName: String
 
         doWriteAction {
-            mainClassName = compileKotlinFilesInIde(module, ktFiles, classesDir)
+            mainClassName = compileKotlinFilesInIde(module, ktFiles, classesDir, useIR)
         }
 
         if (java.isNotEmpty()) {
@@ -150,7 +160,12 @@ class DebuggerTestCompilerFacility(files: List<TestFile>, private val jvmTarget:
         return mainClassName
     }
 
-    private fun compileKotlinFilesInIde(module: Module, files: List<KtFile>, classesDir: File): String {
+    private fun compileKotlinFilesInIde(
+        module: Module,
+        files: List<KtFile>,
+        classesDir: File,
+        useIR: Boolean
+    ): String {
         val project = module.project
         val resolutionFacade = KotlinCacheService.getInstance(project).getResolutionFacade(files)
 
@@ -165,7 +180,11 @@ class DebuggerTestCompilerFacility(files: List<TestFile>, private val jvmTarget:
 
         val state = GenerationState.Builder(project, ClassBuilderFactories.BINARIES, moduleDescriptor, bindingContext, files, configuration)
             .generateDeclaredClassFilter(GenerationState.GenerateClassFilter.GENERATE_ALL)
-            .codegenFactory(DefaultCodegenFactory)
+            .codegenFactory(
+                if (useIR) JvmIrCodegenFactory(
+                    configuration.get(CLIConfigurationKeys.PHASE_CONFIG) ?: PhaseConfig(jvmPhases)
+                ) else DefaultCodegenFactory
+            )
             .build()
 
         KotlinCodegenFacade.compileCorrectFiles(state)
