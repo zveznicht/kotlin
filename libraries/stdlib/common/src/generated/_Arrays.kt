@@ -23447,6 +23447,7 @@ public fun CharArray.asIterable(): Iterable<Char> {
  * 
  * @sample samples.collections.Sequences.Building.sequenceFromArray
  */
+@CompileTimeCalculation
 public fun <T> Array<out T>.asSequence(): Sequence<T> {
     if (isEmpty()) return emptySequence()
     return Sequence { this.iterator() }
@@ -23457,6 +23458,7 @@ public fun <T> Array<out T>.asSequence(): Sequence<T> {
  * 
  * @sample samples.collections.Sequences.Building.sequenceFromArray
  */
+@CompileTimeCalculation
 public fun ByteArray.asSequence(): Sequence<Byte> {
     if (isEmpty()) return emptySequence()
     return Sequence { this.iterator() }
@@ -23467,6 +23469,7 @@ public fun ByteArray.asSequence(): Sequence<Byte> {
  * 
  * @sample samples.collections.Sequences.Building.sequenceFromArray
  */
+@CompileTimeCalculation
 public fun ShortArray.asSequence(): Sequence<Short> {
     if (isEmpty()) return emptySequence()
     return Sequence { this.iterator() }
@@ -23477,6 +23480,7 @@ public fun ShortArray.asSequence(): Sequence<Short> {
  * 
  * @sample samples.collections.Sequences.Building.sequenceFromArray
  */
+@CompileTimeCalculation
 public fun IntArray.asSequence(): Sequence<Int> {
     if (isEmpty()) return emptySequence()
     return Sequence { this.iterator() }
@@ -23487,6 +23491,7 @@ public fun IntArray.asSequence(): Sequence<Int> {
  * 
  * @sample samples.collections.Sequences.Building.sequenceFromArray
  */
+@CompileTimeCalculation
 public fun LongArray.asSequence(): Sequence<Long> {
     if (isEmpty()) return emptySequence()
     return Sequence { this.iterator() }
@@ -23497,6 +23502,7 @@ public fun LongArray.asSequence(): Sequence<Long> {
  * 
  * @sample samples.collections.Sequences.Building.sequenceFromArray
  */
+@CompileTimeCalculation
 public fun FloatArray.asSequence(): Sequence<Float> {
     if (isEmpty()) return emptySequence()
     return Sequence { this.iterator() }
@@ -23507,6 +23513,7 @@ public fun FloatArray.asSequence(): Sequence<Float> {
  * 
  * @sample samples.collections.Sequences.Building.sequenceFromArray
  */
+@CompileTimeCalculation
 public fun DoubleArray.asSequence(): Sequence<Double> {
     if (isEmpty()) return emptySequence()
     return Sequence { this.iterator() }
@@ -23517,6 +23524,7 @@ public fun DoubleArray.asSequence(): Sequence<Double> {
  * 
  * @sample samples.collections.Sequences.Building.sequenceFromArray
  */
+@CompileTimeCalculation
 public fun BooleanArray.asSequence(): Sequence<Boolean> {
     if (isEmpty()) return emptySequence()
     return Sequence { this.iterator() }
@@ -23527,6 +23535,7 @@ public fun BooleanArray.asSequence(): Sequence<Boolean> {
  * 
  * @sample samples.collections.Sequences.Building.sequenceFromArray
  */
+@CompileTimeCalculation
 public fun CharArray.asSequence(): Sequence<Char> {
     if (isEmpty()) return emptySequence()
     return Sequence { this.iterator() }
