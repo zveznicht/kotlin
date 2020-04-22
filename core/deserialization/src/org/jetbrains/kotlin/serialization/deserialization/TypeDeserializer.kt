@@ -56,19 +56,15 @@ class TypeDeserializer(
     fun type(proto: ProtoBuf.Type): KotlinType {
         if (proto.hasFlexibleTypeCapabilitiesId()) {
             val id = c.nameResolver.getString(proto.flexibleTypeCapabilitiesId)
-            val lowerBound = simpleTypeExpandingAliases(proto)
-            val upperBound = simpleTypeExpandingAliases(proto.flexibleUpperBound(c.typeTable)!!)
+            val lowerBound = simpleType(proto)
+            val upperBound = simpleType(proto.flexibleUpperBound(c.typeTable)!!)
             return c.components.flexibleTypeDeserializer.create(proto, id, lowerBound, upperBound)
         }
 
-        return simpleTypeExpandingAliases(proto)
+        return simpleType(proto, expandTypeAliases = true)
     }
 
-    fun simpleType(proto: ProtoBuf.Type) = simpleType(proto, expandTypeAliases = false)
-
-    private fun simpleTypeExpandingAliases(proto: ProtoBuf.Type) = simpleType(proto, expandTypeAliases = true)
-
-    private fun simpleType(proto: ProtoBuf.Type, expandTypeAliases: Boolean): SimpleType {
+    fun simpleType(proto: ProtoBuf.Type, expandTypeAliases: Boolean = true): SimpleType {
         val localClassifierType = when {
             proto.hasClassName() -> computeLocalClassifierReplacementType(proto.className)
             proto.hasTypeAliasName() -> computeLocalClassifierReplacementType(proto.typeAliasName)
@@ -93,20 +89,26 @@ class TypeDeserializer(
             typeArgument(constructor.parameters.getOrNull(index), argumentProto)
         }.toList()
 
-        val simpleType = if (Flags.SUSPEND_TYPE.get(proto.flags)) {
-            createSuspendFunctionType(annotations, constructor, arguments, proto.nullable)
-        } else {
-            KotlinTypeFactory.simpleType(annotations, constructor, arguments, proto.nullable)
+        val declarationDescriptor = constructor.declarationDescriptor
+
+        val simpleType = when {
+            expandTypeAliases && declarationDescriptor is TypeAliasDescriptor ->
+                with(KotlinTypeFactory) { declarationDescriptor.computeExpandedType(arguments) }
+            Flags.SUSPEND_TYPE.get(proto.flags) ->
+                createSuspendFunctionType(annotations, constructor, arguments, proto.nullable)
+            else ->
+                KotlinTypeFactory.simpleType(annotations, constructor, arguments, proto.nullable)
         }
 
         val computedType = run {
-            val declarationDescriptor = simpleType.constructor.declarationDescriptor
-
             if (expandTypeAliases && declarationDescriptor is TypeAliasDescriptor) {
                 with(KotlinTypeFactory) { declarationDescriptor.computeExpandedType(arguments) }
             } else {
                 proto.abbreviatedType(c.typeTable)?.let {
-                    simpleType.withAbbreviation(simpleType(it, expandTypeAliases = false))
+                    simpleType.withAbbreviation(
+                        // The abbreviation type is expected to be a typealias, and it should not get expanded, we need to keep it
+                        simpleType(it, expandTypeAliases = false)
+                    )
                 } ?: simpleType
             }
         }
