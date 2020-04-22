@@ -944,39 +944,6 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testDependenciesOnMppLibraryPartsWithNoMetadata() {
-        val repoDir = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
-            setupWorkingDir()
-            projectDir.resolve("settings.gradle").modify { it.replace("enableFeaturePreview", "// enableFeaturePreview") }
-            build("publish") { assertSuccessful() }
-            projectDir.resolve("repo")
-        }
-
-        val dependencies = buildString {
-            append("dependencies {\n")
-            append("    allJvmImplementation 'com.example:sample-lib-jvm6:1.0'\n")
-            append("    nodeJsMainImplementation 'com.example:sample-lib-nodejs:1.0'\n")
-            for (target in supportedNativeTargets) {
-                append("    ${target}MainImplementation 'com.example:sample-lib-$target:1.0'\n")
-            }
-            append("}")
-        }
-
-        with(Project("sample-app", gradleVersion, "new-mpp-lib-and-app")) {
-            setupWorkingDir()
-            gradleBuildScript().modify {
-                it.replace("implementation 'com.example:sample-lib:1.0'", "implementation 'com.example:sample-lib-metadata:1.0'") +
-                        "\nrepositories { maven { url '${repoDir.toURI()}' } }\n\n" + dependencies
-            }
-
-            build("assemble") {
-                assertSuccessful()
-                assertTasksExecuted(listOf("Jvm6", "NodeJs", "Wasm32", nativeHostTargetName.capitalize()).map { ":compileKotlin$it" })
-            }
-        }
-    }
-
-    @Test
     fun testPublishingOnlySupportedNativeTargets() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
         val publishedVariant = nativeHostTargetName
         val nonPublishedVariant = unsupportedNativeTargets[0]
@@ -1826,31 +1793,24 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testPublishMultimoduleProjectWithNoMetadata() = doTestPublishMultimoduleProject(withMetadata = false)
-
-    @Test
-    fun testPublishMultimoduleProjectWithMetadata() = doTestPublishMultimoduleProject(withMetadata = true)
-
-    private fun doTestPublishMultimoduleProject(withMetadata: Boolean) {
+    fun testPublishMultimoduleProjectWithMetadata() {
         val libProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
         libProject.setupWorkingDir()
 
         val externalLibProject = Project("sample-external-lib", gradleVersion, "new-mpp-lib-and-app").apply {
-            if (withMetadata) {
-                setupWorkingDir()
-                // Publish it into local repository of adjacent lib:
-                gradleBuildScript().appendText(
-                    "\n" + """
-                    publishing {
-                        repositories {
-                            maven { url "file://${'$'}{rootProject.projectDir.absolutePath.replace('\\', '/')}/../sample-lib/repo" }
-                        }
+            setupWorkingDir()
+            // Publish it into local repository of adjacent lib:
+            gradleBuildScript().appendText(
+                "\n" + """
+                publishing {
+                    repositories {
+                        maven { url "file://${'$'}{rootProject.projectDir.absolutePath.replace('\\', '/')}/../sample-lib/repo" }
                     }
-                    """.trimIndent()
-                )
-                build("publish") {
-                    assertSuccessful()
                 }
+                """.trimIndent()
+            )
+            build("publish") {
+                assertSuccessful()
             }
         }
 
@@ -1874,20 +1834,19 @@ class NewMultiplatformIT : BaseGradleIT() {
                 }
                 """.trimIndent()
             }
-            if (withMetadata) {
-                gradleSettingsScript().appendText("\nenableFeaturePreview(\"GRADLE_METADATA\")")
-                // Add a dependency that is resolved with metadata:
-                gradleBuildScript("sample-app").appendText(
-                    "\n" + """
-                    repositories {
-                        maven { url "file://${'$'}{rootProject.projectDir.absolutePath.replace('\\', '/')}/repo" }
-                    }
-                    dependencies {
-                        commonMainApi 'com.external.dependency:external:1.2.3'
-                    }
-                    """.trimIndent()
-                )
-            }
+
+            gradleSettingsScript().appendText("\nenableFeaturePreview(\"GRADLE_METADATA\")")
+            // Add a dependency that is resolved with metadata:
+            gradleBuildScript("sample-app").appendText(
+                "\n" + """
+                repositories {
+                    maven { url "file://${'$'}{rootProject.projectDir.absolutePath.replace('\\', '/')}/repo" }
+                }
+                dependencies {
+                    commonMainApi 'com.external.dependency:external:1.2.3'
+                }
+                """.trimIndent()
+            )
 
             gradleBuildScript().appendText(
                 "\n" + """
@@ -1903,20 +1862,18 @@ class NewMultiplatformIT : BaseGradleIT() {
                 """.trimIndent()
             )
 
-            if (withMetadata) {
-                gradleBuildScript().appendText(
-                    "\n" + """
-                    publishing {
-                        publications {
-                            kotlinMultiplatform {
-                                // KT-29485
-                                artifactId = 'sample-lib-multiplatform'
-                            }
+            gradleBuildScript().appendText(
+                "\n" + """
+                publishing {
+                    publications {
+                        kotlinMultiplatform {
+                            // KT-29485
+                            artifactId = 'sample-lib-multiplatform'
                         }
                     }
-                    """.trimIndent()
-                )
-            }
+                }
+                """.trimIndent()
+            )
 
             build("clean", "publish") {
                 assertSuccessful()
@@ -1932,20 +1889,18 @@ class NewMultiplatformIT : BaseGradleIT() {
                     "<artifactId>bar</artifactId>",
                     "<version>42</version>"
                 )
-                if (withMetadata) {
-                    assertFileContains(
-                        "repo/com/exampleapp/sample-app-jvm8/1.0/sample-app-jvm8-1.0.pom",
-                        "<groupId>com.external.dependency</groupId>",
-                        "<artifactId>external-jvm6</artifactId>",
-                        "<version>1.2.3</version>"
-                    )
+                assertFileContains(
+                    "repo/com/exampleapp/sample-app-jvm8/1.0/sample-app-jvm8-1.0.pom",
+                    "<groupId>com.external.dependency</groupId>",
+                    "<artifactId>external-jvm6</artifactId>",
+                    "<version>1.2.3</version>"
+                )
 
-                    // Check that, despite the rewritten POM, the module metadata contains the original dependency:
-                    val moduleMetadata = projectDir.resolve("repo/com/exampleapp/sample-app-jvm8/1.0/sample-app-jvm8-1.0.module").readText()
-                        .replace("\\s+".toRegex(), "").replace("\n", "")
-                    assertTrue { "\"group\":\"com.example\",\"module\":\"sample-lib-multiplatform\"" in moduleMetadata }
-                    assertTrue { "\"group\":\"com.external.dependency\",\"module\":\"external\"" in moduleMetadata }
-                }
+                // Check that, despite the rewritten POM, the module metadata contains the original dependency:
+                val moduleMetadata = projectDir.resolve("repo/com/exampleapp/sample-app-jvm8/1.0/sample-app-jvm8-1.0.module").readText()
+                    .replace("\\s+".toRegex(), "").replace("\n", "")
+                assertTrue { "\"group\":\"com.example\",\"module\":\"sample-lib-multiplatform\"" in moduleMetadata }
+                assertTrue { "\"group\":\"com.external.dependency\",\"module\":\"external\"" in moduleMetadata }
             }
 
             // Check that a user can disable rewriting of MPP dependencies in the POMs:
@@ -1954,31 +1909,21 @@ class NewMultiplatformIT : BaseGradleIT() {
                 assertFileContains(
                     "repo/com/exampleapp/sample-app-nodejs/1.0/sample-app-nodejs-1.0.pom",
                     "<groupId>com.example</groupId>",
-                    if (withMetadata)
-                        "<artifactId>sample-lib-multiplatform</artifactId>"
-                    else
-                        "<artifactId>sample-lib</artifactId>"
-                    ,
+                    "<artifactId>sample-lib-multiplatform</artifactId>",
                     "<version>1.0</version>"
                 )
                 assertFileContains(
                     "repo/com/exampleapp/sample-app-jvm8/1.0/sample-app-jvm8-1.0.pom",
                     "<groupId>com.example</groupId>",
-                    if (withMetadata)
-                        "<artifactId>sample-lib-multiplatform</artifactId>"
-                    else
-                        "<artifactId>sample-lib</artifactId>"
-                    ,
+                    "<artifactId>sample-lib-multiplatform</artifactId>",
                     "<version>1.0</version>"
                 )
-                if (withMetadata) {
-                    assertFileContains(
-                        "repo/com/exampleapp/sample-app-jvm8/1.0/sample-app-jvm8-1.0.pom",
-                        "<groupId>com.external.dependency</groupId>",
-                        "<artifactId>external</artifactId>",
-                        "<version>1.2.3</version>"
-                    )
-                }
+                assertFileContains(
+                    "repo/com/exampleapp/sample-app-jvm8/1.0/sample-app-jvm8-1.0.pom",
+                    "<groupId>com.external.dependency</groupId>",
+                    "<artifactId>external</artifactId>",
+                    "<version>1.2.3</version>"
+                )
             }
         }
     }

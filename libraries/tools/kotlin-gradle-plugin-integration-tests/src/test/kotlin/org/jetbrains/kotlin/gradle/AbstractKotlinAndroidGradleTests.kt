@@ -3,6 +3,7 @@ package org.jetbrains.kotlin.gradle
 import org.gradle.api.logging.LogLevel
 import org.jetbrains.kotlin.gradle.util.*
 import org.jetbrains.kotlin.test.KotlinTestUtils
+import org.junit.Assume
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -452,6 +453,11 @@ class KotlinAndroid30GradleIT : KotlinAndroid3GradleIT() {
 abstract class KotlinAndroid3GradleIT : AbstractKotlinAndroidGradleTests() {
     @Test
     fun testApplyWithFeaturePlugin() {
+        Assume.assumeTrue(
+            "The com.android.feature plugin has been deprecated and removed in newer versions",
+            androidGradlePluginVersion < AGPVersion.v3_6_0
+        )
+
         val project = Project("AndroidProject")
 
         project.setupWorkingDir()
