@@ -83,7 +83,7 @@ fun collectUsedNames(scope: JsNode): Set<JsName> {
     return references
 }
 
-fun collectDefinedNames(scope: JsNode ) = collectDefinedNames(scope, false)
+fun collectDefinedNames(scope: JsNode) = collectDefinedNames(scope, false)
 
 fun collectDefinedNames(scope: JsNode, skipLabelsAndCatches: Boolean): Set<JsName> {
     val names = mutableSetOf<JsName>()

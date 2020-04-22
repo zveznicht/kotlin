@@ -35,7 +35,7 @@ fun JsNode.fixForwardNameReferences() {
         }
 
         override fun visitFunction(x: JsFunction) {
-            val localVars = x.collectLocalVariables(skipLabelsAndCatches = true).toMutableList()
+            val localVars = x.collectLocalVariables(skipLabelsAndCatches = true).toList()
             val backup = arrayOfNulls<JsName>(localVars.size)
 
             localVars.forEachIndexed { index, localVar ->
