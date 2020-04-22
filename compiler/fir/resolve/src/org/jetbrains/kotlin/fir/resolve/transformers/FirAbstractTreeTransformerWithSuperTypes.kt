@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.resolve.transformers
 
+import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirMemberDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
@@ -15,6 +16,7 @@ import org.jetbrains.kotlin.fir.scopes.impl.FirCompositeScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirMemberTypeParameterScope
 import org.jetbrains.kotlin.fir.scopes.impl.nestedClassifierScope
 import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 abstract class FirAbstractTreeTransformerWithSuperTypes(
     phase: FirResolvePhase,
@@ -32,25 +34,25 @@ abstract class FirAbstractTreeTransformerWithSuperTypes(
     }
 
     protected fun resolveNestedClassesSupertypes(
-        regularClass: FirRegularClass,
+        firClass: FirClass<*>,
         data: Nothing?
     ): CompositeTransformResult<FirStatement> {
         return withScopeCleanup {
             // ? Is it Ok to use original file session here ?
-            val superTypes = lookupSuperTypes(regularClass, lookupInterfaces = false, deep = true, useSiteSession = session).asReversed()
+            val superTypes = lookupSuperTypes(firClass, lookupInterfaces = false, deep = true, useSiteSession = session).asReversed()
             for (superType in superTypes) {
                 session.getNestedClassifierScope(superType.lookupTag)?.let {
                     towerScope.addScope(it)
                 }
             }
-            regularClass.addTypeParametersScope()
-            val companionObject = regularClass.companionObject
+            firClass.safeAs<FirMemberDeclaration>()?.addTypeParametersScope()
+            val companionObject = firClass.safeAs<FirRegularClass>()?.companionObject
             if (companionObject != null) {
                 towerScope.addScope(nestedClassifierScope(companionObject))
             }
-            towerScope.addScope(nestedClassifierScope(regularClass))
+            towerScope.addScope(nestedClassifierScope(firClass))
 
-            transformElement(regularClass, data)
+            transformElement(firClass, data)
         }
     }
 
