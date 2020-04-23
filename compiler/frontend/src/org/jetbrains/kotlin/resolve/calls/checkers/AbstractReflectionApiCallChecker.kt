@@ -33,6 +33,13 @@ import org.jetbrains.kotlin.util.OperatorNameConventions
 
 private val ANY_MEMBER_NAMES = setOf("equals", "hashCode", "toString")
 
+private val ALLOWED_CLASSES = setOf(
+    FqName("kotlin.reflect.KType"),
+    FqName("kotlin.reflect.KTypeProjection"),
+    FqName("kotlin.reflect.KTypeProjection.Companion"),
+    FqName("kotlin.reflect.KVariance")
+)
+
 /**
  * Checks that there are no usages of reflection API which will fail at runtime.
  */
@@ -51,13 +58,6 @@ abstract class AbstractReflectionApiCallChecker(
 
     protected open fun isAllowedKClassMember(name: Name): Boolean =
         name.asString() == "simpleName" || name.asString() == "isInstance"
-
-    protected open val allowedClasses = setOf(
-        FqName("kotlin.reflect.KType"),
-        FqName("kotlin.reflect.KTypeProjection"),
-        FqName("kotlin.reflect.KTypeProjection.Companion"),
-        FqName("kotlin.reflect.KVariance")
-    )
 
     final override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
         if (isWholeReflectionApiAvailable) return
@@ -81,7 +81,7 @@ abstract class AbstractReflectionApiCallChecker(
                 name.asString() == "name" ||
                 DescriptorUtils.isSubclass(containingClass, kClass) && isAllowedKClassMember(descriptor.name) ||
                 (name.asString() == "get" || name.asString() == "set") && containingClass.isKPropertyClass() ||
-                containingClass.fqNameSafe in allowedClasses
+                containingClass.fqNameSafe in ALLOWED_CLASSES
     }
 
     private fun ClassDescriptor.isKPropertyClass() = kPropertyClasses.any { kProperty -> DescriptorUtils.isSubclass(this, kProperty) }
