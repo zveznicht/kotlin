@@ -61,6 +61,11 @@ class A {
 }
 
 @OptIn(ExperimentalAssociatedObjects::class)
+fun KClass<*>.getAssociatedObjectByAssociated2(): Any? {
+    return this.findAssociatedObject<Associated2>()
+}
+
+@OptIn(ExperimentalAssociatedObjects::class)
 fun box(): String {
 
     if (Foo::class.findAssociatedObject<Associated1>() != Bar) return "fail 1"
@@ -71,18 +76,22 @@ fun box(): String {
 
     if (Bar::class.findAssociatedObject<Associated1>() != null) return "fail 4"
 
-    val i1 = I1ImplHolder::class.findAssociatedObject<Associated1>()!! as I1
+    val i1 = I1ImplHolder::class.findAssociatedObject<Associated1>() as I1
     if (i1.foo() != 42) return "fail 5"
 
     val c = C(null)
     i1.bar(c)
     if (c.list!![0] != "zzz") return "fail 6"
 
-    val i2 = I2ImplHolder()::class.findAssociatedObject<Associated1>()!! as I2
+    val i2 = I2ImplHolder()::class.findAssociatedObject<Associated1>() as I2
     if (i2.foo() != 17) return "fail 7"
 
-    val a = A::class.findAssociatedObject<Associated2>()!! as I2
+    val a = A::class.findAssociatedObject<Associated2>() as I2
     if (a.foo() != 20) return "fail 8"
+
+    if (Foo::class.getAssociatedObjectByAssociated2() != Baz) return "fail 9"
+
+    if ((A::class.getAssociatedObjectByAssociated2() as I2).foo() != 20) return "fail 10"
 
     return "OK"
 }
