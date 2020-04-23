@@ -23237,6 +23237,7 @@ public inline fun <V> CharArray.zip(other: CharArray, transform: (a: Char, b: Ch
  * 
  * @sample samples.collections.Collections.Transformations.joinTo
  */
+@CompileTimeCalculation
 public fun <T, A : Appendable> Array<out T>.joinTo(buffer: A, separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((T) -> CharSequence)? = null): A {
     buffer.append(prefix)
     var count = 0
@@ -23259,6 +23260,7 @@ public fun <T, A : Appendable> Array<out T>.joinTo(buffer: A, separator: CharSeq
  * 
  * @sample samples.collections.Collections.Transformations.joinTo
  */
+@CompileTimeCalculation
 public fun <A : Appendable> ByteArray.joinTo(buffer: A, separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Byte) -> CharSequence)? = null): A {
     buffer.append(prefix)
     var count = 0
@@ -23284,6 +23286,7 @@ public fun <A : Appendable> ByteArray.joinTo(buffer: A, separator: CharSequence 
  * 
  * @sample samples.collections.Collections.Transformations.joinTo
  */
+@CompileTimeCalculation
 public fun <A : Appendable> ShortArray.joinTo(buffer: A, separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Short) -> CharSequence)? = null): A {
     buffer.append(prefix)
     var count = 0
@@ -23309,6 +23312,7 @@ public fun <A : Appendable> ShortArray.joinTo(buffer: A, separator: CharSequence
  * 
  * @sample samples.collections.Collections.Transformations.joinTo
  */
+@CompileTimeCalculation
 public fun <A : Appendable> IntArray.joinTo(buffer: A, separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Int) -> CharSequence)? = null): A {
     buffer.append(prefix)
     var count = 0
@@ -23334,6 +23338,7 @@ public fun <A : Appendable> IntArray.joinTo(buffer: A, separator: CharSequence =
  * 
  * @sample samples.collections.Collections.Transformations.joinTo
  */
+@CompileTimeCalculation
 public fun <A : Appendable> LongArray.joinTo(buffer: A, separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Long) -> CharSequence)? = null): A {
     buffer.append(prefix)
     var count = 0
@@ -23359,6 +23364,7 @@ public fun <A : Appendable> LongArray.joinTo(buffer: A, separator: CharSequence 
  * 
  * @sample samples.collections.Collections.Transformations.joinTo
  */
+@CompileTimeCalculation
 public fun <A : Appendable> FloatArray.joinTo(buffer: A, separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Float) -> CharSequence)? = null): A {
     buffer.append(prefix)
     var count = 0
@@ -23384,6 +23390,7 @@ public fun <A : Appendable> FloatArray.joinTo(buffer: A, separator: CharSequence
  * 
  * @sample samples.collections.Collections.Transformations.joinTo
  */
+@CompileTimeCalculation
 public fun <A : Appendable> DoubleArray.joinTo(buffer: A, separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Double) -> CharSequence)? = null): A {
     buffer.append(prefix)
     var count = 0
@@ -23409,6 +23416,7 @@ public fun <A : Appendable> DoubleArray.joinTo(buffer: A, separator: CharSequenc
  * 
  * @sample samples.collections.Collections.Transformations.joinTo
  */
+@CompileTimeCalculation
 public fun <A : Appendable> BooleanArray.joinTo(buffer: A, separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Boolean) -> CharSequence)? = null): A {
     buffer.append(prefix)
     var count = 0
@@ -23434,6 +23442,7 @@ public fun <A : Appendable> BooleanArray.joinTo(buffer: A, separator: CharSequen
  * 
  * @sample samples.collections.Collections.Transformations.joinTo
  */
+@CompileTimeCalculation
 public fun <A : Appendable> CharArray.joinTo(buffer: A, separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Char) -> CharSequence)? = null): A {
     buffer.append(prefix)
     var count = 0
@@ -23459,6 +23468,7 @@ public fun <A : Appendable> CharArray.joinTo(buffer: A, separator: CharSequence 
  * 
  * @sample samples.collections.Collections.Transformations.joinToString
  */
+@CompileTimeCalculation
 public fun <T> Array<out T>.joinToString(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((T) -> CharSequence)? = null): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
@@ -23471,6 +23481,7 @@ public fun <T> Array<out T>.joinToString(separator: CharSequence = ", ", prefix:
  * 
  * @sample samples.collections.Collections.Transformations.joinToString
  */
+@CompileTimeCalculation
 public fun ByteArray.joinToString(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Byte) -> CharSequence)? = null): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
@@ -23483,6 +23494,7 @@ public fun ByteArray.joinToString(separator: CharSequence = ", ", prefix: CharSe
  * 
  * @sample samples.collections.Collections.Transformations.joinToString
  */
+@CompileTimeCalculation
 public fun ShortArray.joinToString(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Short) -> CharSequence)? = null): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
@@ -23495,6 +23507,7 @@ public fun ShortArray.joinToString(separator: CharSequence = ", ", prefix: CharS
  * 
  * @sample samples.collections.Collections.Transformations.joinToString
  */
+@CompileTimeCalculation
 public fun IntArray.joinToString(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Int) -> CharSequence)? = null): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
@@ -23507,6 +23520,7 @@ public fun IntArray.joinToString(separator: CharSequence = ", ", prefix: CharSeq
  * 
  * @sample samples.collections.Collections.Transformations.joinToString
  */
+@CompileTimeCalculation
 public fun LongArray.joinToString(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Long) -> CharSequence)? = null): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
@@ -23519,6 +23533,7 @@ public fun LongArray.joinToString(separator: CharSequence = ", ", prefix: CharSe
  * 
  * @sample samples.collections.Collections.Transformations.joinToString
  */
+@CompileTimeCalculation
 public fun FloatArray.joinToString(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Float) -> CharSequence)? = null): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
@@ -23531,6 +23546,7 @@ public fun FloatArray.joinToString(separator: CharSequence = ", ", prefix: CharS
  * 
  * @sample samples.collections.Collections.Transformations.joinToString
  */
+@CompileTimeCalculation
 public fun DoubleArray.joinToString(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Double) -> CharSequence)? = null): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
@@ -23543,6 +23559,7 @@ public fun DoubleArray.joinToString(separator: CharSequence = ", ", prefix: Char
  * 
  * @sample samples.collections.Collections.Transformations.joinToString
  */
+@CompileTimeCalculation
 public fun BooleanArray.joinToString(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Boolean) -> CharSequence)? = null): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
@@ -23555,6 +23572,7 @@ public fun BooleanArray.joinToString(separator: CharSequence = ", ", prefix: Cha
  * 
  * @sample samples.collections.Collections.Transformations.joinToString
  */
+@CompileTimeCalculation
 public fun CharArray.joinToString(separator: CharSequence = ", ", prefix: CharSequence = "", postfix: CharSequence = "", limit: Int = -1, truncated: CharSequence = "...", transform: ((Char) -> CharSequence)? = null): String {
     return joinTo(StringBuilder(), separator, prefix, postfix, limit, truncated, transform).toString()
 }
