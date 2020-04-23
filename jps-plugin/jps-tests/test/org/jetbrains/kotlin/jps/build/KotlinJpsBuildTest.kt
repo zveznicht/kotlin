@@ -626,40 +626,6 @@ open class KotlinJpsBuildTest : KotlinJpsBuildTestBase() {
         result.assertSuccessful()
     }
 
-    /*
-     * Here we're checking that enabling inference in IDE doesn't affect compilation via JPS
-     *
-     * the following two tests are connected:
-     * - testKotlinProjectWithEnabledNewInferenceInIDE checks that project is compiled when new inference is enabled only in IDE
-     *   - this is done via project component
-     * - testKotlinProjectWithErrorsBecauseOfNewInference checks that project isn't compiled when new inference is enabled in the compiler
-     *
-     * So, if the former will fail => option affects JPS compilation, it's bad. Also, if the latter test fails => test is useless as it's
-     * compiled with new and old inference.
-     *
-     */
-    fun testKotlinProjectWithEnabledNewInferenceInIDE() {
-        initProject(JVM_MOCK_RUNTIME)
-        val module = myProject.modules.single()
-        val args = module.kotlinCompilerArguments
-        args.languageVersion = LanguageVersion.KOTLIN_1_3.versionString
-        myProject.kotlinCommonCompilerArguments = args
-
-        buildAllModules().assertSuccessful()
-    }
-
-    fun testKotlinProjectWithErrorsBecauseOfNewInference() {
-        initProject(JVM_MOCK_RUNTIME)
-        val module = myProject.modules.single()
-        val args = module.kotlinCompilerArguments
-        args.newInference = true
-        myProject.kotlinCommonCompilerArguments = args
-
-        val result = buildAllModules()
-        result.assertFailed()
-        result.checkErrors()
-    }
-
     private fun createKotlinJavaScriptLibraryArchive() {
         val jarFile = File(workDir, KOTLIN_JS_LIBRARY_JAR)
         try {

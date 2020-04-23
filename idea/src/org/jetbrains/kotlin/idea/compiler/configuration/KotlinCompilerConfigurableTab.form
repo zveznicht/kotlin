@@ -387,18 +387,7 @@
         </constraints>
         <properties/>
         <border type="none"/>
-        <children>
-          <component id="625f1" class="com.intellij.util.ui.ThreeStateCheckBox" binding="enableNewInferenceInIDECheckBox">
-            <constraints>
-              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <selected value="false"/>
-              <state value="NOT_SELECTED"/>
-              <text resource-bundle="messages/KotlinBundle" key="kotlin.compiler.option.enable.new.inference.in.ide"/>
-            </properties>
-          </component>
-        </children>
+        <children/>
       </grid>
     </children>
   </grid>
