@@ -60,6 +60,7 @@ public fun <T : Appendable> T.appendRange(value: CharSequence?, startIndex: Int,
 /**
  * Appends all arguments to the given [Appendable].
  */
+@CompileTimeCalculation
 public fun <T : Appendable> T.append(vararg value: CharSequence?): T {
     for (item in value)
         append(item)
@@ -67,6 +68,7 @@ public fun <T : Appendable> T.append(vararg value: CharSequence?): T {
 }
 
 
+@CompileTimeCalculation
 internal fun <T> Appendable.appendElement(element: T, transform: ((T) -> CharSequence)?) {
     when {
         transform != null -> append(transform(element))
