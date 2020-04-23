@@ -588,14 +588,12 @@ class KotlinGradleIT : BaseGradleIT() {
 
     @Test
     fun testNoUnnamedInputsOutputs() {
-        // Use a new Gradle version to enable the usage of the input/output builders, which are new API:
-        val gradleVersionRequirement = GradleVersionRequired.AtLeast("4.4")
 
         val projects = listOf(
-            Project("simpleProject", gradleVersionRequirement),
-            Project("kotlin2JsProject", gradleVersionRequirement),
-            Project("multiplatformProject", gradleVersionRequirement),
-            Project("simple", gradleVersionRequirement, "kapt2")
+            Project("simpleProject"),
+            Project("kotlin2JsProject"),
+            Project("multiplatformProject"),
+            Project("simple", directoryPrefix = "kapt2")
         )
 
         projects.forEach {
@@ -820,7 +818,7 @@ class KotlinGradleIT : BaseGradleIT() {
     }
 
     @Test
-    fun testKt29971() = with(Project("kt-29971", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testKt29971() = with(Project("kt-29971")) {
         build("jvm-app:build") {
             assertSuccessful()
             assertTasksExecuted(":jvm-app:compileKotlin")
@@ -828,7 +826,7 @@ class KotlinGradleIT : BaseGradleIT() {
     }
 
     @Test
-    fun testDetectingDifferentClassLoaders() = with(Project("kt-27059-pom-rewriting", GradleVersionRequired.AtLeast("4.10.2"))) {
+    fun testDetectingDifferentClassLoaders() = with(Project("kt-27059-pom-rewriting")) {
         setupWorkingDir()
 
         val originalRootBuildScript = gradleBuildScript().readText()
@@ -894,7 +892,7 @@ class KotlinGradleIT : BaseGradleIT() {
     }
 
     @Test
-    fun testNewModelInOldJvmPlugin() = with(Project("new-model-in-old-plugin", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testNewModelInOldJvmPlugin() = with(Project("new-model-in-old-plugin")) {
         setupWorkingDir()
         gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 

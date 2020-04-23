@@ -21,15 +21,12 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class HierarchicalMppIT : BaseGradleIT() {
-    companion object {
-        private val gradleVersion = GradleVersionRequired.AtLeast("5.0")
-    }
 
     @Test
     fun testPublishedModules() {
         publishThirdPartyLib(withGranularMetadata = false)
 
-        Project("my-lib-foo", gradleVersion, "hierarchical-mpp-published-modules").run {
+        Project("my-lib-foo", directoryPrefix = "hierarchical-mpp-published-modules").run {
             setupWorkingDir()
             gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
             build("publish") {
@@ -37,7 +34,7 @@ class HierarchicalMppIT : BaseGradleIT() {
             }
         }
 
-        Project("my-lib-bar", gradleVersion, "hierarchical-mpp-published-modules").run {
+        Project("my-lib-bar", directoryPrefix = "hierarchical-mpp-published-modules").run {
             setupWorkingDir()
             gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
             build("publish") {
@@ -45,7 +42,7 @@ class HierarchicalMppIT : BaseGradleIT() {
             }
         }
 
-        Project("my-app", gradleVersion, "hierarchical-mpp-published-modules").run {
+        Project("my-app", directoryPrefix = "hierarchical-mpp-published-modules").run {
             setupWorkingDir()
             gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
             build("assemble") {
@@ -58,7 +55,7 @@ class HierarchicalMppIT : BaseGradleIT() {
     fun testDependenciesInTests() {
         publishThirdPartyLib(withGranularMetadata = true)
 
-        Project("my-lib-foo", gradleVersion, "hierarchical-mpp-published-modules").run {
+        Project("my-lib-foo", directoryPrefix = "hierarchical-mpp-published-modules").run {
             setupWorkingDir()
             gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 
@@ -129,7 +126,7 @@ class HierarchicalMppIT : BaseGradleIT() {
     fun testProjectDependencies() {
         publishThirdPartyLib(withGranularMetadata = false)
 
-        with(Project("hierarchical-mpp-project-dependency", gradleVersion)) {
+        with(Project("hierarchical-mpp-project-dependency")) {
             setupWorkingDir()
             gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 
@@ -142,7 +139,7 @@ class HierarchicalMppIT : BaseGradleIT() {
     }
 
     private fun publishThirdPartyLib(withGranularMetadata: Boolean): Project =
-        Project("third-party-lib", gradleVersion, "hierarchical-mpp-published-modules").apply {
+        Project("third-party-lib", directoryPrefix = "hierarchical-mpp-published-modules").apply {
             setupWorkingDir()
             gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 
@@ -399,8 +396,7 @@ class HierarchicalMppIT : BaseGradleIT() {
     @Test
     fun testCompileOnlyDependencyProcessingForMetadataCompilations() = with(
         Project(
-            "hierarchical-mpp-project-dependency",
-            GradleVersionRequired.AtLeast("5.0") // Bug in Gradle versions < 5.0: Gradle can't pick build dependencies from nested provider
+            "hierarchical-mpp-project-dependency"
         )
     ) {
         publishThirdPartyLib(withGranularMetadata = true)
@@ -428,7 +424,7 @@ class HierarchicalMppIT : BaseGradleIT() {
     fun testProcessingDependencyDeclaredInNonRootSourceSet() {
         publishThirdPartyLib(withGranularMetadata = true)
 
-        Project("my-lib-foo", gradleVersion, "hierarchical-mpp-published-modules").run {
+        Project("my-lib-foo", directoryPrefix = "hierarchical-mpp-published-modules").run {
             setupWorkingDir()
             gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 
@@ -451,7 +447,7 @@ class HierarchicalMppIT : BaseGradleIT() {
     fun testDependenciesInNonPublishedSourceSets() {
         publishThirdPartyLib(withGranularMetadata = true)
 
-        Project("my-lib-foo", gradleVersion, "hierarchical-mpp-published-modules").run {
+        Project("my-lib-foo", directoryPrefix = "hierarchical-mpp-published-modules").run {
             setupWorkingDir()
             gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 

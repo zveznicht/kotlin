@@ -11,9 +11,6 @@ import kotlin.test.assertTrue
 open class KotlinAndroid33GradleIT : KotlinAndroid32GradleIT() {
     override val androidGradlePluginVersion: AGPVersion
         get() = AGPVersion.v3_3_2
-
-    override val defaultGradleVersion: GradleVersionRequired
-        get() = GradleVersionRequired.AtLeast("5.0")
 }
 
 open class KotlinAndroid32GradleIT : KotlinAndroid3GradleIT() {
@@ -21,7 +18,7 @@ open class KotlinAndroid32GradleIT : KotlinAndroid3GradleIT() {
         get() = AGPVersion.v3_2_0
 
     @Test
-    fun testAndroidWithNewMppApp() = with(Project("new-mpp-android", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testAndroidWithNewMppApp() = with(Project("new-mpp-android")) {
         build("assemble", "compileDebugUnitTestJavaWithJavac", "printCompilerPluginOptions") {
             assertSuccessful()
 
@@ -260,7 +257,7 @@ open class KotlinAndroid32GradleIT : KotlinAndroid3GradleIT() {
     }
 
     @Test
-    fun testCustomAttributesInAndroidTargets() = with(Project("new-mpp-android", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testCustomAttributesInAndroidTargets() = with(Project("new-mpp-android")) {
         // Test the fix for KT-27714
 
         setupWorkingDir()

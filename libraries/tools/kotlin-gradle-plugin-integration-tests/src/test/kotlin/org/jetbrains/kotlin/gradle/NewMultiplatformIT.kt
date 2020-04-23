@@ -438,7 +438,7 @@ class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testMavenPublishAppliedBeforeMultiplatformPlugin() =
-        with(Project("sample-lib", GradleVersionRequired.AtLeast("5.0"), "new-mpp-lib-and-app")) {
+        with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
             setupWorkingDir()
 
             gradleBuildScript().modify { "apply plugin: 'maven-publish'\n$it" }
@@ -449,7 +449,7 @@ class NewMultiplatformIT : BaseGradleIT() {
         }
 
     @Test
-    fun testResourceProcessing() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+    fun testResourceProcessing() = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
         val targetsWithResources = listOf("jvm6", "nodeJs", "wasm32", nativeHostTargetName)
         val processResourcesTasks =
             targetsWithResources.map { ":${it}ProcessResources" }
@@ -466,7 +466,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testSourceSetCyclicDependencyDetection() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+    fun testSourceSetCyclicDependencyDetection() = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
         setupWorkingDir()
         gradleBuildScript().appendText(
             "\n" + """
@@ -492,7 +492,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     fun testJavaSupportInJvmTargets() = doTestJvmWithJava(testJavaSupportInJvmTargets = true)
 
     private fun doTestJvmWithJava(testJavaSupportInJvmTargets: Boolean) =
-        with(Project("sample-lib", GradleVersionRequired.AtLeast("5.0"), "new-mpp-lib-and-app")) {
+        with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
             embedProject(Project("sample-lib-gradle-kotlin-dsl", directoryPrefix = "new-mpp-lib-and-app"))
 
             lateinit var classesWithoutJava: Set<String>
@@ -651,10 +651,10 @@ class NewMultiplatformIT : BaseGradleIT() {
         }
 
     @Test
-    fun testLibWithTests() = doTestLibWithTests(Project("new-mpp-lib-with-tests", gradleVersion))
+    fun testLibWithTests() = doTestLibWithTests(Project("new-mpp-lib-with-tests"))
 
     @Test
-    fun testLibWithTestsKotlinDsl() = with(Project("new-mpp-lib-with-tests", gradleVersion)) {
+    fun testLibWithTestsKotlinDsl() = with(Project("new-mpp-lib-with-tests")) {
         setupWorkingDir()
         gradleBuildScript().delete()
         projectDir.resolve("build.gradle.kts.alternative").renameTo(projectDir.resolve("build.gradle.kts"))
@@ -726,7 +726,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testLanguageSettingsApplied() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+    fun testLanguageSettingsApplied() = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
         setupWorkingDir()
 
         gradleBuildScript().appendText(
@@ -762,7 +762,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testLanguageSettingsConsistency() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+    fun testLanguageSettingsConsistency() = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
         setupWorkingDir()
 
         gradleBuildScript().appendText(
@@ -833,8 +833,8 @@ class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testResolveMppLibDependencyToMetadata() {
-        val libProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
-        val appProject = Project("sample-app", gradleVersion, "new-mpp-lib-and-app")
+        val libProject = Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")
+        val appProject = Project("sample-app", directoryPrefix = "new-mpp-lib-and-app")
 
         libProject.build("publish") { assertSuccessful() }
         val localRepo = libProject.projectDir.resolve("repo")
@@ -894,8 +894,8 @@ class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testResolveMppProjectDependencyToMetadata() {
-        val libProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
-        val appProject = Project("sample-app", gradleVersion, "new-mpp-lib-and-app")
+        val libProject = Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")
+        val appProject = Project("sample-app", directoryPrefix = "new-mpp-lib-and-app")
 
         val pathPrefix = "metadataDependency: "
 
@@ -926,7 +926,7 @@ class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testPublishWithoutGradleMetadata() {
-        val libProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
+        val libProject = Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")
 
         with(libProject) {
             setupWorkingDir()
@@ -956,7 +956,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     @Test
     fun testEndorsedLibsController() {
         with(
-            transformProjectWithPluginsDsl("new-mpp-native-endorsed", gradleVersion)
+            transformProjectWithPluginsDsl("new-mpp-native-endorsed")
         ) {
             setupWorkingDir()
 
@@ -974,7 +974,7 @@ class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testDependenciesOnMppLibraryPartsWithNoMetadata() {
-        val repoDir = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+        val repoDir = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
             setupWorkingDir()
             projectDir.resolve("settings.gradle").modify { it.replace("enableFeaturePreview", "// enableFeaturePreview") }
             build("publish") { assertSuccessful() }
@@ -991,7 +991,7 @@ class NewMultiplatformIT : BaseGradleIT() {
             append("}")
         }
 
-        with(Project("sample-app", gradleVersion, "new-mpp-lib-and-app")) {
+        with(Project("sample-app", directoryPrefix = "new-mpp-lib-and-app")) {
             setupWorkingDir()
             gradleBuildScript().modify {
                 it.replace("implementation 'com.example:sample-lib:1.0'", "implementation 'com.example:sample-lib-metadata:1.0'") +
@@ -1006,7 +1006,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testPublishingOnlySupportedNativeTargets() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+    fun testPublishingOnlySupportedNativeTargets() = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
         val publishedVariant = nativeHostTargetName
         val nonPublishedVariant = unsupportedNativeTargets[0]
 
@@ -1026,7 +1026,7 @@ class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testNonMppConsumersOfLibraryPublishedWithNoMetadataOptIn() {
-        val repoDir = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+        val repoDir = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
             setupWorkingDir()
             projectDir.resolve("settings.gradle").modify { it.replace("enableFeaturePreview", "// enableFeaturePreview") }
             build(
@@ -1035,7 +1035,7 @@ class NewMultiplatformIT : BaseGradleIT() {
             projectDir.resolve("repo")
         }
 
-        with(Project("sample-old-style-app", gradleVersion, "new-mpp-lib-and-app")) {
+        with(Project("sample-old-style-app", directoryPrefix = "new-mpp-lib-and-app")) {
             setupWorkingDir()
             gradleBuildScript().appendText("\nallprojects { repositories { maven { url '${repoDir.toURI()}' } } }")
             gradleBuildScript("app-common").modify { it.replace("com.example:sample-lib:", "com.example:sample-lib-metadata:") }
@@ -1056,7 +1056,7 @@ class NewMultiplatformIT : BaseGradleIT() {
             }
         }
 
-        with(Project("sample-app-without-kotlin", gradleVersion, "new-mpp-lib-and-app")) {
+        with(Project("sample-app-without-kotlin", directoryPrefix = "new-mpp-lib-and-app")) {
             setupWorkingDir()
             gradleBuildScript().modify {
                 it.replace("com.example:sample-lib:1.0", "com.example:sample-lib-jvm6:1.0") + "\n" + """
@@ -1217,7 +1217,7 @@ class NewMultiplatformIT : BaseGradleIT() {
         // Building K/N binaries is very time-consuming. So we check building only for Kotlin DSL.
         // For Groovy DSl we just check that a project can be configured.
         val project = transformProjectWithPluginsDsl(
-            "groovy-dsl", gradleVersion, "new-mpp-native-binaries"
+            "groovy-dsl", directoryPrefix = "new-mpp-native-binaries"
         )
         project.build("tasks") {
             assertSuccessful()
@@ -1242,7 +1242,7 @@ class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testNativeBinaryKotlinDSL() = with(
-        transformProjectWithPluginsDsl("kotlin-dsl", gradleVersion, "new-mpp-native-binaries")
+        transformProjectWithPluginsDsl("kotlin-dsl", directoryPrefix = "new-mpp-native-binaries")
     ) {
 
         val hostSuffix = nativeHostTargetName.capitalize()
@@ -1434,7 +1434,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     // TODO: Drop in 1.4
     @Test
     fun testLinkNativeBinaryFromSources() = with(
-        transformProjectWithPluginsDsl("groovy-dsl", gradleVersion, "new-mpp-native-binaries")
+        transformProjectWithPluginsDsl("groovy-dsl", directoryPrefix = "new-mpp-native-binaries")
     ) {
         val linkTask = ":linkDebugExecutable${nativeHostTargetName.capitalize()}"
 
@@ -1458,7 +1458,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     // TODO: Reenable the test when the args are separated.
     @Ignore
     @Test
-    fun testNativeFreeArgsWarning() = with(transformProjectWithPluginsDsl("kotlin-dsl", gradleVersion, "new-mpp-native-binaries")) {
+    fun testNativeFreeArgsWarning() = with(transformProjectWithPluginsDsl("kotlin-dsl", directoryPrefix = "new-mpp-native-binaries")) {
         gradleBuildScript().appendText(
             """kotlin.targets["macos64"].compilations["main"].kotlinOptions.freeCompilerArgs += "-opt""""
         )
@@ -1493,7 +1493,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testSourceJars() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+    fun testSourceJars() = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
         setupWorkingDir()
 
         build("publish") {
@@ -1518,12 +1518,12 @@ class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testConsumeMppLibraryFromNonKotlinProject() {
-        val libRepo = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+        val libRepo = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
             build("publish") { assertSuccessful() }
             projectDir.resolve("repo")
         }
 
-        with(Project("sample-app-without-kotlin", gradleVersion, "new-mpp-lib-and-app")) {
+        with(Project("sample-app-without-kotlin", directoryPrefix = "new-mpp-lib-and-app")) {
             setupWorkingDir()
             gradleBuildScript().appendText("\nrepositories { maven { url '${libRepo.toURI()}' } }")
 
@@ -1718,7 +1718,7 @@ class NewMultiplatformIT : BaseGradleIT() {
 
     @Test
     fun testCinterop() {
-        val libProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
+        val libProject = Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")
         libProject.build("publish") {
             assertSuccessful()
         }
@@ -1794,7 +1794,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     @Test
     fun testNativeCompilerDownloading() {
         // The plugin shouldn't download the K/N compiler if there are no corresponding targets in the project.
-        with(Project("sample-old-style-app", gradleVersion, "new-mpp-lib-and-app")) {
+        with(Project("sample-old-style-app", directoryPrefix = "new-mpp-lib-and-app")) {
             build("tasks") {
                 assertSuccessful()
                 assertFalse(output.contains("Kotlin/Native distribution: "))
@@ -1845,7 +1845,7 @@ class NewMultiplatformIT : BaseGradleIT() {
         // Gradle 5.0 introduced a new API for Ivy repository layouts.
         // MPP plugin uses this API to download K/N if Gradle version is >= 5.0.
         // Check this too (see KT-30258).
-        with(Project("new-mpp-native-libraries", GradleVersionRequired.AtLeast("5.0"))) {
+        with(Project("new-mpp-native-libraries")) {
             build("tasks", "-Pkotlin.native.version=1.3.50-eap-11606") {
                 assertSuccessful()
                 assertTrue(output.contains("Kotlin/Native distribution: "))
@@ -1861,10 +1861,10 @@ class NewMultiplatformIT : BaseGradleIT() {
     fun testPublishMultimoduleProjectWithMetadata() = doTestPublishMultimoduleProject(withMetadata = true)
 
     private fun doTestPublishMultimoduleProject(withMetadata: Boolean) {
-        val libProject = Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")
+        val libProject = Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")
         libProject.setupWorkingDir()
 
-        val externalLibProject = Project("sample-external-lib", gradleVersion, "new-mpp-lib-and-app").apply {
+        val externalLibProject = Project("sample-external-lib", directoryPrefix = "new-mpp-lib-and-app").apply {
             if (withMetadata) {
                 setupWorkingDir()
                 // Publish it into local repository of adjacent lib:
@@ -1883,7 +1883,7 @@ class NewMultiplatformIT : BaseGradleIT() {
             }
         }
 
-        val appProject = Project("sample-app", gradleVersion, "new-mpp-lib-and-app")
+        val appProject = Project("sample-app", directoryPrefix = "new-mpp-lib-and-app")
 
         with(libProject) {
             setupWorkingDir()
@@ -2013,7 +2013,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testMppBuildWithCompilerPlugins() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+    fun testMppBuildWithCompilerPlugins() = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
         setupWorkingDir()
 
         val printOptionsTaskName = "printCompilerPluginOptions"
@@ -2151,7 +2151,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testDefaultSourceSetsDsl() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+    fun testDefaultSourceSetsDsl() = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
         setupWorkingDir()
 
         val testOutputPrefix = "# default source set "
@@ -2187,7 +2187,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testDependenciesDsl() = with(transformProjectWithPluginsDsl("newMppDependenciesDsl", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testDependenciesDsl() = with(transformProjectWithPluginsDsl("newMppDependenciesDsl")) {
         val originalBuildscriptContent = gradleBuildScript("app").readText()
 
         fun testDependencies() = testResolveAllConfigurations("app") {
@@ -2240,7 +2240,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testUnusedSourceSetsReport() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+    fun testUnusedSourceSetsReport() = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
         setupWorkingDir()
 
         gradleBuildScript().appendText("\nkotlin { sourceSets { foo { } } }")
@@ -2308,7 +2308,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testPomRewritingInSinglePlatformProject() = with(Project("kt-27059-pom-rewriting", GradleVersionRequired.AtLeast("4.10.2"))) {
+    fun testPomRewritingInSinglePlatformProject() = with(Project("kt-27059-pom-rewriting")) {
         setupWorkingDir()
         gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 
@@ -2397,7 +2397,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testIgnoreDisabledNativeTargets() = with(Project("sample-lib", gradleVersion, "new-mpp-lib-and-app")) {
+    fun testIgnoreDisabledNativeTargets() = with(Project("sample-lib", directoryPrefix = "new-mpp-lib-and-app")) {
         build {
             assertSuccessful()
             assertEquals(1, output.lines().count { DISABLED_NATIVE_TARGETS_REPORTER_WARNING_PREFIX in it })
@@ -2414,7 +2414,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     private fun testAssociateCompilationsImpl() {
-        with(Project("new-mpp-associate-compilations", GradleVersionRequired.AtLeast("5.0"))) {
+        with(Project("new-mpp-associate-compilations")) {
             setupWorkingDir()
             gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 
@@ -2454,7 +2454,7 @@ class NewMultiplatformIT : BaseGradleIT() {
     }
 
     @Test
-    fun testTestRunsApi() = with(Project("new-mpp-associate-compilations", GradleVersionRequired.AtLeast("5.0"))) {
+    fun testTestRunsApi() = with(Project("new-mpp-associate-compilations")) {
         setupWorkingDir()
         gradleBuildScript().modify(::transformBuildScriptWithPluginsDsl)
 
