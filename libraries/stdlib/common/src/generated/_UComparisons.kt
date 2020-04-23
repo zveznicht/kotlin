@@ -19,6 +19,7 @@ import kotlin.random.*
  * Returns the greater of two values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 public fun maxOf(a: UInt, b: UInt): UInt {
     return if (a >= b) a else b
@@ -28,6 +29,7 @@ public fun maxOf(a: UInt, b: UInt): UInt {
  * Returns the greater of two values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 public fun maxOf(a: ULong, b: ULong): ULong {
     return if (a >= b) a else b
@@ -37,6 +39,7 @@ public fun maxOf(a: ULong, b: ULong): ULong {
  * Returns the greater of two values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 public fun maxOf(a: UByte, b: UByte): UByte {
     return if (a >= b) a else b
@@ -46,6 +49,7 @@ public fun maxOf(a: UByte, b: UByte): UByte {
  * Returns the greater of two values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 public fun maxOf(a: UShort, b: UShort): UShort {
     return if (a >= b) a else b
@@ -55,6 +59,7 @@ public fun maxOf(a: UShort, b: UShort): UShort {
  * Returns the greater of three values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun maxOf(a: UInt, b: UInt, c: UInt): UInt {
@@ -65,6 +70,7 @@ public inline fun maxOf(a: UInt, b: UInt, c: UInt): UInt {
  * Returns the greater of three values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun maxOf(a: ULong, b: ULong, c: ULong): ULong {
@@ -75,6 +81,7 @@ public inline fun maxOf(a: ULong, b: ULong, c: ULong): ULong {
  * Returns the greater of three values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun maxOf(a: UByte, b: UByte, c: UByte): UByte {
@@ -85,6 +92,7 @@ public inline fun maxOf(a: UByte, b: UByte, c: UByte): UByte {
  * Returns the greater of three values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun maxOf(a: UShort, b: UShort, c: UShort): UShort {
@@ -139,6 +147,7 @@ public fun maxOf(a: UShort, vararg other: UShort): UShort {
  * Returns the smaller of two values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 public fun minOf(a: UInt, b: UInt): UInt {
     return if (a <= b) a else b
@@ -148,6 +157,7 @@ public fun minOf(a: UInt, b: UInt): UInt {
  * Returns the smaller of two values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 public fun minOf(a: ULong, b: ULong): ULong {
     return if (a <= b) a else b
@@ -157,6 +167,7 @@ public fun minOf(a: ULong, b: ULong): ULong {
  * Returns the smaller of two values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 public fun minOf(a: UByte, b: UByte): UByte {
     return if (a <= b) a else b
@@ -166,6 +177,7 @@ public fun minOf(a: UByte, b: UByte): UByte {
  * Returns the smaller of two values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 public fun minOf(a: UShort, b: UShort): UShort {
     return if (a <= b) a else b
@@ -175,6 +187,7 @@ public fun minOf(a: UShort, b: UShort): UShort {
  * Returns the smaller of three values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun minOf(a: UInt, b: UInt, c: UInt): UInt {
@@ -185,6 +198,7 @@ public inline fun minOf(a: UInt, b: UInt, c: UInt): UInt {
  * Returns the smaller of three values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun minOf(a: ULong, b: ULong, c: ULong): ULong {
@@ -195,6 +209,7 @@ public inline fun minOf(a: ULong, b: ULong, c: ULong): ULong {
  * Returns the smaller of three values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun minOf(a: UByte, b: UByte, c: UByte): UByte {
@@ -205,6 +220,7 @@ public inline fun minOf(a: UByte, b: UByte, c: UByte): UByte {
  * Returns the smaller of three values.
  */
 @SinceKotlin("1.3")
+@CompileTimeCalculation
 @ExperimentalUnsignedTypes
 @kotlin.internal.InlineOnly
 public inline fun minOf(a: UShort, b: UShort, c: UShort): UShort {

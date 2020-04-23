@@ -20,6 +20,7 @@ import kotlin.random.*
  * If values are equal, returns the first one.
  */
 @SinceKotlin("1.1")
+@CompileTimeCalculation
 public expect fun <T : Comparable<T>> maxOf(a: T, b: T): T
 
 /**
@@ -68,6 +69,7 @@ public expect inline fun maxOf(a: Double, b: Double): Double
  * Returns the greater of three values.
  */
 @SinceKotlin("1.1")
+@CompileTimeCalculation
 public expect fun <T : Comparable<T>> maxOf(a: T, b: T, c: T): T
 
 /**
@@ -116,6 +118,7 @@ public expect inline fun maxOf(a: Double, b: Double, c: Double): Double
  * Returns the greater of three values according to the order specified by the given [comparator].
  */
 @SinceKotlin("1.1")
+@CompileTimeCalculation
 public fun <T> maxOf(a: T, b: T, c: T, comparator: Comparator<in T>): T {
     return maxOf(a, maxOf(b, c, comparator), comparator)
 }
@@ -125,6 +128,7 @@ public fun <T> maxOf(a: T, b: T, c: T, comparator: Comparator<in T>): T {
  * If values are equal, returns the first one.
  */
 @SinceKotlin("1.1")
+@CompileTimeCalculation
 public fun <T> maxOf(a: T, b: T, comparator: Comparator<in T>): T {
     return if (comparator.compare(a, b) >= 0) a else b
 }
@@ -133,48 +137,56 @@ public fun <T> maxOf(a: T, b: T, comparator: Comparator<in T>): T {
  * Returns the greater of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun <T : Comparable<T>> maxOf(a: T, vararg other: T): T
 
 /**
  * Returns the greater of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun maxOf(a: Byte, vararg other: Byte): Byte
 
 /**
  * Returns the greater of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun maxOf(a: Short, vararg other: Short): Short
 
 /**
  * Returns the greater of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun maxOf(a: Int, vararg other: Int): Int
 
 /**
  * Returns the greater of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun maxOf(a: Long, vararg other: Long): Long
 
 /**
  * Returns the greater of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun maxOf(a: Float, vararg other: Float): Float
 
 /**
  * Returns the greater of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun maxOf(a: Double, vararg other: Double): Double
 
 /**
  * Returns the greater of given values according to the order specified by the given [comparator].
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public fun <T> maxOf(a: T, vararg other: T, comparator: Comparator<in T>): T {
     var max = a
     for (e in other) if (comparator.compare(max, e) < 0) max = e
@@ -186,6 +198,7 @@ public fun <T> maxOf(a: T, vararg other: T, comparator: Comparator<in T>): T {
  * If values are equal, returns the first one.
  */
 @SinceKotlin("1.1")
+@CompileTimeCalculation
 public expect fun <T : Comparable<T>> minOf(a: T, b: T): T
 
 /**
@@ -234,6 +247,7 @@ public expect inline fun minOf(a: Double, b: Double): Double
  * Returns the smaller of three values.
  */
 @SinceKotlin("1.1")
+@CompileTimeCalculation
 public expect fun <T : Comparable<T>> minOf(a: T, b: T, c: T): T
 
 /**
@@ -282,6 +296,7 @@ public expect inline fun minOf(a: Double, b: Double, c: Double): Double
  * Returns the smaller of three values according to the order specified by the given [comparator].
  */
 @SinceKotlin("1.1")
+@CompileTimeCalculation
 public fun <T> minOf(a: T, b: T, c: T, comparator: Comparator<in T>): T {
     return minOf(a, minOf(b, c, comparator), comparator)
 }
@@ -291,6 +306,7 @@ public fun <T> minOf(a: T, b: T, c: T, comparator: Comparator<in T>): T {
  * If values are equal, returns the first one.
  */
 @SinceKotlin("1.1")
+@CompileTimeCalculation
 public fun <T> minOf(a: T, b: T, comparator: Comparator<in T>): T {
     return if (comparator.compare(a, b) <= 0) a else b
 }
@@ -299,48 +315,56 @@ public fun <T> minOf(a: T, b: T, comparator: Comparator<in T>): T {
  * Returns the smaller of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun <T : Comparable<T>> minOf(a: T, vararg other: T): T
 
 /**
  * Returns the smaller of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun minOf(a: Byte, vararg other: Byte): Byte
 
 /**
  * Returns the smaller of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun minOf(a: Short, vararg other: Short): Short
 
 /**
  * Returns the smaller of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun minOf(a: Int, vararg other: Int): Int
 
 /**
  * Returns the smaller of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun minOf(a: Long, vararg other: Long): Long
 
 /**
  * Returns the smaller of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun minOf(a: Float, vararg other: Float): Float
 
 /**
  * Returns the smaller of given values.
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public expect fun minOf(a: Double, vararg other: Double): Double
 
 /**
  * Returns the smaller of given values according to the order specified by the given [comparator].
  */
 @SinceKotlin("1.4")
+@CompileTimeCalculation
 public fun <T> minOf(a: T, vararg other: T, comparator: Comparator<in T>): T {
     var min = a
     for (e in other) if (comparator.compare(min, e) > 0) min = e

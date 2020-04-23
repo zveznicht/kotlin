@@ -59,6 +59,7 @@ object ComparableOps : TemplateGroupBase() {
             @return this value if it's greater than or equal to the [minimumValue] or the [minimumValue] otherwise.
             """
         }
+        annotation("""@CompileTimeCalculation""")
         sample("samples.comparisons.ComparableOps.coerceAtLeast${f.sampleSuffix}")
         body {
             """
@@ -82,6 +83,7 @@ object ComparableOps : TemplateGroupBase() {
             @return this value if it's less than or equal to the [maximumValue] or the [maximumValue] otherwise.
             """
         }
+        annotation("""@CompileTimeCalculation""")
         sample("samples.comparisons.ComparableOps.coerceAtMost${f.sampleSuffix}")
         body {
             """
@@ -105,6 +107,7 @@ object ComparableOps : TemplateGroupBase() {
             @return this value if it's in the [range], or `range.start` if this value is less than `range.start`, or `range.endInclusive` if this value is greater than `range.endInclusive`.
             """
         }
+        annotation("""@CompileTimeCalculation""")
         sample("samples.comparisons.ComparableOps.coerceIn${f.sampleSuffix}")
         body {
             """
@@ -135,6 +138,7 @@ object ComparableOps : TemplateGroupBase() {
             @return this value if it's in the [range], or `range.start` if this value is less than `range.start`, or `range.endInclusive` if this value is greater than `range.endInclusive`.
             """
         }
+        annotation("""@CompileTimeCalculation""")
         sample("samples.comparisons.ComparableOps.coerceInFloatingPointRange")
         body(Generic) {
             """
@@ -166,6 +170,11 @@ object ComparableOps : TemplateGroupBase() {
             Returns the smaller of two values.
             If values are equal, returns the first one.
             """
+        }
+        specialFor(Unsigned) { annotation("""@CompileTimeCalculation""") }
+        specialFor(Generic) {
+            on(Platform.Common) { annotation("""@CompileTimeCalculation""") }
+            on(Platform.JS) { on(Backend.IR) { annotation("""@CompileTimeCalculation""") } }
         }
         val defaultImpl = "if (a <= b) a else b"
         body { "return $defaultImpl" }
@@ -233,6 +242,11 @@ object ComparableOps : TemplateGroupBase() {
             Returns the smaller of three values.
             """
         }
+        specialFor(Unsigned) { annotation("""@CompileTimeCalculation""") }
+        specialFor(Generic) {
+            on(Platform.Common) { annotation("""@CompileTimeCalculation""") }
+            on(Platform.JS) { on(Backend.IR) { annotation("""@CompileTimeCalculation""") } }
+        }
         body {
             "return minOf(a, minOf(b, c))"
         }
@@ -283,6 +297,9 @@ object ComparableOps : TemplateGroupBase() {
             """
         }
         specialFor(Generic, Primitives) {
+            // TODO mark also unsigned
+            on(Platform.Common) { annotation("""@CompileTimeCalculation""") }
+            on(Platform.JS) { on(Backend.IR) { annotation("""@CompileTimeCalculation""") } }
             on(Platform.JS) { /* just to make expect, KT-22520 */ }
         }
     }
@@ -300,6 +317,7 @@ object ComparableOps : TemplateGroupBase() {
             If values are equal, returns the first one.
             """
         }
+        annotation("""@CompileTimeCalculation""")
         body {
             "return if (comparator.compare(a, b) <= 0) a else b"
         }
@@ -317,6 +335,7 @@ object ComparableOps : TemplateGroupBase() {
             Returns the smaller of three values according to the order specified by the given [comparator].
             """
         }
+        annotation("""@CompileTimeCalculation""")
         body {
             "return minOf(a, minOf(b, c, comparator), comparator)"
         }
@@ -334,6 +353,7 @@ object ComparableOps : TemplateGroupBase() {
             Returns the smaller of given values according to the order specified by the given [comparator].
             """
         }
+        annotation("""@CompileTimeCalculation""")
         body {
             """
             var min = a
@@ -358,6 +378,11 @@ object ComparableOps : TemplateGroupBase() {
             Returns the greater of two values.
             If values are equal, returns the first one.
             """
+        }
+        specialFor(Unsigned) { annotation("""@CompileTimeCalculation""") }
+        specialFor(Generic) {
+            on(Platform.Common) { annotation("""@CompileTimeCalculation""") }
+            on(Platform.JS) { on(Backend.IR) { annotation("""@CompileTimeCalculation""") } }
         }
         val defaultImpl = "if (a >= b) a else b"
         body { "return $defaultImpl" }
@@ -421,6 +446,11 @@ object ComparableOps : TemplateGroupBase() {
             Returns the greater of three values.
             """
         }
+        specialFor(Unsigned) { annotation("""@CompileTimeCalculation""") }
+        specialFor(Generic) {
+            on(Platform.Common) { annotation("""@CompileTimeCalculation""") }
+            on(Platform.JS) { on(Backend.IR) { annotation("""@CompileTimeCalculation""") } }
+        }
         body {
             "return maxOf(a, maxOf(b, c))"
         }
@@ -471,6 +501,9 @@ object ComparableOps : TemplateGroupBase() {
             """
         }
         specialFor(Generic, Primitives) {
+            // TODO mark also unsigned
+            on(Platform.Common) { annotation("""@CompileTimeCalculation""") }
+            on(Platform.JS) { on(Backend.IR) { annotation("""@CompileTimeCalculation""") } }
             on(Platform.JS) { /* just to make expect, KT-22520 */ }
         }
     }
@@ -488,6 +521,7 @@ object ComparableOps : TemplateGroupBase() {
             If values are equal, returns the first one.
             """
         }
+        annotation("""@CompileTimeCalculation""")
         body {
             "return if (comparator.compare(a, b) >= 0) a else b"
         }
@@ -505,6 +539,7 @@ object ComparableOps : TemplateGroupBase() {
             Returns the greater of three values according to the order specified by the given [comparator].
             """
         }
+        annotation("""@CompileTimeCalculation""")
         body {
             "return maxOf(a, maxOf(b, c, comparator), comparator)"
         }
@@ -522,6 +557,7 @@ object ComparableOps : TemplateGroupBase() {
             Returns the greater of given values according to the order specified by the given [comparator].
             """
         }
+        annotation("""@CompileTimeCalculation""")
         body {
             """
             var max = a
@@ -549,6 +585,7 @@ object ComparableOps : TemplateGroupBase() {
             @return this value if it's in the range, or [minimumValue] if this value is less than [minimumValue], or [maximumValue] if this value is greater than [maximumValue].
             """
         }
+        annotation("""@CompileTimeCalculation""")
         sample("samples.comparisons.ComparableOps.coerceIn${f.sampleSuffix}")
         body(Primitives, Unsigned) {
             """
