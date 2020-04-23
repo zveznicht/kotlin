@@ -17,10 +17,6 @@ class IDESettingsFUSCollector : ProjectUsagesCollector() {
     override fun getMetrics(project: Project): Set<MetricEvent> {
         val metrics = mutableSetOf<MetricEvent>()
 
-        @Suppress("DEPRECATION")
-        val inferenceState = NewInferenceForIDEAnalysisComponent.isEnabledForV1(project)
-        metrics.add(MetricEvent("newInference", flagUsage(inferenceState)))
-
         val scriptingAutoReloadEnabled = KotlinScriptingSettings.getInstance(project).isAutoReloadEnabled
         metrics.add(MetricEvent("scriptingAutoReloadEnabled", flagUsage(scriptingAutoReloadEnabled)))
 

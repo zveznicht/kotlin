@@ -18,10 +18,6 @@ class IDESettingsFUSCollector : ProjectUsagesCollector() {
     override fun getUsages(project: Project): Set<UsageDescriptor> {
         val usages = mutableSetOf<UsageDescriptor>()
 
-        @Suppress("DEPRECATION")
-        val inferenceState = NewInferenceForIDEAnalysisComponent.isEnabledForV1(project)
-        usages.add(UsageDescriptor("newInference", flagUsage(inferenceState)))
-
         val scriptingAutoReloadEnabled = KotlinScriptingSettings.getInstance(project).isAutoReloadEnabled
         usages.add(UsageDescriptor("scriptingAutoReloadEnabled", flagUsage(scriptingAutoReloadEnabled)))
 
