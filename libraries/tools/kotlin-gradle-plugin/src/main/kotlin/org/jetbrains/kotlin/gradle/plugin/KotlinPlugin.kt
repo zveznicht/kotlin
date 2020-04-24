@@ -529,8 +529,8 @@ internal abstract class AbstractKotlinPlugin(
             val inspectTask =
                 project.registerTask<InspectClassesForMultiModuleIC>("inspectClassesForKotlinIC") {
                     it.sourceSetName = SourceSet.MAIN_SOURCE_SET_NAME
-                    it.archivePath.set(jarTask.archiveFile.map { it.asFile.canonicalPath })
-                    it.archiveName.set(jarTask.archiveFileName)
+                    it.archivePath.set(project.provider { jarTask.archivePathCompatible.canonicalPath })
+                    it.archiveName.set(project.provider { jarTask.archiveFileName.get() })
                     it.dependsOn(classesTask)
                 }
             jarTask.dependsOn(inspectTask)
