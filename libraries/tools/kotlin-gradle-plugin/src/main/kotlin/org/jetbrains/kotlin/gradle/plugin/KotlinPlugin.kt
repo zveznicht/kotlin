@@ -223,7 +223,7 @@ internal class Kotlin2JvmSourceSetProcessor(
                 .flatMap { it.getSubpluginKotlinTasks(project, kotlinTaskInstance) }
                 .forEach { plugin -> kotlinCompilation.allKotlinSourceSets.forEach { sourceSet -> plugin.source(sourceSet.kotlin) } }
 
-            javaTask?.let { configureJavaTask(kotlinTaskInstance, it, logger) }
+            javaTask?.let { configureJavaTask(kotlinTaskInstance, it) }
 
             if (project.pluginManager.hasPlugin("java-library") && sourceSetName == SourceSet.MAIN_SOURCE_SET_NAME) {
                 registerKotlinOutputForJavaLibrary(kotlinTaskInstance.destinationDir, kotlinTaskInstance)
@@ -1079,7 +1079,7 @@ abstract class AbstractAndroidProjectHandler(private val kotlinConfigurationTool
     }
 }
 
-internal fun configureJavaTask(kotlinTask: KotlinCompile, javaTask: AbstractCompile, logger: Logger) {
+internal fun configureJavaTask(kotlinTask: KotlinCompile, javaTask: AbstractCompile) {
     kotlinTask.javaOutputDir = javaTask.destinationDir
 
     // Make Gradle check if the javaTask is up-to-date based on the Kotlin classes
