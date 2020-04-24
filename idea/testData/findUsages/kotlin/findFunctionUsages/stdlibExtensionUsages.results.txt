@@ -1,0 +1,2 @@
+Function call 10 val s = list.joinToString()
+Function call 6 val s = list.joinToString()

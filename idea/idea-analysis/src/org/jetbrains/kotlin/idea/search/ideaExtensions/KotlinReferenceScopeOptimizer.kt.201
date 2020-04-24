@@ -23,10 +23,13 @@ class KotlinReferenceScopeOptimizer : ScopeOptimizer {
         return null
     }
 
+    // package "kotlin" and some of its subpackages may be imported by default
+    private val kotlinPackage = FqName.fromSegments(listOf("kotlin"))
+
     private fun getRestrictedScopeForTopLevelCallable(callable: KtCallableDeclaration): GlobalSearchScope? {
         val useScope = callable.useScope as? GlobalSearchScope ?: return null
         val file = callable.parent as KtFile
-        val packageName = file.packageFqName.takeUnless { it.isRoot } ?: return null
+        val packageName = file.packageFqName.takeUnless { it.isRoot || it.isSubpackageOf(kotlinPackage) } ?: return null
         val project = file.project
         val searchHelper = PsiSearchHelper.getInstance(project)
 

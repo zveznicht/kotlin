@@ -754,6 +754,11 @@ public class FindUsagesTestGenerated extends AbstractFindUsagesTest {
                 runTest("idea/testData/findUsages/kotlin/findFunctionUsages/objectExpressionMemberInTopLevel.0.kt");
             }
 
+            @TestMetadata("stdlibExtensionUsages.0.kt")
+            public void testStdlibExtensionUsages() throws Exception {
+                runTest("idea/testData/findUsages/kotlin/findFunctionUsages/stdlibExtensionUsages.0.kt");
+            }
+
             @TestMetadata("synthesizedFunction.0.kt")
             public void testSynthesizedFunction() throws Exception {
                 runTest("idea/testData/findUsages/kotlin/findFunctionUsages/synthesizedFunction.0.kt");

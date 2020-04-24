@@ -15,6 +15,8 @@ import com.intellij.psi.search.UsageSearchContext
 import org.jetbrains.kotlin.fileClasses.javaFileFacadeFqName
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.search.excludeFileTypes
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.isSubpackageOf
 import org.jetbrains.kotlin.psi.KtCallableDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 
@@ -26,10 +28,13 @@ class KotlinReferenceScopeOptimizer : ScopeOptimizer {
         return null
     }
 
+    // package "kotlin" and some of its subpackages may be imported by default
+    private val kotlinPackage = FqName.fromSegments(listOf("kotlin"))
+
     private fun getRestrictedScopeForTopLevelCallable(callable: KtCallableDeclaration): GlobalSearchScope? {
         val useScope = callable.useScope as? GlobalSearchScope ?: return null
         val file = callable.parent as KtFile
-        val packageName = file.packageFqName.takeUnless { it.isRoot } ?: return null
+        val packageName = file.packageFqName.takeUnless { it.isRoot || it.isSubpackageOf(kotlinPackage) } ?: return null
         val project = file.project
         val cacheManager = CacheManager.SERVICE.getInstance(project)
 
@@ -37,7 +42,6 @@ class KotlinReferenceScopeOptimizer : ScopeOptimizer {
         val javaScope = GlobalSearchScope.getScopeRestrictedByFileTypes(useScope, JavaFileType.INSTANCE)
         val restScope = useScope.excludeFileTypes(KotlinFileType.INSTANCE, JavaFileType.INSTANCE) as GlobalSearchScope
 
-        //TODO: use all components of package name?
         val shortPackageName = packageName.shortName().identifier
         val kotlinFiles = cacheManager.getVirtualFilesWithWord(shortPackageName, UsageSearchContext.IN_CODE, kotlinScope, true)
 
