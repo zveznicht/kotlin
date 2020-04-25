@@ -1,7 +1,9 @@
 <idea-plugin>
     <extensionPoints>
         <extensionPoint qualifiedName="org.jetbrains.kotlin.updater" beanClass="com.intellij.openapi.fileTypes.FileTypeExtensionPoint"/>
-        <extensionPoint qualifiedName="org.jetbrains.kotlin.projectConfigurator" interface="org.jetbrains.kotlin.idea.configuration.KotlinProjectConfigurator"/>
+        <extensionPoint qualifiedName="org.jetbrains.kotlin.projectConfigurator"
+                        interface="org.jetbrains.kotlin.idea.configuration.KotlinProjectConfigurator"
+                        dynamic="true"/>
 
         <extensionPoint qualifiedName="org.jetbrains.kotlin.declarationAttributeAltererExtension"
                         interface="org.jetbrains.kotlin.extensions.DeclarationAttributeAltererExtension"
@@ -11,7 +13,8 @@
                         interface="org.jetbrains.kotlin.caches.resolve.IdePlatformKindResolution"/>
 
         <extensionPoint qualifiedName="org.jetbrains.kotlin.highlighterExtension"
-                        interface="org.jetbrains.kotlin.idea.highlighter.HighlighterExtension"/>
+                        interface="org.jetbrains.kotlin.idea.highlighter.HighlighterExtension"
+                        dynamic="true"/>
 
         <extensionPoint qualifiedName="org.jetbrains.kotlin.ultraLightClassModifierExtension"
                         interface="org.jetbrains.kotlin.asJava.UltraLightClassModifierExtension"
@@ -52,7 +55,8 @@
                         area="IDEA_PROJECT"/>
 
         <extensionPoint qualifiedName="org.jetbrains.kotlin.resolveScopeEnlarger"
-                        interface="org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger"/>
+                        interface="org.jetbrains.kotlin.idea.caches.resolve.util.KotlinResolveScopeEnlarger"
+                        dynamic="true"/>
 
         <extensionPoint qualifiedName="org.jetbrains.kotlin.j2kConverterExtension"
                         interface="org.jetbrains.kotlin.j2k.J2kConverterExtension"/>
