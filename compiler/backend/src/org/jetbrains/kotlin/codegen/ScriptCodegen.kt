@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -69,7 +69,7 @@ class ScriptCodegen private constructor(
 
     override fun generateKotlinMetadataAnnotation() {
         val serializer = DescriptorSerializer.create(scriptDescriptor, JvmSerializerExtension(v.serializationBindings, state), null)
-        val classProto = serializer.classProto(scriptDescriptor).build()
+        val classProto = serializer.classProto(scriptDescriptor, null).build()
         writeKotlinMetadata(v, state, KotlinClassHeader.Kind.CLASS, JvmAnnotationNames.METADATA_SCRIPT_FLAG) { av ->
             writeAnnotationData(av, serializer, classProto)
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -92,15 +92,18 @@ abstract class KlibMetadataSerializer(
             val previousSerializer = classSerializer
 
             classSerializer = DescriptorSerializer.create(classDescriptor, serializerExtension, classSerializer)
-            val classProto = classSerializer.classProto(classDescriptor).build() ?: error("Class not serialized: $classDescriptor")
+            // todo: binding context for serialization
+            val classProto = classSerializer.classProto(classDescriptor, null).build() ?: error("Class not serialized: $classDescriptor")
             //builder.addClass(classProto)
 
             val index = classSerializer.stringTable.getFqNameIndex(classDescriptor)
             //builder.addExtension(KlibMetadataProtoBuf.className, index)
 
-            val classes = serializeClasses(packageName/*, builder*/,
+            val classes = serializeClasses(
+                packageName/*, builder*/,
                 classDescriptor.unsubstitutedInnerClassesScope
-                    .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS))
+                    .getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS)
+            )
 
             classSerializer = previousSerializer
             return classes + Pair(classProto, index)

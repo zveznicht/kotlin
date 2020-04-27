@@ -1,17 +1,6 @@
 /*
- * Copyright 2010-2017 JetBrains s.r.o.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.cli.metadata
@@ -94,14 +83,14 @@ open class MetadataSerializer(
                         val classDescriptor = bindingContext.get(BindingContext.CLASS, classOrObject)
                             ?: error("No descriptor found for class ${classOrObject.fqName}")
                         val destFile = File(destDir, getClassFilePath(ClassId(packageFqName, classDescriptor.name)))
-                        PackageSerializer(listOf(classDescriptor), emptyList(), packageFqName, destFile).run()
+                        PackageSerializer(listOf(classDescriptor), emptyList(), packageFqName, destFile, bindingContext).run()
                     }
                 })
             }
 
             if (members.isNotEmpty()) {
                 val destFile = File(destDir, getPackageFilePath(packageFqName, file.name))
-                PackageSerializer(emptyList(), members, packageFqName, destFile).run()
+                PackageSerializer(emptyList(), members, packageFqName, destFile, bindingContext).run()
 
                 packageTable.getOrPut(packageFqName) {
                     PackageParts(packageFqName.asString())
@@ -134,7 +123,8 @@ open class MetadataSerializer(
         private val classes: Collection<DeclarationDescriptor>,
         private val members: Collection<DeclarationDescriptor>,
         private val packageFqName: FqName,
-        private val destFile: File
+        private val destFile: File,
+        private val bindingContext: BindingContext?
     ) {
         private val proto = ProtoBuf.PackageFragment.newBuilder()
         private val extension = createSerializerExtension()
@@ -157,7 +147,7 @@ open class MetadataSerializer(
                     serializer
                 )
 
-                proto.addClass_(serializer.classProto(descriptor).build())
+                proto.addClass_(serializer.classProto(descriptor, bindingContext).build())
             }
         }
 

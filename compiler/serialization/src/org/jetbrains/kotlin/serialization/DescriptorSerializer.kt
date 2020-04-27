@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -22,17 +22,14 @@ import org.jetbrains.kotlin.metadata.serialization.MutableTypeTable
 import org.jetbrains.kotlin.metadata.serialization.MutableVersionRequirementTable
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.DescriptorUtils
+import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.DescriptorUtils.isEnumEntry
-import org.jetbrains.kotlin.resolve.MemberComparator
-import org.jetbrains.kotlin.resolve.RequireKotlinConstants
 import org.jetbrains.kotlin.resolve.calls.components.isActualParameterWithAnyExpectedDefault
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.constants.IntValue
 import org.jetbrains.kotlin.resolve.constants.NullValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.nonSourceAnnotations
-import org.jetbrains.kotlin.resolve.isInlineClassType
 import org.jetbrains.kotlin.serialization.deserialization.ProtoEnumFlags
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.typeUtil.contains
@@ -45,7 +42,8 @@ class DescriptorSerializer private constructor(
     private val extension: SerializerExtension,
     val typeTable: MutableTypeTable,
     private val versionRequirementTable: MutableVersionRequirementTable?,
-    private val serializeTypeTableToFunction: Boolean
+    private val serializeTypeTableToFunction: Boolean,
+    val plugins: List<DescriptorSerializerPlugin> = emptyList()
 ) {
     private val contractSerializer = ContractSerializer()
 
@@ -60,7 +58,7 @@ class DescriptorSerializer private constructor(
 
     private fun useTypeTable(): Boolean = extension.shouldUseTypeTable()
 
-    fun classProto(classDescriptor: ClassDescriptor): ProtoBuf.Class.Builder {
+    fun classProto(classDescriptor: ClassDescriptor, bindingContext: BindingContext?): ProtoBuf.Class.Builder {
         val builder = ProtoBuf.Class.newBuilder()
 
         val flags = Flags.getClassFlags(
@@ -151,6 +149,8 @@ class DescriptorSerializer private constructor(
         builder.addAllVersionRequirement(versionRequirementTable.serializeVersionRequirements(classDescriptor))
 
         extension.serializeClass(classDescriptor, builder, versionRequirementTable, this)
+
+        plugins.forEach { it.afterClass(classDescriptor, builder, versionRequirementTable, this, bindingContext, extension) }
 
         writeVersionRequirementForInlineClasses(classDescriptor, builder, versionRequirementTable)
 
@@ -759,6 +759,8 @@ class DescriptorSerializer private constructor(
             extension: SerializerExtension,
             parentSerializer: DescriptorSerializer?
         ): DescriptorSerializer {
+//            val plugins = ServiceLoader.load(DescriptorSerializerPlugin::class.java).toList()
+            val plugins = listOfNotNull(THE_PLUGIN)
             val container = descriptor.containingDeclaration
             val parent = if (container is ClassDescriptor)
                 parentSerializer ?: create(container, extension, null)
@@ -775,7 +777,8 @@ class DescriptorSerializer private constructor(
                 MutableTypeTable(),
                 if (container is ClassDescriptor && !isVersionRequirementTableWrittenCorrectly(extension.metadataVersion))
                     parent.versionRequirementTable else MutableVersionRequirementTable(),
-                serializeTypeTableToFunction = false
+                serializeTypeTableToFunction = false,
+                plugins
             )
             for (typeParameter in descriptor.declaredTypeParameters) {
                 serializer.typeParameters.intern(typeParameter)
@@ -836,3 +839,5 @@ class DescriptorSerializer private constructor(
         }
     }
 }
+
+public var THE_PLUGIN: DescriptorSerializerPlugin? = null

@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -292,7 +292,7 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
 
     @Override
     protected void generateKotlinMetadataAnnotation() {
-        ProtoBuf.Class classProto = serializer.classProto(descriptor).build();
+        ProtoBuf.Class classProto = serializer.classProto(descriptor, bindingContext).build();
 
         WriteAnnotationUtilKt.writeKotlinMetadata(v, state, KotlinClassHeader.Kind.CLASS, 0, av -> {
             writeAnnotationData(av, serializer, classProto);

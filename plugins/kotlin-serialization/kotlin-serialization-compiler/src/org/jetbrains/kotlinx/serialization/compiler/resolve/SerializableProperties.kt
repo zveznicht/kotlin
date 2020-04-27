@@ -6,11 +6,18 @@
 package org.jetbrains.kotlinx.serialization.compiler.resolve
 
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperClassNotAny
 import org.jetbrains.kotlin.resolve.hasBackingField
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
+import org.jetbrains.kotlin.serialization.THE_PLUGIN
+import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedClassDescriptor
+import org.jetbrains.kotlin.serialization.deserialization.getName
 import org.jetbrains.kotlinx.serialization.compiler.diagnostic.SERIALIZABLE_PROPERTIES
+import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationDescriptorPluginForKotlinxSerialization
+import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationPluginMetadataExtensions
 
 class SerializableProperties(private val serializableClass: ClassDescriptor, val bindingContext: BindingContext) {
     private val primaryConstructorParameters: List<ValueParameterDescriptor> =
@@ -56,8 +63,13 @@ class SerializableProperties(private val serializableClass: ClassDescriptor, val
                 else
                     SerializableProperties(supers, bindingContext).serializableProperties + first + second
             }
+            .let { unsort(serializableClass, it) }
+
         isExternallySerializable =
             serializableClass.isSerializableEnum() || primaryConstructorParameters.size == primaryConstructorProperties.size
+
+        THE_PLUGIN = SerializationDescriptorPluginForKotlinxSerialization()
+        SerializationPluginMetadataExtensions.registerAllExtensions(JvmProtoBufUtil.EXTENSION_REGISTRY) // should not be a problem when this called 100500 times, but still needs rework
     }
 
     val serializableConstructorProperties: List<SerializableProperty> =
@@ -81,3 +93,11 @@ internal fun bitMaskSlotAt(propertyIndex: Int) = propertyIndex / 32
 
 internal fun BindingContext.serializablePropertiesFor(classDescriptor: ClassDescriptor): SerializableProperties =
     this.get(SERIALIZABLE_PROPERTIES, classDescriptor) ?: SerializableProperties(classDescriptor, this)
+
+private fun unsort(descriptor: ClassDescriptor, props: List<SerializableProperty>): List<SerializableProperty> {
+    if (descriptor !is DeserializedClassDescriptor) return props
+    val correctOrder: List<Name> = descriptor.classProto.getExtension(SerializationPluginMetadataExtensions.propertiesNamesInProgramOrder)
+        .map { descriptor.c.nameResolver.getName(it) }
+    val propsMap = props.associateBy { it.descriptor.name }
+    return correctOrder.map { propsMap.getValue(it) }
+}

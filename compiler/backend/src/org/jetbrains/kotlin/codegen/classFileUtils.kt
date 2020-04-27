@@ -62,7 +62,7 @@ fun JvmModuleProtoBuf.Module.Builder.addDataFromCompiledModule(
 
     val serializer = DescriptorSerializer.createTopLevel(JvmOptionalAnnotationSerializerExtension(stringTable))
     for (descriptor in optionalAnnotationClassDescriptors) {
-        addOptionalAnnotationClass(serializer.classProto(descriptor))
+        addOptionalAnnotationClass(serializer.classProto(descriptor, null))
     }
 }
 
