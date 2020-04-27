@@ -9,7 +9,9 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.name.Name
 
 interface NameProvider {
-    fun nameForDeclaration(descriptor: DeclarationDescriptor): Name = descriptor.name
+    fun nameForDeclaration(descriptor: DeclarationDescriptor): Name
 
-    object DEFAULT : NameProvider
+    object DEFAULT : NameProvider {
+        override fun nameForDeclaration(descriptor: DeclarationDescriptor): Name = descriptor.name
+    }
 }

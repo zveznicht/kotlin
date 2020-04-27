@@ -19,7 +19,7 @@ object JvmNameProvider : NameProvider {
     override fun nameForDeclaration(descriptor: DeclarationDescriptor): Name {
         if (descriptor is ValueParameterDescriptor)
             return nameForValueParameter(descriptor)
-        return super.nameForDeclaration(descriptor)
+        return NameProvider.DEFAULT.nameForDeclaration(descriptor)
     }
 
     private fun nameForValueParameter(descriptor: ValueParameterDescriptor): Name {
