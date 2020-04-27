@@ -10024,6 +10024,7 @@ public inline fun <V, M : MutableMap<in Char, in V>> CharArray.associateWithTo(d
 /**
  * Appends all elements to the given [destination] collection.
  */
+@CompileTimeCalculation
 public fun <T, C : MutableCollection<in T>> Array<out T>.toCollection(destination: C): C {
     for (item in this) {
         destination.add(item)
@@ -10034,6 +10035,7 @@ public fun <T, C : MutableCollection<in T>> Array<out T>.toCollection(destinatio
 /**
  * Appends all elements to the given [destination] collection.
  */
+@CompileTimeCalculation
 public fun <C : MutableCollection<in Byte>> ByteArray.toCollection(destination: C): C {
     for (item in this) {
         destination.add(item)
@@ -10044,6 +10046,7 @@ public fun <C : MutableCollection<in Byte>> ByteArray.toCollection(destination: 
 /**
  * Appends all elements to the given [destination] collection.
  */
+@CompileTimeCalculation
 public fun <C : MutableCollection<in Short>> ShortArray.toCollection(destination: C): C {
     for (item in this) {
         destination.add(item)
@@ -10054,6 +10057,7 @@ public fun <C : MutableCollection<in Short>> ShortArray.toCollection(destination
 /**
  * Appends all elements to the given [destination] collection.
  */
+@CompileTimeCalculation
 public fun <C : MutableCollection<in Int>> IntArray.toCollection(destination: C): C {
     for (item in this) {
         destination.add(item)
@@ -10064,6 +10068,7 @@ public fun <C : MutableCollection<in Int>> IntArray.toCollection(destination: C)
 /**
  * Appends all elements to the given [destination] collection.
  */
+@CompileTimeCalculation
 public fun <C : MutableCollection<in Long>> LongArray.toCollection(destination: C): C {
     for (item in this) {
         destination.add(item)
@@ -10074,6 +10079,7 @@ public fun <C : MutableCollection<in Long>> LongArray.toCollection(destination: 
 /**
  * Appends all elements to the given [destination] collection.
  */
+@CompileTimeCalculation
 public fun <C : MutableCollection<in Float>> FloatArray.toCollection(destination: C): C {
     for (item in this) {
         destination.add(item)
@@ -10084,6 +10090,7 @@ public fun <C : MutableCollection<in Float>> FloatArray.toCollection(destination
 /**
  * Appends all elements to the given [destination] collection.
  */
+@CompileTimeCalculation
 public fun <C : MutableCollection<in Double>> DoubleArray.toCollection(destination: C): C {
     for (item in this) {
         destination.add(item)
@@ -10094,6 +10101,7 @@ public fun <C : MutableCollection<in Double>> DoubleArray.toCollection(destinati
 /**
  * Appends all elements to the given [destination] collection.
  */
+@CompileTimeCalculation
 public fun <C : MutableCollection<in Boolean>> BooleanArray.toCollection(destination: C): C {
     for (item in this) {
         destination.add(item)
@@ -10104,6 +10112,7 @@ public fun <C : MutableCollection<in Boolean>> BooleanArray.toCollection(destina
 /**
  * Appends all elements to the given [destination] collection.
  */
+@CompileTimeCalculation
 public fun <C : MutableCollection<in Char>> CharArray.toCollection(destination: C): C {
     for (item in this) {
         destination.add(item)
@@ -10177,6 +10186,7 @@ public fun CharArray.toHashSet(): HashSet<Char> {
 /**
  * Returns a [List] containing all elements.
  */
+@CompileTimeCalculation
 public fun <T> Array<out T>.toList(): List<T> {
     return when (size) {
         0 -> emptyList()
@@ -10188,6 +10198,7 @@ public fun <T> Array<out T>.toList(): List<T> {
 /**
  * Returns a [List] containing all elements.
  */
+@CompileTimeCalculation
 public fun ByteArray.toList(): List<Byte> {
     return when (size) {
         0 -> emptyList()
@@ -10199,6 +10210,7 @@ public fun ByteArray.toList(): List<Byte> {
 /**
  * Returns a [List] containing all elements.
  */
+@CompileTimeCalculation
 public fun ShortArray.toList(): List<Short> {
     return when (size) {
         0 -> emptyList()
@@ -10210,6 +10222,7 @@ public fun ShortArray.toList(): List<Short> {
 /**
  * Returns a [List] containing all elements.
  */
+@CompileTimeCalculation
 public fun IntArray.toList(): List<Int> {
     return when (size) {
         0 -> emptyList()
@@ -10221,6 +10234,7 @@ public fun IntArray.toList(): List<Int> {
 /**
  * Returns a [List] containing all elements.
  */
+@CompileTimeCalculation
 public fun LongArray.toList(): List<Long> {
     return when (size) {
         0 -> emptyList()
@@ -10232,6 +10246,7 @@ public fun LongArray.toList(): List<Long> {
 /**
  * Returns a [List] containing all elements.
  */
+@CompileTimeCalculation
 public fun FloatArray.toList(): List<Float> {
     return when (size) {
         0 -> emptyList()
@@ -10243,6 +10258,7 @@ public fun FloatArray.toList(): List<Float> {
 /**
  * Returns a [List] containing all elements.
  */
+@CompileTimeCalculation
 public fun DoubleArray.toList(): List<Double> {
     return when (size) {
         0 -> emptyList()
@@ -10254,6 +10270,7 @@ public fun DoubleArray.toList(): List<Double> {
 /**
  * Returns a [List] containing all elements.
  */
+@CompileTimeCalculation
 public fun BooleanArray.toList(): List<Boolean> {
     return when (size) {
         0 -> emptyList()
@@ -10265,6 +10282,7 @@ public fun BooleanArray.toList(): List<Boolean> {
 /**
  * Returns a [List] containing all elements.
  */
+@CompileTimeCalculation
 public fun CharArray.toList(): List<Char> {
     return when (size) {
         0 -> emptyList()
@@ -10276,6 +10294,7 @@ public fun CharArray.toList(): List<Char> {
 /**
  * Returns a new [MutableList] filled with all elements of this array.
  */
+@CompileTimeCalculation
 public fun <T> Array<out T>.toMutableList(): MutableList<T> {
     return ArrayList(this.asCollection())
 }
@@ -10283,6 +10302,7 @@ public fun <T> Array<out T>.toMutableList(): MutableList<T> {
 /**
  * Returns a new [MutableList] filled with all elements of this array.
  */
+@CompileTimeCalculation
 public fun ByteArray.toMutableList(): MutableList<Byte> {
     val list = ArrayList<Byte>(size)
     for (item in this) list.add(item)
@@ -10292,6 +10312,7 @@ public fun ByteArray.toMutableList(): MutableList<Byte> {
 /**
  * Returns a new [MutableList] filled with all elements of this array.
  */
+@CompileTimeCalculation
 public fun ShortArray.toMutableList(): MutableList<Short> {
     val list = ArrayList<Short>(size)
     for (item in this) list.add(item)
@@ -10301,6 +10322,7 @@ public fun ShortArray.toMutableList(): MutableList<Short> {
 /**
  * Returns a new [MutableList] filled with all elements of this array.
  */
+@CompileTimeCalculation
 public fun IntArray.toMutableList(): MutableList<Int> {
     val list = ArrayList<Int>(size)
     for (item in this) list.add(item)
@@ -10310,6 +10332,7 @@ public fun IntArray.toMutableList(): MutableList<Int> {
 /**
  * Returns a new [MutableList] filled with all elements of this array.
  */
+@CompileTimeCalculation
 public fun LongArray.toMutableList(): MutableList<Long> {
     val list = ArrayList<Long>(size)
     for (item in this) list.add(item)
@@ -10319,6 +10342,7 @@ public fun LongArray.toMutableList(): MutableList<Long> {
 /**
  * Returns a new [MutableList] filled with all elements of this array.
  */
+@CompileTimeCalculation
 public fun FloatArray.toMutableList(): MutableList<Float> {
     val list = ArrayList<Float>(size)
     for (item in this) list.add(item)
@@ -10328,6 +10352,7 @@ public fun FloatArray.toMutableList(): MutableList<Float> {
 /**
  * Returns a new [MutableList] filled with all elements of this array.
  */
+@CompileTimeCalculation
 public fun DoubleArray.toMutableList(): MutableList<Double> {
     val list = ArrayList<Double>(size)
     for (item in this) list.add(item)
@@ -10337,6 +10362,7 @@ public fun DoubleArray.toMutableList(): MutableList<Double> {
 /**
  * Returns a new [MutableList] filled with all elements of this array.
  */
+@CompileTimeCalculation
 public fun BooleanArray.toMutableList(): MutableList<Boolean> {
     val list = ArrayList<Boolean>(size)
     for (item in this) list.add(item)
@@ -10346,6 +10372,7 @@ public fun BooleanArray.toMutableList(): MutableList<Boolean> {
 /**
  * Returns a new [MutableList] filled with all elements of this array.
  */
+@CompileTimeCalculation
 public fun CharArray.toMutableList(): MutableList<Char> {
     val list = ArrayList<Char>(size)
     for (item in this) list.add(item)
@@ -10357,6 +10384,7 @@ public fun CharArray.toMutableList(): MutableList<Char> {
  * 
  * The returned set preserves the element iteration order of the original array.
  */
+@CompileTimeCalculation
 public fun <T> Array<out T>.toSet(): Set<T> {
     return when (size) {
         0 -> emptySet()
@@ -10370,6 +10398,7 @@ public fun <T> Array<out T>.toSet(): Set<T> {
  * 
  * The returned set preserves the element iteration order of the original array.
  */
+@CompileTimeCalculation
 public fun ByteArray.toSet(): Set<Byte> {
     return when (size) {
         0 -> emptySet()
@@ -10383,6 +10412,7 @@ public fun ByteArray.toSet(): Set<Byte> {
  * 
  * The returned set preserves the element iteration order of the original array.
  */
+@CompileTimeCalculation
 public fun ShortArray.toSet(): Set<Short> {
     return when (size) {
         0 -> emptySet()
@@ -10396,6 +10426,7 @@ public fun ShortArray.toSet(): Set<Short> {
  * 
  * The returned set preserves the element iteration order of the original array.
  */
+@CompileTimeCalculation
 public fun IntArray.toSet(): Set<Int> {
     return when (size) {
         0 -> emptySet()
@@ -10409,6 +10440,7 @@ public fun IntArray.toSet(): Set<Int> {
  * 
  * The returned set preserves the element iteration order of the original array.
  */
+@CompileTimeCalculation
 public fun LongArray.toSet(): Set<Long> {
     return when (size) {
         0 -> emptySet()
@@ -10422,6 +10454,7 @@ public fun LongArray.toSet(): Set<Long> {
  * 
  * The returned set preserves the element iteration order of the original array.
  */
+@CompileTimeCalculation
 public fun FloatArray.toSet(): Set<Float> {
     return when (size) {
         0 -> emptySet()
@@ -10435,6 +10468,7 @@ public fun FloatArray.toSet(): Set<Float> {
  * 
  * The returned set preserves the element iteration order of the original array.
  */
+@CompileTimeCalculation
 public fun DoubleArray.toSet(): Set<Double> {
     return when (size) {
         0 -> emptySet()
@@ -10448,6 +10482,7 @@ public fun DoubleArray.toSet(): Set<Double> {
  * 
  * The returned set preserves the element iteration order of the original array.
  */
+@CompileTimeCalculation
 public fun BooleanArray.toSet(): Set<Boolean> {
     return when (size) {
         0 -> emptySet()
@@ -10461,6 +10496,7 @@ public fun BooleanArray.toSet(): Set<Boolean> {
  * 
  * The returned set preserves the element iteration order of the original array.
  */
+@CompileTimeCalculation
 public fun CharArray.toSet(): Set<Char> {
     return when (size) {
         0 -> emptySet()

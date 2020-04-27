@@ -785,6 +785,7 @@ public inline fun <V, M : MutableMap<in Char, in V>> CharSequence.associateWithT
 /**
  * Appends all characters to the given [destination] collection.
  */
+@CompileTimeCalculation
 public fun <C : MutableCollection<in Char>> CharSequence.toCollection(destination: C): C {
     for (item in this) {
         destination.add(item)
@@ -802,6 +803,7 @@ public fun CharSequence.toHashSet(): HashSet<Char> {
 /**
  * Returns a [List] containing all characters.
  */
+@CompileTimeCalculation
 public fun CharSequence.toList(): List<Char> {
     return when (length) {
         0 -> emptyList()
@@ -813,6 +815,7 @@ public fun CharSequence.toList(): List<Char> {
 /**
  * Returns a new [MutableList] filled with all characters of this char sequence.
  */
+@CompileTimeCalculation
 public fun CharSequence.toMutableList(): MutableList<Char> {
     return toCollection(ArrayList<Char>(length))
 }
@@ -822,6 +825,7 @@ public fun CharSequence.toMutableList(): MutableList<Char> {
  * 
  * The returned set preserves the element iteration order of the original char sequence.
  */
+@CompileTimeCalculation
 public fun CharSequence.toSet(): Set<Char> {
     return when (length) {
         0 -> emptySet()
