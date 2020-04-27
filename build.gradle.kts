@@ -650,8 +650,8 @@ tasks {
     }
 
     register("wasmCompilerTest") {
-//  TODO: fix once
-//        dependsOn(":js:js.tests:wasmTest")
+        dependsOn(":js:js.tests:wasmTest")
+        dependsOn(":wasm:ir:test")
     }
 
     register("nativeCompilerTest") {
