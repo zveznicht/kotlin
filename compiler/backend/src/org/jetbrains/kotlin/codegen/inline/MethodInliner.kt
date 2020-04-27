@@ -502,13 +502,28 @@ class MethodInliner(
     private fun markPlacesForInlineAndRemoveInlinable(
         node: MethodNode, returnLabelOwner: ReturnLabelOwner, finallyDeepShift: Int
     ): MethodNode {
-        val processingNode = prepareNode(node, finallyDeepShift)
+        //copy node
+        node.instructions.resetLabels()
+        var processingNode = MethodNode(node.access, node.name, node.desc, node.signature, node.exceptions?.toTypedArray())
+        node.accept(processingNode)
 
-        preprocessNodeBeforeInline(processingNode, returnLabelOwner)
+        processingNode = prepareNode(processingNode, finallyDeepShift)
 
-        replaceContinuationAccessesWithFakeContinuationsIfNeeded(processingNode)
+        try {
+            FixStackWithLabelNormalizationMethodTransformer().transform("fake", node)
+        } catch (e: Throwable) {
+            throw wrapException(e, node, "couldn't inline method call")
+        }
+
+        if (shouldPreprocessApiVersionCalls) {
+            val targetApiVersion = inliningContext.state.languageVersionSettings.apiVersion
+            ApiVersionCallsPreprocessingMethodTransformer(targetApiVersion).transform("fake", node)
+        }
 
         val sources = analyzeMethodNodeBeforeInline(processingNode)
+        val continuationAccesses = findContinuationAccessesToReplace(processingNode, sources)
+
+        preprocessNodeBeforeInline(processingNode, returnLabelOwner, sources)
 
         val toDelete = SmartSet.create<AbstractInsnNode>()
         val instructions = processingNode.instructions
@@ -663,6 +678,7 @@ class MethodInliner(
             }
         }
 
+        replaceContinuationsWithFakeOnes(continuationAccesses, processingNode)
         processingNode.remove(toDelete)
 
         //clean dead try/catch blocks
@@ -680,13 +696,15 @@ class MethodInliner(
     //   1) it is passed as the last parameter to suspending function
     //   2) it is ASTORE'd right after
     //   3) it is passed to invoke of lambda
-    private fun replaceContinuationAccessesWithFakeContinuationsIfNeeded(processingNode: MethodNode) {
+    private fun findContinuationAccessesToReplace(
+        processingNode: MethodNode,
+        sources: Array<Frame<SourceValue>?>
+    ): Set<AbstractInsnNode> {
         // in ir backend inline suspend lambdas do not use ALOAD 0 to get continuation, since they are generated as static functions
         // instead they get continuation from parameter.
-        if (inliningContext.state.isIrBackend) return
-        val lambdaInfo = inliningContext.lambdaInfo ?: return
-        if (!lambdaInfo.isSuspend) return
-        val sources = analyzeMethodNodeBeforeInline(processingNode)
+        if (inliningContext.state.isIrBackend) return emptySet()
+        val lambdaInfo = inliningContext.lambdaInfo ?: return emptySet()
+        if (!lambdaInfo.isSuspend) return emptySet()
         val cfg = ControlFlowGraph.build(processingNode)
         val aload0s = processingNode.instructions.asSequence().filter { it.opcode == Opcodes.ALOAD && it.safeAs<VarInsnNode>()?.`var` == 0 }
 
@@ -696,7 +714,7 @@ class MethodInliner(
             val res = hashSetOf<AbstractInsnNode>()
             for (succIndex in cfg.getSuccessorsIndices(insn)) {
                 val succ = processingNode.instructions[succIndex]
-                if (succ.isMeaningful) res.add(succ)
+                if (succ.isMeaningful && !isBeforeInlineMarker(succ)) res.add(succ)
                 else res.addAll(findMeaningfulSuccs(succ))
             }
             return res
@@ -757,7 +775,7 @@ class MethodInliner(
         //     ALOAD 0
         //     INVOKEINTERFACE kotlin/jvm/functions/FunctionN.invoke (...,Ljava/lang/Object;)Ljava/lang/Object;
         toReplace.addAll(aload0s.filter { isLambdaCall(it.next) })
-        replaceContinuationsWithFakeOnes(toReplace, processingNode)
+        return toReplace
     }
 
     private fun isLambdaCall(invoke: AbstractInsnNode?): Boolean {
@@ -787,24 +805,15 @@ class MethodInliner(
         return Type.getArgumentTypes(invoke.desc).let { it.isNotEmpty() && it.last() == languageVersionSettings.continuationAsmType() }
     }
 
-    private fun preprocessNodeBeforeInline(node: MethodNode, returnLabelOwner: ReturnLabelOwner) {
-        try {
-            FixStackWithLabelNormalizationMethodTransformer().transform("fake", node)
-        } catch (e: Throwable) {
-            throw wrapException(e, node, "couldn't inline method call")
-        }
-
-        if (shouldPreprocessApiVersionCalls) {
-            val targetApiVersion = inliningContext.state.languageVersionSettings.apiVersion
-            ApiVersionCallsPreprocessingMethodTransformer(targetApiVersion).transform("fake", node)
-        }
-
-        val frames = analyzeMethodNodeBeforeInline(node)
-
+    private fun preprocessNodeBeforeInline(
+        node: MethodNode,
+        returnLabelOwner: ReturnLabelOwner,
+        sources: Array<Frame<SourceValue>?>
+    ) {
         val localReturnsNormalizer = LocalReturnsNormalizer()
 
         for ((index, insnNode) in node.instructions.toArray().withIndex()) {
-            val frame = frames[index] ?: continue
+            val frame = sources[index] ?: continue
             // Don't care about dead code, it will be eliminated
 
             if (!isReturnOpcode(insnNode.opcode)) continue
