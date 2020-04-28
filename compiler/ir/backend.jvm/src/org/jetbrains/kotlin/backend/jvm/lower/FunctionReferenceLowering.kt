@@ -269,7 +269,7 @@ internal class FunctionReferenceLowering(private val context: JvmBackendContext)
                                     putValueArgument(index++, generateSignature(callableReferenceTarget.symbol))
                                     putValueArgument(
                                         index,
-                                        irInt(if (callableReferenceTarget.parent.let { it is IrClass && it.isFileClass }) 1 else 0)
+                                        irInt(getFunctionReferenceFlags(callableReferenceTarget))
                                     )
                                 }
                             }
@@ -278,6 +278,43 @@ internal class FunctionReferenceLowering(private val context: JvmBackendContext)
                     }
                 }
             }
+
+        private fun getFunctionReferenceFlags(callableReferenceTarget: IrFunction): Int {
+            val isTopLevelBit = if (callableReferenceTarget.parent.let { it is IrClass && it.isFileClass }) 1 else 0
+            val adaptedCallableReferenceFlags = getAdaptedCallableReferenceFlags()
+            return isTopLevelBit + (adaptedCallableReferenceFlags shl 1)
+        }
+
+        private fun getAdaptedCallableReferenceFlags(): Int {
+            val adaptedFunction = adaptedReferenceOriginalTarget
+                ?: return 0
+
+            val isVarargMappedToElementBit = if (hasVarargMappedToElement()) 1 else 0
+            val isSuspendConvertedBit = if (!adaptedFunction.isSuspend && callee.isSuspend) 1 else 0
+            val isCoercedToUnitBit = if (!adaptedFunction.returnType.isUnit() && callee.returnType.isUnit()) 1 else 0
+
+            return isVarargMappedToElementBit +
+                    (isSuspendConvertedBit shl 1) +
+                    (isCoercedToUnitBit shl 2)
+        }
+
+        private fun hasVarargMappedToElement(): Boolean {
+            val adapteeCall = when (val adapterBodyStatement = callee.body!!.statements.single()) {
+                is IrFunctionAccessExpression -> adapterBodyStatement
+                is IrTypeOperatorCall -> adapterBodyStatement.argument as IrFunctionAccessExpression
+                is IrReturn -> adapterBodyStatement.value as IrFunctionAccessExpression
+                else -> throw AssertionError("Unexpected adapter function body:\n${callee.dump()}")
+            }
+
+            for (i in 0 until adapteeCall.valueArgumentsCount) {
+                val arg = adapteeCall.getValueArgument(i) ?: continue
+                if (arg !is IrVararg) continue
+                for (varargElement in arg.elements) {
+                    if (varargElement is IrGetValue) return true
+                }
+            }
+            return false
+        }
 
         private fun createInvokeMethod(receiverVar: IrValueDeclaration?): IrSimpleFunction =
             functionReferenceClass.addFunction {
