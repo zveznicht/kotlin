@@ -124,24 +124,33 @@ internal class FunctionReferenceLowering(private val context: JvmBackendContext)
         private val useOptimizedSuperClass =
             context.state.generateOptimizedCallableReferenceSuperClasses
 
-        private val adaptedReferenceOriginalTarget = if (callee.origin == IrDeclarationOrigin.ADAPTER_FOR_CALLABLE_REFERENCE) {
-            // The body of a callable reference adapter contains either only a call, or an IMPLICIT_COERCION_TO_UNIT type operator
-            // applied to a call. That call's target is the original function which we need to get owner/name/signature.
-            val call = when (val statement = callee.body!!.statements.single()) {
-                is IrTypeOperatorCall -> {
-                    assert(statement.operator == IrTypeOperator.IMPLICIT_COERCION_TO_UNIT) {
-                        "Unexpected type operator in ADAPTER_FOR_CALLABLE_REFERENCE: ${callee.render()}"
+        private val adaptedReferenceOriginalTarget: IrFunction?
+        private val adapteeCall: IrFunctionAccessExpression?
+
+        init {
+            if (callee.origin == IrDeclarationOrigin.ADAPTER_FOR_CALLABLE_REFERENCE) {
+                // The body of a callable reference adapter contains either only a call, or an IMPLICIT_COERCION_TO_UNIT type operator
+                // applied to a call. That call's target is the original function which we need to get owner/name/signature.
+                val call = when (val statement = callee.body!!.statements.single()) {
+                    is IrTypeOperatorCall -> {
+                        assert(statement.operator == IrTypeOperator.IMPLICIT_COERCION_TO_UNIT) {
+                            "Unexpected type operator in ADAPTER_FOR_CALLABLE_REFERENCE: ${callee.render()}"
+                        }
+                        statement.argument
                     }
-                    statement.argument
+                    is IrReturn -> statement.value
+                    else -> statement
                 }
-                is IrReturn -> statement.value
-                else -> statement
+                if (call !is IrFunctionAccessExpression) {
+                    throw UnsupportedOperationException("Unknown structure of ADAPTER_FOR_CALLABLE_REFERENCE: ${callee.render()}")
+                }
+                adapteeCall = call as IrFunctionAccessExpression
+                adaptedReferenceOriginalTarget = call.symbol.owner
+            } else {
+                adapteeCall = null
+                adaptedReferenceOriginalTarget = null
             }
-            if (call !is IrFunctionAccessExpression) {
-                throw UnsupportedOperationException("Unknown structure of ADAPTER_FOR_CALLABLE_REFERENCE: ${callee.render()}")
-            }
-            call.symbol.owner
-        } else null
+        }
 
         private val superType =
             samSuperType ?: when {
@@ -286,12 +295,11 @@ internal class FunctionReferenceLowering(private val context: JvmBackendContext)
         }
 
         private fun getAdaptedCallableReferenceFlags(): Int {
-            val adaptedFunction = adaptedReferenceOriginalTarget
-                ?: return 0
+            if (adaptedReferenceOriginalTarget == null) return 0
 
             val isVarargMappedToElementBit = if (hasVarargMappedToElement()) 1 else 0
-            val isSuspendConvertedBit = if (!adaptedFunction.isSuspend && callee.isSuspend) 1 else 0
-            val isCoercedToUnitBit = if (!adaptedFunction.returnType.isUnit() && callee.returnType.isUnit()) 1 else 0
+            val isSuspendConvertedBit = if (!adaptedReferenceOriginalTarget.isSuspend && callee.isSuspend) 1 else 0
+            val isCoercedToUnitBit = if (!adaptedReferenceOriginalTarget.returnType.isUnit() && callee.returnType.isUnit()) 1 else 0
 
             return isVarargMappedToElementBit +
                     (isSuspendConvertedBit shl 1) +
@@ -299,13 +307,7 @@ internal class FunctionReferenceLowering(private val context: JvmBackendContext)
         }
 
         private fun hasVarargMappedToElement(): Boolean {
-            val adapteeCall = when (val adapterBodyStatement = callee.body!!.statements.single()) {
-                is IrFunctionAccessExpression -> adapterBodyStatement
-                is IrTypeOperatorCall -> adapterBodyStatement.argument as IrFunctionAccessExpression
-                is IrReturn -> adapterBodyStatement.value as IrFunctionAccessExpression
-                else -> throw AssertionError("Unexpected adapter function body:\n${callee.dump()}")
-            }
-
+            if (adapteeCall == null) return false
             for (i in 0 until adapteeCall.valueArgumentsCount) {
                 val arg = adapteeCall.getValueArgument(i) ?: continue
                 if (arg !is IrVararg) continue
