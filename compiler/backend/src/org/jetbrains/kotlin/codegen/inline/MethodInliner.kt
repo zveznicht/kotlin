@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.codegen.optimization.ApiVersionCallsPreprocessingMet
 import org.jetbrains.kotlin.codegen.optimization.FixStackWithLabelNormalizationMethodTransformer
 import org.jetbrains.kotlin.codegen.optimization.common.*
 import org.jetbrains.kotlin.codegen.optimization.fixStack.peek
-import org.jetbrains.kotlin.codegen.optimization.fixStack.top
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
@@ -499,31 +498,30 @@ class MethodInliner(
         return transformedNode
     }
 
-    private fun markPlacesForInlineAndRemoveInlinable(
-        node: MethodNode, returnLabelOwner: ReturnLabelOwner, finallyDeepShift: Int
-    ): MethodNode {
-        //copy node
-        node.instructions.resetLabels()
-        var processingNode = MethodNode(node.access, node.name, node.desc, node.signature, node.exceptions?.toTypedArray())
-        node.accept(processingNode)
-
-        processingNode = prepareNode(processingNode, finallyDeepShift)
-
+    private fun normalizeStack(processingNode: MethodNode) {
         try {
-            FixStackWithLabelNormalizationMethodTransformer().transform("fake", node)
+            FixStackWithLabelNormalizationMethodTransformer().transform("fake", processingNode)
         } catch (e: Throwable) {
-            throw wrapException(e, node, "couldn't inline method call")
+            throw wrapException(e, processingNode, "couldn't inline method call")
         }
 
         if (shouldPreprocessApiVersionCalls) {
             val targetApiVersion = inliningContext.state.languageVersionSettings.apiVersion
-            ApiVersionCallsPreprocessingMethodTransformer(targetApiVersion).transform("fake", node)
+            ApiVersionCallsPreprocessingMethodTransformer(targetApiVersion).transform("fake", processingNode)
         }
+    }
+
+    private fun markPlacesForInlineAndRemoveInlinable(
+        node: MethodNode, returnLabelOwner: ReturnLabelOwner, finallyDeepShift: Int
+    ): MethodNode {
+        val processingNode = prepareNode(node, finallyDeepShift)
+
+        normalizeStack(processingNode)
 
         val sources = analyzeMethodNodeBeforeInline(processingNode)
-        val continuationAccesses = findContinuationAccessesToReplace(processingNode, sources)
 
-        preprocessNodeBeforeInline(processingNode, returnLabelOwner, sources)
+        val continuationAccesses = findContinuationAccessesToReplace(processingNode, sources)
+        val localReturnsNormalizer = preprocessNodeBeforeInline(processingNode, returnLabelOwner, sources)
 
         val toDelete = SmartSet.create<AbstractInsnNode>()
         val instructions = processingNode.instructions
@@ -626,18 +624,6 @@ class MethodInliner(
                         }
                     }
 
-                    cur.opcode == Opcodes.POP -> getFunctionalArgumentIfExistsAndMarkInstructions(
-                        frame.top()!!,
-                        true,
-                        instructions,
-                        sources,
-                        toDelete
-                    )?.let {
-                        if (it is LambdaInfo) {
-                            toDelete.add(cur)
-                        }
-                    }
-
                     cur.opcode == Opcodes.PUTFIELD -> {
                         //Recognize next contract's pattern in inline lambda
                         //  ALOAD 0
@@ -676,6 +662,14 @@ class MethodInliner(
                     toDelete.add(cur)
                 }
             }
+        }
+
+        val poppedInsns = localReturnsNormalizer.transform(processingNode)
+
+        // LocalReturnsNormalizer might add some POPs of functional arguments, which should be deleted.
+        for ((source, pop) in poppedInsns) {
+            getFunctionalArgumentIfExistsAndMarkInstructions(source, true, instructions, sources, toDelete)
+                ?.let { toDelete.add(pop) }
         }
 
         replaceContinuationsWithFakeOnes(continuationAccesses, processingNode)
@@ -797,19 +791,11 @@ class MethodInliner(
         }
     }
 
-    private fun isSuspendCall(invoke: AbstractInsnNode?): Boolean {
-        if (invoke !is MethodInsnNode) return false
-        // We can't have suspending constructors.
-        assert(invoke.opcode != Opcodes.INVOKESPECIAL)
-        if (Type.getReturnType(invoke.desc) != OBJECT_TYPE) return false
-        return Type.getArgumentTypes(invoke.desc).let { it.isNotEmpty() && it.last() == languageVersionSettings.continuationAsmType() }
-    }
-
     private fun preprocessNodeBeforeInline(
         node: MethodNode,
         returnLabelOwner: ReturnLabelOwner,
         sources: Array<Frame<SourceValue>?>
-    ) {
+    ): LocalReturnsNormalizer {
         val localReturnsNormalizer = LocalReturnsNormalizer()
 
         for ((index, insnNode) in node.instructions.toArray().withIndex()) {
@@ -830,7 +816,7 @@ class MethodInliner(
             localReturnsNormalizer.addLocalReturnToTransform(insnNode, insertBeforeInsn, frame)
         }
 
-        localReturnsNormalizer.transform(node)
+        return localReturnsNormalizer
     }
 
     private fun isAnonymousClassThatMustBeRegenerated(type: Type?): Boolean {
@@ -976,12 +962,14 @@ class MethodInliner(
             private val frame: Frame<SourceValue>
         ) {
 
-            fun transform(insnList: InsnList, returnVariableIndex: Int) {
+            fun transform(insnList: InsnList, returnVariableIndex: Int): List<Pair<SourceValue, AbstractInsnNode>> {
                 val isReturnWithValue = returnInsn.opcode != Opcodes.RETURN
 
                 val expectedStackSize = if (isReturnWithValue) 1 else 0
                 val actualStackSize = frame.stackSize
-                if (expectedStackSize == actualStackSize) return
+                if (expectedStackSize == actualStackSize) return emptyList()
+
+                val poppedInsns = arrayListOf<Pair<SourceValue, AbstractInsnNode>>()
 
                 var stackSize = actualStackSize
                 if (isReturnWithValue) {
@@ -991,9 +979,12 @@ class MethodInliner(
                 }
 
                 while (stackSize > 0) {
-                    val stackElementSize = frame.getStack(stackSize - 1).getSize()
+                    val sourceValue = frame.getStack(stackSize - 1)
+                    val stackElementSize = sourceValue.getSize()
                     val popOpcode = if (stackElementSize == 1) Opcodes.POP else Opcodes.POP2
-                    insnList.insertBefore(insertBeforeInsn, InsnNode(popOpcode))
+                    val pop = InsnNode(popOpcode)
+                    poppedInsns.add(sourceValue to pop)
+                    insnList.insertBefore(insertBeforeInsn, pop)
                     stackSize--
                 }
 
@@ -1001,6 +992,7 @@ class MethodInliner(
                     val loadOpcode = Opcodes.ILOAD + returnInsn.opcode - Opcodes.IRETURN
                     insnList.insertBefore(insertBeforeInsn, VarInsnNode(loadOpcode, returnVariableIndex))
                 }
+                return poppedInsns
             }
         }
 
@@ -1029,16 +1021,14 @@ class MethodInliner(
             }
         }
 
-        fun transform(methodNode: MethodNode) {
+        fun transform(methodNode: MethodNode): List<Pair<SourceValue, AbstractInsnNode>> {
             var returnVariableIndex = -1
             if (returnVariableSize > 0) {
                 returnVariableIndex = methodNode.maxLocals
                 methodNode.maxLocals += returnVariableSize
             }
 
-            for (localReturn in localReturns) {
-                localReturn.transform(methodNode.instructions, returnVariableIndex)
-            }
+            return localReturns.flatMap { it.transform(methodNode.instructions, returnVariableIndex) }
         }
     }
 
