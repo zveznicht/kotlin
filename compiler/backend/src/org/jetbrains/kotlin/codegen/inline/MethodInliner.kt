@@ -519,6 +519,10 @@ class MethodInliner(
 
         transformApiVersionCallsAndNormalizeStack(processingNode)
 
+        // As an optimization, the method node is analyzed for sources once, since all the transformation do not depend on each other,
+        // which means, that the transformations are postponed until all the data, required by these transformation, is collected.
+        // I.e. do not remove/replace/add instructions until the very end.
+
         val sources = analyzeMethodNodeBeforeInline(processingNode)
 
         val continuationAccesses = findContinuationAccessesToReplace(processingNode, sources)
@@ -530,7 +534,7 @@ class MethodInliner(
         var awaitClassReification = false
         var currentFinallyDeep = 0
 
-        val poppedFunctionalArguments = arrayListOf<Pair<SourceValue, AbstractInsnNode>>()
+        val poppedValues = arrayListOf<Pair<SourceValue, AbstractInsnNode>>()
 
         InsnSequence(instructions).forEach { cur ->
             val frame = sources[instructions.indexOf(cur)]
@@ -627,7 +631,7 @@ class MethodInliner(
                         }
                     }
 
-                    cur.opcode == Opcodes.POP -> poppedFunctionalArguments.add(frame.top()!! to cur)
+                    cur.opcode == Opcodes.POP -> poppedValues.add(frame.top()!! to cur)
 
                     cur.opcode == Opcodes.PUTFIELD -> {
                         //Recognize next contract's pattern in inline lambda
@@ -678,7 +682,7 @@ class MethodInliner(
         val poppedInsns = localReturnsNormalizer.transform(processingNode)
 
         // LocalReturnsNormalizer might add some POPs of functional arguments, which should be deleted.
-        for ((source, pop) in poppedInsns + poppedFunctionalArguments) {
+        for ((source, pop) in poppedInsns + poppedValues) {
             getFunctionalArgumentIfExistsAndMarkInstructions(source, true, instructions, sources, toDelete)?.let {
                 if (it is LambdaInfo) {
                     toDelete.add(pop)
