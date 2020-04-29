@@ -530,6 +530,8 @@ class MethodInliner(
         var awaitClassReification = false
         var currentFinallyDeep = 0
 
+        val poppedFunctionalArguments = arrayListOf<Pair<SourceValue, AbstractInsnNode>>()
+
         InsnSequence(instructions).forEach { cur ->
             val frame = sources[instructions.indexOf(cur)]
 
@@ -625,17 +627,7 @@ class MethodInliner(
                         }
                     }
 
-                    cur.opcode == Opcodes.POP -> getFunctionalArgumentIfExistsAndMarkInstructions(
-                        frame.top()!!,
-                        true,
-                        instructions,
-                        sources,
-                        toDelete
-                    )?.let {
-                        if (it is LambdaInfo) {
-                            toDelete.add(cur)
-                        }
-                    }
+                    cur.opcode == Opcodes.POP -> poppedFunctionalArguments.add(frame.top()!! to cur)
 
                     cur.opcode == Opcodes.PUTFIELD -> {
                         //Recognize next contract's pattern in inline lambda
@@ -686,7 +678,7 @@ class MethodInliner(
         val poppedInsns = localReturnsNormalizer.transform(processingNode)
 
         // LocalReturnsNormalizer might add some POPs of functional arguments, which should be deleted.
-        for ((source, pop) in poppedInsns) {
+        for ((source, pop) in poppedInsns + poppedFunctionalArguments) {
             getFunctionalArgumentIfExistsAndMarkInstructions(source, true, instructions, sources, toDelete)?.let {
                 if (it is LambdaInfo) {
                     toDelete.add(pop)
