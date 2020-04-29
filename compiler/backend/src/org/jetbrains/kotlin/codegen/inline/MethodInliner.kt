@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.codegen.optimization.ApiVersionCallsPreprocessingMet
 import org.jetbrains.kotlin.codegen.optimization.FixStackWithLabelNormalizationMethodTransformer
 import org.jetbrains.kotlin.codegen.optimization.common.*
 import org.jetbrains.kotlin.codegen.optimization.fixStack.peek
+import org.jetbrains.kotlin.codegen.optimization.fixStack.top
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
@@ -498,16 +499,16 @@ class MethodInliner(
         return transformedNode
     }
 
-    private fun normalizeStack(processingNode: MethodNode) {
+    private fun transformApiVersionCallsAndNormalizeStack(processingNode: MethodNode) {
+        if (shouldPreprocessApiVersionCalls) {
+            val targetApiVersion = inliningContext.state.languageVersionSettings.apiVersion
+            ApiVersionCallsPreprocessingMethodTransformer(targetApiVersion).transform("fake", processingNode)
+        }
+
         try {
             FixStackWithLabelNormalizationMethodTransformer().transform("fake", processingNode)
         } catch (e: Throwable) {
             throw wrapException(e, processingNode, "couldn't inline method call")
-        }
-
-        if (shouldPreprocessApiVersionCalls) {
-            val targetApiVersion = inliningContext.state.languageVersionSettings.apiVersion
-            ApiVersionCallsPreprocessingMethodTransformer(targetApiVersion).transform("fake", processingNode)
         }
     }
 
@@ -516,12 +517,12 @@ class MethodInliner(
     ): MethodNode {
         val processingNode = prepareNode(node, finallyDeepShift)
 
-        normalizeStack(processingNode)
+        transformApiVersionCallsAndNormalizeStack(processingNode)
 
         val sources = analyzeMethodNodeBeforeInline(processingNode)
 
         val continuationAccesses = findContinuationAccessesToReplace(processingNode, sources)
-        val localReturnsNormalizer = preprocessNodeBeforeInline(processingNode, returnLabelOwner, sources)
+        val localReturnsNormalizer = normalizeLocalReturns(processingNode, returnLabelOwner, sources)
 
         val toDelete = SmartSet.create<AbstractInsnNode>()
         val instructions = processingNode.instructions
@@ -624,6 +625,18 @@ class MethodInliner(
                         }
                     }
 
+                    cur.opcode == Opcodes.POP -> getFunctionalArgumentIfExistsAndMarkInstructions(
+                        frame.top()!!,
+                        true,
+                        instructions,
+                        sources,
+                        toDelete
+                    )?.let {
+                        if (it is LambdaInfo) {
+                            toDelete.add(cur)
+                        }
+                    }
+
                     cur.opcode == Opcodes.PUTFIELD -> {
                         //Recognize next contract's pattern in inline lambda
                         //  ALOAD 0
@@ -639,7 +652,13 @@ class MethodInliner(
                         ) {
                             val stackTransformations = mutableSetOf<AbstractInsnNode>()
                             val lambdaInfo =
-                                getFunctionalArgumentIfExistsAndMarkInstructions(frame.peek(1)!!, false, instructions, sources, stackTransformations)
+                                getFunctionalArgumentIfExistsAndMarkInstructions(
+                                    frame.peek(1)!!,
+                                    false,
+                                    instructions,
+                                    sources,
+                                    stackTransformations
+                                )
                             if (lambdaInfo is LambdaInfo && stackTransformations.all { it is VarInsnNode }) {
                                 assert(lambdaInfo.lambdaClassType.internalName == nodeRemapper.originalLambdaInternalName) {
                                     "Wrong bytecode template for contract template: ${lambdaInfo.lambdaClassType.internalName} != ${nodeRemapper.originalLambdaInternalName}"
@@ -668,8 +687,11 @@ class MethodInliner(
 
         // LocalReturnsNormalizer might add some POPs of functional arguments, which should be deleted.
         for ((source, pop) in poppedInsns) {
-            getFunctionalArgumentIfExistsAndMarkInstructions(source, true, instructions, sources, toDelete)
-                ?.let { toDelete.add(pop) }
+            getFunctionalArgumentIfExistsAndMarkInstructions(source, true, instructions, sources, toDelete)?.let {
+                if (it is LambdaInfo) {
+                    toDelete.add(pop)
+                }
+            }
         }
 
         replaceContinuationsWithFakeOnes(continuationAccesses, processingNode)
@@ -708,7 +730,7 @@ class MethodInliner(
             val res = hashSetOf<AbstractInsnNode>()
             for (succIndex in cfg.getSuccessorsIndices(insn)) {
                 val succ = processingNode.instructions[succIndex]
-                if (succ.isMeaningful && !isBeforeInlineMarker(succ)) res.add(succ)
+                if (succ.isMeaningful) res.add(succ)
                 else res.addAll(findMeaningfulSuccs(succ))
             }
             return res
@@ -791,7 +813,7 @@ class MethodInliner(
         }
     }
 
-    private fun preprocessNodeBeforeInline(
+    private fun normalizeLocalReturns(
         node: MethodNode,
         returnLabelOwner: ReturnLabelOwner,
         sources: Array<Frame<SourceValue>?>
