@@ -237,11 +237,13 @@ object NewCommonSuperTypeCalculator {
         contextStubTypesEqualToAnything: AbstractTypeCheckerContext
     ): List<TypeConstructorMarker> {
         val result = collectAllSupertypes(types.first(), contextStubTypesEqualToAnything)
+        // retain all super constructors of the first type that are present in the supertypes of all other types
         for (type in types) {
             if (type === types.first()) continue
 
             result.retainAll(collectAllSupertypes(type, contextStubTypesEqualToAnything))
         }
+        // remove all constructors that have subtype(s) with constructors from the resulting set - they are less precise  
         return result.filterNot { target ->
             result.any { other ->
                 other != target && other.supertypes().any { it.typeConstructor() == target }
@@ -323,7 +325,7 @@ object NewCommonSuperTypeCalculator {
             }
 
             val argument =
-                if (thereIsStar || typeProjections.isEmpty()) {
+                if (thereIsStar || typeProjections.isEmpty() || checkRecursion(types, typeProjections, parameter)) {
                     createStarProjection(parameter)
                 } else {
                     collapseRecursiveArgumentIfPossible(calculateArgument(parameter, typeProjections, depth))
@@ -340,6 +342,23 @@ object NewCommonSuperTypeCalculator {
 
         return capturedType.typeConstructor().projection()
     }
+    
+    private fun TypeSystemCommonSuperTypesContext.checkRecursion(
+        originalTypesForCST: List<SimpleTypeMarker>,
+        projectionsForSingleSuperConstructorTypeParameter: List<TypeArgumentMarker>,
+        parameter: TypeParameterMarker,
+    ): Boolean {
+        if (parameter.getVariance() == TypeVariance.IN) 
+            return false // arguments for contravariant parameters are intersected, recursion should not be possible
+        
+        val originalTypesSet = originalTypesForCST.toSet() 
+        val projectionTypes = projectionsForSingleSuperConstructorTypeParameter.map { it.getType().lowerBoundIfFlexible() }
+        for (type in projectionTypes) {
+            if (originalTypesSet.contains(type))
+                return true
+        }
+        return false
+    }
 
     // no star projections in arguments
     private fun TypeSystemCommonSuperTypesContext.calculateArgument(
@@ -347,7 +366,7 @@ object NewCommonSuperTypeCalculator {
         arguments: List<TypeArgumentMarker>,
         depth: Int
     ): TypeArgumentMarker {
-        if (depth >= 0) {
+        if (depth > 0) {
             return createStarProjection(parameter)
         }
 
@@ -377,6 +396,7 @@ object NewCommonSuperTypeCalculator {
 
         // CS(Out<X>, Out<Y>) = Out<CS(X, Y)>
         // CS(In<X>, In<Y>) = In<X & Y>
+        // CS(Inv<X>, Inv<Y>) = Inv<out CS(X, Y)>)
         if (asOut) {
             val argumentTypes = arguments.map { it.getType() }
             val parameterIsNotInv = parameter.getVariance() != TypeVariance.INV
