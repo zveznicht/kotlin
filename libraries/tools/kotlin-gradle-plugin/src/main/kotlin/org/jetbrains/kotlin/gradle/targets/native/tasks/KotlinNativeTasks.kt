@@ -254,16 +254,16 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
             ?.konanTargets
             ?.joinToString(separator = " ") { it.visibleName }
 
-    private fun createManifestWithExplicitTargets(): File {
-        require(compilation is KotlinSharedNativeCompilation) { "Should be called only for shared-native compilations" }
-        val inputManifestFile = project.buildDir.resolve("tmp/$name/inputManifest").also { it.ensureParentDirsCreated() }
+    @get:Input
+    @get:Optional
+    internal val manifestFile: Provider<File?>
+        get() = project.provider {
+            if (compilation !is KotlinSharedNativeCompilation) return@provider null
+            val inputManifestFile = project.buildDir.resolve("tmp/$name/inputManifest")
 
-        val properties = java.util.Properties()
-        properties[KLIB_PROPERTY_NATIVE_TARGETS] = konanTargetsForManifest!!
-        properties.saveToFile(org.jetbrains.kotlin.konan.file.File(inputManifestFile.toPath()))
 
-        return inputManifestFile
-    }
+            inputManifestFile
+        }
 
     // Args passed to the compiler only (except sources).
     protected open fun buildCompilerArgs(): List<String> = mutableListOf<String>().apply {
@@ -277,9 +277,7 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
         if (compilation is KotlinSharedNativeCompilation) {
             add("-Xexpect-actual-linker")
             add("-Xmetadata-klib")
-
-
-            addArg("-manifest", createManifestWithExplicitTargets().absolutePath)
+            add("-manifest=${manifestFile.get()!!.absolutePath}")
         }
 
         addArg("-o", outputFile.get().absolutePath)
@@ -301,6 +299,16 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
     open fun compile() {
         val output = outputFile.get()
         output.parentFile.mkdirs()
+
+        val manifestFileIfAny: File? = manifestFile.get()
+        if (manifestFileIfAny != null) {
+            manifestFileIfAny.ensureParentDirsCreated()
+            val properties = java.util.Properties()
+            properties[KLIB_PROPERTY_NATIVE_TARGETS] = konanTargetsForManifest!!
+            properties.saveToFile(org.jetbrains.kotlin.konan.file.File(manifestFileIfAny.toPath()))
+        }
+
+
         KotlinNativeCompilerRunner(project).run(buildArgs())
     }
 }
