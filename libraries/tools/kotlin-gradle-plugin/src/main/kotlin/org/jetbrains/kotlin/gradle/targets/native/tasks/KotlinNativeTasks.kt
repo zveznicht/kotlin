@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonToolOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
 import org.jetbrains.kotlin.gradle.dsl.NativeCacheKind
+import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 import org.jetbrains.kotlin.gradle.plugin.LanguageSettingsBuilder
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.asValidFrameworkName
 import org.jetbrains.kotlin.gradle.plugin.mpp.*
@@ -28,6 +29,7 @@ import org.jetbrains.kotlin.gradle.plugin.sources.DefaultLanguageSettingsBuilder
 import org.jetbrains.kotlin.gradle.utils.getValue
 import org.jetbrains.kotlin.gradle.utils.klibModuleName
 import org.jetbrains.kotlin.konan.library.KLIB_INTEROP_IR_PROVIDER_IDENTIFIER
+import org.jetbrains.kotlin.konan.properties.saveToFile
 import org.jetbrains.kotlin.konan.target.CompilerOutputKind
 import org.jetbrains.kotlin.konan.target.CompilerOutputKind.*
 import org.jetbrains.kotlin.konan.target.KonanTarget
@@ -252,6 +254,18 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
             ?.konanTargets
             ?.joinToString(separator = " ") { it.visibleName }
 
+    internal val manifestFile: Provider<File>? = project.provider {
+        if (compilation !is KotlinSharedNativeCompilation) return@provider null
+
+        val inputManifestFile = project.buildDir.resolve("tmp/$name/inputManifest").also { it.ensureParentDirsCreated() }
+
+        val properties = java.util.Properties()
+        properties[KLIB_PROPERTY_NATIVE_TARGETS] = konanTargetsForManifest
+        properties.saveToFile(org.jetbrains.kotlin.konan.file.File(inputManifestFile.toPath()))
+
+        inputManifestFile
+    }
+
     // Args passed to the compiler only (except sources).
     protected open fun buildCompilerArgs(): List<String> = mutableListOf<String>().apply {
         addKey("-opt", optimized)
@@ -264,7 +278,7 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
         if (compilation is KotlinSharedNativeCompilation) {
             add("-Xexpect-actual-linker")
             add("-Xmetadata-klib")
-            add("-Xmanifest-targets=$konanTargetsForManifest")
+            add("-manifest=${manifestFile!!.get().absolutePath}")
         }
 
         addArg("-o", outputFile.get().absolutePath)
