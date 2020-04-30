@@ -257,6 +257,11 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
         if (compilation is KotlinSharedNativeCompilation) {
             add("-Xexpect-actual-linker")
             add("-Xmetadata-klib")
+
+            val konanTargetsForManifest = (compilation as KotlinSharedNativeCompilation)
+                .konanTargets
+                .joinToString(separator = " ") { it.visibleName }
+            add("-Xmanifest-targets=$konanTargetsForManifest")
         }
 
         addArg("-o", outputFile.get().absolutePath)
