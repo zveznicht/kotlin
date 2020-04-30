@@ -162,9 +162,10 @@ class CheckIrElementVisitor(
         // TODO: We don't have the proper type substitution yet, so skip generics for now.
         if (returnType is IrSimpleType &&
             returnType.classifier is IrClassSymbol &&
-            returnType.arguments.isEmpty()
+            returnType.arguments.isEmpty() &&
+            // TODO: This is a hack to skip the IR generated in KotlinNothingValueExceptionLowering.
+            !(returnType.isNothing() && expression.type.isUnit())
         ) {
-
             expression.ensureTypeIs(returnType)
         }
 
