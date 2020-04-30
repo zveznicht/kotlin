@@ -245,6 +245,13 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
         }
     }
 
+    @get:Input
+    @get:Optional
+    internal val konanTargetsForManifest: String?
+        get() = (compilation as? KotlinSharedNativeCompilation)
+            ?.konanTargets
+            ?.joinToString(separator = " ") { it.visibleName }
+
     // Args passed to the compiler only (except sources).
     protected open fun buildCompilerArgs(): List<String> = mutableListOf<String>().apply {
         addKey("-opt", optimized)
@@ -257,10 +264,6 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
         if (compilation is KotlinSharedNativeCompilation) {
             add("-Xexpect-actual-linker")
             add("-Xmetadata-klib")
-
-            val konanTargetsForManifest = (compilation as KotlinSharedNativeCompilation)
-                .konanTargets
-                .joinToString(separator = " ") { it.visibleName }
             add("-Xmanifest-targets=$konanTargetsForManifest")
         }
 
