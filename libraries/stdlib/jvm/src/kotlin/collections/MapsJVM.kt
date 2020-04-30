@@ -5,15 +5,18 @@
 
 @file:kotlin.jvm.JvmMultifileClass
 @file:kotlin.jvm.JvmName("MapsKt")
+@file:OptIn(kotlin.experimental.ExperimentalTypeInference::class)
 
 package kotlin.collections
 
 import java.util.Comparator
-import java.util.LinkedHashMap
 import java.util.Properties
 import java.util.SortedMap
 import java.util.TreeMap
 import java.util.concurrent.ConcurrentMap
+import kotlin.collections.builders.MapBuilder
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 
 /**
@@ -25,6 +28,48 @@ import java.util.concurrent.ConcurrentMap
  * @sample samples.collections.Maps.Instantiation.mapFromPairs
  */
 public fun <K, V> mapOf(pair: Pair<K, V>): Map<K, V> = java.util.Collections.singletonMap(pair.first, pair.second)
+
+/**
+ * Builds a new read-only [Map] by populating a [MutableMap] using the given [builderAction]
+ * and returning a read-only map with the same key-value pairs.
+ *
+ * The map passed as a receiver to the [builderAction] is valid only inside that function.
+ * Using it outside of the function produces an unspecified behavior.
+ *
+ * Entries of the map are iterated in the order they were added by the [builderAction].
+ *
+ * @sample samples.collections.Builders.Maps.buildMapSample
+ */
+@SinceKotlin("1.3")
+@ExperimentalStdlibApi
+@kotlin.internal.InlineOnly
+public actual inline fun <K, V> buildMap(@BuilderInference builderAction: MutableMap<K, V>.() -> Unit): Map<K, V> {
+    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
+    return MapBuilder<K, V>().apply(builderAction).build()
+}
+
+/**
+ * Builds a new read-only [Map] by populating a [MutableMap] using the given [builderAction]
+ * and returning a read-only map with the same key-value pairs.
+ *
+ * The map passed as a receiver to the [builderAction] is valid only inside that function.
+ * Using it outside of the function produces an unspecified behavior.
+ *
+ * [capacity] is used to hint the expected number of pairs added in the [builderAction].
+ *
+ * Entries of the map are iterated in the order they were added by the [builderAction].
+ *
+ * @throws IllegalArgumentException if the given [capacity] is negative.
+ *
+ * @sample samples.collections.Builders.Maps.buildMapSample
+ */
+@SinceKotlin("1.3")
+@ExperimentalStdlibApi
+@kotlin.internal.InlineOnly
+public actual inline fun <K, V> buildMap(capacity: Int, @BuilderInference builderAction: MutableMap<K, V>.() -> Unit): Map<K, V> {
+    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
+    return MapBuilder<K, V>(capacity).apply(builderAction).build()
+}
 
 
 /**
@@ -111,13 +156,3 @@ internal actual fun mapCapacity(expectedSize: Int): Int = when {
     else -> Int.MAX_VALUE
 }
 private const val INT_MAX_POWER_OF_TWO: Int = 1 shl (Int.SIZE_BITS - 2)
-
-/**
- * Checks a collection builder function capacity argument.
- * Does nothing, capacity is validated in List/Set/Map constructor
- */
-@SinceKotlin("1.3")
-@ExperimentalStdlibApi
-@PublishedApi
-@kotlin.internal.InlineOnly
-internal actual inline fun checkBuilderCapacity(capacity: Int) {}

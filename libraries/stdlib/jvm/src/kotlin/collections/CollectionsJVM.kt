@@ -5,9 +5,13 @@
 
 @file:kotlin.jvm.JvmMultifileClass
 @file:kotlin.jvm.JvmName("CollectionsKt")
+@file:OptIn(kotlin.experimental.ExperimentalTypeInference::class)
 
 package kotlin.collections
 
+import kotlin.collections.builders.ListBuilder
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.internal.InlineOnly
 import kotlin.internal.apiVersionIsAtLeast
 
@@ -18,6 +22,43 @@ import kotlin.internal.apiVersionIsAtLeast
  */
 public fun <T> listOf(element: T): List<T> = java.util.Collections.singletonList(element)
 
+/**
+ * Builds a new read-only [List] by populating a [MutableList] using the given [builderAction]
+ * and returning a read-only list with the same elements.
+ *
+ * The list passed as a receiver to the [builderAction] is valid only inside that function.
+ * Using it outside of the function produces an unspecified behavior.
+ *
+ * @sample samples.collections.Builders.Lists.buildListSample
+ */
+@SinceKotlin("1.3")
+@ExperimentalStdlibApi
+@kotlin.internal.InlineOnly
+public actual inline fun <E> buildList(@BuilderInference builderAction: MutableList<E>.() -> Unit): List<E> {
+    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
+    return ListBuilder<E>().apply(builderAction).build()
+}
+
+/**
+ * Builds a new read-only [List] by populating a [MutableList] using the given [builderAction]
+ * and returning a read-only list with the same elements.
+ *
+ * The list passed as a receiver to the [builderAction] is valid only inside that function.
+ * Using it outside of the function produces an unspecified behavior.
+ *
+ * [capacity] is used to hint the expected number of elements added in the [builderAction].
+ *
+ * @throws IllegalArgumentException if the given [capacity] is negative.
+ *
+ * @sample samples.collections.Builders.Lists.buildListSample
+ */
+@SinceKotlin("1.3")
+@ExperimentalStdlibApi
+@kotlin.internal.InlineOnly
+public actual inline fun <E> buildList(capacity: Int, @BuilderInference builderAction: MutableList<E>.() -> Unit): List<E> {
+    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
+    return ListBuilder<E>(capacity).apply(builderAction).build()
+}
 
 /**
  * Returns a list containing the elements returned by this enumeration

@@ -11,7 +11,6 @@ package kotlin.collections
 
 import kotlin.contracts.*
 import kotlin.random.Random
-import kotlin.collections.builders.*
 
 internal object EmptyIterator : ListIterator<Nothing> {
     override fun hasNext(): Boolean = false
@@ -167,11 +166,7 @@ public inline fun <T> MutableList(size: Int, init: (index: Int) -> T): MutableLi
  */
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
-@kotlin.internal.InlineOnly
-public inline fun <E> buildList(@BuilderInference builderAction: MutableList<E>.() -> Unit): List<E> {
-    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
-    return ListBuilder<E>().apply(builderAction).build()
-}
+public expect fun <E> buildList(@BuilderInference builderAction: MutableList<E>.() -> Unit): List<E>
 
 /**
  * Builds a new read-only [List] by populating a [MutableList] using the given [builderAction]
@@ -188,11 +183,7 @@ public inline fun <E> buildList(@BuilderInference builderAction: MutableList<E>.
  */
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
-@kotlin.internal.InlineOnly
-public inline fun <E> buildList(capacity: Int, @BuilderInference builderAction: MutableList<E>.() -> Unit): List<E> {
-    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
-    return ListBuilder<E>(capacity).apply(builderAction).build()
-}
+public expect fun <E> buildList(capacity: Int, @BuilderInference builderAction: MutableList<E>.() -> Unit): List<E>
 
 
 /**

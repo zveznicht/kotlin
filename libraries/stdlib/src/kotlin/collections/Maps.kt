@@ -9,7 +9,6 @@
 
 package kotlin.collections
 
-import kotlin.collections.builders.MapBuilder
 import kotlin.contracts.*
 
 private object EmptyMap : Map<Any?, Nothing>, Serializable {
@@ -138,10 +137,7 @@ public fun <K, V> linkedMapOf(vararg pairs: Pair<K, V>): LinkedHashMap<K, V> = p
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
 @kotlin.internal.InlineOnly
-public inline fun <K, V> buildMap(@BuilderInference builderAction: MutableMap<K, V>.() -> Unit): Map<K, V> {
-    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
-    return MapBuilder<K, V>().apply(builderAction).build()
-}
+public expect fun <K, V> buildMap(@BuilderInference builderAction: MutableMap<K, V>.() -> Unit): Map<K, V>
 
 /**
  * Builds a new read-only [Map] by populating a [MutableMap] using the given [builderAction]
@@ -161,24 +157,13 @@ public inline fun <K, V> buildMap(@BuilderInference builderAction: MutableMap<K,
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
 @kotlin.internal.InlineOnly
-public inline fun <K, V> buildMap(capacity: Int, @BuilderInference builderAction: MutableMap<K, V>.() -> Unit): Map<K, V> {
-    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
-    return MapBuilder<K, V>(capacity).apply(builderAction).build()
-}
+public expect fun <K, V> buildMap(capacity: Int, @BuilderInference builderAction: MutableMap<K, V>.() -> Unit): Map<K, V>
 
 /**
  * Calculate the initial capacity of a map.
  */
 @PublishedApi
 internal expect fun mapCapacity(expectedSize: Int): Int
-
-/**
- * Checks a collection builder function capacity argument.
- */
-@SinceKotlin("1.3")
-@ExperimentalStdlibApi
-@PublishedApi
-internal expect fun checkBuilderCapacity(capacity: Int)
 
 /**
  * Returns `true` if this map is not empty.
