@@ -264,7 +264,7 @@ class KotlinMetadataTargetConfigurator(kotlinPluginVersion: String) :
         val compilationFactory: KotlinCompilationFactory<out AbstractKotlinCompilation<*>> = when {
             isNativeSourceSet -> KotlinSharedNativeCompilationFactory(
                 target,
-                platformCompilations.map { (it as KotlinNativeCompilation).konanTarget }
+                platformCompilations.map { (it as AbstractKotlinNativeCompilation).konanTarget }
             )
             else -> KotlinCommonCompilationFactory(target)
         }
