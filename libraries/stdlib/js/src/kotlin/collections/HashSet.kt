@@ -14,7 +14,7 @@ package kotlin.collections
  */
 public actual open class HashSet<E> : AbstractMutableSet<E>, MutableSet<E> {
 
-    private val map: HashMap<E, Any>
+    protected val map: HashMap<E, Any>
 
     /**
      * Constructs a new empty [HashSet].

@@ -3,9 +3,12 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
+@file:OptIn(kotlin.experimental.ExperimentalTypeInference::class)
+
 package kotlin.collections
 
 import kotlin.comparisons.naturalOrder
+import kotlin.contracts.*
 import kotlin.random.Random
 
 /** Returns the array if it's not `null`, or an empty array otherwise. */
@@ -49,10 +52,51 @@ internal actual fun <T> copyToArrayImpl(collection: Collection<*>, array: Array<
     return array
 }
 
+
 /**
  * Returns an immutable list containing only the specified object [element].
  */
 public fun <T> listOf(element: T): List<T> = arrayListOf(element)
+
+/**
+* Builds a new read-only [List] by populating a [MutableList] using the given [builderAction]
+* and returning a read-only list with the same elements.
+*
+* The list passed as a receiver to the [builderAction] is valid only inside that function.
+* Using it outside of the function produces an unspecified behavior.
+*
+* @sample samples.collections.Builders.Lists.buildListSample
+*/
+@SinceKotlin("1.3")
+@ExperimentalStdlibApi
+@kotlin.internal.InlineOnly
+public actual inline fun <E> buildList(@BuilderInference builderAction: MutableList<E>.() -> Unit): List<E> {
+    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
+    return ArrayList<E>().apply(builderAction).build()
+}
+
+/**
+ * Builds a new read-only [List] by populating a [MutableList] using the given [builderAction]
+ * and returning a read-only list with the same elements.
+ *
+ * The list passed as a receiver to the [builderAction] is valid only inside that function.
+ * Using it outside of the function produces an unspecified behavior.
+ *
+ * [capacity] is used to hint the expected number of elements added in the [builderAction].
+ *
+ * @throws IllegalArgumentException if the given [capacity] is negative.
+ *
+ * @sample samples.collections.Builders.Lists.buildListSample
+ */
+@SinceKotlin("1.3")
+@ExperimentalStdlibApi
+@kotlin.internal.InlineOnly
+public actual inline fun <E> buildList(capacity: Int, @BuilderInference builderAction: MutableList<E>.() -> Unit): List<E> {
+    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
+    checkBuilderCapacity(capacity)
+    return ArrayList<E>(capacity).apply(builderAction).build()
+}
+
 
 /**
  * Returns an immutable set containing only the specified object [element].
@@ -60,10 +104,96 @@ public fun <T> listOf(element: T): List<T> = arrayListOf(element)
 public fun <T> setOf(element: T): Set<T> = hashSetOf(element)
 
 /**
+ * Builds a new read-only [Set] by populating a [MutableSet] using the given [builderAction]
+ * and returning a read-only set with the same elements.
+ *
+ * The set passed as a receiver to the [builderAction] is valid only inside that function.
+ * Using it outside of the function produces an unspecified behavior.
+ *
+ * Elements of the set are iterated in the order they were added by the [builderAction].
+ *
+ * @sample samples.collections.Builders.Sets.buildSetSample
+ */
+@SinceKotlin("1.3")
+@ExperimentalStdlibApi
+@kotlin.internal.InlineOnly
+public actual inline fun <E> buildSet(@BuilderInference builderAction: MutableSet<E>.() -> Unit): Set<E> {
+    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
+    return LinkedHashSet<E>().apply(builderAction).build()
+}
+
+/**
+ * Builds a new read-only [Set] by populating a [MutableSet] using the given [builderAction]
+ * and returning a read-only set with the same elements.
+ *
+ * The set passed as a receiver to the [builderAction] is valid only inside that function.
+ * Using it outside of the function produces an unspecified behavior.
+ *
+ * [capacity] is used to hint the expected number of elements added in the [builderAction].
+ *
+ * Elements of the set are iterated in the order they were added by the [builderAction].
+ *
+ * @throws IllegalArgumentException if the given [capacity] is negative.
+ *
+ * @sample samples.collections.Builders.Sets.buildSetSample
+ */
+@SinceKotlin("1.3")
+@ExperimentalStdlibApi
+@kotlin.internal.InlineOnly
+public actual inline fun <E> buildSet(capacity: Int, @BuilderInference builderAction: MutableSet<E>.() -> Unit): Set<E> {
+    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
+    return LinkedHashSet<E>(capacity).apply(builderAction).build()
+}
+
+
+/**
  * Returns an immutable map, mapping only the specified key to the
  * specified value.
  */
 public fun <K, V> mapOf(pair: Pair<K, V>): Map<K, V> = hashMapOf(pair)
+
+/**
+ * Builds a new read-only [Map] by populating a [MutableMap] using the given [builderAction]
+ * and returning a read-only map with the same key-value pairs.
+ *
+ * The map passed as a receiver to the [builderAction] is valid only inside that function.
+ * Using it outside of the function produces an unspecified behavior.
+ *
+ * Entries of the map are iterated in the order they were added by the [builderAction].
+ *
+ * @sample samples.collections.Builders.Maps.buildMapSample
+ */
+@SinceKotlin("1.3")
+@ExperimentalStdlibApi
+@kotlin.internal.InlineOnly
+public actual inline fun <K, V> buildMap(@BuilderInference builderAction: MutableMap<K, V>.() -> Unit): Map<K, V> {
+    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
+    return LinkedHashMap<K, V>().apply(builderAction).build()
+}
+
+/**
+ * Builds a new read-only [Map] by populating a [MutableMap] using the given [builderAction]
+ * and returning a read-only map with the same key-value pairs.
+ *
+ * The map passed as a receiver to the [builderAction] is valid only inside that function.
+ * Using it outside of the function produces an unspecified behavior.
+ *
+ * [capacity] is used to hint the expected number of pairs added in the [builderAction].
+ *
+ * Entries of the map are iterated in the order they were added by the [builderAction].
+ *
+ * @throws IllegalArgumentException if the given [capacity] is negative.
+ *
+ * @sample samples.collections.Builders.Maps.buildMapSample
+ */
+@SinceKotlin("1.3")
+@ExperimentalStdlibApi
+@kotlin.internal.InlineOnly
+public actual inline fun <K, V> buildMap(capacity: Int, @BuilderInference builderAction: MutableMap<K, V>.() -> Unit): Map<K, V> {
+    contract { callsInPlace(builderAction, InvocationKind.EXACTLY_ONCE) }
+    return LinkedHashMap<K, V>(capacity).apply(builderAction).build()
+}
+
 
 /**
  * Fills the list with the provided [value].
@@ -196,6 +326,6 @@ internal actual fun mapCapacity(expectedSize: Int) = expectedSize
 @SinceKotlin("1.3")
 @ExperimentalStdlibApi
 @PublishedApi
-internal actual fun checkBuilderCapacity(capacity: Int) {
+internal fun checkBuilderCapacity(capacity: Int) {
     require(capacity >= 0) { "capacity must be non-negative." }
 }

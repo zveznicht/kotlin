@@ -6,35 +6,42 @@ import test.collections.behaviors.setBehavior
 import kotlin.test.*
 
 class ContainerBuilderTest {
-    private fun <E> mutableCollectionOperations(e: E) = listOf<MutableCollection<E>.() -> Unit>(
-        { add(e) },
-        { addAll(listOf(e)) },
-        { remove(e) },
-        { removeAll(listOf(e)) },
-        { retainAll(listOf(e)) },
-        { clear() },
-        { iterator().apply { next() }.remove() }
+    private fun <E> mutableCollectionOperations(e: E) = listOf<Pair<String, MutableCollection<E>.() -> Unit>>(
+        "add(e)"                                to { add(e) },
+        "addAll(listOf(e))"                     to { addAll(listOf(e)) },
+        "remove(e)"                             to { remove(e) },
+        "removeAll(listOf(e))"                  to { removeAll(listOf(e)) },
+        "retainAll(listOf(e))"                  to { retainAll(listOf(e)) },
+        "clear()"                               to { clear() },
+        "iterator().apply { next() }.remove()"  to { iterator().apply { next() }.remove() }
     )
 
-    private fun <E> mutableListOperations(e: E) = mutableCollectionOperations(e) + listOf<MutableList<E>.() -> Unit>(
-        { add(0, e) },
-        { addAll(0, listOf(e)) },
-        { removeAt(0) },
-        { set(0, e) },
-        { listIterator().apply { next() }.remove() },
-        { listIterator(0).apply { next() }.remove() },
-        { listIterator().add(e) }
+    private fun <E> mutableListOperations(e: E) = mutableCollectionOperations(e) + listOf<Pair<String, MutableList<E>.() -> Unit>>(
+        "add(0, e)"                                 to { add(0, e) },
+        "addAll(0, listOf(e))"                      to { addAll(0, listOf(e)) },
+        "removeAt(0)"                               to { removeAt(0) },
+        "set(0, e)"                                 to { set(0, e) },
+        "listIterator().apply { next() }.remove()"  to { listIterator().apply { next() }.remove() },
+        "listIterator(0).apply { next() }.remove()" to { listIterator(0).apply { next() }.remove() },
+        "listIterator().apply { next() }.set(e)"    to { listIterator().apply { next() }.set(e) },
+        "listIterator().add(e)"                     to { listIterator().add(e) }
     )
 
-    private fun <E> mutableSetOperations(e: E): List<MutableSet<E>.() -> Unit> = mutableCollectionOperations(e)
+    private fun <E> mutableSetOperations(e: E): List<Pair<String, MutableSet<E>.() -> Unit>> = mutableCollectionOperations(e)
 
-    private fun <K, V> mutableMapOperations(k: K, v: V) = listOf<MutableMap<K, V>.() -> Unit>(
-        { put(k, v) },
-        { remove(k) },
-        { putAll(mapOf(k to v)) },
-        { clear() },
-        { entries.first().setValue(v) },
-        { entries.iterator().next().setValue(v) }
+    private fun <K, V> mutableMapOperations(k: K, v: V) = listOf<Pair<String, MutableMap<K, V>.() -> Unit>>(
+        "put(k, v)"                                     to { put(k, v) },
+        "remove(k)"                                     to { remove(k) },
+        "putAll(mapOf(k to v))"                         to { putAll(mapOf(k to v)) },
+        "clear()"                                       to { clear() },
+        "keys.clear()"                                  to { keys.clear() },
+        "keys.iterator().apply { next() }.remove()"     to { keys.iterator().apply { next() }.remove() },
+        "values.clear()"                                to { values.clear() },
+        "values.iterator().apply { next() }.remove()"   to { values.iterator().apply { next() }.remove() },
+        "entries.clear()"                               to { entries.clear() },
+        "entries.iterator().apply { next() }.remove()"  to { entries.iterator().apply { next() }.remove() },
+        "entries.first().setValue(v)"                   to { entries.first().setValue(v) },
+        "entries.iterator().next().setValue(v)"         to { entries.iterator().next().setValue(v) }
     )
 
     @Test
@@ -60,9 +67,9 @@ class ContainerBuilderTest {
         }
 
         assertTrue(y is MutableList<Char>)
-        for (operation in mutableListOperations('a')) {
-            assertFailsWith<UnsupportedOperationException> { y.operation() }
-            assertFailsWith<UnsupportedOperationException> { y.subList(1, 3).operation() }
+        for ((fName, operation) in mutableListOperations('b')) {
+            assertFailsWith<UnsupportedOperationException>(fName) { y.operation() }
+            assertFailsWith<UnsupportedOperationException>(fName) { y.subList(1, 3).operation() }
         }
     }
 
@@ -118,8 +125,8 @@ class ContainerBuilderTest {
         }
 
         assertTrue(y is MutableSet<Char>)
-        for (operation in mutableSetOperations('b')) {
-            assertFailsWith<UnsupportedOperationException> { y.operation() }
+        for ((fName, operation) in mutableSetOperations('b')) {
+            assertFailsWith<UnsupportedOperationException>(fName) { y.operation() }
         }
     }
 
@@ -145,17 +152,17 @@ class ContainerBuilderTest {
         }
 
         assertTrue(y is MutableMap<Char, Int>)
-        for (operation in mutableMapOperations('a', 0)) {
-            assertFailsWith<UnsupportedOperationException> { y.operation() }
+        for ((fName, operation) in mutableMapOperations('a', 0)) {
+            assertFailsWith<UnsupportedOperationException>(fName) { y.operation() }
         }
-        for (operation in mutableSetOperations('a')) {
-            assertFailsWith<UnsupportedOperationException> { y.keys.operation() }
+        for ((fName, operation) in mutableSetOperations('a')) {
+            assertFailsWith<UnsupportedOperationException>(fName) { y.keys.operation() }
         }
-        for (operation in mutableCollectionOperations(1)) {
-            assertFailsWith<UnsupportedOperationException> { y.values.operation() }
+        for ((fName, operation) in mutableCollectionOperations(1)) {
+            assertFailsWith<UnsupportedOperationException>(fName) { y.values.operation() }
         }
-        for (operation in mutableSetOperations(y.entries.first())) {
-            assertFailsWith<UnsupportedOperationException> { y.entries.operation() }
+        for ((fName, operation) in mutableSetOperations(y.entries.first())) {
+            assertFailsWith<UnsupportedOperationException>(fName) { y.entries.operation() }
         }
     }
 }
