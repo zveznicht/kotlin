@@ -254,16 +254,15 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
             ?.konanTargets
             ?.joinToString(separator = " ") { it.visibleName }
 
-    internal val manifestFile: Provider<File>? = project.provider {
-        if (compilation !is KotlinSharedNativeCompilation) return@provider null
-
+    private fun createManifestWithExplicitTargets(): File {
+        require(compilation is KotlinSharedNativeCompilation) { "Should be called only for shared-native compilations" }
         val inputManifestFile = project.buildDir.resolve("tmp/$name/inputManifest").also { it.ensureParentDirsCreated() }
 
         val properties = java.util.Properties()
-        properties[KLIB_PROPERTY_NATIVE_TARGETS] = konanTargetsForManifest
+        properties[KLIB_PROPERTY_NATIVE_TARGETS] = konanTargetsForManifest!!
         properties.saveToFile(org.jetbrains.kotlin.konan.file.File(inputManifestFile.toPath()))
 
-        inputManifestFile
+        return inputManifestFile
     }
 
     // Args passed to the compiler only (except sources).
@@ -278,7 +277,9 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions> : Abstra
         if (compilation is KotlinSharedNativeCompilation) {
             add("-Xexpect-actual-linker")
             add("-Xmetadata-klib")
-            add("-manifest=${manifestFile!!.get().absolutePath}")
+
+
+            addArg("-manifest", createManifestWithExplicitTargets().absolutePath)
         }
 
         addArg("-o", outputFile.get().absolutePath)
