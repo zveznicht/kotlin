@@ -57,7 +57,7 @@ class DescriptorBasedClassCodegen internal constructor(
 
         when (val metadata = irClass.metadata) {
             is MetadataSource.Class -> {
-                val classProto = serializer!!.classProto(metadata.descriptor).build()
+                val classProto = serializer!!.classProto(metadata.descriptor, state.bindingContext).build()
                 writeKotlinMetadata(visitor, state, KotlinClassHeader.Kind.CLASS, extraFlags) {
                     AsmUtil.writeAnnotationData(it, serializer, classProto)
                 }

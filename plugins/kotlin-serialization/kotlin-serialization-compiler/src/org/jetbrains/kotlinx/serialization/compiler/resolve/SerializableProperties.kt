@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.serialization.THE_PLUGIN
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedClassDescriptor
 import org.jetbrains.kotlin.serialization.deserialization.getName
+import org.jetbrains.kotlin.serialization.js.JsSerializerProtocol
 import org.jetbrains.kotlinx.serialization.compiler.diagnostic.SERIALIZABLE_PROPERTIES
 import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationDescriptorPluginForKotlinxSerialization
 import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationPluginMetadataExtensions
@@ -70,6 +71,8 @@ class SerializableProperties(private val serializableClass: ClassDescriptor, val
 
         THE_PLUGIN = SerializationDescriptorPluginForKotlinxSerialization()
         SerializationPluginMetadataExtensions.registerAllExtensions(JvmProtoBufUtil.EXTENSION_REGISTRY) // should not be a problem when this called 100500 times, but still needs rework
+        SerializationPluginMetadataExtensions.registerAllExtensions(JsSerializerProtocol.extensionRegistry) // should not be a problem when this called 100500 times, but still needs rework
+//        SerializationPluginMetadataExtensions.registerAllExtensions(KlibMetadataSerializerProtocol.extensionRegistry) // should not be a problem when this called 100500 times, but still needs rework
     }
 
     val serializableConstructorProperties: List<SerializableProperty> =
