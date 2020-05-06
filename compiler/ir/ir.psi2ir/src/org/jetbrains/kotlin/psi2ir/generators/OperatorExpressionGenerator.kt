@@ -388,8 +388,8 @@ class OperatorExpressionGenerator(statementGenerator: StatementGenerator) : Stat
             operandType == targetType || operandNNType == targetType ->
                 this
 
-            targetType.isInt() && (operandNNType.isShort() || operandNNType.isByte()) ->
-                this
+//            targetType.isInt() && (operandNNType.isShort() || operandNNType.isByte()) ->
+//                this
 
             // TODO: don't rely on originalKotlinType.
             type.originalKotlinType!!.containsNull() ->
