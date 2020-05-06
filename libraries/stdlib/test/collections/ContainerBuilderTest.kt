@@ -51,10 +51,14 @@ class ContainerBuilderTest {
             add('c')
         }
 
-        val y = buildList(4) {
+        var subList = mutableListOf<Char>()
+
+        val y = buildList<Char>(4) {
             add('a')
             addAll(x)
             add('d')
+
+            subList = subList(0, 4)
         }
 
         compare(listOf('a', 'b', 'c', 'd'), y) { listBehavior() }
@@ -70,6 +74,7 @@ class ContainerBuilderTest {
         for ((fName, operation) in mutableListOperations('b')) {
             assertFailsWith<UnsupportedOperationException>(fName) { y.operation() }
             assertFailsWith<UnsupportedOperationException>(fName) { y.subList(1, 3).operation() }
+            assertFailsWith<UnsupportedOperationException>(fName) { subList.operation() }
         }
     }
 
@@ -97,10 +102,12 @@ class ContainerBuilderTest {
             val subSubList = subList.subList(2, 4)
             // buffer reallocation should happen
             repeat(20) { subSubList.add('x') }
+            repeat(20) { subSubList.add(subSubList.size - 2 * it, 'y') }
 
-            compare("ab123${"x".repeat(20)}e".toList(), this) { listBehavior() }
-            compare("b123${"x".repeat(20)}".toList(), subList) { listBehavior() }
-            compare("23${"x".repeat(20)}".toList(), subSubList) { listBehavior() }
+            val addedChars = "xy".repeat(20)
+            compare("ab123${addedChars}e".toList(), this) { listBehavior() }
+            compare("b123$addedChars".toList(), subList) { listBehavior() }
+            compare("23$addedChars".toList(), subSubList) { listBehavior() }
         }
     }
 
