@@ -162,7 +162,7 @@ internal fun isMutedInDatabase(testCase: TestCase): Boolean {
 
 fun isMutedInDatabase(testClass: Class<*>, methodKey: String): Boolean {
     val mutedTest = mutedSet.mutedTest(testClass, methodKey)
-    return mutedTest != null && !mutedTest.hasFailFile
+    return mutedTest != null && !mutedTest.hasFailFile && !shouldRunMutedTests()
 }
 
 internal fun wrapWithMuteInDatabase(testCase: TestCase, f: () -> Unit): (() -> Unit)? {
