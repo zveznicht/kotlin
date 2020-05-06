@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.codegen.inline
 import org.jetbrains.kotlin.codegen.intrinsics.IntrinsicMethods
 import org.jetbrains.kotlin.codegen.optimization.common.InsnSequence
 import org.jetbrains.kotlin.codegen.optimization.common.isMeaningful
+import org.jetbrains.kotlin.resolve.jvm.AsmTypes
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterSignature
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.tree.*
@@ -58,7 +59,7 @@ fun AbstractInsnNode.getNextMeaningful(): AbstractInsnNode? {
 
 // Interpreter, that analyzes only functional arguments, to replace SourceInterpreter, since SourceInterpreter' merge has O(N²) complexity
 
-internal open class FunctionalArgumentValue(
+internal class FunctionalArgumentValue(
     val functionalArgument: FunctionalArgument, basicValue: BasicValue?
 ) : BasicValue(basicValue?.type) {
     override fun toString(): String = "$functionalArgument"
@@ -67,9 +68,9 @@ internal open class FunctionalArgumentValue(
 val BasicValue?.functionalArgument
     get() = (this as? FunctionalArgumentValue)?.functionalArgument
 
-private class FunctionalArgumentInterpreter(
+internal class FunctionalArgumentInterpreter(
     private val inliner: MethodInliner, private val toDelete: MutableSet<AbstractInsnNode>
-) : BasicInterpreter(Opcodes.ASM5) {
+) : BasicInterpreter(Opcodes.API_VERSION) {
 
     override fun unaryOperation(insn: AbstractInsnNode, value: BasicValue): BasicValue? =
         markInstructionIfNeeded(insn, super.unaryOperation(insn, value))
@@ -113,20 +114,35 @@ fun isParameterNullabilityCheck(methodInsnNode: AbstractInsnNode?): Boolean =
     methodInsnNode is MethodInsnNode && methodInsnNode.owner == IntrinsicMethods.INTRINSICS_CLASS_NAME &&
             (methodInsnNode.name == "checkParameterIsNotNull" || methodInsnNode.name == "checkNotNullParameter")
 
-internal fun analyzeMethodWithFunctionalArgumentInterpreter(
-    inliner: MethodInliner,
-    node: MethodNode,
-    toDelete: MutableSet<AbstractInsnNode>
-): Array<out Frame<BasicValue>?> {
-    val analyzer = object : Analyzer<BasicValue>(FunctionalArgumentInterpreter(inliner, toDelete)) {
+// Interpreter, that analyzes only ALOAD_0's, which are used as continuation arguments
+
+internal class Aload0BasicValue private constructor(val indices: Set<Int>) : BasicValue(AsmTypes.OBJECT_TYPE) {
+    constructor(i: Int) : this(setOf(i)) {}
+
+    operator fun plus(other: Aload0BasicValue) = Aload0BasicValue(indices + other.indices)
+}
+
+internal class Aload0Interpreter(private val node: MethodNode) : BasicInterpreter(Opcodes.API_VERSION) {
+    override fun copyOperation(insn: AbstractInsnNode, value: BasicValue?): BasicValue? =
+        when {
+            insn.isAload0() -> Aload0BasicValue(node.instructions.indexOf(insn))
+            insn.opcode == Opcodes.ALOAD -> if (value == null) null else BasicValue(value.type)
+            else -> super.copyOperation(insn, value)
+        }
+
+    override fun merge(v: BasicValue?, w: BasicValue?): BasicValue =
+        if (v is Aload0BasicValue && w is Aload0BasicValue) v + w else super.merge(v, w)
+}
+
+internal fun AbstractInsnNode.isAload0() = opcode == Opcodes.ALOAD && (this as VarInsnNode).`var` == 0
+
+internal fun analyzeMethodNodeWithInterpreter(node: MethodNode, interpreter: BasicInterpreter): Array<out Frame<BasicValue>?> {
+    val analyzer = object : Analyzer<BasicValue>(interpreter) {
         override fun newFrame(nLocals: Int, nStack: Int): Frame<BasicValue> {
 
             return object : Frame<BasicValue>(nLocals, nStack) {
                 @Throws(AnalyzerException::class)
                 override fun execute(insn: AbstractInsnNode, interpreter: Interpreter<BasicValue>) {
-                    if (node.name == "waitForEx\$default" && node.instructions.indexOf(insn) == 18) {
-                        {}()
-                    }
                     // This can be a void non-local return from a non-void method; Frame#execute would throw and do nothing else.
                     if (insn.opcode == Opcodes.RETURN) return
                     super.execute(insn, interpreter)
