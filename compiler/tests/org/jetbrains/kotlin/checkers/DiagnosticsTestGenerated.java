@@ -11285,6 +11285,11 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
                     runTest("compiler/testData/diagnostics/tests/inference/recursiveTypes/recursiveOutOut.kt");
                 }
 
+                @TestMetadata("recursiveTypeWithNonStarResult.kt")
+                public void testRecursiveTypeWithNonStarResult() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/inference/recursiveTypes/recursiveTypeWithNonStarResult.kt");
+                }
+
                 @TestMetadata("recursiveTypes.kt")
                 public void testRecursiveTypes() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/inference/recursiveTypes/recursiveTypes.kt");
