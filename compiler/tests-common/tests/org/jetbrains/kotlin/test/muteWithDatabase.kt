@@ -279,6 +279,8 @@ fun isIgnoredInDatabaseWithLog(testCase: TestCase): Boolean {
     return false
 }
 
+private fun shouldRunMutedTests(): Boolean = System.getProperty("kotlin.tests.muted.run") == "true"
+
 fun TestCase.runTest(test: () -> Unit) {
     (wrapWithMuteInDatabase(this, test) ?: test).invoke()
 }

@@ -106,6 +106,7 @@ fun Project.projectTest(
     environment("PROJECT_BUILD_DIR", buildDir)
     systemProperty("jps.kotlin.home", rootProject.extra["distKotlinHomeDir"]!!)
     systemProperty("kotlin.ni", if (rootProject.hasProperty("newInferenceTests")) "true" else "false")
+    systemProperty("kotlin.tests.muted.run", if (rootProject.hasProperty("runMutedTests")) "true" else "false")
 
     var subProjectTempRoot: Path? = null
     doFirst {
