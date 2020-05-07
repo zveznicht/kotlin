@@ -21,7 +21,6 @@ import org.jetbrains.kotlin.types.AbstractFlexibilityChecker.hasDifferentFlexibi
 import org.jetbrains.kotlin.types.AbstractNullabilityChecker.hasPathByNotMarkedNullableNodes
 import org.jetbrains.kotlin.types.checker.SimpleClassicTypeSystemContext
 import org.jetbrains.kotlin.types.model.*
-import org.jetbrains.kotlin.utils.SmartList
 
 object NewCommonSuperTypeCalculator {
     // TODO: Bridge for old calls
@@ -345,40 +344,52 @@ object NewCommonSuperTypeCalculator {
     }
 
     private fun TypeSystemCommonSuperTypesContext.checkRecursion(
-        originalTypesForCST: List<SimpleTypeMarker>,
-        projectionsForSingleSuperConstructorTypeParameter: List<TypeArgumentMarker>,
+        originalTypesForCst: List<SimpleTypeMarker>,
+        typeArgumentsForSuperConstructorParameter: List<TypeArgumentMarker>,
         parameter: TypeParameterMarker,
     ): Boolean {
         if (parameter.getVariance() == TypeVariance.IN) 
             return false // arguments for contravariant parameters are intersected, recursion should not be possible
 
-        val originalTypesSet = originalTypesForCST.toSet()
+        val originalTypesSet = originalTypesForCst.toSet()
+        val typeArgumentsTypeSet = typeArgumentsForSuperConstructorParameter.map { it.getType().lowerBoundIfFlexible() }.toSet()
 
-        val (capturedStarProjections, regularTypes) = projectionsForSingleSuperConstructorTypeParameter
-            .mapTo(hashSetOf()) { it.getType().lowerBoundIfFlexible() }
-            .partition {
-                it.asCapturedType()?.typeConstructor()?.projection()?.isStarProjection() == true
+        if (originalTypesSet.size != typeArgumentsTypeSet.size)
+            return false
+
+        // only needed in case of captured star projections in argument types
+        val originalTypeConstructorSet by lazy { typeConstructorsWithExpandedStarProjections(originalTypesSet).toSet() }
+
+        for (argumentType in typeArgumentsTypeSet) {
+            if (argumentType in originalTypesSet) continue
+
+            var starProjectionFound = false
+            for (supertype in supertypesIfCapturedStarProjection(argumentType).orEmpty()) {
+                if (supertype.lowerBoundIfFlexible().typeConstructor() !in originalTypeConstructorSet)
+                    return false
+                else starProjectionFound = true
             }
 
-        val capturedProjectionConstructors = capturedStarProjections.flatMap { capturedStarProjection ->
-            val supertypes = supertypesIfCapturedStarProjection(capturedStarProjection)
-                ?: error("Captured star projection without supertypes")
-            supertypes.map { it.lowerBoundIfFlexible().typeConstructor() }
+            if (!starProjectionFound)
+                return false
         }
-
-        if (!originalTypesSet.containsAll(regularTypes)) return false
-
-        if (capturedProjectionConstructors.isEmpty())
-            return regularTypes.size == originalTypesSet.size
-
-        val allOriginalConstructors = originalTypesSet.flatMapTo(hashSetOf()) { originalType ->
-            supertypesIfCapturedStarProjection(originalType)?.map { it.lowerBoundIfFlexible().typeConstructor() }
-                ?: SmartList(originalType.typeConstructor())
-        }
-
-        return allOriginalConstructors.containsAll(capturedProjectionConstructors)
-                && allOriginalConstructors.size == capturedProjectionConstructors.size + regularTypes.size
+        return true
     }
+
+    private fun TypeSystemCommonSuperTypesContext.typeConstructorsWithExpandedStarProjections(types: Set<SimpleTypeMarker>) = sequence {
+        for (type in types) {
+            if (isCapturedStarProjection(type)) {
+                for (supertype in supertypesIfCapturedStarProjection(type).orEmpty()) {
+                    yield(supertype.lowerBoundIfFlexible().typeConstructor())
+                }
+            } else {
+                yield(type.typeConstructor())
+            }
+        }
+    }
+
+    private fun TypeSystemCommonSuperTypesContext.isCapturedStarProjection(type: SimpleTypeMarker): Boolean =
+        type.asCapturedType()?.typeConstructor()?.projection()?.isStarProjection() == true
 
     private fun TypeSystemCommonSuperTypesContext.supertypesIfCapturedStarProjection(type: SimpleTypeMarker): Collection<KotlinTypeMarker>? {
         val constructor = type.asCapturedType()?.typeConstructor() ?: return null
