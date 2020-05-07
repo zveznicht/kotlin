@@ -8,12 +8,15 @@ package org.jetbrains.kotlin.konan.target
 import org.jetbrains.kotlin.konan.target.KonanTarget.*
 import java.lang.Exception
 
-open class HostManager(protected val distribution: Distribution = Distribution(), experimental: Boolean = false) {
+open class HostManager(
+        subTargetProvider: SubTargetProvider = SubTargetProvider.NoSubTargets,
+        experimental: Boolean = false
+) {
 
     fun targetManager(userRequest: String? = null): TargetManager = TargetManagerImpl(userRequest, this)
 
-    private val zephyrSubtargets = distribution.availableSubTarget("zephyr").map { ZEPHYR(it) }
-    private val experimentalEnabled = experimental || distribution.experimentalEnabled
+    private val zephyrSubtargets = subTargetProvider.availableSubTarget("zephyr").map { ZEPHYR(it) }
+    private val experimentalEnabled = experimental || subTargetProvider.experimentalEnabled
     private val configurableSubtargets = zephyrSubtargets
 
     val targetValues: List<KonanTarget> by lazy { KonanTarget.predefinedTargets.values + configurableSubtargets }
