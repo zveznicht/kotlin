@@ -2562,6 +2562,7 @@ public final class kotlin/collections/builders/SetBuilder : kotlin/collections/A
 	public fun <init> ()V
 	public fun <init> (I)V
 	public fun add (Ljava/lang/Object;)Z
+	public fun addAll (Ljava/util/Collection;)Z
 	public final fun build ()Ljava/util/Set;
 	public fun clear ()V
 	public fun contains (Ljava/lang/Object;)Z
@@ -2569,6 +2570,8 @@ public final class kotlin/collections/builders/SetBuilder : kotlin/collections/A
 	public fun isEmpty ()Z
 	public fun iterator ()Ljava/util/Iterator;
 	public fun remove (Ljava/lang/Object;)Z
+	public fun removeAll (Ljava/util/Collection;)Z
+	public fun retainAll (Ljava/util/Collection;)Z
 }
 
 public final class kotlin/collections/unsigned/UArraysKt {

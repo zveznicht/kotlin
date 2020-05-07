@@ -157,7 +157,7 @@ internal class MapBuilder<K, V> private constructor(
     private val capacity: Int get() = keysArray.size
     private val hashSize: Int get() = hashArray.size
 
-    private fun checkIsMutable() {
+    internal fun checkIsMutable() {
         if (isReadOnly) throw UnsupportedOperationException()
     }
 
@@ -561,6 +561,16 @@ internal class HashMapKeys<E> internal constructor(
     override fun addAll(elements: Collection<E>): Boolean = throw UnsupportedOperationException()
     override fun remove(element: E): Boolean = backing.removeKey(element) >= 0
     override fun iterator(): MutableIterator<E> = backing.keysIterator()
+
+    override fun removeAll(elements: Collection<E>): Boolean {
+        backing.checkIsMutable()
+        return super.removeAll(elements)
+    }
+
+    override fun retainAll(elements: Collection<E>): Boolean {
+        backing.checkIsMutable()
+        return super.retainAll(elements)
+    }
 }
 
 internal class HashMapValues<V> internal constructor(
@@ -575,6 +585,16 @@ internal class HashMapValues<V> internal constructor(
     override fun clear() = backing.clear()
     override fun iterator(): MutableIterator<V> = backing.valuesIterator()
     override fun remove(element: V): Boolean = backing.removeValue(element)
+
+    override fun removeAll(elements: Collection<V>): Boolean {
+        backing.checkIsMutable()
+        return super.removeAll(elements)
+    }
+
+    override fun retainAll(elements: Collection<V>): Boolean {
+        backing.checkIsMutable()
+        return super.retainAll(elements)
+    }
 }
 
 internal class HashMapEntrySet<K, V> internal constructor(
@@ -590,4 +610,14 @@ internal class HashMapEntrySet<K, V> internal constructor(
     override fun iterator(): MutableIterator<MutableMap.MutableEntry<K, V>> = backing.entriesIterator()
     override fun containsAll(elements: Collection<MutableMap.MutableEntry<K, V>>): Boolean = backing.containsAllEntries(elements)
     override fun addAll(elements: Collection<MutableMap.MutableEntry<K, V>>): Boolean = backing.putAllEntries(elements)
+
+    override fun removeAll(elements: Collection<MutableMap.MutableEntry<K, V>>): Boolean {
+        backing.checkIsMutable()
+        return super.removeAll(elements)
+    }
+
+    override fun retainAll(elements: Collection<MutableMap.MutableEntry<K, V>>): Boolean {
+        backing.checkIsMutable()
+        return super.retainAll(elements)
+    }
 }
