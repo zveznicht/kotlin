@@ -1,7 +1,4 @@
 import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
-import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType.IR
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootExtension
-import org.jetbrains.kotlin.gradle.targets.js.nodejs.NodeJsRootPlugin
 
 plugins {
     kotlin("multiplatform")
@@ -14,10 +11,9 @@ kotlin {
 }
 
 val commonMainSources by task<Sync> {
-    val fullCommonMainSources = tasks.getByPath(":kotlin-stdlib-js-ir:commonMainSources")
-    dependsOn(fullCommonMainSources)
-
-    from(fullCommonMainSources.outputs.files.singleFile) {
+    dependsOn(":kotlin-stdlib-js-ir:commonMainSources")
+    from {
+        val fullCommonMainSources = tasks.getByPath(":kotlin-stdlib-js-ir:commonMainSources")
         exclude(
             listOf(
                 "libraries/stdlib/unsigned/**",
@@ -48,16 +44,17 @@ val commonMainSources by task<Sync> {
                 "libraries/stdlib/src/kotlin/util/Tuples.kt"
             )
         )
+        fullCommonMainSources.outputs.files.singleFile
     }
 
     into("$buildDir/commonMainSources")
 }
 
 val jsMainSources by task<Sync> {
-    val fullJsMainSources = tasks.getByPath(":kotlin-stdlib-js-ir:jsMainSources")
-    dependsOn(fullJsMainSources)
+    dependsOn(":kotlin-stdlib-js-ir:jsMainSources")
 
-    from(fullJsMainSources.outputs.files.singleFile) {
+    from {
+        val fullJsMainSources = tasks.getByPath(":kotlin-stdlib-js-ir:jsMainSources")
         exclude(
             listOf(
                 "libraries/stdlib/js-ir/runtime/collectionsHacks.kt",
@@ -87,6 +84,7 @@ val jsMainSources by task<Sync> {
                 "libraries/stdlib/js/src/kotlin/browser/**"
             )
         )
+        fullJsMainSources.outputs.files.singleFile
     }
 
     from("$rootDir/libraries/stdlib/js-ir-minimal-for-test/src")

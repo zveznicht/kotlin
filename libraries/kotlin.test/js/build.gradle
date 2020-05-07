@@ -59,9 +59,12 @@ task libraryJarWithIr(type: Zip, dependsOn: libraryJarWithoutIr) {
     duplicatesStrategy DuplicatesStrategy.FAIL
 
     from zipTree(libraryJarWithoutIr.archiveFile)
-    def irKlib = tasks.getByPath(":kotlin-test:kotlin-test-js-ir:compileKotlinJs")
-    dependsOn(irKlib)
-    from fileTree(irKlib.outputs.files.first().path)
+
+    dependsOn(":kotlin-test:kotlin-test-js-ir:compileKotlinJs")
+    from {
+        def irKlib = tasks.getByPath(":kotlin-test:kotlin-test-js-ir:compileKotlinJs")
+        fileTree(irKlib.outputs.files.first().path)
+    }
 }
 
 jar.dependsOn(libraryJarWithIr)

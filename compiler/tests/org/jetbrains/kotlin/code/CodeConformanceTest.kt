@@ -29,6 +29,7 @@ class CodeConformanceTest : TestCase() {
         private val SOURCES_BUNCH_FILE_PATTERN = Pattern.compile("(.+\\.java|.+\\.kt|.+\\.js)(\\.\\w+)?")
         private const val MAX_STEPS_COUNT = 100
         private val EXCLUDED_FILES_AND_DIRS = listOf(
+            "build/js",
             "buildSrc",
             "compiler/fir/lightTree/testData",
             "compiler/testData/psi/kdoc",
