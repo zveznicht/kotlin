@@ -5,13 +5,16 @@
 
 package org.jetbrains.kotlin.codegen.inline
 
-import org.jetbrains.kotlin.codegen.intrinsics.IntrinsicMethods
 import org.jetbrains.kotlin.codegen.optimization.common.InsnSequence
 import org.jetbrains.kotlin.codegen.optimization.common.isMeaningful
+import org.jetbrains.kotlin.codegen.optimization.nullCheck.isCheckParameterIsNotNull
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterSignature
 import org.jetbrains.org.objectweb.asm.Opcodes
-import org.jetbrains.org.objectweb.asm.tree.*
+import org.jetbrains.org.objectweb.asm.tree.AbstractInsnNode
+import org.jetbrains.org.objectweb.asm.tree.FieldInsnNode
+import org.jetbrains.org.objectweb.asm.tree.MethodNode
+import org.jetbrains.org.objectweb.asm.tree.VarInsnNode
 import org.jetbrains.org.objectweb.asm.tree.analysis.*
 
 fun parameterOffsets(isStatic: Boolean, valueParameters: List<JvmMethodParameterSignature>): Array<Int> {
@@ -57,7 +60,7 @@ fun AbstractInsnNode.getNextMeaningful(): AbstractInsnNode? {
     return result
 }
 
-// Interpreter, that analyzes only functional arguments, to replace SourceInterpreter, since SourceInterpreter' merge has O(N²) complexity
+// Interpreter, that analyzes functional arguments only, to replace SourceInterpreter, since SourceInterpreter's merge has O(N²) complexity
 
 internal class FunctionalArgumentValue(
     val functionalArgument: FunctionalArgument, basicValue: BasicValue?
@@ -77,8 +80,8 @@ internal class FunctionalArgumentInterpreter(
 
     override fun copyOperation(insn: AbstractInsnNode, value: BasicValue?): BasicValue? {
         val basicValue = super.copyOperation(insn, value)
-        // Paramter checks are processed separately
-        if (insn.next?.opcode == Opcodes.LDC && isParameterNullabilityCheck(insn.next?.next)) {
+        // Parameter checks are processed separately
+        if (insn.next?.opcode == Opcodes.LDC && insn.next?.next?.isCheckParameterIsNotNull() == true) {
             return basicValue
         }
         if (value.functionalArgument is LambdaInfo) {
@@ -110,11 +113,7 @@ internal class FunctionalArgumentInterpreter(
         else super.merge(v, w)
 }
 
-fun isParameterNullabilityCheck(methodInsnNode: AbstractInsnNode?): Boolean =
-    methodInsnNode is MethodInsnNode && methodInsnNode.owner == IntrinsicMethods.INTRINSICS_CLASS_NAME &&
-            (methodInsnNode.name == "checkParameterIsNotNull" || methodInsnNode.name == "checkNotNullParameter")
-
-// Interpreter, that analyzes only ALOAD_0's, which are used as continuation arguments
+// Interpreter, that analyzes only ALOAD_0s, which are used as continuation arguments
 
 internal class Aload0BasicValue private constructor(val indices: Set<Int>) : BasicValue(AsmTypes.OBJECT_TYPE) {
     constructor(i: Int) : this(setOf(i)) {}

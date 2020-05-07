@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.codegen.optimization.common.asSequence
 import org.jetbrains.kotlin.codegen.optimization.common.isMeaningful
 import org.jetbrains.kotlin.codegen.optimization.fixStack.peek
 import org.jetbrains.kotlin.codegen.optimization.fixStack.top
+import org.jetbrains.kotlin.codegen.optimization.nullCheck.isCheckParameterIsNotNull
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
@@ -1032,7 +1033,7 @@ class MethodInliner(
         private fun removeClosureAssertions(node: MethodNode) {
             val toDelete = arrayListOf<AbstractInsnNode>()
             InsnSequence(node.instructions).filterIsInstance<MethodInsnNode>().forEach { methodInsnNode ->
-                if (isParameterNullabilityCheck(methodInsnNode)) {
+                if (methodInsnNode.isCheckParameterIsNotNull()) {
                     val prev = methodInsnNode.previous
                     assert(Opcodes.LDC == prev?.opcode) { "'${methodInsnNode.name}' should go after LDC but $prev" }
                     val prevPev = methodInsnNode.previous.previous
