@@ -234,9 +234,8 @@ projectTest("wasmTest", true) {
     val jsShellExecutablePath = File(unzipJsShell.get().destinationDir, "js").absolutePath
     systemProperty("javascript.engine.path.SpiderMonkey", jsShellExecutablePath)
 
-    val compileStdlibTask = tasks.getByPath(":kotlin-stdlib-wasm:compileKotlinJs")
-    dependsOn(compileStdlibTask)
-    systemProperty("kotlin.wasm.stdlib.path", compileStdlibTask.outputs.files.first().path)
+    dependsOn(":kotlin-stdlib-js-ir:compileKotlinJs")
+    systemProperty("kotlin.wasm.stdlib.path", "libraries/stdlib/wasm/build/classes/kotlin/js/main")
 
     setUpBoxTests()
 }
