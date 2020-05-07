@@ -19,9 +19,9 @@ internal class MapBuilder<K, V> private constructor(
     override var size: Int = 0
         private set
 
-    private var keysView: HashMapKeys<K>? = null
-    private var valuesView: HashMapValues<V>? = null
-    private var entriesView: HashMapEntrySet<K, V>? = null
+    private var keysView: MapBuilderKeys<K>? = null
+    private var valuesView: MapBuilderValues<V>? = null
+    private var entriesView: MapBuilderEntries<K, V>? = null
 
     private var isReadOnly: Boolean = false
 
@@ -100,7 +100,7 @@ internal class MapBuilder<K, V> private constructor(
     override val keys: MutableSet<K> get() {
         val cur = keysView
         return if (cur == null) {
-            val new = HashMapKeys(this)
+            val new = MapBuilderKeys(this)
             keysView = new
             new
         } else cur
@@ -109,7 +109,7 @@ internal class MapBuilder<K, V> private constructor(
     override val values: MutableCollection<V> get() {
         val cur = valuesView
         return if (cur == null) {
-            val new = HashMapValues(this)
+            val new = MapBuilderValues(this)
             valuesView = new
             new
         } else cur
@@ -118,7 +118,7 @@ internal class MapBuilder<K, V> private constructor(
     override val entries: MutableSet<MutableMap.MutableEntry<K, V>> get() {
         val cur = entriesView
         return if (cur == null) {
-            val new = HashMapEntrySet(this)
+            val new = MapBuilderEntries(this)
             entriesView = new
             return new
         } else cur
@@ -548,7 +548,7 @@ internal class MapBuilder<K, V> private constructor(
     }
 }
 
-internal class HashMapKeys<E> internal constructor(
+internal class MapBuilderKeys<E> internal constructor(
     private val backing: MapBuilder<E, *>
 ) : MutableSet<E>, AbstractMutableSet<E>() {
 
@@ -572,7 +572,7 @@ internal class HashMapKeys<E> internal constructor(
     }
 }
 
-internal class HashMapValues<V> internal constructor(
+internal class MapBuilderValues<V> internal constructor(
     val backing: MapBuilder<*, V>
 ) : MutableCollection<V>, AbstractMutableCollection<V>() {
 
@@ -596,7 +596,7 @@ internal class HashMapValues<V> internal constructor(
     }
 }
 
-internal class HashMapEntrySet<K, V> internal constructor(
+internal class MapBuilderEntries<K, V> internal constructor(
     val backing: MapBuilder<K, V>
 ) : MutableSet<MutableMap.MutableEntry<K, V>>, AbstractMutableSet<MutableMap.MutableEntry<K, V>>() {
 
