@@ -15,6 +15,7 @@ public actual abstract class AbstractMutableCollection<E> protected actual const
     actual abstract override fun add(element: E): Boolean
 
     actual override fun remove(element: E): Boolean {
+        checkIsMutable()
         val iterator = iterator()
         while (iterator.hasNext()) {
             if (iterator.next() == element) {
@@ -26,6 +27,7 @@ public actual abstract class AbstractMutableCollection<E> protected actual const
     }
 
     actual override fun addAll(elements: Collection<E>): Boolean {
+        checkIsMutable()
         var modified = false
         for (element in elements) {
             if (add(element)) modified = true
@@ -33,10 +35,18 @@ public actual abstract class AbstractMutableCollection<E> protected actual const
         return modified
     }
 
-    actual override fun removeAll(elements: Collection<E>): Boolean = (this as MutableIterable<E>).removeAll { it in elements }
-    actual override fun retainAll(elements: Collection<E>): Boolean = (this as MutableIterable<E>).removeAll { it !in elements }
+    actual override fun removeAll(elements: Collection<E>): Boolean {
+        checkIsMutable()
+        return (this as MutableIterable<E>).removeAll { it in elements }
+    }
+
+    actual override fun retainAll(elements: Collection<E>): Boolean {
+        checkIsMutable()
+        return (this as MutableIterable<E>).removeAll { it !in elements }
+    }
 
     actual override fun clear(): Unit {
+        checkIsMutable()
         val iterator = this.iterator()
         while (iterator.hasNext()) {
             iterator.next()
@@ -46,5 +56,8 @@ public actual abstract class AbstractMutableCollection<E> protected actual const
 
     @JsName("toJSON")
     open fun toJSON(): Any = this.toArray()
+
+
+    internal open fun checkIsMutable(): Unit { }
 }
 

@@ -136,7 +136,7 @@ public actual open class ArrayList<E> internal constructor(private var array: Ar
     override fun toArray(): Array<Any?> = js("[]").slice.call(array)
 
 
-    private fun checkIsMutable() {
+    internal override fun checkIsMutable() {
         if (isReadOnly) throw UnsupportedOperationException()
     }
 

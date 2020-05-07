@@ -79,6 +79,7 @@ public actual open class HashSet<E> : AbstractMutableSet<E>, MutableSet<E> {
 
     actual override val size: Int get() = map.size
 
+    internal override fun checkIsMutable(): Unit = map.checkIsMutable()
 }
 
 /**

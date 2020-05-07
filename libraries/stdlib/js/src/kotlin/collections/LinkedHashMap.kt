@@ -70,7 +70,7 @@ public actual open class LinkedHashMap<K, V> : HashMap<K, V>, MutableMap<K, V> {
 
             override fun remove() {
                 check(last != null)
-                checkIsMutable()
+                this@EntrySet.checkIsMutable()
 //                checkStructuralChange(map, this)
 
                 last!!.remove()
@@ -90,6 +90,7 @@ public actual open class LinkedHashMap<K, V> : HashMap<K, V>, MutableMap<K, V> {
         override operator fun iterator(): MutableIterator<MutableEntry<K, V>> = EntryIterator()
 
         override fun remove(element: MutableEntry<K, V>): Boolean {
+            checkIsMutable()
             if (contains(element)) {
                 this@LinkedHashMap.remove(element.key)
                 return true
@@ -98,6 +99,8 @@ public actual open class LinkedHashMap<K, V> : HashMap<K, V>, MutableMap<K, V> {
         }
 
         override val size: Int get() = this@LinkedHashMap.size
+
+        override fun checkIsMutable(): Unit = this@LinkedHashMap.checkIsMutable()
     }
 
 
@@ -261,8 +264,7 @@ public actual open class LinkedHashMap<K, V> : HashMap<K, V>, MutableMap<K, V> {
 
     actual override val size: Int get() = map.size
 
-
-    private fun checkIsMutable() {
+    internal override fun checkIsMutable() {
         if (isReadOnly) throw UnsupportedOperationException()
     }
 }
