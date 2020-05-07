@@ -51,7 +51,7 @@ class ContainerBuilderTest {
         "put(k, v)"                             to { put(k, v) },
         "remove(k)"                             to { remove(k) },
         "putAll(mapOf(k to v))"                 to { putAll(mapOf(k to v)) },
-        "putAll(emptyMap)"                      to { putAll(emptyMap()) },
+        "putAll(emptyMap())"                    to { putAll(emptyMap()) },
         "clear()"                               to { clear() },
         "entries.first().setValue(v)"           to { entries.first().setValue(v) },
         "entries.iterator().next().setValue(v)" to { entries.iterator().next().setValue(v) }
@@ -85,9 +85,9 @@ class ContainerBuilderTest {
 
         assertTrue(y is MutableList<Char>)
         for ((fName, operation) in mutableListOperations('b', 'x')) {
-            assertFailsWith<UnsupportedOperationException>(fName) { y.operation() }
-            assertFailsWith<UnsupportedOperationException>(fName) { y.subList(1, 3).operation() }
-            assertFailsWith<UnsupportedOperationException>(fName) { subList.operation() }
+            assertFailsWith<UnsupportedOperationException>("y.$fName") { y.operation() }
+            assertFailsWith<UnsupportedOperationException>("y.subList(1, 3).$fName") { y.subList(1, 3).operation() }
+            assertFailsWith<UnsupportedOperationException>("subList.$fName") { subList.operation() }
         }
     }
 
@@ -146,7 +146,7 @@ class ContainerBuilderTest {
 
         assertTrue(y is MutableSet<Char>)
         for ((fName, operation) in mutableSetOperations('b', 'x')) {
-            assertFailsWith<UnsupportedOperationException>(fName) { y.operation() }
+            assertFailsWith<UnsupportedOperationException>("y.$fName") { y.operation() }
         }
     }
 
@@ -173,13 +173,13 @@ class ContainerBuilderTest {
 
         assertTrue(y is MutableMap<Char, Int>)
         for ((fName, operation) in mutableMapOperations('a', 1) + mutableMapOperations('x', 10)) {
-            assertFailsWith<UnsupportedOperationException>(fName) { y.operation() }
+            assertFailsWith<UnsupportedOperationException>("y.$fName") { y.operation() }
         }
         for ((fName, operation) in mutableSetOperations('a', 'x')) {
-            assertFailsWith<UnsupportedOperationException>(fName) { y.keys.operation() }
+            assertFailsWith<UnsupportedOperationException>("y.keys.$fName") { y.keys.operation() }
         }
         for ((fName, operation) in mutableCollectionOperations(1, 10)) {
-            assertFailsWith<UnsupportedOperationException>(fName) { y.values.operation() }
+            assertFailsWith<UnsupportedOperationException>("y.values.$fName") { y.values.operation() }
         }
         val presentEntry = y.entries.first()
         val absentEntry: MutableMap.MutableEntry<Char, Int> = object : MutableMap.MutableEntry<Char, Int> {
@@ -188,7 +188,7 @@ class ContainerBuilderTest {
             override fun setValue(newValue: Int): Int = fail("Unreachable")
         }
         for ((fName, operation) in mutableSetOperations(presentEntry, absentEntry)) {
-            assertFailsWith<UnsupportedOperationException>(fName) { y.entries.operation() }
+            assertFailsWith<UnsupportedOperationException>("y.entries.$fName") { y.entries.operation() }
         }
     }
 }
