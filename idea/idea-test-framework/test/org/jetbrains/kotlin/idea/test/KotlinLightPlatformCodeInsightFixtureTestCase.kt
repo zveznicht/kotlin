@@ -5,8 +5,6 @@
 
 package org.jetbrains.kotlin.idea.test
 
-import com.intellij.ide.startup.impl.StartupManagerImpl
-import com.intellij.openapi.startup.StartupManager
 import com.intellij.openapi.vfs.newvfs.impl.VfsRootAccess
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixtureTestCase
 import org.jetbrains.kotlin.test.KotlinTestUtils
@@ -17,7 +15,7 @@ import kotlin.reflect.full.findAnnotation
 abstract class KotlinLightPlatformCodeInsightFixtureTestCase : LightPlatformCodeInsightFixtureTestCase() {
     override fun setUp() {
         super.setUp()
-        (StartupManager.getInstance(project) as StartupManagerImpl).runPostStartupActivities()
+        runPostStartupActivitiesOnce(project)
         VfsRootAccess.allowRootAccess(KotlinTestUtils.getHomeDirectory())
         invalidateLibraryCache(project)
     }
