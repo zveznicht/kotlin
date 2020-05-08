@@ -147,5 +147,10 @@ public actual abstract class AbstractMutableMap<K, V> protected actual construct
         return null
     }
 
+
+    /**
+     * This method is called every time when a mutating method is called on this mutable map.
+     * Mutable maps that are built (frozen) must throw `UnsupportedOperationException`.
+     */
     internal open fun checkIsMutable(): Unit {}
 }

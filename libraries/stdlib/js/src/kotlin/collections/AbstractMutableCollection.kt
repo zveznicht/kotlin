@@ -58,6 +58,10 @@ public actual abstract class AbstractMutableCollection<E> protected actual const
     open fun toJSON(): Any = this.toArray()
 
 
+    /**
+     * This method is called every time when a mutating method is called on this mutable collection.
+     * Mutable collections that are built (frozen) must throw `UnsupportedOperationException`.
+     */
     internal open fun checkIsMutable(): Unit { }
 }
 
