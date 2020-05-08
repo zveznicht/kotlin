@@ -92,18 +92,25 @@ class PostponedArgumentInputTypesResolver(
             }
         }?.toSet()
 
-        val annotations = functionalTypesFromConstraints?.run {
-            Annotations.create(map { it.type.annotations }.flatten())
-        }
-
         val parameterTypesFromDeclarationOfRelatedLambdas =
             getDeclaredParametersFromRelatedLambdas(argument, postponedArguments, variableDependencyProvider)
+        // An extension function flag can only come from a declaration of anonymous function: `select({ this + it }, fun Int.(x: Int) = 10)`
+        val isThereExtensionFunctionAmongRelatedLambdas =
+            parameterTypesFromDeclarationOfRelatedLambdas?.any { (_, isExtensionFunction) -> isExtensionFunction } == true
+
+        val annotationsFromConstraints = functionalTypesFromConstraints?.run {
+            Annotations.create(map { it.type.annotations }.flatten())
+        } ?: Annotations.EMPTY
+
+        val annotations = if (isThereExtensionFunctionAmongRelatedLambdas) {
+            annotationsFromConstraints.withExtensionFunctionAnnotation(expectedType.builtIns)
+        } else annotationsFromConstraints
 
         return ParameterTypesInfo(
             parameterTypesFromDeclaration,
-            parameterTypesFromDeclarationOfRelatedLambdas,
+            parameterTypesFromDeclarationOfRelatedLambdas?.map { (types, _) -> types }?.toSet(),
             parameterTypesFromConstraints,
-            annotations ?: Annotations.EMPTY,
+            annotations,
             isSuspend = !functionalTypesFromConstraints.isNullOrEmpty() && functionalTypesFromConstraints.any { it.type.isSuspendFunctionTypeOrSubtype },
             isNullable = !functionalTypesFromConstraints.isNullOrEmpty() && functionalTypesFromConstraints.all { it.type.isMarkedNullable }
         )
@@ -113,7 +120,7 @@ class PostponedArgumentInputTypesResolver(
         argument: PostponedAtomWithRevisableExpectedType,
         postponedArguments: List<PostponedAtomWithRevisableExpectedType>,
         dependencyProvider: TypeVariableDependencyInformationProvider
-    ): Set<List<UnwrappedType?>>? {
+    ): Set<Pair<List<UnwrappedType?>, Boolean>>? {
         fun PostponedAtomWithRevisableExpectedType.getExpectedTypeConstructor() = expectedType?.typeConstructor()
 
         val parameterTypesFromDeclarationOfRelatedLambdas = postponedArguments
@@ -126,8 +133,13 @@ class PostponedArgumentInputTypesResolver(
                     argumentExpectedTypeConstructor,
                     anotherArgumentExpectedTypeConstructor
                 )
+                val anotherAtom = anotherArgument.atom
+                val isAnonymousExtensionFunction = anotherAtom is FunctionExpression && anotherAtom.receiverType != null
+                val parameterTypesFromDeclarationOfRelatedLambda = anotherArgument.parameterTypesFromDeclaration
 
-                if (areTypeVariablesRelated) anotherArgument.parameterTypesFromDeclaration else null
+                if (areTypeVariablesRelated && parameterTypesFromDeclarationOfRelatedLambda != null) {
+                    parameterTypesFromDeclarationOfRelatedLambda to isAnonymousExtensionFunction
+                } else null
             }
 
         return parameterTypesFromDeclarationOfRelatedLambdas.toSet().takeIf { it.isNotEmpty() }
