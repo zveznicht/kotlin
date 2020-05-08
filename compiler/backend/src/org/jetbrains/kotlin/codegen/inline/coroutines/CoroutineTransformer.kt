@@ -14,12 +14,14 @@ import org.jetbrains.kotlin.codegen.optimization.transformer.MethodTransformer
 import org.jetbrains.kotlin.config.isReleaseCoroutines
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.resolve.jvm.AsmTypes
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
-import org.jetbrains.org.objectweb.asm.*
+import org.jetbrains.org.objectweb.asm.MethodVisitor
+import org.jetbrains.org.objectweb.asm.Opcodes
 import org.jetbrains.org.objectweb.asm.tree.*
+import org.jetbrains.org.objectweb.asm.tree.analysis.BasicInterpreter
+import org.jetbrains.org.objectweb.asm.tree.analysis.BasicValue
 import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
-import org.jetbrains.org.objectweb.asm.tree.analysis.SourceInterpreter
-import org.jetbrains.org.objectweb.asm.tree.analysis.SourceValue
 
 const val FOR_INLINE_SUFFIX = "\$\$forInline"
 
@@ -187,8 +189,7 @@ fun markNoinlineLambdaIfSuspend(mv: MethodVisitor, info: FunctionalArgument?) {
     }
 }
 
-private fun Frame<SourceValue>.getSource(offset: Int): AbstractInsnNode? =
-    getStack(stackSize - offset - 1)?.insns?.singleOrNull()
+private fun Frame<BasicValue>.getSource(offset: Int): AbstractInsnNode? = (getStack(stackSize - offset - 1) as? LambdaLoad)?.insn
 
 fun surroundInvokesWithSuspendMarkersIfNeeded(node: MethodNode) {
     val markers = node.instructions.asSequence().filter {
@@ -196,14 +197,14 @@ fun surroundInvokesWithSuspendMarkersIfNeeded(node: MethodNode) {
     }.toList()
     if (markers.isEmpty()) return
 
-    val sourceFrames = MethodTransformer.analyze("fake", node, SourceInterpreter())
+    val sourceFrames = MethodTransformer.analyze("fake", node, CapturedLambdaInterpreter())
     val loads = markers.map { marker ->
         val arity = (marker.next as MethodInsnNode).owner.removePrefix(NUMBERED_FUNCTION_PREFIX).toInt()
         var receiver = sourceFrames[node.instructions.indexOf(marker) + 1].getSource(arity)
         // Navigate the ALOAD+GETFIELD+... chain to the first instruction. We need to insert a stack
         // spilling marker before it starts.
         while (receiver?.opcode == Opcodes.GETFIELD) {
-            receiver = sourceFrames[node.instructions.indexOf(receiver)].getSource(0)
+            receiver = receiver.previous
         }
         receiver
     }
@@ -243,4 +244,40 @@ fun FieldInsnNode.isSuspendLambdaCapturedByOuterObjectOrLambda(inliningContext: 
         container = container.containingDeclaration ?: return false
     }
     return isCapturedSuspendLambda(container, name, inliningContext.state.bindingContext)
+}
+
+// Interpreter, that keeps track of captured functional arguments
+private class LambdaLoad(val insn: AbstractInsnNode) : BasicValue(AsmTypes.OBJECT_TYPE)
+
+private class CapturedLambdaInterpreter : BasicInterpreter(Opcodes.API_VERSION) {
+    override fun newOperation(insn: AbstractInsnNode): BasicValue? {
+        if (insn.opcode == Opcodes.GETSTATIC) {
+            insn.fieldLoad()?.let { return it }
+        }
+
+        return super.newOperation(insn)
+    }
+
+    private fun AbstractInsnNode.fieldLoad(): LambdaLoad? {
+        if (this !is FieldInsnNode) return null
+        if (desc.startsWith("Lkotlin/jvm/functions/Function")) {
+            if ((opcode == Opcodes.GETSTATIC && name.startsWith("$$$$")) ||
+                (opcode == Opcodes.GETFIELD && name.startsWith("$"))
+            ) return LambdaLoad(this)
+        }
+        return null
+    }
+
+    override fun copyOperation(insn: AbstractInsnNode, value: BasicValue?): BasicValue? =
+        if (insn.opcode == Opcodes.ALOAD) LambdaLoad(insn) else super.copyOperation(insn, value)
+
+    override fun unaryOperation(insn: AbstractInsnNode, value: BasicValue?): BasicValue? {
+        if (insn.opcode == Opcodes.GETFIELD) {
+            insn.fieldLoad()?.let { return it }
+        }
+        return super.unaryOperation(insn, value)
+    }
+
+    override fun merge(v: BasicValue?, w: BasicValue?): BasicValue? =
+        if (v is LambdaLoad && w is LambdaLoad && v.insn == w.insn) v else super.merge(v, w)
 }
