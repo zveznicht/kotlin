@@ -10,7 +10,6 @@ import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunListener
 import org.junit.runner.notification.RunNotifier
-import org.junit.runners.BlockJUnit4ClassRunner
 import org.junit.runners.model.FrameworkMethod
 import org.junit.runners.parameterized.BlockJUnit4ClassRunnerWithParameters
 import org.junit.runners.parameterized.ParametersRunnerFactory
@@ -156,17 +155,26 @@ private val mutedSet by lazy {
     )
 }
 
-internal fun isMutedInDatabase(testCase: TestCase): Boolean {
-    return isMutedInDatabase(testCase.javaClass, testCase.name)
+internal fun isMuted(testCase: TestCase): Boolean {
+    return isMuted(testCase.javaClass, testCase.name)
 }
 
-fun isMutedInDatabase(testClass: Class<*>, methodKey: String): Boolean {
+fun isMuted(testClass: Class<*>, methodKey: String): Boolean {
     val mutedTest = mutedSet.mutedTest(testClass, methodKey)
-    return mutedTest != null && !mutedTest.hasFailFile && !shouldRunMutedTests()
+    val isMuted = mutedTest != null && !mutedTest.hasFailFile
+    val isFlaky = mutedTest != null && mutedTest.isFlaky
+    return shouldBeMuted(isMuted, isFlaky)
+}
+
+fun shouldBeMuted(isMuted: Boolean, isFlaky: Boolean): Boolean {
+    if (isRunMutedTestsPropertyEnabled())
+        return !isMuted || isFlaky
+    else
+        return isMuted
 }
 
 internal fun wrapWithMuteInDatabase(testCase: TestCase, f: () -> Unit): (() -> Unit)? {
-    if (isMutedInDatabase(testCase)) {
+    if (isMuted(testCase)) {
         return {
             System.err.println(mutedMessage(testKey(testCase)))
         }
@@ -236,7 +244,7 @@ private inline fun RunNotifier.withMuteFailureListener(
 }
 
 fun isIgnoredInDatabaseWithLog(child: FrameworkMethod): Boolean {
-    if (isMutedInDatabase(child.declaringClass, child.name)) {
+    if (isMuted(child.declaringClass, child.name)) {
         System.err.println(mutedMessage(testKey(child.declaringClass, child.name)))
         return true
     }
@@ -250,7 +258,7 @@ fun isIgnoredInDatabaseWithLog(child: FrameworkMethod, parametersName: String): 
     }
 
     val methodWithParametersKey = parametrizedMethodKey(child, parametersName)
-    if (isMutedInDatabase(child.declaringClass, methodWithParametersKey)) {
+    if (isMuted(child.declaringClass, methodWithParametersKey)) {
         System.err.println(mutedMessage(testKey(child.declaringClass, methodWithParametersKey)))
         return true
     }
@@ -259,7 +267,7 @@ fun isIgnoredInDatabaseWithLog(child: FrameworkMethod, parametersName: String): 
 }
 
 fun isIgnoredInDatabaseWithLog(testCase: TestCase): Boolean {
-    if (isMutedInDatabase(testCase)) {
+    if (isMuted(testCase)) {
         System.err.println(mutedMessage(testKey(testCase)))
         return true
     }
@@ -267,7 +275,7 @@ fun isIgnoredInDatabaseWithLog(testCase: TestCase): Boolean {
     return false
 }
 
-private fun shouldRunMutedTests(): Boolean = System.getProperty("kotlin.tests.muted.run") == "true"
+private fun isRunMutedTestsPropertyEnabled(): Boolean = System.getProperty("kotlin.tests.muted.run") == "true"
 
 fun TestCase.runTest(test: () -> Unit) {
     (wrapWithMuteInDatabase(this, test) ?: test).invoke()
