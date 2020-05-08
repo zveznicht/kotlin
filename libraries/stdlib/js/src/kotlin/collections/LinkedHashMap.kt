@@ -35,7 +35,7 @@ public actual open class LinkedHashMap<K, V> : HashMap<K, V>, MutableMap<K, V> {
         internal var prev: ChainEntry<K, V>? = null
 
         override fun setValue(newValue: V): V {
-            checkIsMutable()
+            this@LinkedHashMap.checkIsMutable()
             return super.setValue(newValue)
         }
     }

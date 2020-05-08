@@ -49,6 +49,8 @@ public actual open class LinkedHashSet<E> : HashSet<E>, MutableSet<E> {
         return this
     }
 
+    internal override fun checkIsMutable(): Unit = map.checkIsMutable()
+
 //    public override fun clone(): Any {
 //        return LinkedHashSet(this)
 //    }
