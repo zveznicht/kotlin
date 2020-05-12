@@ -32,6 +32,7 @@ import com.intellij.psi.search.searches.MethodReferencesSearch
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.refactoring.safeDelete.SafeDeleteHandler
 import com.intellij.util.Processor
+import org.apache.commons.lang3.time.StopWatch
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
@@ -158,7 +159,14 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
             val useScope = psiSearchHelper.getUseScope(declaration)
             if (useScope is GlobalSearchScope) {
                 var zeroOccurrences = true
-                for (name in listOf(declaration.name) + declaration.getAccessorNames() + listOfNotNull(declaration.getClassNameForCompanionObject())) {
+
+//                val alternativeNames = listOf(declaration.name) + accessorNames + listOfNotNull(declaration.getClassNameForCompanionObject())
+                val alternateNames = sequence {
+                    yield(declaration.name)
+                    yield(declaration.getClassNameForCompanionObject())
+                    yieldAll(declaration.getAccessorNames())
+                }
+                for (name in alternateNames) {
                     if (name == null) continue
                     when (psiSearchHelper.isCheapEnoughToSearchConsideringOperators(name, useScope, null, null)) {
                         ZERO_OCCURRENCES -> {
@@ -392,7 +400,7 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
             useScope,
             kotlinOptions = searchOptions
         )
-        val referenceUsed: Boolean by lazy(LazyThreadSafetyMode.NONE) { !ReferencesSearch.search(searchParameters).forEach(Processor { checkReference(it) }) }
+        val referenceUsed: Boolean by lazy { !ReferencesSearch.search(searchParameters).forEach(Processor { checkReference(it) }) }
 
         if (descriptor is FunctionDescriptor && DescriptorUtils.findJvmNameAnnotation(descriptor) != null) {
             if (referenceUsed) return true

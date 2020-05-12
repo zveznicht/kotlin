@@ -17,9 +17,9 @@ class ExternalProject private constructor(val path: String, val openWith: Projec
 
         private fun autoOpenAction(path: String): ProjectOpenAction {
             return if (exists(path, ".idea", "modules.xml"))
-                ProjectOpenAction.EXISTING_IDEA_PROJECT
+                ProjectOpenAction.EXISTING_IDEA_PROJECT.apply { println("Opening $path in iml mode.") }
             else
-                ProjectOpenAction.GRADLE_PROJECT
+                ProjectOpenAction.GRADLE_PROJECT.apply { println("Opening $path in Gradle mode.") }
         }
     }
 }

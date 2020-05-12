@@ -67,5 +67,6 @@ class PerfTestBuilder<SV, TV> {
 }
 
 fun <SV, TV> performanceTest(initializer: PerfTestBuilder<SV, TV>.() -> Unit) {
-    PerfTestBuilder<SV, TV>().apply(initializer).run()
+    val performance = PerfTestBuilder<SV, TV>().apply(initializer)
+    performance.run()
 }
