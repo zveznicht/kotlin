@@ -217,10 +217,8 @@ class IDELightClassGenerationSupport(private val project: Project) : LightClassG
         }
     }
 
-    override fun analyze(element: KtElement): BindingContext {
-        val resolveElementCache = element.getResolutionFacade().getFrontendService(ResolveElementCache::class.java)
-        return resolveElementCache.resolveToElements(listOf(element), BodyResolveMode.PARTIAL)
-    }
+    override fun analyze(element: KtElement): BindingContext =
+        element.getResolutionFacade().analyze(element, BodyResolveMode.PARTIAL)
 
     override fun analyzeWithContent(element: KtClassOrObject) = element.analyzeWithContent()
 }
