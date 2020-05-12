@@ -94,8 +94,10 @@ fun Project.projectTest(
         "-XX:+HeapDumpOnOutOfMemoryError",
         "-XX:+UseCodeCacheFlushing",
         "-XX:ReservedCodeCacheSize=128m",
-        "-Djna.nosys=true"
+        "-Djna.nosys=true",
+        "-XX:CICompilerCount=2"
     )
+
 
     maxHeapSize = "1600m"
     systemProperty("idea.is.unit.test", "true")
