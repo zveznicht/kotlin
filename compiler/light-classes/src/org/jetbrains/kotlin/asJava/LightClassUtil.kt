@@ -128,10 +128,16 @@ object LightClassUtil {
         return getPsiMethodWrappers(declaration).firstOrNull()
     }
 
-    private fun getPsiMethodWrappers(declaration: KtDeclaration): Sequence<KtLightMethod> =
-            getWrappingClasses(declaration).flatMap { it.methods.asSequence() }
-                    .filterIsInstance<KtLightMethod>()
-                    .filter { it.kotlinOrigin === declaration }
+    private fun getPsiMethodWrappers(declaration: KtDeclaration): Sequence<KtLightMethod> {
+        val wrappingClasses = getWrappingClasses(declaration)
+        val findLightMethods = findLightMethods(wrappingClasses)
+        return findLightMethods
+            .filter { it.kotlinOrigin === declaration }
+    }
+
+    private fun findLightMethods(wrappingClasses: Sequence<PsiClass>) =
+        wrappingClasses.flatMap { it.methods.asSequence() }
+            .filterIsInstance<KtLightMethod>()
 
     private fun getWrappingClass(declaration: KtDeclaration): PsiClass? {
         if (declaration is KtParameter) {
@@ -195,7 +201,7 @@ object LightClassUtil {
             ktDeclaration: KtDeclaration,
             specialGetter: PsiMethod?, specialSetter: PsiMethod?): PropertyAccessorsPsiMethods {
 
-        val (setters, getters) = getPsiMethodWrappers(ktDeclaration).partition { it.isSetter }
+        val (setters, getters) = psiMethodWrappers(ktDeclaration)
 
         val allGetters = listOfNotNull(specialGetter) + getters.filterNot { it == specialGetter }
         val allSetters = listOfNotNull(specialSetter) + setters.filterNot { it == specialSetter }
@@ -208,6 +214,9 @@ object LightClassUtil {
                 additionalAccessors
         )
     }
+
+    private fun psiMethodWrappers(ktDeclaration: KtDeclaration) =
+        getPsiMethodWrappers(ktDeclaration).partition { it.isSetter }
 
     fun buildLightTypeParameterList(
             owner: PsiTypeParameterListOwner,
