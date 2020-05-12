@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.idea.caches.lightClasses.IDELightClassContexts
 import org.jetbrains.kotlin.idea.caches.lightClasses.LazyLightClassDataHolder
+import org.jetbrains.kotlin.idea.project.ResolveElementCache
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.resolve.frontendService
 import org.jetbrains.kotlin.idea.stubindex.KotlinTypeAliasShortNameIndex
@@ -216,7 +217,10 @@ class IDELightClassGenerationSupport(private val project: Project) : LightClassG
         }
     }
 
-    override fun analyze(element: KtElement) = element.analyze(BodyResolveMode.PARTIAL)
+    override fun analyze(element: KtElement): BindingContext {
+        val resolveElementCache = element.getResolutionFacade().getFrontendService(ResolveElementCache::class.java)
+        return resolveElementCache.resolveToElements(listOf(element), BodyResolveMode.PARTIAL)
+    }
 
     override fun analyzeWithContent(element: KtClassOrObject) = element.analyzeWithContent()
 }
