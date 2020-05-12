@@ -171,7 +171,7 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
                     when (psiSearchHelper.isCheapEnoughToSearchConsideringOperators(name, useScope, null, null)) {
                         ZERO_OCCURRENCES -> {
                         } // go on, check other names
-                        FEW_OCCURRENCES -> zeroOccurrences = false
+                        FEW_OCCURRENCES -> return FEW_OCCURRENCES
                         TOO_MANY_OCCURRENCES -> return TOO_MANY_OCCURRENCES // searching usages is too expensive; behave like it is used
                     }
                 }
