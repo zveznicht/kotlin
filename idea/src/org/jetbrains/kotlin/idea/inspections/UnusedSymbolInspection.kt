@@ -159,8 +159,8 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
 
                 val alternateNames = sequence {
                     yield(declarationName)
-                    yieldAll(declaration.getAccessorNames())
                     yield(declaration.getClassNameForCompanionObject())
+                    yieldAll(declaration.getAccessorNames())
                 }
                 for (name in alternateNames) {
                     if (name == null) continue
@@ -171,7 +171,7 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
                     when (cheapEnoughToSearch) {
                         ZERO_OCCURRENCES -> {
                         } // go on, check other names
-                        FEW_OCCURRENCES -> zeroOccurrences = false
+                        FEW_OCCURRENCES -> return FEW_OCCURRENCES
                         TOO_MANY_OCCURRENCES -> return TOO_MANY_OCCURRENCES // searching usages is too expensive; behave like it is used
                     }
                 }
