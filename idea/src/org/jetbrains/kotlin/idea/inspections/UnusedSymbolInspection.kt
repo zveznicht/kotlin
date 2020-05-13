@@ -32,7 +32,6 @@ import com.intellij.psi.search.searches.MethodReferencesSearch
 import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.refactoring.safeDelete.SafeDeleteHandler
 import com.intellij.util.Processor
-import org.apache.commons.lang3.time.StopWatch
 import org.jetbrains.kotlin.asJava.LightClassUtil
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
@@ -61,7 +60,6 @@ import org.jetbrains.kotlin.idea.references.resolveMainReferenceToDescriptors
 import org.jetbrains.kotlin.idea.search.findScriptsWithUsages
 import org.jetbrains.kotlin.idea.search.ideaExtensions.KotlinReferencesSearchOptions
 import org.jetbrains.kotlin.idea.search.ideaExtensions.KotlinReferencesSearchParameters
-import org.jetbrains.kotlin.idea.search.isCheapEnoughToSearchConsideringOperators
 import org.jetbrains.kotlin.idea.search.projectScope
 import org.jetbrains.kotlin.idea.search.usagesSearch.dataClassComponentFunction
 import org.jetbrains.kotlin.idea.search.usagesSearch.getAccessorNames
@@ -72,6 +70,7 @@ import org.jetbrains.kotlin.idea.util.hasActualsFor
 import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.*
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -80,6 +79,7 @@ import org.jetbrains.kotlin.resolve.bindingContextUtil.isUsedAsExpression
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.isInlineClassType
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.types.expressions.OperatorConventions
 import org.jetbrains.kotlin.util.findCallableMemberBySignature
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -101,13 +101,11 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
         private fun KtDeclaration.hasKotlinAdditionalAnnotation() =
             this is KtNamedDeclaration && checkAnnotatedUsingPatterns(this, KOTLIN_ADDITIONAL_ANNOTATIONS)
 
-        fun isEntryPoint(declaration: KtNamedDeclaration): Boolean {
-            val declarationInfo = KtNamedDeclarationInfo(declaration)
-            return isEntryPoint(declarationInfo)
-        }
+        fun isEntryPoint(declaration: KtNamedDeclaration): Boolean =
+            isEntryPoint(SearchCostNamedDeclaration(declaration))
 
-        fun isEntryPoint(declarationInfo: KtNamedDeclarationInfo): Boolean {
-            val declaration = declarationInfo.declaration
+        fun isEntryPoint(scDeclaration: SearchCostNamedDeclaration): Boolean {
+            val declaration = scDeclaration.declaration
             if (declaration.hasKotlinAdditionalAnnotation()) return true
             if (declaration is KtClass && declaration.declarations.any { it.hasKotlinAdditionalAnnotation() }) return true
 
@@ -133,45 +131,47 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
 
             if (lightElement == null) return false
 
-            if (declarationInfo.costResult == TOO_MANY_OCCURRENCES) return false
+            if (scDeclaration.searchCostResult == TOO_MANY_OCCURRENCES) return false
 
             return javaInspection.isEntryPoint(lightElement)
         }
 
-        class KtNamedDeclarationInfo(val declaration: KtNamedDeclaration) {
-            val costResult: SearchCostResult by lazy {
-                isCheapEnoughToSearchUsages(this)
-            }
-        }
-
-        private fun isCheapEnoughToSearchUsages(declarationInfo: KtNamedDeclarationInfo): SearchCostResult {
-            val declaration = declarationInfo.declaration
+        fun isCheapEnoughToSearchUsages(declaration: KtNamedDeclaration): SearchCostResult {
             val project = declaration.project
             val psiSearchHelper = PsiSearchHelper.getInstance(project)
-
-            val usedScripts = findScriptsWithUsages(declaration)
-            if (usedScripts.isNotEmpty()) {
-                if (!ScriptConfigurationManager.getInstance(declaration.project).updater.ensureConfigurationUpToDate(usedScripts)) {
-                    return TOO_MANY_OCCURRENCES
-                }
-            }
 
             val useScope = psiSearchHelper.getUseScope(declaration)
             if (useScope is GlobalSearchScope) {
                 var zeroOccurrences = true
 
-//                val alternativeNames = listOf(declaration.name) + accessorNames + listOfNotNull(declaration.getClassNameForCompanionObject())
+                val declarationName = declaration.name
+                declarationName?.let {
+                    if (OperatorConventions.isConventionName(Name.identifier(declarationName)))
+                        return TOO_MANY_OCCURRENCES
+                }
+
+                val usedScripts = findScriptsWithUsages(declaration, useScope)
+                if (usedScripts.isNotEmpty()) {
+                    if (!ScriptConfigurationManager.getInstance(declaration.project).updater.ensureConfigurationUpToDate(usedScripts)) {
+                        return TOO_MANY_OCCURRENCES
+                    }
+                }
+
                 val alternateNames = sequence {
-                    yield(declaration.name)
-                    yield(declaration.getClassNameForCompanionObject())
+                    yield(declarationName)
                     yieldAll(declaration.getAccessorNames())
+                    yield(declaration.getClassNameForCompanionObject())
                 }
                 for (name in alternateNames) {
                     if (name == null) continue
-                    when (psiSearchHelper.isCheapEnoughToSearchConsideringOperators(name, useScope, null, null)) {
+                    if (OperatorConventions.isConventionName(Name.identifier(name))) {
+                        return TOO_MANY_OCCURRENCES
+                    }
+                    val cheapEnoughToSearch = psiSearchHelper.isCheapEnoughToSearch(name, useScope, null, null)
+                    when (cheapEnoughToSearch) {
                         ZERO_OCCURRENCES -> {
                         } // go on, check other names
-                        FEW_OCCURRENCES -> return FEW_OCCURRENCES
+                        FEW_OCCURRENCES -> zeroOccurrences = false
                         TOO_MANY_OCCURRENCES -> return TOO_MANY_OCCURRENCES // searching usages is too expensive; behave like it is used
                     }
                 }
@@ -239,8 +239,9 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
             val descriptor = declaration.resolveToDescriptorIfAny() ?: return
             if (descriptor is FunctionDescriptor && descriptor.isOperator) return
 
-            val declarationInfo = KtNamedDeclarationInfo(declaration)
-            if (isEntryPoint(declarationInfo)) return
+            val searchCostDeclaration = SearchCostNamedDeclaration(declaration)
+
+            if (isEntryPoint(searchCostDeclaration)) return
             if (declaration.isFinalizeMethod(descriptor)) return
             if (declaration is KtProperty && declaration.isSerializationImplicitlyUsedField()) return
             if (declaration is KtNamedFunction && declaration.isSerializationImplicitlyUsedMethod()) return
@@ -256,7 +257,7 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
             }
 
             // Main checks: finding reference usages && text usages
-            if (hasNonTrivialUsages(declarationInfo, descriptor)) return
+            if (hasNonTrivialUsages(searchCostDeclaration, descriptor)) return
             if (declaration is KtClassOrObject && classOrObjectHasTextUsages(declaration)) return
 
             val psiElement = declaration.nameIdentifier ?: (declaration as? KtConstructor<*>)?.getConstructorKeyword() ?: return
@@ -289,15 +290,14 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
         return hasTextUsages
     }
 
-    private fun hasNonTrivialUsages(declarationInfo: KtNamedDeclarationInfo, descriptor: DeclarationDescriptor? = null): Boolean {
-        val declaration = declarationInfo.declaration
+    private fun hasNonTrivialUsages(scDeclaration: SearchCostNamedDeclaration, descriptor: DeclarationDescriptor? = null): Boolean {
+        val declaration = scDeclaration.declaration
         val project = declaration.project
         val psiSearchHelper = PsiSearchHelper.getInstance(project)
 
         val useScope = psiSearchHelper.getUseScope(declaration)
         val restrictedScope = if (useScope is GlobalSearchScope) {
-            val enoughToSearchUsages = declarationInfo.costResult
-            val zeroOccurrences = when (enoughToSearchUsages) {
+            val zeroOccurrences = when (scDeclaration.searchCostResult) {
                 ZERO_OCCURRENCES -> true
                 FEW_OCCURRENCES -> false
                 TOO_MANY_OCCURRENCES -> return true // searching usages is too expensive; behave like it is used
@@ -336,8 +336,8 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
                 hasPlatformImplementations(declaration, descriptor)
     }
 
-    private fun checkDeclaration(declaration: KtNamedDeclaration, importedDeclarationInfo: KtNamedDeclarationInfo): Boolean =
-        declaration !in importedDeclarationInfo.declaration.parentsWithSelf && !hasNonTrivialUsages(importedDeclarationInfo)
+    private fun checkDeclaration(declaration: SearchCostNamedDeclaration): Boolean =
+        declaration !in declaration.declaration.parentsWithSelf && !hasNonTrivialUsages(declaration)
 
     private val KtNamedDeclaration.isObjectOrEnum: Boolean get() = this is KtObjectDeclaration || this is KtClass && isEnum()
 
@@ -358,26 +358,23 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
                 if (import.isAllUnder) {
                     val importedFrom = import.importedReference?.getQualifiedElementSelector()?.mainReference?.resolve()
                             as? KtClassOrObject ?: return true
-                    return importedFrom.declarations.none { it is KtNamedDeclaration && hasNonTrivialUsages(KtNamedDeclarationInfo(it)) }
+                    return importedFrom.declarations.none { it is KtNamedDeclaration && hasNonTrivialUsages(SearchCostNamedDeclaration(it)) }
                 } else {
                     if (import.importedFqName != declaration.fqName) {
                         val importedDeclaration =
                             import.importedReference?.getQualifiedElementSelector()?.mainReference?.resolve() as? KtNamedDeclaration
                                 ?: return true
-                        val importedDeclarationInfo = KtNamedDeclarationInfo(importedDeclaration)
+                        val searchCostNamedDeclaration = SearchCostNamedDeclaration(importedDeclaration)
 
-                        if (declaration.isObjectOrEnum || importedDeclaration.containingClassOrObject is KtObjectDeclaration) return checkDeclaration(
-                            declaration,
-                            importedDeclarationInfo
-                        )
+                        if (declaration.isObjectOrEnum || importedDeclaration.containingClassOrObject is KtObjectDeclaration)
+                            return checkDeclaration(searchCostNamedDeclaration)
 
-                        if (originalDeclaration?.isObjectOrEnum == true) return checkDeclaration(
-                            originalDeclaration,
-                            importedDeclarationInfo
-                        )
+                        if (originalDeclaration?.isObjectOrEnum == true)
+                            return checkDeclaration(searchCostNamedDeclaration)
 
                         // check type alias
-                        if (importedDeclaration.fqName == declaration.fqName) return true
+                        if (importedDeclaration.fqName == declaration.fqName)
+                            return true
                     }
                 }
             }
@@ -599,4 +596,10 @@ class SafeDeleteFix(declaration: KtDeclaration) : LocalQuickFix {
 
 private fun safeDelete(project: Project, declaration: PsiElement) {
     SafeDeleteHandler.invoke(project, arrayOf(declaration), false)
+}
+
+class SearchCostNamedDeclaration(val declaration: KtNamedDeclaration) : KtNamedDeclaration by declaration {
+    val searchCostResult: SearchCostResult by lazy {
+        UnusedSymbolInspection.isCheapEnoughToSearchUsages(this)
+    }
 }

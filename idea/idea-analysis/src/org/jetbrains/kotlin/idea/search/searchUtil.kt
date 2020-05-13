@@ -130,11 +130,8 @@ fun PsiSearchHelper.isCheapEnoughToSearchConsideringOperators(
     return isCheapEnoughToSearch(name, scope, fileToIgnoreOccurrencesIn, progress)
 }
 
-fun findScriptsWithUsages(declaration: KtNamedDeclaration): List<KtFile> {
+fun findScriptsWithUsages(declaration: KtNamedDeclaration, scope: GlobalSearchScope): List<KtFile> {
     val project = declaration.project
-    val scope = PsiSearchHelper.getInstance(project).getUseScope(declaration) as? GlobalSearchScope
-        ?: return emptyList()
-
     val name = declaration.name.takeIf { it?.isNotBlank() == true } ?: return emptyList()
     return findScriptsWithUsages(name, scope, project)
 }
