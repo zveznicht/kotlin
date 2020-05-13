@@ -160,23 +160,11 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
                 val alternateNames = sequence {
                     yield(declarationName)
                     yield(declaration.getClassNameForCompanionObject())
-                    yieldAll(declaration.getAccessorNames())
+//                    yieldAll(declaration.getAccessorNames()) // Skip accessorNames because it's expensive to get, better to postpone it
                 }
-                for (name in alternateNames) {
-                    if (name == null) continue
-                    if (OperatorConventions.isConventionName(Name.identifier(name))) {
-                        return TOO_MANY_OCCURRENCES
-                    }
-                    val cheapEnoughToSearch = psiSearchHelper.isCheapEnoughToSearch(name, useScope, null, null)
-                    when (cheapEnoughToSearch) {
-                        ZERO_OCCURRENCES -> {
-                        } // go on, check other names
-                        FEW_OCCURRENCES -> return FEW_OCCURRENCES
-                        TOO_MANY_OCCURRENCES -> return TOO_MANY_OCCURRENCES // searching usages is too expensive; behave like it is used
-                    }
-                }
-
-                if (zeroOccurrences) return ZERO_OCCURRENCES
+                val allNames = alternateNames.filterNotNull().joinToString(" ") // because
+                val cheapEnoughToSearch = psiSearchHelper.isCheapEnoughToSearch(allNames, useScope, null, null)
+                return cheapEnoughToSearch
             }
             return FEW_OCCURRENCES
         }
