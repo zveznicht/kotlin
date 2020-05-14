@@ -900,7 +900,7 @@ class NewMultiplatformProjectImportingTest : MultiplePluginVersionGradleImportin
     }
 
     @Test
-    @PluginTargetVersions(gradleVersion = "4.0+", pluginVersion = "1.3.50+")
+    @PluginTargetVersions(gradleVersion = "4.0+", pluginVersion = "1.3.60+")
     fun testIgnoreIncompatibleNativeTestTasks() {
         configureByFiles()
         importProject()
