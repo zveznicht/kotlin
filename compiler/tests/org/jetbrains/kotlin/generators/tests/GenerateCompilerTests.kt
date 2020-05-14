@@ -226,7 +226,7 @@ fun main(args: Array<String>) {
                 model("ir/irJsText", pattern = "^(.+)\\.kt(s)?\$")
             }
 
-            testClass<AbstractJsIrWithKlibTest> {
+            testClass<AbstractJsInterpreterTestCase> {
                 model("ir/interpreter", pattern = "^(.+)\\.kt(s)?\$")
             }
 
