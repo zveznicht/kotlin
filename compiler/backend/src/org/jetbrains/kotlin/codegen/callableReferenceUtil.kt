@@ -168,7 +168,7 @@ private fun isTopLevelCallableReference(descriptor: CallableDescriptor): Boolean
 internal fun getCallableReferenceTopLevelFlag(descriptor: CallableDescriptor): Int =
     if (isTopLevelCallableReference(descriptor)) 1 else 0
 
-internal fun generateCallableReferenceSignature(iv: InstructionAdapter, callable: CallableDescriptor, state: GenerationState) {
+internal fun generateFunctionReferenceSignature(iv: InstructionAdapter, callable: CallableDescriptor, state: GenerationState) {
     iv.aconst(getSignatureString(callable, state))
 }
 
