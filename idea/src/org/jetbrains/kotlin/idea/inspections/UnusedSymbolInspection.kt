@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.idea.inspections
 
 import com.intellij.codeInsight.FileModificationService
 import com.intellij.codeInsight.daemon.QuickFixBundle
-import com.intellij.codeInsight.daemon.impl.HighlightInfoType
 import com.intellij.codeInsight.daemon.impl.analysis.HighlightUtil
 import com.intellij.codeInsight.daemon.impl.analysis.JavaHighlightUtil
 import com.intellij.codeInspection.*
@@ -17,6 +16,7 @@ import com.intellij.codeInspection.ex.EntryPointsManagerBase
 import com.intellij.codeInspection.ex.EntryPointsManagerImpl
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ModalityState
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -90,6 +90,10 @@ import javax.swing.JPanel
 
 class UnusedSymbolInspection : AbstractKotlinInspection() {
     companion object {
+        private val log = Logger.getInstance(
+            UnusedSymbolInspection::class.java
+        )
+
         private val javaInspection = UnusedDeclarationInspection()
 
         private val KOTLIN_ADDITIONAL_ANNOTATIONS = listOf("kotlin.test.*")
@@ -146,7 +150,13 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
             val useScope = psiSearchHelper.getUseScope(declaration)
             if (useScope is GlobalSearchScope) {
                 var zeroOccurrences = true
-                for (name in listOf(declaration.name) + declaration.getAccessorNames() + listOfNotNull(declaration.getClassNameForCompanionObject())) {
+
+                val alternateNames = sequence {
+                    yield(declaration.name)
+                    yieldAll(traceAccessorNames(declaration))
+                    yield(declaration.getClassNameForCompanionObject())
+                }
+                for (name in alternateNames) {
                     if (name == null) continue
                     when (psiSearchHelper.isCheapEnoughToSearchConsideringOperators(name, useScope, null, null)) {
                         ZERO_OCCURRENCES -> {
@@ -159,6 +169,13 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
                 if (zeroOccurrences) return ZERO_OCCURRENCES
             }
             return FEW_OCCURRENCES
+        }
+
+        fun traceAccessorNames(declaration: KtNamedDeclaration): List<String> {
+            val accessors = declaration.getAccessorNames()
+            if (accessors.isNotEmpty())
+                log.debug("Got accessorNames for ${declaration} as $accessors")
+            return accessors
         }
 
         private fun KtProperty.isSerializationImplicitlyUsedField(): Boolean {
@@ -379,6 +396,7 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
         val referenceUsed: Boolean by lazy { !ReferencesSearch.search(searchParameters).forEach(Processor { checkReference(it) }) }
 
         if (descriptor is FunctionDescriptor && DescriptorUtils.findJvmNameAnnotation(descriptor) != null) {
+            log.trace("Searching for references in ${declaration.text}")
             if (referenceUsed) return true
         }
 
