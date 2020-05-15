@@ -1,6 +1,7 @@
 // !LANGUAGE: +InlineClasses
 // WITH_RUNTIME
 // KJS_WITH_FULL_RUNTIME
+// IGNORE_BACKEND: JVM_IR
 
 class C<T>(val x: T, vararg ys: UInt) {
     val y0 = ys[0]
