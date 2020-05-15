@@ -440,7 +440,7 @@ class KotlinCopyPasteReferenceProcessor : CopyPastePostProcessor<BasicKotlinRefe
         val dummyOriginalFile = runReadAction {
             KtPsiFactory(project)
                 .createAnalyzableFile(
-                    "dummy-original.kt",
+                    "dummy-original." + if (file.isScript()) "kts" else "kt",
                     "$dummyOrigFileProlog${transferableData.sourceText}",
                     ctxFile
                 )
