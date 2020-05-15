@@ -741,6 +741,13 @@ class DescriptorSerializer private constructor(
     )
 
     companion object {
+        private val plugins: MutableSet<DescriptorSerializerPlugin> = mutableSetOf()
+
+        @JvmStatic
+        fun registerSerializerPlugin(plugin: DescriptorSerializerPlugin) {
+            plugins.add(plugin)
+        }
+
         @JvmStatic
         fun createTopLevel(extension: SerializerExtension): DescriptorSerializer =
             DescriptorSerializer(
@@ -759,8 +766,6 @@ class DescriptorSerializer private constructor(
             extension: SerializerExtension,
             parentSerializer: DescriptorSerializer?
         ): DescriptorSerializer {
-//            val plugins = ServiceLoader.load(DescriptorSerializerPlugin::class.java).toList()
-            val plugins = listOfNotNull(THE_PLUGIN)
             val container = descriptor.containingDeclaration
             val parent = if (container is ClassDescriptor)
                 parentSerializer ?: create(container, extension, null)
@@ -778,7 +783,7 @@ class DescriptorSerializer private constructor(
                 if (container is ClassDescriptor && !isVersionRequirementTableWrittenCorrectly(extension.metadataVersion))
                     parent.versionRequirementTable else MutableVersionRequirementTable(),
                 serializeTypeTableToFunction = false,
-                plugins
+                plugins.toList()
             )
             for (typeParameter in descriptor.declaredTypeParameters) {
                 serializer.typeParameters.intern(typeParameter)

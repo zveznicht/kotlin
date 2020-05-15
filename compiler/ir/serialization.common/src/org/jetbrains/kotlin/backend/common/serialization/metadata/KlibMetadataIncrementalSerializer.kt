@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.library.SerializedMetadata
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.serialization.DescriptorSerializer
@@ -23,8 +24,9 @@ import org.jetbrains.kotlin.serialization.DescriptorSerializer
 class KlibMetadataIncrementalSerializer(
     languageVersionSettings: LanguageVersionSettings,
     metadataVersion: BinaryVersion,
+    bindingContext: BindingContext?,
     skipExpects: Boolean
-) : KlibMetadataSerializer(languageVersionSettings, metadataVersion, skipExpects) {
+) : KlibMetadataSerializer(languageVersionSettings, metadataVersion, bindingContext, skipExpects) {
 
     fun serializePackageFragment(
         module: ModuleDescriptor,

@@ -1,11 +1,11 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.cli.metadata
 
-import org.jetbrains.kotlin.analyzer.*
+import org.jetbrains.kotlin.analyzer.ModuleInfo
 import org.jetbrains.kotlin.analyzer.common.CommonDependenciesContainer
 import org.jetbrains.kotlin.analyzer.common.CommonPlatformAnalyzerServices
 import org.jetbrains.kotlin.backend.common.serialization.metadata.KlibMetadataMonolithicSerializer
@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.metadata.builtins.BuiltInsBinaryVersion
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.CommonPlatforms
 import org.jetbrains.kotlin.platform.TargetPlatform
+import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.CompilerDeserializationConfiguration
 import org.jetbrains.kotlin.resolve.PlatformDependentAnalyzerServices
 import org.jetbrains.kotlin.serialization.konan.impl.KlibMetadataModuleDescriptorFactoryImpl
@@ -57,20 +58,22 @@ internal class K2MetadataKlibSerializer(private val metadataVersion: BuiltInsBin
 
         if (analyzer == null || analyzer.hasErrors()) return
 
-        val (_, moduleDescriptor) = analyzer.analysisResult
+        val (bindingContext, moduleDescriptor) = analyzer.analysisResult
 
         val destDir = checkNotNull(environment.destDir)
-        performSerialization(configuration, moduleDescriptor, destDir)
+        performSerialization(configuration, moduleDescriptor, bindingContext, destDir)
     }
 
     private fun performSerialization(
         configuration: CompilerConfiguration,
         module: ModuleDescriptor,
+        bindingContext: BindingContext,
         destDir: File
     ) {
         val serializedMetadata: SerializedMetadata = KlibMetadataMonolithicSerializer(
             configuration.languageVersionSettings,
             metadataVersion,
+            bindingContext,
             skipExpects = false,
             includeOnlyModuleContent = true
         ).serializeModule(module)

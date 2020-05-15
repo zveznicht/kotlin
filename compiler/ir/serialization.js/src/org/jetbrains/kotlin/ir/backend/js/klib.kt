@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -459,7 +459,7 @@ fun serializeModuleIntoKlib(
         ).serializedIrModule(moduleFragment)
 
     val moduleDescriptor = moduleFragment.descriptor
-    val metadataSerializer = KlibMetadataIncrementalSerializer(configuration)
+    val metadataSerializer = KlibMetadataIncrementalSerializer(configuration, bindingContext)
 
     val incrementalResultsConsumer = configuration.get(JSConfigurationKeys.INCREMENTAL_RESULTS_CONSUMER)
     val empty = ByteArray(0)
@@ -546,7 +546,7 @@ private fun compareMetadataAndGoToNextICRoundIfNeeded(
 ) {
     val nextRoundChecker = config.get(JSConfigurationKeys.INCREMENTAL_NEXT_ROUND_CHECKER) ?: return
     val bindingContext = analysisResult.bindingContext
-    val serializer = KlibMetadataIncrementalSerializer(config)
+    val serializer = KlibMetadataIncrementalSerializer(config, bindingContext)
     for (ktFile in files) {
         val packageFragment = serializer.serializeScope(ktFile, bindingContext, analysisResult.moduleDescriptor)
         // to minimize a number of IC rounds, we should inspect all proto for changes first,
@@ -557,8 +557,12 @@ private fun compareMetadataAndGoToNextICRoundIfNeeded(
     if (nextRoundChecker.shouldGoToNextRound()) throw IncrementalNextRoundException()
 }
 
-private fun KlibMetadataIncrementalSerializer(configuration: CompilerConfiguration) = KlibMetadataIncrementalSerializer(
+private fun KlibMetadataIncrementalSerializer(
+    configuration: CompilerConfiguration,
+    bindingContext: BindingContext
+) = KlibMetadataIncrementalSerializer(
     languageVersionSettings = configuration.languageVersionSettings,
     metadataVersion = configuration.metadataVersion,
+    bindingContext = bindingContext,
     skipExpects = !configuration.expectActualLinker
 )

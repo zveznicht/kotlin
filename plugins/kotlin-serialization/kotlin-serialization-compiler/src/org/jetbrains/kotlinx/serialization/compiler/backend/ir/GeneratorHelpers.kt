@@ -175,7 +175,25 @@ interface IrBuilderExtension {
 
     fun KotlinType.toIrType() = compilerContext.typeTranslator.translateType(this)
 
+    // note: this method should be used only for properties from current module. Fields from other modules are private and inaccessible.
     val SerializableProperty.irField: IrField get() = compilerContext.symbolTable.referenceField(this.descriptor).owner
+
+    // todo: this API does not work for properties in local classes (likely because fqname for them is smth weird)
+    val SerializableProperty.irProp: IrProperty get() = compilerContext.referenceProperties(this.descriptor.fqNameSafe).single().owner
+
+    fun IrBuilderWithScope.getProperty(receiver: IrExpression, property: IrProperty): IrExpression {
+        return if (property.getter != null)
+            irGet(property.getter!!.returnType, receiver, property.getter!!.symbol)
+        else
+            irGetField(receiver, property.backingField!!)
+    }
+
+    fun IrBuilderWithScope.setProperty(receiver: IrExpression, property: IrProperty, value: IrExpression): IrExpression {
+        return if (property.setter != null)
+            irSet(property.setter!!.returnType, receiver, property.setter!!.symbol, value)
+        else
+            irSetField(receiver, property.backingField!!, value)
+    }
 
     /*
      The rest of the file is mainly copied from FunctionGenerator.
@@ -680,6 +698,12 @@ interface IrBuilderExtension {
 
     fun serializableSyntheticConstructor(forClass: IrClass): IrConstructorSymbol {
         return forClass.declarations.filterIsInstance<IrConstructor>().single { it.isSerializationCtor() }.symbol
+    }
+
+    fun IrClass.getSuperClassOrAny(): IrClass {
+        val superClasses = superTypes.mapNotNull { it.classOrNull }.map { it.owner }
+
+        return superClasses.singleOrNull { it.kind == ClassKind.CLASS } ?: compilerContext.irBuiltIns.anyClass.owner
     }
 
 }
