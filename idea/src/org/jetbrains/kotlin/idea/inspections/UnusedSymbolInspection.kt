@@ -429,7 +429,9 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
             useScope,
             kotlinOptions = searchOptions
         )
-        val referenceUsed: Boolean by lazy { !ReferencesSearch.search(searchParameters).forEach(Processor { checkReference(it) }) }
+        val referenceUsed: Boolean by lazy {
+            !ReferencesSearch.search(searchParameters).allowParallelProcessing().forEach(Processor { checkReference(it) })
+        }
 
         if (descriptor is FunctionDescriptor && DescriptorUtils.findJvmNameAnnotation(descriptor) != null) {
             if (referenceUsed) return true
