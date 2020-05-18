@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.js.resolve.diagnostics.findPsi
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.descriptorUtil.classId
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.typeUtil.isTypeParameter
 import org.jetbrains.kotlin.types.typeUtil.makeNotNullable
@@ -178,8 +179,17 @@ interface IrBuilderExtension {
     // note: this method should be used only for properties from current module. Fields from other modules are private and inaccessible.
     val SerializableProperty.irField: IrField get() = compilerContext.symbolTable.referenceField(this.descriptor).owner
 
-    // todo: this API does not work for properties in local classes (likely because fqname for them is smth weird)
-    val SerializableProperty.irProp: IrProperty get() = compilerContext.referenceProperties(this.descriptor.fqNameSafe).single().owner
+    val SerializableProperty.irProp: IrProperty
+        get() {
+            val desc = this.descriptor
+            // this API is used to reference both current module descriptors and external ones (because serializable class can be in any of them),
+            // so we use descriptor api for current module because it is not possible to obtain FQname for e.g. local classes.
+            return if (desc.module == compilerContext.moduleDescriptor) {
+                compilerContext.symbolTable.referenceProperty(desc).owner
+            } else {
+                compilerContext.referenceProperties(this.descriptor.fqNameSafe).single().owner
+            }
+        }
 
     fun IrBuilderWithScope.getProperty(receiver: IrExpression, property: IrProperty): IrExpression {
         return if (property.getter != null)

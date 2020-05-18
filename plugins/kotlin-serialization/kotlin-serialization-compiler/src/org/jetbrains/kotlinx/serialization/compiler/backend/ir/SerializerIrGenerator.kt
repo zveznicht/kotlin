@@ -141,9 +141,9 @@ open class SerializerIrGenerator(val irClass: IrClass, final override val compil
             if (classProp.transient) continue
             +addFieldCall(classProp)
             // add property annotations
-            val property = compilerContext.referenceProperties(classProp.descriptor.fqNameSafe).single().takeIf { it.isBound }?.owner
+            val property = classProp.irProp
             copySerialInfoAnnotationsToDescriptor(
-                property?.annotations.orEmpty(),
+                property.annotations,
                 localDescriptor,
                 serialDescImplClass.referenceMethod(CallingConventions.addAnnotation)
             )
