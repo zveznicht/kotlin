@@ -58,7 +58,7 @@ public abstract class KtDeclarationStub<T extends StubElement<?>> extends KtModi
 
     @Override
     public PsiElement getParent() {
-        T stub = getStub();
+        T stub = getGreenStub();
         // we build stubs for local classes/objects too but they have wrong parent
         if (stub != null && !(stub instanceof KotlinClassOrObjectStub && ((KotlinClassOrObjectStub) stub).isLocal())) {
             return stub.getParentStub().getPsi();

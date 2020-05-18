@@ -50,7 +50,7 @@ public abstract class KtExpressionImplStub<T extends StubElement<?>> extends KtE
 
     @Override
     public PsiElement getParent() {
-        T stub = getStub();
+        T stub = getGreenStub();
         if (stub != null) {
             //noinspection unchecked
             return stub.getParentStub().getPsi();

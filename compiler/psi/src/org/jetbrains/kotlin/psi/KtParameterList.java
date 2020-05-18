@@ -43,7 +43,7 @@ public class KtParameterList extends KtElementImplStub<KotlinPlaceHolderStub<KtP
 
     @Override
     public PsiElement getParent() {
-        KotlinPlaceHolderStub<KtParameterList> stub = getStub();
+        KotlinPlaceHolderStub<KtParameterList> stub = getGreenStub();
         return stub != null ? stub.getParentStub().getPsi() : super.getParent();
     }
 
