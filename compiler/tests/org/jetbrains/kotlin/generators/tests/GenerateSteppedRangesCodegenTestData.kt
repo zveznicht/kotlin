@@ -190,11 +190,11 @@ object GenerateSteppedRangesCodegenTestData {
         PrintWriter(File(fullSubdir, fileName)).use {
             with(it) {
                 println("// $PREAMBLE_MESSAGE")
-                if (shouldIgnoreForFIR) {
-                    println("// IGNORE_BACKEND_FIR: JVM_IR")
-                }
                 if (shouldIgnoreForJvmIR) {
                     println("// IGNORE_BACKEND: JVM_IR")
+                }
+                if (shouldIgnoreForFIR) {
+                    println("// IGNORE_BACKEND_FIR: JVM_IR")
                 }
                 println("// KJS_WITH_FULL_RUNTIME")
                 println("// WITH_RUNTIME")
@@ -242,7 +242,8 @@ object GenerateSteppedRangesCodegenTestData {
                 extraCode,
                 File(UNSIGNED_TEST_DATA_DIR, fullSubdirPath),
                 asLiteral,
-                fileName in FIR_FAILING_FOR_UNSIGNED_FILENAMES,
+                shouldIgnoreForFIR = fileName in FIR_FAILING_FOR_UNSIGNED_FILENAMES ||
+                        fullSubdirPath in JVM_IR_FAILING_FOR_UNSIGNED_SUBDIRS,
                 shouldIgnoreForJvmIR = fullSubdirPath in JVM_IR_FAILING_FOR_UNSIGNED_SUBDIRS
             )
         }
