@@ -16,13 +16,13 @@ class Distribution(
         val konanHome: String,
         private val onlyDefaultProfiles: Boolean = false,
         private val runtimeFileOverride: String? = null
-): SubTargetProvider {
+) {
 
     val localKonanDir = DependencyDirectories.localKonanDir
 
     val konanSubdir = "$konanHome/konan"
     val mainPropertyFileName = "$konanSubdir/konan.properties"
-    override val experimentalEnabled by lazy {
+    val experimentalEnabled by lazy {
         File("$konanSubdir/experimentalTargetsEnabled").exists
     }
 
@@ -90,8 +90,10 @@ class Distribution(
 
     val dependenciesDir = DependencyDirectories.defaultDependenciesRoot.absolutePath
 
-    override fun availableSubTarget(genericName: String) =
-        additionalPropertyFiles(genericName).map { it.name }
+    val subTargetProvider = object: SubTargetProvider {
+        override fun availableSubTarget(genericName: String) =
+                additionalPropertyFiles(genericName).map { it.name }
+    }
 }
 
 // TODO: Move into K/N?

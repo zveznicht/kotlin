@@ -5,13 +5,10 @@
 
 package org.jetbrains.kotlin.konan.target
 
-
 interface SubTargetProvider {
     fun availableSubTarget(genericName: String): List<String>
-    val experimentalEnabled: Boolean
 
     object NoSubTargets : SubTargetProvider {
         override fun availableSubTarget(genericName: String): List<String> = emptyList()
-        override val experimentalEnabled: Boolean = false
     }
 }
