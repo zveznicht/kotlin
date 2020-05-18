@@ -69,10 +69,15 @@ open class NpmProject(val compilation: KotlinJsCompilation) {
     private val rootNodeModules: NpmProjectModules?
         get() = NpmProjectModules(nodeJs.rootPackageDir)
 
-    fun useTool(exec: ExecSpec, tool: String, vararg args: String) {
+    fun useTool(
+        exec: ExecSpec,
+        tool: String,
+        nodeArgs: List<String> = listOf(),
+        args: List<String>
+    ) {
         exec.workingDir = dir
         exec.executable = nodeJs.requireConfigured().nodeExecutable
-        exec.args = listOf(require(tool)) + args
+        exec.args = nodeArgs + require(tool) + args
     }
 
     /**
