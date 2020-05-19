@@ -57,6 +57,8 @@ class ProjectInfo(
     }
 
     fun module(name: String, body: ModuleInfo.() -> Unit = {}) {
+        val x = moduleManager.modules.map { it.rootManager.orderEntries }
+        println(x)
         val module = moduleManager.findModuleByName(name)
         if (module == null) {
             messageCollector.report("No module found: '$name' in ${moduleManager.modules.map { it.name }}")
@@ -225,7 +227,7 @@ class ModuleInfo(
     fun sourceFolder(pathInProject: String, rootType: JpsModuleSourceRootType<*>, packagePrefix: String? = ANY_PACKAGE_PREFIX) {
         val sourceFolder = sourceFolderByPath[pathInProject]
         if (sourceFolder == null) {
-            projectInfo.messageCollector.report("Module '${module.name}': No source folder found: '$pathInProject'")
+            projectInfo.messageCollector.report("Module '${module.name}': No source folder found: '$pathInProject' among $sourceFolderByPath")
             return
         }
         if (packagePrefix != ANY_PACKAGE_PREFIX && sourceFolder.packagePrefix != packagePrefix) {
