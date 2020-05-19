@@ -43,9 +43,12 @@ private fun _importProject(projectPath: String, project: Project) {
 
     setupGradleSettings(gradleProjectSettings, projectPath, project, projectSdk)
     gradleProjectSettings.gradleJvm = GRADLE_JDK_NAME
+    // TODO: [VD] temporary !
+    gradleProjectSettings.isResolveModulePerSourceSet = false
 
     GradleSettings.getInstance(project).getLinkedProjectSettings(projectPath)?.let { linkedProjectSettings ->
         linkedProjectSettings.gradleJvm = GRADLE_JDK_NAME
+        linkedProjectSettings.isResolveModulePerSourceSet = false
     }
 
     _attachGradleProjectAndRefresh(gradleProjectSettings, project)
