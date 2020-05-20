@@ -285,7 +285,7 @@ class DiagnosticReporterByTrackingStrategy(
 
     private fun reportUnstableSmartCast(unstableSmartCast: UnstableSmartCast) {
         val dataFlowValue = dataFlowValueFactory.createDataFlowValue(unstableSmartCast.argument.receiver.receiverValue, context)
-        val possibleTypes = unstableSmartCast.argument.receiver.possibleTypes
+        val possibleTypes = unstableSmartCast.argument.receiver.typesFromSmartCasts
         val argumentExpression = unstableSmartCast.argument.psiExpression ?: return
 
         require(possibleTypes.isNotEmpty()) { "Receiver for unstable smart cast without possible types" }

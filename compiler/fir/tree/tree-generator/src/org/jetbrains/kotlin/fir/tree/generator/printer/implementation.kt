@@ -150,9 +150,9 @@ fun SmartPrinter.printImplementation(implementation: Implementation) {
                                     if (type == "FirWhenExpressionImpl" && field.name == "subject") {
                                         println(
                                             """
-                                        |val _subjectVariable = subjectVariable
-                                        |if (_subjectVariable != null) {
-                                        |            _subjectVariable.accept(visitor, data)
+                                        |val subjectVariable_ = subjectVariable
+                                        |        if (subjectVariable_ != null) {
+                                        |            subjectVariable_.accept(visitor, data)
                                         |        } else {
                                         |            subject?.accept(visitor, data)
                                         |        }
