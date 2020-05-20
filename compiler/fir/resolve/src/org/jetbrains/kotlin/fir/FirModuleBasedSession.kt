@@ -11,8 +11,8 @@ import org.jetbrains.kotlin.fir.extensions.FirRegisteredPluginAnnotations
 import org.jetbrains.kotlin.fir.resolve.FirQualifierResolver
 import org.jetbrains.kotlin.fir.extensions.FirPredicateBasedProvider
 import org.jetbrains.kotlin.fir.resolve.FirTypeResolver
-import org.jetbrains.kotlin.fir.resolve.impl.FirQualifierResolverImpl
-import org.jetbrains.kotlin.fir.resolve.impl.FirTypeResolverImpl
+import org.jetbrains.kotlin.fir.resolve.provider.impl.FirQualifierResolverImpl
+import org.jetbrains.kotlin.fir.resolve.provider.impl.FirTypeResolverImpl
 import org.jetbrains.kotlin.fir.scopes.impl.FirDeclaredMemberScopeProvider
 
 abstract class FirModuleBasedSession(override val moduleInfo: ModuleInfo, sessionProvider: FirSessionProvider?) :
