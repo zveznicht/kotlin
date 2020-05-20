@@ -33,7 +33,7 @@ fun main(args: Array<String>) {
         }
 
         testClass<AbstractLegacyJsTypeScriptExportTest> {
-            model("typescript-export/", pattern = "^([^_](.+))\\.kt$", targetBackend = TargetBackend.JS_IR)
+            model("typescript-export/", pattern = "^([^_](.+))\\.kt$", targetBackend = TargetBackend.JS)
         }
 
 
