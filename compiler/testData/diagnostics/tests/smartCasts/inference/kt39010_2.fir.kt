@@ -11,6 +11,6 @@ interface KI {
 
 fun KI.bar() {
     if (a is B) {
-        a.<!UNRESOLVED_REFERENCE!>foo<!>() // Ok with NI, not allowed with old inference
+        a.<!UNRESOLVED_REFERENCE!>foo<!>()
     }
 }

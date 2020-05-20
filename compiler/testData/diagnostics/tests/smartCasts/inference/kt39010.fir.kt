@@ -5,7 +5,7 @@ class A<E> {
 class B(var a: A<*>?) {
     fun bar() {
         if (a != null) {
-            <!SMARTCAST_IMPOSSIBLE!>a<!>.foo() // Ok with NI, not allowed with old inference because smartcast is to a mutable property
+            a.<!INAPPLICABLE_CANDIDATE!>foo<!>()
         }
     }
 }
