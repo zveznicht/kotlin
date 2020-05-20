@@ -423,6 +423,17 @@ class HierarchicalMppIT : BaseGradleIT() {
     }
 
     @Test
+    fun testHmppDependenciesInJsTests() {
+        val thirdPartyRepo = publishThirdPartyLib(withGranularMetadata = true).projectDir.parentFile.resolve("repo")
+        with(Project("hierarchical-mpp-js-test")) {
+            build("jsTest", "-PthirdPartyRepo=$thirdPartyRepo") {
+                assertSuccessful()
+                assertTasksExecuted(":jsNodeTest", ":jsBrowserTest")
+            }
+        }
+    }
+
+    @Test
     fun testProcessingDependencyDeclaredInNonRootSourceSet() {
         publishThirdPartyLib(withGranularMetadata = true)
 
