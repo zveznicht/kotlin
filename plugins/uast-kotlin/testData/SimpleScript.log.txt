@@ -1,5 +1,6 @@
 UFile (package = )
     UClass (name = SimpleScript)
+<<<<<<< HEAD
         UMethod (name = getBarOrNull)
             UParameter (name = flag)
                 UAnnotation (fqName = org.jetbrains.annotations.NotNull)
@@ -15,8 +16,10 @@ UFile (package = )
         UMethod (name = main)
             UParameter (name = p)
                 UAnnotation (fqName = null)
+=======
+>>>>>>> 309bf49a832... Update lightclass tests renderer
         UMethod (name = SimpleScript)
-            UParameter (name = p)
+            UParameter (name = args)
                 UAnnotation (fqName = null)
             UBlockExpression
                 UCallExpression (kind = UastCallKind(name='method_call'), argCount = 1))
@@ -31,12 +34,27 @@ UFile (package = )
                     UIdentifier (Identifier (println))
                     USimpleNameReferenceExpression (identifier = println, resolvesTo = null)
                     ULiteralExpression (value = "Goodbye World!")
+        UMethod (name = main)
+            UParameter (name = args)
+                UAnnotation (fqName = null)
+        UMethod (name = getBarOrNull)
+            UParameter (name = flag)
+                UAnnotation (fqName = org.jetbrains.annotations.NotNull)
+            UBlockExpression
+                UReturnExpression
+                    UIfExpression
+                        USimpleNameReferenceExpression (identifier = flag)
+                        UCallExpression (kind = UastCallKind(name='constructor_call'), argCount = 1))
+                            UIdentifier (Identifier (Bar))
+                            USimpleNameReferenceExpression (identifier = <init>, resolvesTo = PsiClass: Bar)
+                            ULiteralExpression (value = 42)
+                        ULiteralExpression (value = null)
         UClass (name = Bar)
+            UField (name = a)
+                UAnnotation (fqName = org.jetbrains.annotations.NotNull)
             UField (name = b)
                 UAnnotation (fqName = org.jetbrains.annotations.NotNull)
                 ULiteralExpression (value = 0)
-            UField (name = a)
-                UAnnotation (fqName = org.jetbrains.annotations.NotNull)
             UMethod (name = getB)
             UMethod (name = getAPlusB)
                 UBlockExpression

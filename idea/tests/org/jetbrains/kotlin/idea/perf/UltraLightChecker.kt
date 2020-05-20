@@ -10,25 +10,21 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Conditions
 import com.intellij.openapi.util.Disposer
-import com.intellij.psi.*
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
+import com.intellij.psi.SyntaxTraverser
 import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.MethodSignature
 import com.intellij.testFramework.UsefulTestCase
 import com.intellij.util.PairProcessor
 import com.intellij.util.ref.DebugReflectionUtil
 import junit.framework.TestCase
 import org.jetbrains.kotlin.asJava.KotlinAsJavaSupport
 import org.jetbrains.kotlin.asJava.LightClassGenerationSupport
+import org.jetbrains.kotlin.asJava.PsiClassRenderer.renderClass
 import org.jetbrains.kotlin.asJava.classes.*
-import org.jetbrains.kotlin.asJava.elements.KtLightNullabilityAnnotation
-import org.jetbrains.kotlin.asJava.elements.KtLightPsiArrayInitializerMemberValue
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.core.script.ScriptConfigurationManager
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
-import org.jetbrains.kotlin.j2k.getContainingClass
-import org.jetbrains.kotlin.load.kotlin.NON_EXISTENT_CLASS_NAME
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtFile
@@ -131,6 +127,7 @@ object UltraLightChecker {
         }
     }
 
+<<<<<<< HEAD
     private fun PsiAnnotation.renderAnnotation(): String {
 
         val renderedAttributes = parameterList.attributes.map {
@@ -313,6 +310,8 @@ object UltraLightChecker {
 
     private fun String.prependDefaultIndent() = prependIndent("  ")
 
+=======
+>>>>>>> 309bf49a832... Update lightclass tests renderer
     private fun checkDescriptorLeakOnElement(element: PsiElement) {
         DebugReflectionUtil.walkObjects(
             10,
