@@ -752,7 +752,7 @@ internal open class KotlinAndroidPlugin(
 
         registry.register(KotlinModelBuilder(kotlinPluginVersion, androidTarget))
 
-        project.whenEvaluated { project.components.addAll(androidTarget.components) }
+        project.whenEvaluatedAndVariantsConfigured { project.components.addAll(androidTarget.components) }
     }
 
     companion object {
@@ -793,6 +793,13 @@ class KotlinConfigurationTools internal constructor(
 )
 
 abstract class AbstractAndroidProjectHandler(private val kotlinConfigurationTools: KotlinConfigurationTools) {
+    companion object {
+        internal val androidPluginIds = listOf(
+            "android", "com.android.application", "android-library", "com.android.library",
+            "com.android.test", "com.android.feature", "com.android.dynamic-feature", "com.android.instantapp"
+        )
+    }
+
     protected val logger = Logging.getLogger(this.javaClass)
 
     abstract fun getResDirectories(variantData: BaseVariant): FileCollection
@@ -853,11 +860,6 @@ abstract class AbstractAndroidProjectHandler(private val kotlinConfigurationTool
 
         kotlinOptions.noJdk = true
         ext.addExtension(KOTLIN_OPTIONS_DSL_NAME, kotlinOptions)
-
-        val androidPluginIds = listOf(
-            "android", "com.android.application", "android-library", "com.android.library",
-            "com.android.test", "com.android.feature", "com.android.dynamic-feature", "com.android.instantapp"
-        )
 
         val plugin by lazy {
             androidPluginIds.asSequence()

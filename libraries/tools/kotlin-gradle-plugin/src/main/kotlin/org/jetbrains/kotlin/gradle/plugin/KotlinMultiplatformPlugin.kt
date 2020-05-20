@@ -26,6 +26,7 @@ import org.gradle.api.tasks.SourceSet
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 import org.jetbrains.kotlin.gradle.logging.kotlinWarn
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
+import org.jetbrains.kotlin.gradle.utils.AfterEvaluateAndroidOrdering
 import org.jetbrains.kotlin.gradle.utils.SingleWarningPerBuild
 
 abstract class KotlinPlatformPluginBase(protected val platformName: String) : Plugin<Project> {
@@ -213,6 +214,9 @@ internal fun <T> Project.whenEvaluated(fn: Project.() -> T) {
         afterEvaluate { it.fn() }
     }
 }
+
+internal fun <T> Project.whenEvaluatedAndVariantsConfigured(fn: Project.() -> T) =
+    AfterEvaluateAndroidOrdering.whenEvaluatedAfterAndroid(this) { fn() }
 
 open class KotlinPlatformAndroidPlugin : KotlinPlatformImplementationPluginBase("android") {
     override fun apply(project: Project) {
