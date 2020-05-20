@@ -13,6 +13,7 @@ import org.eclipse.aether.util.repository.AuthenticationBuilder
 import java.io.File
 import java.util.*
 import kotlin.script.experimental.api.ResultWithDiagnostics
+import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.dependencies.ExternalDependenciesResolver
 import kotlin.script.experimental.dependencies.RepositoryCoordinates
 import kotlin.script.experimental.dependencies.impl.makeResolveFailureResult
@@ -51,7 +52,7 @@ class MavenDependenciesResolver : ExternalDependenciesResolver {
         if (this.isNotBlank() && this.count { it == ':' } >= 2) DefaultArtifact(this)
         else null
 
-    override suspend fun resolve(artifactCoordinates: String): ResultWithDiagnostics<List<File>> {
+    override suspend fun resolve(artifactCoordinates: String, location: SourceCode.Location?): ResultWithDiagnostics<List<File>> {
 
         val artifactId = artifactCoordinates.toMavenArtifact()!!
 
@@ -60,9 +61,9 @@ class MavenDependenciesResolver : ExternalDependenciesResolver {
             if (deps != null)
                 return ResultWithDiagnostics.Success(deps.map { it.file })
         } catch (e: DependencyResolutionException) {
-            return makeResolveFailureResult(e.message ?: "unknown error")
+            return makeResolveFailureResult(e.message ?: "unknown error", location)
         }
-        return makeResolveFailureResult(allRepositories().map { "$it: $artifactId not found" })
+        return makeResolveFailureResult(allRepositories().map { "$it: $artifactId not found" }, location)
     }
 
     private fun tryResolveEnvironmentVariable(str: String) =

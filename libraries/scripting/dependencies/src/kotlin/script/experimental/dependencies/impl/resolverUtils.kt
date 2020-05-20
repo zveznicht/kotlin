@@ -10,11 +10,16 @@ import java.net.URL
 import kotlin.script.experimental.dependencies.RepositoryCoordinates
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptDiagnostic
+import kotlin.script.experimental.api.SourceCode
 
-fun makeResolveFailureResult(message: String) = makeResolveFailureResult(listOf(message))
+fun makeResolveFailureResult(message: String, location: SourceCode.Location? = null) = makeResolveFailureResult(listOf(message), location)
 
-fun makeResolveFailureResult(messages: Iterable<String>) =
-    ResultWithDiagnostics.Failure(messages.map { ScriptDiagnostic(ScriptDiagnostic.unspecifiedError, it, ScriptDiagnostic.Severity.WARNING) })
+fun makeResolveFailureResult(messages: Iterable<String>, location: SourceCode.Location? = null) =
+    ResultWithDiagnostics.Failure(
+        messages.map {
+            ScriptDiagnostic(ScriptDiagnostic.unspecifiedError, it, ScriptDiagnostic.Severity.WARNING, null, location)
+        }
+    )
 
 fun RepositoryCoordinates.toRepositoryUrlOrNull(): URL? =
     try {

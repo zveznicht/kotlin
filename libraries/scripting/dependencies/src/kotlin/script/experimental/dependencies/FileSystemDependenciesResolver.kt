@@ -7,6 +7,7 @@ package kotlin.script.experimental.dependencies
 
 import java.io.File
 import kotlin.script.experimental.api.ResultWithDiagnostics
+import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.dependencies.impl.makeResolveFailureResult
 import kotlin.script.experimental.dependencies.impl.toRepositoryUrlOrNull
 
@@ -24,7 +25,7 @@ class FileSystemDependenciesResolver(vararg paths: File) : ExternalDependenciesR
         localRepos.add(repoDir)
     }
 
-    override suspend fun resolve(artifactCoordinates: String): ResultWithDiagnostics<List<File>> {
+    override suspend fun resolve(artifactCoordinates: String, location: SourceCode.Location?): ResultWithDiagnostics<List<File>> {
         if (!acceptsArtifact(artifactCoordinates)) throw IllegalArgumentException("Path is invalid")
 
         val messages = mutableListOf<String>()
@@ -38,7 +39,7 @@ class FileSystemDependenciesResolver(vararg paths: File) : ExternalDependenciesR
                 else -> return ResultWithDiagnostics.Success(listOf(file))
             }
         }
-        return makeResolveFailureResult(messages)
+        return makeResolveFailureResult(messages, location)
     }
 
     override fun acceptsArtifact(artifactCoordinates: String) =

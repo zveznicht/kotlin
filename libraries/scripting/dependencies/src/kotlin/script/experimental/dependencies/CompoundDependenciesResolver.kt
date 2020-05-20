@@ -8,6 +8,7 @@ package kotlin.script.experimental.dependencies
 import java.io.File
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptDiagnostic
+import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.dependencies.impl.makeResolveFailureResult
 
 class CompoundDependenciesResolver(private val resolvers: List<ExternalDependenciesResolver>) : ExternalDependenciesResolver {
@@ -27,20 +28,20 @@ class CompoundDependenciesResolver(private val resolvers: List<ExternalDependenc
             throw Exception("Failed to detect repository type: $repositoryCoordinates")
     }
 
-    override suspend fun resolve(artifactCoordinates: String): ResultWithDiagnostics<List<File>> {
+    override suspend fun resolve(artifactCoordinates: String, location: SourceCode.Location?): ResultWithDiagnostics<List<File>> {
 
         val reports = mutableListOf<ScriptDiagnostic>()
 
         for (resolver in resolvers) {
             if (resolver.acceptsArtifact(artifactCoordinates)) {
-                when (val resolveResult = resolver.resolve(artifactCoordinates)) {
+                when (val resolveResult = resolver.resolve(artifactCoordinates, location)) {
                     is ResultWithDiagnostics.Failure -> reports.addAll(resolveResult.reports)
                     else -> return resolveResult
                 }
             }
         }
         return if (reports.count() == 0) {
-            makeResolveFailureResult("No suitable dependency resolver found for artifact '$artifactCoordinates'")
+            makeResolveFailureResult("No suitable dependency resolver found for artifact '$artifactCoordinates'", location)
         } else {
             ResultWithDiagnostics.Failure(reports)
         }

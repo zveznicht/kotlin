@@ -6,9 +6,7 @@
 package kotlin.script.experimental.dependencies
 
 import java.io.File
-import kotlin.script.experimental.api.ResultWithDiagnostics
-import kotlin.script.experimental.api.flatMapSuccess
-import kotlin.script.experimental.api.makeFailureResult
+import kotlin.script.experimental.api.*
 
 /**
  * A common annotation that could be used in a script to denote a dependency
@@ -33,22 +31,42 @@ annotation class Repository(vararg val repositoriesCoordinates: String)
 /**
  * An extension function that configures repositories and resolves artifacts denoted by the [Repository] and [DependsOn] annotations
  */
-suspend fun ExternalDependenciesResolver.resolveFromAnnotations(annotations: Iterable<Annotation>): ResultWithDiagnostics<List<File>> {
-    annotations.forEach { annotation ->
-        when (annotation) {
-            is Repository -> {
-                for (coordinates in annotation.repositoriesCoordinates) {
-                    if (!tryAddRepository(coordinates))
-                        return makeFailureResult("Unrecognized repository coordinates: $coordinates")
-                }
+suspend fun ExternalDependenciesResolver.resolveFromCollectedScriptAnnotations(
+    annotations: Iterable<CollectedScriptAnnotation<*>>
+): ResultWithDiagnostics<List<File>> {
+    return annotations.flatMapSuccess { (annotation, location) ->
+        resolveFromAnnotation(annotation, location)
+    }
+}
+
+/**
+ * An extension function that configures repositories and resolves artifacts denoted by the [Repository] and [DependsOn] annotations
+ */
+suspend fun ExternalDependenciesResolver.resolveFromAnnotations(
+    annotations: Iterable<Annotation>
+): ResultWithDiagnostics<List<File>> {
+    return annotations.flatMapSuccess { resolveFromAnnotation(it, null) }
+}
+
+private suspend fun ExternalDependenciesResolver.resolveFromAnnotation(
+    annotation: Annotation,
+    location: SourceCode.Location?
+): ResultWithDiagnostics<List<File>> = when (annotation) {
+    is Repository -> {
+        annotation
+            .repositoriesCoordinates
+            .asIterable()
+            .flatMapSuccess { coordinates ->
+                if (tryAddRepository(coordinates))
+                    emptyList<File>().asSuccess()
+                else
+                    makeFailureResult("Unrecognized repository coordinates: $coordinates", location = location)
             }
-            is DependsOn -> {}
-            else -> return makeFailureResult("Unknown annotation ${annotation.javaClass}")
+    }
+    is DependsOn -> {
+        annotation.artifactsCoordinates.asIterable().flatMapSuccess { artifactCoordinates ->
+            resolve(artifactCoordinates, location)
         }
     }
-    return annotations.filterIsInstance(DependsOn::class.java)
-        .flatMap { it.artifactsCoordinates.asIterable() }
-        .flatMapSuccess { artifactCoordinates ->
-            resolve(artifactCoordinates)
-        }
+    else -> makeFailureResult("Unknown annotation ${annotation.javaClass}", location = location)
 }

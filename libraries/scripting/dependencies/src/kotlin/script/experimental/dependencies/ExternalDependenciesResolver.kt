@@ -7,6 +7,7 @@ package kotlin.script.experimental.dependencies
 
 import java.io.File
 import kotlin.script.experimental.api.ResultWithDiagnostics
+import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.api.valueOrNull
 
 open class RepositoryCoordinates(val string: String)
@@ -16,7 +17,7 @@ interface ExternalDependenciesResolver {
     fun acceptsRepository(repositoryCoordinates: RepositoryCoordinates): Boolean
     fun acceptsArtifact(artifactCoordinates: String): Boolean
 
-    suspend fun resolve(artifactCoordinates: String): ResultWithDiagnostics<List<File>>
+    suspend fun resolve(artifactCoordinates: String, location: SourceCode.Location? = null): ResultWithDiagnostics<List<File>>
     fun addRepository(repositoryCoordinates: RepositoryCoordinates)
 }
 

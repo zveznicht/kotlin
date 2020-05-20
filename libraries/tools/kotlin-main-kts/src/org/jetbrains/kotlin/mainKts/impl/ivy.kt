@@ -36,7 +36,7 @@ class IvyResolver : ExternalDependenciesResolver {
     override fun acceptsRepository(repositoryCoordinates: RepositoryCoordinates): Boolean =
         repositoryCoordinates.toRepositoryUrlOrNull() != null
 
-    override suspend fun resolve(artifactCoordinates: String): ResultWithDiagnostics<List<File>> {
+    override suspend fun resolve(artifactCoordinates: String, location: SourceCode.Location?): ResultWithDiagnostics<List<File>> {
 
         val artifactType = artifactCoordinates.substringAfterLast('@', "").trim()
         val stringCoordinates = if (artifactType.isNotEmpty()) artifactCoordinates.removeSuffix("@$artifactType") else artifactCoordinates
@@ -46,20 +46,26 @@ class IvyResolver : ExternalDependenciesResolver {
                 resolveArtifact(
                     artifactId[0], artifactId[1], artifactId[2],
                     if (artifactId.size > 3) artifactId[3] else null,
-                    if (artifactType.isNotEmpty()) artifactType else null
+                    if (artifactType.isNotEmpty()) artifactType else null,
+                    location
                 )
             } catch (e: Exception) {
-                makeFailureResult(e.asDiagnostics())
+                makeFailureResult(e.asDiagnostics(location = location))
             }
         } else {
-            makeFailureResult("Unrecognized set of arguments to ivy resolver: $stringCoordinates")
+            makeFailureResult("Unrecognized set of arguments to ivy resolver: $stringCoordinates", null, location)
         }
     }
 
     private val ivyResolvers = arrayListOf<URLResolver>()
 
     private fun resolveArtifact(
-        groupId: String, artifactName: String, revision: String, conf: String? = null, type: String? = null
+        groupId: String,
+        artifactName: String,
+        revision: String,
+        conf: String? = null,
+        type: String? = null,
+        location: SourceCode.Location? = null
     ): ResultWithDiagnostics<List<File>> {
 
         if (ivyResolvers.isEmpty() || ivyResolvers.none { it.name == "central" }) {
@@ -118,7 +124,7 @@ class IvyResolver : ExternalDependenciesResolver {
         XmlModuleDescriptorWriter.write(moduleDescriptor, ivyFile)
         val report = ivy.resolve(ivyFile.toURI().toURL(), resolveOptions)
 
-        val diagnostics = report.allProblemMessages.map { it.asErrorDiagnostics() }
+        val diagnostics = report.allProblemMessages.map { it.asErrorDiagnostics(location = location) }
 
         return if (report.hasError()) makeFailureResult(diagnostics)
         else report.allArtifactsReports.map { it.localFile }.asSuccess(diagnostics)

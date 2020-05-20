@@ -9,6 +9,7 @@ import java.io.File
 import kotlin.contracts.ExperimentalContracts
 import kotlin.script.experimental.dependencies.*
 import kotlin.script.experimental.api.ResultWithDiagnostics
+import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.dependencies.impl.makeResolveFailureResult
 
 @ExperimentalContracts
@@ -83,9 +84,13 @@ class ResolversTest : ResolversTestBase() {
 
         override fun acceptsArtifact(artifactCoordinates: String): Boolean = acceptsArt(artifactCoordinates)
 
-        override suspend fun resolve(artifactCoordinates: String): ResultWithDiagnostics<List<File>> {
+        override suspend fun resolve(
+            artifactCoordinates: String,
+            sourceCodeLocation: SourceCode.Location?
+        ): ResultWithDiagnostics<List<File>> {
             if (!acceptsArtifact(artifactCoordinates)) throw Exception("Path is invalid")
-            val file = doResolve(artifactCoordinates) ?: return makeResolveFailureResult("Failed to resolve '$artifactCoordinates'")
+            val file = doResolve(artifactCoordinates)
+                ?: return makeResolveFailureResult("Failed to resolve '$artifactCoordinates'", sourceCodeLocation)
             return ResultWithDiagnostics.Success(listOf(file))
         }
 
