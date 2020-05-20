@@ -28,7 +28,9 @@ abstract class FirProvider : FirSymbolProvider() {
         return null
     }
 
-    abstract fun getFirClassifierContainerFile(fqName: ClassId): FirFile
+    open fun getFirClassifierContainerFile(fqName: ClassId): FirFile {
+        return getFirClassifierContainerFileIfAny(fqName) ?: error("Couldn't find container for $fqName")
+    }
 
     abstract fun getFirClassifierContainerFileIfAny(fqName: ClassId): FirFile?
 

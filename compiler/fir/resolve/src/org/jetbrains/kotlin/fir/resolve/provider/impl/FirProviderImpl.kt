@@ -49,10 +49,6 @@ class FirProviderImpl(val session: FirSession, val kotlinScopeProvider: KotlinSc
         }
     }
 
-    override fun getFirClassifierContainerFile(fqName: ClassId): FirFile {
-        return state.classifierContainerFileMap[fqName] ?: error("Couldn't find container for $fqName")
-    }
-
     override fun getFirClassifierContainerFileIfAny(fqName: ClassId): FirFile? {
         return state.classifierContainerFileMap[fqName]
     }
