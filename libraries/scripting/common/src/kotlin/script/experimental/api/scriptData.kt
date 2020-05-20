@@ -9,6 +9,7 @@ package kotlin.script.experimental.api
 
 import java.io.Serializable
 import java.net.URL
+import kotlin.reflect.KClass
 import kotlin.script.experimental.util.PropertiesCollection
 
 /**
@@ -45,6 +46,7 @@ interface SourceCode {
      */
     data class Range(val start: Position, val end: Position) : Serializable
 
+    // TODO: Consider adding an extra property that refers to the file. i.e. locationId
     /**
      * The source code location, pointing either at a position or at a range
      * @param start location start position
@@ -52,6 +54,21 @@ interface SourceCode {
      */
     data class Location(val start: Position, val end: Position? = null) : Serializable
 }
+
+/**
+ * Annotation found during script source parsing along with its location
+ */
+data class CollectedScriptAnnotation<out A : Annotation>(
+    /**
+     * Annotation found during script source parsing
+     */
+    val annotation: A,
+
+    /**
+     * Location of annotation is script
+     */
+    val location: SourceCode.Location
+)
 
 /**
  * The interface for the source code located externally
@@ -90,6 +107,11 @@ class ScriptCollectedData(properties: Map<PropertiesCollection.Key<*>, Any>) : P
  * The script file-level annotations found during script source parsing
  */
 val ScriptCollectedDataKeys.foundAnnotations by PropertiesCollection.key<List<Annotation>>()
+
+/**
+ * The script file-level annotations and their locations found during script source parsing
+ */
+val ScriptCollectedDataKeys.collectedAnnotations by PropertiesCollection.key<List<CollectedScriptAnnotation<*>>>()
 
 /**
  * The facade to the script data for compilation configuration refinement callbacks
@@ -151,3 +173,10 @@ data class ScriptEvaluationConfigurationRefinementContext(
     val evaluationConfiguration: ScriptEvaluationConfiguration,
     val contextData: ScriptEvaluationContextData? = null
 )
+
+inline fun <reified A : Annotation> Iterable<CollectedScriptAnnotation<*>>.filterByAnnotationType(
+): List<CollectedScriptAnnotation<A>> = filter { it.annotation is A }
+    .map {
+        @Suppress("UNCHECKED_CAST")
+        it as CollectedScriptAnnotation<A>
+    }

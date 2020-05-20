@@ -6,18 +6,24 @@
 package org.jetbrains.kotlin.scripting.resolve
 
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.editor.impl.DocumentImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.openapi.vfs.CharsetToolkit
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.LightVirtualFile
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.kotlin.diagnostics.PsiDiagnosticUtils
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.psiUtil.endOffset
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.kotlin.scripting.definitions.KotlinScriptDefinition
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 import org.jetbrains.kotlin.scripting.withCorrectExtension
@@ -41,7 +47,9 @@ internal fun VirtualFile.loadAnnotations(
 ): List<Annotation> =
 // TODO_R: report error on failure to load annotation class
     ApplicationManager.getApplication().runReadAction<List<Annotation>> {
-        this.getAnnotationEntries(project).construct(classLoader, acceptedAnnotations, project)
+        this.getAnnotationEntries(project)
+            .construct(classLoader, acceptedAnnotations, project)
+            .map { it.first }
     }
 
 internal fun VirtualFile.getAnnotationEntries(project: Project): Iterable<KtAnnotationEntry> {
@@ -354,27 +362,48 @@ fun getScriptCollectedData(
                 jvmGetScriptingClass(ann, contextClassLoader, hostConfiguration) as? KClass<Annotation> // TODO errors
             }
         }.orEmpty()
-    val annotations = scriptFile.annotationEntries.construct(contextClassLoader, acceptedAnnotations, project)
+    val annotationsContainer =
+        scriptFile.annotationEntries.construct(contextClassLoader, acceptedAnnotations, project, DocumentImpl(scriptFile.text))
     return ScriptCollectedData(
         mapOf(
-            ScriptCollectedData.foundAnnotations to annotations
+            ScriptCollectedData.collectedAnnotations to annotationsContainer,
+            ScriptCollectedData.foundAnnotations to annotationsContainer.map { it.annotation }
         )
     )
 }
 
 private fun Iterable<KtAnnotationEntry>.construct(
+    classLoader: ClassLoader?, acceptedAnnotations: List<KClass<out Annotation>>, project: Project, document: Document
+): List<CollectedScriptAnnotation<*>> = construct(classLoader, acceptedAnnotations, project).map { (annotation, psiAnn) ->
+    CollectedScriptAnnotation(
+        annotation = annotation,
+        location = psiAnn.location(document)
+    )
+}
+
+private fun Iterable<KtAnnotationEntry>.construct(
     classLoader: ClassLoader?, acceptedAnnotations: List<KClass<out Annotation>>, project: Project
-): List<Annotation> =
+): List<Pair<Annotation, KtAnnotationEntry>> =
     mapNotNull { psiAnn ->
         // TODO: consider advanced matching using semantic similar to actual resolving
         acceptedAnnotations.find { ann ->
             psiAnn.typeName.let { it == ann.simpleName || it == ann.qualifiedName }
         }?.let {
             @Suppress("UNCHECKED_CAST")
-            (constructAnnotation(
+            constructAnnotation(
                 psiAnn,
                 (classLoader ?: ClassLoader.getSystemClassLoader()).loadClass(it.qualifiedName).kotlin as KClass<out Annotation>,
                 project
-            ))
+            ) to psiAnn
         }
     }
+
+private fun PsiElement.location(document: Document): SourceCode.Location {
+    val start = document.offsetToPosition(startOffset)
+    val end = if (endOffset > startOffset) document.offsetToPosition(endOffset) else null
+    return SourceCode.Location(start, end)
+}
+
+private fun Document.offsetToPosition(offset: Int) = PsiDiagnosticUtils
+    .offsetToLineAndColumn(this, offset)
+    .let { SourceCode.Position(it.line, it.column, offset) }
