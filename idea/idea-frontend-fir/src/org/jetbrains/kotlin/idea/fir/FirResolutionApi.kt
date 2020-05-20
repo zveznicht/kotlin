@@ -224,6 +224,11 @@ private class FirDesignatedBodyResolveTransformerForIDE(
     }
 }
 
+inline fun <reified E : FirElement> KtElement.getOrBuildFirSafe(
+    state: FirModuleResolveState,
+    phase: FirResolvePhase = FirResolvePhase.BODY_RESOLVE
+) = getOrBuildFir(state, phase) as? E
+
 fun KtElement.getOrBuildFir(
     state: FirModuleResolveState,
     phase: FirResolvePhase = FirResolvePhase.BODY_RESOLVE
