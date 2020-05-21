@@ -204,14 +204,6 @@ internal class GradleKotlinCompilerWork @Inject constructor(
             log.error(e.stackTraceAsString())
             null
         }
-        // todo: can we clear cache on the end of session?
-        // often source of the NoSuchObjectException and UnmarshalException, probably caused by the failed/crashed/exited daemon
-        // TODO: implement a proper logic to avoid remote calls in such cases
-        try {
-            daemon.clearJarCache()
-        } catch (e: RemoteException) {
-            log.warn("Unable to clear jar cache after compilation, maybe daemon is already down: $e")
-        }
         log.logFinish(DAEMON_EXECUTION_STRATEGY)
         return exitCode
     }
