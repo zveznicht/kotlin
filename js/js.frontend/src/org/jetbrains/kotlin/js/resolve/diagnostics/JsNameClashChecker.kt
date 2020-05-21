@@ -62,7 +62,7 @@ class JsNameClashChecker(
             diagnosticHolder: DiagnosticSink, bindingContext: BindingContext
     ) {
         if (descriptor is ConstructorDescriptor && descriptor.isPrimary) return
-        if (!this::nameSuggestion.isInitialized)
+        if (!this::nameSuggestion.isInitialized || nameSuggestion.bindingContext !== bindingContext)
             nameSuggestion = NameSuggestion(bindingContext)
 
         for (suggested in nameSuggestion.suggestAllPossibleNames(descriptor)) {
