@@ -503,6 +503,7 @@ class KotlinCoreEnvironment private constructor(
             }
         }
 
+        @JvmStatic
         fun disposeApplicationEnvironment() {
             synchronized(APPLICATION_LOCK) {
                 val environment = ourApplicationEnvironment ?: return

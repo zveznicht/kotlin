@@ -314,6 +314,8 @@ internal class GradleKotlinCompilerWork @Inject constructor(
             bufferingMessageCollector.flush(messageCollector)
             threadPool.shutdown()
 
+            log.logFinish(IN_PROCESS_EXECUTION_STRATEGY)
+
             reportExecutionResultIfNeeded {
                 TaskExecutionResult(
                     executionStrategy = IN_PROCESS_EXECUTION_STRATEGY,
@@ -324,10 +326,22 @@ internal class GradleKotlinCompilerWork @Inject constructor(
     }
 
     private fun compileInProcessImpl(messageCollector: MessageCollector): ExitCode {
+        // todo: cache classloader?
+        val classpathURLs = compilerFullClasspath.map { it.toURI().toURL() }.toTypedArray()
+        return URLClassLoader(classpathURLs).use { classLoader ->
+            try {
+                compileInProcessWithClassLoader(messageCollector, classLoader)
+            } finally {
+                val coreEnvClass = classLoader.loadClass("org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment")
+                val disposeAppEnv = coreEnvClass.getDeclaredMethod("disposeApplicationEnvironment", coreEnvClass)
+                disposeAppEnv.invoke(coreEnvClass)
+            }
+        }
+    }
+
+    private fun compileInProcessWithClassLoader(messageCollector: MessageCollector, classLoader: ClassLoader): ExitCode {
         val stream = ByteArrayOutputStream()
         val out = PrintStream(stream)
-        // todo: cache classloader?
-        val classLoader = URLClassLoader(compilerFullClasspath.map { it.toURI().toURL() }.toTypedArray())
         val servicesClass = Class.forName(Services::class.java.canonicalName, true, classLoader)
         val emptyServices = servicesClass.getField("EMPTY").get(servicesClass)
         val compiler = Class.forName(compilerClassName, true, classLoader)
@@ -347,7 +361,6 @@ internal class GradleKotlinCompilerWork @Inject constructor(
             stream,
             exitCode
         )
-        log.logFinish(IN_PROCESS_EXECUTION_STRATEGY)
         return exitCode
     }
 
