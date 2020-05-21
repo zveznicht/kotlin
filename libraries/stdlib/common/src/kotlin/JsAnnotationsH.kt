@@ -32,13 +32,13 @@ public expect annotation class JsName(val name: String)
 public annotation class ExperimentalJsExport
 
 /**
- * * Exports top-level declaration.
+ * Exports top-level declaration on JS platform.
  *
  * Compiled module exposes declarations that are marked with this annotation without name mangling.
  *
  * This annotation can be applied to either files or top-level declarations.
  *
- * It is currently prohibited to export following kinds of declarations:
+ * It is currently prohibited to export the following kinds of declarations:
  *
  *   * `expect` declarations
  *   * inline functions with reified type parameters
@@ -53,10 +53,10 @@ public annotation class ExperimentalJsExport
  *   * `dynamic`, `Any`, `String`, `Boolean`, `Byte`, `Short`, `Int`, `Float`, `Double`
  *   * `BooleanArray`, `ByteArray`, `ShortArray`, `IntArray`, `FloatArray`, `DoubleArray`
  *   * `Array<exportable-type>`
- *   * Function types with exportable parameters and return types.
- *   * `external` or `@JsExport` classes and interfaces.
+ *   * Function types with exportable parameters and return types
+ *   * `external` or `@JsExport` classes and interfaces
  *   * Nullable counterparts of types above
- *   * Unit return type. Must not be nullable.
+ *   * Unit return type. Must not be nullable
  *
  * This annotation is experimental, meaning that restrictions mentioned above are subject to change.
  */
