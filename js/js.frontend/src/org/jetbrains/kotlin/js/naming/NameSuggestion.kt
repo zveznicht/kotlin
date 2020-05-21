@@ -41,7 +41,7 @@ import kotlin.math.abs
  * A new instance of this class can be created for each request, however, it's recommended to use stable instance, since
  * [NameSuggestion] supports caching.
  */
-class NameSuggestion(private val bindingContext: BindingContext) {
+class NameSuggestion(val bindingContext: BindingContext) {
     private val cache: MutableMap<DeclarationDescriptor, SuggestedName?> = Collections.synchronizedMap(WeakHashMap())
 
     /**
