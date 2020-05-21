@@ -668,8 +668,11 @@ class CompileServiceImpl(
 
     // TODO: consider tying a session to a client and use this info to cleanup
     override fun leaseCompileSession(aliveFlagPath: String?): CompileService.CallResult<Int> = ifAlive(minAliveness = Aliveness.Alive) {
+        val disposable = Disposable {
+            KotlinCoreEnvironment.disposeApplicationEnvironment()
+        }
         CompileService.CallResult.Good(
-            state.sessions.leaseSession(ClientOrSessionProxy<Any>(aliveFlagPath)).apply {
+            state.sessions.leaseSession(ClientOrSessionProxy<Any>(aliveFlagPath, disposable = disposable)).apply {
                 log.info("leased a new session $this, session alive file: $aliveFlagPath")
             })
     }
