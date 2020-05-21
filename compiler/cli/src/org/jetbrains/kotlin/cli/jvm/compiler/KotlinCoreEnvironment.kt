@@ -476,6 +476,14 @@ class KotlinCoreEnvironment private constructor(
                         }
                     })
                 }
+
+                Disposer.register(parentDisposable, Disposable {
+                    synchronized(APPLICATION_LOCK) {
+                        ourApplicationEnvironment?.application?.getComponent(KotlinBinaryClassCache::class.java)?.dispose()
+                    }
+                })
+
+
                 // Disposing of the environment is unsafe in production then parallel builds are enabled, but turning it off universally
                 // breaks a lot of tests, therefore it is disabled for production and enabled for tests
                 if (System.getProperty(KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY).toBooleanLenient() != true) {
