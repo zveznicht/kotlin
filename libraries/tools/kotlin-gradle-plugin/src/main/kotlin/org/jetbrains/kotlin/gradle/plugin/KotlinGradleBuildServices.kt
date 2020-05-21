@@ -90,20 +90,7 @@ internal class KotlinGradleBuildServices private constructor(
         GradleCompilerRunner.clearBuildModulesInfo()
 
         val rootProject = gradle.rootProject
-        val sessionsDir = GradleCompilerRunner.sessionsDir(rootProject)
-        if (sessionsDir.exists()) {
-            val sessionFiles = sessionsDir.listFiles()
-
-            // it is expected that only one session file per build exists
-            // afaik is is not possible to run multiple gradle builds in one project since gradle locks some dirs
-            if (sessionFiles.size > 1) {
-                log.warn("w: Detected multiple Kotlin daemon sessions at ${sessionsDir.relativeToRoot(rootProject)}")
-            }
-            for (file in sessionFiles) {
-                file.delete()
-                log.kotlinDebug { DELETED_SESSION_FILE_PREFIX + file.relativeToRoot(rootProject) }
-            }
-        }
+        GradleCompilerRunner.cleanUpAfterBuildFinished(gradle.rootProject)
 
         if (shouldReportMemoryUsage) {
             val startMem = startMemory!!

@@ -244,7 +244,7 @@ internal open class GradleCompilerRunner(protected val task: Task) {
         }
 
         @Synchronized
-        internal fun clearBuildModulesInfo() {
+        private fun clearBuildModulesInfo() {
             cachedGradle = WeakReference<Gradle>(null)
             cachedModulesInfo = null
         }
@@ -293,8 +293,32 @@ internal open class GradleCompilerRunner(protected val task: Task) {
             return sessionFlagFile!!
         }
 
-        internal fun sessionsDir(project: Project): File =
+        private fun sessionsDir(project: Project): File =
             File(File(project.rootProject.buildDir, "kotlin"), "sessions")
+
+        @Synchronized
+        internal fun cleanUpAfterBuildFinished(rootProject: Project) {
+            clearBuildModulesInfo()
+            clearSessions(rootProject)
+        }
+
+        private fun clearSessions(rootProject: Project) {
+            val sessionsDir = sessionsDir(rootProject)
+            if (!sessionsDir.exists()) return
+
+            val log = rootProject.logger
+            val sessionFiles = sessionsDir.listFiles() ?: return
+
+            // it is expected that only one session file per build exists
+            // afaik is is not possible to run multiple gradle builds in one project since gradle locks some dirs
+            if (sessionFiles.size > 1) {
+                log.warn("w: Detected multiple Kotlin daemon sessions at ${sessionsDir.relativeToRoot(rootProject)}")
+            }
+            for (file in sessionFiles) {
+                file.delete()
+                log.kotlinDebug { DELETED_SESSION_FILE_PREFIX + file.relativeToRoot(rootProject) }
+            }
+        }
     }
 }
 
