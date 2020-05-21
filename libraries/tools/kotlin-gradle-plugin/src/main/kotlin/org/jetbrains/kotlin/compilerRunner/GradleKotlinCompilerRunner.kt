@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.compilerRunner
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.jvm.tasks.Jar
@@ -33,7 +34,9 @@ import org.jetbrains.kotlin.gradle.utils.newTmpFile
 import org.jetbrains.kotlin.gradle.utils.relativeToRoot
 import org.jetbrains.kotlin.incremental.IncrementalModuleEntry
 import org.jetbrains.kotlin.incremental.IncrementalModuleInfo
+import org.jetbrains.kotlin.gradle.utils.stackTraceAsString
 import java.io.File
+import java.lang.Exception
 import java.lang.ref.WeakReference
 
 internal const val KOTLIN_COMPILER_EXECUTION_STRATEGY_PROPERTY = "kotlin.compiler.execution.strategy"
@@ -140,6 +143,8 @@ internal open class GradleCompilerRunner(protected val task: Task) {
     }
 
     companion object {
+        private val cachedConnections = HashMap<CompilerId, CompileServiceSession>()
+
         @Synchronized
         internal fun getDaemonConnectionImpl(
             clientIsAliveFlagFile: File,
@@ -149,13 +154,11 @@ internal open class GradleCompilerRunner(protected val task: Task) {
             isDebugEnabled: Boolean
         ): CompileServiceSession? {
             val compilerId = CompilerId.makeCompilerId(compilerFullClasspath)
-            val additionalJvmParams = arrayListOf<String>()
-            return KotlinCompilerRunnerUtils.newDaemonConnection(
+            return cachedConnections[compilerId] ?: KotlinCompilerRunnerUtils.newDaemonConnection(
                 compilerId, clientIsAliveFlagFile, sessionIsAliveFlagFile,
                 messageCollector = messageCollector,
-                isDebugEnabled = isDebugEnabled,
-                additionalJvmParams = additionalJvmParams.toTypedArray()
-            )
+                isDebugEnabled = isDebugEnabled
+            )?.also { cachedConnections[compilerId] = it }
         }
 
         @Volatile
@@ -291,10 +294,26 @@ internal open class GradleCompilerRunner(protected val task: Task) {
         @Synchronized
         internal fun cleanUpAfterBuildFinished(rootProject: Project) {
             clearBuildModulesInfo()
-            clearSessions(rootProject)
+
+            try {
+                releaseDaemonSessions(rootProject.logger)
+            } finally {
+                removeSessionsFiles(rootProject)
+            }
         }
 
-        private fun clearSessions(rootProject: Project) {
+        private fun releaseDaemonSessions(log: Logger) {
+            for ((compilerId, connection) in cachedConnections) {
+                try {
+                    cachedConnections.remove(compilerId)
+                    connection.compileService.releaseCompileSession(connection.sessionId)
+                } catch (e: Exception) {
+                    log.kotlinDebug { "Could not release session from daemon: ${e.stackTraceAsString()}" }
+                }
+            }
+        }
+
+        private fun removeSessionsFiles(rootProject: Project) {
             val sessionsDir = sessionsDir(rootProject)
             if (!sessionsDir.exists()) return
 
