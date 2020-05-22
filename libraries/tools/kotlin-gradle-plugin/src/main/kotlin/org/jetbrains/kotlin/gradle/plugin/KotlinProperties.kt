@@ -97,6 +97,9 @@ internal class PropertiesProvider private constructor(private val project: Proje
     val enableCompatibilityMetadataVariant: Boolean?
         get() = booleanProperty("kotlin.mpp.enableCompatibilityMetadataVariant")
 
+    val shutdownDaemonAfterBuild: Boolean
+        get() = booleanProperty("kotlin.daemon.shutdownAfterBuild") ?: false
+
     val ignoreDisabledNativeTargets: Boolean?
         get() = booleanProperty(DisabledNativeTargetsReporter.DISABLE_WARNING_PROPERTY_NAME)
 

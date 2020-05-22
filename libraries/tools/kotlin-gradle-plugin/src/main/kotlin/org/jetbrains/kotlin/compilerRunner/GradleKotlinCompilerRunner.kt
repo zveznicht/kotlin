@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.gradle.logging.kotlinDebug
 import org.jetbrains.kotlin.gradle.plugin.internal.state.TaskLoggers
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompileTaskData
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinWithJavaTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.ownModuleName
@@ -304,17 +305,22 @@ internal open class GradleCompilerRunner(protected val task: Task) {
             clearBuildModulesInfo()
 
             try {
-                releaseDaemonSessions(rootProject.logger)
+                releaseDaemonSessions(rootProject)
             } finally {
                 removeSessionsFiles(rootProject)
             }
         }
 
-        private fun releaseDaemonSessions(log: Logger) {
+        private fun releaseDaemonSessions(rootProject: Project) {
+            val shutdownAfterBuild = PropertiesProvider(rootProject).shutdownDaemonAfterBuild
+            val log = rootProject.logger
             for ((compilerId, connection) in cachedConnections) {
                 try {
                     cachedConnections.remove(compilerId)
                     connection.compileService.releaseCompileSession(connection.sessionId)
+                    if (shutdownAfterBuild) {
+                        connection.compileService.scheduleShutdown(graceful = true)
+                    }
                 } catch (e: Exception) {
                     log.kotlinDebug { "Could not release session from daemon: ${e.stackTraceAsString()}" }
                 }
