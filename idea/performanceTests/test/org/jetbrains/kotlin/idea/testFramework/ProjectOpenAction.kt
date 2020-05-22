@@ -17,7 +17,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ex.ProjectManagerEx
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootManager
-import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.vcs.changes.ChangeListManager
 import com.intellij.openapi.vcs.changes.ChangeListManagerImpl
 import com.intellij.openapi.vfs.LocalFileSystem
@@ -28,7 +27,7 @@ import com.intellij.testFramework.UsefulTestCase.assertTrue
 import com.intellij.util.io.exists
 import org.jetbrains.kotlin.idea.configuration.getModulesWithKotlinFiles
 import org.jetbrains.kotlin.idea.perf.Stats.Companion.runAndMeasure
-import org.jetbrains.kotlin.idea.perf.enableAllInspectionsCompat
+import org.jetbrains.kotlin.idea.perf.disableInspection
 import org.jetbrains.kotlin.idea.project.getAndCacheLanguageLevelByDependencies
 import org.jetbrains.kotlin.idea.test.ConfigLibraryUtil
 import java.io.File
@@ -152,7 +151,10 @@ enum class ProjectOpenAction {
         val profile = projectInspectionProfileManager.getProfile(projectProfile)
         InspectionProfileImpl.INIT_INSPECTIONS = true
         profile.initInspectionTools(project)
+        profile.disableInspection(project, "SSBasedInspection")
+
         val enabledTools = profile.getAllEnabledInspectionTools(project)
+
         assertTrue(
             "project ${project.name} has to have at least one enabled inspection in profile",
             enabledTools.isNotEmpty()

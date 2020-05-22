@@ -12,6 +12,7 @@ import com.intellij.codeInsight.daemon.impl.HighlightInfo
 import com.intellij.codeInsight.daemon.impl.IdentifierHighlighterPassFactory
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInspection.InspectionProfileEntry
+import com.intellij.codeInspection.ex.Tools
 import com.intellij.ide.startup.impl.StartupManagerImpl
 import com.intellij.openapi.actionSystem.IdeActions
 import com.intellij.openapi.application.runWriteAction
@@ -639,6 +640,10 @@ abstract class AbstractPerformanceProjectsTest : UsefulTestCase() {
     ): List<HighlightInfo> {
         val profileManager = ProjectInspectionProfileManager.getInstance(project)
         val currentProfile = profileManager.currentProfile
+
+        val enabledInspectionTools = currentProfile.getAllEnabledInspectionTools(project)
+        val enabledInspectionToolNames = enabledInspectionTools.joinToString(transform = Tools::getShortName)
+
         tools?.let {
             configureInspections(it, project, project)
         }

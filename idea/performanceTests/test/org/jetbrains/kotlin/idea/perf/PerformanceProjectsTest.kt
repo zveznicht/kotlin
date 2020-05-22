@@ -280,14 +280,14 @@ class PerformanceProjectsTest : AbstractPerformanceProjectsTest() {
             val extraStats = Stats("${stats.name} $testName")
             val extraTimingsNs = mutableListOf<Map<String, Any>?>()
 
-            val warmUpIterations = 20
-            val iterations = 30
+            val warmUpIterations = 30
+            val iterations = 50
 
             performanceTest<Fixture, Pair<Long, List<HighlightInfo>>> {
                 name(testName)
                 stats(stats)
-                warmUpIterations(30)
-                iterations(50)
+                warmUpIterations(warmUpIterations)
+                iterations(iterations)
                 setUp(perfKtsFileAnalysisSetUp(project, fileName))
                 test(perfKtsFileAnalysisTest())
                 tearDown(perfKtsFileAnalysisTearDown(extraTimingsNs, project))
