@@ -42,6 +42,7 @@ class IrAnonymousInitializerImpl(
 
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ClassDescriptor get() = symbol.descriptor
+    override val initialDescriptor: ClassDescriptor get() = symbol.initialDescriptor
 
     override var bodyField: IrBlockBody? = null
 

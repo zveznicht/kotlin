@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.types.Variance
 interface IrTypeParameter : IrSymbolDeclaration<IrTypeParameterSymbol>, IrDeclarationWithName {
     @ObsoleteDescriptorBasedAPI
     override val descriptor: TypeParameterDescriptor
+    override val initialDescriptor: TypeParameterDescriptor
 
     val variance: Variance
     val index: Int

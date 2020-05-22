@@ -27,6 +27,7 @@ interface IrLocalDelegatedProperty :
 
     @ObsoleteDescriptorBasedAPI
     override val descriptor: VariableDescriptorWithAccessors
+    override val initialDescriptor: VariableDescriptorWithAccessors
     override val symbol: IrLocalDelegatedPropertySymbol
 
     val type: IrType

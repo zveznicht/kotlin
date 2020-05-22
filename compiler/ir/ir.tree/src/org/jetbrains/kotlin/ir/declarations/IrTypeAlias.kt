@@ -19,6 +19,9 @@ interface IrTypeAlias :
     @ObsoleteDescriptorBasedAPI
     override val descriptor: TypeAliasDescriptor
 
+    @ObsoleteDescriptorBasedAPI
+    override val initialDescriptor: TypeAliasDescriptor
+
     val isActual: Boolean
     val expandedType: IrType
 }

@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 interface IrValueParameter : IrValueDeclaration, IrSymbolDeclaration<IrValueParameterSymbol> {
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ParameterDescriptor
+    override val initialDescriptor: ParameterDescriptor
 
     val index: Int
     val varargElementType: IrType?

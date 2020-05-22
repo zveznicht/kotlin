@@ -68,6 +68,7 @@ class IrValueParameterImpl(
 
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ParameterDescriptor get() = symbol.descriptor
+    override val initialDescriptor: ParameterDescriptor get() = symbol.initialDescriptor
 
     init {
         symbol.bind(this)

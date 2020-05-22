@@ -14,6 +14,9 @@ interface IrValueDeclaration : IrDeclarationWithName, IrSymbolOwner {
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ValueDescriptor
 
+    @ObsoleteDescriptorBasedAPI
+    override val initialDescriptor: ValueDescriptor
+
     override val symbol: IrValueSymbol
     val type: IrType
 }

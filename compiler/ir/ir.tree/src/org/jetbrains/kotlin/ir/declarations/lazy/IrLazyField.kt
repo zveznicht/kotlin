@@ -29,7 +29,7 @@ class IrLazyField(
     endOffset: Int,
     origin: IrDeclarationOrigin,
     override val symbol: IrFieldSymbol,
-    initialDescriptor: PropertyDescriptor,
+    _initialDescriptor: PropertyDescriptor,
     override val name: Name,
     override val visibility: Visibility,
     override val isFinal: Boolean,
@@ -37,7 +37,7 @@ class IrLazyField(
     override val isStatic: Boolean,
     stubGenerator: DeclarationStubGenerator,
     typeTranslator: TypeTranslator
-) : IrLazyDeclarationBase(startOffset, endOffset, initialDescriptor, origin, stubGenerator, typeTranslator),
+) : IrLazyDeclarationBase(startOffset, endOffset, _initialDescriptor, origin, stubGenerator, typeTranslator),
     IrField {
 
     init {
@@ -45,19 +45,20 @@ class IrLazyField(
     }
 
     override val descriptor get() = symbol.descriptor
+    override val initialDescriptor get() = symbol.initialDescriptor
 
     override var annotations: List<IrConstructorCall> by lazyVar {
-        initialDescriptor.backingField?.annotations
+        _initialDescriptor.backingField?.annotations
             ?.mapNotNullTo(mutableListOf(), typeTranslator.constantValueGenerator::generateAnnotationConstructorCall)
             ?: mutableListOf()
     }
 
     override var type: IrType by lazyVar {
-        initialDescriptor.type.toIrType()
+        _initialDescriptor.type.toIrType()
     }
 
     override var initializer: IrExpressionBody? by lazyVar {
-        initialDescriptor.compileTimeInitializer?.let {
+        _initialDescriptor.compileTimeInitializer?.let {
             IrExpressionBodyImpl(
                 typeTranslator.constantValueGenerator.generateConstantValueAsExpression(UNDEFINED_OFFSET, UNDEFINED_OFFSET, it)
             )
@@ -65,7 +66,7 @@ class IrLazyField(
     }
 
     override var correspondingPropertySymbol: IrPropertySymbol? by lazyVar {
-        stubGenerator.generatePropertyStub(initialDescriptor).symbol
+        stubGenerator.generatePropertyStub(_initialDescriptor).symbol
     }
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {

@@ -217,6 +217,9 @@ class IrPropertyImpl(
 
     @ObsoleteDescriptorBasedAPI
     override val descriptor: PropertyDescriptor = symbol.descriptor
+
+    @ObsoleteDescriptorBasedAPI
+    override val initialDescriptor: PropertyDescriptor get() = symbol.initialDescriptor
 }
 
 class IrFakeOverridePropertyImpl(
@@ -241,8 +244,12 @@ class IrFakeOverridePropertyImpl(
         get() = _symbol ?: error("$this has not acquired a symbol yet")
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor
-        get() = _symbol?.descriptor ?: WrappedPropertyDescriptor()
+    override val descriptor get() =
+        _symbol?.descriptor ?: WrappedPropertyDescriptor()
+
+    @ObsoleteDescriptorBasedAPI
+    override val initialDescriptor get() =
+        _symbol?.initialDescriptor ?: WrappedPropertyDescriptor()
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     fun acquireSymbol(symbol: IrPropertySymbol) {

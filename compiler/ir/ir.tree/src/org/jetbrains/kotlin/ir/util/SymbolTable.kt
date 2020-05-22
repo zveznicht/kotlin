@@ -33,7 +33,6 @@ import org.jetbrains.kotlin.ir.symbols.impl.*
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.resolve.descriptorUtil.isEffectivelyExternal
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DescriptorWithContainerSource
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 interface ReferenceSymbolTable {
     fun referenceClass(descriptor: ClassDescriptor): IrClassSymbol
@@ -164,7 +163,7 @@ open class SymbolTable(
             assert(d0 === d) {
                 "Non-original descriptor in declaration: $d\n\tExpected: $d0"
             }
-            val d1: D = (d0 as? WrappedDeclarationDescriptor<*>)?.takeIf { it.isBound() }?.owner?.safeAs<IrSymbolOwner>()?.symbol?.initialDescriptor as? D
+            val d1: D = (d0 as? WrappedDeclarationDescriptor<*>)?.takeIf { it.isBound() }?.owner?.initialDescriptor as? D
                 ?: d0
             val s = get(d1)
             if (s == null) {
@@ -897,7 +896,7 @@ open class SymbolTable(
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     fun introduceValueParameter(irValueParameter: IrValueParameter) {
-        valueParameterSymbolTable.introduceLocal(irValueParameter.symbol.initialDescriptor, irValueParameter.symbol)
+        valueParameterSymbolTable.introduceLocal(irValueParameter.initialDescriptor, irValueParameter.symbol)
     }
 
     override fun referenceValueParameter(descriptor: ParameterDescriptor) =

@@ -27,6 +27,7 @@ interface IrClass :
 
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ClassDescriptor
+    override val initialDescriptor: ClassDescriptor
 
     override var visibility: Visibility
 

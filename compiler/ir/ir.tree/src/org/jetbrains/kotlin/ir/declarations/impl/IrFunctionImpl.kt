@@ -132,6 +132,9 @@ class IrFunctionImpl(
     @ObsoleteDescriptorBasedAPI
     override val descriptor: FunctionDescriptor get() = symbol.descriptor
 
+    @ObsoleteDescriptorBasedAPI
+    override val initialDescriptor: FunctionDescriptor get() = symbol.initialDescriptor
+
     init {
         symbol.bind(this)
     }
@@ -164,8 +167,12 @@ class IrFakeOverrideFunctionImpl(
         get() = _symbol ?: error("$this has not acquired a symbol yet")
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor
-        get() = _symbol?.descriptor ?: WrappedSimpleFunctionDescriptor()
+    override val descriptor get() =
+        _symbol?.descriptor ?: WrappedSimpleFunctionDescriptor()
+
+    @ObsoleteDescriptorBasedAPI
+    override val initialDescriptor: FunctionDescriptor get() =
+        _symbol?.initialDescriptor ?: WrappedSimpleFunctionDescriptor()
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     fun acquireSymbol(symbol: IrSimpleFunctionSymbol) {

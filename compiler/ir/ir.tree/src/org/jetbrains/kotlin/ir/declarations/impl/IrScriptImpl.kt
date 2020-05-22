@@ -46,6 +46,7 @@ class IrScriptImpl(
 
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ScriptDescriptor get() = symbol.descriptor
+    override val initialDescriptor: ScriptDescriptor get() = symbol.initialDescriptor
 
     init {
         symbol.bind(this)
