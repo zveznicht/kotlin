@@ -26,7 +26,7 @@ class IrLazyTypeParameter(
     endOffset: Int,
     origin: IrDeclarationOrigin,
     override val symbol: IrTypeParameterSymbol,
-    trueDescriptor: TypeParameterDescriptor,
+    initialDescriptor: TypeParameterDescriptor,
     override val name: Name,
     override val index: Int,
     override val isReified: Boolean,
@@ -34,7 +34,7 @@ class IrLazyTypeParameter(
     stubGenerator: DeclarationStubGenerator,
     typeTranslator: TypeTranslator
 ) :
-    IrLazyDeclarationBase(startOffset, endOffset, trueDescriptor, origin, stubGenerator, typeTranslator),
+    IrLazyDeclarationBase(startOffset, endOffset, initialDescriptor, origin, stubGenerator, typeTranslator),
     IrTypeParameter {
 
     init {
@@ -46,7 +46,7 @@ class IrLazyTypeParameter(
     override val superTypes: MutableList<IrType> by lazy {
         withInitialIr {
             typeTranslator.buildWithScope(this.parent as IrTypeParametersContainer) {
-                val descriptor = trueDescriptor
+                val descriptor = initialDescriptor
                 descriptor.upperBounds.mapTo(arrayListOf()) { it.toIrType() }
             }
         }

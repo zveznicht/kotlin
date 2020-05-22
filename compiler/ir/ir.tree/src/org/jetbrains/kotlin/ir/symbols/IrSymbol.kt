@@ -33,7 +33,7 @@ interface IrSymbol {
     val descriptor: DeclarationDescriptor
 
     @ObsoleteDescriptorBasedAPI
-    val trueDescriptor: DeclarationDescriptor
+    val initialDescriptor: DeclarationDescriptor
 
     val isBound: Boolean
 
@@ -51,7 +51,7 @@ interface IrBindableSymbol<out D : DeclarationDescriptor, B : IrSymbolOwner> : I
     override val descriptor: D
 
     @ObsoleteDescriptorBasedAPI
-    override val trueDescriptor: D
+    override val initialDescriptor: D
 
     fun bind(owner: B)
 }
@@ -106,7 +106,7 @@ interface IrClassifierSymbol :
     override val descriptor: ClassifierDescriptor
 
     @ObsoleteDescriptorBasedAPI
-    override val trueDescriptor: ClassifierDescriptor
+    override val initialDescriptor: ClassifierDescriptor
 
     override fun <D, R> accept(visitor: IrSymbolVisitor<R, D>, data: D): R =
         visitor.visitClassifierSymbol(this, data)
@@ -166,7 +166,7 @@ interface IrReturnTargetSymbol :
     override val descriptor: FunctionDescriptor
 
     @ObsoleteDescriptorBasedAPI
-    override val trueDescriptor: FunctionDescriptor
+    override val initialDescriptor: FunctionDescriptor
 
     override val owner: IrReturnTarget
 

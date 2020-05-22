@@ -78,7 +78,7 @@ class ExpectDeclarationRemover(val symbolTable: ReferenceSymbolTable, private va
             return
         }
 
-        if (!function.symbol.trueDescriptor.isActual) return
+        if (!function.symbol.initialDescriptor.isActual) return
 
         val index = declaration.index
 
@@ -103,13 +103,13 @@ class ExpectDeclarationRemover(val symbolTable: ReferenceSymbolTable, private va
 
     // !!!!!! TODO: avoid using descriptors !!!!!!
     private fun IrFunction.findActualForExpected(): IrFunction? =
-        symbol.trueDescriptor.findActualForExpect()?.let { symbolTable.referenceFunction(it).owner }
+        symbol.initialDescriptor.findActualForExpect()?.let { symbolTable.referenceFunction(it).owner }
 
     private fun IrFunction.findExpectForActual(): IrFunction? =
-        symbol.trueDescriptor.findExpectForActual()?.let { symbolTable.referenceFunction(it).owner }
+        symbol.initialDescriptor.findExpectForActual()?.let { symbolTable.referenceFunction(it).owner }
 
     private fun IrClass.findActualForExpected(): IrClass? =
-        symbol.trueDescriptor.findActualForExpect()?.let { symbolTable.referenceClass(it).owner }
+        symbol.initialDescriptor.findActualForExpect()?.let { symbolTable.referenceClass(it).owner }
 
     private inline fun <reified T : MemberDescriptor> T.findActualForExpect() = with(ExpectedActualResolver) {
         val descriptor = this@findActualForExpect

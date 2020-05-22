@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.serialization.deserialization.descriptors.Descriptor
 
 abstract class IrPublicSymbolBase<out D : DeclarationDescriptor> @OptIn(ObsoleteDescriptorBasedAPI::class) constructor(
     @ObsoleteDescriptorBasedAPI
-    override val trueDescriptor: D,
+    override val initialDescriptor: D,
     override val signature: IdSignature
 ) : IrSymbol {
     override fun toString(): String {
@@ -57,7 +57,7 @@ abstract class IrBindablePublicSymbolBase<out D : DeclarationDescriptor, B : IrS
     override fun bind(owner: B) {
         if (_owner == null) {
             _owner = owner
-            if (descriptor != trueDescriptor) {
+            if (descriptor != initialDescriptor) {
                 (descriptor as? WrappedDeclarationDescriptor<IrDeclaration>)?.bind(owner as IrDeclaration)
             }
         } else {

@@ -164,7 +164,7 @@ open class SymbolTable(
             assert(d0 === d) {
                 "Non-original descriptor in declaration: $d\n\tExpected: $d0"
             }
-            val d1: D = (d0 as? WrappedDeclarationDescriptor<*>)?.takeIf { it.isBound() }?.owner?.safeAs<IrSymbolOwner>()?.symbol?.trueDescriptor as? D
+            val d1: D = (d0 as? WrappedDeclarationDescriptor<*>)?.takeIf { it.isBound() }?.owner?.safeAs<IrSymbolOwner>()?.symbol?.initialDescriptor as? D
                 ?: d0
             val s = get(d1)
             if (s == null) {
@@ -583,7 +583,7 @@ open class SymbolTable(
                 type = type,
                 descriptor = descriptor,
                 symbol = it,
-                visibility = visibility ?: it.trueDescriptor.visibility,
+                visibility = visibility ?: descriptor.visibility,
             ).apply {
                 metadata = MetadataSource.Property(descriptor)
             }
@@ -897,7 +897,7 @@ open class SymbolTable(
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     fun introduceValueParameter(irValueParameter: IrValueParameter) {
-        valueParameterSymbolTable.introduceLocal(irValueParameter.symbol.trueDescriptor, irValueParameter.symbol)
+        valueParameterSymbolTable.introduceLocal(irValueParameter.symbol.initialDescriptor, irValueParameter.symbol)
     }
 
     override fun referenceValueParameter(descriptor: ParameterDescriptor) =

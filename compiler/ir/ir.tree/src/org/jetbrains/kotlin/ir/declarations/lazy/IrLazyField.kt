@@ -29,7 +29,7 @@ class IrLazyField(
     endOffset: Int,
     origin: IrDeclarationOrigin,
     override val symbol: IrFieldSymbol,
-    trueDescriptor: PropertyDescriptor,
+    initialDescriptor: PropertyDescriptor,
     override val name: Name,
     override val visibility: Visibility,
     override val isFinal: Boolean,
@@ -37,7 +37,7 @@ class IrLazyField(
     override val isStatic: Boolean,
     stubGenerator: DeclarationStubGenerator,
     typeTranslator: TypeTranslator
-) : IrLazyDeclarationBase(startOffset, endOffset, trueDescriptor, origin, stubGenerator, typeTranslator),
+) : IrLazyDeclarationBase(startOffset, endOffset, initialDescriptor, origin, stubGenerator, typeTranslator),
     IrField {
 
     init {
@@ -47,17 +47,17 @@ class IrLazyField(
     override val descriptor get() = symbol.descriptor
 
     override var annotations: List<IrConstructorCall> by lazyVar {
-        trueDescriptor.backingField?.annotations
+        initialDescriptor.backingField?.annotations
             ?.mapNotNullTo(mutableListOf(), typeTranslator.constantValueGenerator::generateAnnotationConstructorCall)
             ?: mutableListOf()
     }
 
     override var type: IrType by lazyVar {
-        trueDescriptor.type.toIrType()
+        initialDescriptor.type.toIrType()
     }
 
     override var initializer: IrExpressionBody? by lazyVar {
-        trueDescriptor.compileTimeInitializer?.let {
+        initialDescriptor.compileTimeInitializer?.let {
             IrExpressionBodyImpl(
                 typeTranslator.constantValueGenerator.generateConstantValueAsExpression(UNDEFINED_OFFSET, UNDEFINED_OFFSET, it)
             )
@@ -65,7 +65,7 @@ class IrLazyField(
     }
 
     override var correspondingPropertySymbol: IrPropertySymbol? by lazyVar {
-        stubGenerator.generatePropertyStub(trueDescriptor).symbol
+        stubGenerator.generatePropertyStub(initialDescriptor).symbol
     }
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {
