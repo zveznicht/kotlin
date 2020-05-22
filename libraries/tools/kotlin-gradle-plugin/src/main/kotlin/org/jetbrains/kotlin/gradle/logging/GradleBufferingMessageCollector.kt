@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import java.util.ArrayList
 
 internal class GradleBufferingMessageCollector : MessageCollector {
-    private class MessageData(
+    class MessageData(
         val severity: CompilerMessageSeverity,
         val message: String,
         val location: CompilerMessageLocation?
@@ -19,23 +19,26 @@ internal class GradleBufferingMessageCollector : MessageCollector {
 
     private val messages = ArrayList<MessageData>()
 
+    @Synchronized
     override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation?) {
-        synchronized(messages) {
-            messages.add(MessageData(severity, message, location))
-        }
+        messages.add(MessageData(severity, message, location))
     }
 
+    @Synchronized
     override fun hasErrors() =
-        synchronized(messages) {
-            messages.any { it.severity.isError }
-        }
+        messages.any { it.severity.isError }
 
+    @Synchronized
     override fun clear() {
-        synchronized(messages) {
-            messages.clear()
-        }
+        messages.clear()
     }
 
+    @Synchronized
+    fun forEachMessage(fn: (MessageData) -> Unit) {
+        messages.forEach(fn)
+    }
+
+    @Synchronized
     fun flush(delegate: MessageCollector) {
         messages.forEach {
             delegate.report(it.severity, it.message, it.location)

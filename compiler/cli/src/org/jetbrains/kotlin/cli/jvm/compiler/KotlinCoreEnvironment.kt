@@ -110,6 +110,7 @@ import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.ZipFile
 import javax.xml.stream.XMLInputFactory
 
@@ -417,6 +418,10 @@ class KotlinCoreEnvironment private constructor(
         private val APPLICATION_LOCK = Object()
         private var ourApplicationEnvironment: KotlinCoreApplicationEnvironment? = null
         private var ourProjectCount = 0
+        private val undisposedEnvironmentsCount = AtomicInteger(0)
+
+        @JvmStatic
+        fun undisposedEnvironments(): Int = undisposedEnvironmentsCount.get()
 
         @JvmStatic
         fun createForProduction(
@@ -511,6 +516,7 @@ class KotlinCoreEnvironment private constructor(
                 Disposer.dispose(environment.parentDisposable)
                 ZipHandler.clearFileAccessorCache()
                 (environment.jarFileSystem as? CoreJarFileSystem)?.clearHandlersCache()
+                undisposedEnvironmentsCount.decrementAndGet()
             }
         }
 
@@ -518,6 +524,7 @@ class KotlinCoreEnvironment private constructor(
             parentDisposable: Disposable, configuration: CompilerConfiguration, unitTestMode: Boolean
         ): KotlinCoreApplicationEnvironment {
             val applicationEnvironment = KotlinCoreApplicationEnvironment.create(parentDisposable, unitTestMode)
+            undisposedEnvironmentsCount.incrementAndGet()
 
             registerApplicationExtensionPointsAndExtensionsFrom(configuration, "extensions/compiler.xml")
 

@@ -5,7 +5,4 @@
 
 package org.jetbrains.kotlin.gradle.report
 
-internal class TaskExecutionResult(
-    val executionStrategy: String,
-    val icLogLines: List<String>?
-)
+internal class TaskExecutionResult(val buildReportLines: List<String>?)

@@ -103,7 +103,7 @@ internal class KotlinBuildReporter(
         if (executionResult != null) {
             tasksSb.appendln("Execution strategy: ${executionResult.executionStrategy}")
 
-            executionResult.icLogLines?.let { lines ->
+            executionResult.buildReportLines?.let { lines ->
                 tasksSb.appendln("Compilation log for $task:")
                 lines.forEach { tasksSb.appendln("  $it") }
             }
