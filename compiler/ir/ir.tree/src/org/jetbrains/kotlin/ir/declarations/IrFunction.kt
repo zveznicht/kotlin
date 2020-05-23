@@ -28,7 +28,9 @@ interface IrFunction :
     IrDeclarationWithName, IrDeclarationWithVisibility, IrTypeParametersContainer, IrSymbolOwner, IrDeclarationParent, IrReturnTarget {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: FunctionDescriptor
+    override val wrappedDescriptor: FunctionDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: FunctionDescriptor
     override val symbol: IrFunctionSymbol
 
@@ -52,8 +54,8 @@ fun IrFunction.getIrValueParameter(parameter: ValueParameterDescriptor): IrValue
     valueParameters.getOrElse(parameter.index) {
         throw AssertionError("No IrValueParameter for $parameter")
     }.also { found ->
-        assert(found.descriptor == parameter || found.symbol.initialDescriptor == parameter) {
-            "Parameter indices mismatch at $descriptor: $parameter != ${found.descriptor}"
+        assert(found.wrappedDescriptor == parameter || found.symbol.initialDescriptor == parameter) {
+            "Parameter indices mismatch at $wrappedDescriptor: $parameter != ${found.wrappedDescriptor}"
         }
     }
 

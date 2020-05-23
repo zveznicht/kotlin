@@ -40,7 +40,10 @@ abstract class IrFunctionCommonImpl(
     FunctionCarrier {
 
     @ObsoleteDescriptorBasedAPI
-    abstract override val descriptor: FunctionDescriptor
+    abstract override val wrappedDescriptor: FunctionDescriptor
+
+    @ObsoleteDescriptorBasedAPI
+    abstract override val initialDescriptor: FunctionDescriptor
 
     override var overriddenSymbolsField: List<IrSimpleFunctionSymbol> = emptyList()
 
@@ -130,7 +133,7 @@ class IrFunctionImpl(
     )
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: FunctionDescriptor get() = symbol.descriptor
+    override val wrappedDescriptor: FunctionDescriptor get() = symbol.wrappedDescriptor
 
     @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: FunctionDescriptor get() = symbol.initialDescriptor
@@ -167,8 +170,8 @@ class IrFakeOverrideFunctionImpl(
         get() = _symbol ?: error("$this has not acquired a symbol yet")
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor get() =
-        _symbol?.descriptor ?: WrappedSimpleFunctionDescriptor()
+    override val wrappedDescriptor get() =
+        _symbol?.wrappedDescriptor ?: WrappedSimpleFunctionDescriptor()
 
     @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: FunctionDescriptor get() =
@@ -179,6 +182,6 @@ class IrFakeOverrideFunctionImpl(
         assert(_symbol == null) { "$this already has symbol _symbol" }
         _symbol = symbol
         symbol.bind(this)
-        (symbol.descriptor as? WrappedSimpleFunctionDescriptor)?.bind(this)
+        (symbol.wrappedDescriptor as? WrappedSimpleFunctionDescriptor)?.bind(this)
     }
 }

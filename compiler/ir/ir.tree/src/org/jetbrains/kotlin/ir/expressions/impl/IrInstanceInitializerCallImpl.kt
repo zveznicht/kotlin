@@ -33,7 +33,7 @@ class IrInstanceInitializerCallImpl(
     IrInstanceInitializerCall {
 
     @ObsoleteDescriptorBasedAPI
-    override val classDescriptor: ClassDescriptor get() = classSymbol.descriptor
+    override val classDescriptor: ClassDescriptor get() = classSymbol.wrappedDescriptor
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {
         return visitor.visitInstanceInitializerCall(this, data)

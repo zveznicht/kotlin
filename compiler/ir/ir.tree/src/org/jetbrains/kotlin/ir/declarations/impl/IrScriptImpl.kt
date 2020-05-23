@@ -45,7 +45,9 @@ class IrScriptImpl(
     override lateinit var thisReceiver: IrValueParameter
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ScriptDescriptor get() = symbol.descriptor
+    override val wrappedDescriptor: ScriptDescriptor get() = symbol.wrappedDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: ScriptDescriptor get() = symbol.initialDescriptor
 
     init {

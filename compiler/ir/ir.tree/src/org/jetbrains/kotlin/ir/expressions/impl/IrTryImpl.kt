@@ -102,7 +102,7 @@ class IrCatchImpl(
     override lateinit var result: IrExpression
 
     @ObsoleteDescriptorBasedAPI
-    override val parameter: VariableDescriptor get() = catchParameter.descriptor
+    override val parameter: VariableDescriptor get() = catchParameter.wrappedDescriptor
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {
         return visitor.visitCatch(this, data)

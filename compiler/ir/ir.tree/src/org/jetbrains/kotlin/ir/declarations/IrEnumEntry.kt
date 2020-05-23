@@ -23,7 +23,9 @@ import org.jetbrains.kotlin.ir.symbols.IrEnumEntrySymbol
 
 interface IrEnumEntry : IrSymbolDeclaration<IrEnumEntrySymbol>, IrDeclarationWithName {
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ClassDescriptor
+    override val wrappedDescriptor: ClassDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: ClassDescriptor
 
     var correspondingClass: IrClass?

@@ -40,7 +40,7 @@ interface InlineFunctionResolver {
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 open class DefaultInlineFunctionResolver(open val context: CommonBackendContext) : InlineFunctionResolver {
     override fun getFunctionDeclaration(symbol: IrFunctionSymbol): IrFunction {
-        val descriptor = symbol.descriptor.original
+        val descriptor = symbol.wrappedDescriptor.original
         val languageVersionSettings = context.configuration.languageVersionSettings
         // TODO: Remove these hacks when coroutine intrinsics are fixed.
         return when {
@@ -156,7 +156,7 @@ class FunctionInlining(
             val evaluationStatements = evaluateArguments(callSite, copiedCallee)
             val statements = (copiedCallee.body as IrBlockBody).statements
 
-            val irReturnableBlockSymbol = IrReturnableBlockSymbolImpl(copiedCallee.descriptor.original)
+            val irReturnableBlockSymbol = IrReturnableBlockSymbolImpl(copiedCallee.wrappedDescriptor.original)
             val endOffset = callee.endOffset
             /* creates irBuilder appending to the end of the given returnable block: thus why we initialize
              * irBuilder with (..., endOffset, endOffset).

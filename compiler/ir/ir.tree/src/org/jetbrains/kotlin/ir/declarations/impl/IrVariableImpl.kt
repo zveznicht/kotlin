@@ -86,7 +86,9 @@ class IrVariableImpl(
     }
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: VariableDescriptor get() = symbol.descriptor
+    override val wrappedDescriptor: VariableDescriptor get() = symbol.wrappedDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: VariableDescriptor get() = symbol.initialDescriptor
 
     override var initializer: IrExpression? = null

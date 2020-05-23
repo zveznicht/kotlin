@@ -33,7 +33,7 @@ class LazyScopedTypeParametersResolver(private val symbolTable: ReferenceSymbolT
         //there should be enough to process only parent typeparameters
         return typeParameterScopes.firstOrNull()?.let { parent ->
             parent.typeParameters.firstOrNull {
-                it.descriptor == typeParameterDescriptor
+                it.wrappedDescriptor == typeParameterDescriptor
             }?.symbol
         }
     }

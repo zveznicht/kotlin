@@ -30,7 +30,7 @@ interface IrSymbol {
     val owner: IrSymbolOwner
 
     @ObsoleteDescriptorBasedAPI
-    val descriptor: DeclarationDescriptor
+    val wrappedDescriptor: DeclarationDescriptor
 
     @ObsoleteDescriptorBasedAPI
     val initialDescriptor: DeclarationDescriptor
@@ -48,7 +48,7 @@ interface IrBindableSymbol<out D : DeclarationDescriptor, B : IrSymbolOwner> : I
     override val owner: B
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: D
+    override val wrappedDescriptor: D
 
     @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: D
@@ -58,7 +58,7 @@ interface IrBindableSymbol<out D : DeclarationDescriptor, B : IrSymbolOwner> : I
 
 interface IrPackageFragmentSymbol : IrSymbol {
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: PackageFragmentDescriptor
+    override val wrappedDescriptor: PackageFragmentDescriptor
 
     override fun <D, R> accept(visitor: IrSymbolVisitor<R, D>, data: D): R =
         visitor.visitPackageFragmentSymbol(this, data)
@@ -103,7 +103,7 @@ interface IrClassifierSymbol :
     IrSymbol, TypeConstructorMarker {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ClassifierDescriptor
+    override val wrappedDescriptor: ClassifierDescriptor
 
     @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: ClassifierDescriptor
@@ -137,7 +137,7 @@ interface IrValueSymbol :
     IrSymbol {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ValueDescriptor
+    override val wrappedDescriptor: ValueDescriptor
 
     override val owner: IrValueDeclaration
 
@@ -163,7 +163,7 @@ interface IrReturnTargetSymbol :
     IrSymbol {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: FunctionDescriptor
+    override val wrappedDescriptor: FunctionDescriptor
 
     @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: FunctionDescriptor

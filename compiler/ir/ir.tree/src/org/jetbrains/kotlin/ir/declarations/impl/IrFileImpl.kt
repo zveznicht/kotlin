@@ -46,7 +46,7 @@ class IrFileImpl(
     }
 
     @ObsoleteDescriptorBasedAPI
-    override val packageFragmentDescriptor: PackageFragmentDescriptor get() = symbol.descriptor
+    override val packageFragmentDescriptor: PackageFragmentDescriptor get() = symbol.wrappedDescriptor
 
     override val declarations: MutableList<IrDeclaration> = ArrayList()
 

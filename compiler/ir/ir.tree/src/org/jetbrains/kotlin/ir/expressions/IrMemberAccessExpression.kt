@@ -102,7 +102,7 @@ inline fun <T : IrMemberAccessExpression> T.mapValueParameters(transform: (Value
 @ObsoleteDescriptorBasedAPI
 inline fun <T : IrMemberAccessExpression> T.mapValueParametersIndexed(transform: (Int, ValueParameterDescriptor) -> IrExpression?): T =
     apply {
-        val descriptor = symbol.descriptor as CallableDescriptor
+        val descriptor = symbol.wrappedDescriptor as CallableDescriptor
         descriptor.valueParameters.forEach {
             putValueArgument(it.index, transform(it.index, it))
         }

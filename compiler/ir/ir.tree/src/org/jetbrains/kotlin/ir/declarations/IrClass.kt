@@ -26,7 +26,9 @@ interface IrClass :
     IrDeclarationContainer, IrTypeParametersContainer, IrAttributeContainer {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ClassDescriptor
+    override val wrappedDescriptor: ClassDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: ClassDescriptor
 
     override var visibility: Visibility

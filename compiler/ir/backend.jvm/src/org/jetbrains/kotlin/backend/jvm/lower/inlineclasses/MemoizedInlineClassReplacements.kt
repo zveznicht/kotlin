@@ -181,7 +181,7 @@ class MemoizedInlineClassReplacements(private val mangleReturnTypes: Boolean) {
         replacementOrigin: IrDeclarationOrigin,
         noFakeOverride: Boolean = false,
         body: IrFunctionImpl.() -> Unit
-    ) = buildFunWithDescriptorForInlining(function.descriptor) {
+    ) = buildFunWithDescriptorForInlining(function.wrappedDescriptor) {
         updateFrom(function)
         if (function is IrConstructor) {
             // The [updateFrom] call will set the modality to FINAL for constructors, while the JVM backend would use OPEN here.
@@ -211,7 +211,7 @@ class MemoizedInlineClassReplacements(private val mangleReturnTypes: Boolean) {
             val propertySymbol = function.correspondingPropertySymbol
             if (propertySymbol != null) {
                 val property = propertyMap.getOrPut(propertySymbol) {
-                    buildProperty(propertySymbol.descriptor) {
+                    buildProperty(propertySymbol.wrappedDescriptor) {
                         name = propertySymbol.owner.name
                         updateFrom(propertySymbol.owner)
                     }.apply {

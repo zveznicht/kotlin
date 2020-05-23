@@ -17,7 +17,9 @@ interface IrField :
     IrDeclarationWithName, IrDeclarationWithVisibility, IrDeclarationParent {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: PropertyDescriptor
+    override val wrappedDescriptor: PropertyDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: PropertyDescriptor
 
     val type: IrType

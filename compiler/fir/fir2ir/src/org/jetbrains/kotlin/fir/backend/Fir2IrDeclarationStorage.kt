@@ -518,7 +518,7 @@ class Fir2IrDeclarationStorage(
         irParent: IrClass
     ): IrAnonymousInitializer {
         return anonymousInitializer.convertWithOffsets { startOffset, endOffset ->
-            symbolTable.declareAnonymousInitializer(startOffset, endOffset, IrDeclarationOrigin.DEFINED, irParent.descriptor).apply {
+            symbolTable.declareAnonymousInitializer(startOffset, endOffset, IrDeclarationOrigin.DEFINED, irParent.wrappedDescriptor).apply {
                 this.parent = irParent
                 initializerCache[anonymousInitializer] = this
             }
@@ -593,7 +593,7 @@ class Fir2IrDeclarationStorage(
         val signature = signatureComposer.composeAccessorSignature(property, isSetter)
         return declareIrAccessor(
             signature,
-            (correspondingProperty.descriptor as? WrappedPropertyDescriptorWithContainerSource)?.containerSource,
+            (correspondingProperty.wrappedDescriptor as? WrappedPropertyDescriptorWithContainerSource)?.containerSource,
             isGetter = !isSetter
         ) { symbol ->
             val accessorReturnType = if (isSetter) irBuiltIns.unitType else propertyType
@@ -731,7 +731,7 @@ class Fir2IrDeclarationStorage(
                             property.isVar && setter is FirDefaultPropertySetter
                         ) {
                             backingField = createBackingField(
-                                property, IrDeclarationOrigin.PROPERTY_BACKING_FIELD, descriptor,
+                                property, IrDeclarationOrigin.PROPERTY_BACKING_FIELD, wrappedDescriptor,
                                 property.fieldVisibility, property.name, property.isVal, initializer,
                                 type
                             ).also { field ->
@@ -743,7 +743,7 @@ class Fir2IrDeclarationStorage(
                             }
                         } else if (delegate != null) {
                             backingField = createBackingField(
-                                property, IrDeclarationOrigin.PROPERTY_DELEGATE, descriptor,
+                                property, IrDeclarationOrigin.PROPERTY_DELEGATE, wrappedDescriptor,
                                 property.fieldVisibility, Name.identifier("${property.name}\$delegate"), true, delegate
                             )
                         }

@@ -83,7 +83,7 @@ class IrBuiltInOperator(
     override var correspondingPropertySymbol: IrPropertySymbol? by NullValueDelegate()
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: FunctionDescriptor get() = symbol.descriptor
+    override val wrappedDescriptor: FunctionDescriptor get() = symbol.wrappedDescriptor
 
     @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: FunctionDescriptor get() = symbol.initialDescriptor
@@ -112,7 +112,7 @@ class IrBuiltInOperatorValueParameter(override val symbol: IrValueParameterSymbo
     IrValueParameter, IrBuiltInOperatorBase() {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ParameterDescriptor get() = symbol.descriptor
+    override val wrappedDescriptor: ParameterDescriptor get() = symbol.wrappedDescriptor
 
     @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: ParameterDescriptor get() = symbol.initialDescriptor
@@ -144,8 +144,11 @@ class IrBuiltInOperatorTypeParameter(
 ) : IrTypeParameter, IrBuiltInOperatorBase() {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: TypeParameterDescriptor get() = symbol.descriptor
+    override val wrappedDescriptor: TypeParameterDescriptor get() = symbol.wrappedDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: TypeParameterDescriptor get() = symbol.initialDescriptor
+
     override val superTypes: MutableList<IrType> = SmartList()
     override val name: Name = Name.identifier("T$index")
 

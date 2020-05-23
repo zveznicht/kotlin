@@ -27,8 +27,11 @@ interface IrProperty :
     IrSymbolOwner {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: PropertyDescriptor
+    override val wrappedDescriptor: PropertyDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: PropertyDescriptor
+
     override val symbol: IrPropertySymbol
 
     val isVar: Boolean

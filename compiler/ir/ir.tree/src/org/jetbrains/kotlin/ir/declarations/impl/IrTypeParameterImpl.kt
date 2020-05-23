@@ -62,7 +62,9 @@ class IrTypeParameterImpl(
     }
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: TypeParameterDescriptor get() = symbol.descriptor
+    override val wrappedDescriptor: TypeParameterDescriptor get() = symbol.wrappedDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: TypeParameterDescriptor get() = symbol.initialDescriptor
 
     override val superTypes: MutableList<IrType> = SmartList()

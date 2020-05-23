@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.ir.declarations
 
 import org.jetbrains.kotlin.descriptors.ClassConstructorDescriptor
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
@@ -25,7 +24,9 @@ import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 
 interface IrConstructor : IrFunction, IrSymbolDeclaration<IrConstructorSymbol> {
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ClassConstructorDescriptor
+    override val wrappedDescriptor: ClassConstructorDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: ClassConstructorDescriptor
 
     override var visibility: Visibility

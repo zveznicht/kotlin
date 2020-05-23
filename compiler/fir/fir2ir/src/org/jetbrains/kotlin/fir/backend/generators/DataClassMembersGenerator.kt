@@ -135,7 +135,7 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
             val properties = irClass.declarations
                 .filterIsInstance<IrProperty>()
                 .take(propertyParametersCount)
-                .map { it.descriptor }
+                .map { it.wrappedDescriptor }
             if (properties.isEmpty()) {
                 return emptyList()
             }

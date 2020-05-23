@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.ir.symbols.IrReturnTargetSymbol
 
 interface IrReturnTarget : IrSymbolOwner {
     @ObsoleteDescriptorBasedAPI
-    val descriptor: FunctionDescriptor
+    val wrappedDescriptor: FunctionDescriptor
 
     override val symbol: IrReturnTargetSymbol
 }

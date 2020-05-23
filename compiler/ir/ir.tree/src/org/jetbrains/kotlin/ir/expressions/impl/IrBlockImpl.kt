@@ -75,7 +75,7 @@ class IrReturnableBlockImpl(
     IrReturnableBlock {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor = symbol.descriptor
+    override val wrappedDescriptor = symbol.wrappedDescriptor
 
     constructor(
         startOffset: Int,

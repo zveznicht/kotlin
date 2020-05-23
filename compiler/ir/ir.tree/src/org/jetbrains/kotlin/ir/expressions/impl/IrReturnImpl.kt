@@ -36,7 +36,7 @@ class IrReturnImpl(
     IrReturn {
 
     @ObsoleteDescriptorBasedAPI
-    override val returnTarget: FunctionDescriptor get() = returnTargetSymbol.descriptor
+    override val returnTarget: FunctionDescriptor get() = returnTargetSymbol.wrappedDescriptor
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =
         visitor.visitReturn(this, data)

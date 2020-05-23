@@ -51,9 +51,10 @@ private class DescriptorlessIrFileSymbol : IrFileSymbol {
     }
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: PackageFragmentDescriptor
+    override val wrappedDescriptor: PackageFragmentDescriptor
         get() = error("Operation is unsupported")
 
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: PackageFragmentDescriptor
         get() = error("Operation is unsupported")
 

@@ -89,6 +89,6 @@ private fun IrBody.move(
 // Inline simple function calls without type parameters, default parameters, or varargs.
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 fun IrFunction.inline(target: IrDeclarationParent, arguments: List<IrValueDeclaration> = listOf()): IrReturnableBlock =
-    IrReturnableBlockImpl(startOffset, endOffset, returnType, IrReturnableBlockSymbolImpl(descriptor), null, symbol).apply {
+    IrReturnableBlockImpl(startOffset, endOffset, returnType, IrReturnableBlockSymbolImpl(wrappedDescriptor), null, symbol).apply {
         statements += body!!.move(this@inline, target, symbol, valueParameters.zip(arguments).toMap()).statements
     }

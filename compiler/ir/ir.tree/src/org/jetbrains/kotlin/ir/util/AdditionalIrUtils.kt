@@ -146,7 +146,7 @@ val IrDeclaration.isLocal: Boolean
     }
 
 @ObsoleteDescriptorBasedAPI
-val IrDeclaration.module get() = this.descriptor.module
+val IrDeclaration.module get() = this.wrappedDescriptor.module
 
 const val SYNTHETIC_OFFSET = -2
 

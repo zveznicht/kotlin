@@ -70,7 +70,9 @@ class IrFieldImpl(
     }
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: PropertyDescriptor get() = symbol.descriptor
+    override val wrappedDescriptor: PropertyDescriptor get() = symbol.wrappedDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: PropertyDescriptor get() = symbol.initialDescriptor
 
     override var initializerField: IrExpressionBody? = null

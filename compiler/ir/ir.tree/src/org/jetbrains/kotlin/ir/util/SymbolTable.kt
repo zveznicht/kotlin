@@ -117,7 +117,7 @@ open class SymbolTable(
                 existing
             }
             val result = createOwner(symbol)
-            set(symbol.descriptor, symbol)
+            set(symbol.wrappedDescriptor, symbol)
             return result
         }
 
@@ -184,7 +184,7 @@ open class SymbolTable(
                 assert(unboundSymbols.add(new)) {
                     "Symbol for ${new.signature} was already referenced"
                 }
-                set(new.descriptor, new)
+                set(new.wrappedDescriptor, new)
                 new
             }
         }
@@ -327,7 +327,7 @@ open class SymbolTable(
             currentScope = currentScope?.parent
 
             if (currentScope != null && unboundSymbols.isNotEmpty()) {
-                throw AssertionError("Local scope contains unbound symbols: ${unboundSymbols.joinToString { it.descriptor.toString() }}")
+                throw AssertionError("Local scope contains unbound symbols: ${unboundSymbols.joinToString { it.wrappedDescriptor.toString() }}")
             }
         }
 
@@ -975,7 +975,7 @@ open class SymbolTable(
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun enterScope(owner: IrDeclaration) {
-        enterScope(owner.descriptor)
+        enterScope(owner.wrappedDescriptor)
     }
 
     @ObsoleteDescriptorBasedAPI
@@ -985,7 +985,7 @@ open class SymbolTable(
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun leaveScope(owner: IrDeclaration) {
-        leaveScope(owner.descriptor)
+        leaveScope(owner.wrappedDescriptor)
     }
 
     fun referenceValue(value: ValueDescriptor): IrValueSymbol =

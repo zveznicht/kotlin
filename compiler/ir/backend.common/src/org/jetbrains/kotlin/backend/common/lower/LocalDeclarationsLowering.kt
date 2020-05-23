@@ -590,7 +590,7 @@ class LocalDeclarationsLowering(
             assert(oldDeclaration.dispatchReceiverParameter == null)
 
             val memberOwner = localFunctionContext.ownerForLoweredDeclaration
-            val newDescriptor = WrappedSimpleFunctionDescriptor(oldDeclaration.descriptor)
+            val newDescriptor = WrappedSimpleFunctionDescriptor(oldDeclaration.wrappedDescriptor)
             val newSymbol = IrSimpleFunctionSymbolImpl(newDescriptor)
             val newName = generateNameForLiftedDeclaration(oldDeclaration, memberOwner)
 
@@ -665,7 +665,7 @@ class LocalDeclarationsLowering(
                 IrValueParameterImpl(
                     p.startOffset,
                     p.endOffset,
-                    if (p.descriptor is ReceiverParameterDescriptor && newDeclaration is IrConstructor)
+                    if (p.wrappedDescriptor is ReceiverParameterDescriptor && newDeclaration is IrConstructor)
                         BOUND_RECEIVER_PARAMETER else BOUND_VALUE_PARAMETER,
                     IrValueParameterSymbolImpl(parameterDescriptor),
                     suggestNameForCapturedValue(p, generatedNames),
@@ -716,7 +716,7 @@ class LocalDeclarationsLowering(
             val localClassContext = localClasses[oldDeclaration.parent]!!
             val capturedValues = localClassContext.closure.capturedValues
 
-            val newDescriptor = WrappedClassConstructorDescriptor(oldDeclaration.descriptor.annotations, oldDeclaration.descriptor.source)
+            val newDescriptor = WrappedClassConstructorDescriptor(oldDeclaration.wrappedDescriptor.annotations, oldDeclaration.wrappedDescriptor.source)
             val newSymbol = IrConstructorSymbolImpl(newDescriptor)
 
             val loweredConstructorVisibility =

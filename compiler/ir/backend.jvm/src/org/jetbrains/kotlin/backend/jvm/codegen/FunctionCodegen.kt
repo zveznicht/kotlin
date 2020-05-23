@@ -103,7 +103,7 @@ class FunctionCodegen(
         } else {
             val sourceMapper = context.getSourceMapper(classCodegen.irClass)
             val frameMap = irFunction.createFrameMapWithReceivers()
-            context.state.globalInlineContext.enterDeclaration(irFunction.suspendFunctionOriginal().descriptor)
+            context.state.globalInlineContext.enterDeclaration(irFunction.suspendFunctionOriginal().wrappedDescriptor)
             try {
                 val adapter = InstructionAdapter(methodVisitor)
                 ExpressionCodegen(irFunction, signature, frameMap, adapter, classCodegen, inlinedInto, sourceMapper).generate()

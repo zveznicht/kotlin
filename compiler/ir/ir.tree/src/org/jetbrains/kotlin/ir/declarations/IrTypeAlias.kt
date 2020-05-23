@@ -17,7 +17,7 @@ interface IrTypeAlias :
     IrTypeParametersContainer {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: TypeAliasDescriptor
+    override val wrappedDescriptor: TypeAliasDescriptor
 
     @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: TypeAliasDescriptor

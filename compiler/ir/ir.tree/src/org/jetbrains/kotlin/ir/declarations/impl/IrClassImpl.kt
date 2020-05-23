@@ -78,7 +78,9 @@ class IrClassImpl(
     }
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ClassDescriptor get() = symbol.descriptor
+    override val wrappedDescriptor: ClassDescriptor get() = symbol.wrappedDescriptor
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: ClassDescriptor get() = symbol.initialDescriptor
 
     override var visibilityField: Visibility = visibility

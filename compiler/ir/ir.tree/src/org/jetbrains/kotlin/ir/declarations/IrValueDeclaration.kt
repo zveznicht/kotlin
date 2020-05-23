@@ -12,7 +12,7 @@ import org.jetbrains.kotlin.ir.types.IrType
 
 interface IrValueDeclaration : IrDeclarationWithName, IrSymbolOwner {
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ValueDescriptor
+    override val wrappedDescriptor: ValueDescriptor
 
     @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: ValueDescriptor

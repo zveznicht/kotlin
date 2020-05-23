@@ -48,7 +48,7 @@ fun <T : IrElement> T.deepCopyWithVariables(): T {
 
                 override fun visitVariable(declaration: IrVariable): IrVariable {
                     val variable = super.visitVariable(declaration)
-                    variable.descriptor.let { if (it is WrappedVariableDescriptor) it.bind(variable) }
+                    variable.wrappedDescriptor.let { if (it is WrappedVariableDescriptor) it.bind(variable) }
                     return variable
                 }
             },
