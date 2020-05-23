@@ -274,20 +274,31 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
 
             val jdkName = gradleModule.jdkNameIfAny
 
-            // save artefacts locations.
-            val userData = projectDataNode.getUserData(MPP_CONFIGURATION_ARTIFACTS) ?: HashMap<String, MutableList<String>>().apply {
-                projectDataNode.putUserData(MPP_CONFIGURATION_ARTIFACTS, this)
-            }
+            // save artifacts locations.
+            val mppArtifacts = projectDataNode.getUserData(MPP_CONFIGURATION_ARTIFACTS)
+                ?: HashMap<String, MutableList<String>>().apply { projectDataNode.putUserData(MPP_CONFIGURATION_ARTIFACTS, this) }
 
             mppModel.targets.forEach { target ->
-                val artifactFile = target.artifact?.file ?: return@forEach
-                val artifactPath = toCanonicalPath(artifactFile.absolutePath)
-                val currentModules = userData.getOrPut(artifactPath) { mutableListOf() }
-                // Test modules should not be added. Otherwise we could get dependnecy of java.mail on jvmTest
-                val allSourceSets = target.compilations.filter { !it.isTestModule }.flatMap { it.sourceSets }.toSet()
-                val availableViaDependsOn = allSourceSets.flatMap { it.dependsOnSourceSets }.mapNotNull { mppModel.sourceSets[it] }
-                allSourceSets.union(availableViaDependsOn).forEach { sourceSet ->
-                    currentModules.add(getKotlinModuleId(gradleModule, sourceSet, resolverCtx))
+                target.artifacts.forEach { artifact ->
+                    val artifactPath = toCanonicalPath(artifact.file.absolutePath)
+                    val currentModules = mppArtifacts.getOrPut(artifactPath) { mutableListOf() }
+
+                    // Test modules should not be added. Otherwise we could get dependency of java.mail on jvmTest
+                    var sourceSets: Set<KotlinSourceSet> = target.compilations
+                        .filter { !it.isTestModule && (artifact.compilationName == null || artifact.compilationName == it.name) }
+                        .flatMapTo(mutableSetOf()) { it.sourceSets }
+
+                    if (sourceSets.isEmpty() && target.platform == KotlinPlatform.COMMON && artifact.compilationName != null) {
+                        // workaround for artifacts from KLIB-based metadata compilations
+                        sourceSets = setOfNotNull(mppModel.sourceSets[artifact.compilationName!!])
+                    }
+
+                    val availableViaDependsOn = sourceSets.flatMap { it.dependsOnSourceSets }.mapNotNull { mppModel.sourceSets[it] }
+                    val allSourceSets = sourceSets union availableViaDependsOn
+
+                    allSourceSets.forEach { sourceSet ->
+                        currentModules += getKotlinModuleId(gradleModule, sourceSet, resolverCtx)
+                    }
                 }
             }
 
@@ -310,7 +321,7 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
                 if (delegateToAndroidPlugin(target)) continue
                 if (target.name == KotlinTarget.METADATA_TARGET_NAME) continue
                 val targetData = KotlinTargetData(target.name).also {
-                    it.artifactFile = target.artifact?.file
+                    it.artifacts = target.artifacts
                     it.konanArtifacts = target.nativeBinaries
                 }
                 mainModuleNode.createChild(KotlinTargetData.KEY, targetData)
