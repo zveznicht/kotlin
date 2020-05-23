@@ -29,9 +29,12 @@ import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.incremental.parsing.classesFqNames
+import org.jetbrains.kotlin.incremental.util.addSuppressed
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.progress.CompilationCanceledStatus
 import java.io.File
+import java.io.IOException
+import java.nio.file.Files
 import java.util.*
 
 abstract class IncrementalCompilerRunner<
@@ -104,28 +107,28 @@ abstract class IncrementalCompilerRunner<
 
     private fun clearLocalStateOnRebuild(args: Args) {
         val destinationDir = destinationDir(args)
-
-        reporter.reportVerbose { "Clearing output on rebuild" }
+        val exceptions = ArrayList<java.lang.Exception>()
         for (file in sequenceOf(destinationDir, workingDir) + outputFiles.asSequence()) {
-            val deleted: Boolean? = when {
-                file.isDirectory -> {
-                    reporter.reportVerbose { "  Deleting directory $file" }
-                    file.deleteRecursively()
+            try {
+                when {
+                    file.isDirectory -> {
+                        Files.walk(file.toPath()).sorted(Comparator.reverseOrder()).forEach(Files::delete)
+                    }
+                    file.isFile -> {
+                        Files.delete(file.toPath())
+                    }
                 }
-                file.isFile -> {
-                    reporter.reportVerbose { "  Deleting $file" }
-                    file.delete()
-                }
-                else -> null
-            }
-
-            if (deleted == false) {
-                reporter.reportVerbose { "  Could not delete $file" }
+            } catch (e: Exception) {
+                exceptions.add(IOException("Could not delete $file", e))
             }
         }
 
-        assert(!destinationDir.exists()) { "Could not delete destination dir $destinationDir" }
-        assert(!workingDir.exists()) { "Could not delete caches dir $workingDir" }
+        if (exceptions.isNotEmpty()) {
+            throw IOException("Some output files were not deleted").apply {
+                addSuppressed(exceptions)
+            }
+        }
+
         destinationDir.mkdirs()
         workingDir.mkdirs()
     }
