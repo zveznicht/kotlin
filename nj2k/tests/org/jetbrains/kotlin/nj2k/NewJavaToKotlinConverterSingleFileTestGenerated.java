@@ -2610,6 +2610,11 @@ public class NewJavaToKotlinConverterSingleFileTestGenerated extends AbstractNew
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("nj2k/testData/newJ2k/functionalInterfaces"), Pattern.compile("^([^\\.]+)\\.java$"), null, true);
         }
 
+        @TestMetadata("InterfacesHierarchy.java")
+        public void testInterfacesHierarchy() throws Exception {
+            runTest("nj2k/testData/newJ2k/functionalInterfaces/InterfacesHierarchy.java");
+        }
+
         @TestMetadata("MyRunnable.java")
         public void testMyRunnable() throws Exception {
             runTest("nj2k/testData/newJ2k/functionalInterfaces/MyRunnable.java");
@@ -2623,6 +2628,11 @@ public class NewJavaToKotlinConverterSingleFileTestGenerated extends AbstractNew
         @TestMetadata("NoFunctionalInterfaceConversionEnabled.java")
         public void testNoFunctionalInterfaceConversionEnabled() throws Exception {
             runTest("nj2k/testData/newJ2k/functionalInterfaces/NoFunctionalInterfaceConversionEnabled.java");
+        }
+
+        @TestMetadata("SamMethodWithGenerics.java")
+        public void testSamMethodWithGenerics() throws Exception {
+            runTest("nj2k/testData/newJ2k/functionalInterfaces/SamMethodWithGenerics.java");
         }
     }
 
