@@ -84,6 +84,7 @@ import org.jetbrains.kotlin.idea.editor.quickDoc.AbstractQuickDocProviderTest
 import org.jetbrains.kotlin.idea.filters.AbstractKotlinExceptionFilterTest
 import org.jetbrains.kotlin.idea.fir.AbstractFirLazyResolveTest
 import org.jetbrains.kotlin.idea.fir.AbstractFirMultiModuleResolveTest
+import org.jetbrains.kotlin.idea.fir.AbstractKtDeclarationAndFirDeclarationEqualityChecker
 import org.jetbrains.kotlin.idea.folding.AbstractKotlinFoldingTest
 import org.jetbrains.kotlin.idea.hierarchy.AbstractHierarchyTest
 import org.jetbrains.kotlin.idea.hierarchy.AbstractHierarchyWithLibTest
@@ -901,6 +902,12 @@ fun main() {
         
         testClass<AbstractSlicerMultiplatformTest> {
             model("slicer/mpp", recursive = false, extension = null)
+        }
+    }
+
+    testGroup("idea/idea-frontend-fir/tests", "idea/idea-frontend-fir/testData") {
+        testClass<AbstractKtDeclarationAndFirDeclarationEqualityChecker> {
+            model("ktDeclarationAndFirDeclarationEqualityChecker")
         }
     }
 
