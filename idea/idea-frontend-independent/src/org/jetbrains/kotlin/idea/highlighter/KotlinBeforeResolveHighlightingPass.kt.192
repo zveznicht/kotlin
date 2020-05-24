@@ -34,10 +34,12 @@ class KotlinBeforeResolveHighlightingPass(
     override fun doCollectInformation(progress: ProgressIndicator) {
         val annotationHolder = AnnotationHolderImpl(AnnotationSession(file))
         val visitor = BeforeResolveHighlightingVisitor(annotationHolder)
+        val extensions = EP_NAME.extensionList
         file.accept(object : PsiRecursiveElementVisitor() {
             override fun visitElement(element: PsiElement) {
                 super.visitElement(element)
                 element.accept(visitor)
+                extensions.forEach(element::accept)
             }
         })
         this.annotationHolder = annotationHolder
@@ -67,5 +69,9 @@ class KotlinBeforeResolveHighlightingPass(
             if (file !is KtFile) return null
             return KotlinBeforeResolveHighlightingPass(file, editor.document)
         }
+    }
+
+     companion object {
+        val EP_NAME = ExtensionPointName.create<HighlightingVisitor>("org.jetbrains.kotlin.beforeResolveHighlightingVisitor")
     }
 }
