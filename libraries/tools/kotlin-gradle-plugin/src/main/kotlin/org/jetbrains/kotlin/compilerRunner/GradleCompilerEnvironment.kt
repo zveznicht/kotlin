@@ -19,7 +19,8 @@ internal class GradleCompilerEnvironment(
     val outputFiles: FileCollection,
     val buildReportMode: BuildReportMode?,
     val incrementalCompilationEnvironment: IncrementalCompilationEnvironment? = null,
-    val kotlinScriptExtensions: Array<String> = emptyArray()
+    val kotlinScriptExtensions: Array<String> = emptyArray(),
+    val checkICCachesAreClosed: Boolean = false
 ) : CompilerEnvironment(Services.EMPTY, messageCollector, outputItemsCollector) {
     val toolsJar: File? by lazy { findToolsJar() }
 

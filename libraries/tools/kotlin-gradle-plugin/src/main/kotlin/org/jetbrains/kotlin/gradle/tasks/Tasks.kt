@@ -28,10 +28,9 @@ import org.jetbrains.kotlin.gradle.internal.prepareCompilerArguments
 import org.jetbrains.kotlin.gradle.internal.tasks.TaskWithLocalState
 import org.jetbrains.kotlin.gradle.internal.tasks.allOutputFiles
 import org.jetbrains.kotlin.gradle.logging.*
+import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.COMPILER_CLASSPATH_CONFIGURATION_NAME
-import org.jetbrains.kotlin.gradle.plugin.KotlinMultiplatformPluginWrapper
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformPluginBase
-import org.jetbrains.kotlin.gradle.plugin.PLUGIN_CLASSPATH_CONFIGURATION_NAME
+import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider
 import org.jetbrains.kotlin.gradle.plugin.mpp.associateWithTransitiveClosure
 import org.jetbrains.kotlin.gradle.plugin.mpp.ownModuleName
 import org.jetbrains.kotlin.gradle.report.BuildReportMode
@@ -135,6 +134,10 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
             field = value
             logger.kotlinDebug { "Set $this.incremental=$value" }
         }
+
+    @get:Internal
+    val checkICCachesAreClosed: Boolean
+        get() = PropertiesProvider(project).checkICCachesAreClosed
 
     @get:Internal
     internal var buildReportMode: BuildReportMode? = null
@@ -417,7 +420,8 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
             outputFiles = allOutputFiles(),
             buildReportMode = buildReportMode,
             incrementalCompilationEnvironment = icEnv,
-            kotlinScriptExtensions = sourceFilesExtensions.toTypedArray()
+            kotlinScriptExtensions = sourceFilesExtensions.toTypedArray(),
+            checkICCachesAreClosed = checkICCachesAreClosed
         )
         compilerRunner.runJvmCompilerAsync(
             sourceRoots.kotlinSourceFiles,
@@ -624,7 +628,8 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
             computedCompilerClasspath, messageCollector, outputItemCollector,
             outputFiles = allOutputFiles(),
             buildReportMode = buildReportMode,
-            incrementalCompilationEnvironment = icEnv
+            incrementalCompilationEnvironment = icEnv,
+            checkICCachesAreClosed = checkICCachesAreClosed
         )
         compilerRunner.runJsCompilerAsync(sourceRoots.kotlinSourceFiles, commonSourceSet.toList(), args, environment)
     }

@@ -100,6 +100,9 @@ internal class PropertiesProvider private constructor(private val project: Proje
     val shutdownDaemonAfterBuild: Boolean
         get() = booleanProperty("kotlin.daemon.shutdownAfterBuild") ?: false
 
+    val checkICCachesAreClosed: Boolean
+        get() = booleanProperty("kotlin.checkICCachesAreClosed") ?: false
+
     val ignoreDisabledNativeTargets: Boolean?
         get() = booleanProperty(DisabledNativeTargetsReporter.DISABLE_WARNING_PROPERTY_NAME)
 

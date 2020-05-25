@@ -123,6 +123,10 @@ class CompileServiceRMIWrapper(val server: CompileServiceServerSide, daemonOptio
         server.clearJarCache()
     }
 
+    override fun checkICCaches(): CompileService.CallResult<List<String>> {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun leaseReplSession(
         aliveFlagPath: String?,
         targetPlatform: CompileService.TargetPlatform,

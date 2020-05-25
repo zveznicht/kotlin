@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.compilerRunner
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.logging.Logger
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.jvm.tasks.Jar
@@ -141,7 +140,8 @@ internal open class GradleCompilerRunner(protected val task: Task) {
             outputFiles = environment.outputFiles.toList(),
             taskPath = task.path,
             buildReportMode = environment.buildReportMode,
-            kotlinScriptExtensions = environment.kotlinScriptExtensions
+            kotlinScriptExtensions = environment.kotlinScriptExtensions,
+            checkICCachesAreClosed = environment.checkICCachesAreClosed
         )
         TaskLoggers.put(task.path, task.logger)
         runCompilerAsync(workArgs)
@@ -161,13 +161,19 @@ internal open class GradleCompilerRunner(protected val task: Task) {
             sessionIsAliveFlagFile: File,
             compilerFullClasspath: List<File>,
             messageCollector: MessageCollector,
-            isDebugEnabled: Boolean
+            isDebugEnabled: Boolean,
+            checkICCachesAreClosed: Boolean
         ): CompileServiceSession? {
             val compilerId = CompilerId.makeCompilerId(compilerFullClasspath)
+            val additionalJvmArgs = ArrayList<String>()
+            if (checkICCachesAreClosed) {
+                additionalJvmArgs.add("-Dkotlin.checkICCachesAreClosed=true")
+            }
             return cachedConnections[compilerId] ?: KotlinCompilerRunnerUtils.newDaemonConnection(
                 compilerId, clientIsAliveFlagFile, sessionIsAliveFlagFile,
                 messageCollector = messageCollector,
-                isDebugEnabled = isDebugEnabled
+                isDebugEnabled = isDebugEnabled,
+                additionalJvmParams = additionalJvmArgs.toTypedArray()
             )?.also { cachedConnections[compilerId] = it }
         }
 
@@ -312,12 +318,22 @@ internal open class GradleCompilerRunner(protected val task: Task) {
         }
 
         private fun releaseDaemonSessions(rootProject: Project) {
-            val shutdownAfterBuild = PropertiesProvider(rootProject).shutdownDaemonAfterBuild
+            val properties = PropertiesProvider(rootProject)
+            val shutdownAfterBuild = properties.shutdownDaemonAfterBuild
+            val checkICCachesAreClosed = properties.checkICCachesAreClosed
             val log = rootProject.logger
             for ((compilerId, connection) in cachedConnections) {
                 try {
                     cachedConnections.remove(compilerId)
                     connection.compileService.releaseCompileSession(connection.sessionId)
+                    if (checkICCachesAreClosed) {
+                        connection.compileService.checkICCaches().getIfGood()?.let { nonClosedCaches->
+                            if (nonClosedCaches.isNotEmpty()) {
+                                log.warn("Some Kotlin incremental compilation caches were not closed:\n" +
+                                                 nonClosedCaches.joinToString(separator = "\n") { "  " + it })
+                            }
+                        }
+                    }
                     if (shutdownAfterBuild) {
                         connection.compileService.scheduleShutdown(graceful = true)
                     }

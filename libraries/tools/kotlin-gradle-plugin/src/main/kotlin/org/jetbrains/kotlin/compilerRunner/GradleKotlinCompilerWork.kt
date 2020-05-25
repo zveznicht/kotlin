@@ -56,7 +56,8 @@ internal class GradleKotlinCompilerWorkArguments(
     val outputFiles: List<File>,
     val taskPath: String,
     val buildReportMode: BuildReportMode?,
-    val kotlinScriptExtensions: Array<String>
+    val kotlinScriptExtensions: Array<String>,
+    val checkICCachesAreClosed: Boolean
 ) : Serializable {
     companion object {
         const val serialVersionUID: Long = 0
@@ -95,6 +96,7 @@ internal class GradleKotlinCompilerWork @Inject constructor(
     private val taskPath = config.taskPath
     private val buildReportMode = config.buildReportMode
     private val kotlinScriptExtensions = config.kotlinScriptExtensions
+    private val checkICCachesAreClosed = config.checkICCachesAreClosed
     private val buildReportLines = ArrayList<String>()
 
     private val log =
@@ -171,7 +173,8 @@ internal class GradleKotlinCompilerWork @Inject constructor(
                     sessionFlagFile,
                     compilerFullClasspath,
                     daemonMessageCollector,
-                    isDebugEnabled = isDebugEnabled
+                    isDebugEnabled = isDebugEnabled,
+                    checkICCachesAreClosed = checkICCachesAreClosed
                 )
             } catch (e: Exception) {
                 log.error("Caught an exception trying to connect to Kotlin Daemon:")

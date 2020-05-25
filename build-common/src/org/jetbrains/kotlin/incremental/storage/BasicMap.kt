@@ -22,6 +22,7 @@ import com.intellij.util.io.KeyDescriptor
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.utils.Printer
 import java.io.File
+import java.util.*
 
 abstract class BasicMap<K : Comparable<K>, V>(
         internal val storageFile: File,
@@ -37,6 +38,8 @@ abstract class BasicMap<K : Comparable<K>, V>(
         } else {
             CachingLazyStorage(storageFile, keyDescriptor, valueExternalizer)
         }
+
+        markOpen(this)
     }
 
     fun clean() {
@@ -49,6 +52,47 @@ abstract class BasicMap<K : Comparable<K>, V>(
 
     fun close() {
         storage.close()
+        markClosed(this)
+    }
+
+    private fun closeSilent() {
+        storage.close()
+    }
+
+    companion object {
+        private val shouldTrace = System.getProperty("kotlin.checkICCachesAreClosed")?.toBoolean() ?: false
+        private val openMaps = if (shouldTrace) Collections.newSetFromMap(IdentityHashMap<BasicMap<*, *>, Boolean>()) else emptySet()
+
+        @Synchronized
+        private fun markOpen(m: BasicMap<*, *>) {
+            if (shouldTrace) {
+                openMaps.add(m)
+            }
+        }
+
+        @Synchronized
+        private fun markClosed(m: BasicMap<*, *>) {
+            if (shouldTrace) {
+                openMaps.remove(m)
+            }
+        }
+
+        @Synchronized
+        fun listAndCloseOpenedCaches(): List<String> {
+            if (!shouldTrace) return emptyList()
+
+            val result = openMaps.map {
+                try {
+                    it.closeSilent()
+                } catch (e: Exception) {
+                    // ignore
+                }
+
+                "${it.javaClass.name} at ${it.storageFile}"
+            }
+            openMaps.clear()
+            return result
+        }
     }
 
     @TestOnly

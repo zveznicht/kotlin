@@ -51,6 +51,7 @@ import org.jetbrains.kotlin.incremental.multiproject.ModulesApiHistoryAndroid
 import org.jetbrains.kotlin.incremental.multiproject.ModulesApiHistoryJs
 import org.jetbrains.kotlin.incremental.multiproject.ModulesApiHistoryJvm
 import org.jetbrains.kotlin.incremental.parsing.classesFqNames
+import org.jetbrains.kotlin.incremental.storage.BasicMap
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompilationComponents
 import org.jetbrains.kotlin.modules.Module
 import org.jetbrains.kotlin.progress.CompilationCanceledStatus
@@ -1195,6 +1196,11 @@ class CompileServiceImpl(
         ZipHandler.clearFileAccessorCache()
         (KotlinCoreEnvironment.applicationEnvironment?.jarFileSystem as? CoreJarFileSystem)?.clearHandlersCache()
     }
+
+    override fun checkICCaches(): CompileService.CallResult<List<String>> =
+        ifAlive {
+            CompileService.CallResult.Good(BasicMap.listAndCloseOpenedCaches())
+        }
 
     private inline fun <R> ifAlive(
         minAliveness: Aliveness = Aliveness.LastSession,

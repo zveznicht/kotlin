@@ -149,6 +149,9 @@ interface CompileService : Remote {
     @Throws(RemoteException::class)
     fun clearJarCache()
 
+    @Throws(RemoteException::class)
+    fun checkICCaches(): CallResult<List<String>>
+
     @Deprecated("The usages should be replaced with other `leaseReplSession` method", ReplaceWith("leaseReplSession"))
     @Throws(RemoteException::class)
     fun leaseReplSession(
