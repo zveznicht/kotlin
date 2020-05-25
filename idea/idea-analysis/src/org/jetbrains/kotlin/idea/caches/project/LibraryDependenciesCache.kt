@@ -19,6 +19,7 @@ import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.MultiMap
 import org.jetbrains.kotlin.idea.core.util.CachedValue
 import org.jetbrains.kotlin.idea.core.util.getValue
+import org.jetbrains.kotlin.idea.project.isSubplatformOf
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.isCommon
 import java.util.*
@@ -75,7 +76,7 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
                     if (otherLibrary is LibraryEx && !otherLibrary.isDisposed) {
                         val otherLibraryInfos = createLibraryInfo(project, otherLibrary)
                         otherLibraryInfos.firstOrNull()?.platform?.let { otherLibraryPlatform ->
-                            if (compatiblePlatforms(platform, otherLibraryPlatform)) {
+                            if (platform.isSubplatformOf(otherLibraryPlatform, project)) {
                                 libraries.addAll(otherLibraryInfos)
                             }
                         }
@@ -91,14 +92,7 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
 
         return Pair(libraries.toList(), sdks.toList())
     }
-
-    /**
-     * @return true if it's OK to add a dependency from a library with platform [from] to a library with platform [to]
-     */
-    private fun compatiblePlatforms(from: TargetPlatform, to: TargetPlatform): Boolean {
-        return from === to || to.containsAll(from) || to.isCommon()
-    }
-
+    
     private fun getLibraryUsageIndex(): LibraryUsageIndex {
         return CachedValuesManager.getManager(project).getCachedValue(project) {
             CachedValueProvider.Result(LibraryUsageIndex(), ProjectRootModificationTracker.getInstance(project))

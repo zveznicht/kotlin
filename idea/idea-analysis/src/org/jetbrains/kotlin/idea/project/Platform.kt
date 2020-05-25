@@ -43,7 +43,12 @@ import org.jetbrains.kotlin.idea.facet.getLibraryLanguageLevel
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.*
 import org.jetbrains.kotlin.platform.impl.isCommon
+import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
+import org.jetbrains.kotlin.platform.jvm.isJvm
+import org.jetbrains.kotlin.platform.konan.NativePlatform
+import org.jetbrains.kotlin.platform.konan.NativePlatforms
+import org.jetbrains.kotlin.platform.konan.isNative
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.UserDataProperty
@@ -57,6 +62,23 @@ val KtElement.builtIns: KotlinBuiltIns
     get() = getResolutionFacade().moduleDescriptor.builtIns
 
 var KtFile.forcedTargetPlatform: TargetPlatform? by UserDataProperty(Key.create("FORCED_TARGET_PLATFORM"))
+
+// TODO(dsavvinov): write some specification of this relation
+fun TargetPlatform.isSubplatformOf(other: TargetPlatform, project: Project): Boolean {
+    if (project.useCompositeAnalysis) {
+        val platformsWhichAreNotContainedInOther = this.componentPlatforms - other.componentPlatforms
+        if (platformsWhichAreNotContainedInOther.isEmpty()) return true
+
+        // unspecifiedNativePlatform is effectively a wildcard for NativePlatform
+        return platformsWhichAreNotContainedInOther.all { it is NativePlatform } &&
+                NativePlatforms.unspecifiedNativePlatform.componentPlatforms.single() in other.componentPlatforms
+    } else {
+        return this.isJvm() && other.isJvm() ||
+                this.isJs() && other.isJs() ||
+                this.isNative() && other.isNative() ||
+                this.isCommon() && other.isCommon()
+    }
+}
 
 fun Module.getAndCacheLanguageLevelByDependencies(): LanguageVersion {
     val facetSettings = KotlinFacetSettingsProvider.getInstance(project)?.getInitializedSettings(this)

@@ -40,10 +40,7 @@ import org.jetbrains.kotlin.idea.configuration.getBuildSystemType
 import org.jetbrains.kotlin.idea.core.isInTestSourceContentKotlinAware
 import org.jetbrains.kotlin.idea.framework.effectiveKind
 import org.jetbrains.kotlin.idea.framework.platform
-import org.jetbrains.kotlin.idea.project.TargetPlatformDetector
-import org.jetbrains.kotlin.idea.project.findAnalyzerServices
-import org.jetbrains.kotlin.idea.project.getStableName
-import org.jetbrains.kotlin.idea.project.isHMPPEnabled
+import org.jetbrains.kotlin.idea.project.*
 import org.jetbrains.kotlin.idea.stubindex.KotlinSourceFilterScope
 import org.jetbrains.kotlin.idea.util.isInSourceContentWithoutInjected
 import org.jetbrains.kotlin.idea.util.rootManager
@@ -152,23 +149,7 @@ private fun ideaModelDependencies(
         }
         true
     }
-    return result.filterNot { it is LibraryInfo && !platform.canDependOn(it.platform, module.isHMPPEnabled) }
-}
-
-private fun TargetPlatform.canDependOn(other: TargetPlatform, isHmppEnabled: Boolean): Boolean {
-    if (isHmppEnabled) {
-        val platformsWhichAreNotContainedInOther = this.componentPlatforms - other.componentPlatforms
-        if (platformsWhichAreNotContainedInOther.isEmpty()) return true
-
-        // unspecifiedNativePlatform is effectively a wildcard for NativePlatform
-        return platformsWhichAreNotContainedInOther.all { it is NativePlatform } &&
-                NativePlatforms.unspecifiedNativePlatform.componentPlatforms.single() in other.componentPlatforms
-    } else {
-        return this.isJvm() && other.isJvm() ||
-                this.isJs() && other.isJs() ||
-                this.isNative() && other.isNative() ||
-                this.isCommon() && other.isCommon()
-    }
+    return result.filterNot { it is LibraryInfo && !platform.isSubplatformOf(it.platform, module.project) }
 }
 
 interface ModuleSourceInfo : IdeaModuleInfo, TrackableModuleInfo {
