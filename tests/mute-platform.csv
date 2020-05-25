@@ -16,7 +16,7 @@ org.jetbrains.kotlin.idea.codeInsight.surroundWith.SurroundWithTestGenerated.If.
 org.jetbrains.kotlin.idea.codeInsight.surroundWith.SurroundWithTestGenerated.If.MoveDeclarationsOut.Order.testValAndClass,,, FLAKY
 org.jetbrains.kotlin.idea.codeInsight.surroundWith.SurroundWithTestGenerated.If.MoveDeclarationsOut.Order.testValOrder,,, FLAKY
 org.jetbrains.kotlin.idea.codeInsight.surroundWith.SurroundWithTestGenerated.If.MoveDeclarationsOut.Val.testValWithTypeWoInitializer,,, FLAKY
-org.jetbrains.kotlin.idea.codeInsight.surroundWith.SurroundWithTestGenerated.If.MoveDeclarationsOut.Var.testVarWithTypeWoInitializer, Unprocessed,,
+org.jetbrains.kotlin.idea.codeInsight.surroundWith.SurroundWithTestGenerated.If.MoveDeclarationsOut.Var.testVarWithTypeWoInitializer, Unprocessed,, FLAKY
 org.jetbrains.kotlin.idea.completion.test.JvmBasicCompletionTestGenerated.Common.StaticMembers.testJavaStaticMethodsFromImports, KT-32919,,
 org.jetbrains.kotlin.idea.completion.test.JvmBasicCompletionTestGenerated.Java.BoldOrGrayed.testNonPredictableSmartCast1, KT-32919,,
 org.jetbrains.kotlin.idea.completion.test.JvmBasicCompletionTestGenerated.Java.BoldOrGrayed.testNonPredictableSmartCast2, KT-32919,,
@@ -121,3 +121,4 @@ org.jetbrains.kotlin.idea.resolve.ReferenceResolveInLibrarySourcesTestGenerated.
 org.jetbrains.kotlin.idea.resolve.ReferenceResolveInLibrarySourcesTestGenerated.testToLocalFun, KT-34542, FAIL,
 org.jetbrains.uast.test.kotlin.KotlinUastReferencesTest.`test original getter is visible when reference is under renaming`, Extensions API changed,,
 org.jetbrains.kotlin.idea.refactoring.introduce.ExtractionTestGenerated.IntroduceJavaParameter.testJavaMethodOverridingKotlinFunctionWithUsages, Unprocessed,, FLAKY
+org.jetbrains.kotlin.idea.refactoring.move.MoveTestGenerated.testKotlin_moveTopLevelDeclarations_moveFunctionToPackage_MoveFunctionToPackage, fail on TeamCity but works well locally,, FLAKY
