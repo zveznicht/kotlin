@@ -18,7 +18,6 @@ import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.tree.*
 import org.jetbrains.org.objectweb.asm.tree.analysis.BasicInterpreter
 import org.jetbrains.org.objectweb.asm.tree.analysis.BasicValue
-import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
 
 private class PossibleSpilledValue(val source: AbstractInsnNode, type: Type?) : BasicValue(type) {
     val usages = mutableSetOf<AbstractInsnNode>()
@@ -142,7 +141,7 @@ internal class RedundantLocalsEliminationMethodTransformer(private val suspensio
 }
 
 // Handy debugging routing
-fun MethodNode.nodeTextWithFrames(frames: Array<Frame<BasicValue>?>): String {
+fun MethodNode.nodeTextWithFrames(frames: Array<*>): String {
     var insns = nodeText.split("\n")
     val first = insns.indexOfLast { it.trim().startsWith("@") } + 1
     var last = insns.indexOfFirst { it.trim().startsWith("LOCALVARIABLE") }
@@ -172,5 +171,7 @@ fun MethodNode.nodeTextWithFrames(frames: Array<Frame<BasicValue>?>): String {
         }
         insns = res
     }
-    return prefix + "\n" + insns.withIndex().joinToString(separator = "\n") { (index, insn) -> "${frames[index]}\t$insn" } + "\n" + postfix
+    return prefix + "\n" + insns.withIndex().joinToString(separator = "\n") { (index, insn) ->
+        if (index >= frames.size) "N/A\t$insn" else "${frames[index]}\t$insn"
+    } + "\n" + postfix
 }

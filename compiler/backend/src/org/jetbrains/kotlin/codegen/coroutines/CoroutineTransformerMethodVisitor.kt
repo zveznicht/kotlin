@@ -641,11 +641,11 @@ class CoroutineTransformerMethodVisitor(
                     .map { Pair(it, frame.getLocal(it)) }
                     .filter { (index, value) ->
                         (index == 0 && needDispatchReceiver && isForNamedFunction) ||
-                                (value != StrictBasicValue.UNINITIALIZED_VALUE && livenessFrame.isAlive(index))
+                                (value.type != null && livenessFrame.isAlive(index))
                     }
 
             for ((index, basicValue) in variablesToSpill) {
-                if (basicValue === StrictBasicValue.NULL_VALUE) {
+                if (basicValue.type == NULL_TYPE) {
                     postponedActions.add {
                         with(instructions) {
                             insert(suspension.tryCatchBlockEndLabelAfterSuspensionCall, withInstructionAdapter {
@@ -657,7 +657,7 @@ class CoroutineTransformerMethodVisitor(
                     continue
                 }
 
-                val type = basicValue.type
+                val type = basicValue.type!!
                 val normalizedType = type.normalize()
 
                 val indexBySort = varsCountByType[normalizedType]?.plus(1) ?: 0
