@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.library.SerializedMetadata
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.serialization.DescriptorSerializer
@@ -24,9 +23,8 @@ import org.jetbrains.kotlin.serialization.DescriptorSerializer
 class KlibMetadataIncrementalSerializer(
     languageVersionSettings: LanguageVersionSettings,
     metadataVersion: BinaryVersion,
-    bindingContext: BindingContext?,
     skipExpects: Boolean
-) : KlibMetadataSerializer(languageVersionSettings, metadataVersion, bindingContext, skipExpects) {
+) : KlibMetadataSerializer(languageVersionSettings, metadataVersion, skipExpects) {
 
     fun serializePackageFragment(
         module: ModuleDescriptor,

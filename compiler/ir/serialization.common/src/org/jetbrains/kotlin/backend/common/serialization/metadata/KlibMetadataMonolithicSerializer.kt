@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.library.metadata.KlibMetadataProtoBuf
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.getDescriptorsFiltered
@@ -22,10 +21,9 @@ import org.jetbrains.kotlin.serialization.DescriptorSerializer
 class KlibMetadataMonolithicSerializer(
     languageVersionSettings: LanguageVersionSettings,
     metadataVersion: BinaryVersion,
-    bindingContext: BindingContext?,
     skipExpects: Boolean,
     includeOnlyModuleContent: Boolean = false
-) : KlibMetadataSerializer(languageVersionSettings, metadataVersion, bindingContext, skipExpects, includeOnlyModuleContent) {
+) : KlibMetadataSerializer(languageVersionSettings, metadataVersion, skipExpects, includeOnlyModuleContent) {
 
     private fun serializePackageFragment(fqName: FqName, module: ModuleDescriptor): List<ProtoBuf.PackageFragment> {
 

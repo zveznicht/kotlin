@@ -22,14 +22,17 @@ import org.jetbrains.kotlin.metadata.serialization.MutableTypeTable
 import org.jetbrains.kotlin.metadata.serialization.MutableVersionRequirementTable
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.*
+import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.DescriptorUtils.isEnumEntry
+import org.jetbrains.kotlin.resolve.MemberComparator
+import org.jetbrains.kotlin.resolve.RequireKotlinConstants
 import org.jetbrains.kotlin.resolve.calls.components.isActualParameterWithAnyExpectedDefault
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.constants.IntValue
 import org.jetbrains.kotlin.resolve.constants.NullValue
 import org.jetbrains.kotlin.resolve.constants.StringValue
 import org.jetbrains.kotlin.resolve.descriptorUtil.nonSourceAnnotations
+import org.jetbrains.kotlin.resolve.isInlineClassType
 import org.jetbrains.kotlin.serialization.deserialization.ProtoEnumFlags
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.typeUtil.contains
@@ -58,7 +61,7 @@ class DescriptorSerializer private constructor(
 
     private fun useTypeTable(): Boolean = extension.shouldUseTypeTable()
 
-    fun classProto(classDescriptor: ClassDescriptor, bindingContext: BindingContext?): ProtoBuf.Class.Builder {
+    fun classProto(classDescriptor: ClassDescriptor): ProtoBuf.Class.Builder {
         val builder = ProtoBuf.Class.newBuilder()
 
         val flags = Flags.getClassFlags(
@@ -150,7 +153,7 @@ class DescriptorSerializer private constructor(
 
         extension.serializeClass(classDescriptor, builder, versionRequirementTable, this)
 
-        plugins.forEach { it.afterClass(classDescriptor, builder, versionRequirementTable, this, bindingContext, extension) }
+        plugins.forEach { it.afterClass(classDescriptor, builder, versionRequirementTable, this, extension) }
 
         writeVersionRequirementForInlineClasses(classDescriptor, builder, versionRequirementTable)
 
@@ -844,5 +847,3 @@ class DescriptorSerializer private constructor(
         }
     }
 }
-
-public var THE_PLUGIN: DescriptorSerializerPlugin? = null

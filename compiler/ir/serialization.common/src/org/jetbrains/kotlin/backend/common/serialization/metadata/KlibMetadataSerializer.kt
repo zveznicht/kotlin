@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.BinaryVersion
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.serialization.DescriptorSerializer
@@ -32,9 +31,8 @@ internal fun <T, R> Iterable<T>.maybeChunked(size: Int?, transform: (List<T>) ->
 abstract class KlibMetadataSerializer(
     val languageVersionSettings: LanguageVersionSettings,
     val metadataVersion: BinaryVersion,
-    private val bindingContext: BindingContext?,
     val skipExpects: Boolean = false,
-    val includeOnlyModuleContent: Boolean = false,
+    val includeOnlyModuleContent: Boolean = false
 ) {
 
     lateinit var serializerContext: SerializerContext
@@ -94,9 +92,7 @@ abstract class KlibMetadataSerializer(
             val previousSerializer = classSerializer
 
             classSerializer = DescriptorSerializer.create(classDescriptor, serializerExtension, classSerializer)
-            // todo: binding context for serialization
-            val classProto =
-                classSerializer.classProto(classDescriptor, bindingContext).build() ?: error("Class not serialized: $classDescriptor")
+            val classProto = classSerializer.classProto(classDescriptor).build() ?: error("Class not serialized: $classDescriptor")
             //builder.addClass(classProto)
 
             val index = classSerializer.stringTable.getFqNameIndex(classDescriptor)

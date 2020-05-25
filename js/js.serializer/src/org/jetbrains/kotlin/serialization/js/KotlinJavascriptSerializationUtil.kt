@@ -186,7 +186,7 @@ object KotlinJavascriptSerializationUtil {
 
                 val serializer = DescriptorSerializer.create(descriptor, extension, parentSerializer)
                 serializeClasses(descriptor.unsubstitutedInnerClassesScope.getContributedDescriptors(), serializer)
-                val classProto = serializer.classProto(descriptor, bindingContext).build() ?: error("Class not serialized: $descriptor")
+                val classProto = serializer.classProto(descriptor).build() ?: error("Class not serialized: $descriptor")
                 builder.addClass_(classProto)
             }
         }

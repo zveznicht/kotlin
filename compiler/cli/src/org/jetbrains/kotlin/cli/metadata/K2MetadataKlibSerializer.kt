@@ -36,7 +36,6 @@ import org.jetbrains.kotlin.metadata.builtins.BuiltInsBinaryVersion
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.CommonPlatforms
 import org.jetbrains.kotlin.platform.TargetPlatform
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.CompilerDeserializationConfiguration
 import org.jetbrains.kotlin.resolve.PlatformDependentAnalyzerServices
 import org.jetbrains.kotlin.serialization.konan.impl.KlibMetadataModuleDescriptorFactoryImpl
@@ -58,22 +57,20 @@ internal class K2MetadataKlibSerializer(private val metadataVersion: BuiltInsBin
 
         if (analyzer == null || analyzer.hasErrors()) return
 
-        val (bindingContext, moduleDescriptor) = analyzer.analysisResult
+        val (_, moduleDescriptor) = analyzer.analysisResult
 
         val destDir = checkNotNull(environment.destDir)
-        performSerialization(configuration, moduleDescriptor, bindingContext, destDir)
+        performSerialization(configuration, moduleDescriptor, destDir)
     }
 
     private fun performSerialization(
         configuration: CompilerConfiguration,
         module: ModuleDescriptor,
-        bindingContext: BindingContext,
         destDir: File
     ) {
         val serializedMetadata: SerializedMetadata = KlibMetadataMonolithicSerializer(
             configuration.languageVersionSettings,
             metadataVersion,
-            bindingContext,
             skipExpects = false,
             includeOnlyModuleContent = true
         ).serializeModule(module)

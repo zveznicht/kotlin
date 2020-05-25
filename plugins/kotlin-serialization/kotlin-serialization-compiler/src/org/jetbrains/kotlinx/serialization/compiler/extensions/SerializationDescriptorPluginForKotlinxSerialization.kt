@@ -10,32 +10,39 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.serialization.MutableVersionRequirementTable
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.serialization.DescriptorSerializer
 import org.jetbrains.kotlin.serialization.DescriptorSerializerPlugin
 import org.jetbrains.kotlin.serialization.SerializerExtension
+import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializableProperties
 import org.jetbrains.kotlinx.serialization.compiler.resolve.isInternalSerializable
-import org.jetbrains.kotlinx.serialization.compiler.resolve.serializablePropertiesFor
 
 class SerializationDescriptorPluginForKotlinxSerialization : DescriptorSerializerPlugin {
+    private val descriptorMetadataMap: MutableMap<ClassDescriptor, SerializableProperties> = hashMapOf()
+
+    private val ClassDescriptor.needSaveProgramOrder: Boolean
+        get() = isInternalSerializable && (modality == Modality.OPEN || modality == Modality.ABSTRACT)
+
+    internal fun putIfNeeded(descriptor: ClassDescriptor, properties: SerializableProperties) {
+        if (!descriptor.needSaveProgramOrder) return
+        descriptorMetadataMap[descriptor] = properties
+    }
+
     override fun afterClass(
         descriptor: ClassDescriptor,
         proto: ProtoBuf.Class.Builder,
         versionRequirementTable: MutableVersionRequirementTable,
         childSerializer: DescriptorSerializer,
-        bindingContext: BindingContext?,
         extension: SerializerExtension
     ) {
         fun Name.toIndex() = extension.stringTable.getStringIndex(asString())
 
-        val isApplicable =
-            descriptor.isInternalSerializable && (descriptor.modality == Modality.OPEN || descriptor.modality == Modality.ABSTRACT)
-        if (!isApplicable) return
+        if (!descriptor.needSaveProgramOrder) return
 
-        val propertiesCorrectOrder = bindingContext?.serializablePropertiesFor(descriptor)?.serializableProperties.orEmpty()
+        val propertiesCorrectOrder = (descriptorMetadataMap[descriptor] ?: return).serializableProperties
         proto.setExtension(
             SerializationPluginMetadataExtensions.propertiesNamesInProgramOrder,
             propertiesCorrectOrder.map { it.descriptor.name.toIndex() }
         )
+        descriptorMetadataMap.remove(descriptor)
     }
 }

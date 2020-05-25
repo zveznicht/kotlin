@@ -459,7 +459,7 @@ fun serializeModuleIntoKlib(
         ).serializedIrModule(moduleFragment)
 
     val moduleDescriptor = moduleFragment.descriptor
-    val metadataSerializer = KlibMetadataIncrementalSerializer(configuration, bindingContext)
+    val metadataSerializer = KlibMetadataIncrementalSerializer(configuration)
 
     val incrementalResultsConsumer = configuration.get(JSConfigurationKeys.INCREMENTAL_RESULTS_CONSUMER)
     val empty = ByteArray(0)
@@ -546,7 +546,7 @@ private fun compareMetadataAndGoToNextICRoundIfNeeded(
 ) {
     val nextRoundChecker = config.get(JSConfigurationKeys.INCREMENTAL_NEXT_ROUND_CHECKER) ?: return
     val bindingContext = analysisResult.bindingContext
-    val serializer = KlibMetadataIncrementalSerializer(config, bindingContext)
+    val serializer = KlibMetadataIncrementalSerializer(config)
     for (ktFile in files) {
         val packageFragment = serializer.serializeScope(ktFile, bindingContext, analysisResult.moduleDescriptor)
         // to minimize a number of IC rounds, we should inspect all proto for changes first,
@@ -557,12 +557,8 @@ private fun compareMetadataAndGoToNextICRoundIfNeeded(
     if (nextRoundChecker.shouldGoToNextRound()) throw IncrementalNextRoundException()
 }
 
-private fun KlibMetadataIncrementalSerializer(
-    configuration: CompilerConfiguration,
-    bindingContext: BindingContext
-) = KlibMetadataIncrementalSerializer(
+private fun KlibMetadataIncrementalSerializer(configuration: CompilerConfiguration) = KlibMetadataIncrementalSerializer(
     languageVersionSettings = configuration.languageVersionSettings,
     metadataVersion = configuration.metadataVersion,
-    bindingContext = bindingContext,
     skipExpects = !configuration.expectActualLinker
 )

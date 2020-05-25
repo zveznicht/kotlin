@@ -83,14 +83,14 @@ open class MetadataSerializer(
                         val classDescriptor = bindingContext.get(BindingContext.CLASS, classOrObject)
                             ?: error("No descriptor found for class ${classOrObject.fqName}")
                         val destFile = File(destDir, getClassFilePath(ClassId(packageFqName, classDescriptor.name)))
-                        PackageSerializer(listOf(classDescriptor), emptyList(), packageFqName, destFile, bindingContext).run()
+                        PackageSerializer(listOf(classDescriptor), emptyList(), packageFqName, destFile).run()
                     }
                 })
             }
 
             if (members.isNotEmpty()) {
                 val destFile = File(destDir, getPackageFilePath(packageFqName, file.name))
-                PackageSerializer(emptyList(), members, packageFqName, destFile, bindingContext).run()
+                PackageSerializer(emptyList(), members, packageFqName, destFile).run()
 
                 packageTable.getOrPut(packageFqName) {
                     PackageParts(packageFqName.asString())
@@ -123,8 +123,7 @@ open class MetadataSerializer(
         private val classes: Collection<DeclarationDescriptor>,
         private val members: Collection<DeclarationDescriptor>,
         private val packageFqName: FqName,
-        private val destFile: File,
-        private val bindingContext: BindingContext?
+        private val destFile: File
     ) {
         private val proto = ProtoBuf.PackageFragment.newBuilder()
         private val extension = createSerializerExtension()
@@ -147,7 +146,7 @@ open class MetadataSerializer(
                     serializer
                 )
 
-                proto.addClass_(serializer.classProto(descriptor, bindingContext).build())
+                proto.addClass_(serializer.classProto(descriptor).build())
             }
         }
 

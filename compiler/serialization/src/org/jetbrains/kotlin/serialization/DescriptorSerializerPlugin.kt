@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.serialization
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.serialization.MutableVersionRequirementTable
-import org.jetbrains.kotlin.resolve.BindingContext
 
 interface DescriptorSerializerPlugin {
     fun afterClass(
@@ -16,7 +15,6 @@ interface DescriptorSerializerPlugin {
         proto: ProtoBuf.Class.Builder,
         versionRequirementTable: MutableVersionRequirementTable,
         childSerializer: DescriptorSerializer,
-        bindingContext: BindingContext?,
         extension: SerializerExtension
     ) {
     }

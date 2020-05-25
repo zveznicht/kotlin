@@ -89,8 +89,7 @@ class BuiltInsSerializer(dependOnOldBuiltIns: Boolean) : MetadataSerializer(Buil
                 packageView.memberScope.getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS) + createCloneable(module),
                 packageView.fragments.flatMap { fragment -> DescriptorUtils.getAllDescriptors(fragment.getMemberScope()) },
                 packageView.fqName,
-                File(destDir, BuiltInSerializerProtocol.getBuiltInsFilePath(packageView.fqName)),
-                bindingContext
+                File(destDir, BuiltInSerializerProtocol.getBuiltInsFilePath(packageView.fqName))
             ).run()
         }
     }

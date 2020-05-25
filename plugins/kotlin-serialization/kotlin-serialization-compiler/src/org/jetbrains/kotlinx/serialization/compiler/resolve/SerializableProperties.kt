@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.serialization.deserialization.descriptors.Deserializ
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedPropertyDescriptor
 import org.jetbrains.kotlin.serialization.deserialization.getName
 import org.jetbrains.kotlinx.serialization.compiler.diagnostic.SERIALIZABLE_PROPERTIES
+import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationComponentRegistrar
 import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationPluginMetadataExtensions
 
 class SerializableProperties(private val serializableClass: ClassDescriptor, val bindingContext: BindingContext) {
@@ -87,8 +88,11 @@ class SerializableProperties(private val serializableClass: ClassDescriptor, val
 internal fun List<SerializableProperty>.bitMaskSlotCount() = size / 32 + 1
 internal fun bitMaskSlotAt(propertyIndex: Int) = propertyIndex / 32
 
-internal fun BindingContext.serializablePropertiesFor(classDescriptor: ClassDescriptor): SerializableProperties =
-    this.get(SERIALIZABLE_PROPERTIES, classDescriptor) ?: SerializableProperties(classDescriptor, this)
+internal fun BindingContext.serializablePropertiesFor(classDescriptor: ClassDescriptor): SerializableProperties {
+    val props = this.get(SERIALIZABLE_PROPERTIES, classDescriptor) ?: SerializableProperties(classDescriptor, this)
+    SerializationComponentRegistrar.serializationDescriptorSerializer.putIfNeeded(classDescriptor, props)
+    return props
+}
 
 private fun unsort(descriptor: ClassDescriptor, props: List<SerializableProperty>): List<SerializableProperty> {
     if (descriptor !is DeserializedClassDescriptor) return props

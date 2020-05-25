@@ -42,7 +42,7 @@ class SerializationComponentRegistrar : ComponentRegistrar {
             registerProtoExtensions()
         }
 
-        private val serializationDescriptorSerializer = SerializationDescriptorPluginForKotlinxSerialization()
+        internal val serializationDescriptorSerializer = SerializationDescriptorPluginForKotlinxSerialization()
 
         private fun registerProtoExtensions() {
             DescriptorSerializer.registerSerializerPlugin(serializationDescriptorSerializer)

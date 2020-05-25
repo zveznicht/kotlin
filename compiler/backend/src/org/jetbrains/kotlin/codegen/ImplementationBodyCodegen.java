@@ -292,7 +292,7 @@ public class ImplementationBodyCodegen extends ClassBodyCodegen {
 
     @Override
     protected void generateKotlinMetadataAnnotation() {
-        ProtoBuf.Class classProto = serializer.classProto(descriptor, bindingContext).build();
+        ProtoBuf.Class classProto = serializer.classProto(descriptor).build();
 
         WriteAnnotationUtilKt.writeKotlinMetadata(v, state, KotlinClassHeader.Kind.CLASS, 0, av -> {
             writeAnnotationData(av, serializer, classProto);
