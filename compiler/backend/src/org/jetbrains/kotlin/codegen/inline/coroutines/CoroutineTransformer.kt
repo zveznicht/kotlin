@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.codegen.inline.coroutines
 
 import com.intellij.util.ArrayUtil
+import jdk.internal.org.objectweb.asm.Type
 import org.jetbrains.kotlin.codegen.ClassBuilder
 import org.jetbrains.kotlin.codegen.coroutines.*
 import org.jetbrains.kotlin.codegen.inline.*
@@ -22,6 +23,7 @@ import org.jetbrains.org.objectweb.asm.tree.*
 import org.jetbrains.org.objectweb.asm.tree.analysis.BasicInterpreter
 import org.jetbrains.org.objectweb.asm.tree.analysis.BasicValue
 import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
+import java.io.File
 
 const val FOR_INLINE_SUFFIX = "\$\$forInline"
 
@@ -260,7 +262,7 @@ private class CapturedLambdaInterpreter : BasicInterpreter(Opcodes.API_VERSION) 
 
     private fun AbstractInsnNode.fieldLoad(): LambdaLoad? {
         if (this !is FieldInsnNode) return null
-        if (desc.startsWith("Lkotlin/jvm/functions/Function")) {
+        if (desc.startsWith('L') && Type.getType(desc).internalName.isNumberedFunctionInternalName()) {
             if ((opcode == Opcodes.GETSTATIC && name.startsWith("$$$$")) ||
                 (opcode == Opcodes.GETFIELD && name.startsWith("$"))
             ) return LambdaLoad(this)
