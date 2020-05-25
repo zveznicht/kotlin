@@ -22,7 +22,7 @@ import org.junit.Assume
 
 sealed class GradleVersionRequired(val minVersion: String, val maxVersion: String?) {
     companion object {
-        const val OLDEST_SUPPORTED = "5.4"
+        const val OLDEST_SUPPORTED = "5.3"
 
         val FOR_MPP_SUPPORT = AtLeast("6.0")
     }
