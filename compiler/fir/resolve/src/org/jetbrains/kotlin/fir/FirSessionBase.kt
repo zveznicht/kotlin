@@ -8,6 +8,8 @@ package org.jetbrains.kotlin.fir
 import org.jetbrains.kotlin.fir.extensions.FirExtensionService
 import org.jetbrains.kotlin.fir.extensions.FirPredicateBasedProvider
 import org.jetbrains.kotlin.fir.extensions.FirRegisteredPluginAnnotations
+import org.jetbrains.kotlin.fir.resolve.provider.impl.FirGeneratedSymbolProvider
+import org.jetbrains.kotlin.fir.scopes.FirGeneratedScopeProvider
 import org.jetbrains.kotlin.fir.scopes.impl.FirDeclaredMemberScopeProvider
 import org.jetbrains.kotlin.fir.types.FirCorrespondingSupertypesCache
 
@@ -19,5 +21,7 @@ abstract class FirSessionBase(sessionProvider: FirSessionProvider?) : FirSession
         registerComponent(FirExtensionService::class, FirExtensionService(this))
         registerComponent(FirRegisteredPluginAnnotations::class, FirRegisteredPluginAnnotations.create(this))
         registerComponent(FirPredicateBasedProvider::class, FirPredicateBasedProvider.create(this))
+        registerComponent(FirGeneratedScopeProvider::class, FirGeneratedScopeProvider(this))
+        registerComponent(FirGeneratedSymbolProvider::class, FirGeneratedSymbolProvider(this))
     }
 }
