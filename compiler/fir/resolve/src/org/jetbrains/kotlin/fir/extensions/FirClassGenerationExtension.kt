@@ -5,18 +5,11 @@
 
 package org.jetbrains.kotlin.fir.extensions
 
-import org.jetbrains.kotlin.fir.FirAnnotationContainer
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.FirDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirFile
-import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.declarations.impl.FirGeneratedClass
+import org.jetbrains.kotlin.name.ClassId
 import kotlin.reflect.KClass
 
-/*
- * TODO:
- *  - add registration of new files
- *  - check that annotations or meta-annotations is not empty
- */
 abstract class FirClassGenerationExtension(session: FirSession) : FirPredicateBasedExtension(session) {
     companion object {
         val NAME = FirExtensionPointName("StatusTransformer")
@@ -27,16 +20,7 @@ abstract class FirClassGenerationExtension(session: FirSession) : FirPredicateBa
 
     final override val extensionType: KClass<out FirExtension> = FirClassGenerationExtension::class
 
-    abstract fun <T> generateClass(
-        containingFile: FirFile,
-        annotatedDeclaration: T
-    ): List<GeneratedClass> where T : FirDeclaration, T : FirAnnotationContainer
-
-    data class GeneratedClass(val klass: FirRegularClass, val container: FirDeclaration) {
-        init {
-            require(container is FirRegularClass || container is FirFile)
-        }
-    }
+    abstract fun generateClass(classId: ClassId): FirGeneratedClass?
 
     fun interface Factory : FirExtension.Factory<FirClassGenerationExtension>
 }

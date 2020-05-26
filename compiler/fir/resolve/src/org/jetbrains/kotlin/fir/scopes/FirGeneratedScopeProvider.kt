@@ -20,15 +20,18 @@ class FirGeneratedScopeProvider(val session: FirSession) : FirScopeProvider(), F
     }
 
     override fun getUseSiteMemberScope(klass: FirClass<*>, useSiteSession: FirSession, scopeSession: ScopeSession): FirScope {
-        TODO("Not yet implemented")
+        // TODO()
+        return object : FirScope() {}
     }
 
     override fun getStaticMemberScopeForCallables(klass: FirClass<*>, useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? {
-        TODO("Not yet implemented")
+        // TODO()
+        return null
     }
 
     override fun getNestedClassifierScope(klass: FirClass<*>, useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? {
-        TODO("Not yet implemented")
+        // TODO()
+        return null
     }
 }
 

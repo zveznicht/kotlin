@@ -81,7 +81,7 @@ abstract class AbstractFirDiagnosticsTest : AbstractFirBaseDiagnosticsTest() {
                 gc = false
             )
         }
-        val allFirFiles = firFilesPerSession.values.flatten()
+        val allFirFiles = firFilesPerSession.allFiles()
         checkDiagnostics(testDataFile, testFiles, allFirFiles)
         checkFir(testDataFile, allFirFiles)
 

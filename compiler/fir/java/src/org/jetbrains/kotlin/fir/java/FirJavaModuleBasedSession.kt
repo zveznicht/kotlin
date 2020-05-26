@@ -55,6 +55,7 @@ class FirJavaModuleBasedSession(
             FirCompositeSymbolProvider(
                 listOf(
                     firProvider,
+                    generatedSymbolProvider,
                     JavaSymbolProvider(this, sessionProvider.project, scope),
                     dependenciesProvider ?: FirDependenciesSymbolProviderImpl(this)
                 )
@@ -106,6 +107,7 @@ class FirLibrarySession private constructor(
                     ),
                     FirBuiltinSymbolProvider(this, kotlinScopeProvider),
                     FirClonableSymbolProvider(this, kotlinScopeProvider),
+                    generatedSymbolProvider,
                     javaSymbolProvider,
                     FirDependenciesSymbolProviderImpl(this)
                 )

@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.fir.java.FirProjectSessionProvider
 import org.jetbrains.kotlin.fir.lightTree.LightTree2Fir
 import org.jetbrains.kotlin.fir.resolve.firProvider
 import org.jetbrains.kotlin.fir.resolve.provider.impl.FirProviderImpl
+import org.jetbrains.kotlin.fir.resolve.provider.impl.generatedSymbolProvider
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.TargetPlatform
@@ -133,6 +134,14 @@ abstract class AbstractFirBaseDiagnosticsTest : BaseDiagnosticsTest() {
     }
 
     protected abstract fun runAnalysis(testDataFile: File, testFiles: List<TestFile>, firFilesPerSession: Map<FirSession, List<FirFile>>)
+
+    @OptIn(ExperimentalStdlibApi::class)
+    protected fun Map<FirSession, List<FirFile>>.allFiles(): List<FirFile> {
+        return buildList {
+            values.flatMapTo(this) { it }
+            keys.flatMapTo(this) { it.generatedSymbolProvider.getAllGeneratedFiles() }
+        }
+    }
 
     private fun createModules(
         groupedByModule: Map<TestModule?, List<TestFile>>
