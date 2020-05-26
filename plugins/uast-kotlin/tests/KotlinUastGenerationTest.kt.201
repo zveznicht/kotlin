@@ -278,15 +278,15 @@ class KotlinUastGenerationTest : KotlinLightCodeInsightFixtureTestCase() {
 
         val lambda = uastElementFactory.createLambdaExpression(listOf(UParameterInfo(null, "a")), block, dummyContextFile())
             ?: kfail("cannot create lambda")
-        TestCase.assertEquals("""{ a -> 10 }""".trimMargin(), lambda.sourcePsi?.text)
+        TestCase.assertEquals("""{ a -> "10" }""".trimMargin(), lambda.sourcePsi?.text)
         TestCase.assertEquals("""
             ULambdaExpression
                 UParameter (name = a)
-                    UAnnotation (fqName = null)
+                    UAnnotation (fqName = org.jetbrains.annotations.NotNull)
                 UBlockExpression
                     UReturnExpression
-                        ULiteralExpression (value = 10)
-            """.trimIndent(), lambda.putIntoFunctionBody().asRecursiveLogString().trim())
+                        ULiteralExpression (value = "10")
+            """.trimIndent(), lambda.putIntoVarInitializer().asRecursiveLogString().trim())
     }
 
     fun `test function argument replacement`() {

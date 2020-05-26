@@ -350,10 +350,10 @@ class KotlinUastElementFactory(project: Project) : UastElementFactory {
         val validator = (context as? KtElement)?.let { usedNamesFilter(it) } ?: { true }
 
         val newLambdaStatements = if (body is UBlockExpression) {
-            body.expressions.mapNotNull { member ->
+            body.expressions.flatMap { member ->
                 when {
-                    member is UReturnExpression -> member.returnExpression?.sourcePsi
-                    else -> member.sourcePsi
+                    member is UReturnExpression -> member.returnExpression?.toSourcePsiFakeAware().orEmpty()
+                    else -> member.toSourcePsiFakeAware()
                 }
             }
         } else
