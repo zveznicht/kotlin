@@ -401,6 +401,19 @@ public class PropertyCodegen {
         }
         modifiers |= getVisibilityForBackingField(propertyDescriptor, isDelegate);
 
+        // If val is initialized in EXACTLY_ONCE closure, other class from the same package initializes it
+        // so, its visibility should be package private and not final
+        if (!propertyDescriptor.isVar() &&
+            bindingContext.get(BindingContext.FIELD_CAPTURED_IN_EXACLY_ONCE_CLOSURE, propertyDescriptor) != null
+        ) {
+            if ((modifiers & ACC_PRIVATE) != 0) {
+                modifiers ^= ACC_PRIVATE;
+            }
+            if ((modifiers & ACC_FINAL) != 0) {
+                modifiers ^= ACC_FINAL;
+            }
+        }
+
         if (AsmUtil.isPropertyWithBackingFieldCopyInOuterClass(propertyDescriptor)) {
             ImplementationBodyCodegen parentBodyCodegen = (ImplementationBodyCodegen) memberCodegen.getParentCodegen();
             parentBodyCodegen.addCompanionObjectPropertyToCopy(propertyDescriptor, defaultValue);
