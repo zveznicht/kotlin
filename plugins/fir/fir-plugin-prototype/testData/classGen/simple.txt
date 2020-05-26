@@ -1,7 +1,16 @@
 FILE: simple.kt
-    @R|org/jetbrains/kotlin/fir/plugin/WithClass|() public final class A : R|kotlin/Any| {
+    @R|org/jetbrains/kotlin/fir/plugin/WithClass|() public final class A : R|AGen| {
         public constructor(): R|A| {
             super<R|kotlin/Any|>()
         }
 
+    }
+    public final class B : R|ERROR CLASS: Symbol not found, for `BGen`| {
+        public constructor(): R|B| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+FILE: org.jetbrains.kotlin.fir.plugin.AllOpenPluginKey@1ace572e.Generated.kt
+    public abstract interface AGen {
     }
