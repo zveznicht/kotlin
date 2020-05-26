@@ -933,7 +933,6 @@ fun main() {
             model("checker/regression")
             model("checker/recovery")
             model("checker/rendering")
-            model("checker/duplicateJvmSignature")
             model("checker/infos")
             model("checker/diagnosticsMessage")
         }
