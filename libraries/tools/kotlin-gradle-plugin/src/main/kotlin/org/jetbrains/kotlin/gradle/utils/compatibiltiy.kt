@@ -24,7 +24,7 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.util.GradleVersion
 import java.io.File
 
-const val minSupportedGradleVersion = "5.4"
+const val minSupportedGradleVersion = "5.3"
 
 internal val Task.inputsCompatible: TaskInputs get() = inputs
 
