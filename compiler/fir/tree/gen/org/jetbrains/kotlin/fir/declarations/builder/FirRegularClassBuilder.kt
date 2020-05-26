@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.fir.declarations.builder
 
 import kotlin.contracts.*
 import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.fir.FirImplementationDetail
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.builder.FirAnnotationContainerBuilder
@@ -52,6 +53,7 @@ open class FirRegularClassBuilder : FirClassBuilder, FirTypeParameterRefsOwnerBu
     open var companionObject: FirRegularClass? = null
     override val superTypeRefs: MutableList<FirTypeRef> = mutableListOf()
 
+    @OptIn(FirImplementationDetail::class)
     override fun build(): FirRegularClass {
         return FirRegularClassImpl(
             source,
