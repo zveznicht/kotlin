@@ -55,20 +55,22 @@ private class RedundantSpillingInterpreter : BasicInterpreter(Opcodes.API_VERSIO
         if (insn.opcode == Opcodes.NEW) return ConstructedValue
         val basicValue = super.newOperation(insn)
         return when {
+            // Unit instances come from inlining suspend functions returning Unit.
+            // They can be spilled before they are eventually popped.
+            // Track them.
             insn.isUnitInstance() -> PossibleSpilledValue(insn, basicValue.type).also { possibleSpilledValues += it }
             else -> basicValue.nonspillable()
         }
     }
 
     override fun copyOperation(insn: AbstractInsnNode, value: BasicValue?): BasicValue? =
-        when {
-            value is ConstructedValue -> value
-            value is PossibleSpilledValue -> {
+        when (value) {
+            is ConstructedValue -> value
+            is PossibleSpilledValue -> {
                 value.usages += insn
                 if (insn.opcode == Opcodes.ALOAD || insn.opcode == Opcodes.ASTORE) value
                 else value.nonspillable()
             }
-            insn.opcode == Opcodes.ALOAD -> PossibleSpilledValue(insn, AsmTypes.OBJECT_TYPE)
             else -> value?.nonspillable()
         }
 
@@ -95,6 +97,7 @@ internal class RedundantLocalsEliminationMethodTransformer(private val suspensio
 
         val toDelete = mutableSetOf<AbstractInsnNode>()
         for (spilledValue in interpreter.possibleSpilledValues.filter { it.usages.isNotEmpty() }) {
+            @Suppress("UNCHECKED_CAST")
             val aloads = spilledValue.usages.filter { it.opcode == Opcodes.ALOAD } as List<VarInsnNode>
 
             if (aloads.isEmpty()) continue
@@ -141,6 +144,7 @@ internal class RedundantLocalsEliminationMethodTransformer(private val suspensio
 }
 
 // Handy debugging routing
+@Suppress("unused")
 fun MethodNode.nodeTextWithFrames(frames: Array<*>): String {
     var insns = nodeText.split("\n")
     val first = insns.indexOfLast { it.trim().startsWith("@") } + 1
@@ -149,7 +153,7 @@ fun MethodNode.nodeTextWithFrames(frames: Array<*>): String {
     val prefix = insns.subList(0, first).joinToString(separator = "\n")
     val postfix = insns.subList(last, insns.size).joinToString(separator = "\n")
     insns = insns.subList(first, last)
-    if (insns.any { it.contains("TABLESWITCH")}) {
+    if (insns.any { it.contains("TABLESWITCH") }) {
         var insideTableSwitch = false
         var buffer = ""
         val res = arrayListOf<String>()
