@@ -23,7 +23,6 @@ import org.jetbrains.org.objectweb.asm.tree.*
 import org.jetbrains.org.objectweb.asm.tree.analysis.BasicInterpreter
 import org.jetbrains.org.objectweb.asm.tree.analysis.BasicValue
 import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
-import java.io.File
 
 const val FOR_INLINE_SUFFIX = "\$\$forInline"
 
@@ -191,7 +190,7 @@ fun markNoinlineLambdaIfSuspend(mv: MethodVisitor, info: FunctionalArgument?) {
     }
 }
 
-private fun Frame<BasicValue>.getSource(offset: Int): AbstractInsnNode? = (getStack(stackSize - offset - 1) as? LambdaLoad)?.insn
+private fun Frame<BasicValue>.getSource(offset: Int): AbstractInsnNode? = (getStack(stackSize - offset - 1) as? PossibleLambdaLoad)?.insn
 
 fun surroundInvokesWithSuspendMarkersIfNeeded(node: MethodNode) {
     val markers = node.instructions.asSequence().filter {
@@ -249,7 +248,7 @@ fun FieldInsnNode.isSuspendLambdaCapturedByOuterObjectOrLambda(inliningContext: 
 }
 
 // Interpreter, that keeps track of captured functional arguments
-private class LambdaLoad(val insn: AbstractInsnNode) : BasicValue(AsmTypes.OBJECT_TYPE)
+private class PossibleLambdaLoad(val insn: AbstractInsnNode) : BasicValue(AsmTypes.OBJECT_TYPE)
 
 private class CapturedLambdaInterpreter : BasicInterpreter(Opcodes.API_VERSION) {
     override fun newOperation(insn: AbstractInsnNode): BasicValue? {
@@ -260,18 +259,18 @@ private class CapturedLambdaInterpreter : BasicInterpreter(Opcodes.API_VERSION) 
         return super.newOperation(insn)
     }
 
-    private fun AbstractInsnNode.fieldLoad(): LambdaLoad? {
+    private fun AbstractInsnNode.fieldLoad(): PossibleLambdaLoad? {
         if (this !is FieldInsnNode) return null
         if (desc.startsWith('L') && Type.getType(desc).internalName.isNumberedFunctionInternalName()) {
-            if ((opcode == Opcodes.GETSTATIC && name.startsWith("$$$$")) ||
-                (opcode == Opcodes.GETFIELD && name.startsWith("$"))
-            ) return LambdaLoad(this)
+            if ((opcode == Opcodes.GETSTATIC && name.startsWith(CAPTURED_FIELD_FOLD_PREFIX + CAPTURED_FIELD_PREFIX)) ||
+                (opcode == Opcodes.GETFIELD && isCapturedFieldName(name))
+            ) return PossibleLambdaLoad(this)
         }
         return null
     }
 
     override fun copyOperation(insn: AbstractInsnNode, value: BasicValue?): BasicValue? =
-        if (insn.opcode == Opcodes.ALOAD) LambdaLoad(insn) else super.copyOperation(insn, value)
+        if (insn.opcode == Opcodes.ALOAD) PossibleLambdaLoad(insn) else super.copyOperation(insn, value)
 
     override fun unaryOperation(insn: AbstractInsnNode, value: BasicValue?): BasicValue? {
         if (insn.opcode == Opcodes.GETFIELD) {
@@ -281,5 +280,5 @@ private class CapturedLambdaInterpreter : BasicInterpreter(Opcodes.API_VERSION) 
     }
 
     override fun merge(v: BasicValue?, w: BasicValue?): BasicValue? =
-        if (v is LambdaLoad && w is LambdaLoad && v.insn == w.insn) v else super.merge(v, w)
+        if (v is PossibleLambdaLoad && w is PossibleLambdaLoad && v.insn == w.insn) v else super.merge(v, w)
 }
