@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.fir.expressions.impl.FirResolvedArgumentList
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.FirTypeRef
+import org.jetbrains.kotlin.name.Name
 
 // TODO: add proper error messages to all `require`
 
@@ -33,6 +34,14 @@ fun FirGeneratedClass.validate() {
     require(companion is FirGeneratedClass?)
     companion?.validate()
     superTypeRefs.forEach { it.validate() }
+}
+
+fun FirCallableDeclaration<*>.validate(name: Name? = null) {
+    // TODO()
+}
+
+fun FirConstructor.validate() {
+    // TODO()
 }
 
 private fun FirArgumentList.validate() {

@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.fir.types.ConeClassErrorType
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.name.ClassId
 
-class KotlinScopeProvider(
+abstract class BaseKotlinScopeProvider(
     val declaredMemberScopeDecorator: (
         klass: FirClass<*>,
         declaredMemberScope: FirScope,
@@ -26,13 +26,13 @@ class KotlinScopeProvider(
         scopeSession: ScopeSession
     ) -> FirScope = { _, declaredMemberScope, _, _ -> declaredMemberScope }
 ) : FirScopeProvider() {
-
-
     private fun substitutor(symbol: FirRegularClassSymbol, type: ConeClassLikeType, useSiteSession: FirSession): ConeSubstitutor {
         if (type.typeArguments.isEmpty()) return ConeSubstitutor.Empty
         val originalSubstitution = createSubstitution(symbol.fir.typeParameters, type.typeArguments, useSiteSession)
         return substitutorByMap(originalSubstitution)
     }
+
+    protected abstract fun createDeclaredMemberScope(klass: FirClass<*>): FirScope
 
     override fun getUseSiteMemberScope(
         klass: FirClass<*>,
@@ -40,7 +40,7 @@ class KotlinScopeProvider(
         scopeSession: ScopeSession
     ): FirScope {
         return scopeSession.getOrBuild(klass.symbol, USE_SITE) {
-            val declaredScope = declaredMemberScope(klass)
+            val declaredScope = createDeclaredMemberScope(klass)
             val decoratedDeclaredMemberScope =
                 declaredMemberScopeDecorator(klass, declaredScope, useSiteSession, scopeSession)
 
@@ -78,6 +78,19 @@ class KotlinScopeProvider(
 
     override fun getNestedClassifierScope(klass: FirClass<*>, useSiteSession: FirSession, scopeSession: ScopeSession): FirScope? {
         return nestedClassifierScope(klass)
+    }
+}
+
+class KotlinScopeProvider(
+    declaredMemberScopeDecorator: (
+        klass: FirClass<*>,
+        declaredMemberScope: FirScope,
+        useSiteSession: FirSession,
+        scopeSession: ScopeSession
+    ) -> FirScope = { _, declaredMemberScope, _, _ -> declaredMemberScope }
+) : BaseKotlinScopeProvider(declaredMemberScopeDecorator) {
+    override fun createDeclaredMemberScope(klass: FirClass<*>): FirScope {
+        return declaredMemberScope(klass)
     }
 }
 

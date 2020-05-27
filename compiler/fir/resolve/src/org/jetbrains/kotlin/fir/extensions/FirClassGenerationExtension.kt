@@ -6,8 +6,13 @@
 package org.jetbrains.kotlin.fir.extensions
 
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.fir.declarations.FirCallableDeclaration
+import org.jetbrains.kotlin.fir.declarations.FirConstructor
+import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.impl.FirGeneratedClass
+import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.Name
 import kotlin.reflect.KClass
 
 abstract class FirClassGenerationExtension(session: FirSession) : FirPredicateBasedExtension(session) {
@@ -21,6 +26,8 @@ abstract class FirClassGenerationExtension(session: FirSession) : FirPredicateBa
     final override val extensionType: KClass<out FirExtension> = FirClassGenerationExtension::class
 
     abstract fun generateClass(classId: ClassId): FirGeneratedClass?
+    abstract fun generateMembersForClass(klass: FirGeneratedClass, name: Name): List<FirCallableDeclaration<*>>
+    abstract fun generateConstructorsForClass(klass: FirGeneratedClass): List<FirConstructor>
 
     fun interface Factory : FirExtension.Factory<FirClassGenerationExtension>
 }

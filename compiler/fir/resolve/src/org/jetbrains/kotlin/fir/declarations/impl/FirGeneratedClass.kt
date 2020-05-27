@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.fir.FirImplementationDetail
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
+import org.jetbrains.kotlin.fir.scopes.FirGeneratedScopeProvider
 import org.jetbrains.kotlin.fir.scopes.FirScopeProvider
 import org.jetbrains.kotlin.fir.scopes.generatedScopeProvider
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
@@ -43,4 +44,7 @@ class FirGeneratedClass @FirImplementationDetail constructor(
     symbol,
     companionObject,
     superTypeRefs
-)
+) {
+    override val origin: FirDeclarationOrigin.Plugin = FirDeclarationOrigin.Plugin(pluginKey)
+    override val scopeProvider: FirGeneratedScopeProvider = session.generatedScopeProvider
+}
