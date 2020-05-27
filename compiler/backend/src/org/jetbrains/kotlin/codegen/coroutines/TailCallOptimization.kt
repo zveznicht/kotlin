@@ -29,7 +29,7 @@ import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
 // TODO Use this in variable liveness analysis
 internal class MethodNodeExaminer(
     val languageVersionSettings: LanguageVersionSettings,
-    val containingClassInternalName: String,
+    containingClassInternalName: String,
     val methodNode: MethodNode,
     suspensionPoints: List<SuspensionPoint>,
     disableTailCallOptimizationForFunctionReturningUnit: Boolean
@@ -91,7 +91,7 @@ internal class MethodNodeExaminer(
             if (isSuccessors) controlFlowGraph.getSuccessorsIndices(this)
             else controlFlowGraph.getPredecessorsIndices(this)
 
-        val visited = arrayListOf<AbstractInsnNode>()
+        val visited = mutableSetOf<AbstractInsnNode>()
         fun dfs(insn: AbstractInsnNode) {
             if (insn in visited) return
             visited += insn
@@ -138,7 +138,7 @@ internal class MethodNodeExaminer(
                 val tryBlockStartIndex = instructions.indexOf(block.start)
                 val tryBlockEndIndex = instructions.indexOf(block.end)
 
-                beginIndex in tryBlockStartIndex..tryBlockEndIndex
+                beginIndex in tryBlockStartIndex until tryBlockEndIndex
             }
             if (insideTryBlock) return@all false
 
@@ -161,7 +161,7 @@ internal class MethodNodeExaminer(
      */
     private fun findSafelyReachableReturns(): Array<Set<Int>?> {
         val insns = methodNode.instructions
-        val reachableReturnsIndices = Array<Set<Int>?>(insns.size()) init@{ index ->
+        val reachableReturnsIndices = Array(insns.size()) init@{ index ->
             val insn = insns[index]
 
             if (insn.opcode == Opcodes.ARETURN && !insn.isAreturnAfterSafeUnitInstance()) {
@@ -176,7 +176,7 @@ internal class MethodNodeExaminer(
             if (!insn.isMeaningful || insn.opcode in SAFE_OPCODES || insn.isInvisibleInDebugVarInsn(methodNode) || isInlineMarker(insn)
                 || insn.isSafeUnitInstance() || insn.isAreturnAfterSafeUnitInstance()
             ) {
-                setOf<Int>()
+                setOf()
             } else null
         }
 
