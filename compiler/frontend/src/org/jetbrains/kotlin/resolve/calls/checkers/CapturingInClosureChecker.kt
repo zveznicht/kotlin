@@ -87,6 +87,7 @@ class CapturingInClosureChecker : CallChecker {
             ) CaptureKind.INLINE_ONLY else CaptureKind.NOT_INLINE
         }
         val exactlyOnceContract = isExactlyOnceContract(context, scopeDeclaration)
+        if (!exactlyOnceContract) return CaptureKind.NOT_INLINE
         // We cannot box arguments.
         val isArgument = variable is ValueParameterDescriptor && variableParent is CallableDescriptor
                 && variableParent.valueParameters.contains(variable)
@@ -101,10 +102,10 @@ class CapturingInClosureChecker : CallChecker {
         val isCatchBlockParameter = isCatchBlockParameter(variable)
         // and val in when
         val isValInWhen = isValInWhen(variable)
-        return if (
-            exactlyOnceContract &&
-            !isArgument && !isDestructedVariable && !isForLoopParameter && !isCatchBlockParameter && !isValInWhen
-        ) CaptureKind.EXACTLY_ONCE_EFFECT else CaptureKind.NOT_INLINE
+        return if (isArgument || isDestructedVariable || isForLoopParameter || isCatchBlockParameter || isValInWhen)
+            CaptureKind.NOT_INLINE
+        else
+            CaptureKind.EXACTLY_ONCE_EFFECT
     }
 
     private fun isValInWhen(variable: VariableDescriptor): Boolean {
