@@ -36,4 +36,7 @@ public final class ReifiedReturnTypeKt {
     static fun function11CharSequence(@org.jetbrains.annotations.NotNull $this$function11CharSequence: T, @org.jetbrains.annotations.NotNull t: T, @org.jetbrains.annotations.NotNull i: int, @org.jetbrains.annotations.NotNull s: java.lang.String) : T {
         return t
     }
+    static fun function12CharSequence(@org.jetbrains.annotations.NotNull $this$function12CharSequence: T, @org.jetbrains.annotations.NotNull t: B, @org.jetbrains.annotations.NotNull i: T, @org.jetbrains.annotations.NotNull s: java.lang.String) : B {
+        return t
+    }
 }
