@@ -1,6 +1,7 @@
 // !USE_EXPERIMENTAL: kotlin.contracts.ExperimentalContracts
 // IGNORE_BACKEND: NATIVE
 // WITH_RUNTIME
+// IGNORE_LIGHT_ANALYSIS
 
 import kotlin.contracts.*
 
