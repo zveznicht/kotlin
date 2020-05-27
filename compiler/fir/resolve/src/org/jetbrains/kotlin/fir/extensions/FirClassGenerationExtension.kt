@@ -28,6 +28,8 @@ abstract class FirClassGenerationExtension(session: FirSession) : FirPredicateBa
     abstract fun generateClass(classId: ClassId): FirGeneratedClass?
     abstract fun generateMembersForClass(klass: FirGeneratedClass, name: Name): List<FirCallableDeclaration<*>>
     abstract fun generateConstructorsForClass(klass: FirGeneratedClass): List<FirConstructor>
+    // getMemberNamesForClass
+    // getClassesInPackage
 
     fun interface Factory : FirExtension.Factory<FirClassGenerationExtension>
 }

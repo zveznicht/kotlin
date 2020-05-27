@@ -42,6 +42,7 @@ class AllOpenClassGenerator(session: FirSession) : FirClassGenerationExtension(s
         val name = classId.shortClassName
         if (name.isSpecial) return null
         val baseClassId = ClassId(classId.packageFqName, Name.identifier(name.identifier.removeSuffix("Gen")))
+        // TODO: replace with getClassByClassId
         if (baseClassId !in annotatedClasses) return null
         return buildGeneratedClass {
             session = this@AllOpenClassGenerator.session

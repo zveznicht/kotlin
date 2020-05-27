@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.name.Name
 
 // TODO: add proper error messages to all `require`
+// TODO: replace with visitor
 
 fun FirAnnotationCall.validate() {
     typeRef.validate()

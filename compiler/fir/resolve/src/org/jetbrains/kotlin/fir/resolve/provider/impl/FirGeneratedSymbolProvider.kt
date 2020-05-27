@@ -122,6 +122,7 @@ class FirGeneratedSymbolProvider(val session: FirSession) : FirProvider(), FirSe
         val callableMap: MutableMap<CallableId, List<FirCallableSymbol<*>>> = mutableMapOf()
         val callableContainerMap: MutableMap<FirCallableSymbol<*>, FirFile> = mutableMapOf()
 
+        // TODO: see getOrPut
         // which CallableId and ClassId was already processed by plugins
         val processedCallableIdMap: MutableSet<CallableId> = mutableSetOf()
         val processedClassIdMap: MutableSet<ClassId> = mutableSetOf()
