@@ -6,12 +6,13 @@
 package org.jetbrains.kotlin.test
 
 import junit.framework.TestCase
+import org.junit.internal.runners.statements.InvokeMethod
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunListener
 import org.junit.runner.notification.RunNotifier
-import org.junit.runners.BlockJUnit4ClassRunner
 import org.junit.runners.model.FrameworkMethod
+import org.junit.runners.model.Statement
 import org.junit.runners.parameterized.BlockJUnit4ClassRunnerWithParameters
 import org.junit.runners.parameterized.ParametersRunnerFactory
 import org.junit.runners.parameterized.TestWithParameters
@@ -220,8 +221,8 @@ private fun testKey(klass: Class<*>, methodKey: String) = "${klass.canonicalName
 private fun testKey(testCase: TestCase) = testKey(testCase::class.java, testCase.name)
 
 class RunnerFactoryWithMuteInDatabase : ParametersRunnerFactory {
-    override fun createRunnerForTestWithParameters(test: TestWithParameters?): Runner {
-        return object : BlockJUnit4ClassRunnerWithParameters(test) {
+    override fun createRunnerForTestWithParameters(testWithParameters: TestWithParameters?): Runner {
+        return object : BlockJUnit4ClassRunnerWithParameters(testWithParameters) {
             override fun isIgnored(child: FrameworkMethod): Boolean {
                 return super.isIgnored(child) || isIgnoredInDatabaseWithLog(child, name)
             }
@@ -229,6 +230,34 @@ class RunnerFactoryWithMuteInDatabase : ParametersRunnerFactory {
             override fun runChild(method: FrameworkMethod, notifier: RunNotifier) {
                 notifier.withMuteFailureListener(method.declaringClass, parametrizedMethodKey(method, name)) {
                     super.runChild(method, notifier)
+                }
+            }
+
+            override fun methodInvoker(method: FrameworkMethod?, test: Any?): Statement {
+                return object : InvokeMethod(method, test) {
+                    override fun evaluate() {
+                        if (method != null) {
+                            val methodClass = method.declaringClass
+                            val methodKey = parametrizedMethodKey(method, name)
+                            val mutedTest = getMutedTestOrNull(methodClass, methodKey)
+                            if (mutedTest != null && !mutedTest.hasFailFile) {
+                                val testKey = testKey(methodClass, methodKey)
+                                var isTestGreen = true
+                                try {
+                                    super.evaluate()
+                                } catch (e: Throwable) {
+                                    println("MUTED TEST STILL FAILS: $testKey")
+                                    isTestGreen = false
+                                }
+                                if (isTestGreen) {
+                                    System.err.println("SUCCESS RESULT OF MUTED TEST: $testKey")
+                                    throw Exception("Muted non-flaky test $testKey finished successfully. Please remove it from csv file")
+                                }
+                                return
+                            }
+                        }
+                        super.evaluate()
+                    }
                 }
             }
         }
