@@ -67,7 +67,7 @@ private operator fun ReifiedIntTypeValue?.plus(other: ReifiedIntTypeValue?): Rei
 internal val NULL_TYPE = Type.getObjectType("null")
 
 // Same as BasicInterpreter, but updates types based on usages
-private class ReifiedIntTypeInterpreter : Interpreter<ReifiedIntTypeValue>(API_VERSION) {
+private class ReifiedIntTypeInterpreter(private val methodNode: MethodNode) : Interpreter<ReifiedIntTypeValue>(API_VERSION) {
     override fun newValue(type: Type?): ReifiedIntTypeValue? =
         if (type == Type.VOID_TYPE) null else ReifiedIntTypeValue(type, null)
 
@@ -231,14 +231,32 @@ private class ReifiedIntTypeInterpreter : Interpreter<ReifiedIntTypeValue>(API_V
 
     // ILOAD, LLOAD, FLOAD, DLOAD, ALOAD, ISTORE, LSTORE, FSTORE, DSTORE,
     // ASTORE, DUP, DUP_X1, DUP_X2, DUP2, DUP2_X1, DUP2_X2, SWAP
-    // If same ICONST is stored into several slots, thay can have different types
-    // For example,
-    //  val b: Byte = 1
-    //  val i: Int = b.toInt()
-    // In this case, `b` and `i` have the same source, but different types.
-    // The example also shows, that the types should be `I`.
     override fun copyOperation(insn: AbstractInsnNode, value: ReifiedIntTypeValue?): ReifiedIntTypeValue? =
-        if (insn.opcode == ISTORE) ReifiedIntTypeValue(Type.INT_TYPE, insn) else value
+        when (insn.opcode) {
+            // If same ICONST is stored into several slots, thay can have different types
+            // For example,
+            //  val b: Byte = 1
+            //  val i: Int = b.toInt()
+            // In this case, `b` and `i` have the same source, but different types.
+            // The example also shows, that the types should be `I`.
+            ISTORE -> ReifiedIntTypeValue(Type.INT_TYPE, insn)
+            // Sometimes we cannot get the type from the usage only
+            // For example,
+            //  val c = '1'
+            //  if (c == '2) ...
+            // In this case, update the type using information from LVT
+            ILOAD -> {
+                methodNode.localVariables.find { local ->
+                    local.index == (insn as VarInsnNode).`var` &&
+                            methodNode.instructions.indexOf(local.start) < methodNode.instructions.indexOf(insn) &&
+                            methodNode.instructions.indexOf(insn) < methodNode.instructions.indexOf(local.end)
+                }?.let { local ->
+                    value?.type = Type.getType(local.desc)
+                }
+                value
+            }
+            else -> value
+        }
 
     // ACONST_NULL, ICONST_M1, ICONST_0, ICONST_1, ICONST_2, ICONST_3, ICONST_4,
     // ICONST_5, LCONST_0, LCONST_1, FCONST_0, FCONST_1, FCONST_2, DCONST_0,
@@ -273,4 +291,4 @@ private class ReifiedIntTypeInterpreter : Interpreter<ReifiedIntTypeValue>(API_V
 }
 
 internal fun performRefinedTypeAnalysis(methodNode: MethodNode, thisName: String): Array<out Frame<ReifiedIntTypeValue>?> =
-    MethodAnalyzer(thisName, methodNode, ReifiedIntTypeInterpreter()).analyze()
+    MethodAnalyzer(thisName, methodNode, ReifiedIntTypeInterpreter(methodNode)).analyze()
