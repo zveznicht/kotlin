@@ -4,6 +4,10 @@ FILE: simple.kt
             super<R|kotlin/Any|>()
         }
 
+        public final override fun foo(): R|kotlin/String| {
+            ^foo String()
+        }
+
     }
     public final class B : R|ERROR CLASS: Symbol not found, for `BGen`| {
         public constructor(): R|B| {
@@ -11,6 +15,13 @@ FILE: simple.kt
         }
 
     }
-FILE: org.jetbrains.kotlin.fir.plugin.AllOpenPluginKey@1ace572e.Generated.kt
+    public final fun test(a: R|AGen|): R|kotlin/Unit| {
+        R|/takeString|(R|<local>/a|.R|/AGen.foo|())
+    }
+    public final fun takeString(s: R|kotlin/String|): R|kotlin/Unit| {
+    }
+FILE: AllOpen.Generated.kt
     public abstract interface AGen {
+        public abstract fun foo(): R|kotlin/String|
+
     }
