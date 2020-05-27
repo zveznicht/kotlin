@@ -123,6 +123,7 @@ org.jetbrains.kotlin.idea.resolve.ReferenceResolveInLibrarySourcesTestGenerated.
 org.jetbrains.kotlin.idea.resolve.ReferenceResolveInLibrarySourcesTestGenerated.testToFunParameter, KT-34542, FAIL,
 org.jetbrains.kotlin.idea.resolve.ReferenceResolveInLibrarySourcesTestGenerated.testToLocalFun, KT-34542, FAIL,
 org.jetbrains.uast.test.kotlin.KotlinUastReferencesTest.`test original getter is visible when reference is under renaming`, Extensions API changed,,
-org.jetbrains.kotlin.idea.codeInsight.gradle.GradleKtsImportTest.testError, KT-37864,,
+org.jetbrains.kotlin.idea.codeInsight.gradle.GradleKtsImportTest.testError[0: with Gradle-6.0.1], KT-37864,,
 org.jetbrains.kotlin.idea.codeInsight.surroundWith.SurroundWithTestGenerated.If.MoveDeclarationsOut.Var.testVarWithTypeWoInitializer, Unprocessed,, FLAKY
 org.jetbrains.kotlin.idea.refactoring.move.MoveTestGenerated.testKotlin_moveTopLevelDeclarations_moveFunctionToPackage_MoveFunctionToPackage, fail on TeamCity but works well locally,, FLAKY
+org.jetbrains.kotlin.idea.intentions.IntentionTestGenerated.ConvertSealedClassToEnum.testInstancesAndMembers,,, FLAKY
