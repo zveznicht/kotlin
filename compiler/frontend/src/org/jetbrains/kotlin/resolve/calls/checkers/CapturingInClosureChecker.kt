@@ -88,25 +88,29 @@ class CapturingInClosureChecker : CallChecker {
         }
         val exactlyOnceContract = isExactlyOnceContract(context, scopeDeclaration)
         if (!exactlyOnceContract) return CaptureKind.NOT_INLINE
-        // We cannot box arguments.
-        val isArgument = variable is ValueParameterDescriptor && variableParent is CallableDescriptor
+        // We cannot box function/lambda arguments, destructured lambda arguments, for-loop index variables,
+        // exceptions inside catch blocks ans vals in when
+        return if (isArgument(variable, variableParent) ||
+            isDestructuredVariable(variable, variableParent) ||
+            isForLoopParameter(variable) ||
+            isCatchBlockParameter(variable) ||
+            isValInWhen(variable)
+        ) {
+            CaptureKind.NOT_INLINE
+        } else {
+            CaptureKind.EXACTLY_ONCE_EFFECT
+        }
+    }
+
+    private fun isArgument(variable: VariableDescriptor, variableParent: DeclarationDescriptor): Boolean =
+        variable is ValueParameterDescriptor && variableParent is CallableDescriptor
                 && variableParent.valueParameters.contains(variable)
-        // and destructured variables of lambda parameter
-        val isDestructedVariable = variable is LocalVariableDescriptor && variableParent is AnonymousFunctionDescriptor &&
+
+    private fun isDestructuredVariable(variable: VariableDescriptor, variableParent: DeclarationDescriptor): Boolean =
+        variable is LocalVariableDescriptor && variableParent is AnonymousFunctionDescriptor &&
                 variableParent.valueParameters.any {
                     it is ValueParameterDescriptorImpl.WithDestructuringDeclaration && it.destructuringVariables.contains(variable)
                 }
-        // and for loop parameters
-        val isForLoopParameter = isForLoopParameter(variable)
-        // and exceptions inside catch block
-        val isCatchBlockParameter = isCatchBlockParameter(variable)
-        // and val in when
-        val isValInWhen = isValInWhen(variable)
-        return if (isArgument || isDestructedVariable || isForLoopParameter || isCatchBlockParameter || isValInWhen)
-            CaptureKind.NOT_INLINE
-        else
-            CaptureKind.EXACTLY_ONCE_EFFECT
-    }
 
     private fun isValInWhen(variable: VariableDescriptor): Boolean {
         val psi = ((variable as? LocalVariableDescriptor)?.source as? KotlinSourceElement)?.psi ?: return false
