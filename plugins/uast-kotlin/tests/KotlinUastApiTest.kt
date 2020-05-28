@@ -660,6 +660,7 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
                 function1 -> PsiType:void
                 function2 -> PsiType:T
                 function2CharSequence -> PsiType:T extends PsiType:CharSequence
+                copyWhenGreater -> PsiType:B extends PsiType:T extends PsiType:CharSequence, PsiType:Comparable<? super T>
                 function3 -> PsiType:void
                 function4 -> PsiType:T
                 function5 -> PsiType:int
@@ -671,6 +672,8 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
                 function11 -> PsiType:T
                 function11CharSequence -> PsiType:T extends PsiType:CharSequence
                 function12CharSequence -> PsiType:B extends PsiType:T extends PsiType:CharSequence
+                Foo -> null
+                foo -> PsiType:Z extends PsiType:T
             """.trimIndent(), methods.joinToString("\n") { m ->
                 buildString {
                     append(m.name).append(" -> ")
