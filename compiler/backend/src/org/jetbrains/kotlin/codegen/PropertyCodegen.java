@@ -406,12 +406,7 @@ public class PropertyCodegen {
         if (!propertyDescriptor.isVar() &&
             bindingContext.get(BindingContext.FIELD_CAPTURED_IN_EXACLY_ONCE_CLOSURE, propertyDescriptor) != null
         ) {
-            if ((modifiers & ACC_PRIVATE) != 0) {
-                modifiers ^= ACC_PRIVATE;
-            }
-            if ((modifiers & ACC_FINAL) != 0) {
-                modifiers ^= ACC_FINAL;
-            }
+            modifiers &= ~(ACC_PRIVATE | ACC_FINAL);
         }
 
         if (AsmUtil.isPropertyWithBackingFieldCopyInOuterClass(propertyDescriptor)) {
