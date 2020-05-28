@@ -162,7 +162,7 @@ org.jetbrains.kotlin.idea.refactoring.inline.InlineTestGenerated.Function.Expres
 org.jetbrains.kotlin.idea.refactoring.introduce.ExtractionTestGenerated.IntroduceJavaParameter.testJavaMethodOverridingKotlinFunctionWithUsages, Unprocessed,, FLAKY
 org.jetbrains.kotlin.idea.refactoring.move.MoveTestGenerated.testJava_moveClass_moveInnerToTop_moveNestedClassToTopLevelInTheSamePackageAndAddOuterInstanceWithLambda_MoveNestedClassToTopLevelInTheSamePackageAndAddOuterInstanceWithLambda, final modifier added,,
 org.jetbrains.kotlin.idea.refactoring.move.MoveTestGenerated.testJava_moveClass_moveInnerToTop_moveNestedClassToTopLevelInTheSamePackageAndAddOuterInstance_MoveNestedClassToTopLevelInTheSamePackageAndAddOuterInstance, final modifier added,,
-org.jetbrains.kotlin.idea.refactoring.rename.RenameTestGenerated.testOverloadsWithSameOrigin_OverloadsWithSameOrigin, Bad imports after rename,,
+org.jetbrains.kotlin.idea.refactoring.rename.RenameTestGenerated.testOverloadsWithSameOrigin_OverloadsWithSameOrigin, Bad imports after rename,, FLAKY
 org.jetbrains.kotlin.idea.refactoring.suggested.KotlinSuggestedRefactoringChangeListenerTest.test1, Additional signature,,
 org.jetbrains.kotlin.idea.refactoring.suggested.KotlinSuggestedRefactoringChangeListenerTest.testAddImport, Additional signature,,
 org.jetbrains.kotlin.idea.refactoring.suggested.KotlinSuggestedRefactoringChangeListenerTest.testAddImportWithBlankLineInsertion, Additional signature,,
@@ -203,3 +203,4 @@ org.jetbrains.kotlin.jps.build.IncrementalJvmJpsTestGenerated.WithJava.JavaUsedI
 org.jetbrains.kotlin.idea.codeInsight.surroundWith.SurroundWithTestGenerated.If.MoveDeclarationsOut.Var.testVarWithTypeWoInitializer, Unprocessed,, FLAKY
 org.jetbrains.kotlin.idea.refactoring.pullUp.PullUpTestGenerated.K2K.testAccidentalOverrides, Unprocessed,, FLAKY
 org.jetbrains.kotlin.idea.refactoring.move.MoveTestGenerated.testKotlin_moveTopLevelDeclarations_moveFunctionToPackage_MoveFunctionToPackage, fail on TeamCity but works well locally,, FLAKY
+org.jetbrains.kotlin.idea.intentions.IntentionTestGenerated.ConvertSealedClassToEnum.testInstancesOnly, Generated entries reordered,, FLAKY

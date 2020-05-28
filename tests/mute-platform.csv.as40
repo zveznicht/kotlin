@@ -79,7 +79,7 @@ org.jetbrains.kotlin.idea.inspections.LocalInspectionTestGenerated.RedundantRequ
 org.jetbrains.kotlin.idea.inspections.LocalInspectionTestGenerated.RedundantRequireNotNullCall.testUsedAsExpression3, KT-34672, FAIL,
 org.jetbrains.kotlin.idea.intentions.IntentionTestGenerated.ConvertFunctionTypeParameterToReceiver.testNonFirstParameterPrimaryConstructor, flaky failure on ConvertFunctionTypeParameterToReceiver rerun,, FLAKY
 org.jetbrains.kotlin.idea.intentions.IntentionTestGenerated.ConvertFunctionTypeParameterToReceiver.testNonFirstParameterSecondaryConstructor, flaky failure on ConvertFunctionTypeParameterToReceiver rerun,, FLAKY
-org.jetbrains.kotlin.idea.intentions.IntentionTestGenerated.ConvertSealedClassToEnum.testInstancesOnly, Generated entries reordered,,
+org.jetbrains.kotlin.idea.intentions.IntentionTestGenerated.ConvertSealedClassToEnum.testInstancesOnly, Generated entries reordered,, FLAKY
 org.jetbrains.kotlin.idea.intentions.declarations.JoinLinesTestGenerated.DeclarationAndAssignment.testBlankLineBetween, KT-34408,,
 org.jetbrains.kotlin.idea.intentions.declarations.JoinLinesTestGenerated.DeclarationAndAssignment.testLongInit, KT-34408,,
 org.jetbrains.kotlin.idea.intentions.declarations.JoinLinesTestGenerated.DeclarationAndAssignment.testLongInit2, KT-34408,,
@@ -114,7 +114,7 @@ org.jetbrains.kotlin.idea.refactoring.move.MoveTestGenerated.testJava_moveClass_
 org.jetbrains.kotlin.idea.refactoring.move.MoveTestGenerated.testJava_moveClass_moveInnerToTop_moveNestedClassToTopLevelInTheSamePackageAndAddOuterInstance_MoveNestedClassToTopLevelInTheSamePackageAndAddOuterInstance, final modifier added,,
 org.jetbrains.kotlin.idea.intentions.IntentionTestGenerated.ConvertSealedClassToEnum.testWithNonObjectInheritors, Enum reorder,, FLAKY
 org.jetbrains.kotlin.idea.refactoring.pullUp.PullUpTestGenerated.K2K.testAccidentalOverrides, Unprocessed,, FLAKY
-org.jetbrains.kotlin.idea.refactoring.rename.RenameTestGenerated.testOverloadsWithSameOrigin_OverloadsWithSameOrigin, Bad imports after rename,,
+org.jetbrains.kotlin.idea.refactoring.rename.RenameTestGenerated.testOverloadsWithSameOrigin_OverloadsWithSameOrigin, Bad imports after rename,, FLAKY
 org.jetbrains.kotlin.idea.repl.IdeReplCompletionTestGenerated.testDefinedExtension, KT-34825,,
 org.jetbrains.kotlin.idea.resolve.ReferenceResolveInLibrarySourcesTestGenerated.testInLibrarySource, KT-34542, FAIL,
 org.jetbrains.kotlin.idea.resolve.ReferenceResolveInLibrarySourcesTestGenerated.testToFunParameter, KT-34542, FAIL,
