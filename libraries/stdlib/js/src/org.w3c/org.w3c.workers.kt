@@ -9,6 +9,7 @@
 package org.w3c.workers
 
 import kotlin.js.*
+import org.khronos.webgl.*
 import org.w3c.dom.*
 import org.w3c.dom.events.*
 import org.w3c.fetch.*
@@ -231,11 +232,7 @@ public external open class InstallEvent(type: String, eventInitDict: ExtendableE
 
 public external interface ForeignFetchOptions {
     var scopes: Array<String>?
-        get() = definedExternally
-        set(value) = definedExternally
     var origins: Array<String>?
-        get() = definedExternally
-        set(value) = definedExternally
 }
 
 @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")
@@ -266,8 +263,6 @@ public external open class FetchEvent(type: String, eventInitDict: FetchEventIni
 
 public external interface FetchEventInit : ExtendableEventInit {
     var request: Request?
-        get() = definedExternally
-        set(value) = definedExternally
     var clientId: String? /* = null */
         get() = definedExternally
         set(value) = definedExternally
@@ -304,8 +299,6 @@ public external open class ForeignFetchEvent(type: String, eventInitDict: Foreig
 
 public external interface ForeignFetchEventInit : ExtendableEventInit {
     var request: Request?
-        get() = definedExternally
-        set(value) = definedExternally
     var origin: String? /* = "null" */
         get() = definedExternally
         set(value) = definedExternally
@@ -325,8 +318,6 @@ public inline fun ForeignFetchEventInit(request: Request?, origin: String? = "nu
 
 public external interface ForeignFetchResponse {
     var response: Response?
-        get() = definedExternally
-        set(value) = definedExternally
     var origin: String?
         get() = definedExternally
         set(value) = definedExternally

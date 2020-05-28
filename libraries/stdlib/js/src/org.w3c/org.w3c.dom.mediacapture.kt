@@ -9,13 +9,14 @@
 package org.w3c.dom.mediacapture
 
 import kotlin.js.*
+import org.khronos.webgl.*
 import org.w3c.dom.*
 import org.w3c.dom.events.*
 
 /**
  * Exposes the JavaScript [MediaStream](https://developer.mozilla.org/en/docs/Web/API/MediaStream) to Kotlin
  */
-public external open class MediaStream() : EventTarget {
+public external open class MediaStream() : EventTarget, MediaProvider {
     constructor(stream: MediaStream)
     constructor(tracks: Array<MediaStreamTrack>)
     open val id: String
@@ -404,8 +405,6 @@ public external open class MediaStreamTrackEvent(type: String, eventInitDict: Me
 
 public external interface MediaStreamTrackEventInit : EventInit {
     var track: MediaStreamTrack?
-        get() = definedExternally
-        set(value) = definedExternally
 }
 
 @Suppress("INVISIBLE_REFERENCE", "INVISIBLE_MEMBER")

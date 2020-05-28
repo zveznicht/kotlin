@@ -9,6 +9,7 @@
 package org.w3c.notifications
 
 import kotlin.js.*
+import org.khronos.webgl.*
 import org.w3c.dom.events.*
 import org.w3c.workers.*
 
@@ -125,11 +126,7 @@ public inline fun NotificationOptions(dir: NotificationDirection? = Notification
 
 public external interface NotificationAction {
     var action: String?
-        get() = definedExternally
-        set(value) = definedExternally
     var title: String?
-        get() = definedExternally
-        set(value) = definedExternally
     var icon: String?
         get() = definedExternally
         set(value) = definedExternally
@@ -176,8 +173,6 @@ public external open class NotificationEvent(type: String, eventInitDict: Notifi
 
 public external interface NotificationEventInit : ExtendableEventInit {
     var notification: Notification?
-        get() = definedExternally
-        set(value) = definedExternally
     var action: String? /* = "" */
         get() = definedExternally
         set(value) = definedExternally
