@@ -234,8 +234,6 @@ val IrBody.statements: List<IrStatement>
 val IrClass.defaultType: IrSimpleType
     get() = this.thisReceiver!!.type as IrSimpleType
 
-val IrSimpleFunction.isSynthesized: Boolean get() = descriptor.kind == CallableMemberDescriptor.Kind.SYNTHESIZED
-
 val IrDeclaration.isReal: Boolean get() = !isFakeOverride
 
 val IrDeclaration.isFakeOverride: Boolean
@@ -306,18 +304,8 @@ fun IrSimpleFunction.resolveFakeOverride(toSkip: (IrSimpleFunction) -> Boolean =
         }
 }
 
-fun IrSimpleFunction.isOrOverridesSynthesized(): Boolean {
-    if (isSynthesized) return true
-
-    if (isFakeOverride) return overriddenSymbols.all { it.owner.isOrOverridesSynthesized() }
-
-    return false
-}
-
 fun IrSimpleFunction.findInterfaceImplementation(): IrSimpleFunction? {
     if (isReal) return null
-
-    if (isOrOverridesSynthesized()) return null
 
     return resolveFakeOverride()?.run { if (parentAsClass.isInterface) this else null }
 }
