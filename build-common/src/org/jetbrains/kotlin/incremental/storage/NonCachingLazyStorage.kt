@@ -21,9 +21,8 @@ import com.intellij.util.io.KeyDescriptor
 import com.intellij.util.io.PersistentHashMap
 import java.io.File
 
-
 class NonCachingLazyStorage<K, V>(
-    private val storageFile: File,
+    override val storageFile: File,
     private val keyDescriptor: KeyDescriptor<K>,
     private val valueExternalizer: DataExternalizer<V>
 ) : LazyStorage<K, V> {

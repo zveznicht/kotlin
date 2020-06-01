@@ -42,6 +42,8 @@ import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.incremental.multiproject.EmptyModulesApiHistory
 import org.jetbrains.kotlin.incremental.multiproject.ModulesApiHistory
+import org.jetbrains.kotlin.incremental.storage.FileToCanonicalPathConverter
+import org.jetbrains.kotlin.incremental.storage.IncrementalCacheContext
 import org.jetbrains.kotlin.load.java.JavaClassesTracker
 import org.jetbrains.kotlin.load.kotlin.header.KotlinClassHeader
 import org.jetbrains.kotlin.load.kotlin.incremental.components.IncrementalCompilationComponents
@@ -122,8 +124,11 @@ class IncrementalJvmCompilerRunner(
     override fun isICEnabled(): Boolean =
         IncrementalCompilation.isEnabledForJvm()
 
-    override fun createCacheManager(args: K2JVMCompilerArguments): IncrementalJvmCachesManager =
-        IncrementalJvmCachesManager(cacheDirectory, File(args.destination), reporter)
+    override fun createCacheManager(
+        args: K2JVMCompilerArguments,
+        context: IncrementalCacheContext
+    ): IncrementalJvmCachesManager =
+        IncrementalJvmCachesManager(cacheDirectory, File(args.destination), context)
 
     override fun destinationDir(args: K2JVMCompilerArguments): File =
         args.destinationAsFile
@@ -146,7 +151,7 @@ class IncrementalJvmCompilerRunner(
         else
             null
 
-    override fun calculateSourcesToCompileImpl(
+    override fun calculateSourcesToCompile(
         caches: IncrementalJvmCachesManager,
         changedFiles: ChangedFiles.Known,
         args: K2JVMCompilerArguments
@@ -177,15 +182,19 @@ class IncrementalJvmCompilerRunner(
         }
 
         reporter.measure(BuildTime.IC_ANALYZE_CHANGES_IN_JAVA_SOURCES) {
+            val changedJava = changedFiles.modified.filterTo(HashSet()) { it.isJavaFile() }
+            val removedJava = changedFiles.removed.filterTo(HashSet()) { it.isJavaFile() }
+            dirtyFiles.add(changedJava, "modified java files")
+            dirtyFiles.add(removedJava, "removed java files")
             if (!usePreciseJavaTracking) {
-                val javaFilesChanges = javaFilesProcessor!!.process(changedFiles)
+                val javaFilesChanges = javaFilesProcessor!!.process(changedJava, removedJava)
                 val affectedJavaSymbols = when (javaFilesChanges) {
                     is ChangesEither.Known -> javaFilesChanges.lookupSymbols
                     is ChangesEither.Unknown -> return CompilationMode.Rebuild(javaFilesChanges.reason)
                 }
                 dirtyFiles.addByDirtySymbols(affectedJavaSymbols)
             } else {
-                val rebuildReason = processChangedJava(changedFiles, caches)
+                val rebuildReason = processChangedJava(changedJava, removedJava, caches)
                 if (rebuildReason != null) return CompilationMode.Rebuild(rebuildReason)
             }
         }
@@ -204,8 +213,8 @@ class IncrementalJvmCompilerRunner(
         return CompilationMode.Incremental(dirtyFiles)
     }
 
-    private fun processChangedJava(changedFiles: ChangedFiles.Known, caches: IncrementalJvmCachesManager): BuildAttribute? {
-        val javaFiles = (changedFiles.modified + changedFiles.removed).filter(File::isJavaFile)
+    private fun processChangedJava(modifiedJava: Set<File>, removedJava: Set<File>, caches: IncrementalJvmCachesManager): BuildAttribute? {
+        val javaFiles = (modifiedJava + removedJava)
 
         for (javaFile in javaFiles) {
             if (!caches.platformCache.isTrackedFile(javaFile)) {
@@ -233,7 +242,6 @@ class IncrementalJvmCompilerRunner(
             }
         }
 
-        caches.platformCache.markDirty(javaFiles)
         return null
     }
 

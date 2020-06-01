@@ -33,10 +33,7 @@ internal class ChangedJavaFilesProcessor(
     val allChangedSymbols: Collection<LookupSymbol>
         get() = allSymbols
 
-    fun process(filesDiff: ChangedFiles.Known): ChangesEither {
-        val modifiedJava = filesDiff.modified.filter(File::isJavaFile)
-        val removedJava = filesDiff.removed.filter(File::isJavaFile)
-
+    fun process(modifiedJava: Set<File>, removedJava: Set<File>): ChangesEither {
         if (removedJava.any()) {
             reporter.report { "Some java files are removed: [${removedJava.joinToString()}]" }
             return ChangesEither.Unknown(BuildAttribute.JAVA_CHANGE_UNTRACKED_FILE_IS_REMOVED)

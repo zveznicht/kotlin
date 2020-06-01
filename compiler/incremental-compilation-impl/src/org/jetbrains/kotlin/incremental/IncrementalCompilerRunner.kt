@@ -19,8 +19,8 @@ package org.jetbrains.kotlin.incremental
 import org.jetbrains.kotlin.build.DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
 import org.jetbrains.kotlin.build.GeneratedFile
 import org.jetbrains.kotlin.build.report.BuildReporter
-import org.jetbrains.kotlin.build.report.metrics.BuildTime
 import org.jetbrains.kotlin.build.report.metrics.BuildAttribute
+import org.jetbrains.kotlin.build.report.metrics.BuildTime
 import org.jetbrains.kotlin.build.report.metrics.measure
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
@@ -35,6 +35,9 @@ import org.jetbrains.kotlin.config.Services
 import org.jetbrains.kotlin.incremental.components.ExpectActualTracker
 import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.incremental.parsing.classesFqNames
+import org.jetbrains.kotlin.incremental.storage.*
+import org.jetbrains.kotlin.incremental.util.DirectoryBackup
+import org.jetbrains.kotlin.incremental.util.OutputBackupImpl
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.progress.CompilationCanceledStatus
 import java.io.File
@@ -59,8 +62,16 @@ abstract class IncrementalCompilerRunner<
     protected open val kotlinSourceFilesExtensions: List<String> = DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
 
     protected abstract fun isICEnabled(): Boolean
-    protected abstract fun createCacheManager(args: Args): CacheManager
+    protected abstract fun createCacheManager(args: Args, context: IncrementalCacheContext): CacheManager
     protected abstract fun destinationDir(args: Args): File
+
+    private val defaultCacheContext: IncrementalCacheContext
+        get() = IncrementalCacheContext(
+            FileToCanonicalPathConverter,
+            DefaultStorageProvider(),
+            reporter,
+            OutputBackup.DoNothing
+        )
 
     fun compile(
         allSourceFiles: List<File>,
@@ -79,44 +90,49 @@ abstract class IncrementalCompilerRunner<
         messageCollector: MessageCollector,
         providedChangedFiles: ChangedFiles?
     ): ExitCode {
-        assert(isICEnabled()) { "Incremental compilation is not enabled" }
-        var caches = createCacheManager(args)
-
         fun rebuild(reason: BuildAttribute): ExitCode {
             reporter.report { "Non-incremental compilation will be performed: $reason" }
-            caches.close(false)
             // todo: we can recompile all files incrementally (not cleaning caches), so rebuild won't propagate
             reporter.measure(BuildTime.CLEAR_OUTPUT_ON_REBUILD) {
                 clearLocalStateOnRebuild(args)
             }
-            caches = createCacheManager(args)
-            if (providedChangedFiles == null) {
-                caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
+            return createCacheManager(args, defaultCacheContext).use { caches ->
+                if (providedChangedFiles == null) {
+                    caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
+                }
+                val allKotlinFiles = allSourceFiles.filter { it.isKotlinFile(kotlinSourceFilesExtensions) }
+                doCompile(args, caches, allKotlinFiles, CompilationMode.Rebuild(reason), messageCollector)
             }
-            val allKotlinFiles = allSourceFiles.filter { it.isKotlinFile(kotlinSourceFilesExtensions) }
-            return compileIncrementally(args, caches, allKotlinFiles, CompilationMode.Rebuild(reason), messageCollector)
         }
 
-        return try {
-            val changedFiles = providedChangedFiles ?: caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
-            val compilationMode = sourcesToCompile(caches, changedFiles, args)
-
-            val exitCode = when (compilationMode) {
-                is CompilationMode.Incremental -> {
-                    compileIncrementally(args, caches, allSourceFiles, compilationMode, messageCollector)
-                }
-                is CompilationMode.Rebuild -> {
-                    rebuild(compilationMode.reason)
+        assert(isICEnabled()) { "Incremental compilation is not enabled" }
+        return when (val compilationMode = calculateInitialDirtySet(allSourceFiles, args, providedChangedFiles)) {
+            is CompilationMode.Incremental -> {
+                if (compilationMode.dirtyFiles.kotlinFiles.isNotEmpty() || compilationMode.dirtyFiles.javaFiles.isNotEmpty()) {
+                    val workingDirBackup = DirectoryBackup(workingDir)
+                    val outputBackup = OutputBackupImpl()
+                    try {
+                        val context = defaultCacheContext.copy(outputBackup = outputBackup)
+                        val exitCode = createCacheManager(args, context).use { caches ->
+                            doCompile(args, caches, allSourceFiles, compilationMode, messageCollector)
+                        }
+                        if (exitCode != ExitCode.OK) {
+                            workingDirBackup.restore()
+                            outputBackup.restore()
+                        }
+                        exitCode
+                    } catch (e: Exception) { // todo: catch only cache corruption
+                        // todo: warn?
+                        reporter.report { "Rebuilding because of possible caches corruption: $e" }
+                        rebuild(BuildAttribute.CACHE_CORRUPTION)
+                    }
+                } else {
+                    ExitCode.OK
                 }
             }
-
-            if (!caches.close(flush = true)) throw RuntimeException("Could not flush caches")
-
-            return exitCode
-        } catch (e: Exception) { // todo: catch only cache corruption
-            // todo: warn?
-            reporter.report { "Rebuilding because of possible caches corruption: $e" }
-            rebuild(BuildAttribute.CACHE_CORRUPTION)
+            is CompilationMode.Rebuild -> {
+                rebuild(compilationMode.reason)
+            }
         }
     }
 
@@ -148,20 +164,42 @@ abstract class IncrementalCompilerRunner<
         workingDir.mkdirs()
     }
 
-    private fun sourcesToCompile(caches: CacheManager, changedFiles: ChangedFiles, args: Args): CompilationMode =
-        when (changedFiles) {
-            is ChangedFiles.Known -> calculateSourcesToCompile(caches, changedFiles, args)
-            is ChangedFiles.Unknown -> CompilationMode.Rebuild(BuildAttribute.UNKNOWN_CHANGES_IN_GRADLE_INPUTS)
-        }
-
-    private fun calculateSourcesToCompile(
-        caches: CacheManager, changedFiles: ChangedFiles.Known, args: Args
+    private fun calculateInitialDirtySet(
+        allSourceFiles: List<File>,
+        args: Args,
+        providedChangedFiles: ChangedFiles?
     ): CompilationMode =
         reporter.measure(BuildTime.IC_CALCULATE_INITIAL_DIRTY_SET) {
-            calculateSourcesToCompileImpl(caches, changedFiles, args)
+            try {
+                calculateInitialDirtySetImpl(allSourceFiles, args, providedChangedFiles)
+            } catch (e: Exception) {
+                reporter.report { "Failed to calculate initial dirty set: ${e.stackTraceToString()}" }
+                CompilationMode.Rebuild(BuildAttribute.COULD_NOT_CALCULATE_INITIAL_DIRTY_SET)
+            }
         }
 
-    protected abstract fun calculateSourcesToCompileImpl(
+    private fun calculateInitialDirtySetImpl(
+        allSourceFiles: List<File>,
+        args: Args,
+        providedChangedFiles: ChangedFiles?
+    ): CompilationMode {
+        val changedFiles = providedChangedFiles ?: run {
+            createCacheManager(args, defaultCacheContext).use { caches ->
+                val changedFiles = caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
+                caches.flush()
+                changedFiles
+            }
+        }
+
+        return createCacheManager(args, defaultCacheContext.readOnlyStorage()).use { caches ->
+            when (changedFiles) {
+                is ChangedFiles.Known -> calculateSourcesToCompile(caches, changedFiles, args)
+                is ChangedFiles.Unknown -> CompilationMode.Rebuild(BuildAttribute.UNKNOWN_CHANGES_IN_GRADLE_INPUTS)
+            }
+        }
+    }
+
+    protected abstract fun calculateSourcesToCompile(
         caches: CacheManager, changedFiles: ChangedFiles.Known, args: Args
     ): CompilationMode
 
@@ -216,7 +254,7 @@ abstract class IncrementalCompilerRunner<
         messageCollector: MessageCollector
     ): ExitCode
 
-    private fun compileIncrementally(
+    private fun doCompile(
         args: Args,
         caches: CacheManager,
         allKotlinSources: List<File>,
@@ -229,7 +267,8 @@ abstract class IncrementalCompilerRunner<
         val dirtySources = when (compilationMode) {
             is CompilationMode.Incremental -> {
                 buildTimeMode = BuildTime.INCREMENTAL_ITERATION
-                compilationMode.dirtyFiles.toMutableList()
+                caches.platformCache.markDirty(compilationMode.dirtyFiles.javaFiles)
+                compilationMode.dirtyFiles.kotlinFiles.toMutableList()
             }
             is CompilationMode.Rebuild -> {
                 buildTimeMode = BuildTime.NON_INCREMENTAL_ITERATION
@@ -330,6 +369,7 @@ abstract class IncrementalCompilerRunner<
 
         val dirtyData = DirtyData(buildDirtyLookupSymbols, buildDirtyFqNames)
         processChangesAfterBuild(compilationMode, currentBuildInfo, dirtyData)
+        caches.flush()
 
         return exitCode
     }
@@ -407,3 +447,4 @@ private class TemporaryMessageCollector(private val delegate: MessageCollector) 
         messages.forEach { delegate.report(it.severity, it.message, it.location) }
     }
 }
+

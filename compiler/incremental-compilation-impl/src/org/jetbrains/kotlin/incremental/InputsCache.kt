@@ -21,25 +21,30 @@ import org.jetbrains.kotlin.build.GeneratedFile
 import org.jetbrains.kotlin.build.report.ICReporter
 import org.jetbrains.kotlin.incremental.snapshots.FileSnapshotMap
 import org.jetbrains.kotlin.incremental.storage.BasicMapsOwner
+import org.jetbrains.kotlin.incremental.storage.IncrementalCacheContext
 import org.jetbrains.kotlin.incremental.storage.SourceToOutputFilesMap
 import java.io.File
 
 class InputsCache(
     workingDir: File,
-    private val reporter: ICReporter
+    context: IncrementalCacheContext
 ) : BasicMapsOwner(workingDir) {
     companion object {
         private const val SOURCE_SNAPSHOTS = "source-snapshot"
         private const val SOURCE_TO_OUTPUT_FILES = "source-to-output"
     }
 
-    internal val sourceSnapshotMap = registerMap(FileSnapshotMap(SOURCE_SNAPSHOTS.storageFile))
-    private val sourceToOutputMap = registerMap(SourceToOutputFilesMap(SOURCE_TO_OUTPUT_FILES.storageFile))
+    private val reporter: ICReporter = context.reporter
+    private val outputBackup = context.outputBackup
+
+    internal val sourceSnapshotMap = registerMap(FileSnapshotMap(SOURCE_SNAPSHOTS.storageFile, context))
+    private val sourceToOutputMap = registerMap(SourceToOutputFilesMap(SOURCE_TO_OUTPUT_FILES.storageFile, context))
 
     fun removeOutputForSourceFiles(sources: Iterable<File>) {
         for (sourceFile in sources) {
             sourceToOutputMap.remove(sourceFile).forEach {
                 reporter.reportVerbose { "Deleting $it on clearing cache for $sourceFile" }
+                outputBackup.backupBeforeRemoval(it)
                 it.delete()
             }
         }
@@ -53,6 +58,7 @@ class InputsCache(
         for (generatedFile in generatedFiles) {
             for (source in generatedFile.sourceFiles) {
                 sourceToOutput.putValue(source, generatedFile.outputFile)
+                outputBackup.newOutput(generatedFile.outputFile)
             }
         }
 

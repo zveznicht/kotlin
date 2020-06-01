@@ -24,20 +24,12 @@ import org.jetbrains.kotlin.utils.Printer
 import java.io.File
 
 abstract class BasicMap<K : Comparable<K>, V>(
-        internal val storageFile: File,
-        keyDescriptor: KeyDescriptor<K>,
-        valueExternalizer: DataExternalizer<V>
+    storageFile: File,
+    keyDescriptor: KeyDescriptor<K>,
+    valueExternalizer: DataExternalizer<V>,
+    context: IncrementalCacheContext
 ) {
-    protected val storage: LazyStorage<K, V>
-    private val nonCachingStorage = System.getProperty("kotlin.jps.non.caching.storage")?.toBoolean() ?: false
-
-    init {
-        storage = if (nonCachingStorage) {
-            NonCachingLazyStorage(storageFile, keyDescriptor, valueExternalizer)
-        } else {
-            CachingLazyStorage(storageFile, keyDescriptor, valueExternalizer)
-        }
-    }
+    protected val storage: LazyStorage<K, V> = context.storageProvider.create(storageFile, keyDescriptor, valueExternalizer)
 
     fun clean() {
         storage.clean()
@@ -50,6 +42,9 @@ abstract class BasicMap<K : Comparable<K>, V>(
     fun close() {
         storage.close()
     }
+
+    val storageFile: File
+        get() = storage.storageFile
 
     @TestOnly
     fun dump(): String {
@@ -77,14 +72,16 @@ abstract class BasicMap<K : Comparable<K>, V>(
 }
 
 abstract class BasicStringMap<V>(
-        storageFile: File,
-        keyDescriptor: KeyDescriptor<String>,
-        valueExternalizer: DataExternalizer<V>
-) : BasicMap<String, V>(storageFile, keyDescriptor, valueExternalizer) {
+    storageFile: File,
+    keyDescriptor: KeyDescriptor<String>,
+    valueExternalizer: DataExternalizer<V>,
+    context: IncrementalCacheContext
+) : BasicMap<String, V>(storageFile, keyDescriptor, valueExternalizer, context) {
     constructor(
-            storageFile: File,
-            valueExternalizer: DataExternalizer<V>
-    ) : this(storageFile, EnumeratorStringDescriptor.INSTANCE, valueExternalizer)
+        storageFile: File,
+        valueExternalizer: DataExternalizer<V>,
+        context: IncrementalCacheContext
+    ) : this(storageFile, EnumeratorStringDescriptor.INSTANCE, valueExternalizer, context)
 
     override fun dumpKey(key: String): String = key
 }

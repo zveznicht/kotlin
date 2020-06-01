@@ -16,6 +16,8 @@
 
 package org.jetbrains.kotlin.incremental.storage
 
+import java.io.File
+
 interface LazyStorage<K, V> {
     val keys: Collection<K>
     operator fun contains(key: K): Boolean
@@ -26,4 +28,6 @@ interface LazyStorage<K, V> {
     fun clean()
     fun flush(memoryCachesOnly: Boolean)
     fun close()
+    val storageFile: File
 }
+

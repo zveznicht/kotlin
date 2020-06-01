@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.incremental.components.LookupTracker
 import org.jetbrains.kotlin.incremental.js.*
 import org.jetbrains.kotlin.incremental.multiproject.EmptyModulesApiHistory
 import org.jetbrains.kotlin.incremental.multiproject.ModulesApiHistory
+import org.jetbrains.kotlin.incremental.storage.IncrementalCacheContext
 import org.jetbrains.kotlin.library.metadata.KlibMetadataSerializerProtocol
 import org.jetbrains.kotlin.serialization.js.JsSerializerProtocol
 import java.io.File
@@ -87,15 +88,18 @@ class IncrementalJsCompilerRunner(
     override fun isICEnabled(): Boolean =
         IncrementalCompilation.isEnabledForJs()
 
-    override fun createCacheManager(args: K2JSCompilerArguments): IncrementalJsCachesManager {
+    override fun createCacheManager(
+        args: K2JSCompilerArguments,
+        context: IncrementalCacheContext
+    ): IncrementalJsCachesManager {
         val serializerProtocol = if (!args.isIrBackendEnabled()) JsSerializerProtocol else KlibMetadataSerializerProtocol
-        return IncrementalJsCachesManager(cacheDirectory, reporter, serializerProtocol)
+        return IncrementalJsCachesManager(cacheDirectory, context, serializerProtocol)
     }
 
     override fun destinationDir(args: K2JSCompilerArguments): File =
         File(args.outputFile).parentFile
 
-    override fun calculateSourcesToCompileImpl(
+    override fun calculateSourcesToCompile(
         caches: IncrementalJsCachesManager,
         changedFiles: ChangedFiles.Known,
         args: K2JSCompilerArguments

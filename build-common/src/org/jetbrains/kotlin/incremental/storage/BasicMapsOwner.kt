@@ -20,6 +20,17 @@ import org.jetbrains.annotations.TestOnly
 import java.io.File
 import java.io.IOException
 
+abstract class CacheOwner<T> {
+    private val caches = arrayListOf<T>()
+
+    protected fun register(cache: T): T {
+        caches.add(cache)
+        return cache
+    }
+
+
+}
+
 open class BasicMapsOwner(val cachesDir: File) {
     private val maps = arrayListOf<BasicMap<*, *>>()
 

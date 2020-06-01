@@ -22,8 +22,10 @@ import java.io.File
 
 internal class IdToFileMap(
     file: File,
-    private val pathConverter: FileToPathConverter
-) : BasicMap<Int, String>(file, ExternalIntegerKeyDescriptor(), EnumeratorStringDescriptor.INSTANCE) {
+    context: IncrementalCacheContext
+) : BasicMap<Int, String>(file, ExternalIntegerKeyDescriptor(), EnumeratorStringDescriptor.INSTANCE, context) {
+    private val pathConverter: FileToPathConverter = context.pathConverter
+
     override fun dumpKey(key: Int): String = key.toString()
 
     override fun dumpValue(value: String): String = value

@@ -23,19 +23,21 @@ import java.io.File
 
 internal class SourceToJvmNameMap(
     storageFile: File,
-    pathConverter: FileToPathConverter
-) : AbstractSourceToOutputMap<JvmClassName>(JvmClassNameTransformer, storageFile, pathConverter)
+    context: IncrementalCacheContext
+) : AbstractSourceToOutputMap<JvmClassName>(JvmClassNameTransformer, storageFile, context)
 
 internal class SourceToFqNameMap(
     storageFile: File,
-    pathConverter: FileToPathConverter
-) : AbstractSourceToOutputMap<FqName>(FqNameTransformer, storageFile, pathConverter)
+    context: IncrementalCacheContext
+) : AbstractSourceToOutputMap<FqName>(FqNameTransformer, storageFile, context)
 
 internal abstract class AbstractSourceToOutputMap<Name>(
     private val nameTransformer: NameTransformer<Name>,
     storageFile: File,
-    private val pathConverter: FileToPathConverter
-) : BasicStringMap<Collection<String>>(storageFile, PathStringDescriptor, StringCollectionExternalizer) {
+    context: IncrementalCacheContext
+) : BasicStringMap<Collection<String>>(storageFile, PathStringDescriptor, StringCollectionExternalizer, context) {
+    private val pathConverter: FileToPathConverter = context.pathConverter
+
     fun clearOutputsForSource(sourceFile: File) {
         remove(pathConverter.toPath(sourceFile))
     }

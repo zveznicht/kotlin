@@ -29,7 +29,8 @@ enum class BuildAttribute(val kind: BuildAttributeKind) : Serializable {
     DEP_CHANGE_NON_INCREMENTAL_BUILD_IN_DEP(BuildAttributeKind.REBUILD_REASON),
     IN_PROCESS_EXECUTION(BuildAttributeKind.REBUILD_REASON),
     OUT_OF_PROCESS_EXECUTION(BuildAttributeKind.REBUILD_REASON),
-    IC_IS_NOT_ENABLED(BuildAttributeKind.REBUILD_REASON);
+    IC_IS_NOT_ENABLED(BuildAttributeKind.REBUILD_REASON),
+    COULD_NOT_CALCULATE_INITIAL_DIRTY_SET(BuildAttributeKind.REBUILD_REASON);
 
     companion object {
         const val serialVersionUID = 0L

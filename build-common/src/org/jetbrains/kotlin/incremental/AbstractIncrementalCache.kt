@@ -47,15 +47,17 @@ interface IncrementalCacheCommon {
  */
 abstract class AbstractIncrementalCache<ClassName>(
     workingDir: File,
-    protected val pathConverter: FileToPathConverter
+    protected val context: IncrementalCacheContext
 ) : BasicMapsOwner(workingDir), IncrementalCacheCommon {
     companion object {
         private val SUBTYPES = "subtypes"
         private val SUPERTYPES = "supertypes"
         private val CLASS_FQ_NAME_TO_SOURCE = "class-fq-name-to-source"
         private val COMPLEMENTARY_FILES = "complementary-files"
+
         @JvmStatic
         protected val SOURCE_TO_CLASSES = "source-to-classes"
+
         @JvmStatic
         protected val DIRTY_OUTPUT_CLASSES = "dirty-output-classes"
     }
@@ -71,18 +73,20 @@ abstract class AbstractIncrementalCache<ClassName>(
         result
     }
 
-    private val subtypesMap = registerMap(SubtypesMap(SUBTYPES.storageFile))
-    private val supertypesMap = registerMap(SupertypesMap(SUPERTYPES.storageFile))
-    protected val classFqNameToSourceMap = registerMap(ClassFqNameToSourceMap(CLASS_FQ_NAME_TO_SOURCE.storageFile, pathConverter))
+    private val subtypesMap = registerMap(SubtypesMap(SUBTYPES.storageFile, context))
+    private val supertypesMap = registerMap(SupertypesMap(SUPERTYPES.storageFile, context))
+    protected val classFqNameToSourceMap =
+        registerMap(ClassFqNameToSourceMap(CLASS_FQ_NAME_TO_SOURCE.storageFile, context))
     internal abstract val sourceToClassesMap: AbstractSourceToOutputMap<ClassName>
     internal abstract val dirtyOutputClassesMap: AbstractDirtyClassesMap<ClassName>
+
     /**
      * A file X is a complementary to a file Y if they contain corresponding expect/actual declarations.
      * Complementary files should be compiled together during IC so the compiler does not complain
      * about missing parts.
      * TODO: provide a better solution (maintain an index of expect/actual declarations akin to IncrementalPackagePartProvider)
      */
-    private val complementaryFilesMap = registerMap(ComplementarySourceFilesMap(COMPLEMENTARY_FILES.storageFile, pathConverter))
+    private val complementaryFilesMap = registerMap(ComplementarySourceFilesMap(COMPLEMENTARY_FILES.storageFile, context))
 
     override fun classesFqNamesBySources(files: Iterable<File>): Collection<FqName> =
         files.flatMapTo(HashSet()) { sourceToClassesMap.getFqNames(it) }
@@ -157,9 +161,10 @@ abstract class AbstractIncrementalCache<ClassName>(
 
     protected class ClassFqNameToSourceMap(
         storageFile: File,
-        private val pathConverter: FileToPathConverter
-    ) :
-        BasicStringMap<String>(storageFile, EnumeratorStringDescriptor(), PathStringDescriptor) {
+        context: IncrementalCacheContext
+    ) : BasicStringMap<String>(storageFile, EnumeratorStringDescriptor(), PathStringDescriptor, context) {
+        private val pathConverter: FileToPathConverter = context.pathConverter
+
         operator fun set(fqName: FqName, sourceFile: File) {
             storage[fqName.asString()] = pathConverter.toPath(sourceFile)
         }

@@ -14,18 +14,25 @@ class DirtyFilesContainer(
     private val reporter: ICReporter,
     private val sourceFilesExtensions: List<String>
 ) {
-    private val myDirtyFiles = HashSet<File>()
+    private val myDirtyKotlinFiles = HashSet<File>()
+    private val myDirtyJavaFiles = HashSet<File>()
 
-    fun toMutableList(): MutableList<File> =
-        ArrayList(myDirtyFiles)
+    val kotlinFiles: Set<File>
+        get() = myDirtyKotlinFiles
+
+    val javaFiles: Set<File>
+        get() = myDirtyJavaFiles
 
     fun add(files: Iterable<File>, reason: String?) {
-        val existingKotlinFiles = files.filter { it.isKotlinFile(sourceFilesExtensions) }
-        if (existingKotlinFiles.isNotEmpty()) {
-            myDirtyFiles.addAll(existingKotlinFiles)
-            if (reason != null) {
-                reporter.reportMarkDirty(existingKotlinFiles, reason)
+        for (file in files) {
+            if (file.isJavaFile()) {
+                myDirtyJavaFiles.add(file)
+            } else if (file.isKotlinFile(sourceFilesExtensions)) {
+                myDirtyKotlinFiles.add(file)
             }
+        }
+        if (reason != null) {
+            reporter.reportMarkDirty(files, reason)
         }
     }
 

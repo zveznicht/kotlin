@@ -9,8 +9,9 @@ import org.jetbrains.kotlin.incremental.dumpCollection
 import java.io.File
 
 class SourceToOutputFilesMap(
-    storageFile: File
-) : BasicStringMap<Collection<String>>(storageFile, PathStringDescriptor, StringCollectionExternalizer) {
+    storageFile: File,
+    context: IncrementalCacheContext
+) : BasicStringMap<Collection<String>>(storageFile, PathStringDescriptor, StringCollectionExternalizer, context) {
 
     operator fun set(sourceFile: File, outputFiles: Collection<File>) {
         storage[sourceFile.absolutePath] = outputFiles.map { it.absolutePath }

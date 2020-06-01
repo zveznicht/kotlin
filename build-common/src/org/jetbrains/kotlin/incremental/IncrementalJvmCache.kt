@@ -45,10 +45,10 @@ val KOTLIN_CACHE_DIRECTORY_NAME = "kotlin"
 open class IncrementalJvmCache(
     private val targetDataRoot: File,
     targetOutputDir: File?,
-    pathConverter: FileToPathConverter
+    context: IncrementalCacheContext
 ) : AbstractIncrementalCache<JvmClassName>(
     workingDir = File(targetDataRoot, KOTLIN_CACHE_DIRECTORY_NAME),
-    pathConverter = pathConverter
+    context = context
 ), IncrementalCache {
     companion object {
         private val PROTO_MAP = "proto"
@@ -63,8 +63,8 @@ open class IncrementalJvmCache(
         private val MODULE_MAPPING_FILE_NAME = "." + ModuleMapping.MAPPING_FILE_EXT
     }
 
-    override val sourceToClassesMap = registerMap(SourceToJvmNameMap(SOURCE_TO_CLASSES.storageFile, pathConverter))
-    override val dirtyOutputClassesMap = registerMap(DirtyClassesJvmNameMap(DIRTY_OUTPUT_CLASSES.storageFile))
+    override val sourceToClassesMap = registerMap(SourceToJvmNameMap(SOURCE_TO_CLASSES.storageFile, context))
+    override val dirtyOutputClassesMap = registerMap(DirtyClassesJvmNameMap(DIRTY_OUTPUT_CLASSES.storageFile, context))
 
     private val protoMap = registerMap(ProtoMap(PROTO_MAP.storageFile))
     private val constantsMap = registerMap(ConstantsMap(CONSTANTS_MAP.storageFile))
@@ -73,7 +73,7 @@ open class IncrementalJvmCache(
     private val partToMultifileFacade = registerMap(MultifileClassPartMap(MULTIFILE_CLASS_PARTS.storageFile))
     private val inlineFunctionsMap = registerMap(InlineFunctionsMap(INLINE_FUNCTIONS.storageFile))
     // todo: try to use internal names only?
-    private val internalNameToSource = registerMap(InternalNameToSourcesMap(INTERNAL_NAME_TO_SOURCE.storageFile, pathConverter))
+    private val internalNameToSource = registerMap(InternalNameToSourcesMap(INTERNAL_NAME_TO_SOURCE.storageFile, context))
     // gradle only
     private val javaSourcesProtoMap = registerMap(JavaSourcesProtoMap(JAVA_SOURCES_PROTO_MAP.storageFile))
 
@@ -267,7 +267,7 @@ open class IncrementalJvmCache(
         return protoMap[JvmClassName.byInternalName(MODULE_MAPPING_FILE_NAME)]?.bytes
     }
 
-    private inner class ProtoMap(storageFile: File) : BasicStringMap<ProtoMapValue>(storageFile, ProtoMapValueExternalizer) {
+    private inner class ProtoMap(storageFile: File) : BasicStringMap<ProtoMapValue>(storageFile, ProtoMapValueExternalizer, context) {
 
         fun process(kotlinClass: LocalFileKotlinClass, changesCollector: ChangesCollector) {
             return put(kotlinClass, changesCollector)
@@ -321,7 +321,7 @@ open class IncrementalJvmCache(
     }
 
     private inner class JavaSourcesProtoMap(storageFile: File) :
-        BasicStringMap<SerializedJavaClass>(storageFile, JavaClassProtoMapValueExternalizer) {
+        BasicStringMap<SerializedJavaClass>(storageFile, JavaClassProtoMapValueExternalizer, context) {
         fun process(jvmClassName: JvmClassName, newData: SerializedJavaClass, changesCollector: ChangesCollector) {
             val key = jvmClassName.internalName
             val oldData = storage[key]
@@ -352,7 +352,7 @@ open class IncrementalJvmCache(
     }
 
     // todo: reuse code with InlineFunctionsMap?
-    private inner class ConstantsMap(storageFile: File) : BasicStringMap<Map<String, Any>>(storageFile, ConstantsMapExternalizer) {
+    private inner class ConstantsMap(storageFile: File) : BasicStringMap<Map<String, Any>>(storageFile, ConstantsMapExternalizer, context) {
         private fun getConstantsMap(bytes: ByteArray): Map<String, Any> {
             val result = HashMap<String, Any>()
 
@@ -396,7 +396,7 @@ open class IncrementalJvmCache(
             value.dumpMap(Any::toString)
     }
 
-    private inner class PackagePartMap(storageFile: File) : BasicStringMap<Boolean>(storageFile, BooleanDataDescriptor.INSTANCE) {
+    private inner class PackagePartMap(storageFile: File) : BasicStringMap<Boolean>(storageFile, BooleanDataDescriptor.INSTANCE, context) {
         fun addPackagePart(className: JvmClassName) {
             storage[className.internalName] = true
         }
@@ -412,7 +412,7 @@ open class IncrementalJvmCache(
     }
 
     private inner class MultifileClassFacadeMap(storageFile: File) :
-        BasicStringMap<Collection<String>>(storageFile, StringCollectionExternalizer) {
+        BasicStringMap<Collection<String>>(storageFile, StringCollectionExternalizer, context) {
         operator fun set(className: JvmClassName, partNames: Collection<String>) {
             storage[className.internalName] = partNames
         }
@@ -431,7 +431,7 @@ open class IncrementalJvmCache(
     }
 
     private inner class MultifileClassPartMap(storageFile: File) :
-        BasicStringMap<String>(storageFile, EnumeratorStringDescriptor.INSTANCE) {
+        BasicStringMap<String>(storageFile, EnumeratorStringDescriptor.INSTANCE, context) {
         fun set(partName: String, facadeName: String) {
             storage[partName] = facadeName
         }
@@ -448,8 +448,10 @@ open class IncrementalJvmCache(
 
     inner class InternalNameToSourcesMap(
         storageFile: File,
-        private val pathConverter: FileToPathConverter
-    ) : BasicStringMap<Collection<String>>(storageFile, EnumeratorStringDescriptor(), PathCollectionExternalizer) {
+        context: IncrementalCacheContext
+    ) : BasicStringMap<Collection<String>>(storageFile, EnumeratorStringDescriptor(), PathCollectionExternalizer, context) {
+        private val pathConverter: FileToPathConverter = context.pathConverter
+
         operator fun set(internalName: String, sourceFiles: Collection<File>) {
             storage[internalName] = pathConverter.toPaths(sourceFiles)
         }
@@ -471,7 +473,7 @@ open class IncrementalJvmCache(
     }
 
     private inner class InlineFunctionsMap(storageFile: File) :
-        BasicStringMap<Map<String, Long>>(storageFile, StringToLongMapExternalizer) {
+        BasicStringMap<Map<String, Long>>(storageFile, StringToLongMapExternalizer, context) {
         private fun getInlineFunctionsMap(header: KotlinClassHeader, bytes: ByteArray): Map<String, Long> {
             val inlineFunctions = inlineFunctionsJvmNames(header)
             if (inlineFunctions.isEmpty()) return emptyMap()

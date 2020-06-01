@@ -21,8 +21,9 @@ import org.jetbrains.kotlin.name.FqName
 import java.io.File
 
 internal open class ClassOneToManyMap(
-        storageFile: File
-) : BasicStringMap<Collection<String>>(storageFile, StringCollectionExternalizer) {
+    storageFile: File,
+    context: IncrementalCacheContext
+) : BasicStringMap<Collection<String>>(storageFile, StringCollectionExternalizer, context) {
     override fun dumpValue(value: Collection<String>): String = value.dumpCollection()
 
     fun add(key: FqName, value: FqName) {
@@ -30,7 +31,7 @@ internal open class ClassOneToManyMap(
     }
 
     operator fun get(key: FqName): Collection<FqName> =
-            storage[key.asString()]?.map(::FqName) ?: setOf()
+        storage[key.asString()]?.map(::FqName) ?: setOf()
 
     operator fun set(key: FqName, values: Collection<FqName>) {
         if (values.isEmpty()) {
@@ -51,5 +52,12 @@ internal open class ClassOneToManyMap(
     }
 }
 
-internal class SubtypesMap(storageFile: File) : ClassOneToManyMap(storageFile)
-internal class SupertypesMap(storageFile: File) : ClassOneToManyMap(storageFile)
+internal class SubtypesMap(
+    storageFile: File,
+    context: IncrementalCacheContext
+) : ClassOneToManyMap(storageFile, context)
+
+internal class SupertypesMap(
+    storageFile: File,
+    context: IncrementalCacheContext
+) : ClassOneToManyMap(storageFile, context)

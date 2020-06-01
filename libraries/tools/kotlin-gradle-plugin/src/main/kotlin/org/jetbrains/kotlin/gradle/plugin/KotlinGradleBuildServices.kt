@@ -76,9 +76,6 @@ internal class KotlinGradleBuildServices private constructor(
         TaskExecutionResults.clear()
 
         val gradle = result.gradle!!
-        GradleCompilerRunner.clearBuildModulesInfo()
-
-        val rootProject = gradle.rootProject
         GradleCompilerRunner.cleanUpAfterBuildFinished(gradle.rootProject)
 
         if (shouldReportMemoryUsage) {

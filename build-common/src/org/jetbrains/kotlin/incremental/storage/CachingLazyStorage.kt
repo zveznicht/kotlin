@@ -25,8 +25,8 @@ import java.io.File
 /**
  * It's lazy in a sense that PersistentHashMap is created only on write
  */
-class CachingLazyStorage<K, V>(
-    private val storageFile: File,
+open class CachingLazyStorage<K, V>(
+    override val storageFile: File,
     private val keyDescriptor: KeyDescriptor<K>,
     private val valueExternalizer: DataExternalizer<V>
 ) : LazyStorage<K, V> {

@@ -16,18 +16,19 @@
 
 package org.jetbrains.kotlin.incremental
 
-import org.jetbrains.kotlin.build.report.ICReporter
 import org.jetbrains.kotlin.incremental.storage.BasicMapsOwner
-import org.jetbrains.kotlin.incremental.storage.FileToCanonicalPathConverter
+import org.jetbrains.kotlin.incremental.storage.IncrementalCacheContext
 import org.jetbrains.kotlin.serialization.SerializerExtensionProtocol
+import java.io.Closeable
 import java.io.File
-
-private val PATH_CONVERTER = FileToCanonicalPathConverter
+import java.io.IOException
 
 abstract class IncrementalCachesManager<PlatformCache : AbstractIncrementalCache<*>>(
     cachesRootDir: File,
-    protected val reporter: ICReporter
-) {
+    context: IncrementalCacheContext
+) : Closeable {
+    protected val reporter = context.reporter
+
     private val caches = arrayListOf<BasicMapsOwner>()
     protected fun <T : BasicMapsOwner> T.registerCache() {
         caches.add(this)
@@ -36,51 +37,52 @@ abstract class IncrementalCachesManager<PlatformCache : AbstractIncrementalCache
     private val inputSnapshotsCacheDir = File(cachesRootDir, "inputs").apply { mkdirs() }
     private val lookupCacheDir = File(cachesRootDir, "lookups").apply { mkdirs() }
 
-    val inputsCache: InputsCache = InputsCache(inputSnapshotsCacheDir, reporter).apply { registerCache() }
-    val lookupCache: LookupStorage = LookupStorage(lookupCacheDir, PATH_CONVERTER).apply { registerCache() }
+    val inputsCache: InputsCache = InputsCache(inputSnapshotsCacheDir, context).apply { registerCache() }
+    val lookupCache: LookupStorage = LookupStorage(lookupCacheDir, context).apply { registerCache() }
     abstract val platformCache: PlatformCache
 
-    fun close(flush: Boolean = false): Boolean {
-        var successful = true
+    override fun close() {
+        forEachCacheSafe("close") { it.close() }
+    }
 
+    fun flush() {
+        forEachCacheSafe("flush") { it.flush(false) }
+    }
+
+    private fun forEachCacheSafe(action: String, fn: (BasicMapsOwner) -> Unit) {
+        val exceptions = ArrayList<Exception>()
         for (cache in caches) {
-            if (flush) {
-                try {
-                    cache.flush(false)
-                } catch (e: Throwable) {
-                    successful = false
-                    reporter.report { "Exception when flushing cache ${cache.javaClass}: $e" }
-                }
-            }
-
             try {
-                cache.close()
-            } catch (e: Throwable) {
-                successful = false
-                reporter.report { "Exception when closing cache ${cache.javaClass}: $e" }
+                fn(cache)
+            } catch (e: Exception) {
+                exceptions.add(e)
+                reporter.report { "Exception during '$action' with cache ${cache.javaClass}: $e" }
             }
         }
-
-        return successful
+        if (exceptions.isNotEmpty()) {
+            val ioEx = IOException("Could not $action IC caches properly")
+            exceptions.forEach { ioEx.addSuppressed(it) }
+            throw ioEx
+        }
     }
 }
 
 class IncrementalJvmCachesManager(
     cacheDirectory: File,
     outputDir: File,
-    reporter: ICReporter
-) : IncrementalCachesManager<IncrementalJvmCache>(cacheDirectory, reporter) {
+    context: IncrementalCacheContext
+) : IncrementalCachesManager<IncrementalJvmCache>(cacheDirectory, context) {
 
     private val jvmCacheDir = File(cacheDirectory, "jvm").apply { mkdirs() }
-    override val platformCache = IncrementalJvmCache(jvmCacheDir, outputDir, PATH_CONVERTER).apply { registerCache() }
+    override val platformCache = IncrementalJvmCache(jvmCacheDir, outputDir, context).apply { registerCache() }
 }
 
 class IncrementalJsCachesManager(
     cachesRootDir: File,
-    reporter: ICReporter,
+    context: IncrementalCacheContext,
     serializerProtocol: SerializerExtensionProtocol
-) : IncrementalCachesManager<IncrementalJsCache>(cachesRootDir, reporter) {
+) : IncrementalCachesManager<IncrementalJsCache>(cachesRootDir, context) {
 
     private val jsCacheFile = File(cachesRootDir, "js").apply { mkdirs() }
-    override val platformCache = IncrementalJsCache(jsCacheFile, PATH_CONVERTER, serializerProtocol).apply { registerCache() }
+    override val platformCache = IncrementalJsCache(jsCacheFile, context, serializerProtocol).apply { registerCache() }
 }
