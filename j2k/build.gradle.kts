@@ -36,8 +36,6 @@ dependencies {
     testRuntime(project(":native:frontend.native"))
     testRuntime(project(":plugins:kapt3-idea")) { isTransitive = false }
     testRuntime(project(":idea:idea-jvm"))
-    testRuntime(project(":idea:idea-android"))
-    testRuntime(project(":plugins:android-extensions-ide"))
     testRuntime(project(":sam-with-receiver-ide-plugin"))
     testRuntime(project(":allopen-ide-plugin"))
     testRuntime(project(":noarg-ide-plugin"))
@@ -55,7 +53,6 @@ dependencies {
             testRuntime(intellijPluginDep("repository-search"))
         }
     }
-    testRuntime(intellijPluginDep("android"))
     testRuntime(intellijPluginDep("smali"))
     testRuntime(intellijPluginDep("junit"))
     testRuntime(intellijPluginDep("testng"))
@@ -66,14 +63,6 @@ dependencies {
     testRuntime(intellijPluginDep("java-i18n"))
     testRuntime(intellijPluginDep("java-decompiler"))
     testRuntime(project(":plugins:kapt3-idea")) { isTransitive = false }
-
-    if (Ide.AS36.orHigher()) {
-        testRuntime(intellijPluginDep("android-layoutlib"))
-    }
-
-    if (Ide.AS41.orHigher()) {
-        testRuntime(intellijPluginDep("platform-images"))
-    }
 }
 
 sourceSets {
