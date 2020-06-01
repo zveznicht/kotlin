@@ -52,6 +52,7 @@ dependencies {
 
     testCompile project(':kotlin-test:kotlin-test-junit')
     testCompile project(':kotlin-coroutines-experimental-compat')
+    testCompile "com.google.guava:guava-testlib:18.0"
 
     builtins project(':core:builtins')
 }
