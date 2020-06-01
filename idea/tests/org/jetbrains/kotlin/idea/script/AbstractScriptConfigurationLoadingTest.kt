@@ -113,6 +113,7 @@ abstract class AbstractScriptConfigurationLoadingTest : AbstractScriptConfigurat
             PsiDocumentManager.getInstance(project).commitAllDocuments()
             myFile = psiManager.findFile(file.virtualFile)
         }
+        Thread.sleep(1)
     }
 
     protected fun assertReports(expected: String, file: KtFile = myFile as KtFile) {
