@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.konan.file
 import java.net.URI
 import java.nio.file.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.zip.ZipFile
 
 private val File.zipUri: URI
     get() = URI.create("jar:${canonicalFile.toPath().toUri()}")
@@ -55,7 +56,7 @@ fun Path.unzipTo(directory: Path) {
     }
 }
 
-fun <T> File.withZipFileSystem(mutable: Boolean = false, action: (FileSystem) -> T): T {
+fun <T> File.withZipFileSystem(mutable: Boolean, action: (FileSystem) -> T): T {
     val zipFileSystem = this.zipFileSystem(mutable)
     return try {
         action(zipFileSystem)
@@ -74,6 +75,7 @@ fun <T> File.withZipFileSystem(mutable: Boolean = false, action: (FileSystem) ->
     }
 }
 
-fun <T> File.withZipFileSystem(action: (FileSystem) -> T): T = this.withZipFileSystem(false, action)
+fun <T> File.withZipFile(action: (ZipFile) -> T): T =  ZipFile(this.javaPath.toFile()).use(action)
 
+// TODO: Get rid of indirection.
 fun <T> File.withMutableZipFileSystem(action: (FileSystem) -> T): T = this.withZipFileSystem(true, action)

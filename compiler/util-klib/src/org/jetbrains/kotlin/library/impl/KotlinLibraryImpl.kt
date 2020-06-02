@@ -20,9 +20,12 @@ import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.library.*
 import org.jetbrains.kotlin.konan.properties.Properties
 import org.jetbrains.kotlin.konan.properties.loadProperties
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 open class BaseKotlinLibraryImpl(
-    val access: BaseLibraryAccess<KotlinLibraryLayout>,
+    val access: BaseLibraryAccess,
     override val isDefault: Boolean
 ) : BaseKotlinLibrary {
     override val libraryFile get() = access.klib
@@ -53,7 +56,7 @@ open class BaseKotlinLibraryImpl(
 }
 
 open class MetadataLibraryImpl(
-    val access: MetadataLibraryAccess<MetadataKotlinLibraryLayout>
+    val access: MetadataLibraryAccess
 ) : MetadataLibrary {
 
     override val moduleHeaderData: ByteArray by lazy {
@@ -85,16 +88,16 @@ open class MetadataLibraryImpl(
 }
 
 abstract class IrLibraryImpl(
-    val access: IrLibraryAccess<IrKotlinLibraryLayout>
+    val access: IrLibraryAccess
 ) : IrLibrary {
     override val dataFlowGraph by lazy {
-        access.inPlace { it: IrKotlinLibraryLayout ->
+        access.inPlace {
             it.dataFlowGraphFile.let { if (it.exists) it.readBytes() else null }
         }
     }
 }
 
-class IrMonoliticLibraryImpl(_access: IrLibraryAccess<IrKotlinLibraryLayout>) : IrLibraryImpl(_access) {
+class IrMonoliticLibraryImpl(_access: IrLibraryAccess) : IrLibraryImpl(_access) {
     override fun fileCount(): Int = files.entryCount()
 
     override fun irDeclaration(index: Int, fileIndex: Int) = loadIrDeclaration(index, fileIndex)
@@ -149,7 +152,7 @@ class IrMonoliticLibraryImpl(_access: IrLibraryAccess<IrKotlinLibraryLayout>) : 
     }
 }
 
-class IrPerFileLibraryImpl(_access: IrLibraryAccess<IrKotlinLibraryLayout>) : IrLibraryImpl(_access) {
+class IrPerFileLibraryImpl(_access: IrLibraryAccess) : IrLibraryImpl(_access) {
 
     private val directories by lazy {
         access.realFiles {
@@ -236,9 +239,9 @@ fun createKotlinLibrary(
     component: String,
     isDefault: Boolean = false
 ): KotlinLibrary {
-    val baseAccess = BaseLibraryAccess<KotlinLibraryLayout>(libraryFile, component)
-    val metadataAccess = MetadataLibraryAccess<MetadataKotlinLibraryLayout>(libraryFile, component)
-    val irAccess = IrLibraryAccess<IrKotlinLibraryLayout>(libraryFile, component)
+    val baseAccess = BaseLibraryAccess(libraryFile, component)
+    val metadataAccess = MetadataLibraryAccess(libraryFile, component)
+    val irAccess = IrLibraryAccess(libraryFile, component)
 
     val base = BaseKotlinLibraryImpl(baseAccess, isDefault)
     val metadata = MetadataLibraryImpl(metadataAccess)
@@ -252,7 +255,7 @@ fun createKotlinLibraryComponents(
     libraryFile: File,
     isDefault: Boolean = true
 ) : List<KotlinLibrary> {
-    val baseAccess = BaseLibraryAccess<KotlinLibraryLayout>(libraryFile, null)
+    val baseAccess = BaseLibraryAccess(libraryFile, null)
     val base = BaseKotlinLibraryImpl(baseAccess, isDefault)
     return base.componentList.map {
         createKotlinLibrary(libraryFile, it, isDefault)
@@ -274,7 +277,7 @@ fun isKotlinLibrary(libraryFile: java.io.File): Boolean =
 
 val File.isPre_1_4_Library: Boolean
     get() {
-        val baseAccess = BaseLibraryAccess<KotlinLibraryLayout>(this, null)
+        val baseAccess = BaseLibraryAccess(this, null)
         val base = BaseKotlinLibraryImpl(baseAccess, false)
         return base.has_pre_1_4_manifest
     }

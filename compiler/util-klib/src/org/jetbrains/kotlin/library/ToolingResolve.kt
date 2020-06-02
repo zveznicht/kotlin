@@ -5,9 +5,7 @@
 
 package org.jetbrains.kotlin.library
 
-import org.jetbrains.kotlin.konan.file.File
-import org.jetbrains.kotlin.konan.file.file
-import org.jetbrains.kotlin.konan.file.withZipFileSystem
+import org.jetbrains.kotlin.konan.file.*
 import org.jetbrains.kotlin.library.impl.createKotlinLibrary
 import org.jetbrains.kotlin.util.Logger
 import java.io.IOException
@@ -55,7 +53,7 @@ object ToolingSingleFileKlibResolveStrategy : SingleFileKlibResolveStrategy {
 
     private fun fakeLibrary(libraryFile: File): KotlinLibrary = createKotlinLibrary(libraryFile, NONEXISTENT_COMPONENT_NAME)
 
-    private fun <T : Any> withSafeAccess(libraryFile: File, action: (localRoot: File) -> T?): T? {
+    private fun <T : Any> withSafeAccess(libraryFile: File, action: (localRoot: AbstractFile) -> T?): T? {
         val extension = libraryFile.extension
 
         val wrappedAction: () -> T? = when {
@@ -63,7 +61,7 @@ object ToolingSingleFileKlibResolveStrategy : SingleFileKlibResolveStrategy {
                 { action(libraryFile) }
             }
             libraryFile.isFile && extension == KLIB_FILE_EXTENSION -> {
-                { libraryFile.withZipFileSystem { fs -> action(fs.file("/")) } }
+                { libraryFile.withZipFile { zip -> action(ZippedFile(zip, "/")) } }
             }
             else -> return null
         }
@@ -75,6 +73,6 @@ object ToolingSingleFileKlibResolveStrategy : SingleFileKlibResolveStrategy {
         }
     }
 
-    private val File.looksLikeKlibComponent: Boolean
+    private val AbstractFile.looksLikeKlibComponent: Boolean
         get() = child(KLIB_MANIFEST_FILE_NAME).isFile
 }

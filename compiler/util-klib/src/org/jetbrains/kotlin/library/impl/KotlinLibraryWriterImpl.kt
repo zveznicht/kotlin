@@ -16,7 +16,7 @@ const val KLIB_DEFAULT_COMPONENT_NAME = "default"
 open class KotlinLibraryLayoutForWriter(
     override val libDir: File,
     override val component: String = KLIB_DEFAULT_COMPONENT_NAME
-) : KotlinLibraryLayout, MetadataKotlinLibraryLayout, IrKotlinLibraryLayout
+) : KotlinLibraryLayout<File>, MetadataKotlinLibraryLayout<File>, IrKotlinLibraryLayout<File>
 
 open class BaseWriterImpl(
     val libraryLayout: KotlinLibraryLayoutForWriter,
@@ -115,7 +115,7 @@ fun buildKoltinLibrary(
     dataFlowGraph: ByteArray?,
     builtInsPlatform: BuiltInsPlatform,
     nativeTargets: List<String> = emptyList()
-): KotlinLibraryLayout {
+): KotlinLibraryLayout<File> {
 
     val library = KoltinLibraryWriterImpl(File(output), moduleName, versions, builtInsPlatform, nativeTargets, nopack)
 

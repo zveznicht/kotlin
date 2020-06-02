@@ -18,62 +18,62 @@ import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
 
-data class File constructor(internal val javaPath: Path) {
+data class File constructor(internal val javaPath: Path) : MutableFile {
     constructor(parent: Path, child: String): this(parent.resolve(child))
     constructor(parent: File, child: String): this(parent.javaPath.resolve(child))
     constructor(parent: File, child: File): this(parent.javaPath.resolve(child.javaPath))
     constructor(path: String): this(Paths.get(path))
     constructor(parent: String, child: String): this(Paths.get(parent, child))
 
-    val path: String
+    override val path: String
         get() = javaPath.toString()
-    val absolutePath: String
+    override val absolutePath: String
         get() = javaPath.toAbsolutePath().toString()
-    val absoluteFile: File
+    override val absoluteFile: File
         get() = File(absolutePath)
-    val canonicalPath: String
+    override val canonicalPath: String
         get() = javaPath.toFile().canonicalPath
-    val canonicalFile: File
+    override val canonicalFile: File
         get() = File(canonicalPath)
 
-    val name: String
+    override val name: String
         get() = javaPath.fileName.toString().removeSuffixIfPresent("/") // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=8153248
-    val extension: String
+    override val extension: String
         get() = name.substringAfterLast('.', "")
-    val parent: String
+    override val parent: String
         get() = javaPath.parent.toString()
-    val parentFile: File
+    override val parentFile: File
         get() = File(javaPath.parent)
 
-    val exists
+    override val exists
         get() = Files.exists(javaPath)
-    val isDirectory
+    override val isDirectory
         get() = Files.isDirectory(javaPath)
-    val isFile
+    override val isFile
         get() = Files.isRegularFile(javaPath)
-    val isAbsolute
+    override val isAbsolute
         get() = javaPath.isAbsolute
-    val listFiles: List<File>
+    override val listFiles: List<File>
         get() = Files.newDirectoryStream(javaPath).use { stream -> stream.map(::File) }
-    val listFilesOrEmpty: List<File>
+    override val listFilesOrEmpty: List<File>
         get() = if (exists) listFiles else emptyList()
 
-    fun child(name: String) = File(this, name)
+    override fun child(name: String) = File(this, name)
 
-    fun copyTo(destination: File) {
+    override fun copyTo(destination: File) {
         Files.copy(javaPath, destination.javaPath, StandardCopyOption.REPLACE_EXISTING)
     }
 
-    fun recursiveCopyTo(destination: File, resetTimeAttributes: Boolean = false) {
+    override fun recursiveCopyTo(destination: File, resetTimeAttributes: Boolean) {
         val sourcePath = javaPath
         val destPath = destination.javaPath
         sourcePath.recursiveCopyTo(destPath, resetTimeAttributes = resetTimeAttributes)
     }
 
-    fun mkdirs() = Files.createDirectories(javaPath)
-    fun delete() = Files.deleteIfExists(javaPath)
-    fun deleteRecursively() = postorder{Files.delete(it)}
-    fun deleteOnExitRecursively() = preorder{File(it).deleteOnExit()}
+    override fun mkdirs(): File = this.also { Files.createDirectories(javaPath) }
+    override fun delete(): Boolean = Files.deleteIfExists(javaPath)
+    override fun deleteRecursively(): Unit = postorder { Files.delete(it) }
+    override fun deleteOnExitRecursively(): Unit = preorder { File(it).deleteOnExit() }
 
     fun preorder(task: (Path) -> Unit) {
         if (!this.exists) return
@@ -118,30 +118,35 @@ data class File constructor(internal val javaPath: Path) {
         return channel.map(mode, start, fileSize).also { channel.close() }
     }
 
-    fun deleteOnExit(): File {
+    override fun deleteOnExit(): File {
         // Works only on the default file system, 
         // but that's okay for now.
         javaPath.toFile().deleteOnExit()
         return this // Allow streaming.
     }
-    fun readBytes() = Files.readAllBytes(javaPath)
-    fun writeBytes(bytes: ByteArray) = Files.write(javaPath, bytes)
-    fun appendBytes(bytes: ByteArray)
-            = Files.write(javaPath, bytes, StandardOpenOption.APPEND)
 
-    fun writeLines(lines: Iterable<String>) {
+    override fun readBytes() = Files.readAllBytes(javaPath)
+    override fun writeBytes(bytes: ByteArray) {
+        Files.write(javaPath, bytes)
+    }
+
+    override fun appendBytes(bytes: ByteArray) {
+        Files.write(javaPath, bytes, StandardOpenOption.APPEND)
+    }
+
+    override fun writeLines(lines: Iterable<String>) {
         Files.write(javaPath, lines)
     }
 
-    fun writeText(text: String): Unit = writeLines(listOf(text))
+    override fun writeText(text: String): Unit = writeLines(listOf(text))
 
-    fun forEachLine(action: (String) -> Unit) {
+    override fun forEachLine(action: (String) -> Unit) {
         Files.lines(javaPath).use { lines ->
             lines.forEach { action(it) }
         }
     }
 
-    fun createAsSymlink(target: String) {
+    override fun createAsSymlink(target: String) {
         val targetPath = Paths.get(target)
         if (Files.isSymbolicLink(this.javaPath) && Files.readSymbolicLink(javaPath) == targetPath) {
             return
@@ -152,9 +157,9 @@ data class File constructor(internal val javaPath: Path) {
     override fun toString() = path
 
     // TODO: Consider removeing these after konanazing java.util.Properties.
-    fun bufferedReader() = Files.newBufferedReader(javaPath)
-    fun outputStream() = Files.newOutputStream(javaPath)
-    fun printWriter() = javaPath.toFile().printWriter()
+    override fun bufferedReader() = Files.newBufferedReader(javaPath)
+    override fun outputStream() = Files.newOutputStream(javaPath)
+    override fun printWriter() = javaPath.toFile().printWriter()
 
     companion object {
         val userDir
@@ -169,7 +174,7 @@ data class File constructor(internal val javaPath: Path) {
         val separator = java.io.File.separator
     }
 
-    fun readStrings() = mutableListOf<String>().also { list -> forEachLine{list.add(it)}}
+    override fun readStrings() = mutableListOf<String>().also { list -> forEachLine{list.add(it)}}
 
     override fun equals(other: Any?): Boolean {
         val otherFile = other as? File ?: return false

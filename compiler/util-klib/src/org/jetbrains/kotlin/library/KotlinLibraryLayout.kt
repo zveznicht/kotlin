@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.library
 
+import org.jetbrains.kotlin.konan.file.AbstractFile
 import org.jetbrains.kotlin.konan.file.File
 
 const val KLIB_MANIFEST_FILE_NAME = "manifest"
@@ -25,56 +26,61 @@ const val KLIB_IR_FOLDER_NAME = "ir"
 /**
  * This scheme describes the Kotlin/Native Library (KLIB) layout.
  */
-interface KotlinLibraryLayout {
-    val libDir: File
+
+// TODO: Do something with these ugly casts.
+// TODO: Questions:
+//      Can we make mutable and immutable library layouts?
+//      Does it worth making AbstractFile at all?
+interface KotlinLibraryLayout<out T : AbstractFile> {
+    val libDir: T
     val libraryName: String
         get() = libDir.path
     val component: String?
-    val componentDir: File
-        get() = File(libDir, component!!)
-    val manifestFile
-        get() = File(componentDir, KLIB_MANIFEST_FILE_NAME)
-    val resourcesDir
-        get() = File(componentDir, "resources")
-    val pre_1_4_manifest: File
-        get() = File(libDir, KLIB_MANIFEST_FILE_NAME)
+    val componentDir: T
+        get() = libDir.child(component!!) as T
+    val manifestFile: T
+        get() = componentDir.child(KLIB_MANIFEST_FILE_NAME) as T
+    val resourcesDir: T
+        get() = componentDir.child("resources") as T
+    val pre_1_4_manifest: T
+        get() = libDir.child(KLIB_MANIFEST_FILE_NAME) as T
 }
 
-interface MetadataKotlinLibraryLayout : KotlinLibraryLayout {
-    val metadataDir
-        get() = File(componentDir, "linkdata")
-    val moduleHeaderFile
-        get() = File(metadataDir, KLIB_MODULE_METADATA_FILE_NAME)
+interface MetadataKotlinLibraryLayout<out T : AbstractFile> : KotlinLibraryLayout<T> {
+    val metadataDir: T
+        get() = componentDir.child("linkdata") as T
+    val moduleHeaderFile: T
+        get() = metadataDir.child(KLIB_MODULE_METADATA_FILE_NAME) as T
 
-    fun packageFragmentsDir(packageName: String) =
-        File(metadataDir, if (packageName == "") "root_package" else "package_$packageName")
+    fun packageFragmentsDir(packageName: String): T =
+        metadataDir.child(if (packageName == "") "root_package" else "package_$packageName") as T
 
-    fun packageFragmentFile(packageFqName: String, partName: String) =
-        File(packageFragmentsDir(packageFqName), "$partName$KLIB_METADATA_FILE_EXTENSION_WITH_DOT")
+    fun packageFragmentFile(packageFqName: String, partName: String): T =
+        packageFragmentsDir(packageFqName).child("$partName$KLIB_METADATA_FILE_EXTENSION_WITH_DOT") as T
 }
 
-interface IrKotlinLibraryLayout : KotlinLibraryLayout {
-    val irDir
-        get() = File(componentDir, KLIB_IR_FOLDER_NAME)
-    val irDeclarations
-        get() = File(irDir, "irDeclarations.knd")
-    val irTypes
-        get() = File(irDir, "types.knt")
-    val irSignatures
-        get() = File(irDir, "signatures.knt")
-    val irStrings
-        get() = File(irDir, "strings.knt")
-    val irBodies
-        get() = File(irDir, "bodies.knb")
-    val irFiles
-        get() = File(irDir, "files.knf")
-    val dataFlowGraphFile
-        get() = File(irDir, "module_data_flow_graph")
+interface IrKotlinLibraryLayout<T : AbstractFile> : KotlinLibraryLayout<T> {
+    val irDir: T
+        get() = componentDir.child(KLIB_IR_FOLDER_NAME) as T
+    val irDeclarations: T
+        get() = irDir.child("irDeclarations.knd") as T
+    val irTypes: T
+        get() = irDir.child("types.knt") as T
+    val irSignatures: T
+        get() = irDir.child("signatures.knt") as T
+    val irStrings: T
+        get() = irDir.child("strings.knt") as T
+    val irBodies: T
+        get() = irDir.child("bodies.knb") as T
+    val irFiles: T
+        get() = irDir.child("files.knf") as T
+    val dataFlowGraphFile: T
+        get() = irDir.child("module_data_flow_graph") as T
 
-    fun irDeclarations(file: File): File = File(file, "irCombined.knd")
-    fun irTypes(file: File): File = File(file, "types.knt")
-    fun irSignatures(file: File): File = File(file, "signatures.knt")
-    fun irStrings(file: File): File = File(file, "strings.knt")
-    fun irBodies(file: File): File = File(file, "body.knb")
-    fun irFile(file: File): File = File(file, "file.knf")
+    fun irDeclarations(file: T): T = file.child("irCombined.knd") as T
+    fun irTypes(file: T): T = file.child("types.knt") as T
+    fun irSignatures(file: T): T = file.child("signatures.knt") as T
+    fun irStrings(file: T): T = file.child("strings.knt") as T
+    fun irBodies(file: T): T = file.child("body.knb") as T
+    fun irFile(file: T): T = file.child("file.knf") as T
 }

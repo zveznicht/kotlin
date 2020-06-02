@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream
 
 typealias Properties = java.util.Properties
 
-fun File.loadProperties(): Properties {
+fun AbstractFile.loadProperties(): Properties {
     val properties = java.util.Properties()
     this.bufferedReader().use { reader ->
         properties.load(reader)

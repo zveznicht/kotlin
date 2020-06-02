@@ -5,11 +5,12 @@
 
 package org.jetbrains.kotlin.library.impl
 
+import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.library.MetadataKotlinLibraryLayout
 import org.jetbrains.kotlin.library.MetadataWriter
 import org.jetbrains.kotlin.library.SerializedMetadata
 
-class MetadataWriterImpl(val metadataLayout: MetadataKotlinLibraryLayout) : MetadataWriter {
+class MetadataWriterImpl(val metadataLayout: MetadataKotlinLibraryLayout<File>) : MetadataWriter {
     init {
         metadataLayout.metadataDir.mkdirs()
     }

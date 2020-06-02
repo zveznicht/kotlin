@@ -5,9 +5,10 @@
 
 package org.jetbrains.kotlin.library.impl
 
+import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.library.*
 
-abstract class IrWriterImpl(val irLayout: IrKotlinLibraryLayout) : IrWriter {
+abstract class IrWriterImpl(val irLayout: IrKotlinLibraryLayout<File>) : IrWriter {
     init {
         irLayout.irDir.mkdirs()
     }
@@ -17,7 +18,7 @@ abstract class IrWriterImpl(val irLayout: IrKotlinLibraryLayout) : IrWriter {
     }
 }
 
-class IrMonoliticWriterImpl(irLayout: IrKotlinLibraryLayout) : IrWriterImpl(irLayout) {
+class IrMonoliticWriterImpl(irLayout: IrKotlinLibraryLayout<File>) : IrWriterImpl(irLayout) {
 
     override fun addIr(ir: SerializedIrModule) {
         with(ir.files.sortedBy { it.path }) {
@@ -31,7 +32,7 @@ class IrMonoliticWriterImpl(irLayout: IrKotlinLibraryLayout) : IrWriterImpl(irLa
     }
 }
 
-class IrPerFileWriterImpl(irLayout: IrKotlinLibraryLayout) : IrWriterImpl(irLayout) {
+class IrPerFileWriterImpl(irLayout: IrKotlinLibraryLayout<File>) : IrWriterImpl(irLayout) {
     override fun addIr(ir: SerializedIrModule) {
         ir.files.forEach {
             serializeFile(it)
