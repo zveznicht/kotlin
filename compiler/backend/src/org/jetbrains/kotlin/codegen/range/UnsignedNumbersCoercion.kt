@@ -9,11 +9,21 @@ import org.jetbrains.kotlin.builtins.UnsignedType
 import org.jetbrains.kotlin.builtins.UnsignedTypes
 import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.typeUtil.isInt
 import org.jetbrains.kotlin.types.typeUtil.isNothing
 import org.jetbrains.org.objectweb.asm.Type
 
 val StackValue.unsignedType: UnsignedType?
-    get() = kotlinType?.let { UnsignedTypes.toUnsignedType(it) }
+    get() {
+        val kotlinType = this.kotlinType ?: return null
+        val unsignedType = UnsignedTypes.toUnsignedType(kotlinType)
+        // Integer literals (of type Int) can be implicitly coerced to UInt.
+        return when {
+            unsignedType != null -> unsignedType
+            kotlinType.isInt() -> UnsignedType.UINT
+            else -> null
+        }
+    }
 
 fun coerceUnsignedToUInt(stackValue: StackValue, uIntKotlinType: KotlinType): StackValue =
     coerceUnsignedToUInt(stackValue, stackValue.kotlinType, uIntKotlinType)

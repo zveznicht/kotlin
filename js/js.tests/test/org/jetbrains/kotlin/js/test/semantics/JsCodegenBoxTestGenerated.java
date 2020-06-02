@@ -20620,6 +20620,11 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
                 runTest("compiler/testData/codegen/box/ranges/unsigned/kt36953_continue.kt");
             }
 
+            @TestMetadata("kt39260.kt")
+            public void testKt39260() throws Exception {
+                runTest("compiler/testData/codegen/box/ranges/unsigned/kt39260.kt");
+            }
+
             @TestMetadata("compiler/testData/codegen/box/ranges/unsigned/expression")
             @TestDataPath("$PROJECT_ROOT")
             @RunWith(JUnit3RunnerWithInners.class)
