@@ -355,8 +355,6 @@ public final class ByteArray {
 }
 
 public final class Char : kotlin.Comparable<kotlin.Char> {
-    public final val value: kotlin.Int
-        public final fun <get-value>(): kotlin.Int
     public open override /*1*/ fun compareTo(/*0*/ other: kotlin.Char): kotlin.Int
     public final operator fun dec(): kotlin.Char
     public open override /*1*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
@@ -1000,3 +998,4 @@ public final data class Pair</*0*/ out A, /*1*/ out B> : kotlin.io.Serializable 
     public final val name: kotlin.String
         public final fun <get-name>(): kotlin.String
 }
+
