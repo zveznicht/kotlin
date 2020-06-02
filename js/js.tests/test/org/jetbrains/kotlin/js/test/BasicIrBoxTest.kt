@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2018 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -55,8 +55,6 @@ abstract class BasicIrBoxTest(
     override val runIrPir: Boolean = getBoolean("kotlin.js.ir.pir", true)
 
     val runEs6Mode: Boolean = getBoolean("kotlin.js.ir.es6", false)
-
-    private val osName: String = System.getProperty("os.name").toLowerCase()
 
     // TODO Design incremental compilation for IR and add test support
     override val incrementalCompilationChecksEnabled = false
@@ -190,17 +188,6 @@ abstract class BasicIrBoxTest(
 
             compilationCache[outputFile.name.replace(".js", ".meta.js")] = actualOutputFile
         }
-    }
-
-    override fun dontRunOnSpecificPlatform(targetBackend: TargetBackend): Boolean {
-        if (targetBackend != TargetBackend.JS_IR_ES6) return false
-        if (!runEs6Mode) return false
-
-        // TODO: Since j2v8 does not support ES6 on mac and windows, temporary don't run such test on those platforms.
-        if (osName.indexOf("win") >= 0) return true
-        if (osName.indexOf("mac") >= 0 || osName.indexOf("darwin") >= 0) return true
-
-        return false
     }
 
     override fun runGeneratedCode(
