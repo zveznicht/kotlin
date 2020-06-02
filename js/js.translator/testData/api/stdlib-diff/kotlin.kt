@@ -34,45 +34,45 @@
 + public inline fun shortArrayOf(/*0*/ vararg elements: kotlin.Short /*kotlin.ShortArray*/): kotlin.ShortArray
 - @kotlin.js.library public fun shortArrayOf(/*0*/ vararg elements: kotlin.Short /*kotlin.ShortArray*/): kotlin.ShortArray
 - public fun shortArrayOf(/*0*/ vararg elements: kotlin.Short /*kotlin.ShortArray*/): kotlin.ShortArray
---- 201,191 ---
+--- 202,192 ---
 + @kotlin.SinceKotlin(version = "1.2") public fun kotlin.Double.toBits(): kotlin.Long
 + @kotlin.SinceKotlin(version = "1.2") public fun kotlin.Float.toBits(): kotlin.Int
 - @kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "doubleToBits") public fun kotlin.Double.toBits(): kotlin.Long
 - @kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "floatToBits") public fun kotlin.Float.toBits(): kotlin.Int
---- 205,195 ---
+--- 206,196 ---
 + @kotlin.SinceKotlin(version = "1.2") public fun kotlin.Double.toRawBits(): kotlin.Long
 + @kotlin.SinceKotlin(version = "1.2") public fun kotlin.Float.toRawBits(): kotlin.Int
 - @kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "doubleToRawBits") public fun kotlin.Double.toRawBits(): kotlin.Long
 - @kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "floatToRawBits") public fun kotlin.Float.toRawBits(): kotlin.Int
---- 232,222 ---
+--- 233,223 ---
 - public interface Annotation {
 - }
 - 
---- 244,231 ---
+--- 245,232 ---
 +     public constructor ArithmeticException(/*0*/ message: kotlin.String?)
 -     /*primary*/ public constructor ArithmeticException(/*0*/ message: kotlin.String?)
---- 260,247 ---
+--- 261,248 ---
 +     @kotlin.SinceKotlin(version = "1.4") public constructor AssertionError(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 -     /*primary*/ @kotlin.SinceKotlin(version = "1.4") public constructor AssertionError(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
---- 266,253 ---
+--- 267,254 ---
 +     public open override /*1*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
 +     public open override /*1*/ fun hashCode(): kotlin.Int
---- 268,257 ---
+--- 269,258 ---
 +     public open override /*1*/ fun toString(): kotlin.String
---- 302,292 ---
+--- 303,293 ---
 +     public open override /*2*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
 +     public open override /*2*/ fun hashCode(): kotlin.Int
---- 338,330 ---
+--- 339,331 ---
 +     public open override /*2*/ fun toString(): kotlin.String
---- 364,357 ---
+--- 365,358 ---
 +     public final val value: kotlin.Int
 +         public final fun <get-value>(): kotlin.Int
---- 366,361 ---
+--- 367,362 ---
 +     public open override /*1*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
 +     public open override /*1*/ fun hashCode(): kotlin.Int
---- 378,375 ---
+--- 379,376 ---
 +     @kotlin.js.JsName(name = "toString") public open override /*1*/ fun toString(): kotlin.String
---- 420,418 ---
+--- 421,419 ---
 - public interface CharSequence {
 -     public abstract val length: kotlin.Int
 -         public abstract fun <get-length>(): kotlin.Int
@@ -80,18 +80,18 @@
 -     public abstract fun subSequence(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.CharSequence
 - }
 - 
---- 429,420 ---
+--- 430,421 ---
 +     public constructor ClassCastException(/*0*/ message: kotlin.String?)
 -     /*primary*/ public constructor ClassCastException(/*0*/ message: kotlin.String?)
---- 443,434 ---
+--- 444,435 ---
 +     public constructor ConcurrentModificationException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 -     /*primary*/ public constructor ConcurrentModificationException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
---- 483,474 ---
+--- 494,485 ---
 +     public open override /*2*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
 +     public open override /*2*/ fun hashCode(): kotlin.Int
---- 515,508 ---
+--- 526,519 ---
 +     public open override /*2*/ fun toString(): kotlin.String
---- 556,550 ---
+--- 567,561 ---
 +     public open override /*1*/ fun compareTo(/*0*/ other: E): kotlin.Int
 +     public open override /*1*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
 +     public open override /*1*/ fun hashCode(): kotlin.Int
@@ -99,36 +99,36 @@
 -     public final override /*1*/ fun compareTo(/*0*/ other: E): kotlin.Int
 -     public final override /*1*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
 -     public final override /*1*/ fun hashCode(): kotlin.Int
---- 569,562 ---
+--- 580,573 ---
 +     public constructor Error(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 -     /*primary*/ public constructor Error(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
---- 576,569 ---
+--- 587,580 ---
 +     public constructor Exception(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 -     /*primary*/ public constructor Exception(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
---- 626,619 ---
+--- 637,630 ---
 +     public open override /*2*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
 +     public open override /*2*/ fun hashCode(): kotlin.Int
---- 658,653 ---
+--- 669,664 ---
 +     public open override /*2*/ fun toString(): kotlin.String
---- 692,688 ---
+--- 703,699 ---
 - public interface Function</*0*/ out R> {
 - }
 - 
---- 698,691 ---
+--- 709,702 ---
 +     public constructor IllegalArgumentException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 -     /*primary*/ public constructor IllegalArgumentException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
---- 705,698 ---
+--- 716,709 ---
 +     public constructor IllegalStateException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 -     /*primary*/ public constructor IllegalStateException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
---- 711,704 ---
+--- 722,715 ---
 +     public constructor IndexOutOfBoundsException(/*0*/ message: kotlin.String?)
 -     /*primary*/ public constructor IndexOutOfBoundsException(/*0*/ message: kotlin.String?)
---- 729,722 ---
+--- 740,733 ---
 +     public open override /*2*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
 +     public open override /*2*/ fun hashCode(): kotlin.Int
---- 769,764 ---
+--- 780,775 ---
 +     public open override /*2*/ fun toString(): kotlin.String
---- 840,836 ---
+--- 851,847 ---
 +     public final inline operator fun compareTo(/*0*/ other: kotlin.Byte): kotlin.Int
 +     public final inline operator fun compareTo(/*0*/ other: kotlin.Double): kotlin.Int
 +     public final inline operator fun compareTo(/*0*/ other: kotlin.Float): kotlin.Int
@@ -137,10 +137,10 @@
 -     public final operator fun compareTo(/*0*/ other: kotlin.Double): kotlin.Int
 -     public final operator fun compareTo(/*0*/ other: kotlin.Float): kotlin.Int
 -     public final operator fun compareTo(/*0*/ other: kotlin.Int): kotlin.Int
---- 845,841 ---
+--- 856,852 ---
 +     public final inline operator fun compareTo(/*0*/ other: kotlin.Short): kotlin.Int
 -     public final operator fun compareTo(/*0*/ other: kotlin.Short): kotlin.Int
---- 847,843 ---
+--- 858,854 ---
 +     public final inline operator fun div(/*0*/ other: kotlin.Byte): kotlin.Long
 +     public final inline operator fun div(/*0*/ other: kotlin.Double): kotlin.Double
 +     public final inline operator fun div(/*0*/ other: kotlin.Float): kotlin.Float
@@ -149,12 +149,12 @@
 -     public final operator fun div(/*0*/ other: kotlin.Double): kotlin.Double
 -     public final operator fun div(/*0*/ other: kotlin.Float): kotlin.Float
 -     public final operator fun div(/*0*/ other: kotlin.Int): kotlin.Long
---- 852,848 ---
+--- 863,859 ---
 +     public final inline operator fun div(/*0*/ other: kotlin.Short): kotlin.Long
 +     public open override /*2*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
 +     public open override /*2*/ fun hashCode(): kotlin.Int
 -     public final operator fun div(/*0*/ other: kotlin.Short): kotlin.Long
---- 855,853 ---
+--- 866,864 ---
 +     public final inline operator fun minus(/*0*/ other: kotlin.Byte): kotlin.Long
 +     public final inline operator fun minus(/*0*/ other: kotlin.Double): kotlin.Double
 +     public final inline operator fun minus(/*0*/ other: kotlin.Float): kotlin.Float
@@ -163,10 +163,10 @@
 -     public final operator fun minus(/*0*/ other: kotlin.Double): kotlin.Double
 -     public final operator fun minus(/*0*/ other: kotlin.Float): kotlin.Float
 -     public final operator fun minus(/*0*/ other: kotlin.Int): kotlin.Long
---- 860,858 ---
+--- 871,869 ---
 +     public final inline operator fun minus(/*0*/ other: kotlin.Short): kotlin.Long
 -     public final operator fun minus(/*0*/ other: kotlin.Short): kotlin.Long
---- 862,860 ---
+--- 873,871 ---
 +     public final inline operator fun plus(/*0*/ other: kotlin.Byte): kotlin.Long
 +     public final inline operator fun plus(/*0*/ other: kotlin.Double): kotlin.Double
 +     public final inline operator fun plus(/*0*/ other: kotlin.Float): kotlin.Float
@@ -175,10 +175,10 @@
 -     public final operator fun plus(/*0*/ other: kotlin.Double): kotlin.Double
 -     public final operator fun plus(/*0*/ other: kotlin.Float): kotlin.Float
 -     public final operator fun plus(/*0*/ other: kotlin.Int): kotlin.Long
---- 867,865 ---
+--- 878,876 ---
 +     public final inline operator fun plus(/*0*/ other: kotlin.Short): kotlin.Long
 -     public final operator fun plus(/*0*/ other: kotlin.Short): kotlin.Long
---- 872,870 ---
+--- 883,881 ---
 +     @kotlin.SinceKotlin(version = "1.1") public final inline operator fun rem(/*0*/ other: kotlin.Byte): kotlin.Long
 +     @kotlin.SinceKotlin(version = "1.1") public final inline operator fun rem(/*0*/ other: kotlin.Double): kotlin.Double
 +     @kotlin.SinceKotlin(version = "1.1") public final inline operator fun rem(/*0*/ other: kotlin.Float): kotlin.Float
@@ -187,10 +187,10 @@
 -     @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Double): kotlin.Double
 -     @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Float): kotlin.Float
 -     @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Int): kotlin.Long
---- 877,875 ---
+--- 888,886 ---
 +     @kotlin.SinceKotlin(version = "1.1") public final inline operator fun rem(/*0*/ other: kotlin.Short): kotlin.Long
 -     @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Short): kotlin.Long
---- 880,878 ---
+--- 891,889 ---
 +     public final inline operator fun times(/*0*/ other: kotlin.Byte): kotlin.Long
 +     public final inline operator fun times(/*0*/ other: kotlin.Double): kotlin.Double
 +     public final inline operator fun times(/*0*/ other: kotlin.Float): kotlin.Float
@@ -199,56 +199,56 @@
 -     public final operator fun times(/*0*/ other: kotlin.Double): kotlin.Double
 -     public final operator fun times(/*0*/ other: kotlin.Float): kotlin.Float
 -     public final operator fun times(/*0*/ other: kotlin.Int): kotlin.Long
---- 885,883 ---
+--- 896,894 ---
 +     public final inline operator fun times(/*0*/ other: kotlin.Short): kotlin.Long
 -     public final operator fun times(/*0*/ other: kotlin.Short): kotlin.Long
---- 893,891 ---
+--- 904,902 ---
 +     public open override /*2*/ fun toString(): kotlin.String
---- 894,893 ---
+--- 905,904 ---
 +     public final inline operator fun unaryPlus(): kotlin.Long
 -     public final operator fun unaryPlus(): kotlin.Long
---- 922,921 ---
+--- 933,932 ---
 +     public constructor NoSuchElementException(/*0*/ message: kotlin.String?)
 -     /*primary*/ public constructor NoSuchElementException(/*0*/ message: kotlin.String?)
---- 928,927 ---
+--- 939,938 ---
 +     public constructor NoWhenBranchMatchedException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 -     /*primary*/ public constructor NoWhenBranchMatchedException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
---- 941,940 ---
+--- 952,951 ---
 +     public constructor NullPointerException(/*0*/ message: kotlin.String?)
 -     /*primary*/ public constructor NullPointerException(/*0*/ message: kotlin.String?)
---- 957,956 ---
+--- 968,967 ---
 +     public constructor NumberFormatException(/*0*/ message: kotlin.String?)
 -     /*primary*/ public constructor NumberFormatException(/*0*/ message: kotlin.String?)
---- 1040,1039 ---
+--- 1055,1054 ---
 +     public constructor RuntimeException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 -     /*primary*/ public constructor RuntimeException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
---- 1058,1057 ---
+--- 1073,1072 ---
 +     public open override /*2*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
 +     public open override /*2*/ fun hashCode(): kotlin.Int
---- 1094,1095 ---
+--- 1109,1110 ---
 +     public open override /*2*/ fun toString(): kotlin.String
---- 1130,1132 ---
+--- 1145,1147 ---
 +     public open override /*2*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
---- 1131,1134 ---
+--- 1146,1149 ---
 +     public open override /*2*/ fun hashCode(): kotlin.Int
---- 1133,1137 ---
+--- 1148,1152 ---
 +     public open override /*2*/ fun toString(): kotlin.String
---- 1144,1149 ---
+--- 1159,1164 ---
 + @kotlin.js.JsName(name = "Error") public open external class Throwable {
 - public open class Throwable {
---- 1147,1152 ---
+--- 1162,1167 ---
 +     public constructor Throwable(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 -     /*primary*/ public constructor Throwable(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
---- 1153,1158 ---
+--- 1168,1173 ---
 +     public open override /*1*/ fun toString(): kotlin.String
---- 1471,1477 ---
+--- 1486,1492 ---
 +     public constructor UninitializedPropertyAccessException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 -     /*primary*/ public constructor UninitializedPropertyAccessException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
---- 1479,1485 ---
+--- 1494,1500 ---
 - public object Unit {
 -     public open override /*1*/ fun toString(): kotlin.String
 - }
 - 
---- 1490,1492 ---
+--- 1505,1507 ---
 +     public constructor UnsupportedOperationException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 -     /*primary*/ public constructor UnsupportedOperationException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)

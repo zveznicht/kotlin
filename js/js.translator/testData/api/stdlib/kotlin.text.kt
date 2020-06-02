@@ -29,9 +29,9 @@ public fun kotlin.text.StringBuilder.append(/*0*/ vararg value: kotlin.String? /
 @kotlin.SinceKotlin(version = "1.4") @kotlin.internal.InlineOnly public inline fun kotlin.text.StringBuilder.appendLine(/*0*/ value: kotlin.CharArray): kotlin.text.StringBuilder
 @kotlin.SinceKotlin(version = "1.4") @kotlin.internal.InlineOnly public inline fun kotlin.text.StringBuilder.appendLine(/*0*/ value: kotlin.CharSequence?): kotlin.text.StringBuilder
 @kotlin.SinceKotlin(version = "1.4") @kotlin.internal.InlineOnly public inline fun kotlin.text.StringBuilder.appendLine(/*0*/ value: kotlin.String?): kotlin.text.StringBuilder
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun </*0*/ T : kotlin.text.Appendable> T.appendRange(/*0*/ value: kotlin.CharSequence?, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): T
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.text.StringBuilder.appendRange(/*0*/ value: kotlin.CharArray, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.text.StringBuilder.appendRange(/*0*/ value: kotlin.CharSequence?, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun </*0*/ T : kotlin.text.Appendable> T.appendRange(/*0*/ value: kotlin.CharSequence, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): T
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.appendRange(/*0*/ value: kotlin.CharArray, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.appendRange(/*0*/ value: kotlin.CharSequence, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
 public fun kotlin.CharSequence.asIterable(): kotlin.collections.Iterable<kotlin.Char>
 public fun kotlin.CharSequence.asSequence(): kotlin.sequences.Sequence<kotlin.Char>
 public inline fun </*0*/ K, /*1*/ V> kotlin.CharSequence.associate(/*0*/ transform: (kotlin.Char) -> kotlin.Pair<K, V>): kotlin.collections.Map<K, V>
@@ -62,8 +62,8 @@ public inline fun kotlin.CharSequence.count(/*0*/ predicate: (kotlin.Char) -> ko
 public fun kotlin.String.decapitalize(): kotlin.String
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.ByteArray.decodeToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.ByteArray.decodeToString(/*0*/ startIndex: kotlin.Int = ..., /*1*/ endIndex: kotlin.Int = ..., /*2*/ throwOnInvalidSequence: kotlin.Boolean = ...): kotlin.String
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.text.StringBuilder.deleteAt(/*0*/ index: kotlin.Int): kotlin.text.StringBuilder
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.text.StringBuilder.deleteRange(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.deleteAt(/*0*/ index: kotlin.Int): kotlin.text.StringBuilder
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.deleteRange(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
 public fun kotlin.CharSequence.drop(/*0*/ n: kotlin.Int): kotlin.CharSequence
 public fun kotlin.String.drop(/*0*/ n: kotlin.Int): kotlin.String
 public fun kotlin.CharSequence.dropLast(/*0*/ n: kotlin.Int): kotlin.CharSequence
@@ -123,8 +123,8 @@ public fun kotlin.CharSequence.indexOfAny(/*0*/ chars: kotlin.CharArray, /*1*/ s
 public fun kotlin.CharSequence.indexOfAny(/*0*/ strings: kotlin.collections.Collection<kotlin.String>, /*1*/ startIndex: kotlin.Int = ..., /*2*/ ignoreCase: kotlin.Boolean = ...): kotlin.Int
 public inline fun kotlin.CharSequence.indexOfFirst(/*0*/ predicate: (kotlin.Char) -> kotlin.Boolean): kotlin.Int
 public inline fun kotlin.CharSequence.indexOfLast(/*0*/ predicate: (kotlin.Char) -> kotlin.Boolean): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.text.StringBuilder.insertRange(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharArray, /*2*/ startIndex: kotlin.Int, /*3*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.text.StringBuilder.insertRange(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharSequence?, /*2*/ startIndex: kotlin.Int, /*3*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.insertRange(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharArray, /*2*/ startIndex: kotlin.Int, /*3*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.insertRange(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharSequence, /*2*/ startIndex: kotlin.Int, /*3*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
 public fun kotlin.CharSequence.isBlank(): kotlin.Boolean
 @kotlin.internal.InlineOnly public inline fun kotlin.CharSequence.isEmpty(): kotlin.Boolean
 public fun kotlin.Char.isHighSurrogate(): kotlin.Boolean
@@ -237,8 +237,8 @@ public fun kotlin.CharSequence.reversed(): kotlin.CharSequence
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun </*0*/ R> kotlin.CharSequence.scanIndexed(/*0*/ initial: R, /*1*/ operation: (index: kotlin.Int, acc: R, kotlin.Char) -> R): kotlin.collections.List<R>
 @kotlin.Deprecated(message = "Use runningReduce instead.", replaceWith = kotlin.ReplaceWith(expression = "runningReduce(operation)", imports = {})) @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.CharSequence.scanReduce(/*0*/ operation: (acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.collections.List<kotlin.Char>
 @kotlin.Deprecated(message = "Use runningReduceIndexed instead.", replaceWith = kotlin.ReplaceWith(expression = "runningReduceIndexed(operation)", imports = {})) @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.CharSequence.scanReduceIndexed(/*0*/ operation: (index: kotlin.Int, acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.collections.List<kotlin.Char>
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline operator fun kotlin.text.StringBuilder.set(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.Char): kotlin.Unit
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.text.StringBuilder.setRange(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int, /*2*/ value: kotlin.String): kotlin.text.StringBuilder
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline operator fun kotlin.text.StringBuilder.set(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.Char): kotlin.Unit
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.setRange(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int, /*2*/ value: kotlin.String): kotlin.text.StringBuilder
 public fun kotlin.CharSequence.single(): kotlin.Char
 public inline fun kotlin.CharSequence.single(/*0*/ predicate: (kotlin.Char) -> kotlin.Boolean): kotlin.Char
 public fun kotlin.CharSequence.singleOrNull(): kotlin.Char?
@@ -290,7 +290,7 @@ public fun kotlin.String.toByte(/*0*/ radix: kotlin.Int): kotlin.Byte
 @kotlin.SinceKotlin(version = "1.1") public fun kotlin.String.toByteOrNull(/*0*/ radix: kotlin.Int): kotlin.Byte?
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.String.toCharArray(): kotlin.CharArray
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.String.toCharArray(/*0*/ startIndex: kotlin.Int = ..., /*1*/ endIndex: kotlin.Int = ...): kotlin.CharArray
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.text.StringBuilder.toCharArray(/*0*/ destination: kotlin.CharArray, /*1*/ destinationOffset: kotlin.Int = ..., /*2*/ startIndex: kotlin.Int = ..., /*3*/ endIndex: kotlin.Int = ...): kotlin.Unit
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.toCharArray(/*0*/ destination: kotlin.CharArray, /*1*/ destinationOffset: kotlin.Int = ..., /*2*/ startIndex: kotlin.Int = ..., /*3*/ endIndex: kotlin.Int = ...): kotlin.Unit
 public fun </*0*/ C : kotlin.collections.MutableCollection<in kotlin.Char>> kotlin.CharSequence.toCollection(/*0*/ destination: C): C
 public fun kotlin.String.toDouble(): kotlin.Double
 public fun kotlin.String.toDoubleOrNull(): kotlin.Double?
@@ -482,40 +482,40 @@ public final class StringBuilder : kotlin.text.Appendable, kotlin.CharSequence {
     public final fun append(/*0*/ value: kotlin.Any?): kotlin.text.StringBuilder
     @kotlin.SinceKotlin(version = "1.3") public final fun append(/*0*/ value: kotlin.Boolean): kotlin.text.StringBuilder
     public open override /*1*/ fun append(/*0*/ value: kotlin.Char): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun append(/*0*/ value: kotlin.CharArray): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun append(/*0*/ value: kotlin.CharArray): kotlin.text.StringBuilder
     public open override /*1*/ fun append(/*0*/ value: kotlin.CharSequence?): kotlin.text.StringBuilder
     public open override /*1*/ fun append(/*0*/ value: kotlin.CharSequence?, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") public final fun append(/*0*/ value: kotlin.String): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun appendRange(/*0*/ value: kotlin.CharArray, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun appendRange(/*0*/ value: kotlin.CharSequence?, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun capacity(): kotlin.Int
+    @kotlin.SinceKotlin(version = "1.3") public final fun append(/*0*/ value: kotlin.String?): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun appendRange(/*0*/ value: kotlin.CharArray, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun appendRange(/*0*/ value: kotlin.CharSequence, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun capacity(): kotlin.Int
     @kotlin.SinceKotlin(version = "1.3") public final fun clear(): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun deleteAt(/*0*/ index: kotlin.Int): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun deleteRange(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun ensureCapacity(/*0*/ minimumCapacity: kotlin.Int): kotlin.Unit
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun deleteAt(/*0*/ index: kotlin.Int): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun deleteRange(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun ensureCapacity(/*0*/ minimumCapacity: kotlin.Int): kotlin.Unit
     public open override /*1*/ fun get(/*0*/ index: kotlin.Int): kotlin.Char
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun indexOf(/*0*/ string: kotlin.String): kotlin.Int
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun indexOf(/*0*/ string: kotlin.String, /*1*/ startIndex: kotlin.Int): kotlin.Int
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.Any?): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.Boolean): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.Char): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharArray): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharSequence?): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.String): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun insertRange(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharArray, /*2*/ startIndex: kotlin.Int, /*3*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun insertRange(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharSequence?, /*2*/ startIndex: kotlin.Int, /*3*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun lastIndexOf(/*0*/ string: kotlin.String): kotlin.Int
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun lastIndexOf(/*0*/ string: kotlin.String, /*1*/ startIndex: kotlin.Int): kotlin.Int
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun indexOf(/*0*/ string: kotlin.String): kotlin.Int
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun indexOf(/*0*/ string: kotlin.String, /*1*/ startIndex: kotlin.Int): kotlin.Int
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.Any?): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.Boolean): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.Char): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharArray): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharSequence?): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun insert(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.String?): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun insertRange(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharArray, /*2*/ startIndex: kotlin.Int, /*3*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun insertRange(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.CharSequence, /*2*/ startIndex: kotlin.Int, /*3*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun lastIndexOf(/*0*/ string: kotlin.String): kotlin.Int
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun lastIndexOf(/*0*/ string: kotlin.String, /*1*/ startIndex: kotlin.Int): kotlin.Int
     public final fun reverse(): kotlin.text.StringBuilder
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final operator fun set(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.Char): kotlin.Unit
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun setLength(/*0*/ newLength: kotlin.Int): kotlin.Unit
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun setRange(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int, /*2*/ value: kotlin.String): kotlin.text.StringBuilder
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final operator fun set(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.Char): kotlin.Unit
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun setLength(/*0*/ newLength: kotlin.Int): kotlin.Unit
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun setRange(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int, /*2*/ value: kotlin.String): kotlin.text.StringBuilder
     public open override /*1*/ fun subSequence(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.CharSequence
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun substring(/*0*/ startIndex: kotlin.Int): kotlin.String
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun substring(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.String
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun toCharArray(/*0*/ destination: kotlin.CharArray, /*1*/ destinationOffset: kotlin.Int = ..., /*2*/ startIndex: kotlin.Int = ..., /*3*/ endIndex: kotlin.Int = ...): kotlin.Unit
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun substring(/*0*/ startIndex: kotlin.Int): kotlin.String
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun substring(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.String
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun toCharArray(/*0*/ destination: kotlin.CharArray, /*1*/ destinationOffset: kotlin.Int = ..., /*2*/ startIndex: kotlin.Int = ..., /*3*/ endIndex: kotlin.Int = ...): kotlin.Unit
     public open override /*2*/ fun toString(): kotlin.String
-    @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public final fun trimToSize(): kotlin.Unit
+    @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public final fun trimToSize(): kotlin.Unit
 }
 
 public object Typography {

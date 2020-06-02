@@ -1,4 +1,34 @@
 
+@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.CLASS, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY}) @kotlin.annotation.Retention(value = AnnotationRetention.BINARY) @kotlin.annotation.MustBeDocumented @kotlin.SinceKotlin(version = "1.1") public final annotation class PublishedApi : kotlin.Annotation {
+    /*primary*/ public constructor PublishedApi()
+}
+
+@kotlin.annotation.Target(allowedTargets = {}) @kotlin.annotation.Retention(value = AnnotationRetention.BINARY) @kotlin.annotation.MustBeDocumented public final annotation class ReplaceWith : kotlin.Annotation {
+    /*primary*/ public constructor ReplaceWith(/*0*/ expression: kotlin.String, /*1*/ vararg imports: kotlin.String /*kotlin.Array<out kotlin.String>*/)
+    public final val expression: kotlin.String
+        public final fun <get-expression>(): kotlin.String
+    public final val imports: kotlin.Array<out kotlin.String>
+        public final fun <get-imports>(): kotlin.Array<out kotlin.String>
+}
+
+@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) @kotlin.annotation.Retention(value = AnnotationRetention.BINARY) @kotlin.SinceKotlin(version = "1.3") public final annotation class RequiresOptIn : kotlin.Annotation {
+    /*primary*/ public constructor RequiresOptIn(/*0*/ message: kotlin.String = ..., /*1*/ level: kotlin.RequiresOptIn.Level = ...)
+    public final val level: kotlin.RequiresOptIn.Level
+        public final fun <get-level>(): kotlin.RequiresOptIn.Level
+    public final val message: kotlin.String
+        public final fun <get-message>(): kotlin.String
+
+    public final enum class Level : kotlin.Enum<kotlin.RequiresOptIn.Level> {
+        enum entry WARNING
+
+        enum entry ERROR
+
+        // Static members
+        public final /*synthesized*/ fun valueOf(/*0*/ value: kotlin.String): kotlin.RequiresOptIn.Level
+        public final /*synthesized*/ fun values(): kotlin.Array<kotlin.RequiresOptIn.Level>
+    }
+}
+
 @kotlin.SinceKotlin(version = "1.3") public final inline class Result</*0*/ out T> : kotlin.io.Serializable {
     public final val isFailure: kotlin.Boolean
         public final fun <get-isFailure>(): kotlin.Boolean
@@ -481,6 +511,5 @@ public open class UnsupportedOperationException : kotlin.RuntimeException {
     public final val markerClass: kotlin.Array<out kotlin.reflect.KClass<out kotlin.Annotation>>
         public final fun <get-markerClass>(): kotlin.Array<out kotlin.reflect.KClass<out kotlin.Annotation>>
 }
-@kotlin.Deprecated(level = DeprecationLevel.ERROR, message = "Renamed to Result", replaceWith = kotlin.ReplaceWith(expression = "Result", imports = {})) @kotlin.SinceKotlin(version = "1.3") public typealias SuccessOrFailure</*0*/ T> = kotlin.Result<T>
 @kotlin.Deprecated(level = DeprecationLevel.ERROR, message = "Do not use Synchronized annotation in pure Kotlin/JS code") public typealias Synchronized = kotlin.jvm.Synchronized
 @kotlin.Deprecated(level = DeprecationLevel.ERROR, message = "Do not use Volatile annotation in pure Kotlin/JS code") public typealias Volatile = kotlin.jvm.Volatile

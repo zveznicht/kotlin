@@ -88,30 +88,30 @@ public fun shortArrayOf(/*0*/ vararg elements: kotlin.Short /*kotlin.ShortArray*
 @kotlin.internal.InlineOnly public inline fun </*0*/ T> T.apply(/*0*/ block: T.() -> kotlin.Unit): T
     CallsInPlace(block, EXACTLY_ONCE)
 
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.Byte.countLeadingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.Int.countLeadingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.Long.countLeadingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.Short.countLeadingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UByte.countLeadingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UInt.countLeadingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ULong.countLeadingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UShort.countLeadingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.Byte.countOneBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.Int.countOneBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.Long.countOneBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.Short.countOneBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UByte.countOneBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UInt.countOneBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ULong.countOneBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UShort.countOneBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.Byte.countTrailingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.Int.countTrailingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.Long.countTrailingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.Short.countTrailingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UByte.countTrailingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UInt.countTrailingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ULong.countTrailingZeroBits(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UShort.countTrailingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.Byte.countLeadingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.Int.countLeadingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.Long.countLeadingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.Short.countLeadingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UByte.countLeadingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UInt.countLeadingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ULong.countLeadingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UShort.countLeadingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.Byte.countOneBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.Int.countOneBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.Long.countOneBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.Short.countOneBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UByte.countOneBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UInt.countOneBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ULong.countOneBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UShort.countOneBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.Byte.countTrailingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.Int.countTrailingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.Long.countTrailingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.Short.countTrailingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UByte.countTrailingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UInt.countTrailingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ULong.countTrailingZeroBits(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UShort.countTrailingZeroBits(): kotlin.Int
 @kotlin.internal.InlineOnly @kotlin.SinceKotlin(version = "1.3") public inline fun </*0*/ R, /*1*/ T> kotlin.Result<T>.fold(/*0*/ onSuccess: (value: T) -> R, /*1*/ onFailure: (exception: kotlin.Throwable) -> R): R
     CallsInPlace(onSuccess, AT_MOST_ONCE)
     CallsInPlace(onFailure, AT_MOST_ONCE)
@@ -127,6 +127,7 @@ public fun shortArrayOf(/*0*/ vararg elements: kotlin.Short /*kotlin.ShortArray*
 @kotlin.SinceKotlin(version = "1.4") @kotlin.internal.InlineOnly public inline operator fun </*0*/ V> kotlin.reflect.KProperty0<V>.getValue(/*0*/ thisRef: kotlin.Any?, /*1*/ property: kotlin.reflect.KProperty<*>): V
 @kotlin.SinceKotlin(version = "1.4") @kotlin.internal.InlineOnly public inline operator fun </*0*/ T, /*1*/ V> kotlin.reflect.KProperty1<T, V>.getValue(/*0*/ thisRef: T, /*1*/ property: kotlin.reflect.KProperty<*>): V
 @kotlin.SinceKotlin(version = "1.3") @kotlin.internal.InlineOnly public inline fun kotlin.Any?.hashCode(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.ExperimentalStdlibApi public operator fun </*0*/ T, /*1*/ R> kotlin.DeepRecursiveFunction<T, R>.invoke(/*0*/ value: T): R
 public fun kotlin.Double.isFinite(): kotlin.Boolean
 public fun kotlin.Float.isFinite(): kotlin.Boolean
 public fun kotlin.Double.isInfinite(): kotlin.Boolean
@@ -175,25 +176,25 @@ public operator fun kotlin.String?.plus(/*0*/ other: kotlin.Any?): kotlin.String
 @kotlin.SinceKotlin(version = "1.4") @kotlin.internal.InlineOnly public inline operator fun </*0*/ V> kotlin.reflect.KMutableProperty0<V>.setValue(/*0*/ thisRef: kotlin.Any?, /*1*/ property: kotlin.reflect.KProperty<*>, /*2*/ value: V): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.4") @kotlin.internal.InlineOnly public inline operator fun </*0*/ T, /*1*/ V> kotlin.reflect.KMutableProperty1<T, V>.setValue(/*0*/ thisRef: T, /*1*/ property: kotlin.reflect.KProperty<*>, /*2*/ value: V): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.4") public fun kotlin.Throwable.stackTraceToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.Byte.takeHighestOneBit(): kotlin.Byte
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.Int.takeHighestOneBit(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.Long.takeHighestOneBit(): kotlin.Long
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.Short.takeHighestOneBit(): kotlin.Short
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UByte.takeHighestOneBit(): kotlin.UByte
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UInt.takeHighestOneBit(): kotlin.UInt
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ULong.takeHighestOneBit(): kotlin.ULong
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UShort.takeHighestOneBit(): kotlin.UShort
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.Byte.takeHighestOneBit(): kotlin.Byte
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.Int.takeHighestOneBit(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.Long.takeHighestOneBit(): kotlin.Long
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.Short.takeHighestOneBit(): kotlin.Short
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UByte.takeHighestOneBit(): kotlin.UByte
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UInt.takeHighestOneBit(): kotlin.UInt
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ULong.takeHighestOneBit(): kotlin.ULong
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UShort.takeHighestOneBit(): kotlin.UShort
 @kotlin.internal.InlineOnly @kotlin.SinceKotlin(version = "1.1") public inline fun </*0*/ T> T.takeIf(/*0*/ predicate: (T) -> kotlin.Boolean): T?
     CallsInPlace(predicate, EXACTLY_ONCE)
 
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.Byte.takeLowestOneBit(): kotlin.Byte
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.Int.takeLowestOneBit(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.Long.takeLowestOneBit(): kotlin.Long
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.Short.takeLowestOneBit(): kotlin.Short
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UByte.takeLowestOneBit(): kotlin.UByte
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UInt.takeLowestOneBit(): kotlin.UInt
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ULong.takeLowestOneBit(): kotlin.ULong
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UShort.takeLowestOneBit(): kotlin.UShort
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.Byte.takeLowestOneBit(): kotlin.Byte
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.Int.takeLowestOneBit(): kotlin.Int
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.Long.takeLowestOneBit(): kotlin.Long
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.Short.takeLowestOneBit(): kotlin.Short
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UByte.takeLowestOneBit(): kotlin.UByte
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UInt.takeLowestOneBit(): kotlin.UInt
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ULong.takeLowestOneBit(): kotlin.ULong
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.UShort.takeLowestOneBit(): kotlin.UShort
 @kotlin.internal.InlineOnly @kotlin.SinceKotlin(version = "1.1") public inline fun </*0*/ T> T.takeUnless(/*0*/ predicate: (T) -> kotlin.Boolean): T?
     CallsInPlace(predicate, EXACTLY_ONCE)
 
@@ -444,6 +445,16 @@ public open class ConcurrentModificationException : kotlin.RuntimeException {
     public constructor ConcurrentModificationException(/*0*/ cause: kotlin.Throwable?)
 }
 
+@kotlin.SinceKotlin(version = "1.4") @kotlin.ExperimentalStdlibApi public final class DeepRecursiveFunction</*0*/ T, /*1*/ R> {
+    /*primary*/ public constructor DeepRecursiveFunction</*0*/ T, /*1*/ R>(/*0*/ block: suspend kotlin.DeepRecursiveScope<T, R>.(T) -> R)
+}
+
+@kotlin.coroutines.RestrictsSuspension @kotlin.SinceKotlin(version = "1.4") @kotlin.ExperimentalStdlibApi public sealed class DeepRecursiveScope</*0*/ T, /*1*/ R> {
+    public abstract suspend fun callRecursive(/*0*/ value: T): R
+    public abstract suspend fun </*0*/ U, /*1*/ S> kotlin.DeepRecursiveFunction<U, S>.callRecursive(/*0*/ value: U): S
+    @kotlin.Deprecated(level = DeprecationLevel.ERROR, message = "'invoke' should not be called from DeepRecursiveScope. Use 'callRecursive' to do recursion in the heap instead of the call stack.", replaceWith = kotlin.ReplaceWith(expression = "this.callRecursive(value)", imports = {})) public final operator fun kotlin.DeepRecursiveFunction<*, *>.invoke(/*0*/ value: kotlin.Any?): kotlin.Nothing
+}
+
 @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.TYPEALIAS}) @kotlin.annotation.MustBeDocumented public final annotation class Deprecated : kotlin.Annotation {
     /*primary*/ public constructor Deprecated(/*0*/ message: kotlin.String, /*1*/ replaceWith: kotlin.ReplaceWith = ..., /*2*/ level: kotlin.DeprecationLevel = ...)
     public final val level: kotlin.DeprecationLevel
@@ -597,7 +608,7 @@ public open class Exception : kotlin.Throwable {
     /*primary*/ public constructor ExperimentalMultiplatform()
 }
 
-@kotlin.Experimental(level = Level.ERROR) @kotlin.RequiresOptIn(level = Level.ERROR) @kotlin.annotation.Retention(value = AnnotationRetention.BINARY) @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.CLASS, AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD, AnnotationTarget.LOCAL_VARIABLE, AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.TYPEALIAS}) @kotlin.annotation.MustBeDocumented @kotlin.ExperimentalStdlibApi @kotlin.SinceKotlin(version = "1.3") public final annotation class ExperimentalStdlibApi : kotlin.Annotation {
+@kotlin.Experimental(level = Level.ERROR) @kotlin.RequiresOptIn(level = Level.ERROR) @kotlin.annotation.Retention(value = AnnotationRetention.BINARY) @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.CLASS, AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.FIELD, AnnotationTarget.LOCAL_VARIABLE, AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.TYPEALIAS}) @kotlin.annotation.MustBeDocumented @kotlin.SinceKotlin(version = "1.3") public final annotation class ExperimentalStdlibApi : kotlin.Annotation {
     /*primary*/ public constructor ExperimentalStdlibApi()
 }
 
@@ -967,6 +978,10 @@ public open class NumberFormatException : kotlin.IllegalArgumentException {
     /*primary*/ public constructor OptionalExpectation()
 }
 
+@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.FUNCTION}) @kotlin.annotation.Retention(value = AnnotationRetention.BINARY) @kotlin.SinceKotlin(version = "1.4") @kotlin.experimental.ExperimentalTypeInference public final annotation class OverloadResolutionByLambdaReturnType : kotlin.Annotation {
+    /*primary*/ public constructor OverloadResolutionByLambdaReturnType()
+}
+
 public final data class Pair</*0*/ out A, /*1*/ out B> : kotlin.io.Serializable {
     /*primary*/ public constructor Pair</*0*/ out A, /*1*/ out B>(/*0*/ first: A, /*1*/ second: B)
     public final val first: A
@@ -986,16 +1001,3 @@ public final data class Pair</*0*/ out A, /*1*/ out B> : kotlin.io.Serializable 
     public final val name: kotlin.String
         public final fun <get-name>(): kotlin.String
 }
-
-@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.CLASS, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY}) @kotlin.annotation.Retention(value = AnnotationRetention.BINARY) @kotlin.annotation.MustBeDocumented @kotlin.SinceKotlin(version = "1.1") public final annotation class PublishedApi : kotlin.Annotation {
-    /*primary*/ public constructor PublishedApi()
-}
-
-@kotlin.annotation.Target(allowedTargets = {}) @kotlin.annotation.Retention(value = AnnotationRetention.BINARY) @kotlin.annotation.MustBeDocumented public final annotation class ReplaceWith : kotlin.Annotation {
-    /*primary*/ public constructor ReplaceWith(/*0*/ expression: kotlin.String, /*1*/ vararg imports: kotlin.String /*kotlin.Array<out kotlin.String>*/)
-    public final val expression: kotlin.String
-        public final fun <get-expression>(): kotlin.String
-    public final val imports: kotlin.Array<out kotlin.String>
-        public final fun <get-imports>(): kotlin.Array<out kotlin.String>
-}
-
