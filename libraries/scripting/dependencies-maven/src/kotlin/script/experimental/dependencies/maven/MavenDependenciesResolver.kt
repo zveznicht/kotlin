@@ -52,7 +52,10 @@ class MavenDependenciesResolver : ExternalDependenciesResolver {
         if (this.isNotBlank() && this.count { it == ':' } >= 2) DefaultArtifact(this)
         else null
 
-    override suspend fun resolve(artifactCoordinates: String, location: SourceCode.Location?): ResultWithDiagnostics<List<File>> {
+    override suspend fun resolve(
+        artifactCoordinates: String,
+        sourceCodeLocation: SourceCode.LocationWithId?
+    ): ResultWithDiagnostics<List<File>> {
 
         val artifactId = artifactCoordinates.toMavenArtifact()!!
 
@@ -61,9 +64,9 @@ class MavenDependenciesResolver : ExternalDependenciesResolver {
             if (deps != null)
                 return ResultWithDiagnostics.Success(deps.map { it.file })
         } catch (e: DependencyResolutionException) {
-            return makeResolveFailureResult(e.message ?: "unknown error", location)
+            return makeResolveFailureResult(e.message ?: "unknown error", sourceCodeLocation)
         }
-        return makeResolveFailureResult(allRepositories().map { "$it: $artifactId not found" }, location)
+        return makeResolveFailureResult(allRepositories().map { "$it: $artifactId not found" }, sourceCodeLocation)
     }
 
     private fun tryResolveEnvironmentVariable(str: String) =

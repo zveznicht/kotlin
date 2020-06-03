@@ -86,7 +86,7 @@ class ResolversTest : ResolversTestBase() {
 
         override suspend fun resolve(
             artifactCoordinates: String,
-            sourceCodeLocation: SourceCode.Location?
+            sourceCodeLocation: SourceCode.LocationWithId?
         ): ResultWithDiagnostics<List<File>> {
             if (!acceptsArtifact(artifactCoordinates)) throw Exception("Path is invalid")
             val file = doResolve(artifactCoordinates)

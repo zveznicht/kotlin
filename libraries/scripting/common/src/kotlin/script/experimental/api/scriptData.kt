@@ -9,7 +9,6 @@ package kotlin.script.experimental.api
 
 import java.io.Serializable
 import java.net.URL
-import kotlin.reflect.KClass
 import kotlin.script.experimental.util.PropertiesCollection
 
 /**
@@ -46,19 +45,25 @@ interface SourceCode {
      */
     data class Range(val start: Position, val end: Position) : Serializable
 
-    // TODO: Consider adding an extra property that refers to the file. i.e. locationId
     /**
      * The source code location, pointing either at a position or at a range
      * @param start location start position
      * @param end optional range location end position (after the last char)
      */
     data class Location(val start: Position, val end: Position? = null) : Serializable
+
+    /**
+     * The source code location including the path to the file
+     * @param codeLocationId path to file with the source code
+     * @param locationInText concrete location of the source code in file
+     */
+    data class LocationWithId(val codeLocationId: String, val locationInText: Location) : Serializable
 }
 
 /**
  * Annotation found during script source parsing along with its location
  */
-data class CollectedScriptAnnotation<out A : Annotation>(
+data class ScriptSourceAnnotation<out A : Annotation>(
     /**
      * Annotation found during script source parsing
      */
@@ -67,7 +72,7 @@ data class CollectedScriptAnnotation<out A : Annotation>(
     /**
      * Location of annotation is script
      */
-    val location: SourceCode.Location
+    val location: SourceCode.LocationWithId?
 )
 
 /**
@@ -111,7 +116,9 @@ val ScriptCollectedDataKeys.foundAnnotations by PropertiesCollection.key<List<An
 /**
  * The script file-level annotations and their locations found during script source parsing
  */
-val ScriptCollectedDataKeys.collectedAnnotations by PropertiesCollection.key<List<CollectedScriptAnnotation<*>>>()
+val ScriptCollectedDataKeys.collectedAnnotations by PropertiesCollection.key<List<ScriptSourceAnnotation<*>>>(getDefaultValue = {
+    get(ScriptCollectedData.foundAnnotations)?.map { ScriptSourceAnnotation(it, null) }
+})
 
 /**
  * The facade to the script data for compilation configuration refinement callbacks
@@ -173,10 +180,3 @@ data class ScriptEvaluationConfigurationRefinementContext(
     val evaluationConfiguration: ScriptEvaluationConfiguration,
     val contextData: ScriptEvaluationContextData? = null
 )
-
-inline fun <reified A : Annotation> Iterable<CollectedScriptAnnotation<*>>.filterByAnnotationType(
-): List<CollectedScriptAnnotation<A>> = filter { it.annotation is A }
-    .map {
-        @Suppress("UNCHECKED_CAST")
-        it as CollectedScriptAnnotation<A>
-    }

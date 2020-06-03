@@ -17,7 +17,11 @@ interface ExternalDependenciesResolver {
     fun acceptsRepository(repositoryCoordinates: RepositoryCoordinates): Boolean
     fun acceptsArtifact(artifactCoordinates: String): Boolean
 
-    suspend fun resolve(artifactCoordinates: String, location: SourceCode.Location? = null): ResultWithDiagnostics<List<File>>
+    suspend fun resolve(
+        artifactCoordinates: String,
+        sourceCodeLocation: SourceCode.LocationWithId? = null
+    ): ResultWithDiagnostics<List<File>>
+
     fun addRepository(repositoryCoordinates: RepositoryCoordinates)
 }
 

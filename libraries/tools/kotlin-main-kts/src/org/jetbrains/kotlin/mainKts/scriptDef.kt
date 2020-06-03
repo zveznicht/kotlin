@@ -26,6 +26,7 @@ import kotlin.script.experimental.jvmhost.CompiledScriptJarsCache
 import kotlin.script.experimental.jvmhost.jsr223.configureProvidedPropertiesFromJsr223Context
 import kotlin.script.experimental.jvmhost.jsr223.importAllBindings
 import kotlin.script.experimental.jvmhost.jsr223.jsr223
+import kotlin.script.experimental.util.filterByAnnotationType
 
 @Suppress("unused")
 @KotlinScript(
@@ -135,7 +136,7 @@ class MainKtsConfigurator : RefineScriptCompilationConfigurationHandler {
 
         val resolveResult = try {
             runBlocking {
-                resolver.resolveFromCollectedScriptAnnotations(annotations.filter { it.annotation is DependsOn || it.annotation is Repository })
+                resolver.resolveFromScriptSourceAnnotations(annotations.filter { it.annotation is DependsOn || it.annotation is Repository })
             }
         } catch (e: Throwable) {
             ResultWithDiagnostics.Failure(*diagnostics.toTypedArray(), e.asDiagnostics(path = context.script.locationId))

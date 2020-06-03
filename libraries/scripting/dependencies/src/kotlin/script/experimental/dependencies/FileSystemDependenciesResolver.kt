@@ -25,7 +25,10 @@ class FileSystemDependenciesResolver(vararg paths: File) : ExternalDependenciesR
         localRepos.add(repoDir)
     }
 
-    override suspend fun resolve(artifactCoordinates: String, location: SourceCode.Location?): ResultWithDiagnostics<List<File>> {
+    override suspend fun resolve(
+        artifactCoordinates: String,
+        sourceCodeLocation: SourceCode.LocationWithId?
+    ): ResultWithDiagnostics<List<File>> {
         if (!acceptsArtifact(artifactCoordinates)) throw IllegalArgumentException("Path is invalid")
 
         val messages = mutableListOf<String>()
@@ -39,7 +42,7 @@ class FileSystemDependenciesResolver(vararg paths: File) : ExternalDependenciesR
                 else -> return ResultWithDiagnostics.Success(listOf(file))
             }
         }
-        return makeResolveFailureResult(messages, location)
+        return makeResolveFailureResult(messages, sourceCodeLocation)
     }
 
     override fun acceptsArtifact(artifactCoordinates: String) =

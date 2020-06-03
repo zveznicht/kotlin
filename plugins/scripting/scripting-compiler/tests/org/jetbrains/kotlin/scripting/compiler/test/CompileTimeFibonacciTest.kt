@@ -21,12 +21,12 @@ import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.TestJdkKind
 import org.junit.Assert
 import java.io.File
-import javax.swing.text.Element
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.ScriptingHostConfiguration
 import kotlin.script.experimental.host.toScriptSource
 import kotlin.script.experimental.jvm.*
+import kotlin.script.experimental.util.filterByAnnotationType
 
 
 private const val testDataPath = "plugins/scripting/scripting-compiler/testData/compiler/compileTimeFibonacci"
@@ -50,7 +50,9 @@ class CompileTimeFibonacciTest : TestCase() {
         Assert.assertEquals("fib(4)=3", outputLines[3])
     }
 
-    fun testFibonacciWithUnsupportedNumbersEmitsErrorAtRightPlace() {
+    // This tests if the annotations delivered with the correct location
+    // and that scripts can return error messages at the location of the annotation
+    fun testFibonacciWithUnsupportedNumbersEmitsErrorAtLocation() {
         when (val result = runScript("unsupported.fib.kts")) {
             is ResultWithDiagnostics.Success ->
                 kotlin.test.fail("supported.fib.kts was expected to fail with a compiler error from refinement")
@@ -148,7 +150,7 @@ object CompileTimeFibonacciConfiguration : ScriptCompilationConfiguration(
                         fib.number.takeIf { it > 0 }?.asSuccess()
                             ?: makeFailureResult(
                                 message = "Fibonacci of non-positive numbers like ${fib.number} are not supported",
-                                location = location
+                                locationWithId = location
                             )
                     }
                     ?.valueOr { return@onAnnotations it }

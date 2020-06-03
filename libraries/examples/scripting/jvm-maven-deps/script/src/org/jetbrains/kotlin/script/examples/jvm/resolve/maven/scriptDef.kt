@@ -41,7 +41,7 @@ fun configureMavenDepsOnAnnotations(context: ScriptConfigurationRefinementContex
     val annotations = context.collectedData?.get(ScriptCollectedData.collectedAnnotations)?.takeIf { it.isNotEmpty() }
         ?: return context.compilationConfiguration.asSuccess()
     return runBlocking {
-        resolver.resolveFromCollectedScriptAnnotations(annotations)
+        resolver.resolveFromScriptSourceAnnotations(annotations)
     }.onSuccess {
         context.compilationConfiguration.with {
             dependencies.append(JvmDependency(it))

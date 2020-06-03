@@ -28,20 +28,23 @@ class CompoundDependenciesResolver(private val resolvers: List<ExternalDependenc
             throw Exception("Failed to detect repository type: $repositoryCoordinates")
     }
 
-    override suspend fun resolve(artifactCoordinates: String, location: SourceCode.Location?): ResultWithDiagnostics<List<File>> {
+    override suspend fun resolve(
+        artifactCoordinates: String,
+        sourceCodeLocation: SourceCode.LocationWithId?
+    ): ResultWithDiagnostics<List<File>> {
 
         val reports = mutableListOf<ScriptDiagnostic>()
 
         for (resolver in resolvers) {
             if (resolver.acceptsArtifact(artifactCoordinates)) {
-                when (val resolveResult = resolver.resolve(artifactCoordinates, location)) {
+                when (val resolveResult = resolver.resolve(artifactCoordinates, sourceCodeLocation)) {
                     is ResultWithDiagnostics.Failure -> reports.addAll(resolveResult.reports)
                     else -> return resolveResult
                 }
             }
         }
         return if (reports.count() == 0) {
-            makeResolveFailureResult("No suitable dependency resolver found for artifact '$artifactCoordinates'", location)
+            makeResolveFailureResult("No suitable dependency resolver found for artifact '$artifactCoordinates'", sourceCodeLocation)
         } else {
             ResultWithDiagnostics.Failure(reports)
         }

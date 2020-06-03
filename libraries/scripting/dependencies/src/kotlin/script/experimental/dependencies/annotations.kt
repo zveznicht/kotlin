@@ -31,8 +31,8 @@ annotation class Repository(vararg val repositoriesCoordinates: String)
 /**
  * An extension function that configures repositories and resolves artifacts denoted by the [Repository] and [DependsOn] annotations
  */
-suspend fun ExternalDependenciesResolver.resolveFromCollectedScriptAnnotations(
-    annotations: Iterable<CollectedScriptAnnotation<*>>
+suspend fun ExternalDependenciesResolver.resolveFromScriptSourceAnnotations(
+    annotations: Iterable<ScriptSourceAnnotation<*>>
 ): ResultWithDiagnostics<List<File>> {
     return annotations.flatMapSuccess { (annotation, location) ->
         resolveFromAnnotation(annotation, location)
@@ -50,7 +50,7 @@ suspend fun ExternalDependenciesResolver.resolveFromAnnotations(
 
 private suspend fun ExternalDependenciesResolver.resolveFromAnnotation(
     annotation: Annotation,
-    location: SourceCode.Location?
+    locationWithId: SourceCode.LocationWithId?
 ): ResultWithDiagnostics<List<File>> = when (annotation) {
     is Repository -> {
         annotation
@@ -60,13 +60,13 @@ private suspend fun ExternalDependenciesResolver.resolveFromAnnotation(
                 if (tryAddRepository(coordinates))
                     emptyList<File>().asSuccess()
                 else
-                    makeFailureResult("Unrecognized repository coordinates: $coordinates", location = location)
+                    makeFailureResult("Unrecognized repository coordinates: $coordinates", locationWithId = locationWithId)
             }
     }
     is DependsOn -> {
         annotation.artifactsCoordinates.asIterable().flatMapSuccess { artifactCoordinates ->
-            resolve(artifactCoordinates, location)
+            resolve(artifactCoordinates, locationWithId)
         }
     }
-    else -> makeFailureResult("Unknown annotation ${annotation.javaClass}", location = location)
+    else -> makeFailureResult("Unknown annotation ${annotation.javaClass}", locationWithId = locationWithId)
 }

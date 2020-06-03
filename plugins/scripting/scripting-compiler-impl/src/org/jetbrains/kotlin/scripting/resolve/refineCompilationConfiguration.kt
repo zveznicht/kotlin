@@ -63,8 +63,7 @@ internal fun VirtualFile.getAnnotationEntries(project: Project): Iterable<KtAnno
  * The implementation of the SourceCode for a script located in a virtual file
  */
 open class VirtualFileScriptSource(val virtualFile: VirtualFile, private val preloadedText: String? = null) :
-    FileBasedScriptSource()
-{
+    FileBasedScriptSource() {
     override val file: File get() = File(virtualFile.path)
     override val externalLocation: URL get() = URL(virtualFile.url)
     override val text: String by lazy { preloadedText ?: virtualFile.inputStream.bufferedReader().readText() }
@@ -362,22 +361,30 @@ fun getScriptCollectedData(
                 jvmGetScriptingClass(ann, contextClassLoader, hostConfiguration) as? KClass<Annotation> // TODO errors
             }
         }.orEmpty()
-    val annotationsContainer =
-        scriptFile.annotationEntries.construct(contextClassLoader, acceptedAnnotations, project, DocumentImpl(scriptFile.text))
+    val annotations = scriptFile.annotationEntries.construct(
+        contextClassLoader,
+        acceptedAnnotations,
+        project,
+        DocumentImpl(scriptFile.text),
+        scriptFile.virtualFilePath
+    )
     return ScriptCollectedData(
         mapOf(
-            ScriptCollectedData.collectedAnnotations to annotationsContainer,
-            ScriptCollectedData.foundAnnotations to annotationsContainer.map { it.annotation }
+            ScriptCollectedData.collectedAnnotations to annotations,
+            ScriptCollectedData.foundAnnotations to annotations.map { it.annotation }
         )
     )
 }
 
 private fun Iterable<KtAnnotationEntry>.construct(
-    classLoader: ClassLoader?, acceptedAnnotations: List<KClass<out Annotation>>, project: Project, document: Document
-): List<CollectedScriptAnnotation<*>> = construct(classLoader, acceptedAnnotations, project).map { (annotation, psiAnn) ->
-    CollectedScriptAnnotation(
+    classLoader: ClassLoader?, acceptedAnnotations: List<KClass<out Annotation>>, project: Project, document: Document, filePath: String
+): List<ScriptSourceAnnotation<*>> = construct(classLoader, acceptedAnnotations, project).map { (annotation, psiAnn) ->
+    ScriptSourceAnnotation(
         annotation = annotation,
-        location = psiAnn.location(document)
+        location = SourceCode.LocationWithId(
+            codeLocationId = filePath,
+            locationInText = psiAnn.location(document)
+        )
     )
 }
 
