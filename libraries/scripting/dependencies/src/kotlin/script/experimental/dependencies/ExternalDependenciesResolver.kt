@@ -13,13 +13,23 @@ import kotlin.script.experimental.api.valueOrNull
 open class RepositoryCoordinates(val string: String)
 
 interface ExternalDependenciesResolver {
+    interface Options {
+        object Empty : Options {
+            override fun value(name: String): String? = null
+            override fun flag(name: String): Boolean? = null
+        }
+
+        fun value(name: String): String?
+        fun flag(name: String): Boolean?
+    }
 
     fun acceptsRepository(repositoryCoordinates: RepositoryCoordinates): Boolean
     fun acceptsArtifact(artifactCoordinates: String): Boolean
 
     suspend fun resolve(
         artifactCoordinates: String,
-        sourceCodeLocation: SourceCode.LocationWithId? = null
+        sourceCodeLocation: SourceCode.LocationWithId? = null,
+        options: Options = Options.Empty
     ): ResultWithDiagnostics<List<File>>
 
     fun addRepository(repositoryCoordinates: RepositoryCoordinates)

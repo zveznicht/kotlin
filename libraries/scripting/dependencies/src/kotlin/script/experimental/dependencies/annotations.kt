@@ -7,6 +7,7 @@ package kotlin.script.experimental.dependencies
 
 import java.io.File
 import kotlin.script.experimental.api.*
+import kotlin.script.experimental.dependencies.impl.SimpleExternalDependenciesResolverOptionsParser
 
 /**
  * A common annotation that could be used in a script to denote a dependency
@@ -16,7 +17,7 @@ import kotlin.script.experimental.api.*
 @Target(AnnotationTarget.FILE)
 @Repeatable
 @Retention(AnnotationRetention.SOURCE)
-annotation class DependsOn(vararg val artifactsCoordinates: String)
+annotation class DependsOn(vararg val artifactsCoordinates: String, val options: Array<String> = [])
 
 /**
  * A common annotation that could be used in a script to denote a repository for an ExternalDependenciesResolver
@@ -64,8 +65,13 @@ private suspend fun ExternalDependenciesResolver.resolveFromAnnotation(
             }
     }
     is DependsOn -> {
-        annotation.artifactsCoordinates.asIterable().flatMapSuccess { artifactCoordinates ->
-            resolve(artifactCoordinates, locationWithId)
+        try {
+            val options = SimpleExternalDependenciesResolverOptionsParser(*annotation.options)
+            annotation.artifactsCoordinates.asIterable().flatMapSuccess { artifactCoordinates ->
+                resolve(artifactCoordinates, locationWithId, options)
+            }
+        } catch (exception: Exception) {
+            makeFailureResult(exception.asDiagnostics(locationWithId = locationWithId))
         }
     }
     else -> makeFailureResult("Unknown annotation ${annotation.javaClass}", locationWithId = locationWithId)

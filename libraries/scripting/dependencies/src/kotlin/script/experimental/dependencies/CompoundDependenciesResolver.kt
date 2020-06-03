@@ -30,14 +30,15 @@ class CompoundDependenciesResolver(private val resolvers: List<ExternalDependenc
 
     override suspend fun resolve(
         artifactCoordinates: String,
-        sourceCodeLocation: SourceCode.LocationWithId?
+        sourceCodeLocation: SourceCode.LocationWithId?,
+        options: ExternalDependenciesResolver.Options
     ): ResultWithDiagnostics<List<File>> {
 
         val reports = mutableListOf<ScriptDiagnostic>()
 
         for (resolver in resolvers) {
             if (resolver.acceptsArtifact(artifactCoordinates)) {
-                when (val resolveResult = resolver.resolve(artifactCoordinates, sourceCodeLocation)) {
+                when (val resolveResult = resolver.resolve(artifactCoordinates, sourceCodeLocation, options)) {
                     is ResultWithDiagnostics.Failure -> reports.addAll(resolveResult.reports)
                     else -> return resolveResult
                 }

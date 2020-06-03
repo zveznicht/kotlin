@@ -54,9 +54,9 @@ class MavenDependenciesResolver : ExternalDependenciesResolver {
 
     override suspend fun resolve(
         artifactCoordinates: String,
-        sourceCodeLocation: SourceCode.LocationWithId?
+        sourceCodeLocation: SourceCode.LocationWithId?,
+        options: ExternalDependenciesResolver.Options
     ): ResultWithDiagnostics<List<File>> {
-
         val artifactId = artifactCoordinates.toMavenArtifact()!!
 
         try {
