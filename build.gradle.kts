@@ -7,10 +7,10 @@ import proguard.gradle.ProGuardTask
 buildscript {
     val cacheRedirectorEnabled = findProperty("cacheRedirectorEnabled")?.toString()?.toBoolean() == true
 
-//    kotlinBootstrapFrom(BootstrapOption.BintrayBootstrap(kotlinBuildProperties.kotlinBootstrapVersion!!, cacheRedirectorEnabled))
+    kotlinBootstrapFrom(BootstrapOption.BintrayBootstrap(kotlinBuildProperties.kotlinBootstrapVersion!!, cacheRedirectorEnabled))
 //    kotlinBootstrapFrom(BootstrapOption.BintrayBootstrap(kotlinBuildProperties.teamCityBootstrapVersion!!, cacheRedirectorEnabled))
 //    kotlinBootstrapFrom(BootstrapOption.Local(localPath = "C:\\WORK\\kotlin-gradle\\build\\repo "))
-    kotlinBootstrapFrom(BootstrapOption.TeamCity(kotlinBuildProperties.teamCityBootstrapVersion!!))
+//    kotlinBootstrapFrom(BootstrapOption.TeamCity(kotlinBuildProperties.teamCityBootstrapVersion!!))
 
 
     repositories {

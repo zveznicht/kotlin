@@ -6,8 +6,8 @@ buildscript {
 
     extra["defaultSnapshotVersion"] = kotlinBuildProperties.defaultSnapshotVersion
 
-    kotlinBootstrapFrom(BootstrapOption.TeamCity(kotlinBuildProperties.teamCityBootstrapVersion!!))
-//    kotlinBootstrapFrom(BootstrapOption.BintrayBootstrap(kotlinBuildProperties.kotlinBootstrapVersion!!, cacheRedirectorEnabled))
+    kotlinBootstrapFrom(BootstrapOption.BintrayBootstrap(kotlinBuildProperties.kotlinBootstrapVersion!!, cacheRedirectorEnabled))
+//    kotlinBootstrapFrom(BootstrapOption.TeamCity(kotlinBuildProperties.teamCityBootstrapVersion!!))
 
     repositories {
         if (cacheRedirectorEnabled) {
