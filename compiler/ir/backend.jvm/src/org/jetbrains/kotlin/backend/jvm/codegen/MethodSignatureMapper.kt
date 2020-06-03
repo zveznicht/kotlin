@@ -65,13 +65,15 @@ class MethodSignatureMapper(private val context: JvmBackendContext) {
     }
 
     fun mapFunctionName(function: IrFunction, skipSpecial: Boolean = false): String {
-        if (!skipSpecial && function.origin != IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB) {
-            val platformName = function.getJvmNameFromAnnotation()
-            if (platformName != null) return platformName
-        }
+        if (!skipSpecial) {
+            if (function.origin != IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB) {
+                val platformName = function.getJvmNameFromAnnotation()
+                if (platformName != null) return platformName
+            }
 
-        val nameForSpecialFunction = if (skipSpecial) null else getJvmMethodNameIfSpecial(function)
-        if (nameForSpecialFunction != null) return nameForSpecialFunction
+            val nameForSpecialFunction = getJvmMethodNameIfSpecial(function)
+            if (nameForSpecialFunction != null) return nameForSpecialFunction
+        }
 
         val property = (function as? IrSimpleFunction)?.correspondingPropertySymbol?.owner
         if (property != null && function.name.isSpecial) {
@@ -111,7 +113,6 @@ class MethodSignatureMapper(private val context: JvmBackendContext) {
     }
 
     private fun getModuleName(function: IrFunction): String =
-        // TODO: get rid of descriptors here
         (if (function is IrLazyFunctionBase)
             getJvmModuleNameForDeserialized(function)
         else null) ?: context.state.moduleName
@@ -178,7 +179,7 @@ class MethodSignatureMapper(private val context: JvmBackendContext) {
     private fun mapSignature(function: IrFunction, skipGenericSignature: Boolean, skipSpecial: Boolean = false): JvmMethodGenericSignature {
         if (function is IrLazyFunctionBase && function.initialSignatureFunction != null) {
             // Overrides of special builtin in Kotlin classes always have special signature
-            if (function.safeAs<IrSimpleFunction>()?.getDifferentNameForJvmBuiltinFunction() == null ||
+            if ((function as? IrSimpleFunction)?.getDifferentNameForJvmBuiltinFunction() == null ||
                 (function.parent as? IrClass)?.origin == IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB
             ) {
                 return mapSignature(function.initialSignatureFunction!!, skipGenericSignature)
@@ -351,14 +352,9 @@ class MethodSignatureMapper(private val context: JvmBackendContext) {
             getBuiltinSpecialPropertyGetterName() ?: getDifferentNameForJvmBuiltinFunction()
         }
 
-    private val IrDeclarationWithName.isBuiltIn: Boolean
-        get() {
-            val packageFragmentPath = getPackageFragment()?.fqName?.pathSegments() ?: return false
-            return packageFragmentPath.singleOrNull()?.asString() == "kotlin" ||
-                    parent.safeAs<IrClass>()?.fqNameWhenAvailable?.toUnsafe()?.let {
-                        JavaToKotlinClassMap.mapKotlinToJava(it) != null
-                    } == true
-        }
+    private val IrSimpleFunction.isBuiltIn: Boolean
+        get() = getPackageFragment()?.fqName == KotlinBuiltIns.BUILT_INS_PACKAGE_FQ_NAME ||
+                parent.safeAs<IrClass>()?.fqNameWhenAvailable?.toUnsafe()?.let(JavaToKotlinClassMap::mapKotlinToJava) != null
 
     // From BuiltinMethodsWithDifferentJvmName.isBuiltinFunctionWithDifferentNameInJvm, BuiltinMethodsWithDifferentJvmName.getJvmName
     private fun IrSimpleFunction.getDifferentNameForJvmBuiltinFunction(): String? {
@@ -386,7 +382,7 @@ class MethodSignatureMapper(private val context: JvmBackendContext) {
     }
 
     private fun IrFunction.computeJvmSignature(): String = signatures {
-        val classPart = context.typeMapper.mapType(parentAsClass.defaultType).internalName
+        val classPart = typeMapper.mapType(parentAsClass.defaultType).internalName
         val signature = mapSignature(this@computeJvmSignature, skipGenericSignature = false, skipSpecial = true).toString()
         return signature(classPart, signature)
     }
