@@ -48,7 +48,7 @@ object SERIALIZABLE_PLUGIN_ORIGIN : IrDeclarationOriginImpl("SERIALIZER")
 
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 open class SerializerIrGenerator(val irClass: IrClass, final override val compilerContext: SerializationPluginContext, bindingContext: BindingContext) :
-    SerializerCodegen(irClass.wrappedDescriptor, bindingContext), IrBuilderExtension {
+    SerializerCodegen(irClass.initialDescriptor, bindingContext), IrBuilderExtension {
 
     protected val serializableIrClass = compilerContext.symbolTable.referenceClass(serializableDescriptor).owner
     protected val irAnySerialDescProperty = anySerialDescProperty?.let { compilerContext.symbolTable.referenceProperty(it) }
