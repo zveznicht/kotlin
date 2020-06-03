@@ -28,7 +28,6 @@ import org.jetbrains.kotlin.resolve.inline.InlineUtil
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.source.KotlinSourceElement
 import org.jetbrains.kotlin.types.expressions.CaptureKind
-import sun.security.krb5.internal.crypto.Des
 
 class CapturingInClosureChecker : CallChecker {
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
@@ -64,7 +63,7 @@ class CapturingInClosureChecker : CallChecker {
         if (trace.bindingContext[CAPTURED_IN_CLOSURE, variable] == CaptureKind.NOT_INLINE) return
         val (callee, param) = getCalleeDescriptorAndParameter(trace.bindingContext, scopeDeclaration) ?: return
         if (callee !is FunctionDescriptor) return
-        if (!callee.isInline || (param.isCrossinline || param.isNoinline)) {
+        if (!callee.isInline || (param.isCrossinline || !InlineUtil.isInlineParameter(param))) {
             trace.report(CAPTURED_VAL_INITIALIZATION.on(reportOn as KtExpression, variable))
         }
     }
