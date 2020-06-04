@@ -48,13 +48,13 @@ class Test {
             a = "allowed"
         }
         crossinlineMe {
-            <!CAPTURED_VAL_INITIALIZATION!>b<!> = "not allowed"
+            b = "not allowed"
         }
         noinlineMe {
-            <!CAPTURED_VAL_INITIALIZATION!>c<!> = "not allowed"
+            c = "not allowed"
         }
         notinline {
-            <!CAPTURED_VAL_INITIALIZATION!>d<!> = "not allowed"
+            d = "not allowed"
         }
     }
 }
