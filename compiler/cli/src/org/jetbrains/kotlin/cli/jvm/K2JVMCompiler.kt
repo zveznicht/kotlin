@@ -268,9 +268,8 @@ class K2JVMCompiler : CLICompiler<K2JVMCompilerArguments>() {
         get() = error("Unsupported")
 
     override fun createPerformanceManager(arguments: K2JVMCompilerArguments): CommonCompilerPerformanceManager {
-        val cmd = arguments.profileCompilerCommand ?: return K2JVMCompilerPerformanceManager()
-        val (path, command, outputDir) = cmd.split(":", limit = 3)
-        return ProfilingCompilerPerformanceManager(path, command, File(outputDir))
+        val argument = arguments.profileCompilerCommand ?: return K2JVMCompilerPerformanceManager()
+        return ProfilingCompilerPerformanceManager.create(argument)
     }
 }
 

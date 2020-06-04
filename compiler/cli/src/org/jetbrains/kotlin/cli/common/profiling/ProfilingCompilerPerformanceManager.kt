@@ -15,7 +15,6 @@ class ProfilingCompilerPerformanceManager(
     val command: String,
     val outputDir: File
 ) : CommonCompilerPerformanceManager("Profiling") {
-
     private val profiler = AsyncProfilerHelper.getInstance(profilerPath)
 
     private val runDate = Date()
@@ -56,5 +55,12 @@ class ProfilingCompilerPerformanceManager(
     override fun notifyCompilationFinished() {
         dumpProfile("final")
         stopProfiling()
+    }
+
+    companion object {
+        fun create(profileCompilerArgument: String): ProfilingCompilerPerformanceManager {
+            val (path, command, outputDir) = profileCompilerArgument.split(":", limit = 3)
+            return ProfilingCompilerPerformanceManager(path, command, File(outputDir))
+        }
     }
 }
