@@ -284,6 +284,7 @@ abstract class AbstractFirDiagnosticsTest : AbstractFirBaseDiagnosticsTest() {
 
         override fun visitControlFlowGraphReference(controlFlowGraphReference: FirControlFlowGraphReference) {
             val graph = (controlFlowGraphReference as? FirControlFlowGraphReferenceImpl)?.controlFlowGraph ?: return
+            assertEquals(ControlFlowGraph.State.Completed, graph.state)
             checkConsistency(graph)
         }
 
