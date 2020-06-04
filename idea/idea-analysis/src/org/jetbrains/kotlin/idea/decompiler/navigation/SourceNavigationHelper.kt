@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.decompiler.navigation.MemberMatching.*
 import org.jetbrains.kotlin.idea.stubindex.*
 import org.jetbrains.kotlin.idea.util.ProjectRootsUtil
-import org.jetbrains.kotlin.idea.util.isExpectDeclaration
+import org.jetbrains.kotlin.idea.util.isEffectivelyExpect
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
@@ -197,7 +197,7 @@ object SourceNavigationHelper {
     ): T? {
         val classFqName = entity.fqName ?: return null
         return targetScopes(entity, navigationKind).firstNotNullResult { scope ->
-            index.get(classFqName.asString(), entity.project, scope).minBy { it.isExpectDeclaration() }
+            index.get(classFqName.asString(), entity.project, scope).minBy { it.isEffectivelyExpect() }
         }
     }
 
@@ -218,7 +218,7 @@ object SourceNavigationHelper {
         }
 
         return scopes.flatMap { scope ->
-            index.get(declaration.fqName!!.asString(), declaration.project, scope).sortedBy { it.isExpectDeclaration() }
+            index.get(declaration.fqName!!.asString(), declaration.project, scope).sortedBy { it.isEffectivelyExpect() }
         }
     }
 
