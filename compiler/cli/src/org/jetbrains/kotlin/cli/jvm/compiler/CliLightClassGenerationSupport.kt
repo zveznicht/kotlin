@@ -136,5 +136,7 @@ class CliLightClassGenerationSupport(
 
     override fun analyze(element: KtElement) = traceHolder.bindingContext
 
+    override fun analyzeAnnotation(element: KtAnnotationEntry) = traceHolder.bindingContext.get(BindingContext.ANNOTATION, element)
+
     override fun analyzeWithContent(element: KtClassOrObject) = traceHolder.bindingContext
 }
