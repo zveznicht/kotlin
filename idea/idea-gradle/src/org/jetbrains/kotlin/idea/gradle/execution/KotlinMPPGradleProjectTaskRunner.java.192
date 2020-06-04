@@ -45,6 +45,7 @@ import org.jetbrains.plugins.gradle.execution.build.GradleProjectTaskRunner;
 import org.jetbrains.plugins.gradle.service.project.GradleBuildSrcProjectsResolver;
 import org.jetbrains.plugins.gradle.service.project.GradleProjectResolverUtil;
 import org.jetbrains.plugins.gradle.service.task.GradleTaskManager;
+import org.jetbrains.plugins.gradle.settings.GradleProjectSettings;
 import org.jetbrains.plugins.gradle.settings.GradleSettings;
 import org.jetbrains.plugins.gradle.util.GradleConstants;
 
@@ -177,7 +178,7 @@ class KotlinMPPGradleProjectTaskRunner extends ProjectTaskRunner
             final ModuleBuildTask moduleBuildTask = (ModuleBuildTask) projectTask;
             final Module module = moduleBuildTask.getModule();
 
-            if (! isDelegatedBuild(module)) {
+            if (module.getProject().getPresentableUrl() != null && GradleProjectSettings.isDelegatedBuildEnabled(module)) {
                 return false;
             }
 
