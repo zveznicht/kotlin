@@ -202,15 +202,6 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     var dumpPerf: String? by NullableStringFreezableVar(null)
 
     @Argument(
-        value = "-Xprofile",
-        valueDescription = "<profilerPath:command:outputDir>",
-        description = "Debug option: Run compiler with async profiler, save snapshots to outputDir, command is passed to async-profiler on start\n" +
-                "You'll have to provide async-profiler.jar on classpath to use this\n" +
-                "profilerPath is a path to libasyncProfiler.so"
-    )
-    var profileCompilerCommand: String? by NullableStringFreezableVar(null)
-
-    @Argument(
         value = "-Xmetadata-version",
         description = "Change metadata version of the generated binary files"
     )
