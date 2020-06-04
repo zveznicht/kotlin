@@ -203,8 +203,10 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
 
     @Argument(
         value = "-Xprofile",
-        valueDescription = "<profilerPath:command>",
-        description = "Run async-profiler with that command"
+        valueDescription = "<profilerPath:command:outputDir>",
+        description = "Debug option: Run compiler with async profiler, save snapshots to outputDir, command is passed to async-profiler on start\n" +
+                "You'll have to provide async-profiler.jar on classpath to use this\n" +
+                "profilerPath is a path to libasyncProfiler.so"
     )
     var profileCompilerCommand: String? by NullableStringFreezableVar(null)
 

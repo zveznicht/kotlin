@@ -356,7 +356,7 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
     @Argument(
         value = "-Xrepeat",
         valueDescription = "<number>",
-        description = "Debug"
+        description = "Debug option: Repeats modules compilation <number> times"
     )
     var repeatCompileModules: String? by NullableStringFreezableVar(null)
 
