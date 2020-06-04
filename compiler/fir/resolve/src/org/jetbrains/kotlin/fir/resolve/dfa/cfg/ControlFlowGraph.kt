@@ -8,13 +8,14 @@ package org.jetbrains.kotlin.fir.resolve.dfa.cfg
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 
 class ControlFlowGraph(val declaration: FirDeclaration?, val name: String, val kind: Kind) {
-    private val _nodes: MutableList<CFGNode<*>> = mutableListOf()
+    private var _nodes: MutableList<CFGNode<*>> = mutableListOf()
 
-    val nodes: List<CFGNode<*>> get() = _nodes
+    val nodes: List<CFGNode<*>>
+        get() = _nodes
 
     internal fun addNode(node: CFGNode<*>) {
         assertState(State.Building)
-        _nodes += node
+        _nodes.add(node)
     }
 
     lateinit var enterNode: CFGNode<*>
@@ -34,6 +35,9 @@ class ControlFlowGraph(val declaration: FirDeclaration?, val name: String, val k
     internal fun complete() {
         assertState(State.Building)
         state = State.Completed
+        val sortedNodes = orderNodes(enterNode)
+        _nodes.clear()
+        _nodes.addAll(sortedNodes)
     }
 
     internal fun addSubGraph(graph: ControlFlowGraph) {
@@ -76,4 +80,31 @@ enum class EdgeKind(val usedInDfa: Boolean) {
     Dead(usedInDfa = false),
     Cfg(usedInDfa = false),
     Dfg(usedInDfa = true)
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+private fun orderNodes(startNode: CFGNode<*>): LinkedHashSet<CFGNode<*>> {
+    val visitedNodes = LinkedHashSet<CFGNode<*>>()
+    /*
+     * [delayedNodes] is needed to accomplish next order contract:
+     *   for each node all previous node lays before it
+     */
+    val delayedNodes = LinkedHashSet<CFGNode<*>>()
+    val stack = ArrayDeque<CFGNode<*>>()
+    stack.addFirst(startNode)
+    while (stack.isNotEmpty()) {
+        val node = stack.removeFirst()
+        visitedNodes.add(node)
+        val previousNodes = node.previousNodes
+        if (!previousNodes.all { it in visitedNodes }) {
+            if (!delayedNodes.add(node)) {
+                throw IllegalArgumentException("Infinite loop")
+            }
+            stack.addLast(node)
+        }
+        val followingNodes = node.followingNodes
+
+        followingNodes.filterNot { visitedNodes.contains(it) }.forEach { stack.addFirst(it) }
+    }
+    return visitedNodes
 }
