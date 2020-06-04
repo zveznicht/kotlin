@@ -35,7 +35,7 @@ class ControlFlowGraph(val declaration: FirDeclaration?, val name: String, val k
     internal fun complete() {
         assertState(State.Building)
         state = State.Completed
-        val sortedNodes = orderNodes(enterNode)
+        val sortedNodes = orderNodes()
         _nodes.clear()
         _nodes.addAll(sortedNodes)
     }
@@ -83,7 +83,7 @@ enum class EdgeKind(val usedInDfa: Boolean) {
 }
 
 @OptIn(ExperimentalStdlibApi::class)
-private fun orderNodes(startNode: CFGNode<*>): LinkedHashSet<CFGNode<*>> {
+private fun ControlFlowGraph.orderNodes(): LinkedHashSet<CFGNode<*>> {
     val visitedNodes = LinkedHashSet<CFGNode<*>>()
     /*
      * [delayedNodes] is needed to accomplish next order contract:
@@ -91,20 +91,25 @@ private fun orderNodes(startNode: CFGNode<*>): LinkedHashSet<CFGNode<*>> {
      */
     val delayedNodes = LinkedHashSet<CFGNode<*>>()
     val stack = ArrayDeque<CFGNode<*>>()
-    stack.addFirst(startNode)
+    stack.addFirst(enterNode)
     while (stack.isNotEmpty()) {
         val node = stack.removeFirst()
         visitedNodes.add(node)
         val previousNodes = node.previousNodes
-        if (!previousNodes.all { it in visitedNodes }) {
-            if (!delayedNodes.add(node)) {
-                throw IllegalArgumentException("Infinite loop")
-            }
+        if (previousNodes.any { it !in visitedNodes && it.owner == this}) {
+            delayedNodes.add(node)
+//            if (!delayedNodes.add(node)) {
+//                throw IllegalArgumentException("Infinite loop")
+//            }
             stack.addLast(node)
         }
         val followingNodes = node.followingNodes
 
-        followingNodes.filterNot { visitedNodes.contains(it) }.forEach { stack.addFirst(it) }
+        for (followingNode in followingNodes) {
+            if (followingNode.owner == this && followingNode !in visitedNodes) {
+                stack.addFirst(followingNode)
+            }
+        }
     }
     return visitedNodes
 }
