@@ -38,7 +38,7 @@ import org.jetbrains.kotlin.types.KotlinType
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 class Scope(val scopeOwnerSymbol: IrSymbol) {
     @ObsoleteDescriptorBasedAPI
-    val scopeOwner: DeclarationDescriptor get() = scopeOwnerSymbol.wrappedDescriptor
+    val scopeOwner: DeclarationDescriptor get() = scopeOwnerSymbol.initialDescriptor
 
     fun getLocalDeclarationParent(): IrDeclarationParent {
         if (!scopeOwnerSymbol.isBound) throw AssertionError("Unbound symbol: $scopeOwner")
