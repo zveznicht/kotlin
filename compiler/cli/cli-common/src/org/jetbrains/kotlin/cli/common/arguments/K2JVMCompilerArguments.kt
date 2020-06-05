@@ -357,7 +357,8 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
         valueDescription = "<profilerPath:command:outputDir>",
         description = "Debug option: Run compiler with async profiler, save snapshots to outputDir, command is passed to async-profiler on start\n" +
                 "You'll have to provide async-profiler.jar on classpath to use this\n" +
-                "profilerPath is a path to libasyncProfiler.so"
+                "profilerPath is a path to libasyncProfiler.so\n" +
+                "Example: -Xprofile=<PATH_TO_ASYNC_PROFILER>/async-profiler/build/libasyncProfiler.so:event=cpu,interval=1ms,threads,start,framebuf=50000000:<SNAPSHOT_DIR_PATH>"
     )
     var profileCompilerCommand: String? by NullableStringFreezableVar(null)
 
