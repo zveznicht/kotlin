@@ -15,7 +15,7 @@ fun makeExternalDependenciesResolverOptions(map: Map<String, String>): ExternalD
 
 suspend fun ExternalDependenciesResolver.resolve(
     artifactCoordinates: String,
-    sourceCodeLocation: SourceCode.LocationInFileSystem? = null,
+    sourceCodeLocation: SourceCode.LocationWithId? = null,
     options: Map<String, String>
 ): ResultWithDiagnostics<List<File>> = resolve(artifactCoordinates, sourceCodeLocation, makeExternalDependenciesResolverOptions(options))
 
