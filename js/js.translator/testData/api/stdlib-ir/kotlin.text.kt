@@ -8,8 +8,8 @@ public val kotlin.CharSequence.lastIndex: kotlin.Int
     public fun kotlin.CharSequence.<get-lastIndex>(): kotlin.Int
 @kotlin.Deprecated(level = DeprecationLevel.HIDDEN, message = "Provided for binary compatibility") @kotlin.js.JsName(name = "Regex_sb3q2$") public fun Regex_0(/*0*/ pattern: kotlin.String, /*1*/ option: kotlin.text.RegexOption): kotlin.text.Regex
 @kotlin.Deprecated(level = DeprecationLevel.HIDDEN, message = "Provided for binary compatibility") @kotlin.js.JsName(name = "Regex_61zpoe$") public fun Regex_1(/*0*/ pattern: kotlin.String): kotlin.text.Regex
-@kotlin.SinceKotlin(version = "1.2") public fun String(/*0*/ chars: kotlin.CharArray): kotlin.String
-@kotlin.SinceKotlin(version = "1.2") public fun String(/*0*/ chars: kotlin.CharArray, /*1*/ offset: kotlin.Int, /*2*/ length: kotlin.Int): kotlin.String
+@kotlin.SinceKotlin(version = "1.2") @kotlin.Deprecated(message = "Use CharArray.concatToString() instead", replaceWith = kotlin.ReplaceWith(expression = "chars.concatToString()", imports = {})) public fun String(/*0*/ chars: kotlin.CharArray): kotlin.String
+@kotlin.SinceKotlin(version = "1.2") @kotlin.Deprecated(message = "Use CharArray.concatToString(startIndex, endIndex) instead", replaceWith = kotlin.ReplaceWith(expression = "chars.concatToString(offset, offset + length)", imports = {})) public fun String(/*0*/ chars: kotlin.CharArray, /*1*/ offset: kotlin.Int, /*2*/ length: kotlin.Int): kotlin.String
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.InlineOnly public inline fun buildString(/*0*/ capacity: kotlin.Int, /*1*/ builderAction: kotlin.text.StringBuilder.() -> kotlin.Unit): kotlin.String
 @kotlin.internal.InlineOnly public inline fun buildString(/*0*/ builderAction: kotlin.text.StringBuilder.() -> kotlin.Unit): kotlin.String
 public inline fun kotlin.CharSequence.all(/*0*/ predicate: (kotlin.Char) -> kotlin.Boolean): kotlin.Boolean
@@ -52,16 +52,16 @@ public fun kotlin.CharSequence.commonPrefixWith(/*0*/ other: kotlin.CharSequence
 public fun kotlin.CharSequence.commonSuffixWith(/*0*/ other: kotlin.CharSequence, /*1*/ ignoreCase: kotlin.Boolean = ...): kotlin.String
 @kotlin.SinceKotlin(version = "1.2") public fun kotlin.String.compareTo(/*0*/ other: kotlin.String, /*1*/ ignoreCase: kotlin.Boolean = ...): kotlin.Int
 @kotlin.internal.InlineOnly public inline fun kotlin.String.concat(/*0*/ str: kotlin.String): kotlin.String
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.CharArray.concatToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.CharArray.concatToString(/*0*/ startIndex: kotlin.Int = ..., /*1*/ endIndex: kotlin.Int = ...): kotlin.String
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.CharArray.concatToString(): kotlin.String
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.CharArray.concatToString(/*0*/ startIndex: kotlin.Int = ..., /*1*/ endIndex: kotlin.Int = ...): kotlin.String
 public operator fun kotlin.CharSequence.contains(/*0*/ char: kotlin.Char, /*1*/ ignoreCase: kotlin.Boolean = ...): kotlin.Boolean
 public operator fun kotlin.CharSequence.contains(/*0*/ other: kotlin.CharSequence, /*1*/ ignoreCase: kotlin.Boolean = ...): kotlin.Boolean
 @kotlin.internal.InlineOnly public inline operator fun kotlin.CharSequence.contains(/*0*/ regex: kotlin.text.Regex): kotlin.Boolean
 @kotlin.internal.InlineOnly public inline fun kotlin.CharSequence.count(): kotlin.Int
 public inline fun kotlin.CharSequence.count(/*0*/ predicate: (kotlin.Char) -> kotlin.Boolean): kotlin.Int
 public fun kotlin.String.decapitalize(): kotlin.String
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.ByteArray.decodeToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.ByteArray.decodeToString(/*0*/ startIndex: kotlin.Int = ..., /*1*/ endIndex: kotlin.Int = ..., /*2*/ throwOnInvalidSequence: kotlin.Boolean = ...): kotlin.String
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.ByteArray.decodeToString(): kotlin.String
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.ByteArray.decodeToString(/*0*/ startIndex: kotlin.Int = ..., /*1*/ endIndex: kotlin.Int = ..., /*2*/ throwOnInvalidSequence: kotlin.Boolean = ...): kotlin.String
 @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.deleteAt(/*0*/ index: kotlin.Int): kotlin.text.StringBuilder
 @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.deleteRange(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.text.StringBuilder
 public fun kotlin.CharSequence.drop(/*0*/ n: kotlin.Int): kotlin.CharSequence
@@ -75,8 +75,8 @@ public inline fun kotlin.String.dropWhile(/*0*/ predicate: (kotlin.Char) -> kotl
 public fun kotlin.CharSequence.elementAt(/*0*/ index: kotlin.Int): kotlin.Char
 @kotlin.internal.InlineOnly public inline fun kotlin.CharSequence.elementAtOrElse(/*0*/ index: kotlin.Int, /*1*/ defaultValue: (kotlin.Int) -> kotlin.Char): kotlin.Char
 @kotlin.internal.InlineOnly public inline fun kotlin.CharSequence.elementAtOrNull(/*0*/ index: kotlin.Int): kotlin.Char?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.String.encodeToByteArray(): kotlin.ByteArray
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.String.encodeToByteArray(/*0*/ startIndex: kotlin.Int = ..., /*1*/ endIndex: kotlin.Int = ..., /*2*/ throwOnInvalidSequence: kotlin.Boolean = ...): kotlin.ByteArray
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.String.encodeToByteArray(): kotlin.ByteArray
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.String.encodeToByteArray(/*0*/ startIndex: kotlin.Int = ..., /*1*/ endIndex: kotlin.Int = ..., /*2*/ throwOnInvalidSequence: kotlin.Boolean = ...): kotlin.ByteArray
 public fun kotlin.CharSequence.endsWith(/*0*/ char: kotlin.Char, /*1*/ ignoreCase: kotlin.Boolean = ...): kotlin.Boolean
 public fun kotlin.CharSequence.endsWith(/*0*/ suffix: kotlin.CharSequence, /*1*/ ignoreCase: kotlin.Boolean = ...): kotlin.Boolean
 public fun kotlin.String.endsWith(/*0*/ suffix: kotlin.String, /*1*/ ignoreCase: kotlin.Boolean = ...): kotlin.Boolean
@@ -198,16 +198,16 @@ public inline fun kotlin.String.partition(/*0*/ predicate: (kotlin.Char) -> kotl
 public fun kotlin.String.prependIndent(/*0*/ indent: kotlin.String = ...): kotlin.String
 @kotlin.SinceKotlin(version = "1.3") @kotlin.internal.InlineOnly public inline fun kotlin.CharSequence.random(): kotlin.Char
 @kotlin.SinceKotlin(version = "1.3") public fun kotlin.CharSequence.random(/*0*/ random: kotlin.random.Random): kotlin.Char
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.CharSequence.randomOrNull(): kotlin.Char?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.CharSequence.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.Char?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.CharSequence.randomOrNull(): kotlin.Char?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.CharSequence.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.Char?
 public inline fun kotlin.CharSequence.reduce(/*0*/ operation: (acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.Char
 public inline fun kotlin.CharSequence.reduceIndexed(/*0*/ operation: (index: kotlin.Int, acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.Char
 @kotlin.SinceKotlin(version = "1.4") public inline fun kotlin.CharSequence.reduceIndexedOrNull(/*0*/ operation: (index: kotlin.Int, acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.Char?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.CharSequence.reduceOrNull(/*0*/ operation: (acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.Char?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.CharSequence.reduceOrNull(/*0*/ operation: (acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.Char?
 public inline fun kotlin.CharSequence.reduceRight(/*0*/ operation: (kotlin.Char, acc: kotlin.Char) -> kotlin.Char): kotlin.Char
 public inline fun kotlin.CharSequence.reduceRightIndexed(/*0*/ operation: (index: kotlin.Int, kotlin.Char, acc: kotlin.Char) -> kotlin.Char): kotlin.Char
 @kotlin.SinceKotlin(version = "1.4") public inline fun kotlin.CharSequence.reduceRightIndexedOrNull(/*0*/ operation: (index: kotlin.Int, kotlin.Char, acc: kotlin.Char) -> kotlin.Char): kotlin.Char?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.CharSequence.reduceRightOrNull(/*0*/ operation: (kotlin.Char, acc: kotlin.Char) -> kotlin.Char): kotlin.Char?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.CharSequence.reduceRightOrNull(/*0*/ operation: (kotlin.Char, acc: kotlin.Char) -> kotlin.Char): kotlin.Char?
 public fun kotlin.CharSequence.regionMatches(/*0*/ thisOffset: kotlin.Int, /*1*/ other: kotlin.CharSequence, /*2*/ otherOffset: kotlin.Int, /*3*/ length: kotlin.Int, /*4*/ ignoreCase: kotlin.Boolean = ...): kotlin.Boolean
 public fun kotlin.CharSequence.removePrefix(/*0*/ prefix: kotlin.CharSequence): kotlin.CharSequence
 public fun kotlin.String.removePrefix(/*0*/ prefix: kotlin.CharSequence): kotlin.String
@@ -249,10 +249,10 @@ public fun kotlin.CharSequence.reversed(): kotlin.CharSequence
 @kotlin.SinceKotlin(version = "1.4") public inline fun </*0*/ R> kotlin.CharSequence.runningFoldIndexed(/*0*/ initial: R, /*1*/ operation: (index: kotlin.Int, acc: R, kotlin.Char) -> R): kotlin.collections.List<R>
 @kotlin.SinceKotlin(version = "1.4") public inline fun kotlin.CharSequence.runningReduce(/*0*/ operation: (acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.collections.List<kotlin.Char>
 @kotlin.SinceKotlin(version = "1.4") public inline fun kotlin.CharSequence.runningReduceIndexed(/*0*/ operation: (index: kotlin.Int, acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.collections.List<kotlin.Char>
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun </*0*/ R> kotlin.CharSequence.scan(/*0*/ initial: R, /*1*/ operation: (acc: R, kotlin.Char) -> R): kotlin.collections.List<R>
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun </*0*/ R> kotlin.CharSequence.scanIndexed(/*0*/ initial: R, /*1*/ operation: (index: kotlin.Int, acc: R, kotlin.Char) -> R): kotlin.collections.List<R>
-@kotlin.Deprecated(message = "Use runningReduce instead.", replaceWith = kotlin.ReplaceWith(expression = "runningReduce(operation)", imports = {})) @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.CharSequence.scanReduce(/*0*/ operation: (acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.collections.List<kotlin.Char>
-@kotlin.Deprecated(message = "Use runningReduceIndexed instead.", replaceWith = kotlin.ReplaceWith(expression = "runningReduceIndexed(operation)", imports = {})) @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.CharSequence.scanReduceIndexed(/*0*/ operation: (index: kotlin.Int, acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.collections.List<kotlin.Char>
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun </*0*/ R> kotlin.CharSequence.scan(/*0*/ initial: R, /*1*/ operation: (acc: R, kotlin.Char) -> R): kotlin.collections.List<R>
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun </*0*/ R> kotlin.CharSequence.scanIndexed(/*0*/ initial: R, /*1*/ operation: (index: kotlin.Int, acc: R, kotlin.Char) -> R): kotlin.collections.List<R>
+@kotlin.Deprecated(level = DeprecationLevel.ERROR, message = "Use runningReduce instead.", replaceWith = kotlin.ReplaceWith(expression = "runningReduce(operation)", imports = {})) @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.CharSequence.scanReduce(/*0*/ operation: (acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.collections.List<kotlin.Char>
+@kotlin.Deprecated(level = DeprecationLevel.ERROR, message = "Use runningReduceIndexed instead.", replaceWith = kotlin.ReplaceWith(expression = "runningReduceIndexed(operation)", imports = {})) @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public inline fun kotlin.CharSequence.scanReduceIndexed(/*0*/ operation: (index: kotlin.Int, acc: kotlin.Char, kotlin.Char) -> kotlin.Char): kotlin.collections.List<kotlin.Char>
 @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline operator fun kotlin.text.StringBuilder.set(/*0*/ index: kotlin.Int, /*1*/ value: kotlin.Char): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.setRange(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int, /*2*/ value: kotlin.String): kotlin.text.StringBuilder
 public fun kotlin.CharSequence.single(): kotlin.Char
@@ -309,8 +309,8 @@ public fun kotlin.String.toByte(): kotlin.Byte
 public fun kotlin.String.toByte(/*0*/ radix: kotlin.Int): kotlin.Byte
 @kotlin.SinceKotlin(version = "1.1") public fun kotlin.String.toByteOrNull(): kotlin.Byte?
 @kotlin.SinceKotlin(version = "1.1") public fun kotlin.String.toByteOrNull(/*0*/ radix: kotlin.Int): kotlin.Byte?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.String.toCharArray(): kotlin.CharArray
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.String.toCharArray(/*0*/ startIndex: kotlin.Int = ..., /*1*/ endIndex: kotlin.Int = ...): kotlin.CharArray
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.String.toCharArray(): kotlin.CharArray
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.String.toCharArray(/*0*/ startIndex: kotlin.Int = ..., /*1*/ endIndex: kotlin.Int = ...): kotlin.CharArray
 @kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public inline fun kotlin.text.StringBuilder.toCharArray(/*0*/ destination: kotlin.CharArray, /*1*/ destinationOffset: kotlin.Int = ..., /*2*/ startIndex: kotlin.Int = ..., /*3*/ endIndex: kotlin.Int = ...): kotlin.Unit
 public fun </*0*/ C : kotlin.collections.MutableCollection<in kotlin.Char>> kotlin.CharSequence.toCollection(/*0*/ destination: C): C
 public fun kotlin.String.toDouble(): kotlin.Double
@@ -400,7 +400,7 @@ public interface Appendable {
     public abstract fun append(/*0*/ value: kotlin.CharSequence?, /*1*/ startIndex: kotlin.Int, /*2*/ endIndex: kotlin.Int): kotlin.text.Appendable
 }
 
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public open class CharacterCodingException : kotlin.Exception {
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public open class CharacterCodingException : kotlin.Exception {
     public constructor CharacterCodingException()
     /*primary*/ public constructor CharacterCodingException(/*0*/ message: kotlin.String?)
 }

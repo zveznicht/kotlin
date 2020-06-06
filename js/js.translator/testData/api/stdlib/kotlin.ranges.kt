@@ -112,16 +112,16 @@ public infix fun kotlin.Short.downTo(/*0*/ to: kotlin.Short): kotlin.ranges.IntP
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalUnsignedTypes public fun kotlin.ranges.UIntRange.random(/*0*/ random: kotlin.random.Random): kotlin.UInt
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ranges.ULongRange.random(): kotlin.ULong
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalUnsignedTypes public fun kotlin.ranges.ULongRange.random(/*0*/ random: kotlin.random.Random): kotlin.ULong
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.ranges.CharRange.randomOrNull(): kotlin.Char?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.ranges.CharRange.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.Char?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.ranges.IntRange.randomOrNull(): kotlin.Int?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.ranges.IntRange.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.Int?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.internal.InlineOnly public inline fun kotlin.ranges.LongRange.randomOrNull(): kotlin.Long?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi public fun kotlin.ranges.LongRange.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.Long?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ranges.UIntRange.randomOrNull(): kotlin.UInt?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes public fun kotlin.ranges.UIntRange.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.UInt?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ranges.ULongRange.randomOrNull(): kotlin.ULong?
-@kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalStdlibApi @kotlin.ExperimentalUnsignedTypes public fun kotlin.ranges.ULongRange.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.ULong?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.ranges.CharRange.randomOrNull(): kotlin.Char?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.ranges.CharRange.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.Char?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.ranges.IntRange.randomOrNull(): kotlin.Int?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.ranges.IntRange.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.Int?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.internal.InlineOnly public inline fun kotlin.ranges.LongRange.randomOrNull(): kotlin.Long?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) public fun kotlin.ranges.LongRange.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.Long?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ranges.UIntRange.randomOrNull(): kotlin.UInt?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes public fun kotlin.ranges.UIntRange.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.UInt?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.ranges.ULongRange.randomOrNull(): kotlin.ULong?
+@kotlin.SinceKotlin(version = "1.4") @kotlin.WasExperimental(markerClass = {kotlin.ExperimentalStdlibApi::class}) @kotlin.ExperimentalUnsignedTypes public fun kotlin.ranges.ULongRange.randomOrNull(/*0*/ random: kotlin.random.Random): kotlin.ULong?
 public operator fun </*0*/ T : kotlin.Comparable<T>> T.rangeTo(/*0*/ that: T): kotlin.ranges.ClosedRange<T>
 @kotlin.SinceKotlin(version = "1.1") public operator fun kotlin.Double.rangeTo(/*0*/ that: kotlin.Double): kotlin.ranges.ClosedFloatingPointRange<kotlin.Double>
 @kotlin.SinceKotlin(version = "1.1") public operator fun kotlin.Float.rangeTo(/*0*/ that: kotlin.Float): kotlin.ranges.ClosedFloatingPointRange<kotlin.Float>
