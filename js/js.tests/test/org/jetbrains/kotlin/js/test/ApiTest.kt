@@ -25,7 +25,14 @@ import org.jetbrains.kotlin.test.util.RecursiveDescriptorComparator
 import org.jetbrains.kotlin.test.util.RecursiveDescriptorComparator.RECURSIVE_ALL
 import java.io.File
 
+private val OVERWRITE_EXPECTED_OUTPUT = System.getProperty("overwrite.output")?.toBoolean() ?: false // use -Doverwrite.output=true
+
 class ApiTest : KotlinTestWithEnvironment() {
+
+    fun testOutputNotOverwritten() {
+        // This test should prevent accidentally setting OVERWRITE_OUTPUT property to `true`
+        assertFalse(OVERWRITE_EXPECTED_OUTPUT)
+    }
 
     private val STDLIB_PATH = "js/js.translator/testData/api/stdlib"
 
@@ -106,8 +113,9 @@ class ApiTest : KotlinTestWithEnvironment() {
                 val d = diff(a, b)
 
                 if (d.isNotBlank()) {
-                    // Uncomment to overwrite the test data
-//                    File("$STDLIB_DIFF_PATH/$name.kt").writeText(d)
+                    if (OVERWRITE_EXPECTED_OUTPUT) {
+                        File("$STDLIB_DIFF_PATH/$name.kt").writeText(d)
+                    }
                     KotlinTestUtils.assertEqualsToFile(File("$STDLIB_DIFF_PATH/$name.kt"), d)
                 }
             }
@@ -219,8 +227,9 @@ class ApiTest : KotlinTestWithEnvironment() {
                         (if (fqName.isRoot) "ROOT" else fqName.asString()) + (if (serialized.size == 1) "" else "-$index") + ".kt"
                     files -= fileName
 
-                    // Uncomment to overwrite the test data
-//                    File("$dir/$fileName").writeText(part)
+                    if (OVERWRITE_EXPECTED_OUTPUT) {
+                        File("$dir/$fileName").writeText(part)
+                    }
                     KotlinTestUtils.assertEqualsToFile(File("$dir/$fileName"), part)
                 }
             }
