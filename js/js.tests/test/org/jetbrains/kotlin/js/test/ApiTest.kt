@@ -30,48 +30,60 @@ private val OVERWRITE_EXPECTED_OUTPUT = System.getProperty("overwrite.output")?.
 class ApiTest : KotlinTestWithEnvironment() {
 
     fun testOutputNotOverwritten() {
-        // This test should prevent accidentally setting OVERWRITE_OUTPUT property to `true`
-        assertFalse(OVERWRITE_EXPECTED_OUTPUT)
+        assertFalse(
+            "Attention! Expected output is being overwritten! Please set OVERWRITE_EXPECTED_OUTPUT to false.",
+            OVERWRITE_EXPECTED_OUTPUT
+        )
     }
-
-    private val STDLIB_PATH = "js/js.translator/testData/api/stdlib"
 
     fun testStdlib() {
-        val project = environment.project
-        val configuration = environment.configuration
-
-        configuration.put(CommonConfigurationKeys.MODULE_NAME, "test")
-        configuration.put(JSConfigurationKeys.LIBRARIES, JsConfig.JS_STDLIB)
-
-        val config = JsConfig(project, configuration)
-
-        config.moduleDescriptors.single().checkRecursively(STDLIB_PATH)
+        stdlibModuleDescriptor.packagesSerialized().checkRecursively("js/js.translator/testData/api/stdlib")
     }
-
-    private val STDLIB_IR_PATH = "js/js.translator/testData/api/stdlib-ir"
 
     fun testIrStdlib() {
-        val fullRuntimeKlib: String = System.getProperty("kotlin.js.full.stdlib.path")
-
-        val resolvedLibraries =
-            jsResolveLibraries(listOf(File(fullRuntimeKlib).absolutePath), messageCollectorLogger(MessageCollector.NONE))
-
-        val project = environment.project
-        val configuration = environment.configuration
-
-        val moduleDescriptor = loadIr(
-            project,
-            MainModule.Klib(resolvedLibraries.getFullList().single()),
-            AnalyzerWithCompilerReport(configuration),
-            configuration,
-            resolvedLibraries,
-            listOf()
-        ).module.descriptor
-
-        moduleDescriptor.checkRecursively(STDLIB_IR_PATH)
+        irStdlibModuleDescriptor.packagesSerialized().checkRecursively("js/js.translator/testData/api/stdlib-ir")
     }
 
-    private val STDLIB_DIFF_PATH = "js/js.translator/testData/api/stdlib-diff"
+    fun testCompareApi() {
+        diffPackages(
+            stdlibModuleDescriptor.packagesSerialized().excludePackages(onlyInStdlib),
+            irStdlibModuleDescriptor.packagesSerialized().excludePackages(onlyInStdlibIr)
+        ).checkRecursively("js/js.translator/testData/api/stdlib-diff")
+    }
+
+    private val stdlibModuleDescriptor: ModuleDescriptor
+        get() {
+            val project = environment.project
+            val configuration = environment.configuration
+
+            configuration.put(CommonConfigurationKeys.MODULE_NAME, "test")
+            configuration.put(JSConfigurationKeys.LIBRARIES, JsConfig.JS_STDLIB)
+
+            val config = JsConfig(project, configuration)
+
+            return config.moduleDescriptors.single()
+        }
+
+    private val irStdlibModuleDescriptor: ModuleDescriptor
+        get() {
+            val fullRuntimeKlib: String = System.getProperty("kotlin.js.full.stdlib.path")
+
+            val resolvedLibraries =
+                jsResolveLibraries(listOf(File(fullRuntimeKlib).absolutePath), messageCollectorLogger(MessageCollector.NONE))
+
+            val project = environment.project
+            val configuration = environment.configuration
+
+            return loadIr(
+                project,
+                MainModule.Klib(resolvedLibraries.getFullList().single()),
+                AnalyzerWithCompilerReport(configuration),
+                configuration,
+                resolvedLibraries,
+                listOf()
+            ).module.descriptor
+        }
+
     private val onlyInStdlib = setOf(
         "org.khronos.webgl",
         "org.w3c.css.masking",
@@ -93,53 +105,31 @@ class ApiTest : KotlinTestWithEnvironment() {
         "org.w3c.workers",
         "org.w3c.xhr"
     )
-    private val onlyInStdlibIr = setOf("testUtils")
 
-    fun testApiDifference() {
-        val files = STDLIB_PATH.listFiles()
-        val irFiles = STDLIB_IR_PATH.listFiles()
+    private val onlyInStdlibIr = emptySet<String>()
 
-        val allNames = (files + irFiles).map { it.name.dropLast(3).split('-').first() }.toSet()
+    private fun diffPackages(left: Map<FqName, String>, right: Map<FqName, String>): Map<FqName, String> {
+        val allNames = (left.keys + right.keys).toSet()
 
-        for (name in allNames) {
-            val a = STDLIB_PATH.readFileText(name)
-            val b = STDLIB_IR_PATH.readFileText(name)
+        return allNames.mapNotNull { name ->
+            val a = left[name]
+            val b = right[name]
 
             if (a == null) {
-                assertTrue("Package '$name' unexpectedly only present in IR stdlib", name in onlyInStdlibIr)
+                error("Only in right: $name")
             } else if (b == null) {
-                assertTrue("Package '$name' unexpectedly only present in old stdlib", name in onlyInStdlib)
+                error("Only in left: $name")
             } else {
                 val d = diff(a, b)
-
-                if (d.isNotBlank()) {
-                    if (OVERWRITE_EXPECTED_OUTPUT) {
-                        File("$STDLIB_DIFF_PATH/$name.kt").writeText(d)
-                    }
-                    KotlinTestUtils.assertEqualsToFile(File("$STDLIB_DIFF_PATH/$name.kt"), d)
-                }
+                if (d.isBlank()) null else name to d
             }
-        }
+        }.toMap()
     }
 
-    private fun String.readFileText(name: String): String? {
-        val f = File("$this/$name.kt")
-        if (f.exists() && f.isFile) {
-            return f.readText()
-        } else {
-            var i = 0
-            var result: String? = null
-            while (true) {
-                val f = File("$this/$name-$i.kt")
-                if (!f.exists() || !f.isFile) break;
-
-                result = (result ?: "") + f.readText()
-
-                ++i
-            }
-
-            return result
-        }
+    private fun Map<FqName, String>.excludePackages(p: Set<String>): Map<FqName, String> {
+        val extraExcludes = p - keys.map { it.asString() }
+        assertTrue("Extra excludes found: $extraExcludes", extraExcludes.isEmpty())
+        return this.filterKeys { it.asString() !in p }
     }
 
     private fun diff(a: String, b: String): String {
@@ -147,8 +137,8 @@ class ApiTest : KotlinTestWithEnvironment() {
         val bLines = b.lines()
 
         val dx = Array(aLines.size + 1) { IntArray(bLines.size + 1) }
-        val dy = Array(aLines.size + 1) { IntArray(bLines.size + 1)}
-        val c = Array(aLines.size + 1) { IntArray(bLines.size + 1)}
+        val dy = Array(aLines.size + 1) { IntArray(bLines.size + 1) }
+        val c = Array(aLines.size + 1) { IntArray(bLines.size + 1) }
 
         for (i in 0..aLines.size) {
             c[i][0] = i
@@ -214,27 +204,33 @@ class ApiTest : KotlinTestWithEnvironment() {
         return dirFile.listFiles()!!
     }
 
-    private fun ModuleDescriptor.checkRecursively(dir: String) {
+    private fun String.cleanDir() {
+        listFiles().forEach { it.delete() }
+    }
+
+    private fun Map<FqName, String>.checkRecursively(dir: String) {
 
 
-        val dirFile = File(dir)
-        assertTrue("Directory does not exist: ${dirFile.absolutePath}", dirFile.exists())
-        assertTrue("Not a directory: ${dirFile.absolutePath}", dirFile.isDirectory)
-        val files = dirFile.listFiles()!!.map { it.name }.toMutableSet()
-        allPackages().forEach { fqName ->
-            getPackage(fqName).serialize()?.let { serialized ->
-                val fileName =
-                    (if (fqName.isRoot) "ROOT" else fqName.asString()) + ".kt"
-                files -= fileName
-
-                if (OVERWRITE_EXPECTED_OUTPUT) {
-                    File("$dir/$fileName").writeText(serialized)
-                }
-                KotlinTestUtils.assertEqualsToFile(File("$dir/$fileName"), serialized)
-            }
+        if (OVERWRITE_EXPECTED_OUTPUT) {
+            dir.cleanDir()
         }
 
-        assertTrue("Extra files found: ${files}", files.isEmpty())
+        val files = dir.listFiles().map { it.name }.toMutableSet()
+        entries.forEach { (fqName, serialized) ->
+            val fileName = (if (fqName.isRoot) "ROOT" else fqName.asString()) + ".kt"
+            files -= fileName
+
+            if (OVERWRITE_EXPECTED_OUTPUT) {
+                File("$dir/$fileName").writeText(serialized)
+            }
+            KotlinTestUtils.assertEqualsToFile(File("$dir/$fileName"), serialized)
+        }
+
+        assertTrue("Extra files found: $files", files.isEmpty())
+    }
+
+    private fun ModuleDescriptor.packagesSerialized(): Map<FqName, String> {
+        return allPackages().mapNotNull { fqName -> getPackage(fqName).serialize()?.let { fqName to it } }.toMap()
     }
 
     private fun ModuleDescriptor.allPackages(): Collection<FqName> {
