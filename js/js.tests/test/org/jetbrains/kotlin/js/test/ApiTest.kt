@@ -215,23 +215,22 @@ class ApiTest : KotlinTestWithEnvironment() {
     }
 
     private fun ModuleDescriptor.checkRecursively(dir: String) {
+
+
         val dirFile = File(dir)
         assertTrue("Directory does not exist: ${dirFile.absolutePath}", dirFile.exists())
         assertTrue("Not a directory: ${dirFile.absolutePath}", dirFile.isDirectory)
         val files = dirFile.listFiles()!!.map { it.name }.toMutableSet()
         allPackages().forEach { fqName ->
             getPackage(fqName).serialize()?.let { serialized ->
-                serialized.forEachIndexed { index, part ->
+                val fileName =
+                    (if (fqName.isRoot) "ROOT" else fqName.asString()) + ".kt"
+                files -= fileName
 
-                    val fileName =
-                        (if (fqName.isRoot) "ROOT" else fqName.asString()) + (if (serialized.size == 1) "" else "-$index") + ".kt"
-                    files -= fileName
-
-                    if (OVERWRITE_EXPECTED_OUTPUT) {
-                        File("$dir/$fileName").writeText(part)
-                    }
-                    KotlinTestUtils.assertEqualsToFile(File("$dir/$fileName"), part)
+                if (OVERWRITE_EXPECTED_OUTPUT) {
+                    File("$dir/$fileName").writeText(serialized)
                 }
+                KotlinTestUtils.assertEqualsToFile(File("$dir/$fileName"), serialized)
             }
         }
 
@@ -252,7 +251,7 @@ class ApiTest : KotlinTestWithEnvironment() {
         return result
     }
 
-    private fun PackageViewDescriptor.serialize(): List<String>? {
+    private fun PackageViewDescriptor.serialize(): String? {
         val comparator = RecursiveDescriptorComparator(RECURSIVE_ALL.filterRecursion {
             when {
                 it is MemberDescriptor && it.isExpect -> false
@@ -265,43 +264,12 @@ class ApiTest : KotlinTestWithEnvironment() {
 
         val serialized = comparator.serializeRecursively(this).trim()
 
-        val lines = serialized.lines()
+        if (serialized.count { it == '\n' } <= 1) return null
 
-        if (lines.size <= 1) return null
-
-        if (lines.size > LINES_PER_FILE_CUTOFF) {
-            val result = mutableListOf<String>()
-
-            val sb = StringBuilder()
-            var cnt = 0
-            var bracketBalance = 0
-
-            for (d in lines) {
-                if (cnt > LINES_PER_FILE_CUTOFF && bracketBalance == 0 && (d.isBlank() || !d[0].isWhitespace())) {
-                    result += sb.toString()
-                    sb.clear()
-                    cnt = 0
-                }
-
-                sb.append(d).append('\n')
-                ++cnt
-                bracketBalance += d.count { it == '{' } - d.count { it == '}' }
-            }
-
-            if (sb.isNotBlank()) {
-                result += sb.toString()
-            }
-
-            return result
-        }
-
-        return listOf(serialized)
+        return serialized
     }
 
     override fun createEnvironment(): KotlinCoreEnvironment {
         return KotlinCoreEnvironment.createForTests(TestDisposable(), CompilerConfiguration(), EnvironmentConfigFiles.JS_CONFIG_FILES)
     }
 }
-
-// IDEA isn't able to show diff for files that are too big
-private val LINES_PER_FILE_CUTOFF = 1000
