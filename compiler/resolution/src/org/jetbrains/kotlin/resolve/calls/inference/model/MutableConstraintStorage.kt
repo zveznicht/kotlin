@@ -37,8 +37,11 @@ class MutableVariableWithConstraints private constructor(
     // see @OnlyInputTypes annotation
     val projectedInputCallTypes: Collection<UnwrappedType>
         get() = mutableConstraints
-            .filter { it.position.from is OnlyInputTypeConstraintPosition || it.inputTypePositionBeforeIncorporation != null }
-            .map { (it.type as KotlinType).unCapture().unwrap() }
+            .mapNotNullTo(SmartList()) {
+                if (it.position.from is OnlyInputTypeConstraintPosition || it.inputTypePositionBeforeIncorporation != null)
+                    (it.type as KotlinType).unCapture().unwrap()
+                else null
+            }
 
     private val mutableConstraints = if (constraints == null) SmartList() else SmartList(constraints)
 
