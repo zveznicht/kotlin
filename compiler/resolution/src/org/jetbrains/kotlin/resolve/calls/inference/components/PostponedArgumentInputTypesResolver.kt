@@ -22,7 +22,7 @@ class PostponedArgumentInputTypesResolver(
 ) {
     interface Context : KotlinConstraintSystemCompleter.Context
 
-    data class ParameterTypesInfo(
+    private class ParameterTypesInfo(
         val parametersFromDeclaration: List<UnwrappedType?>?,
         val parametersFromDeclarationOfRelatedLambdas: Set<List<UnwrappedType?>>?,
         val parametersFromConstraints: Set<List<TypeWithKind>>?,
@@ -94,7 +94,7 @@ class PostponedArgumentInputTypesResolver(
             getDeclaredParametersFromRelatedLambdas(argument, postponedArguments, variableDependencyProvider)
 
         val annotationsFromConstraints = functionalTypesFromConstraints?.run {
-            Annotations.create(map { it.type.annotations }.flatten())
+            Annotations.create(flatMap { it.type.annotations })
         } ?: Annotations.EMPTY
 
         val annotations = if (isThereExtensionFunctionAmongRelatedLambdas) {
@@ -408,20 +408,22 @@ class PostponedArgumentInputTypesResolver(
         }
     }
 
-    private fun getDeclaredParametersConsideringExtensionFunctionsPresence(parameterTypesInfo: ParameterTypesInfo): List<UnwrappedType?>? {
-        val (parametersFromDeclaration, _, parametersFromConstraints, annotations) = parameterTypesInfo
+    private fun getDeclaredParametersConsideringExtensionFunctionsPresence(parameterTypesInfo: ParameterTypesInfo): List<UnwrappedType?>? =
+        with (parameterTypesInfo) {
 
-        if (parametersFromConstraints.isNullOrEmpty() || parametersFromDeclaration.isNullOrEmpty())
-            return parametersFromDeclaration
+            if (parametersFromConstraints.isNullOrEmpty() || parametersFromDeclaration.isNullOrEmpty())
+                parametersFromDeclaration
+            else {
+                val oneLessParameterInDeclarationThanInConstraints =
+                    parametersFromConstraints.first().size == parametersFromDeclaration.size + 1
 
-        val oneLessParameterInDeclarationThanInConstraints = parametersFromConstraints.first().size == parametersFromDeclaration.size + 1
-
-        return if (oneLessParameterInDeclarationThanInConstraints && annotations.hasExtensionFunctionAnnotation()) {
-            listOf(null) + parametersFromDeclaration
-        } else {
-            parametersFromDeclaration
+                if (oneLessParameterInDeclarationThanInConstraints && annotations.hasExtensionFunctionAnnotation()) {
+                    listOf(null) + parametersFromDeclaration
+                } else {
+                    parametersFromDeclaration
+                }
+            }
         }
-    }
 
     fun fixNextReadyVariableForParameterTypeIfNeeded(
         c: Context,
@@ -452,7 +454,7 @@ class PostponedArgumentInputTypesResolver(
         dependencyProvider: TypeVariableDependencyInformationProvider
     ): Boolean {
         val relatedVariables = type.getPureArgumentsForFunctionalTypeOrSubtype()
-            .map { getAllDeeplyRelatedTypeVariables(it, dependencyProvider) }.flatten()
+            .flatMap { getAllDeeplyRelatedTypeVariables(it, dependencyProvider) }
         val variableForFixation = variableFixationFinder.findFirstVariableForFixation(
             this, relatedVariables, postponedArguments, KotlinConstraintSystemCompleter.ConstraintSystemCompletionMode.FULL, topLevelType
         )
