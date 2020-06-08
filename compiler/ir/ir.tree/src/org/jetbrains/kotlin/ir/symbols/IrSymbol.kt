@@ -28,7 +28,6 @@ import org.jetbrains.kotlin.types.model.TypeParameterMarker
 interface IrSymbol {
     val owner: IrSymbolOwner
 
-    @Deprecated("Please use IR declaration properties and not its descriptor properties")
     val wrappedDescriptor: DeclarationDescriptor
 
     @Deprecated("Please use IR declaration properties and not its descriptor properties")
