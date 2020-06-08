@@ -493,11 +493,11 @@ public class FunctionCodegen {
             @NotNull FunctionDescriptor functionDescriptor,
             @NotNull MethodVisitor mv,
             @NotNull JvmMethodSignature jvmSignature,
-            @NotNull InnerClassConsumer innerClassConsumer,
+            @NotNull MemberCodegen<?> memberCodegen,
             @NotNull GenerationState state
     ) {
         generateParameterAnnotations(
-                functionDescriptor, mv, jvmSignature, functionDescriptor.getValueParameters(), innerClassConsumer, state
+                functionDescriptor, mv, jvmSignature, functionDescriptor.getValueParameters(), memberCodegen, state
         );
     }
 
@@ -506,7 +506,7 @@ public class FunctionCodegen {
             @NotNull MethodVisitor mv,
             @NotNull JvmMethodSignature jvmSignature,
             @NotNull List<ValueParameterDescriptor> valueParameters,
-            @NotNull InnerClassConsumer innerClassConsumer,
+            @NotNull MemberCodegen<?> memberCodegen,
             @NotNull GenerationState state
     ) {
         if (isAccessor(functionDescriptor)) return;
@@ -517,6 +517,7 @@ public class FunctionCodegen {
 
         Asm7UtilKt.visitAnnotableParameterCount(mv, kotlinParameterTypes.size() - syntheticParameterCount);
 
+        boolean isDefaultImpl = OwnerKind.DEFAULT_IMPLS == memberCodegen.context.getContextKind();
         for (int i = 0; i < kotlinParameterTypes.size(); i++) {
             JvmMethodParameterSignature parameterSignature = kotlinParameterTypes.get(i);
             JvmMethodParameterKind kind = parameterSignature.getKind();
@@ -529,13 +530,14 @@ public class FunctionCodegen {
                     ? iterator.next()
                     : kind == JvmMethodParameterKind.RECEIVER
                       ? JvmCodegenUtil.getDirectMember(functionDescriptor).getExtensionReceiverParameter()
-                      : null;
+                      : isDefaultImpl && kind == JvmMethodParameterKind.THIS ? JvmCodegenUtil.getDirectMember(functionDescriptor)
+                              .getDispatchReceiverParameter() : null;
 
             if (annotated != null) {
                 //noinspection ConstantConditions
                 int parameterIndex = i - syntheticParameterCount;
-                AnnotationCodegen.forParameter(parameterIndex, mv, innerClassConsumer, state)
-                        .genAnnotations(annotated, parameterSignature.getAsmType(), annotated.getReturnType());
+                AnnotationCodegen.forParameter(parameterIndex, mv, memberCodegen, state)
+                        .genAnnotations(annotated, parameterSignature.getAsmType(), annotated.getReturnType(), functionDescriptor);
             }
         }
     }
