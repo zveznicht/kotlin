@@ -11,15 +11,15 @@ public inline fun </*0*/ T> Comparator(/*0*/ crossinline comparison: (a: T, b: T
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun UIntArray(/*0*/ size: kotlin.Int, /*1*/ init: (kotlin.Int) -> kotlin.UInt): kotlin.UIntArray
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun ULongArray(/*0*/ size: kotlin.Int, /*1*/ init: (kotlin.Int) -> kotlin.ULong): kotlin.ULongArray
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun UShortArray(/*0*/ size: kotlin.Int, /*1*/ init: (kotlin.Int) -> kotlin.UShort): kotlin.UShortArray
-@kotlin.js.library public fun </*0*/ T> arrayOf(/*0*/ vararg elements: T /*kotlin.Array<out T>*/): kotlin.Array<T>
-public inline fun </*0*/ reified @kotlin.internal.PureReifiable T> arrayOf(/*0*/ vararg elements: T /*kotlin.Array<out T>*/): kotlin.Array<T>
-public fun </*0*/ reified @kotlin.internal.PureReifiable T> arrayOfNulls(/*0*/ size: kotlin.Int): kotlin.Array<T?>
-@kotlin.js.library public fun booleanArrayOf(/*0*/ vararg elements: kotlin.Boolean /*kotlin.BooleanArray*/): kotlin.BooleanArray
-public fun booleanArrayOf(/*0*/ vararg elements: kotlin.Boolean /*kotlin.BooleanArray*/): kotlin.BooleanArray
-@kotlin.js.library public fun byteArrayOf(/*0*/ vararg elements: kotlin.Byte /*kotlin.ByteArray*/): kotlin.ByteArray
-public fun byteArrayOf(/*0*/ vararg elements: kotlin.Byte /*kotlin.ByteArray*/): kotlin.ByteArray
-@kotlin.js.library public fun charArrayOf(/*0*/ vararg elements: kotlin.Char /*kotlin.CharArray*/): kotlin.CharArray
-public fun charArrayOf(/*0*/ vararg elements: kotlin.Char /*kotlin.CharArray*/): kotlin.CharArray
+/*∆*/ @kotlin.js.library public fun </*0*/ T> arrayOf(/*0*/ vararg elements: T /*kotlin.Array<out T>*/): kotlin.Array<T>
+/*∆*/ public inline fun </*0*/ reified @kotlin.internal.PureReifiable T> arrayOf(/*0*/ vararg elements: T /*kotlin.Array<out T>*/): kotlin.Array<T>
+/*∆*/ public fun </*0*/ reified @kotlin.internal.PureReifiable T> arrayOfNulls(/*0*/ size: kotlin.Int): kotlin.Array<T?>
+/*∆*/ @kotlin.js.library public fun booleanArrayOf(/*0*/ vararg elements: kotlin.Boolean /*kotlin.BooleanArray*/): kotlin.BooleanArray
+/*∆*/ public fun booleanArrayOf(/*0*/ vararg elements: kotlin.Boolean /*kotlin.BooleanArray*/): kotlin.BooleanArray
+/*∆*/ @kotlin.js.library public fun byteArrayOf(/*0*/ vararg elements: kotlin.Byte /*kotlin.ByteArray*/): kotlin.ByteArray
+/*∆*/ public fun byteArrayOf(/*0*/ vararg elements: kotlin.Byte /*kotlin.ByteArray*/): kotlin.ByteArray
+/*∆*/ @kotlin.js.library public fun charArrayOf(/*0*/ vararg elements: kotlin.Char /*kotlin.CharArray*/): kotlin.CharArray
+/*∆*/ public fun charArrayOf(/*0*/ vararg elements: kotlin.Char /*kotlin.CharArray*/): kotlin.CharArray
 @kotlin.internal.InlineOnly public inline fun check(/*0*/ value: kotlin.Boolean): kotlin.Unit
     Returns(WILDCARD) -> value
 
@@ -32,23 +32,23 @@ public fun charArrayOf(/*0*/ vararg elements: kotlin.Char /*kotlin.CharArray*/):
 @kotlin.internal.InlineOnly public inline fun </*0*/ T : kotlin.Any> checkNotNull(/*0*/ value: T?, /*1*/ lazyMessage: () -> kotlin.Any): T
     Returns(WILDCARD) -> value != null
 
-@kotlin.js.library public fun doubleArrayOf(/*0*/ vararg elements: kotlin.Double /*kotlin.DoubleArray*/): kotlin.DoubleArray
-public fun doubleArrayOf(/*0*/ vararg elements: kotlin.Double /*kotlin.DoubleArray*/): kotlin.DoubleArray
+/*∆*/ @kotlin.js.library public fun doubleArrayOf(/*0*/ vararg elements: kotlin.Double /*kotlin.DoubleArray*/): kotlin.DoubleArray
+/*∆*/ public fun doubleArrayOf(/*0*/ vararg elements: kotlin.Double /*kotlin.DoubleArray*/): kotlin.DoubleArray
 public inline fun </*0*/ T> emptyArray(): kotlin.Array<T>
-public inline fun </*0*/ reified @kotlin.internal.PureReifiable T> emptyArray(): kotlin.Array<T>
+/*∆*/ public inline fun </*0*/ reified @kotlin.internal.PureReifiable T> emptyArray(): kotlin.Array<T>
 @kotlin.SinceKotlin(version = "1.1") public inline fun </*0*/ reified T : kotlin.Enum<T>> enumValueOf(/*0*/ name: kotlin.String): T
 @kotlin.SinceKotlin(version = "1.1") public inline fun </*0*/ reified T : kotlin.Enum<T>> enumValues(): kotlin.Array<T>
 @kotlin.internal.InlineOnly public inline fun error(/*0*/ message: kotlin.Any): kotlin.Nothing
-@kotlin.js.library public fun floatArrayOf(/*0*/ vararg elements: kotlin.Float /*kotlin.FloatArray*/): kotlin.FloatArray
-public fun floatArrayOf(/*0*/ vararg elements: kotlin.Float /*kotlin.FloatArray*/): kotlin.FloatArray
-@kotlin.js.library public fun intArrayOf(/*0*/ vararg elements: kotlin.Int /*kotlin.IntArray*/): kotlin.IntArray
-public fun intArrayOf(/*0*/ vararg elements: kotlin.Int /*kotlin.IntArray*/): kotlin.IntArray
+/*∆*/ @kotlin.js.library public fun floatArrayOf(/*0*/ vararg elements: kotlin.Float /*kotlin.FloatArray*/): kotlin.FloatArray
+/*∆*/ public fun floatArrayOf(/*0*/ vararg elements: kotlin.Float /*kotlin.FloatArray*/): kotlin.FloatArray
+/*∆*/ @kotlin.js.library public fun intArrayOf(/*0*/ vararg elements: kotlin.Int /*kotlin.IntArray*/): kotlin.IntArray
+/*∆*/ public fun intArrayOf(/*0*/ vararg elements: kotlin.Int /*kotlin.IntArray*/): kotlin.IntArray
 public fun </*0*/ T> lazy(/*0*/ initializer: () -> T): kotlin.Lazy<T>
 public fun </*0*/ T> lazy(/*0*/ lock: kotlin.Any?, /*1*/ initializer: () -> T): kotlin.Lazy<T>
 public fun </*0*/ T> lazy(/*0*/ mode: kotlin.LazyThreadSafetyMode, /*1*/ initializer: () -> T): kotlin.Lazy<T>
 public fun </*0*/ T> lazyOf(/*0*/ value: T): kotlin.Lazy<T>
-@kotlin.js.library public fun longArrayOf(/*0*/ vararg elements: kotlin.Long /*kotlin.LongArray*/): kotlin.LongArray
-public fun longArrayOf(/*0*/ vararg elements: kotlin.Long /*kotlin.LongArray*/): kotlin.LongArray
+/*∆*/ @kotlin.js.library public fun longArrayOf(/*0*/ vararg elements: kotlin.Long /*kotlin.LongArray*/): kotlin.LongArray
+/*∆*/ public fun longArrayOf(/*0*/ vararg elements: kotlin.Long /*kotlin.LongArray*/): kotlin.LongArray
 @kotlin.internal.InlineOnly public inline fun repeat(/*0*/ times: kotlin.Int, /*1*/ action: (kotlin.Int) -> kotlin.Unit): kotlin.Unit
     CallsInPlace(action, UNKNOWN)
 
@@ -68,8 +68,8 @@ public fun longArrayOf(/*0*/ vararg elements: kotlin.Long /*kotlin.LongArray*/):
     CallsInPlace(block, EXACTLY_ONCE)
 
 @kotlin.internal.InlineOnly @kotlin.SinceKotlin(version = "1.3") public inline fun </*0*/ R> runCatching(/*0*/ block: () -> R): kotlin.Result<R>
-@kotlin.js.library public fun shortArrayOf(/*0*/ vararg elements: kotlin.Short /*kotlin.ShortArray*/): kotlin.ShortArray
-public fun shortArrayOf(/*0*/ vararg elements: kotlin.Short /*kotlin.ShortArray*/): kotlin.ShortArray
+/*∆*/ @kotlin.js.library public fun shortArrayOf(/*0*/ vararg elements: kotlin.Short /*kotlin.ShortArray*/): kotlin.ShortArray
+/*∆*/ public fun shortArrayOf(/*0*/ vararg elements: kotlin.Short /*kotlin.ShortArray*/): kotlin.ShortArray
 @kotlin.internal.InlineOnly @kotlin.SinceKotlin(version = "1.2") public inline fun </*0*/ R> suspend(/*0*/ noinline block: suspend () -> R): suspend () -> R
 @kotlin.internal.InlineOnly public inline fun </*0*/ R> synchronized(/*0*/ lock: kotlin.Any, /*1*/ block: () -> R): R
     CallsInPlace(block, EXACTLY_ONCE)
@@ -199,12 +199,12 @@ public operator fun kotlin.String?.plus(/*0*/ other: kotlin.Any?): kotlin.String
     CallsInPlace(predicate, EXACTLY_ONCE)
 
 public infix fun </*0*/ A, /*1*/ B> A.to(/*0*/ that: B): kotlin.Pair<A, B>
-@kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "doubleToBits") public fun kotlin.Double.toBits(): kotlin.Long
-@kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "floatToBits") public fun kotlin.Float.toBits(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "doubleToBits") public fun kotlin.Double.toBits(): kotlin.Long
+/*∆*/ @kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "floatToBits") public fun kotlin.Float.toBits(): kotlin.Int
 public fun </*0*/ T> kotlin.Pair<T, T>.toList(): kotlin.collections.List<T>
 public fun </*0*/ T> kotlin.Triple<T, T, T>.toList(): kotlin.collections.List<T>
-@kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "doubleToRawBits") public fun kotlin.Double.toRawBits(): kotlin.Long
-@kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "floatToRawBits") public fun kotlin.Float.toRawBits(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "doubleToRawBits") public fun kotlin.Double.toRawBits(): kotlin.Long
+/*∆*/ @kotlin.SinceKotlin(version = "1.2") @kotlin.js.library(name = "floatToRawBits") public fun kotlin.Float.toRawBits(): kotlin.Int
 public fun kotlin.Any?.toString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.Byte.toUByte(): kotlin.UByte
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalUnsignedTypes @kotlin.internal.InlineOnly public inline fun kotlin.Int.toUByte(): kotlin.UByte
@@ -230,9 +230,9 @@ public fun kotlin.Any?.toString(): kotlin.String
 public interface Annotation {
 }
 
-public interface Annotation {
-}
-
+/*∆*/ public interface Annotation {
+/*∆*/ }
+/*∆*/ 
 public open class Any {
     /*primary*/ public constructor Any()
     public open operator fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
@@ -242,7 +242,7 @@ public open class Any {
 
 @kotlin.SinceKotlin(version = "1.3") public open class ArithmeticException : kotlin.RuntimeException {
     public constructor ArithmeticException()
-    /*primary*/ public constructor ArithmeticException(/*0*/ message: kotlin.String?)
+/*∆*/     /*primary*/ public constructor ArithmeticException(/*0*/ message: kotlin.String?)
 }
 
 public final class Array</*0*/ T> {
@@ -258,7 +258,7 @@ public open class AssertionError : kotlin.Error {
     public constructor AssertionError()
     public constructor AssertionError(/*0*/ message: kotlin.Any?)
     public constructor AssertionError(/*0*/ message: kotlin.String?)
-    /*primary*/ @kotlin.SinceKotlin(version = "1.4") public constructor AssertionError(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
+/*∆*/     /*primary*/ @kotlin.SinceKotlin(version = "1.4") public constructor AssertionError(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
 }
 
 public final class Boolean : kotlin.Comparable<kotlin.Boolean> {
@@ -418,16 +418,16 @@ public interface CharSequence {
     public abstract fun subSequence(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.CharSequence
 }
 
-public interface CharSequence {
-    public abstract val length: kotlin.Int
-        public abstract fun <get-length>(): kotlin.Int
-    public abstract operator fun get(/*0*/ index: kotlin.Int): kotlin.Char
-    public abstract fun subSequence(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.CharSequence
-}
-
+/*∆*/ public interface CharSequence {
+/*∆*/     public abstract val length: kotlin.Int
+/*∆*/         public abstract fun <get-length>(): kotlin.Int
+/*∆*/     public abstract operator fun get(/*0*/ index: kotlin.Int): kotlin.Char
+/*∆*/     public abstract fun subSequence(/*0*/ startIndex: kotlin.Int, /*1*/ endIndex: kotlin.Int): kotlin.CharSequence
+/*∆*/ }
+/*∆*/ 
 public open class ClassCastException : kotlin.RuntimeException {
     public constructor ClassCastException()
-    /*primary*/ public constructor ClassCastException(/*0*/ message: kotlin.String?)
+/*∆*/     /*primary*/ public constructor ClassCastException(/*0*/ message: kotlin.String?)
 }
 
 public interface Comparable</*0*/ in T> {
@@ -441,7 +441,7 @@ public interface Comparator</*0*/ T> {
 public open class ConcurrentModificationException : kotlin.RuntimeException {
     public constructor ConcurrentModificationException()
     public constructor ConcurrentModificationException(/*0*/ message: kotlin.String?)
-    /*primary*/ public constructor ConcurrentModificationException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
+/*∆*/     /*primary*/ public constructor ConcurrentModificationException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
     public constructor ConcurrentModificationException(/*0*/ cause: kotlin.Throwable?)
 }
 
@@ -564,10 +564,10 @@ public abstract class Enum</*0*/ E : kotlin.Enum<E>> : kotlin.Comparable<E> {
         public final fun <get-name>(): kotlin.String
     public final val ordinal: kotlin.Int
         public final fun <get-ordinal>(): kotlin.Int
-    protected final fun clone(): kotlin.Any
-    public final override /*1*/ fun compareTo(/*0*/ other: E): kotlin.Int
-    public final override /*1*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
-    public final override /*1*/ fun hashCode(): kotlin.Int
+/*∆*/     protected final fun clone(): kotlin.Any
+/*∆*/     public final override /*1*/ fun compareTo(/*0*/ other: E): kotlin.Int
+/*∆*/     public final override /*1*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+/*∆*/     public final override /*1*/ fun hashCode(): kotlin.Int
     public open override /*1*/ fun toString(): kotlin.String
 
     public companion object Companion {
@@ -577,14 +577,14 @@ public abstract class Enum</*0*/ E : kotlin.Enum<E>> : kotlin.Comparable<E> {
 public open class Error : kotlin.Throwable {
     public constructor Error()
     public constructor Error(/*0*/ message: kotlin.String?)
-    /*primary*/ public constructor Error(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
+/*∆*/     /*primary*/ public constructor Error(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
     public constructor Error(/*0*/ cause: kotlin.Throwable?)
 }
 
 public open class Exception : kotlin.Throwable {
     public constructor Exception()
     public constructor Exception(/*0*/ message: kotlin.String?)
-    /*primary*/ public constructor Exception(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
+/*∆*/     /*primary*/ public constructor Exception(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
     public constructor Exception(/*0*/ cause: kotlin.Throwable?)
 }
 
@@ -700,26 +700,26 @@ public final class FloatArray {
 public interface Function</*0*/ out R> {
 }
 
-public interface Function</*0*/ out R> {
-}
-
+/*∆*/ public interface Function</*0*/ out R> {
+/*∆*/ }
+/*∆*/ 
 public open class IllegalArgumentException : kotlin.RuntimeException {
     public constructor IllegalArgumentException()
     public constructor IllegalArgumentException(/*0*/ message: kotlin.String?)
-    /*primary*/ public constructor IllegalArgumentException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
+/*∆*/     /*primary*/ public constructor IllegalArgumentException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
     public constructor IllegalArgumentException(/*0*/ cause: kotlin.Throwable?)
 }
 
 public open class IllegalStateException : kotlin.RuntimeException {
     public constructor IllegalStateException()
     public constructor IllegalStateException(/*0*/ message: kotlin.String?)
-    /*primary*/ public constructor IllegalStateException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
+/*∆*/     /*primary*/ public constructor IllegalStateException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
     public constructor IllegalStateException(/*0*/ cause: kotlin.Throwable?)
 }
 
 public open class IndexOutOfBoundsException : kotlin.RuntimeException {
     public constructor IndexOutOfBoundsException()
-    /*primary*/ public constructor IndexOutOfBoundsException(/*0*/ message: kotlin.String?)
+/*∆*/     /*primary*/ public constructor IndexOutOfBoundsException(/*0*/ message: kotlin.String?)
 }
 
 public final class Int : kotlin.Number, kotlin.Comparable<kotlin.Int> {
@@ -848,52 +848,52 @@ public final enum class LazyThreadSafetyMode : kotlin.Enum<kotlin.LazyThreadSafe
 
 public final class Long : kotlin.Number, kotlin.Comparable<kotlin.Long> {
     public final infix fun and(/*0*/ other: kotlin.Long): kotlin.Long
-    public final operator fun compareTo(/*0*/ other: kotlin.Byte): kotlin.Int
-    public final operator fun compareTo(/*0*/ other: kotlin.Double): kotlin.Int
-    public final operator fun compareTo(/*0*/ other: kotlin.Float): kotlin.Int
-    public final operator fun compareTo(/*0*/ other: kotlin.Int): kotlin.Int
+/*∆*/     public final operator fun compareTo(/*0*/ other: kotlin.Byte): kotlin.Int
+/*∆*/     public final operator fun compareTo(/*0*/ other: kotlin.Double): kotlin.Int
+/*∆*/     public final operator fun compareTo(/*0*/ other: kotlin.Float): kotlin.Int
+/*∆*/     public final operator fun compareTo(/*0*/ other: kotlin.Int): kotlin.Int
     public open override /*1*/ fun compareTo(/*0*/ other: kotlin.Long): kotlin.Int
-    public final operator fun compareTo(/*0*/ other: kotlin.Short): kotlin.Int
+/*∆*/     public final operator fun compareTo(/*0*/ other: kotlin.Short): kotlin.Int
     public final operator fun dec(): kotlin.Long
-    public final operator fun div(/*0*/ other: kotlin.Byte): kotlin.Long
-    public final operator fun div(/*0*/ other: kotlin.Double): kotlin.Double
-    public final operator fun div(/*0*/ other: kotlin.Float): kotlin.Float
-    public final operator fun div(/*0*/ other: kotlin.Int): kotlin.Long
+/*∆*/     public final operator fun div(/*0*/ other: kotlin.Byte): kotlin.Long
+/*∆*/     public final operator fun div(/*0*/ other: kotlin.Double): kotlin.Double
+/*∆*/     public final operator fun div(/*0*/ other: kotlin.Float): kotlin.Float
+/*∆*/     public final operator fun div(/*0*/ other: kotlin.Int): kotlin.Long
     public final operator fun div(/*0*/ other: kotlin.Long): kotlin.Long
-    public final operator fun div(/*0*/ other: kotlin.Short): kotlin.Long
+/*∆*/     public final operator fun div(/*0*/ other: kotlin.Short): kotlin.Long
     public final operator fun inc(): kotlin.Long
     public final fun inv(): kotlin.Long
-    public final operator fun minus(/*0*/ other: kotlin.Byte): kotlin.Long
-    public final operator fun minus(/*0*/ other: kotlin.Double): kotlin.Double
-    public final operator fun minus(/*0*/ other: kotlin.Float): kotlin.Float
-    public final operator fun minus(/*0*/ other: kotlin.Int): kotlin.Long
+/*∆*/     public final operator fun minus(/*0*/ other: kotlin.Byte): kotlin.Long
+/*∆*/     public final operator fun minus(/*0*/ other: kotlin.Double): kotlin.Double
+/*∆*/     public final operator fun minus(/*0*/ other: kotlin.Float): kotlin.Float
+/*∆*/     public final operator fun minus(/*0*/ other: kotlin.Int): kotlin.Long
     public final operator fun minus(/*0*/ other: kotlin.Long): kotlin.Long
-    public final operator fun minus(/*0*/ other: kotlin.Short): kotlin.Long
+/*∆*/     public final operator fun minus(/*0*/ other: kotlin.Short): kotlin.Long
     public final infix fun or(/*0*/ other: kotlin.Long): kotlin.Long
-    public final operator fun plus(/*0*/ other: kotlin.Byte): kotlin.Long
-    public final operator fun plus(/*0*/ other: kotlin.Double): kotlin.Double
-    public final operator fun plus(/*0*/ other: kotlin.Float): kotlin.Float
-    public final operator fun plus(/*0*/ other: kotlin.Int): kotlin.Long
+/*∆*/     public final operator fun plus(/*0*/ other: kotlin.Byte): kotlin.Long
+/*∆*/     public final operator fun plus(/*0*/ other: kotlin.Double): kotlin.Double
+/*∆*/     public final operator fun plus(/*0*/ other: kotlin.Float): kotlin.Float
+/*∆*/     public final operator fun plus(/*0*/ other: kotlin.Int): kotlin.Long
     public final operator fun plus(/*0*/ other: kotlin.Long): kotlin.Long
-    public final operator fun plus(/*0*/ other: kotlin.Short): kotlin.Long
+/*∆*/     public final operator fun plus(/*0*/ other: kotlin.Short): kotlin.Long
     public final operator fun rangeTo(/*0*/ other: kotlin.Byte): kotlin.ranges.LongRange
     public final operator fun rangeTo(/*0*/ other: kotlin.Int): kotlin.ranges.LongRange
     public final operator fun rangeTo(/*0*/ other: kotlin.Long): kotlin.ranges.LongRange
     public final operator fun rangeTo(/*0*/ other: kotlin.Short): kotlin.ranges.LongRange
-    @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Byte): kotlin.Long
-    @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Double): kotlin.Double
-    @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Float): kotlin.Float
-    @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Int): kotlin.Long
+/*∆*/     @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Byte): kotlin.Long
+/*∆*/     @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Double): kotlin.Double
+/*∆*/     @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Float): kotlin.Float
+/*∆*/     @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Int): kotlin.Long
     @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Long): kotlin.Long
-    @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Short): kotlin.Long
+/*∆*/     @kotlin.SinceKotlin(version = "1.1") public final operator fun rem(/*0*/ other: kotlin.Short): kotlin.Long
     public final infix fun shl(/*0*/ bitCount: kotlin.Int): kotlin.Long
     public final infix fun shr(/*0*/ bitCount: kotlin.Int): kotlin.Long
-    public final operator fun times(/*0*/ other: kotlin.Byte): kotlin.Long
-    public final operator fun times(/*0*/ other: kotlin.Double): kotlin.Double
-    public final operator fun times(/*0*/ other: kotlin.Float): kotlin.Float
-    public final operator fun times(/*0*/ other: kotlin.Int): kotlin.Long
+/*∆*/     public final operator fun times(/*0*/ other: kotlin.Byte): kotlin.Long
+/*∆*/     public final operator fun times(/*0*/ other: kotlin.Double): kotlin.Double
+/*∆*/     public final operator fun times(/*0*/ other: kotlin.Float): kotlin.Float
+/*∆*/     public final operator fun times(/*0*/ other: kotlin.Int): kotlin.Long
     public final operator fun times(/*0*/ other: kotlin.Long): kotlin.Long
-    public final operator fun times(/*0*/ other: kotlin.Short): kotlin.Long
+/*∆*/     public final operator fun times(/*0*/ other: kotlin.Short): kotlin.Long
     public open override /*1*/ fun toByte(): kotlin.Byte
     public open override /*1*/ fun toChar(): kotlin.Char
     public open override /*1*/ fun toDouble(): kotlin.Double
@@ -902,7 +902,7 @@ public final class Long : kotlin.Number, kotlin.Comparable<kotlin.Long> {
     public open override /*1*/ fun toLong(): kotlin.Long
     public open override /*1*/ fun toShort(): kotlin.Short
     public final operator fun unaryMinus(): kotlin.Long
-    public final operator fun unaryPlus(): kotlin.Long
+/*∆*/     public final operator fun unaryPlus(): kotlin.Long
     public final infix fun ushr(/*0*/ bitCount: kotlin.Int): kotlin.Long
     public final infix fun xor(/*0*/ other: kotlin.Long): kotlin.Long
 
@@ -930,13 +930,13 @@ public final class LongArray {
 
 public open class NoSuchElementException : kotlin.RuntimeException {
     public constructor NoSuchElementException()
-    /*primary*/ public constructor NoSuchElementException(/*0*/ message: kotlin.String?)
+/*∆*/     /*primary*/ public constructor NoSuchElementException(/*0*/ message: kotlin.String?)
 }
 
 public open class NoWhenBranchMatchedException : kotlin.RuntimeException {
     public constructor NoWhenBranchMatchedException()
     public constructor NoWhenBranchMatchedException(/*0*/ message: kotlin.String?)
-    /*primary*/ public constructor NoWhenBranchMatchedException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
+/*∆*/     /*primary*/ public constructor NoWhenBranchMatchedException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
     public constructor NoWhenBranchMatchedException(/*0*/ cause: kotlin.Throwable?)
 }
 
@@ -949,7 +949,7 @@ public final class Nothing {
 
 public open class NullPointerException : kotlin.RuntimeException {
     public constructor NullPointerException()
-    /*primary*/ public constructor NullPointerException(/*0*/ message: kotlin.String?)
+/*∆*/     /*primary*/ public constructor NullPointerException(/*0*/ message: kotlin.String?)
 }
 
 public abstract class Number {
@@ -965,7 +965,7 @@ public abstract class Number {
 
 public open class NumberFormatException : kotlin.IllegalArgumentException {
     public constructor NumberFormatException()
-    /*primary*/ public constructor NumberFormatException(/*0*/ message: kotlin.String?)
+/*∆*/     /*primary*/ public constructor NumberFormatException(/*0*/ message: kotlin.String?)
 }
 
 @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.CLASS, AnnotationTarget.PROPERTY, AnnotationTarget.LOCAL_VARIABLE, AnnotationTarget.VALUE_PARAMETER, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.EXPRESSION, AnnotationTarget.FILE, AnnotationTarget.TYPEALIAS}) @kotlin.annotation.Retention(value = AnnotationRetention.SOURCE) @kotlin.SinceKotlin(version = "1.3") public final annotation class OptIn : kotlin.Annotation {
@@ -1052,7 +1052,7 @@ public final data class Pair</*0*/ out A, /*1*/ out B> : kotlin.io.Serializable 
 public open class RuntimeException : kotlin.Exception {
     public constructor RuntimeException()
     public constructor RuntimeException(/*0*/ message: kotlin.String?)
-    /*primary*/ public constructor RuntimeException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
+/*∆*/     /*primary*/ public constructor RuntimeException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
     public constructor RuntimeException(/*0*/ cause: kotlin.Throwable?)
 }
 
@@ -1156,10 +1156,10 @@ public final class String : kotlin.Comparable<kotlin.String>, kotlin.CharSequenc
         public final fun <get-names>(): kotlin.Array<out kotlin.String>
 }
 
-public open class Throwable {
+/*∆*/ public open class Throwable {
     public constructor Throwable()
     public constructor Throwable(/*0*/ message: kotlin.String?)
-    /*primary*/ public constructor Throwable(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
+/*∆*/     /*primary*/ public constructor Throwable(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
     public constructor Throwable(/*0*/ cause: kotlin.Throwable?)
     public open val cause: kotlin.Throwable?
         public open fun <get-cause>(): kotlin.Throwable?
@@ -1483,7 +1483,7 @@ public final data class Triple</*0*/ out A, /*1*/ out B, /*2*/ out C> : kotlin.i
 public open class UninitializedPropertyAccessException : kotlin.RuntimeException {
     public constructor UninitializedPropertyAccessException()
     public constructor UninitializedPropertyAccessException(/*0*/ message: kotlin.String?)
-    /*primary*/ public constructor UninitializedPropertyAccessException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
+/*∆*/     /*primary*/ public constructor UninitializedPropertyAccessException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
     public constructor UninitializedPropertyAccessException(/*0*/ cause: kotlin.Throwable?)
 }
 
@@ -1491,10 +1491,10 @@ public object Unit {
     public open override /*1*/ fun toString(): kotlin.String
 }
 
-public object Unit {
-    public open override /*1*/ fun toString(): kotlin.String
-}
-
+/*∆*/ public object Unit {
+/*∆*/     public open override /*1*/ fun toString(): kotlin.String
+/*∆*/ }
+/*∆*/ 
 @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.TYPE}) @kotlin.annotation.Retention(value = AnnotationRetention.SOURCE) @kotlin.annotation.MustBeDocumented public final annotation class UnsafeVariance : kotlin.Annotation {
     /*primary*/ public constructor UnsafeVariance()
 }
@@ -1502,7 +1502,7 @@ public object Unit {
 public open class UnsupportedOperationException : kotlin.RuntimeException {
     public constructor UnsupportedOperationException()
     public constructor UnsupportedOperationException(/*0*/ message: kotlin.String?)
-    /*primary*/ public constructor UnsupportedOperationException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
+/*∆*/     /*primary*/ public constructor UnsupportedOperationException(/*0*/ message: kotlin.String?, /*1*/ cause: kotlin.Throwable?)
     public constructor UnsupportedOperationException(/*0*/ cause: kotlin.Throwable?)
 }
 

@@ -1,4 +1,4 @@
---- 15,15 ---
+--------
 - public final enum class AnnotationRetention : kotlin.Enum<kotlin.annotation.AnnotationRetention> {
 -     enum entry SOURCE
 - 
@@ -11,7 +11,7 @@
 -     public final /*synthesized*/ fun values(): kotlin.Array<kotlin.annotation.AnnotationRetention>
 - }
 - 
---- 63,51 ---
+--------
 - public final enum class AnnotationTarget : kotlin.Enum<kotlin.annotation.AnnotationTarget> {
 -     enum entry CLASS
 - 
@@ -48,24 +48,24 @@
 -     public final /*synthesized*/ fun values(): kotlin.Array<kotlin.annotation.AnnotationTarget>
 - }
 - 
---- 103,55 ---
+--------
 - @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) public final annotation class MustBeDocumented : kotlin.Annotation {
 -     /*primary*/ public constructor MustBeDocumented()
 - }
 - 
---- 111,59 ---
+--------
 - @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) public final annotation class Repeatable : kotlin.Annotation {
 -     /*primary*/ public constructor Repeatable()
 - }
 - 
---- 121,65 ---
+--------
 - @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) public final annotation class Retention : kotlin.Annotation {
 -     /*primary*/ public constructor Retention(/*0*/ value: kotlin.annotation.AnnotationRetention = ...)
 -     public final val value: kotlin.annotation.AnnotationRetention
 -         public final fun <get-value>(): kotlin.annotation.AnnotationRetention
 - }
 - 
---- 132,70 ---
+--------
 - 
 - @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) @kotlin.annotation.MustBeDocumented public final annotation class Target : kotlin.Annotation {
 -     /*primary*/ public constructor Target(/*0*/ vararg allowedTargets: kotlin.annotation.AnnotationTarget /*kotlin.Array<out kotlin.annotation.AnnotationTarget>*/)

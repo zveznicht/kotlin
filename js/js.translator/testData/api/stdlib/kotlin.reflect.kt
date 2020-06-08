@@ -31,9 +31,9 @@ public interface KClass</*0*/ T : kotlin.Any> : kotlin.reflect.KClassifier {
 @kotlin.SinceKotlin(version = "1.1") public interface KClassifier {
 }
 
-@kotlin.SinceKotlin(version = "1.1") public interface KClassifier {
-}
-
+/*∆*/ @kotlin.SinceKotlin(version = "1.1") public interface KClassifier {
+/*∆*/ }
+/*∆*/ 
 public interface KFunction</*0*/ out R> : kotlin.reflect.KCallable<R>, kotlin.Function<R> {
 }
 
@@ -87,17 +87,17 @@ public interface KType {
         public abstract fun <get-variance>(): kotlin.reflect.KVariance
 }
 
-@kotlin.SinceKotlin(version = "1.1") public interface KTypeParameter : kotlin.reflect.KClassifier {
-    public abstract val isReified: kotlin.Boolean
-        public abstract fun <get-isReified>(): kotlin.Boolean
-    public abstract val name: kotlin.String
-        public abstract fun <get-name>(): kotlin.String
-    public abstract val upperBounds: kotlin.collections.List<kotlin.reflect.KType>
-        public abstract fun <get-upperBounds>(): kotlin.collections.List<kotlin.reflect.KType>
-    public abstract val variance: kotlin.reflect.KVariance
-        public abstract fun <get-variance>(): kotlin.reflect.KVariance
-}
-
+/*∆*/ @kotlin.SinceKotlin(version = "1.1") public interface KTypeParameter : kotlin.reflect.KClassifier {
+/*∆*/     public abstract val isReified: kotlin.Boolean
+/*∆*/         public abstract fun <get-isReified>(): kotlin.Boolean
+/*∆*/     public abstract val name: kotlin.String
+/*∆*/         public abstract fun <get-name>(): kotlin.String
+/*∆*/     public abstract val upperBounds: kotlin.collections.List<kotlin.reflect.KType>
+/*∆*/         public abstract fun <get-upperBounds>(): kotlin.collections.List<kotlin.reflect.KType>
+/*∆*/     public abstract val variance: kotlin.reflect.KVariance
+/*∆*/         public abstract fun <get-variance>(): kotlin.reflect.KVariance
+/*∆*/ }
+/*∆*/ 
 @kotlin.SinceKotlin(version = "1.1") public final data class KTypeProjection {
     /*primary*/ public constructor KTypeProjection(/*0*/ variance: kotlin.reflect.KVariance?, /*1*/ type: kotlin.reflect.KType?)
     public final val type: kotlin.reflect.KType?
@@ -120,28 +120,28 @@ public interface KType {
     }
 }
 
-@kotlin.SinceKotlin(version = "1.1") public final data class KTypeProjection {
-    /*primary*/ public constructor KTypeProjection(/*0*/ variance: kotlin.reflect.KVariance?, /*1*/ type: kotlin.reflect.KType?)
-    public final val type: kotlin.reflect.KType?
-        public final fun <get-type>(): kotlin.reflect.KType?
-    public final val variance: kotlin.reflect.KVariance?
-        public final fun <get-variance>(): kotlin.reflect.KVariance?
-    public final operator /*synthesized*/ fun component1(): kotlin.reflect.KVariance?
-    public final operator /*synthesized*/ fun component2(): kotlin.reflect.KType?
-    public final /*synthesized*/ fun copy(/*0*/ variance: kotlin.reflect.KVariance? = ..., /*1*/ type: kotlin.reflect.KType? = ...): kotlin.reflect.KTypeProjection
-    public open override /*1*/ /*synthesized*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
-    public open override /*1*/ /*synthesized*/ fun hashCode(): kotlin.Int
-    public open override /*1*/ fun toString(): kotlin.String
-
-    public companion object Companion {
-        public final val STAR: kotlin.reflect.KTypeProjection
-            public final fun <get-STAR>(): kotlin.reflect.KTypeProjection
-        public final fun contravariant(/*0*/ type: kotlin.reflect.KType): kotlin.reflect.KTypeProjection
-        public final fun covariant(/*0*/ type: kotlin.reflect.KType): kotlin.reflect.KTypeProjection
-        public final fun invariant(/*0*/ type: kotlin.reflect.KType): kotlin.reflect.KTypeProjection
-    }
-}
-
+/*∆*/ @kotlin.SinceKotlin(version = "1.1") public final data class KTypeProjection {
+/*∆*/     /*primary*/ public constructor KTypeProjection(/*0*/ variance: kotlin.reflect.KVariance?, /*1*/ type: kotlin.reflect.KType?)
+/*∆*/     public final val type: kotlin.reflect.KType?
+/*∆*/         public final fun <get-type>(): kotlin.reflect.KType?
+/*∆*/     public final val variance: kotlin.reflect.KVariance?
+/*∆*/         public final fun <get-variance>(): kotlin.reflect.KVariance?
+/*∆*/     public final operator /*synthesized*/ fun component1(): kotlin.reflect.KVariance?
+/*∆*/     public final operator /*synthesized*/ fun component2(): kotlin.reflect.KType?
+/*∆*/     public final /*synthesized*/ fun copy(/*0*/ variance: kotlin.reflect.KVariance? = ..., /*1*/ type: kotlin.reflect.KType? = ...): kotlin.reflect.KTypeProjection
+/*∆*/     public open override /*1*/ /*synthesized*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+/*∆*/     public open override /*1*/ /*synthesized*/ fun hashCode(): kotlin.Int
+/*∆*/     public open override /*1*/ fun toString(): kotlin.String
+/*∆*/ 
+/*∆*/     public companion object Companion {
+/*∆*/         public final val STAR: kotlin.reflect.KTypeProjection
+/*∆*/             public final fun <get-STAR>(): kotlin.reflect.KTypeProjection
+/*∆*/         public final fun contravariant(/*0*/ type: kotlin.reflect.KType): kotlin.reflect.KTypeProjection
+/*∆*/         public final fun covariant(/*0*/ type: kotlin.reflect.KType): kotlin.reflect.KTypeProjection
+/*∆*/         public final fun invariant(/*0*/ type: kotlin.reflect.KType): kotlin.reflect.KTypeProjection
+/*∆*/     }
+/*∆*/ }
+/*∆*/ 
 @kotlin.SinceKotlin(version = "1.1") public final enum class KVariance : kotlin.Enum<kotlin.reflect.KVariance> {
     enum entry INVARIANT
 
@@ -153,15 +153,15 @@ public interface KType {
     public final /*synthesized*/ fun valueOf(/*0*/ value: kotlin.String): kotlin.reflect.KVariance
     public final /*synthesized*/ fun values(): kotlin.Array<kotlin.reflect.KVariance>
 }
-
-@kotlin.SinceKotlin(version = "1.1") public final enum class KVariance : kotlin.Enum<kotlin.reflect.KVariance> {
-    enum entry INVARIANT
-
-    enum entry IN
-
-    enum entry OUT
-
-    // Static members
-    public final /*synthesized*/ fun valueOf(/*0*/ value: kotlin.String): kotlin.reflect.KVariance
-    public final /*synthesized*/ fun values(): kotlin.Array<kotlin.reflect.KVariance>
-}
+/*∆*/ 
+/*∆*/ @kotlin.SinceKotlin(version = "1.1") public final enum class KVariance : kotlin.Enum<kotlin.reflect.KVariance> {
+/*∆*/     enum entry INVARIANT
+/*∆*/ 
+/*∆*/     enum entry IN
+/*∆*/ 
+/*∆*/     enum entry OUT
+/*∆*/ 
+/*∆*/     // Static members
+/*∆*/     public final /*synthesized*/ fun valueOf(/*0*/ value: kotlin.String): kotlin.reflect.KVariance
+/*∆*/     public final /*synthesized*/ fun values(): kotlin.Array<kotlin.reflect.KVariance>
+/*∆*/ }

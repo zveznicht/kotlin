@@ -407,29 +407,29 @@ public operator fun </*0*/ @kotlin.internal.OnlyInputTypes T> kotlin.collections
 @kotlin.internal.InlineOnly public inline fun </*0*/ @kotlin.internal.OnlyInputTypes K> kotlin.collections.Map<out K, *>.containsKey(/*0*/ key: K): kotlin.Boolean
 @kotlin.internal.InlineOnly public inline fun </*0*/ K, /*1*/ @kotlin.internal.OnlyInputTypes V> kotlin.collections.Map<K, V>.containsValue(/*0*/ value: V): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public infix fun </*0*/ T> kotlin.Array<out T>.contentDeepEquals(/*0*/ other: kotlin.Array<out T>): kotlin.Boolean
-@kotlin.SinceKotlin(version = "1.4") public infix fun </*0*/ T> kotlin.Array<out T>?.contentDeepEquals(/*0*/ other: kotlin.Array<out T>?): kotlin.Boolean
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public infix fun </*0*/ T> kotlin.Array<out T>?.contentDeepEquals(/*0*/ other: kotlin.Array<out T>?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun </*0*/ T> kotlin.Array<out T>.contentDeepHashCode(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.4") public fun </*0*/ T> kotlin.Array<out T>?.contentDeepHashCode(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun </*0*/ T> kotlin.Array<out T>?.contentDeepHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun </*0*/ T> kotlin.Array<out T>.contentDeepToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.4") public fun </*0*/ T> kotlin.Array<out T>?.contentDeepToString(): kotlin.String
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun </*0*/ T> kotlin.Array<out T>?.contentDeepToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public infix fun </*0*/ T> kotlin.Array<out T>.contentEquals(/*0*/ other: kotlin.Array<out T>): kotlin.Boolean
-@kotlin.SinceKotlin(version = "1.4") public infix fun </*0*/ T> kotlin.Array<out T>?.contentEquals(/*0*/ other: kotlin.Array<out T>?): kotlin.Boolean
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public infix fun </*0*/ T> kotlin.Array<out T>?.contentEquals(/*0*/ other: kotlin.Array<out T>?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public infix fun kotlin.BooleanArray.contentEquals(/*0*/ other: kotlin.BooleanArray): kotlin.Boolean
-@kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.BooleanArray?.contentEquals(/*0*/ other: kotlin.BooleanArray?): kotlin.Boolean
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.BooleanArray?.contentEquals(/*0*/ other: kotlin.BooleanArray?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public infix fun kotlin.ByteArray.contentEquals(/*0*/ other: kotlin.ByteArray): kotlin.Boolean
-@kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.ByteArray?.contentEquals(/*0*/ other: kotlin.ByteArray?): kotlin.Boolean
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.ByteArray?.contentEquals(/*0*/ other: kotlin.ByteArray?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public infix fun kotlin.CharArray.contentEquals(/*0*/ other: kotlin.CharArray): kotlin.Boolean
-@kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.CharArray?.contentEquals(/*0*/ other: kotlin.CharArray?): kotlin.Boolean
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.CharArray?.contentEquals(/*0*/ other: kotlin.CharArray?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public infix fun kotlin.DoubleArray.contentEquals(/*0*/ other: kotlin.DoubleArray): kotlin.Boolean
-@kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.DoubleArray?.contentEquals(/*0*/ other: kotlin.DoubleArray?): kotlin.Boolean
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.DoubleArray?.contentEquals(/*0*/ other: kotlin.DoubleArray?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public infix fun kotlin.FloatArray.contentEquals(/*0*/ other: kotlin.FloatArray): kotlin.Boolean
-@kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.FloatArray?.contentEquals(/*0*/ other: kotlin.FloatArray?): kotlin.Boolean
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.FloatArray?.contentEquals(/*0*/ other: kotlin.FloatArray?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public infix fun kotlin.IntArray.contentEquals(/*0*/ other: kotlin.IntArray): kotlin.Boolean
-@kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.IntArray?.contentEquals(/*0*/ other: kotlin.IntArray?): kotlin.Boolean
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.IntArray?.contentEquals(/*0*/ other: kotlin.IntArray?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public infix fun kotlin.LongArray.contentEquals(/*0*/ other: kotlin.LongArray): kotlin.Boolean
-@kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.LongArray?.contentEquals(/*0*/ other: kotlin.LongArray?): kotlin.Boolean
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.LongArray?.contentEquals(/*0*/ other: kotlin.LongArray?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public infix fun kotlin.ShortArray.contentEquals(/*0*/ other: kotlin.ShortArray): kotlin.Boolean
-@kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.ShortArray?.contentEquals(/*0*/ other: kotlin.ShortArray?): kotlin.Boolean
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public infix fun kotlin.ShortArray?.contentEquals(/*0*/ other: kotlin.ShortArray?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.3") @kotlin.internal.LowPriorityInOverloadResolution @kotlin.ExperimentalUnsignedTypes public infix fun kotlin.UByteArray.contentEquals(/*0*/ other: kotlin.UByteArray): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.4") @kotlin.ExperimentalUnsignedTypes public infix fun kotlin.UByteArray?.contentEquals(/*0*/ other: kotlin.UByteArray?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.3") @kotlin.internal.LowPriorityInOverloadResolution @kotlin.ExperimentalUnsignedTypes public infix fun kotlin.UIntArray.contentEquals(/*0*/ other: kotlin.UIntArray): kotlin.Boolean
@@ -439,23 +439,23 @@ public operator fun </*0*/ @kotlin.internal.OnlyInputTypes T> kotlin.collections
 @kotlin.SinceKotlin(version = "1.3") @kotlin.internal.LowPriorityInOverloadResolution @kotlin.ExperimentalUnsignedTypes public infix fun kotlin.UShortArray.contentEquals(/*0*/ other: kotlin.UShortArray): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.4") @kotlin.ExperimentalUnsignedTypes public infix fun kotlin.UShortArray?.contentEquals(/*0*/ other: kotlin.UShortArray?): kotlin.Boolean
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun </*0*/ T> kotlin.Array<out T>.contentHashCode(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.4") public fun </*0*/ T> kotlin.Array<out T>?.contentHashCode(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun </*0*/ T> kotlin.Array<out T>?.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.BooleanArray.contentHashCode(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.BooleanArray?.contentHashCode(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.BooleanArray?.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.ByteArray.contentHashCode(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.ByteArray?.contentHashCode(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.ByteArray?.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.CharArray.contentHashCode(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.CharArray?.contentHashCode(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.CharArray?.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.DoubleArray.contentHashCode(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.DoubleArray?.contentHashCode(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.DoubleArray?.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.FloatArray.contentHashCode(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.FloatArray?.contentHashCode(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.FloatArray?.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.IntArray.contentHashCode(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.IntArray?.contentHashCode(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.IntArray?.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.LongArray.contentHashCode(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.LongArray?.contentHashCode(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.LongArray?.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.ShortArray.contentHashCode(): kotlin.Int
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.ShortArray?.contentHashCode(): kotlin.Int
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.ShortArray?.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.3") @kotlin.internal.LowPriorityInOverloadResolution @kotlin.ExperimentalUnsignedTypes public fun kotlin.UByteArray.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.4") @kotlin.ExperimentalUnsignedTypes public fun kotlin.UByteArray?.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.3") @kotlin.internal.LowPriorityInOverloadResolution @kotlin.ExperimentalUnsignedTypes public fun kotlin.UIntArray.contentHashCode(): kotlin.Int
@@ -465,23 +465,23 @@ public operator fun </*0*/ @kotlin.internal.OnlyInputTypes T> kotlin.collections
 @kotlin.SinceKotlin(version = "1.3") @kotlin.internal.LowPriorityInOverloadResolution @kotlin.ExperimentalUnsignedTypes public fun kotlin.UShortArray.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.4") @kotlin.ExperimentalUnsignedTypes public fun kotlin.UShortArray?.contentHashCode(): kotlin.Int
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun </*0*/ T> kotlin.Array<out T>.contentToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.4") public fun </*0*/ T> kotlin.Array<out T>?.contentToString(): kotlin.String
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun </*0*/ T> kotlin.Array<out T>?.contentToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.BooleanArray.contentToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.BooleanArray?.contentToString(): kotlin.String
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.BooleanArray?.contentToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.ByteArray.contentToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.ByteArray?.contentToString(): kotlin.String
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.ByteArray?.contentToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.CharArray.contentToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.CharArray?.contentToString(): kotlin.String
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.CharArray?.contentToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.DoubleArray.contentToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.DoubleArray?.contentToString(): kotlin.String
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.DoubleArray?.contentToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.FloatArray.contentToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.FloatArray?.contentToString(): kotlin.String
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.FloatArray?.contentToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.IntArray.contentToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.IntArray?.contentToString(): kotlin.String
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.IntArray?.contentToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.LongArray.contentToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.LongArray?.contentToString(): kotlin.String
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.LongArray?.contentToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.1") @kotlin.internal.LowPriorityInOverloadResolution public fun kotlin.ShortArray.contentToString(): kotlin.String
-@kotlin.SinceKotlin(version = "1.4") public fun kotlin.ShortArray?.contentToString(): kotlin.String
+/*∆*/ @kotlin.SinceKotlin(version = "1.4") public fun kotlin.ShortArray?.contentToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.3") @kotlin.internal.LowPriorityInOverloadResolution @kotlin.ExperimentalUnsignedTypes public fun kotlin.UByteArray.contentToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.4") @kotlin.ExperimentalUnsignedTypes public fun kotlin.UByteArray?.contentToString(): kotlin.String
 @kotlin.SinceKotlin(version = "1.3") @kotlin.internal.LowPriorityInOverloadResolution @kotlin.ExperimentalUnsignedTypes public fun kotlin.UIntArray.contentToString(): kotlin.String
@@ -2377,25 +2377,25 @@ public fun kotlin.ShortArray.sliceArray(/*0*/ indices: kotlin.ranges.IntRange): 
 public fun </*0*/ T : kotlin.Comparable<T>> kotlin.Array<out T>.sort(): kotlin.Unit
 public fun </*0*/ T> kotlin.Array<out T>.sort(/*0*/ comparison: (a: T, b: T) -> kotlin.Int): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.4") public fun </*0*/ T : kotlin.Comparable<T>> kotlin.Array<out T>.sort(/*0*/ fromIndex: kotlin.Int = ..., /*1*/ toIndex: kotlin.Int = ...): kotlin.Unit
-public fun kotlin.ByteArray.sort(): kotlin.Unit
+/*∆*/ public fun kotlin.ByteArray.sort(): kotlin.Unit
 @kotlin.internal.InlineOnly public inline fun kotlin.ByteArray.sort(/*0*/ noinline comparison: (a: kotlin.Byte, b: kotlin.Byte) -> kotlin.Int): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.4") public fun kotlin.ByteArray.sort(/*0*/ fromIndex: kotlin.Int = ..., /*1*/ toIndex: kotlin.Int = ...): kotlin.Unit
-public fun kotlin.CharArray.sort(): kotlin.Unit
+/*∆*/ public fun kotlin.CharArray.sort(): kotlin.Unit
 @kotlin.internal.InlineOnly public inline fun kotlin.CharArray.sort(/*0*/ noinline comparison: (a: kotlin.Char, b: kotlin.Char) -> kotlin.Int): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.4") public fun kotlin.CharArray.sort(/*0*/ fromIndex: kotlin.Int = ..., /*1*/ toIndex: kotlin.Int = ...): kotlin.Unit
-public fun kotlin.DoubleArray.sort(): kotlin.Unit
+/*∆*/ public fun kotlin.DoubleArray.sort(): kotlin.Unit
 @kotlin.internal.InlineOnly public inline fun kotlin.DoubleArray.sort(/*0*/ noinline comparison: (a: kotlin.Double, b: kotlin.Double) -> kotlin.Int): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.4") public fun kotlin.DoubleArray.sort(/*0*/ fromIndex: kotlin.Int = ..., /*1*/ toIndex: kotlin.Int = ...): kotlin.Unit
-public fun kotlin.FloatArray.sort(): kotlin.Unit
+/*∆*/ public fun kotlin.FloatArray.sort(): kotlin.Unit
 @kotlin.internal.InlineOnly public inline fun kotlin.FloatArray.sort(/*0*/ noinline comparison: (a: kotlin.Float, b: kotlin.Float) -> kotlin.Int): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.4") public fun kotlin.FloatArray.sort(/*0*/ fromIndex: kotlin.Int = ..., /*1*/ toIndex: kotlin.Int = ...): kotlin.Unit
-public fun kotlin.IntArray.sort(): kotlin.Unit
+/*∆*/ public fun kotlin.IntArray.sort(): kotlin.Unit
 @kotlin.internal.InlineOnly public inline fun kotlin.IntArray.sort(/*0*/ noinline comparison: (a: kotlin.Int, b: kotlin.Int) -> kotlin.Int): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.4") public fun kotlin.IntArray.sort(/*0*/ fromIndex: kotlin.Int = ..., /*1*/ toIndex: kotlin.Int = ...): kotlin.Unit
 public fun kotlin.LongArray.sort(): kotlin.Unit
 @kotlin.internal.InlineOnly public inline fun kotlin.LongArray.sort(/*0*/ noinline comparison: (a: kotlin.Long, b: kotlin.Long) -> kotlin.Int): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.4") public fun kotlin.LongArray.sort(/*0*/ fromIndex: kotlin.Int = ..., /*1*/ toIndex: kotlin.Int = ...): kotlin.Unit
-public fun kotlin.ShortArray.sort(): kotlin.Unit
+/*∆*/ public fun kotlin.ShortArray.sort(): kotlin.Unit
 @kotlin.internal.InlineOnly public inline fun kotlin.ShortArray.sort(/*0*/ noinline comparison: (a: kotlin.Short, b: kotlin.Short) -> kotlin.Int): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.4") public fun kotlin.ShortArray.sort(/*0*/ fromIndex: kotlin.Int = ..., /*1*/ toIndex: kotlin.Int = ...): kotlin.Unit
 @kotlin.SinceKotlin(version = "1.3") @kotlin.ExperimentalUnsignedTypes public fun kotlin.UByteArray.sort(): kotlin.Unit

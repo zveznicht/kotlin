@@ -1,4 +1,4 @@
---- 178,178 ---
+--------
 - public open class CharProgression : kotlin.collections.Iterable<kotlin.Char> {
 -     public final val first: kotlin.Char
 -         public final fun <get-first>(): kotlin.Char
@@ -17,7 +17,7 @@
 -     }
 - }
 - 
---- 214,196 ---
+--------
 - public final class CharRange : kotlin.ranges.CharProgression, kotlin.ranges.ClosedRange<kotlin.Char> {
 -     /*primary*/ public constructor CharRange(/*0*/ start: kotlin.Char, /*1*/ endInclusive: kotlin.Char)
 -     public open override /*1*/ val endInclusive: kotlin.Char
@@ -36,7 +36,7 @@
 -     }
 - }
 - 
---- 247,211 ---
+--------
 - public interface ClosedRange</*0*/ T : kotlin.Comparable<T>> {
 -     public abstract val endInclusive: T
 -         public abstract fun <get-endInclusive>(): T
@@ -46,7 +46,7 @@
 -     public open fun isEmpty(): kotlin.Boolean
 - }
 - 
---- 274,229 ---
+--------
 - public open class IntProgression : kotlin.collections.Iterable<kotlin.Int> {
 -     public final val first: kotlin.Int
 -         public final fun <get-first>(): kotlin.Int
@@ -65,7 +65,7 @@
 -     }
 - }
 - 
---- 310,247 ---
+--------
 - public final class IntRange : kotlin.ranges.IntProgression, kotlin.ranges.ClosedRange<kotlin.Int> {
 -     /*primary*/ public constructor IntRange(/*0*/ start: kotlin.Int, /*1*/ endInclusive: kotlin.Int)
 -     public open override /*1*/ val endInclusive: kotlin.Int
@@ -84,7 +84,7 @@
 -     }
 - }
 - 
---- 346,265 ---
+--------
 - public open class LongProgression : kotlin.collections.Iterable<kotlin.Long> {
 -     public final val first: kotlin.Long
 -         public final fun <get-first>(): kotlin.Long
@@ -103,7 +103,7 @@
 -     }
 - }
 - 
---- 382,283 ---
+--------
 - public final class LongRange : kotlin.ranges.LongProgression, kotlin.ranges.ClosedRange<kotlin.Long> {
 -     /*primary*/ public constructor LongRange(/*0*/ start: kotlin.Long, /*1*/ endInclusive: kotlin.Long)
 -     public open override /*1*/ val endInclusive: kotlin.Long

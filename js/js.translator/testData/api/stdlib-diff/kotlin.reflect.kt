@@ -1,8 +1,8 @@
---- 34,34 ---
+--------
 - @kotlin.SinceKotlin(version = "1.1") public interface KClassifier {
 - }
 - 
---- 90,87 ---
+--------
 - @kotlin.SinceKotlin(version = "1.1") public interface KTypeParameter : kotlin.reflect.KClassifier {
 -     public abstract val isReified: kotlin.Boolean
 -         public abstract fun <get-isReified>(): kotlin.Boolean
@@ -14,7 +14,7 @@
 -         public abstract fun <get-variance>(): kotlin.reflect.KVariance
 - }
 - 
---- 123,109 ---
+--------
 - @kotlin.SinceKotlin(version = "1.1") public final data class KTypeProjection {
 -     /*primary*/ public constructor KTypeProjection(/*0*/ variance: kotlin.reflect.KVariance?, /*1*/ type: kotlin.reflect.KType?)
 -     public final val type: kotlin.reflect.KType?
@@ -37,7 +37,7 @@
 -     }
 - }
 - 
---- 156,120 ---
+--------
 - 
 - @kotlin.SinceKotlin(version = "1.1") public final enum class KVariance : kotlin.Enum<kotlin.reflect.KVariance> {
 -     enum entry INVARIANT

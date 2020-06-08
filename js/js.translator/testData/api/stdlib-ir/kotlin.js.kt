@@ -18,7 +18,7 @@ public inline fun dateLocaleOptions(/*0*/ init: kotlin.js.Date.LocaleOptions.() 
 public external fun eval(/*0*/ expr: kotlin.String): dynamic
 public external fun js(/*0*/ code: kotlin.String): dynamic
 @kotlin.Deprecated(level = DeprecationLevel.ERROR, message = "Use class literal and extension property `js` instead.", replaceWith = kotlin.ReplaceWith(expression = "T::class.js", imports = {})) public external fun </*0*/ T : kotlin.Any> jsClass(): kotlin.js.JsClass<T>
-public fun jsTypeOf(/*0*/ value_hack: kotlin.Any?): kotlin.String
+/*∆*/ public fun jsTypeOf(/*0*/ value_hack: kotlin.Any?): kotlin.String
 public fun json(/*0*/ vararg pairs: kotlin.Pair<kotlin.String, kotlin.Any?> /*kotlin.Array<out kotlin.Pair<kotlin.String, kotlin.Any?>>*/): kotlin.js.Json
 @kotlin.Deprecated(level = DeprecationLevel.ERROR, message = "Use toDouble() instead.", replaceWith = kotlin.ReplaceWith(expression = "s.toDouble()", imports = {})) public external fun parseFloat(/*0*/ s: kotlin.String, /*1*/ radix: kotlin.Int = ...): kotlin.Double
 @kotlin.Deprecated(level = DeprecationLevel.ERROR, message = "Use toInt() instead.", replaceWith = kotlin.ReplaceWith(expression = "s.toInt()", imports = {})) public external fun parseInt(/*0*/ s: kotlin.String): kotlin.Int
