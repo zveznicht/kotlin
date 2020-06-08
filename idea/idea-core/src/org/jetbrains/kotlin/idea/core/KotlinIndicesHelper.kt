@@ -265,13 +265,8 @@ class KotlinIndicesHelper(
     fun getKotlinEnumsByName(name: String): Collection<DeclarationDescriptor> {
         return KotlinClassShortNameIndex.getInstance()[name, project, scope]
             .filter { it is KtEnumEntry && it in scope }
-            .mapNotNull {
-                val resolutionFacade = it.getResolutionFacade()
-                val resultingDescriptor = it.unsafeResolveToDescriptor(resolutionFacade)
-                if (descriptorFilter(resultingDescriptor, resolutionFacade))
-                    resultingDescriptor
-                else null
-            }
+            .flatMap { it.resolveToDescriptors<DeclarationDescriptor>() }
+            .filter(::descriptorFilter)
             .toSet()
     }
 
