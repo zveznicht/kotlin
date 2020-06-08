@@ -159,6 +159,10 @@ public class DefaultErrorMessagesJvm implements DefaultErrorMessages.Extension {
 
         MAP.put(FUNCTION_DELEGATE_MEMBER_NAME_CLASH,
                 "Functional interface member cannot have this name on JVM because it clashes with an internal member getFunctionDelegate");
+
+        MAP.put(EXPLICITI_OVERRIDE_REQUIRED_IN_COMPATIBILITY_MODE,
+                "In old compilation scheme this class have implicit specialization for ''{0}'' method. It could be used for super calls within Kotlin clients." +
+                "Compatibility mode requires to this override to be added explicitly or if it's not necessary annotate with `@JvmDefaultWithoutCompatibility` (not public library ABI or new class or interface in library)");
     }
 
     @NotNull
