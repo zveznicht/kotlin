@@ -15,7 +15,7 @@ interface IdSignatureComputer {
 
 class DescToIrIdSignatureComputer(private val delegate: IdSignatureDescriptor) : IdSignatureComputer {
     override fun computeSignature(declaration: IrDeclaration): IdSignature? {
-        return if (declaration is IrEnumEntry) delegate.composeEnumEntrySignature(declaration.wrappedDescriptor)
-        else delegate.composeSignature(declaration.wrappedDescriptor)
+        return if (declaration is IrEnumEntry) delegate.composeEnumEntrySignature(declaration.initialDescriptor)
+        else delegate.composeSignature(declaration.initialDescriptor)
     }
 }
