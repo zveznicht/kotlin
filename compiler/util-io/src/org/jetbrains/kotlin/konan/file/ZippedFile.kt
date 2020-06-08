@@ -5,125 +5,104 @@
 
 package org.jetbrains.kotlin.konan.file
 
+import org.jetbrains.kotlin.konan.file.ZippedFile.Companion.PATH_SEPARATOR
+import org.jetbrains.kotlin.konan.file.ZippedFileTree.Node.EntryNode
 import java.io.BufferedReader
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
+import java.nio.file.attribute.BasicFileAttributeView
+import java.nio.file.attribute.FileTime
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
-import java.io.File as JFile
 
-// TODO: ZipFiles must be closed. What's with Windows?
-// TODO: Better reporting for check(exists && ...)
-class ZippedFile(
-    val zip: ZipFile,
-    pathInsideZip: String
-) : AbstractFile {
+class ZippedFile private constructor(
+        private val fileTree: ZippedFileTree,
+        pathInsideZip: String
+): AbstractFile {
 
-    // TODO: Now we assume that this path doesn't have a trailing /. Is it ok?
-    private val pathInsideZip: String
-    private val isZipRoot: Boolean
-    private val entry: ZipEntry?
+    constructor(parent: ZippedFile, child: String): this(parent.fileTree, parent.normalizedPathInsideZip + PATH_SEPARATOR + child)
+    constructor(zip: ZipFile, pathInsideZip: String): this(ZippedFileTree(zip), pathInsideZip)
 
-    init {
-        require(pathInsideZip.startsWith(PATH_SEPARATOR)) { "A path to a file inside zip must start with $PATH_SEPARATOR" }
+    // A normalized path inside zip:
+    //  - starts with '/',
+    //  - has no trailing '/',
+    //  - has all sequences like '////' replaced with a single '/'.
+    private val normalizedPathInsideZip: String = pathInsideZip
+            .splitToSequence(PATH_SEPARATOR)
+            .filter { it.isNotEmpty() }
+            .joinToString(prefix = "$PATH_SEPARATOR", separator = "$PATH_SEPARATOR")
 
-        // TODO: Make it faster!
-        if (pathInsideZip == "$PATH_SEPARATOR") {
-            this.pathInsideZip = pathInsideZip
-            this.isZipRoot = true
-            this.entry = null
-        } else {
-            // If a zip contains a directory with path 'foo/bar', then
-            // ZipFile.getEntry returns an entry for both strings "foo/bar" and "foo/bar/".
-            // But prior to Java 9, ZipEntry.isDirectory returns true only for the second case.
-            // https://bugs.java.com/bugdatabase/view_bug.do?bug_id=6233323
-            // So we need to iterate over the entries to find an entry with a canonical name.
-
-            val fileEntryName = pathInsideZip
-                    .removePrefix("$PATH_SEPARATOR")
-                    .removeSuffix("$PATH_SEPARATOR")
-
-            val directoryEntryName = fileEntryName + PATH_SEPARATOR
-
-            this.isZipRoot = false
-            this.entry = zip.entries().asSequence().find {
-                it.name == fileEntryName || it.name == directoryEntryName
-            }
-            this.pathInsideZip = PATH_SEPARATOR + fileEntryName
-        }
+    private val fileTreeNode: ZippedFileTree.Node? by lazy {
+        fileTree.getNode(normalizedPathInsideZip)
     }
 
+    private val zip: ZipFile
+        get() = fileTree.zip
+
     override val path: String
-        get() = pathInsideZip
+        get() = normalizedPathInsideZip
     override val absolutePath: String
-        get() = pathInsideZip
+        get() = normalizedPathInsideZip
     override val absoluteFile: ZippedFile
         get() = this
 
-    // TODO: Implement properly.
     override val canonicalPath: String
         get() = absolutePath
     override val canonicalFile: ZippedFile
         get() = absoluteFile
 
-    // TODO: May be get rid of JFile?
     override val name: String
-        get() = JFile(path).name
+        get() = normalizedPathInsideZip.substringAfterLast(PATH_SEPARATOR)
     override val extension: String
-        get() = JFile(path).extension
+        get() = normalizedPathInsideZip.substringAfterLast('.')
 
-    // TODO: What with Windows separator? Get rid of JFile?
     override val parent: String
-        get() = JFile(path).name
+        get() = normalizedPathInsideZip.substringBeforeLast(PATH_SEPARATOR)
     override val parentFile: ZippedFile
-        get() = ZippedFile(zip, parent)
+        get() = ZippedFile(fileTree, parent)
 
     override val exists: Boolean
-        get() = isZipRoot || entry != null
+        get() = fileTreeNode != null
 
     override val isDirectory: Boolean
-        get() = isZipRoot || entry?.isDirectory == true
+        get() = fileTreeNode?.isDirectory == true
     override val isFile: Boolean
-        get() = entry?.isDirectory == false
+        get() = fileTreeNode?.isDirectory == false
     override val isAbsolute: Boolean
         get() = true
 
-    // TODO: Make it faster
     override val listFiles: List<ZippedFile> by lazy {
-        val prefix = if (isZipRoot) "" else pathInsideZip.drop(1) + PATH_SEPARATOR
-
-        zip.entries().asSequence().filter {
-            it.name.startsWith(prefix)
-        }.mapTo(mutableSetOf()) {
-            it.name.removePrefix(prefix).substringBefore(PATH_SEPARATOR)
-        }.map(this::child)
+        val node = fileTreeNode
+        check (node != null && node.isDirectory) {
+            "Zipped file $normalizedPathInsideZip is not a directory or doesn't exist"
+        }
+        node.children.map { (name, _) -> child(name) }
     }
+
     override val listFilesOrEmpty: List<ZippedFile>
-        get() = if (exists) listFiles else emptyList()
+        get() = if (exists && isDirectory) listFiles else emptyList()
 
     override fun child(name: String): ZippedFile {
-        val newPath = if (pathInsideZip.endsWith(PATH_SEPARATOR)) {
-            pathInsideZip + name
-        } else {
-            pathInsideZip + PATH_SEPARATOR + name
-        }
-        return ZippedFile(zip, newPath)
+        return ZippedFile(fileTree, normalizedPathInsideZip + PATH_SEPARATOR + name)
     }
 
     override fun copyTo(destination: File) {
-        // TODO: What if file doesn't exist/file is a directory? What exception should be thrown?
-        check(exists && isFile)
+        val node = fileTreeNode
+        check(node is EntryNode && !node.isDirectory) {
+            "Zipped file $normalizedPathInsideZip is not a regular file or doesn't exist"
+        }
 
-        zip.getInputStream(entry).use {
+        zip.getInputStream(node.entry).use {
             Files.copy(it, Paths.get(URI(destination.absolutePath)))
         }
     }
 
-    // TODO: Support resetTimeAttrs!
     override fun recursiveCopyTo(destination: File, resetTimeAttributes: Boolean) {
-        // TODO: What if file doesn't exist/file is not a directory? What exception should be thrown?
-        check(exists && isDirectory)
+        val node = fileTreeNode
+        check(node != null && node.isDirectory) {
+            "Zipped file $normalizedPathInsideZip is not a directory or doesn't exist"
+        }
 
         destination.mkdirs()
         listFiles.forEach {
@@ -132,26 +111,101 @@ class ZippedFile(
                 it.isDirectory -> it.recursiveCopyTo(subDestination, resetTimeAttributes)
                 it.isFile -> it.copyTo(subDestination)
             }
+            if (resetTimeAttributes) {
+                val zero = FileTime.fromMillis(0)
+                Files.getFileAttributeView(
+                        subDestination.javaPath,
+                        BasicFileAttributeView::class.java
+                ).setTimes(zero, zero, zero);
+            }
         }
     }
 
     override fun readBytes(): ByteArray {
-        check(exists && isFile)
-        return zip.getInputStream(entry).readBytes()
+        val node = fileTreeNode
+        check(node is EntryNode && !node.isDirectory) {
+            "Zipped file $normalizedPathInsideZip is not a regular file or doesn't exist"
+        }
+        return zip.getInputStream(node.entry).readBytes()
     }
 
     override fun forEachLine(action: (String) -> Unit) {
-        check(exists && isFile)
-        zip.getInputStream(entry).bufferedReader().forEachLine(action)
+        val node = fileTreeNode
+        check(node is EntryNode && !node.isDirectory) {
+            "Zipped file $normalizedPathInsideZip is not a regular file or doesn't exist"
+        }
+        zip.getInputStream(node.entry).bufferedReader().forEachLine(action)
     }
 
     override fun bufferedReader(): BufferedReader {
-        check(exists && isFile)
-        return zip.getInputStream(entry).bufferedReader()
+        val node = fileTreeNode
+        check(node is EntryNode && !node.isDirectory) {
+            "Zipped file $normalizedPathInsideZip is not a regular file or doesn't exist"
+        }
+        return zip.getInputStream(node.entry).bufferedReader()
     }
+
+    // TODO: Override equals/hashCode.
 
     companion object {
         const val PATH_SEPARATOR = '/'
     }
+}
 
+
+// If a zip contains a directory with path 'foo/bar', then
+// ZipFile.getEntry returns an entry for both strings "foo/bar" and "foo/bar/".
+// But prior to Java 9, ZipEntry.isDirectory returns true only for the second case.
+// https://bugs.java.com/bugdatabase/view_bug.do?bug_id=6233323
+// So we need to iterate over the entries to find an entry with a canonical name.
+//
+// To avoid such iteration for each ZippedFile and to quickly get list of
+// files in a directory, we store this information in a separate object
+// shared between ZippedFile instances.
+private class ZippedFileTree(val zip: ZipFile) {
+
+    val root: Node.RootNode by lazy {
+        val rootNode = Node.RootNode()
+
+        // Sort entries to process parents before children.
+        zip.entries().asSequence().sortedBy { it.name }.forEach { entry ->
+            val path = entry.name.removeSuffix("$PATH_SEPARATOR").split(PATH_SEPARATOR)
+
+            // Find a required parent.
+            var parent: Node = rootNode
+            for (pathElement in path.dropLast(1)) {
+                parent = parent.children.getValue(pathElement)
+            }
+
+            val newNodeName = path.last()
+            parent.children[newNodeName] = EntryNode(entry)
+        }
+        rootNode
+    }
+
+    fun getNode(canonicalPath: String): Node? {
+        val path = canonicalPath.split(PATH_SEPARATOR).drop(1)
+
+        var currentNode: Node = root
+        for (pathElement in path) {
+            currentNode = currentNode.children[pathElement] ?: return null
+        }
+        return currentNode
+    }
+
+    sealed class Node {
+        val children =  mutableMapOf<String, Node>()
+
+        abstract val isDirectory: Boolean
+
+        class RootNode: Node() {
+            override val isDirectory: Boolean
+                get() = true
+        }
+
+        class EntryNode(val entry: ZipEntry): Node() {
+            override val isDirectory: Boolean
+                get() = entry.isDirectory
+        }
+    }
 }
