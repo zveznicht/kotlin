@@ -236,9 +236,8 @@ class UnusedSymbolInspection : AbstractKotlinInspection() {
             annotationPatterns: Collection<String>
         ): Boolean {
             if (declaration.annotationEntries.isEmpty()) return false
-            val context = declaration.analyze()
             val annotationsPresent = declaration.annotationEntries.mapNotNull {
-                context[BindingContext.ANNOTATION, it]?.fqName?.asString()
+                it.resolveToDescriptorIfAny()?.fqName?.asString()
             }
             if (annotationsPresent.isEmpty()) return false
 
