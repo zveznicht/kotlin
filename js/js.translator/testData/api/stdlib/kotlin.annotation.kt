@@ -1,15 +1,9 @@
-package kotlin.annotation
-
 public final enum class AnnotationRetention : kotlin.Enum<kotlin.annotation.AnnotationRetention> {
     enum entry SOURCE
 
     enum entry BINARY
 
     enum entry RUNTIME
-
-    // Static members
-    public final /*synthesized*/ fun valueOf(/*0*/ value: kotlin.String): kotlin.annotation.AnnotationRetention
-    public final /*synthesized*/ fun values(): kotlin.Array<kotlin.annotation.AnnotationRetention>
 }
 
 /*∆*/ public final enum class AnnotationRetention : kotlin.Enum<kotlin.annotation.AnnotationRetention> {
@@ -18,10 +12,6 @@ public final enum class AnnotationRetention : kotlin.Enum<kotlin.annotation.Anno
 /*∆*/     enum entry BINARY
 /*∆*/ 
 /*∆*/     enum entry RUNTIME
-/*∆*/ 
-/*∆*/     // Static members
-/*∆*/     public final /*synthesized*/ fun valueOf(/*0*/ value: kotlin.String): kotlin.annotation.AnnotationRetention
-/*∆*/     public final /*synthesized*/ fun values(): kotlin.Array<kotlin.annotation.AnnotationRetention>
 /*∆*/ }
 /*∆*/ 
 public final enum class AnnotationTarget : kotlin.Enum<kotlin.annotation.AnnotationTarget> {
@@ -53,11 +43,8 @@ public final enum class AnnotationTarget : kotlin.Enum<kotlin.annotation.Annotat
 
     enum entry FILE
 
-    @kotlin.SinceKotlin(version = "1.1") enum entry TYPEALIAS
-
-    // Static members
-    public final /*synthesized*/ fun valueOf(/*0*/ value: kotlin.String): kotlin.annotation.AnnotationTarget
-    public final /*synthesized*/ fun values(): kotlin.Array<kotlin.annotation.AnnotationTarget>
+    @kotlin.SinceKotlin(version = "1.1")
+    enum entry TYPEALIAS
 }
 
 /*∆*/ public final enum class AnnotationTarget : kotlin.Enum<kotlin.annotation.AnnotationTarget> {
@@ -89,49 +76,56 @@ public final enum class AnnotationTarget : kotlin.Enum<kotlin.annotation.Annotat
 /*∆*/ 
 /*∆*/     enum entry FILE
 /*∆*/ 
-/*∆*/     @kotlin.SinceKotlin(version = "1.1") enum entry TYPEALIAS
-/*∆*/ 
-/*∆*/     // Static members
-/*∆*/     public final /*synthesized*/ fun valueOf(/*0*/ value: kotlin.String): kotlin.annotation.AnnotationTarget
-/*∆*/     public final /*synthesized*/ fun values(): kotlin.Array<kotlin.annotation.AnnotationTarget>
+/*∆*/     @kotlin.SinceKotlin(version = "1.1")
+/*∆*/     enum entry TYPEALIAS
 /*∆*/ }
 /*∆*/ 
-@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) public final annotation class MustBeDocumented : kotlin.Annotation {
-    /*primary*/ public constructor MustBeDocumented()
+@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS})
+public final annotation class MustBeDocumented : kotlin.Annotation {
+    public constructor MustBeDocumented()
 }
 
-/*∆*/ @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) public final annotation class MustBeDocumented : kotlin.Annotation {
-/*∆*/     /*primary*/ public constructor MustBeDocumented()
+@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS})
+/*∆*/ public final annotation class MustBeDocumented : kotlin.Annotation {
+/*∆*/     public constructor MustBeDocumented()
 /*∆*/ }
 /*∆*/ 
-@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) public final annotation class Repeatable : kotlin.Annotation {
-    /*primary*/ public constructor Repeatable()
+/*∆*/ @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS})
+public final annotation class Repeatable : kotlin.Annotation {
+    public constructor Repeatable()
 }
 
-/*∆*/ @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) public final annotation class Repeatable : kotlin.Annotation {
-/*∆*/     /*primary*/ public constructor Repeatable()
+@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS})
+/*∆*/ public final annotation class Repeatable : kotlin.Annotation {
+/*∆*/     public constructor Repeatable()
 /*∆*/ }
 /*∆*/ 
-@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) public final annotation class Retention : kotlin.Annotation {
-    /*primary*/ public constructor Retention(/*0*/ value: kotlin.annotation.AnnotationRetention = ...)
-    public final val value: kotlin.annotation.AnnotationRetention
-        public final fun <get-value>(): kotlin.annotation.AnnotationRetention
+/*∆*/ @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS})
+public final annotation class Retention : kotlin.Annotation {
+    public constructor Retention(value: kotlin.annotation.AnnotationRetention = ...)
+
+    public final val value: kotlin.annotation.AnnotationRetention { get; }
 }
 
-/*∆*/ @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) public final annotation class Retention : kotlin.Annotation {
-/*∆*/     /*primary*/ public constructor Retention(/*0*/ value: kotlin.annotation.AnnotationRetention = ...)
-/*∆*/     public final val value: kotlin.annotation.AnnotationRetention
-/*∆*/         public final fun <get-value>(): kotlin.annotation.AnnotationRetention
+@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS})
+/*∆*/ public final annotation class Retention : kotlin.Annotation {
+/*∆*/     public constructor Retention(value: kotlin.annotation.AnnotationRetention = ...)
+/*∆*/ 
+/*∆*/     public final val value: kotlin.annotation.AnnotationRetention { get; }
 /*∆*/ }
 /*∆*/ 
-@kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) @kotlin.annotation.MustBeDocumented public final annotation class Target : kotlin.Annotation {
-    /*primary*/ public constructor Target(/*0*/ vararg allowedTargets: kotlin.annotation.AnnotationTarget /*kotlin.Array<out kotlin.annotation.AnnotationTarget>*/)
-    public final val allowedTargets: kotlin.Array<out kotlin.annotation.AnnotationTarget>
-        public final fun <get-allowedTargets>(): kotlin.Array<out kotlin.annotation.AnnotationTarget>
+/*∆*/ @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS})
+@kotlin.annotation.MustBeDocumented
+public final annotation class Target : kotlin.Annotation {
+    public constructor Target(vararg allowedTargets: kotlin.annotation.AnnotationTarget)
+
+    public final val allowedTargets: kotlin.Array<out kotlin.annotation.AnnotationTarget> { get; }
 }
 /*∆*/ 
-/*∆*/ @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS}) @kotlin.annotation.MustBeDocumented public final annotation class Target : kotlin.Annotation {
-/*∆*/     /*primary*/ public constructor Target(/*0*/ vararg allowedTargets: kotlin.annotation.AnnotationTarget /*kotlin.Array<out kotlin.annotation.AnnotationTarget>*/)
-/*∆*/     public final val allowedTargets: kotlin.Array<out kotlin.annotation.AnnotationTarget>
-/*∆*/         public final fun <get-allowedTargets>(): kotlin.Array<out kotlin.annotation.AnnotationTarget>
+/*∆*/ @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.ANNOTATION_CLASS})
+/*∆*/ @kotlin.annotation.MustBeDocumented
+/*∆*/ public final annotation class Target : kotlin.Annotation {
+/*∆*/     public constructor Target(vararg allowedTargets: kotlin.annotation.AnnotationTarget)
+/*∆*/ 
+/*∆*/     public final val allowedTargets: kotlin.Array<out kotlin.annotation.AnnotationTarget> { get; }
 /*∆*/ }

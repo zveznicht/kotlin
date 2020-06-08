@@ -1,3 +1,4 @@
 --------
-+ public fun jsTypeOf(/*0*/ value_hack: kotlin.Any?): kotlin.String
-- @kotlin.internal.InlineOnly public inline fun jsTypeOf(/*0*/ a: kotlin.Any?): kotlin.String
++ public fun jsTypeOf(value_hack: kotlin.Any?): kotlin.String
+- @kotlin.internal.InlineOnly
+- public inline fun jsTypeOf(a: kotlin.Any?): kotlin.String

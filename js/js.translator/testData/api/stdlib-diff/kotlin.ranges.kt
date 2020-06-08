@@ -1,124 +1,149 @@
 --------
 - public open class CharProgression : kotlin.collections.Iterable<kotlin.Char> {
--     public final val first: kotlin.Char
--         public final fun <get-first>(): kotlin.Char
--     public final val last: kotlin.Char
--         public final fun <get-last>(): kotlin.Char
--     public final val step: kotlin.Int
--         public final fun <get-step>(): kotlin.Int
--     public open override /*1*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
--     public open override /*1*/ fun hashCode(): kotlin.Int
--     public open fun isEmpty(): kotlin.Boolean
--     public open override /*1*/ fun iterator(): kotlin.collections.CharIterator
--     public open override /*1*/ fun toString(): kotlin.String
+-     public final val first: kotlin.Char { get; }
 - 
--     public companion object Companion {
--         public final fun fromClosedRange(/*0*/ rangeStart: kotlin.Char, /*1*/ rangeEnd: kotlin.Char, /*2*/ step: kotlin.Int): kotlin.ranges.CharProgression
+-     public final val last: kotlin.Char { get; }
+- 
+-     public final val step: kotlin.Int { get; }
+- 
+-     public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+- 
+-     public open override fun hashCode(): kotlin.Int
+- 
+-     public open fun isEmpty(): kotlin.Boolean
+- 
+-     public open override operator fun iterator(): kotlin.collections.CharIterator
+- 
+-     public open override fun toString(): kotlin.String
+- 
+-     public companion object of CharProgression {
+-         public final fun fromClosedRange(rangeStart: kotlin.Char, rangeEnd: kotlin.Char, step: kotlin.Int): kotlin.ranges.CharProgression
 -     }
 - }
 - 
 --------
 - public final class CharRange : kotlin.ranges.CharProgression, kotlin.ranges.ClosedRange<kotlin.Char> {
--     /*primary*/ public constructor CharRange(/*0*/ start: kotlin.Char, /*1*/ endInclusive: kotlin.Char)
--     public open override /*1*/ val endInclusive: kotlin.Char
--         public open override /*1*/ fun <get-endInclusive>(): kotlin.Char
--     public open override /*1*/ val start: kotlin.Char
--         public open override /*1*/ fun <get-start>(): kotlin.Char
--     public open override /*1*/ fun contains(/*0*/ value: kotlin.Char): kotlin.Boolean
--     public open override /*2*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
--     public open override /*2*/ fun hashCode(): kotlin.Int
--     public open override /*2*/ fun isEmpty(): kotlin.Boolean
--     public open override /*2*/ fun toString(): kotlin.String
+-     public constructor CharRange(start: kotlin.Char, endInclusive: kotlin.Char)
 - 
--     public companion object Companion {
--         public final val EMPTY: kotlin.ranges.CharRange
--             public final fun <get-EMPTY>(): kotlin.ranges.CharRange
+-     public open override val endInclusive: kotlin.Char { get; }
+- 
+-     public open override val start: kotlin.Char { get; }
+- 
+-     public open override operator fun contains(value: kotlin.Char): kotlin.Boolean
+- 
+-     public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+- 
+-     public open override fun hashCode(): kotlin.Int
+- 
+-     public open override fun isEmpty(): kotlin.Boolean
+- 
+-     public open override fun toString(): kotlin.String
+- 
+-     public companion object of CharRange {
+-         public final val EMPTY: kotlin.ranges.CharRange { get; }
 -     }
 - }
 - 
 --------
-- public interface ClosedRange</*0*/ T : kotlin.Comparable<T>> {
--     public abstract val endInclusive: T
--         public abstract fun <get-endInclusive>(): T
--     public abstract val start: T
--         public abstract fun <get-start>(): T
--     public open operator fun contains(/*0*/ value: T): kotlin.Boolean
+- public interface ClosedRange<T : kotlin.Comparable<T>> {
+-     public abstract val endInclusive: T { get; }
+- 
+-     public abstract val start: T { get; }
+- 
+-     public open operator fun contains(value: T): kotlin.Boolean
+- 
 -     public open fun isEmpty(): kotlin.Boolean
 - }
 - 
 --------
 - public open class IntProgression : kotlin.collections.Iterable<kotlin.Int> {
--     public final val first: kotlin.Int
--         public final fun <get-first>(): kotlin.Int
--     public final val last: kotlin.Int
--         public final fun <get-last>(): kotlin.Int
--     public final val step: kotlin.Int
--         public final fun <get-step>(): kotlin.Int
--     public open override /*1*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
--     public open override /*1*/ fun hashCode(): kotlin.Int
--     public open fun isEmpty(): kotlin.Boolean
--     public open override /*1*/ fun iterator(): kotlin.collections.IntIterator
--     public open override /*1*/ fun toString(): kotlin.String
+-     public final val first: kotlin.Int { get; }
 - 
--     public companion object Companion {
--         public final fun fromClosedRange(/*0*/ rangeStart: kotlin.Int, /*1*/ rangeEnd: kotlin.Int, /*2*/ step: kotlin.Int): kotlin.ranges.IntProgression
+-     public final val last: kotlin.Int { get; }
+- 
+-     public final val step: kotlin.Int { get; }
+- 
+-     public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+- 
+-     public open override fun hashCode(): kotlin.Int
+- 
+-     public open fun isEmpty(): kotlin.Boolean
+- 
+-     public open override operator fun iterator(): kotlin.collections.IntIterator
+- 
+-     public open override fun toString(): kotlin.String
+- 
+-     public companion object of IntProgression {
+-         public final fun fromClosedRange(rangeStart: kotlin.Int, rangeEnd: kotlin.Int, step: kotlin.Int): kotlin.ranges.IntProgression
 -     }
 - }
 - 
 --------
 - public final class IntRange : kotlin.ranges.IntProgression, kotlin.ranges.ClosedRange<kotlin.Int> {
--     /*primary*/ public constructor IntRange(/*0*/ start: kotlin.Int, /*1*/ endInclusive: kotlin.Int)
--     public open override /*1*/ val endInclusive: kotlin.Int
--         public open override /*1*/ fun <get-endInclusive>(): kotlin.Int
--     public open override /*1*/ val start: kotlin.Int
--         public open override /*1*/ fun <get-start>(): kotlin.Int
--     public open override /*1*/ fun contains(/*0*/ value: kotlin.Int): kotlin.Boolean
--     public open override /*2*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
--     public open override /*2*/ fun hashCode(): kotlin.Int
--     public open override /*2*/ fun isEmpty(): kotlin.Boolean
--     public open override /*2*/ fun toString(): kotlin.String
+-     public constructor IntRange(start: kotlin.Int, endInclusive: kotlin.Int)
 - 
--     public companion object Companion {
--         public final val EMPTY: kotlin.ranges.IntRange
--             public final fun <get-EMPTY>(): kotlin.ranges.IntRange
+-     public open override val endInclusive: kotlin.Int { get; }
+- 
+-     public open override val start: kotlin.Int { get; }
+- 
+-     public open override operator fun contains(value: kotlin.Int): kotlin.Boolean
+- 
+-     public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+- 
+-     public open override fun hashCode(): kotlin.Int
+- 
+-     public open override fun isEmpty(): kotlin.Boolean
+- 
+-     public open override fun toString(): kotlin.String
+- 
+-     public companion object of IntRange {
+-         public final val EMPTY: kotlin.ranges.IntRange { get; }
 -     }
 - }
 - 
 --------
 - public open class LongProgression : kotlin.collections.Iterable<kotlin.Long> {
--     public final val first: kotlin.Long
--         public final fun <get-first>(): kotlin.Long
--     public final val last: kotlin.Long
--         public final fun <get-last>(): kotlin.Long
--     public final val step: kotlin.Long
--         public final fun <get-step>(): kotlin.Long
--     public open override /*1*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
--     public open override /*1*/ fun hashCode(): kotlin.Int
--     public open fun isEmpty(): kotlin.Boolean
--     public open override /*1*/ fun iterator(): kotlin.collections.LongIterator
--     public open override /*1*/ fun toString(): kotlin.String
+-     public final val first: kotlin.Long { get; }
 - 
--     public companion object Companion {
--         public final fun fromClosedRange(/*0*/ rangeStart: kotlin.Long, /*1*/ rangeEnd: kotlin.Long, /*2*/ step: kotlin.Long): kotlin.ranges.LongProgression
+-     public final val last: kotlin.Long { get; }
+- 
+-     public final val step: kotlin.Long { get; }
+- 
+-     public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+- 
+-     public open override fun hashCode(): kotlin.Int
+- 
+-     public open fun isEmpty(): kotlin.Boolean
+- 
+-     public open override operator fun iterator(): kotlin.collections.LongIterator
+- 
+-     public open override fun toString(): kotlin.String
+- 
+-     public companion object of LongProgression {
+-         public final fun fromClosedRange(rangeStart: kotlin.Long, rangeEnd: kotlin.Long, step: kotlin.Long): kotlin.ranges.LongProgression
 -     }
 - }
 - 
 --------
 - public final class LongRange : kotlin.ranges.LongProgression, kotlin.ranges.ClosedRange<kotlin.Long> {
--     /*primary*/ public constructor LongRange(/*0*/ start: kotlin.Long, /*1*/ endInclusive: kotlin.Long)
--     public open override /*1*/ val endInclusive: kotlin.Long
--         public open override /*1*/ fun <get-endInclusive>(): kotlin.Long
--     public open override /*1*/ val start: kotlin.Long
--         public open override /*1*/ fun <get-start>(): kotlin.Long
--     public open override /*1*/ fun contains(/*0*/ value: kotlin.Long): kotlin.Boolean
--     public open override /*2*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
--     public open override /*2*/ fun hashCode(): kotlin.Int
--     public open override /*2*/ fun isEmpty(): kotlin.Boolean
--     public open override /*2*/ fun toString(): kotlin.String
+-     public constructor LongRange(start: kotlin.Long, endInclusive: kotlin.Long)
 - 
--     public companion object Companion {
--         public final val EMPTY: kotlin.ranges.LongRange
--             public final fun <get-EMPTY>(): kotlin.ranges.LongRange
+-     public open override val endInclusive: kotlin.Long { get; }
+- 
+-     public open override val start: kotlin.Long { get; }
+- 
+-     public open override operator fun contains(value: kotlin.Long): kotlin.Boolean
+- 
+-     public open override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+- 
+-     public open override fun hashCode(): kotlin.Int
+- 
+-     public open override fun isEmpty(): kotlin.Boolean
+- 
+-     public open override fun toString(): kotlin.String
+- 
+-     public companion object of LongRange {
+-         public final val EMPTY: kotlin.ranges.LongRange { get; }
 -     }
 - }
 - 

@@ -13,16 +13,21 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.impl.EnumEntrySyntheticClassDescriptor
 import org.jetbrains.kotlin.ir.backend.js.MainModule
 import org.jetbrains.kotlin.ir.backend.js.jsResolveLibraries
 import org.jetbrains.kotlin.ir.backend.js.loadIr
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
 import org.jetbrains.kotlin.js.config.JsConfig
+import org.jetbrains.kotlin.jvm.compiler.ExpectedLoadErrorsUtil
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.renderer.*
+import org.jetbrains.kotlin.resolve.DescriptorUtils
+import org.jetbrains.kotlin.resolve.MemberComparator
+import org.jetbrains.kotlin.resolve.descriptorUtil.isEffectivelyPublicApi
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.KotlinTestWithEnvironment
-import org.jetbrains.kotlin.test.util.RecursiveDescriptorComparator
-import org.jetbrains.kotlin.test.util.RecursiveDescriptorComparator.RECURSIVE_ALL
 import java.io.File
 
 private val OVERWRITE_EXPECTED_OUTPUT = System.getProperty("overwrite.output")?.toBoolean() ?: false // use -Doverwrite.output=true
@@ -273,17 +278,7 @@ class ApiTest : KotlinTestWithEnvironment() {
     }
 
     private fun PackageViewDescriptor.serialize(): String? {
-        val comparator = RecursiveDescriptorComparator(RECURSIVE_ALL.filterRecursion {
-            when {
-                it is MemberDescriptor && it.isExpect -> false
-                it is DeclarationDescriptorWithVisibility && !it.visibility.isPublicAPI -> false
-                it is CallableMemberDescriptor && !it.kind.isReal -> false
-                it is PackageViewDescriptor -> false
-                else -> true
-            }
-        }.renderDeclarationsFromOtherModules(true))
-
-        val serialized = comparator.serializeRecursively(this).trim()
+        val serialized = ModuleDescriptorApiGenerator.generate(this).trim()
 
         if (serialized.count { it == '\n' } <= 1) return null
 
@@ -292,5 +287,96 @@ class ApiTest : KotlinTestWithEnvironment() {
 
     override fun createEnvironment(): KotlinCoreEnvironment {
         return KotlinCoreEnvironment.createForTests(TestDisposable(), CompilerConfiguration(), EnvironmentConfigFiles.JS_CONFIG_FILES)
+    }
+}
+
+private val Renderer = DescriptorRenderer.withOptions {
+    withDefinedIn = false
+    excludedAnnotationClasses = setOf(FqName(ExpectedLoadErrorsUtil.ANNOTATION_CLASS_NAME))
+    overrideRenderingPolicy = OverrideRenderingPolicy.RENDER_OPEN_OVERRIDE
+    includePropertyConstant = true
+    classifierNamePolicy = ClassifierNamePolicy.FULLY_QUALIFIED
+    annotationArgumentsRenderingPolicy = AnnotationArgumentsRenderingPolicy.UNLESS_EMPTY
+    modifiers = DescriptorRendererModifier.ALL
+    actualPropertiesInPrimaryConstructor = true
+    alwaysRenderModifiers = true
+    eachAnnotationOnNewLine = true
+    includePropertyConstant = true
+    normalizedVisibilities = true
+    parameterNameRenderingPolicy = ParameterNameRenderingPolicy.ALL
+    renderCompanionObjectName = true
+    renderDefaultModality = true
+    renderDefaultVisibility = true
+    renderConstructorKeyword = true
+    overrideRenderingPolicy = OverrideRenderingPolicy.RENDER_OPEN_OVERRIDE
+}
+
+private object ModuleDescriptorApiGenerator {
+
+    fun generate(packageView: PackageViewDescriptor): String {
+        return buildString {
+            val fragments = packageView.fragments.filter { it.fqName == packageView.fqName }
+            val entities = fragments.flatMap { DescriptorUtils.getAllDescriptors(it.getMemberScope()) }
+
+            appendEntities("", entities)
+        }
+    }
+
+    private fun Appendable.appendEntities(indent: String, entities: Iterable<DeclarationDescriptor>) {
+        entities
+            .asSequence()
+            .filter { it is MemberDescriptor && it.isEffectivelyPublicApi }
+            .filter { !it.module.builtIns.isMemberOfAny(it) }
+            .filter { it !is MemberDescriptor || !it.isExpect }
+            .filter { it !is CallableMemberDescriptor || it.kind.isReal }
+            .sortedWith(MemberComparator.INSTANCE)
+            .forEachIndexed { i, descriptor ->
+                if (i != 0) appendLine()
+                when (descriptor) {
+                    is ClassDescriptor -> appendClass(indent, descriptor)
+                    is PropertyDescriptor -> appendProperty(indent, descriptor)
+                    else -> render(indent, descriptor).appendLine()
+                }
+            }
+    }
+
+    private fun Appendable.render(indent: String, descriptor: DeclarationDescriptor): Appendable {
+        Renderer.render(descriptor).lines().forEachIndexed { i, line ->
+            if (i != 0) appendLine()
+            append("$indent$line")
+        }
+        return this
+    }
+
+    private fun Appendable.appendClass(indent: String, descriptor: ClassDescriptor) {
+        render(indent, descriptor)
+
+        if (descriptor is EnumEntrySyntheticClassDescriptor) {
+            appendLine()
+            return
+        }
+
+        appendLine(" {")
+
+        val members = DescriptorUtils.getAllDescriptors(descriptor.unsubstitutedMemberScope) + descriptor.constructors
+        appendEntities("$indent    ", members)
+
+        appendLine("$indent}")
+    }
+
+    private fun Appendable.appendProperty(indent: String, descriptor: PropertyDescriptor) {
+        render(indent, descriptor)
+
+        val hasGetter = descriptor.getter?.isEffectivelyPublicApi ?: false
+        val hasSetter = descriptor.setter?.isEffectivelyPublicApi ?: false
+
+        if (hasGetter || hasSetter) {
+            append(" {")
+            if (hasGetter) append(" get;")
+            if (hasSetter) append(" set;")
+            append(" }")
+        }
+
+        appendLine()
     }
 }
