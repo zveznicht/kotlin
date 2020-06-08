@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.types.model.TypeParameterMarker
 interface IrSymbol {
     val owner: IrSymbolOwner
 
-    @ObsoleteDescriptorBasedAPI
     val wrappedDescriptor: DeclarationDescriptor
 
     @ObsoleteDescriptorBasedAPI
@@ -47,7 +46,6 @@ interface IrSymbol {
 interface IrBindableSymbol<out D : DeclarationDescriptor, B : IrSymbolOwner> : IrSymbol {
     override val owner: B
 
-    @ObsoleteDescriptorBasedAPI
     override val wrappedDescriptor: D
 
     @ObsoleteDescriptorBasedAPI
@@ -57,7 +55,6 @@ interface IrBindableSymbol<out D : DeclarationDescriptor, B : IrSymbolOwner> : I
 }
 
 interface IrPackageFragmentSymbol : IrSymbol {
-    @ObsoleteDescriptorBasedAPI
     override val wrappedDescriptor: PackageFragmentDescriptor
 
     override fun <D, R> accept(visitor: IrSymbolVisitor<R, D>, data: D): R =
@@ -102,7 +99,6 @@ interface IrFieldSymbol :
 interface IrClassifierSymbol :
     IrSymbol, TypeConstructorMarker {
 
-    @ObsoleteDescriptorBasedAPI
     override val wrappedDescriptor: ClassifierDescriptor
 
     @ObsoleteDescriptorBasedAPI
@@ -136,7 +132,6 @@ interface IrTypeParameterSymbol :
 interface IrValueSymbol :
     IrSymbol {
 
-    @ObsoleteDescriptorBasedAPI
     override val wrappedDescriptor: ValueDescriptor
 
     override val owner: IrValueDeclaration
@@ -162,7 +157,6 @@ interface IrVariableSymbol :
 interface IrReturnTargetSymbol :
     IrSymbol {
 
-    @ObsoleteDescriptorBasedAPI
     override val wrappedDescriptor: FunctionDescriptor
 
     @ObsoleteDescriptorBasedAPI

@@ -35,7 +35,6 @@ interface IrMetadataSourceOwner : IrElement {
 }
 
 interface IrDeclaration : IrStatement, IrMutableAnnotationContainer, IrMetadataSourceOwner {
-    @ObsoleteDescriptorBasedAPI
     val wrappedDescriptor: DeclarationDescriptor
 
     @ObsoleteDescriptorBasedAPI
