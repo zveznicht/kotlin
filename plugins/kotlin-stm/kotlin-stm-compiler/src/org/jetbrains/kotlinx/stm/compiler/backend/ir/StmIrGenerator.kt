@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.backend.common.descriptors.synthesizedName
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.backend.common.ir.copyTo
 import org.jetbrains.kotlin.backend.common.lower.DeclarationIrBuilder
-import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
@@ -126,22 +125,20 @@ open class StmIrGenerator {
         }
 
         private fun getSTMSearchFunction(
-            module: ModuleDescriptor,
             compilerContext: IrPluginContext
         ): IrFunctionSymbol {
-            // TODO: avoid using ModuleDescriptor when such an API is introduced in IR
             val methodBaseName = when {
-                module.platform.isJs() -> SEARCH_JS_STM_METHOD
-                module.platform.isJvm() -> SEARCH_JAVA_STM_METHOD
-                module.platform.isMultiPlatform() -> error("Unexpected platform in IR code: Multiplatform")
-                module.platform.isCommon() -> error("Unexpected platform in IR code: Common")
+                compilerContext.platform.isJs() -> SEARCH_JS_STM_METHOD
+                compilerContext.platform.isJvm() -> SEARCH_JAVA_STM_METHOD
+                compilerContext.platform.isMultiPlatform() -> error("Unexpected platform in IR code: Multiplatform")
+                compilerContext.platform.isCommon() -> error("Unexpected platform in IR code: Common")
                 else -> SEARCH_NATIVE_STM_METHOD
             }
             val methodDefaultName = Name.identifier("$methodBaseName$DEFAULT_SUFFIX")
 
             return compilerContext.referenceFunctions(STM_PACKAGE.child(methodBaseName)).singleOrNull()
                 ?: compilerContext.referenceFunctions(STM_PACKAGE.child(methodDefaultName)).singleOrNull()
-                ?: throw StmLoweringException("Expected $methodDefaultName to be visible in module ${module.name}")
+                ?: throw StmLoweringException("Expected $methodDefaultName to be visible")
         }
 
         private fun getRunAtomicallyFunction(
@@ -174,7 +171,7 @@ open class StmIrGenerator {
             val generator = STMGenerator(context)
 
             val stmField = getSTMField(irClass, context)
-            val stmSearch = getSTMSearchFunction(irClass.module, context)
+            val stmSearch = getSTMSearchFunction(context)
 
             generator.generateSTMField(irClass, stmField, stmSearch)
 
@@ -444,7 +441,7 @@ open class StmIrGenerator {
             val block = irCall.getValueArgument(0)?.deepCopyWithSymbolsAndParent()
 
             val stmType = newFunction.owner.valueParameters[0].type
-            val stmSearch = getSTMSearchFunction(irFunction.module, context)
+            val stmSearch = getSTMSearchFunction(context)
             val stm = with(DeclarationIrBuilder(context, irFunctionSymbol, irCall.startOffset, irCall.endOffset)) {
                 irCall(stmSearch, stmType)
             }
