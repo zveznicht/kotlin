@@ -391,10 +391,10 @@ allprojects {
     val commonCompilerArgs = listOfNotNull(
         "-Xopt-in=kotlin.RequiresOptIn",
         "-Xread-deserialized-contracts",
-        "-Xjvm-default=compatibility",
         "-Xno-optimized-callable-references",
         "-Xno-kotlin-nothing-value-exception",
-        "-progressive".takeIf { hasProperty("test.progressive.mode") }
+        "-progressive".takeIf { hasProperty("test.progressive.mode") },
+        "-Xjvm-default=all"
     )
 
     tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>> {
@@ -960,7 +960,7 @@ fun Project.configureJvmProject(javaHome: String, javaVersion: String) {
     tasks.withType<KotlinCompile> {
         kotlinOptions.jdkHome = javaHome
         kotlinOptions.jvmTarget = javaVersion
-        kotlinOptions.freeCompilerArgs += "-Xjvm-default=compatibility"
+        kotlinOptions.freeCompilerArgs += "-Xjvm-default=all"
     }
 
     tasks.withType<Test> {
