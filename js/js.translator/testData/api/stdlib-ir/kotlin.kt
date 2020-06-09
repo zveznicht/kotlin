@@ -675,6 +675,13 @@ public interface Annotation {
 }
 
 public open class Any {
+    public constructor Any()
+
+    public open operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+    public open fun hashCode(): kotlin.Int
+
+    public open fun toString(): kotlin.String
 }
 
 @kotlin.SinceKotlin(version = "1.3")

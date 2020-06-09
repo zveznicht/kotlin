@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.js.test
 
+import junit.framework.TestCase
 import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.js.messageCollectorLogger
@@ -30,9 +31,10 @@ import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.KotlinTestWithEnvironment
 import java.io.File
 
-private val OVERWRITE_EXPECTED_OUTPUT = System.getProperty("overwrite.output")?.toBoolean() ?: false // use -Doverwrite.output=true
+// use -Poverwrite.output=true or -Pfd.overwrite.output=true
+private val OVERWRITE_EXPECTED_OUTPUT = System.getProperty("overwrite.output")?.toBoolean() ?: false
 
-class ApiTest : KotlinTestWithEnvironment() {
+class SafeguardTest : TestCase() {
 
     fun testOutputNotOverwritten() {
         assertFalse(
@@ -40,6 +42,9 @@ class ApiTest : KotlinTestWithEnvironment() {
             OVERWRITE_EXPECTED_OUTPUT
         )
     }
+}
+
+class ApiTest : KotlinTestWithEnvironment() {
 
     fun testStdlib() {
         stdlibModuleApi.markUniqueLinesComparedTo(irStdlibModuleApi).checkRecursively("js/js.translator/testData/api/stdlib")
@@ -47,13 +52,6 @@ class ApiTest : KotlinTestWithEnvironment() {
 
     fun testIrStdlib() {
         irStdlibModuleApi.markUniqueLinesComparedTo(stdlibModuleApi).checkRecursively("js/js.translator/testData/api/stdlib-ir")
-    }
-
-    fun testCompareApi() {
-        diffPackages(
-            stdlibModuleApi.excludePackages(onlyInStdlib),
-            irStdlibModuleApi.excludePackages(onlyInStdlibIr)
-        ).checkRecursively("js/js.translator/testData/api/stdlib-diff")
     }
 
     private val stdlibModuleApi: Map<FqName, String>
@@ -89,87 +87,15 @@ class ApiTest : KotlinTestWithEnvironment() {
             ).module.descriptor.packagesSerialized()
         }
 
-    private val onlyInStdlib = setOf(
-        "org.khronos.webgl",
-        "org.w3c.css.masking",
-        "org.w3c.dom",
-        "org.w3c.dom.clipboard",
-        "org.w3c.dom.css",
-        "org.w3c.dom.encryptedmedia",
-        "org.w3c.dom.events",
-        "org.w3c.dom.mediacapture",
-        "org.w3c.dom.mediasource",
-        "org.w3c.dom.parsing",
-        "org.w3c.dom.pointerevents",
-        "org.w3c.dom.svg",
-        "org.w3c.dom.url",
-        "org.w3c.fetch",
-        "org.w3c.files",
-        "org.w3c.notifications",
-        "org.w3c.performance",
-        "org.w3c.workers",
-        "org.w3c.xhr"
-    )
-
-    private val onlyInStdlibIr = emptySet<String>()
-
-    private fun diffPackages(left: Map<FqName, String>, right: Map<FqName, String>): Map<FqName, String> {
-        val allNames = (left.keys + right.keys).toSet()
-
-        return allNames.mapNotNull { name ->
-            val a = left[name]
-            val b = right[name]
-
-            if (a == null) {
-                error("Only in right: $name")
-            } else if (b == null) {
-                error("Only in left: $name")
-            } else {
-                var hasDiff = false
-                val d = diff(a, b) { line, otherLine ->
-                    if (line != null) {
-                        if (otherLine != null) {
-                            if (hasDiff) {
-                                hasDiff = false
-                                "--------"
-                            } else {
-                                null
-                            }
-                        } else {
-                            hasDiff = true
-                            "- $line"
-                        }
-                    } else {
-                        hasDiff = true
-                        "+ $otherLine"
-                    }
-                }
-                if (d.isBlank()) null else name to d
-            }
-        }.toMap()
-    }
-
-    private fun Map<FqName, String>.excludePackages(p: Set<String>): Map<FqName, String> {
-        val extraExcludes = p - keys.map { it.asString() }
-        assertTrue("Extra excludes found: $extraExcludes", extraExcludes.isEmpty())
-        return this.filterKeys { it.asString() !in p }
-    }
-
     private fun Map<FqName, String>.markUniqueLinesComparedTo(other: Map<FqName, String>): Map<FqName, String> {
         return entries.map { (fqName, api) ->
-            val augmentedApi = other[fqName]?.let { otherApi ->
-                diff(api, otherApi) { line, otherLine ->
-                    line?.let {
-                        (if (otherLine == null) "/*∆*/ " else "") + it
-                    }
-                }
-            } ?: api
+            val augmentedApi = other[fqName]?.let { diff(api, it) } ?: api
 
             fqName to augmentedApi
         }.toMap()
     }
 
-    private fun diff(a: String, b: String, resultBuilder: (String?, String?) -> String?): String {
+    private fun diff(a: String, b: String): String {
         val aLines = a.lines()
         val bLines = b.lines()
 
@@ -213,11 +139,8 @@ class ApiTest : KotlinTestWithEnvironment() {
             val tdx = if ((d[x][y].toInt() and DX.toInt()) == 0) 0 else -1
             val tdy = if ((d[x][y].toInt() and DY.toInt()) == 0) 0 else -1
 
-            resultBuilder(
-                if (tdx != 0) aLines[x - 1] else null,
-                if (tdy != 0) bLines[y - 1] else null
-            )?.let {
-                result += it
+            if (tdx != 0) {
+                result += (if (tdy == 0) "/*∆*/ " else "") + aLines[x - 1]
             }
 
             x += tdx
@@ -308,9 +231,9 @@ private val Renderer = DescriptorRenderer.withOptions {
     renderDefaultModality = true
     renderDefaultVisibility = true
     renderConstructorKeyword = true
-    overrideRenderingPolicy = OverrideRenderingPolicy.RENDER_OPEN_OVERRIDE
 }
 
+// Inspired by https://github.com/kotlin/kotlinx.team.infra/blob/723a489eaf978603362acfae8f76fd3fb3c21bfa/main/src/kotlinx/team/infra/api/ModuleDescriptorApiGenerator.kt
 private object ModuleDescriptorApiGenerator {
 
     fun generate(packageView: PackageViewDescriptor): String {
@@ -326,7 +249,6 @@ private object ModuleDescriptorApiGenerator {
         entities
             .asSequence()
             .filter { it is MemberDescriptor && it.isEffectivelyPublicApi }
-            .filter { !it.module.builtIns.isMemberOfAny(it) }
             .filter { it !is MemberDescriptor || !it.isExpect }
             .filter { it !is CallableMemberDescriptor || it.kind.isReal }
             .sortedWith(MemberComparator.INSTANCE)
