@@ -132,7 +132,9 @@ open class StmResolveExtension : SyntheticResolveExtension {
     override fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> = when {
         thisDescriptor.annotations.hasAnnotation(SHARED_MUTABLE_ANNOTATION) ->
             thisDescriptor.unsubstitutedMemberScope.getVariableNames()
-                .filter { thisDescriptor.unsubstitutedMemberScope.getContributedVariables(it, NoLookupLocation.FROM_BACKEND).isNotEmpty() }
+                .filter {
+                    thisDescriptor.unsubstitutedMemberScope.getContributedVariables(it, NoLookupLocation.FOR_ALREADY_TRACKED).isNotEmpty()
+                }
                 .map { listOf(getterName(it), setterName(it)) }
                 .flatten()
         else -> listOf()

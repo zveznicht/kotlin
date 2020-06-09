@@ -55,8 +55,3 @@ fun Name.isSTMFieldName() = this.asString().startsWith(STM_FIELD_NAME)
 
 const val GET_PREFIX = "_____get_"
 const val SET_PREFIX = "_set_____"
-
-internal fun ClassDescriptor.findMethods(name: Name): List<SimpleFunctionDescriptor> =
-    this.unsubstitutedMemberScope
-        .getContributedFunctions(name, NoLookupLocation.FROM_BACKEND)
-        .filter { it.name == name }
