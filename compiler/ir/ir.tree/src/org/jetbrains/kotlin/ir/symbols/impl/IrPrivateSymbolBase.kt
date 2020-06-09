@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.render
+import org.jetbrains.kotlin.ir.util.toWrapped
 
 abstract class IrSymbolBase<out D : DeclarationDescriptor>(override val initialDescriptor: D) : IrSymbol {
     override fun toString(): String {
@@ -141,10 +142,7 @@ class IrVariableSymbolImpl(descriptor: VariableDescriptor) :
 }
 
 class IrSimpleFunctionSymbolImpl(descriptor: FunctionDescriptor) :
-    IrBindableSymbolBase<FunctionDescriptor, IrSimpleFunction>(
-        descriptor,
-        { d -> WrappedSimpleFunctionDescriptor(d.annotations, d.source) }
-    ),
+    IrBindableSymbolBase<FunctionDescriptor, IrSimpleFunction>(descriptor, { d -> d.toWrapped() }),
     IrSimpleFunctionSymbol {
 }
 
