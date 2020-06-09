@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.render
+import org.jetbrains.kotlin.ir.util.toWrapped
 
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 abstract class IrSymbolBase<out D : DeclarationDescriptor>(
@@ -147,10 +148,7 @@ class IrVariableSymbolImpl(descriptor: VariableDescriptor) :
 }
 
 class IrSimpleFunctionSymbolImpl(descriptor: FunctionDescriptor) :
-    IrBindableSymbolBase<FunctionDescriptor, IrSimpleFunction>(
-        descriptor,
-        { d -> WrappedSimpleFunctionDescriptor(d.annotations, d.source) }
-    ),
+    IrBindableSymbolBase<FunctionDescriptor, IrSimpleFunction>(descriptor, { d -> d.toWrapped() }),
     IrSimpleFunctionSymbol {
 }
 

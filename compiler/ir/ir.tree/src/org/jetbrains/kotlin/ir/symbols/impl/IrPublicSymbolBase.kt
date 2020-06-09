@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.ir.descriptors.*
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.render
+import org.jetbrains.kotlin.ir.util.toWrapped
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DescriptorWithContainerSource
 
 abstract class IrPublicSymbolBase<out D : DeclarationDescriptor> @OptIn(ObsoleteDescriptorBasedAPI::class) constructor(
@@ -82,16 +83,7 @@ class IrEnumEntryPublicSymbolImpl(descriptor: ClassDescriptor, sig: IdSignature)
 }
 
 class IrSimpleFunctionPublicSymbolImpl(descriptor: FunctionDescriptor, sig: IdSignature) :
-    IrBindablePublicSymbolBase<FunctionDescriptor, IrSimpleFunction>(
-        descriptor, sig, { d ->
-            when (d) {
-                is DescriptorWithContainerSource -> WrappedFunctionDescriptorWithContainerSource(d.containerSource)
-                is PropertyGetterDescriptor -> WrappedPropertyGetterDescriptor(d.annotations, d.source)
-                is PropertySetterDescriptor -> WrappedPropertySetterDescriptor(d.annotations, d.source)
-                else -> WrappedSimpleFunctionDescriptor(d.annotations, d.source)
-            }
-        }
-    ),
+    IrBindablePublicSymbolBase<FunctionDescriptor, IrSimpleFunction>(descriptor, sig, { d -> d.toWrapped() }),
     IrSimpleFunctionSymbol {
 }
 
