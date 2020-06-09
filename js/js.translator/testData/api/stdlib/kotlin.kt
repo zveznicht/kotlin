@@ -1228,13 +1228,13 @@ public abstract class Enum<E : kotlin.Enum<E>> : kotlin.Comparable<E> {
     public final val ordinal: kotlin.Int { get; }
 
 /*∆*/     protected final fun clone(): kotlin.Any
-
-/*∆*/     public final override operator fun compareTo(other: E): kotlin.Int
-
-/*∆*/     public final override operator fun equals(other: kotlin.Any?): kotlin.Boolean
-
-/*∆*/     public final override fun hashCode(): kotlin.Int
 /*∆*/ 
+    public final override operator fun compareTo(other: E): kotlin.Int
+
+    public final override operator fun equals(other: kotlin.Any?): kotlin.Boolean
+
+    public final override fun hashCode(): kotlin.Int
+
     public open override fun toString(): kotlin.String
 
     public companion object of Enum {
