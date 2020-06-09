@@ -339,7 +339,6 @@ open class KotlinDocumentationProviderCompatBase : AbstractDocumentationProvider
         private fun renderKotlinImplicitLambdaParameter(element: KtReferenceExpression, quickNavigation: Boolean): String? {
             val resolutionFacade = element.getResolutionFacade()
             val context = element.analyze(resolutionFacade, BodyResolveMode.PARTIAL)
-            element.analyze(BodyResolveMode.PARTIAL)
             val target = element.mainReference.resolveToDescriptors(context).singleOrNull() as? ValueParameterDescriptor? ?: return null
             return renderKotlin(context, target, quickNavigation, element, resolutionFacade)
         }

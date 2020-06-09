@@ -62,9 +62,9 @@ import java.util.*
 class KotlinIndicesHelper(
     private val resolutionFacade: ResolutionFacade,
     private val scope: GlobalSearchScope,
-    private val visibilityFilter: (DeclarationDescriptor) -> Boolean,
+    visibilityFilter: (DeclarationDescriptor) -> Boolean,
     private val declarationTranslator: (KtDeclaration) -> KtDeclaration? = { it },
-    private val applyExcludeSettings: Boolean = true,
+    applyExcludeSettings: Boolean = true,
     private val filterOutPrivate: Boolean = true,
     private val file: KtFile? = null
 ) {
@@ -73,11 +73,11 @@ class KotlinIndicesHelper(
     private val project = resolutionFacade.project
     private val scopeWithoutKotlin = scope.excludeKotlinSources() as GlobalSearchScope
 
-    private fun descriptorFilter(declarationDescriptor: DeclarationDescriptor, facade: ResolutionFacade? = null): Boolean {
-        if ((facade ?: resolutionFacade).frontendService<DeprecationResolver>().isHiddenInResolution(declarationDescriptor)) return false
-        if (!visibilityFilter(declarationDescriptor)) return false
-        if (applyExcludeSettings && declarationDescriptor.isExcludedFromAutoImport(project, file)) return false
-        return true
+    private val descriptorFilter: (DeclarationDescriptor) -> Boolean = filter@{
+        if (resolutionFacade.frontendService<DeprecationResolver>().isHiddenInResolution(it)) return@filter false
+        if (!visibilityFilter(it)) return@filter false
+        if (applyExcludeSettings && it.isExcludedFromAutoImport(project, file)) return@filter false
+        true
     }
 
     fun getTopLevelCallablesByName(name: String): Collection<CallableDescriptor> {
@@ -257,7 +257,7 @@ class KotlinIndicesHelper(
         return PsiShortNamesCache.getInstance(project).getClassesByName(name, scope)
             .filter { it in scope && it.containingFile != null }
             .mapNotNull { it.resolveToDescriptor(resolutionFacade) }
-            .filter { descriptorFilter(it) }
+            .filter(descriptorFilter)
             .toSet()
     }
 
@@ -265,7 +265,7 @@ class KotlinIndicesHelper(
         return KotlinClassShortNameIndex.getInstance()[name, project, scope]
             .filter { it is KtEnumEntry && it in scope }
             .flatMap { it.resolveToDescriptors<DeclarationDescriptor>() }
-            .filter(::descriptorFilter)
+            .filter(descriptorFilter)
             .toSet()
     }
 
@@ -409,9 +409,7 @@ class KotlinIndicesHelper(
                     .flatMap { it.resolveToDescriptors<TypeAliasDescriptor>() }
 
             }
-            .filter {
-                descriptorFilter(it)
-            }
+            .filter(descriptorFilter)
     }
 
     fun processObjectMembers(
