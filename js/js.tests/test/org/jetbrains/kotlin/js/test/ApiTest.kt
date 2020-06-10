@@ -47,11 +47,11 @@ class SafeguardTest : TestCase() {
 class ApiTest : KotlinTestWithEnvironment() {
 
     fun testStdlib() {
-        stdlibModuleApi.markUniqueLinesComparedTo(irStdlibModuleApi).checkRecursively("js/js.translator/testData/api/stdlib")
+        stdlibModuleApi.markUniqueLinesComparedTo(irStdlibModuleApi).checkRecursively("libraries/stdlib/api/js-v1")
     }
 
     fun testIrStdlib() {
-        irStdlibModuleApi.markUniqueLinesComparedTo(stdlibModuleApi).checkRecursively("js/js.translator/testData/api/stdlib-ir")
+        irStdlibModuleApi.markUniqueLinesComparedTo(stdlibModuleApi).checkRecursively("libraries/stdlib/api/js")
     }
 
     private val stdlibModuleApi: Map<FqName, String>
