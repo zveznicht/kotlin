@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.idea.highlighter.KotlinHighlightingUtil
 import org.jetbrains.kotlin.idea.test.PluginTestCaseBase
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.kotlin.idea.util.getProjectJdkTableSafe
+import org.jetbrains.kotlin.idea.util.projectStructure.getModuleDir
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
 import org.jetbrains.kotlin.test.KotlinTestUtils
@@ -249,11 +250,20 @@ abstract class AbstractScriptConfigurationTest : KotlinCompletionTestCase() {
 
         val libClasses = libSrcDir?.let { compileLibToDir(it) }
 
+        var moduleSrcDir = File("${path}depModule").takeIf { it.isDirectory }
+        val moduleClasses = moduleSrcDir?.let { compileLibToDir(it) }
+        if (moduleSrcDir != null) {
+            val depModule = createTestModuleFromDir(moduleSrcDir)
+            moduleSrcDir = File(depModule.getModuleDir())
+        }
+
         return mapOf(
             "runtime-classes" to ForTestCompileRuntime.runtimeJarForTests(),
             "runtime-source" to File("libraries/stdlib/src"),
             "lib-classes" to libClasses,
             "lib-source" to libSrcDir,
+            "module-classes" to moduleClasses,
+            "module-source" to moduleSrcDir,
             "template-classes" to templateOutDir
         )
     }
