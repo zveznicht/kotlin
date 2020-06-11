@@ -8,29 +8,19 @@ package org.jetbrains.kotlin.konan.file
 import java.net.URI
 import java.nio.file.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.zip.ZipOutputStream
 
-private val File.zipUri: URI
-    get() = URI.create("jar:${canonicalFile.toPath().toUri()}")
-
-private data class FileSystemRefCounter(val fileSystem: FileSystem, val counter: Int)
-
-private val fileSystems = ConcurrentHashMap<URI, FileSystemRefCounter>()
-
+// TODO: Edit the comment below.
 // Zip filesystem provider creates a singleton zip FileSystem.
 // So newFileSystem can return an already existing one.
 // And, more painful, closing the filesystem could close it for another consumer thread.
-fun File.zipFileSystem(mutable: Boolean = false): FileSystem {
-    val zipUri = this.zipUri
-    val attributes = hashMapOf("create" to mutable.toString())
+fun File.zipFileSystem(create: Boolean = false): FileSystem {
+    if (create && !this.exists) {
+        // Open and close a ZipOutputStream to create the zip file.
+        ZipOutputStream(Files.newOutputStream(this.toPath(), StandardOpenOption.CREATE)).use {}
+    }
 
-    return fileSystems.compute(zipUri) { key, value ->
-        if (value == null) {
-            FileSystemRefCounter(FileSystems.newFileSystem(key, attributes, null), 1)
-        } else {
-            // TODO: If a file system already exists, we cannot change its mutability.
-            FileSystemRefCounter(value.fileSystem, value.counter + 1)
-        }
-    }!!.fileSystem
+    return FileSystems.newFileSystem(this.toPath(), null)
 }
 
 fun FileSystem.file(file: File) = File(this.getPath(file.path))
@@ -56,22 +46,7 @@ fun Path.unzipTo(directory: Path) {
 }
 
 fun <T> File.withZipFileSystem(mutable: Boolean = false, action: (FileSystem) -> T): T {
-    val zipFileSystem = this.zipFileSystem(mutable)
-    return try {
-        action(zipFileSystem)
-    } finally {
-        fileSystems.compute(zipUri) { _, value ->
-            require(value != null)
-            if (value.counter == 1) {
-                value.fileSystem.close()
-                // Returning null removes this entry from the map
-                // See https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ConcurrentMap.html.
-                null
-            } else {
-                FileSystemRefCounter(value.fileSystem, value.counter - 1)
-            }
-        }
-    }
+    return this.zipFileSystem(mutable).use(action)
 }
 
 fun <T> File.withZipFileSystem(action: (FileSystem) -> T): T = this.withZipFileSystem(false, action)
