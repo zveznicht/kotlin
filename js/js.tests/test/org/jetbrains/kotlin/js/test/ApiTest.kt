@@ -89,16 +89,14 @@ class ApiTest : KotlinTestWithEnvironment() {
 
     private fun Map<FqName, String>.markUniqueLinesComparedTo(other: Map<FqName, String>): Map<FqName, String> {
         return entries.map { (fqName, api) ->
-            val augmentedApi = other[fqName]?.let { diff(api, it) } ?: api
+            val otherApiLines = other[fqName]?.lines() ?: emptyList()
+            val augmentedApi = diff(api.lines(), otherApiLines)
 
             fqName to augmentedApi
         }.toMap()
     }
 
-    private fun diff(a: String, b: String): String {
-        val aLines = a.lines()
-        val bLines = b.lines()
-
+    private fun diff(aLines: List<String>, bLines: List<String>): String {
         val d = Array(aLines.size + 1) { ByteArray(bLines.size + 1) }
         val c = Array(aLines.size + 1) { ShortArray(bLines.size + 1) }
 
@@ -135,7 +133,7 @@ class ApiTest : KotlinTestWithEnvironment() {
         var x = aLines.size
         var y = bLines.size
 
-        while (x != 0 && y != 0) {
+        while (x != 0 || y != 0) {
             val tdx = if ((d[x][y].toInt() and DX.toInt()) == 0) 0 else -1
             val tdy = if ((d[x][y].toInt() and DY.toInt()) == 0) 0 else -1
 
