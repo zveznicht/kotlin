@@ -121,7 +121,7 @@ fun DeclarationContainerLoweringPass.runOnFilePostfix(irFile: IrFile) {
 }
 
 fun BodyLoweringPass.runOnFilePostfix(irFile: IrFile, withLocalDeclarations: Boolean = false, allowDeclarationModification: Boolean = false) {
-    ArrayList(irFile.declarations).forEach {
+    for (it in ArrayList(irFile.declarations)) {
         it.accept(object : IrElementVisitor<Unit, IrDeclaration?> {
             override fun visitElement(element: IrElement, data: IrDeclaration?) {
                 element.acceptChildren(this, data)
