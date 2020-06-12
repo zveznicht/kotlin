@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.resolve.calls.checkers.shouldWarnAboutDeprecatedModF
 import org.jetbrains.kotlin.resolve.checkSinceKotlinVersionAccessibility
 import org.jetbrains.kotlin.resolve.checkers.ExperimentalUsageChecker
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedClassDescriptor
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedMemberDescriptor
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedMemberDescriptor.CoroutinesCompatibilityMode.COMPATIBLE
@@ -33,8 +34,6 @@ import org.jetbrains.kotlin.types.TypeUtils
 import org.jetbrains.kotlin.utils.SmartList
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import com.google.common.collect.*
-import org.jetbrains.kotlin.resolve.descriptorUtil.module
-import org.jetbrains.kotlin.storage.MemoizedFunctionToNotNull
 import java.util.concurrent.ConcurrentMap
 
 class DeprecationResolver(
@@ -42,9 +41,11 @@ class DeprecationResolver(
     private val languageVersionSettings: LanguageVersionSettings,
     private val coroutineCompatibilitySupport: CoroutineCompatibilitySupport,
     private val deprecationSettings: DeprecationSettings,
+    private val moduleDescriptor: ModuleDescriptor? = null,
+    private val deprecationResolverUsageTracker: DeprecationResolverUsageTracker = DeprecationResolverUsageTracker.Default,
 ) {
     fun getDeprecations(descriptor: DeclarationDescriptor): List<Deprecation> =
-        deprecations(descriptor)
+        deprecations(descriptor.original)
 
     fun isDeprecatedHidden(descriptor: DeclarationDescriptor): Boolean =
         getDeprecations(descriptor).any { it.deprecationLevel == DeprecationLevelValue.HIDDEN }
@@ -83,6 +84,7 @@ class DeprecationResolver(
     private val isHiddenBecauseOfKotlinVersionAccessibility = storageManager.createMemoizedFunction(::doCheckHiddenKotlinVersion)
 
     private fun doGetDeprecations(descriptor: DeclarationDescriptor): List<Deprecation> {
+        registerUsageIfSuspicious(descriptor)
         val deprecations = descriptor.getOwnDeprecations()
         return when {
             deprecations.isNotEmpty() -> deprecations
@@ -91,8 +93,20 @@ class DeprecationResolver(
         }
     }
 
-    private fun doCheckHiddenKotlinVersion(descriptor: DeclarationDescriptor): SinceKotlinAccessibility =
-        descriptor.checkSinceKotlinVersionAccessibility(languageVersionSettings)
+    private fun registerUsageIfSuspicious(descriptor: DeclarationDescriptor) {
+        moduleDescriptor?.let { componentModule ->
+            if (descriptor.module != componentModule
+                && descriptor.module !in componentModule.allDependencyModules
+            ) {
+                deprecationResolverUsageTracker.registerUsage(componentModule, descriptor.module)
+            }
+        }
+    }
+
+    private fun doCheckHiddenKotlinVersion(descriptor: DeclarationDescriptor): SinceKotlinAccessibility {
+        registerUsageIfSuspicious(descriptor)
+        return descriptor.checkSinceKotlinVersionAccessibility(languageVersionSettings)
+    }
 
     private fun getSinceKotlinAccessibility(descriptor: DeclarationDescriptor): SinceKotlinAccessibility =
         isHiddenBecauseOfKotlinVersionAccessibility(descriptor)

@@ -61,4 +61,6 @@ interface ModuleDescriptor : DeclarationDescriptor {
     val isValid: Boolean
 
     fun assertValid()
+
+    fun resolverStash(): Any? = null
 }

@@ -20,7 +20,7 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
     protected val projectContext: ProjectContext,
     modules: Collection<M>,
     protected val fallbackModificationTracker: ModificationTracker? = null,
-    private val delegateResolver: ResolverForProject<M> = EmptyResolverForProject(),
+    public val delegateResolver: ResolverForProject<M> = EmptyResolverForProject(),
     private val packageOracleFactory: PackageOracleFactory = PackageOracleFactory.OptimisticFactory
 ) : ResolverForProject<M>() {
 
@@ -168,7 +168,8 @@ abstract class AbstractResolverForProject<M : ModuleInfo>(
             builtInsForModule(module),
             module.platform,
             module.capabilities,
-            module.stableName
+            module.stableName,
+            this
         )
         moduleInfoByDescriptor[moduleDescriptor] = module
         setupModuleDescriptor(module, moduleDescriptor)

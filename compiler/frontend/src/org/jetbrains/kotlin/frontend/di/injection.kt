@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.frontend.di
 
+import com.intellij.openapi.components.ServiceManager
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.config.isTypeRefinementEnabled
 import org.jetbrains.kotlin.container.StorageComponentContainer
@@ -35,6 +36,7 @@ import org.jetbrains.kotlin.resolve.calls.smartcasts.DataFlowValueFactoryImpl
 import org.jetbrains.kotlin.resolve.calls.tower.KotlinResolutionStatelessCallbacksImpl
 import org.jetbrains.kotlin.resolve.checkers.ExpectedActualDeclarationChecker
 import org.jetbrains.kotlin.resolve.checkers.ExperimentalUsageChecker
+import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolverUsageTracker
 import org.jetbrains.kotlin.resolve.lazy.*
 import org.jetbrains.kotlin.resolve.lazy.declarations.DeclarationProviderFactory
 import org.jetbrains.kotlin.types.KotlinTypeRefinerImpl
@@ -83,6 +85,8 @@ fun StorageComponentContainer.configureModule(
     } else {
         useInstance(KotlinTypeRefiner.Default)
     }
+
+    useInstance(ServiceManager.getService(moduleContext.project, DeprecationResolverUsageTracker::class.java))
 
     configurePlatformIndependentComponents()
 }

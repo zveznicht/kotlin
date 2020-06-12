@@ -55,6 +55,12 @@ public class ErrorUtils {
         ERROR_MODULE = new ModuleDescriptor() {
             @Nullable
             @Override
+            public Object resolverStash() {
+                return null;
+            }
+
+            @Nullable
+            @Override
             public <T> T getCapability(@NotNull Capability<T> capability) {
                 return null;
             }

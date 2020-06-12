@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.container.DefaultImplementation
 import org.jetbrains.kotlin.container.PlatformExtensionsClashResolver
 import org.jetbrains.kotlin.container.PlatformSpecificExtension
+import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.diagnostics.Errors
@@ -80,5 +81,15 @@ interface DeprecationSettings {
 
     object Default : DeprecationSettings {
         override fun propagatedToOverrides(deprecationAnnotation: AnnotationDescriptor) = true
+    }
+}
+
+@DefaultImplementation(DeprecationResolverUsageTracker::class)
+interface DeprecationResolverUsageTracker {
+    fun registerUsage(componentModule: ModuleDescriptor, descriptorModule: ModuleDescriptor)
+
+    object Default : DeprecationResolverUsageTracker {
+        override fun registerUsage(componentModule: ModuleDescriptor, descriptorModule: ModuleDescriptor) {
+        }
     }
 }
