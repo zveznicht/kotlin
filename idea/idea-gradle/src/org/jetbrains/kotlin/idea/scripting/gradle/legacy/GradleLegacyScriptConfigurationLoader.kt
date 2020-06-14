@@ -30,6 +30,10 @@ import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 class GradleLegacyScriptConfigurationLoader(project: Project) : DefaultScriptConfigurationLoader(project) {
     private val buildRootsManager = GradleBuildRootsManager.getInstance(project)
 
+    override fun isPostponedLoad(virtualFile: VirtualFile): Boolean = true
+
+    override fun shouldRunInBackground(scriptDefinition: ScriptDefinition) = true
+
     override fun loadDependencies(
         isFirstLoad: Boolean,
         ktFile: KtFile,
