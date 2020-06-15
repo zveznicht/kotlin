@@ -269,7 +269,7 @@ open class GradleScriptListenerTest : AbstractScriptConfigurationLoadingTest() {
 
     override fun assertAndLoadInitialConfiguration(file: KtFile) {
         assertNull(scriptConfigurationManager.getConfiguration(file))
-        assertReloadingSuggestedAndDoReload()
+        assertReloadingSuggestedAndDoReload(file)
         assertAndDoAllBackgroundTasks()
         assertSingleLoading()
         assertAppliedConfiguration(file.text, file)
@@ -295,7 +295,7 @@ open class GradleScriptListenerTest : AbstractScriptConfigurationLoadingTest() {
 
     private fun assertConfigurationUpdateWasDoneAfterClick(file: KtFile) {
         scriptConfigurationManager.default.ensureUpToDatedConfigurationSuggested(file)
-        assertReloadingSuggestedAndDoReload()
+        assertReloadingSuggestedAndDoReload(file)
         assertAndDoAllBackgroundTasks()
         assertSingleLoading()
     }
