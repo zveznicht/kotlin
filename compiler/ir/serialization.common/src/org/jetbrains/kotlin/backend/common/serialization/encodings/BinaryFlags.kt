@@ -197,7 +197,7 @@ inline class FieldFlags(val flags: Long) {
         fun encode(field: IrField): Long {
             return field.run {
                 val visibility = ProtoEnumFlags.visibility(visibility)
-                IrFlags.getFieldFlags(annotations.isNotEmpty(), visibility, isFinal, isExternal, isStatic, isFakeOverride).toLong()
+                IrFlags.getFieldFlags(annotations.isNotEmpty(), visibility, isFinal, isExternal, isStatic).toLong()
             }
         }
 

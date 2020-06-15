@@ -47,7 +47,6 @@ import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.Name
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.util.*
 
 interface LocalNameProvider {
@@ -771,8 +770,7 @@ class LocalDeclarationsLowering(
                 visibility,
                 isFinal = true,
                 isExternal = false,
-                isStatic = false,
-                isFakeOverride = false
+                isStatic = false
             ).also {
                 descriptor.bind(it)
                 it.parent = parent

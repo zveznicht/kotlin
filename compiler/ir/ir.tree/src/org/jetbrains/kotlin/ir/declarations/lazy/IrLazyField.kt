@@ -33,7 +33,6 @@ class IrLazyField(
     override val isFinal: Boolean,
     override val isExternal: Boolean,
     override val isStatic: Boolean,
-    override val isFakeOverride: Boolean,
     stubGenerator: DeclarationStubGenerator,
     typeTranslator: TypeTranslator
 ) : IrLazyDeclarationBase(startOffset, endOffset, origin, stubGenerator, typeTranslator),
@@ -47,12 +46,6 @@ class IrLazyField(
         descriptor.backingField?.annotations
             ?.mapNotNullTo(mutableListOf(), typeTranslator.constantValueGenerator::generateAnnotationConstructorCall)
             ?: mutableListOf()
-    }
-
-    override var overriddenSymbols: List<IrFieldSymbol> by lazyVar {
-        symbol.descriptor.overriddenDescriptors.map {
-            stubGenerator.generateFieldStub(it.original).symbol
-        }.toMutableList()
     }
 
     override var type: IrType by lazyVar {

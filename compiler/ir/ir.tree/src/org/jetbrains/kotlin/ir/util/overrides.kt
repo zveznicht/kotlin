@@ -43,27 +43,3 @@ fun generateOverriddenFunctionSymbols(
         symbolTable.referenceSimpleFunction(it.original)
     }
 }
-
-fun SymbolTable.declareFieldWithOverrides(
-    startOffset: Int,
-    endOffset: Int,
-    origin: IrDeclarationOrigin,
-    descriptor: PropertyDescriptor,
-    type: IrType,
-    hasBackingField: (PropertyDescriptor) -> Boolean
-) =
-    declareField(startOffset, endOffset, origin, descriptor, type).also { declaration ->
-        generateOverriddenFieldSymbols(declaration, this, hasBackingField)
-    }
-
-fun generateOverriddenFieldSymbols(
-    declaration: IrField,
-    symbolTable: SymbolTable,
-    hasBackingField: (PropertyDescriptor) -> Boolean
-) {
-    declaration.overriddenSymbols = declaration.descriptor.overriddenDescriptors.mapNotNull {
-        if (hasBackingField(it)) {
-            symbolTable.referenceField(it.original)
-        } else null
-    }
-}

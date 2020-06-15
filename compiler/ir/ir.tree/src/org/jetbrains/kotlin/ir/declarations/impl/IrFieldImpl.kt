@@ -41,8 +41,7 @@ class IrFieldImpl(
     override val visibility: Visibility,
     override val isFinal: Boolean,
     override val isExternal: Boolean,
-    override val isStatic: Boolean,
-    override val isFakeOverride: Boolean = origin == IrDeclarationOrigin.FAKE_OVERRIDE
+    override val isStatic: Boolean
 ) : IrDeclarationBase<FieldCarrier>(startOffset, endOffset, origin),
     IrField,
     FieldCarrier {
@@ -91,16 +90,6 @@ class IrFieldImpl(
         set(v) {
             if (correspondingPropertySymbol !== v) {
                 setCarrier().correspondingPropertySymbolField = v
-            }
-        }
-
-    override var overridenSymbolsField: List<IrFieldSymbol> = emptyList()
-
-    override var overriddenSymbols: List<IrFieldSymbol>
-        get() = getCarrier().overridenSymbolsField
-        set(v) {
-            if (overriddenSymbols !== v) {
-                setCarrier().overridenSymbolsField = v
             }
         }
 

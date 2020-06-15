@@ -66,8 +66,7 @@ class JsDeclarationFactory(mapping: JsMapping) : DeclarationFactory {
             visibility,
             isFinal = true,
             isExternal = false,
-            isStatic = false,
-            isFakeOverride = false
+            isStatic = false
         ).also {
             descriptor.bind(it)
             it.parent = parent
