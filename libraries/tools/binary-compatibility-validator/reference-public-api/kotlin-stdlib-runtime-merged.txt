@@ -2942,14 +2942,55 @@ public final class kotlin/coroutines/EmptyCoroutineContext : java/io/Serializabl
 public abstract interface annotation class kotlin/coroutines/RestrictsSuspension : java/lang/annotation/Annotation {
 }
 
-public final class kotlin/coroutines/SafeContinuation : kotlin/coroutines/Continuation, kotlin/coroutines/jvm/internal/CoroutineStackFrame {
+public final class kotlin/coroutines/SafeContinuation : kotlin/coroutines/cancellation/CancellableContinuation, kotlin/coroutines/jvm/internal/CoroutineStackFrame {
+	public static final field RESULT Ljava/util/concurrent/atomic/AtomicReferenceFieldUpdater;
 	public fun <init> (Lkotlin/coroutines/Continuation;)V
+	public fun cancel (Ljava/lang/Throwable;)Z
 	public fun getCallerFrame ()Lkotlin/coroutines/jvm/internal/CoroutineStackFrame;
 	public fun getContext ()Lkotlin/coroutines/CoroutineContext;
 	public final fun getOrThrow ()Ljava/lang/Object;
+	public fun getResultOrMarkSuspended ()Ljava/lang/Object;
 	public fun getStackTraceElement ()Ljava/lang/StackTraceElement;
+	public fun invokeOnCancellation (Lkotlin/jvm/functions/Function1;)V
 	public fun resumeWith (Ljava/lang/Object;)V
 	public fun toString ()Ljava/lang/String;
+}
+
+public abstract interface class kotlin/coroutines/cancellation/CancellableContinuation : kotlin/coroutines/Continuation {
+	public abstract fun cancel (Ljava/lang/Throwable;)Z
+	public abstract fun getResultOrMarkSuspended ()Ljava/lang/Object;
+	public abstract fun invokeOnCancellation (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class kotlin/coroutines/cancellation/CancellableContinuation$DefaultImpls {
+	public static synthetic fun cancel$default (Lkotlin/coroutines/cancellation/CancellableContinuation;Ljava/lang/Throwable;ILjava/lang/Object;)Z
+}
+
+public final class kotlin/coroutines/cancellation/CancellableContinuationKt {
+	public static final fun createCancellableContinuation (Lkotlin/coroutines/Continuation;)Lkotlin/coroutines/cancellation/CancellableContinuation;
+}
+
+public final class kotlin/coroutines/cancellation/CancellationExceptionKt {
+	public static final fun CancellationException (Ljava/lang/String;Ljava/lang/Throwable;)Ljava/util/concurrent/CancellationException;
+}
+
+public abstract interface class kotlin/coroutines/cancellation/CancellationSource : kotlin/coroutines/CoroutineContext$Element {
+	public static final field Key Lkotlin/coroutines/cancellation/CancellationSource$Key;
+	public abstract fun createCancellableContinuation (Lkotlin/coroutines/Continuation;)Lkotlin/coroutines/cancellation/CancellableContinuation;
+	public abstract fun get (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext$Element;
+	public abstract fun getKey ()Lkotlin/coroutines/CoroutineContext$Key;
+	public abstract fun minusKey (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext;
+}
+
+public final class kotlin/coroutines/cancellation/CancellationSource$DefaultImpls {
+	public static fun fold (Lkotlin/coroutines/cancellation/CancellationSource;Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
+	public static fun get (Lkotlin/coroutines/cancellation/CancellationSource;Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext$Element;
+	public static fun getKey (Lkotlin/coroutines/cancellation/CancellationSource;)Lkotlin/coroutines/CoroutineContext$Key;
+	public static fun minusKey (Lkotlin/coroutines/cancellation/CancellationSource;Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext;
+	public static fun plus (Lkotlin/coroutines/cancellation/CancellationSource;Lkotlin/coroutines/CoroutineContext;)Lkotlin/coroutines/CoroutineContext;
+}
+
+public final class kotlin/coroutines/cancellation/CancellationSource$Key : kotlin/coroutines/CoroutineContext$Key {
 }
 
 public final class kotlin/coroutines/intrinsics/CoroutineSingletons : java/lang/Enum {

@@ -5,9 +5,12 @@
 
 package kotlin.coroutines
 
+import kotlin.coroutines.cancellation.CancellableContinuation
+
 @PublishedApi
 @SinceKotlin("1.3")
-internal expect class SafeContinuation<in T> : Continuation<T> {
+@OptIn(ExperimentalStdlibApi::class)
+internal expect class SafeContinuation<in T> : CancellableContinuation<T> {
     internal constructor(delegate: Continuation<T>, initialResult: Any?)
 
     @PublishedApi
@@ -15,6 +18,10 @@ internal expect class SafeContinuation<in T> : Continuation<T> {
 
     @PublishedApi
     internal fun getOrThrow(): Any?
+
+    override fun invokeOnCancellation(handler: (cause: Throwable) -> Unit)
+    override fun cancel(cause: Throwable?): Boolean
+    override fun getResultOrMarkSuspended(): Any?
 
     override val context: CoroutineContext
     override fun resumeWith(result: Result<T>): Unit
