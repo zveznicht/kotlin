@@ -2976,6 +2976,11 @@ public class IrBytecodeTextTestGenerated extends AbstractIrBytecodeTextTest {
             runTest("compiler/testData/codegen/bytecodeText/inlineClasses/inlineClassBoxingUnboxingInsideInlinedLambda.kt");
         }
 
+        @TestMetadata("inlineClassConstructorWithDefaultArguments.kt")
+        public void testInlineClassConstructorWithDefaultArguments() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/inlineClasses/inlineClassConstructorWithDefaultArguments.kt");
+        }
+
         @TestMetadata("inlineClassInGeneratedToString.kt")
         public void testInlineClassInGeneratedToString() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/inlineClasses/inlineClassInGeneratedToString.kt");

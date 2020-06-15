@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.backend.common.ir.createDispatchReceiverParameter
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.lower.inlineclasses.InlineClassAbi.mangledNameFor
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
+import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.declarations.buildFunWithDescriptorForInlining
@@ -181,10 +182,17 @@ class MemoizedInlineClassReplacements(private val mangleReturnTypes: Boolean) {
         body: IrFunctionImpl.() -> Unit
     ) = buildFunWithDescriptorForInlining(function.descriptor) {
         updateFrom(function)
-        origin = if (function.origin == IrDeclarationOrigin.GENERATED_INLINE_CLASS_MEMBER) {
-            JvmLoweredDeclarationOrigin.INLINE_CLASS_GENERATED_IMPL_METHOD
-        } else {
-            replacementOrigin
+        if (function is IrConstructor) {
+            // The [updateFrom] call will set the modality to FINAL for constructors, while the JVM backend would use OPEN here.
+            modality = Modality.OPEN
+        }
+        origin = when {
+            function.origin == IrDeclarationOrigin.GENERATED_INLINE_CLASS_MEMBER ->
+                JvmLoweredDeclarationOrigin.INLINE_CLASS_GENERATED_IMPL_METHOD
+            function is IrConstructor && function.constructedClass.isInline ->
+                JvmLoweredDeclarationOrigin.STATIC_INLINE_CLASS_CONSTRUCTOR
+            else ->
+                replacementOrigin
         }
         if (noFakeOverride) {
             isFakeOverride = false
