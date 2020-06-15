@@ -26,9 +26,7 @@ import com.intellij.util.indexing.IdFilter
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.idea.caches.KotlinShortNamesCache
-import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
-import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
-import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
+import org.jetbrains.kotlin.idea.caches.resolve.*
 import org.jetbrains.kotlin.idea.caches.resolve.util.getJavaMemberDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.util.resolveToDescriptor
 import org.jetbrains.kotlin.idea.codeInsight.forceEnableSamAdapters
@@ -52,6 +50,7 @@ import org.jetbrains.kotlin.psi.psiUtil.contains
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolver
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScopes
 import org.jetbrains.kotlin.resolve.scopes.collectSyntheticStaticFunctions
@@ -265,13 +264,8 @@ class KotlinIndicesHelper(
     fun getKotlinEnumsByName(name: String): Collection<DeclarationDescriptor> {
         return KotlinClassShortNameIndex.getInstance()[name, project, scope]
             .filter { it is KtEnumEntry && it in scope }
-            .mapNotNull {
-                val resolutionFacade = it.getResolutionFacade()
-                val resultingDescriptor = it.unsafeResolveToDescriptor(resolutionFacade)
-                if (descriptorFilter(resultingDescriptor, resolutionFacade))
-                    resultingDescriptor
-                else null
-            }
+            .flatMap { it.resolveToDescriptors<DeclarationDescriptor>() }
+            .filter(::descriptorFilter)
             .toSet()
     }
 
@@ -373,10 +367,12 @@ class KotlinIndicesHelper(
         for (declaration in functions + properties) {
             ProgressManager.checkCanceled()
             if (!filter(declaration)) continue
-            val descriptor = declaration.descriptor as? CallableDescriptor ?: continue
-            if (!processed.add(descriptor)) continue
-            if (!descriptorFilter(descriptor)) continue
-            processor(descriptor)
+
+            for (descriptor in declaration.resolveToDescriptors<CallableDescriptor>()) {
+                if (!processed.add(descriptor)) continue
+                if (!descriptorFilter(descriptor)) continue
+                processor(descriptor)
+            }
         }
     }
 
@@ -394,7 +390,7 @@ class KotlinIndicesHelper(
             .toList()
             .flatMap { fqName ->
                 index[fqName, project, scope].flatMap { classOrObject ->
-                    classOrObject.resolveToDescriptorsWithHack(psiFilter).filterIsInstance<ClassDescriptor>()
+                    classOrObject.resolveToDescriptors<ClassDescriptor>()
                 }
             }
             .filter { kindFilter(it.kind) && descriptorFilter(it) }
