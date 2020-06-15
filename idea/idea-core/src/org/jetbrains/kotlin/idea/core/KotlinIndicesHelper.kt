@@ -26,9 +26,7 @@ import com.intellij.util.indexing.IdFilter
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.idea.caches.KotlinShortNamesCache
-import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
-import org.jetbrains.kotlin.idea.caches.resolve.resolveImportReference
-import org.jetbrains.kotlin.idea.caches.resolve.unsafeResolveToDescriptor
+import org.jetbrains.kotlin.idea.caches.resolve.*
 import org.jetbrains.kotlin.idea.caches.resolve.util.getJavaMemberDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.util.resolveToDescriptor
 import org.jetbrains.kotlin.idea.codeInsight.forceEnableSamAdapters
@@ -52,6 +50,7 @@ import org.jetbrains.kotlin.psi.psiUtil.contains
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolver
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.SyntheticScopes
 import org.jetbrains.kotlin.resolve.scopes.collectSyntheticStaticFunctions
@@ -368,7 +367,12 @@ class KotlinIndicesHelper(
         for (declaration in functions + properties) {
             ProgressManager.checkCanceled()
             if (!filter(declaration)) continue
-            val descriptor = declaration.descriptor as? CallableDescriptor ?: continue
+
+            val descriptor = if (declaration is KtParameter)
+                declaration.resolveToParameterDescriptorIfAny(resolutionFacade, BodyResolveMode.FULL)
+            else declaration.resolveToDescriptorIfAny(resolutionFacade, BodyResolveMode.FULL)
+            if (descriptor !is CallableDescriptor) continue
+
             if (!processed.add(descriptor)) continue
             if (!descriptorFilter(descriptor)) continue
             processor(descriptor)
