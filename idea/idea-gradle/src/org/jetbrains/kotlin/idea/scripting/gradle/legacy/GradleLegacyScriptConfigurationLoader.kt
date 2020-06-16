@@ -37,7 +37,7 @@ class GradleLegacyScriptConfigurationLoader(project: Project) : DefaultScriptCon
         if (info.standalone) {
             val actionsManager = GradleStandaloneScriptActions.getInstance(project)
             val fileActions = actionsManager.ForFile(file, doLoad)
-            actionsManager.actions[file] = fileActions
+            actionsManager.byFile[file] = fileActions
             fileActions.updateNotification()
         } else {
             LoadScriptConfigurationNotificationFactory.showNotification(file, project) {
@@ -60,22 +60,27 @@ class GradleLegacyScriptConfigurationLoader(project: Project) : DefaultScriptCon
 
         if (!isGradleKotlinScript(vFile)) return false
 
-        if (!buildRootsManager.isAffectedGradleProjectFile(vFile.path)) {
-            // not known gradle file and not configured as standalone script
-            // skip
-            return true
-        }
-
-        // Gradle read files from FS
-        GlobalScope.launch(EDT(project)) {
-            runWriteAction {
-                FileDocumentManager.getInstance().saveAllDocuments()
+        try {
+            if (!buildRootsManager.isAffectedGradleProjectFile(vFile.path)) {
+                // not known gradle file and not configured as standalone script
+                // skip
+                return true
             }
-        }
 
-        val result = getConfigurationThroughScriptingApi(ktFile, vFile, scriptDefinition)
-        context.saveNewConfiguration(vFile, result)
-        return true
+            // Gradle read files from FS, so let's save all docs
+            GlobalScope.launch(EDT(project)) {
+                runWriteAction {
+                    FileDocumentManager.getInstance().saveAllDocuments()
+                }
+            }
+
+            val result = getConfigurationThroughScriptingApi(ktFile, vFile, scriptDefinition)
+            context.saveNewConfiguration(vFile, result)
+            return true
+        } finally {
+            GradleStandaloneScriptActions.getInstance(project)
+                .byFile.remove(vFile)?.updateNotification()
+        }
     }
 
     override fun getInputsStamp(virtualFile: VirtualFile, file: KtFile): CachedConfigurationInputs {

@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.idea.scripting.gradle.roots.GradleBuildRootsManager
 import org.jetbrains.kotlin.scripting.definitions.findScriptDefinition
 
 class GradleStandaloneScriptActions(val project: Project) {
-    val actions = mutableMapOf<VirtualFile, ForFile>()
+    val byFile = mutableMapOf<VirtualFile, ForFile>()
 
     inner class ForFile(
         val file: VirtualFile,
@@ -40,7 +40,7 @@ class GradleStandaloneScriptActions(val project: Project) {
         }
 
         fun reload() {
-            actions.remove(file)
+            byFile.remove(file)
             doLoad()
             updateNotification()
         }

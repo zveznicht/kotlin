@@ -79,7 +79,7 @@ class GradleScriptNotificationProvider(private val project: Project) :
                 contextHelp(KotlinIdeaGradleBundle.message("notification.notEvaluatedInLastImport.info"))
             }
             standalone -> EditorNotificationPanel().apply {
-                val actions = GradleStandaloneScriptActions.getInstance(project).actions[file]
+                val actions = GradleStandaloneScriptActions.getInstance(project).byFile[file]
                 if (actions != null) {
                     text(
                         KotlinIdeaGradleBundle.message("notification.standalone.text") +
