@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.ir.declarations.path
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.js.backend.ast.*
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
-import org.jetbrains.kotlin.serialization.js.ModuleKind
 import org.jetbrains.kotlin.utils.DFS
 
 class IrModuleToJsTransformer(
@@ -32,7 +31,8 @@ class IrModuleToJsTransformer(
     var namer: NameTables = NameTables(emptyList()),
     private val fullJs: Boolean = true,
     private val dceJs: Boolean = false,
-    private val multiModule: Boolean = false
+    private val multiModule: Boolean = false,
+    private val relativeRequirePath: Boolean = false
 ) {
     private val generateRegionComments = backendContext.configuration.getBoolean(JSConfigurationKeys.GENERATE_REGION_COMMENTS)
 
@@ -204,7 +204,7 @@ class IrModuleToJsTransformer(
             }
 
             val moduleName = declareFreshGlobal(module.safeName)
-            modules += JsImportedModule(moduleName.ident, moduleName, moduleName.makeRef())
+            modules += JsImportedModule(moduleName.ident, moduleName, moduleName.makeRef(), relativeRequirePath)
 
             names.forEach {
                 imports += JsVars(JsVars.JsVar(JsName(it), JsNameRef(it, JsNameRef("\$crossModule\$", moduleName.makeRef()))))
