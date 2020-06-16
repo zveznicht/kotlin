@@ -539,11 +539,17 @@ class ExpressionCodegen(
         val fieldName = callee.name.asString()
         val isStatic = expression.receiver == null
         expression.markLineNumber(startOffset = true)
-        val ownerType = expression.superQualifierSymbol?.owner?.let { superQualifier ->
-            typeMapper.mapClass(superQualifier)
-        } ?: expression.receiver?.let { receiver ->
-            typeMapper.mapTypeAsDeclaration(receiver.type)
-        } ?: typeMapper.mapClass(callee.parentAsClass)
+
+        val ownerType = when {
+            expression.superQualifierSymbol != null -> {
+                typeMapper.mapClass(expression.superQualifierSymbol!!.owner)
+            }
+            expression.receiver != null -> {
+                typeMapper.mapTypeAsDeclaration(expression.receiver!!.type)
+            }
+            else -> typeMapper.mapClass(callee.parentAsClass)
+        }
+
         val ownerName = ownerType.internalName
 
         expression.receiver?.let { receiver ->
