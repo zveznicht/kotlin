@@ -45,6 +45,7 @@ import org.jetbrains.kotlin.platform.isCommon
 import org.jetbrains.kotlin.platform.isMultiPlatform
 import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.isJvm
+import org.jetbrains.kotlin.platform.konan.*
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jetbrains.kotlinx.stm.compiler.*
@@ -127,12 +128,14 @@ open class StmIrGenerator {
         private fun getSTMSearchFunction(
             compilerContext: IrPluginContext
         ): IrFunctionSymbol {
+            val platform = compilerContext.platform
             val methodBaseName = when {
-                compilerContext.platform.isJs() -> SEARCH_JS_STM_METHOD
-                compilerContext.platform.isJvm() -> SEARCH_JAVA_STM_METHOD
-                compilerContext.platform.isMultiPlatform() -> error("Unexpected platform in IR code: Multiplatform")
-                compilerContext.platform.isCommon() -> error("Unexpected platform in IR code: Common")
-                else -> SEARCH_NATIVE_STM_METHOD
+                platform.isJs() -> SEARCH_JS_STM_METHOD
+                platform.isJvm() -> SEARCH_JAVA_STM_METHOD
+                platform.isMultiPlatform() -> error("Unexpected platform in IR code: Multiplatform")
+                platform.isCommon() -> error("Unexpected platform in IR code: Common")
+                platform.isNative() -> SEARCH_NATIVE_STM_METHOD
+                else -> error("Unexpected platform in IR code: $platform")
             }
             val methodDefaultName = Name.identifier("$methodBaseName$DEFAULT_SUFFIX")
 
@@ -168,7 +171,7 @@ open class StmIrGenerator {
             irClass: IrClass,
             context: IrPluginContext
         ) {
-            val generator = STMGenerator(context)
+            val generator = STMBuilderExtension(context)
 
             val stmField = getSTMField(irClass, context)
             val stmSearch = getSTMSearchFunction(context)
@@ -446,15 +449,13 @@ open class StmIrGenerator {
                 irCall(stmSearch, stmType)
             }
 
-            val res = callFunction(
+            return callFunction(
                 f = newFunction,
                 oldCall = irCall,
                 dispatchReceiver = irCall.dispatchReceiver,
                 extensionReceiver = irCall.extensionReceiver,
                 args = *arrayOf(stm, block)
             )
-
-            return res
         }
     }
 }

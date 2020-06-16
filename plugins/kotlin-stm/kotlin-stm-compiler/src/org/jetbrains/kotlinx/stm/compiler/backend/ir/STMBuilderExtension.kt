@@ -43,7 +43,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import org.jetbrains.kotlinx.stm.compiler.SHARABLE_NAME_SUFFIX
 import org.jetbrains.kotlinx.stm.compiler.extensions.StmResolveExtension
 
-class STMGenerator(override val compilerContext: IrPluginContext) : IrBuilderExtension() {
+class STMBuilderExtension(override val compilerContext: IrPluginContext) : IrBuilderExtension() {
 
     fun generateSTMField(irClass: IrClass, field: IrField, initMethod: IrFunctionSymbol) =
         irClass.initField(field) {
@@ -51,6 +51,7 @@ class STMGenerator(override val compilerContext: IrPluginContext) : IrBuilderExt
         }
 
     fun createReceiverParam(
+        function: IrFunction,
         type: IrType,
         paramDesc: ReceiverParameterDescriptor,
         name: String,
@@ -58,8 +59,8 @@ class STMGenerator(override val compilerContext: IrPluginContext) : IrBuilderExt
     ): IrValueParameter {
         val paramSymbol = IrValueParameterSymbolImpl(paramDesc)
         val param = IrValueParameterImpl(
-            startOffset = UNDEFINED_OFFSET,
-            endOffset = UNDEFINED_OFFSET,
+            startOffset = function.startOffset,
+            endOffset = function.endOffset,
             origin = IrDeclarationOrigin.DEFINED,
             symbol = paramSymbol,
             name = Name.identifier(name),
@@ -83,15 +84,15 @@ class STMGenerator(override val compilerContext: IrPluginContext) : IrBuilderExt
         irClass.contributeFunction(irFunction) {
 
             val ctxReceiverDescriptor = WrappedReceiverParameterDescriptor()
-            val ctxReceiver = createReceiverParam(stmContextType, ctxReceiverDescriptor, "ctx", index = 0)
+            val ctxReceiver = createReceiverParam(it, stmContextType, ctxReceiverDescriptor, "ctx", index = 0)
             ctxReceiverDescriptor.bind(ctxReceiver)
 
             val funReturnType = irFunction.returnType
 
             val lambdaDescriptor = WrappedSimpleFunctionDescriptor()
             val irLambda = IrFunctionImpl(
-                startOffset = UNDEFINED_OFFSET,
-                endOffset = UNDEFINED_OFFSET,
+                startOffset = it.startOffset,
+                endOffset = it.endOffset,
                 origin = STM_PLUGIN_ORIGIN,
                 symbol = IrSimpleFunctionSymbolImpl(lambdaDescriptor),
                 name = "${irFunction.name}_atomicLambda".synthesizedName,
