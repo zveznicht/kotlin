@@ -108,6 +108,7 @@ class PostponedArgumentInputTypesResolver(
             for (funType in functionalTypesFromConstraints) {
                 if (!isSuspend && funType.type.isSuspendFunctionTypeOrSubtype) isSuspend = true
                 if (isNullable && !funType.type.isMarkedNullable) isNullable = false
+                if (isSuspend && !isNullable) break
             }
         }
         return ParameterTypesInfo(
