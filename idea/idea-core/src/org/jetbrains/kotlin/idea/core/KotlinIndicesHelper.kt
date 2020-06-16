@@ -368,14 +368,11 @@ class KotlinIndicesHelper(
             ProgressManager.checkCanceled()
             if (!filter(declaration)) continue
 
-            val descriptor = if (declaration is KtParameter)
-                declaration.resolveToParameterDescriptorIfAny(resolutionFacade, BodyResolveMode.FULL)
-            else declaration.resolveToDescriptorIfAny(resolutionFacade, BodyResolveMode.FULL)
-            if (descriptor !is CallableDescriptor) continue
-
-            if (!processed.add(descriptor)) continue
-            if (!descriptorFilter(descriptor)) continue
-            processor(descriptor)
+            for (descriptor in declaration.resolveToDescriptors<CallableDescriptor>()) {
+                if (!processed.add(descriptor)) continue
+                if (!descriptorFilter(descriptor)) continue
+                processor(descriptor)
+            }
         }
     }
 
@@ -393,7 +390,7 @@ class KotlinIndicesHelper(
             .toList()
             .flatMap { fqName ->
                 index[fqName, project, scope].flatMap { classOrObject ->
-                    classOrObject.resolveToDescriptorsWithHack(psiFilter).filterIsInstance<ClassDescriptor>()
+                    classOrObject.resolveToDescriptors<ClassDescriptor>()
                 }
             }
             .filter { kindFilter(it.kind) && descriptorFilter(it) }
