@@ -136,6 +136,13 @@ interface SyntheticResolveExtension {
 
     fun getSyntheticNestedClassNames(thisDescriptor: ClassDescriptor): List<Name> = emptyList()
 
+    /**
+     * This method should return either superset of what [getSyntheticNestedClassNames] returns,
+     * or null in case it needs to run resolution and inference and/or it is very costly.
+     * Override this method if resolution started to fail with recursion.
+     */
+    fun maybeGetSyntheticNestedClassNames(thisDescriptor: ClassDescriptor): List<Name>? = getSyntheticNestedClassNames(thisDescriptor)
+
     fun addSyntheticSupertypes(thisDescriptor: ClassDescriptor, supertypes: MutableList<KotlinType>) {}
 
     fun generateSyntheticClasses(
