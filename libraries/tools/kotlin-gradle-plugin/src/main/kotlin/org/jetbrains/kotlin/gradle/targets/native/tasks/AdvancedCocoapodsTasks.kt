@@ -50,27 +50,24 @@ internal val KotlinNativeTarget.platformLiteral: String
  */
 open class PodInstallTask : DefaultTask() {
     init {
-        onlyIf { cocoapodsExtension.podfile != null }
+        onlyIf { cocoapodsExtension?.podfile != null }
     }
 
-    @get:Nested
-    lateinit var cocoapodsExtension: CocoapodsExtension
-
     @get:Optional
-    @get:InputFile
-    internal var podfileProvider: Provider<File>? = null
+    @get:Nested
+    internal var cocoapodsExtension: CocoapodsExtension? = null
 
     @get:Optional
     @get:OutputDirectory
     internal val podsXcodeProjDirProvider: Provider<File>?
-        get() = podfileProvider?.get()?.let {
+        get() = cocoapodsExtension?.podfile?.let {
             project.provider { it.parentFile.resolve("Pods").resolve("Pods.xcodeproj") }
         }
 
 
     @TaskAction
     fun doPodInstall() {
-        podfileProvider?.get()?.parentFile?.also { podfileDir ->
+        cocoapodsExtension?.podfile?.parentFile?.also { podfileDir ->
             val podInstallProcess = ProcessBuilder("pod", "install").apply {
                 directory(podfileDir)
                 inheritIO()
@@ -125,7 +122,7 @@ open class PodGenTask : CocoapodsWithSyntheticTask() {
 
         val podGenProcessArgs = listOfNotNull(
             "pod", "gen",
-            "--platforms=${kotlinNativeTarget.konanTarget.family.name.toLowerCase()}",
+            "--platforms=${kotlinNativeTarget.platformLiteral.toLowerCase()}",
             "--gen-directory=${project.cocoapodsBuildDirs.synthetic(kotlinNativeTarget).absolutePath}",
             localPodspecPaths.takeIf { it.isNotEmpty() }?.joinToString(separator = ",")?.let { "--local-sources=$it" },
             podspecProvider.get().name
@@ -133,10 +130,14 @@ open class PodGenTask : CocoapodsWithSyntheticTask() {
 
         val podGenProcess = ProcessBuilder(podGenProcessArgs).apply {
             directory(podspecDir)
-            inheritIO()
         }.start()
         val podGenRetCode = podGenProcess.waitFor()
-        check(podGenRetCode == 0) { "Unable to run 'pod gen', return code $podGenRetCode" }
+        check(podGenRetCode == 0) {
+            listOf(
+                "Executing of '${podGenProcessArgs.joinToString(" ")}' failed with code $podGenRetCode and message:",
+                podGenProcess.inputStream.reader().readText()
+            ).joinToString("\n")
+        }
 
         val podsXcprojFile = podsXcodeProjDirProvider.get()
         check(podsXcprojFile.exists() && podsXcprojFile.isDirectory) {
@@ -179,11 +180,10 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
 
         val buildSettingsRetCode = buildSettingsProcess.waitFor()
         check(buildSettingsRetCode == 0) {
-            """
-                Unable to run '${buildSettingsReceivingCommand.joinToString(" ")}' return code $buildSettingsRetCode.
-                Error message:
-                ${buildSettingsProcess.errorStream.reader().readText()}
-            """.trimIndent()
+            listOf(
+                "Executing of '${buildSettingsReceivingCommand.joinToString(" ")}' failed with code $buildSettingsRetCode and message:",
+                buildSettingsProcess.errorStream.reader().readText()
+            ).joinToString("\n")
         }
 
         val stdOut = buildSettingsProcess.inputStream
@@ -237,7 +237,10 @@ open class PodBuildTask : CocoapodsWithSyntheticTask() {
 
             val podBuildRetCode = podBuildProcess.waitFor()
             check(podBuildRetCode == 0) {
-                "Unable to run '${podXcodeBuildCommand.joinToString(" ")}' return code $podBuildRetCode"
+                listOf(
+                    "Executing of '${podXcodeBuildCommand.joinToString(" ")}' failed with code $podBuildRetCode and message:",
+                    podBuildProcess.errorStream.reader().readText()
+                ).joinToString("\n")
             }
         }
         buildDirProvider = project.provider { project.file(podBuildSettings.buildDir) }

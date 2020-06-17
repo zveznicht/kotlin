@@ -301,10 +301,10 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
             it.group = TASK_GROUP
             it.description = "Invokes `pod install` call within Podfile location directory"
             it.cocoapodsExtension = cocoapodsExtension
-            it.podfileProvider = cocoapodsExtension.podfile?.let { project.provider { project.file(it) } }
             //TODO avoid subproject task management here
             project.allprojects.map { it.tasks.named(POD_SPEC_TASK_NAME, PodspecTask::class.java) }
                 .forEach { podspecTaskProvider ->
+                    it.inputs.file(podspecTaskProvider.get().outputFileProvider)
                     it.dependsOn(podspecTaskProvider)
                 }
         }
