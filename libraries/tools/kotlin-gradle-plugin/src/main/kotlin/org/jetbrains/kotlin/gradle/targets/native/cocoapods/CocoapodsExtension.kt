@@ -62,6 +62,18 @@ open class CocoapodsExtension(private val project: Project) {
     @Input
     var homepage: String? = null
 
+    @Nested
+    val ios: PodspecPlatformSettings = PodspecPlatformSettings("ios")
+
+    @Nested
+    val osx: PodspecPlatformSettings = PodspecPlatformSettings("osx")
+
+    @Nested
+    val tvos: PodspecPlatformSettings = PodspecPlatformSettings("tvos")
+
+    @Nested
+    val watchos: PodspecPlatformSettings = PodspecPlatformSettings("watchos")
+
     /**
      * Configure framework name of the pod built from this project.
      */
@@ -98,6 +110,15 @@ open class CocoapodsExtension(private val project: Project) {
         @get:Optional @get:InputFile val podspec: File?,
         @get:Input val moduleName: String
     ) : Named {
+        @Input
+        override fun getName(): String = name
+    }
+
+    data class PodspecPlatformSettings(
+        private val name: String,
+        @get:Optional @get:Input var deploymentTarget: String? = null
+    ) : Named {
+
         @Input
         override fun getName(): String = name
     }

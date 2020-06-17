@@ -132,10 +132,23 @@ open class PodGenTask : CocoapodsWithSyntheticTask() {
             directory(podspecDir)
         }.start()
         val podGenRetCode = podGenProcess.waitFor()
+        val outputText = podGenProcess.inputStream.reader().readText()
+
         check(podGenRetCode == 0) {
             listOf(
                 "Executing of '${podGenProcessArgs.joinToString(" ")}' failed with code $podGenRetCode and message:",
-                podGenProcess.inputStream.reader().readText()
+                outputText,
+                outputText.takeIf { it.contains("deployment target") }?.let {
+                    """
+                        Tip: try to configure deployment_target for ALL targets as follows:
+                        cocoapods {
+                            ...
+                            ${kotlinNativeTarget.platformLiteral.toLowerCase()}.deploymentTarget = "..."
+                            ...
+                        }
+                    """.trimIndent()
+                }
+
             ).joinToString("\n")
         }
 

@@ -62,6 +62,13 @@ open class PodspecTask : DefaultTask() {
         val gradleCommand = "\$REPO_ROOT/${gradleWrapper!!.toRelativeString(project.projectDir)}"
         val syncTask = "${project.path}:$SYNC_TASK_NAME"
 
+        val deploymentTargets = run {
+            with(cocoapodsExtension) {
+                listOf(ios, osx, tvos, watchos).filter { it.deploymentTarget != null }.joinToString("\n") {
+                    "|    spec.${it.name}.deployment_target = '${it.deploymentTarget}'"
+                }
+            }
+        }
 
         with(outputFileProvider.get()) {
             writeText(
@@ -79,6 +86,8 @@ open class PodspecTask : DefaultTask() {
                 |    spec.vendored_frameworks      = "$frameworkDir/${cocoapodsExtension.frameworkName}.framework"
                 |    spec.libraries                = "c++"
                 |    spec.module_name              = "#{spec.name}_umbrella"
+                |
+                $deploymentTargets
                 |
                 $dependencies
                 |
@@ -113,15 +122,18 @@ open class PodspecTask : DefaultTask() {
         """.trimMargin()
             )
 
-            logger.quiet(
-                """
-            Generated a podspec file at: ${absolutePath}.
-            To include it in your Xcode project, check that the following dependency snippet exists in your Podfile:
+            cocoapodsExtension.podfile?.also {
+                logger.quiet(
+                    """
+                    Generated a podspec file at: ${absolutePath}.
+                    To include it in your Xcode project, check that the following dependency snippet exists in ${it.path}:
 
-                pod '$specName', :path => '${parentFile.absolutePath}'
+                    pod '$specName', :path => '${parentFile.absolutePath}'
 
             """.trimIndent()
-            )
+                )
+            }
+
         }
     }
 }
