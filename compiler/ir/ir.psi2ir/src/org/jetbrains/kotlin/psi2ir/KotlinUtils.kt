@@ -83,7 +83,8 @@ internal fun PropertyDescriptor.resolveFakeOverride(): PropertyDescriptor {
     // Fields can only be inherited from objects, so there will be at most one overridden descriptor at each step.
     var current = this
     while (current.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE) {
-        current = current.overriddenDescriptors.single()
+        current = current.overriddenDescriptors.singleOrNull()
+            ?: error("Descriptor of Java field $current should have exactly one overridden descriptor, have ${current.overriddenDescriptors}")
     }
     return current
 }
