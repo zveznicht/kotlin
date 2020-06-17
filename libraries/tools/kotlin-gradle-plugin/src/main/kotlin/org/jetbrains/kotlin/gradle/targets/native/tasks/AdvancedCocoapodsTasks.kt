@@ -70,10 +70,17 @@ open class PodInstallTask : DefaultTask() {
         cocoapodsExtension?.podfile?.parentFile?.also { podfileDir ->
             val podInstallProcess = ProcessBuilder("pod", "install").apply {
                 directory(podfileDir)
-                inheritIO()
             }.start()
             val podInstallRetCode = podInstallProcess.waitFor()
-            check(podInstallRetCode == 0) { "Unable to run 'pod install', return code $podInstallRetCode" }
+            val podInstallOutput = podInstallProcess.inputStream.reader().readText()
+
+            check(podInstallRetCode == 0) {
+                listOf(
+                    "Executing of 'pod install' failed with code $podInstallRetCode.",
+                    "Error message:",
+                    podInstallOutput
+                ).joinToString("\n")
+            }
             with(podsXcodeProjDirProvider) {
                 check(this != null && get().exists() && get().isDirectory) {
                     "The directory 'Pods/Pods.xcodeproj' was not created as a result of the `pod install` call."
@@ -148,7 +155,6 @@ open class PodGenTask : CocoapodsWithSyntheticTask() {
                         }
                     """.trimIndent()
                 }
-
             ).joinToString("\n")
         }
 
