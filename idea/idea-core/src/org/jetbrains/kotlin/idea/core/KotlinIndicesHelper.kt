@@ -390,7 +390,7 @@ class KotlinIndicesHelper(
             .toList()
             .flatMap { fqName ->
                 index[fqName, project, scope].flatMap { classOrObject ->
-                    classOrObject.resolveToDescriptors<ClassDescriptor>()
+                    classOrObject.resolveToDescriptorsWithHack(psiFilter).filterIsInstance<ClassDescriptor>()
                 }
             }
             .filter { kindFilter(it.kind) && descriptorFilter(it) }
