@@ -103,7 +103,7 @@ open class LazyClassMemberScope(
     }
 
     private val _variableNames: MutableSet<Name>
-            by lazy(LazyThreadSafetyMode.PUBLICATION) {
+            by storageManager.createLazyValue {
                 mutableSetOf<Name>().apply {
                     addAll(declarationProvider.getDeclarationNames())
                     supertypes.flatMapTo(this) {
@@ -113,7 +113,7 @@ open class LazyClassMemberScope(
             }
 
     private val _functionNames: MutableSet<Name>
-            by lazy(LazyThreadSafetyMode.PUBLICATION) {
+            by storageManager.createLazyValue {
                 mutableSetOf<Name>().apply {
                     addAll(declarationProvider.getDeclarationNames())
                     addAll(c.syntheticResolveExtension.getSyntheticFunctionNames(thisDescriptor))
@@ -126,23 +126,23 @@ open class LazyClassMemberScope(
             }
 
     private val _classifierNames: Set<Name>?
-            by lazy(LazyThreadSafetyMode.PUBLICATION) {
+            by storageManager.createNullableLazyValue {
                 mutableSetOf<Name>().apply {
                     supertypes.flatMapToNullable(this) {
                         it.memberScope.getClassifierNames()
-                    } ?: return@lazy null
+                    } ?: return@createNullableLazyValue null
 
                     addAll(declarationProvider.getDeclarationNames())
                     with(c.syntheticResolveExtension) {
+                        maybeGetSyntheticNestedClassNames(thisDescriptor)?.let { addAll(it) } ?: return@createNullableLazyValue null
                         getSyntheticCompanionObjectNameIfNeeded(thisDescriptor)?.let { add(it) }
-                        addAll(getSyntheticNestedClassNames(thisDescriptor))
                     }
                 }
             }
 
     private val _allNames: Set<Name>?
-            by lazy(LazyThreadSafetyMode.PUBLICATION) {
-                val classifiers = getClassifierNames() ?: return@lazy null
+            by storageManager.createNullableLazyValue {
+                val classifiers = getClassifierNames() ?: return@createNullableLazyValue null
 
                 mutableSetOf<Name>().apply {
                     addAll(getVariableNames())
