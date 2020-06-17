@@ -181,21 +181,7 @@ class ApiTest : KotlinTestWithEnvironment() {
     }
 
     private fun ModuleDescriptor.packagesSerialized(): Map<FqName, String> {
-        return allPackages().mapNotNull { fqName -> getPackage(fqName).serialize()?.let { fqName to it } }.toMap()
-    }
-
-    private fun ModuleDescriptor.allPackages(): Collection<FqName> {
-        val result = mutableListOf<FqName>()
-
-        fun impl(pkg: FqName) {
-            result += pkg
-
-            getSubPackagesOf(pkg) { true }.forEach { impl(it) }
-        }
-
-        impl(FqName.ROOT)
-
-        return result
+        return getAllPackages().mapNotNull { fqName -> getPackage(fqName).serialize()?.let { fqName to it } }.toMap()
     }
 
     private fun PackageViewDescriptor.serialize(): String? {
