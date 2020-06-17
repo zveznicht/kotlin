@@ -197,6 +197,12 @@ public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
                 }
                 return packageDescriptor.getDeclarationProvider().getAllDeclaredSubPackages(nameFilter);
             }
+
+            @NotNull
+            @Override
+            public Collection<FqName> getAllPackages() {
+                throw new Error("How to implement this?");
+            }
         };
 
         fileAnnotations = storageManager.createMemoizedFunction(file -> createAnnotations(file, file.getAnnotationEntries()));

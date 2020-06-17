@@ -26,6 +26,10 @@ internal class CommonizedPackageFragmentProvider : PackageFragmentProvider {
             .filter { !it.isRoot && it.parent() == fqName }
             .toList()
 
+    override fun getAllPackages(): Collection<FqName> {
+        return packageFragments.mapTo(mutableSetOf()) { it.fqName }
+    }
+
     companion object {
         fun createArray(size: Int) = Array(size) { CommonizedPackageFragmentProvider() }
 

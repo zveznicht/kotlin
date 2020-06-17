@@ -30,4 +30,8 @@ class PackageFragmentProviderImpl(
                     .map { it.fqName }
                     .filter { !it.isRoot && it.parent() == fqName }
                     .toList()
+
+    override fun getAllPackages(): Collection<FqName> {
+        return packageFragments.asSequence().map { it.fqName }.toSet()
+    }
 }

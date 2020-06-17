@@ -84,6 +84,8 @@ class OptionalAnnotationPackageFragmentProvider(
 
     override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
         emptyList()
+
+    override fun getAllPackages(): Collection<FqName> = emptySet()
 }
 
 private class OptionalAnnotationClassDataFinder(classes: List<ClassData>) : ClassDataFinder {

@@ -159,22 +159,20 @@ class MainFunctionDetector {
         checkJvmStaticAnnotation: Boolean
     ) = declaration is KtNamedFunction && isMain(declaration, checkJvmStaticAnnotation, allowParameterless = false)
 
-    fun getMainFunction(module: ModuleDescriptor): FunctionDescriptor? = getMainFunction(module, module.getPackage(FqName.ROOT))
-
-    private fun getMainFunction(module: ModuleDescriptor, packageView: PackageViewDescriptor): FunctionDescriptor? {
-        for (packageFragment in packageView.fragments.filter { it.module == module }) {
-            DescriptorUtils.getAllDescriptors(packageFragment.getMemberScope())
-                .filterIsInstance<FunctionDescriptor>()
-                .firstOrNull { isMain(it) }
-                ?.let { return it }
-        }
-
-        for (subpackageName in module.getSubPackagesOf(packageView.fqName, MemberScope.ALL_NAME_FILTER)) {
-            getMainFunction(module, module.getPackage(subpackageName))?.let { return it }
+    fun getMainFunction(module: ModuleDescriptor): FunctionDescriptor? {
+        module.getAllPackages().forEach {
+            val packageView = module.getPackage(it)
+            for (packageFragment in packageView.fragments.filter { it.module == module }) {
+                DescriptorUtils.getAllDescriptors(packageFragment.getMemberScope())
+                    .filterIsInstance<FunctionDescriptor>()
+                    .firstOrNull { isMain(it) }
+                    ?.let { return it }
+            }
         }
 
         return null
     }
+
 
     private fun findMainFunction(declarations: List<KtDeclaration>) =
         declarations.filterIsInstance<KtNamedFunction>().find { isMain(it) }

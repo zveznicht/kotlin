@@ -184,6 +184,10 @@ private object DebugLabelModuleDescriptor : DeclarationDescriptorImpl(Annotation
         return emptyList()
     }
 
+    override fun getAllPackages(): Collection<FqName> {
+        return emptyList()
+    }
+
     override val allDependencyModules: List<ModuleDescriptor>
         get() = emptyList()
 

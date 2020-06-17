@@ -40,4 +40,8 @@ class CompositePackageFragmentProvider(// can be modified from outside
         }
         return result
     }
+
+    override fun getAllPackages(): Collection<FqName> {
+        return providers.flatMapTo(mutableSetOf()) { it.getAllPackages() }
+    }
 }

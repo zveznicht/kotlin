@@ -45,29 +45,6 @@ class JSTestGenerator(val context: TranslationContext) {
         return null
     }
 
-    private fun generateTestCalls(moduleDescriptor: ModuleDescriptor, packageName: FqName) {
-        val packageFunction = JsFunction(context.scope(), JsBlock(), "${packageName.asString()} package suite function")
-
-        for (packageDescriptor in moduleDescriptor.getPackage(packageName).fragments) {
-            if (DescriptorUtils.getContainingModule(packageDescriptor) !== moduleDescriptor) continue
-
-            packageDescriptor.getMemberScope().getContributedDescriptors(DescriptorKindFilter.CLASSIFIERS, MemberScope.ALL_NAME_FILTER).forEach {
-                if (it is ClassDescriptor) {
-                    generateTestFunctions(it, packageFunction)
-                }
-            }
-        }
-
-        if (!packageFunction.body.isEmpty) {
-            val suiteName = JsStringLiteral(packageName.asString())
-            context.addTopLevelStatement(JsInvocation(suiteRef, suiteName, JsBooleanLiteral(false), packageFunction).makeStmt())
-        }
-
-        for (subpackageName in moduleDescriptor.getSubPackagesOf(packageName, MemberScope.ALL_NAME_FILTER)) {
-            generateTestCalls(moduleDescriptor, subpackageName)
-        }
-    }
-
     private fun generateTestFunctions(classDescriptor: ClassDescriptor, parentFun: JsFunction) {
         if (classDescriptor.modality === Modality.ABSTRACT || classDescriptor.isExpect) return
 

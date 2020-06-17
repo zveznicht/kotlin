@@ -90,6 +90,11 @@ class ModuleDescriptorImpl @JvmOverloads constructor(
         return packageFragmentProvider.getSubPackagesOf(fqName, nameFilter)
     }
 
+    override fun getAllPackages(): Collection<FqName> {
+        assertValid()
+        return packageFragmentProvider.getAllPackages()
+    }
+
     private val packageFragmentProviderForWholeModuleWithDependencies by lazy {
         val moduleDependencies = dependencies.sure { "Dependencies of module $id were not set before querying module content" }
         val dependenciesDescriptors = moduleDependencies.allDependencies

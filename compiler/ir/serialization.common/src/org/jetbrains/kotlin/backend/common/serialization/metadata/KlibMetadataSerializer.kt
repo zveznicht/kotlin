@@ -226,22 +226,13 @@ abstract class KlibMetadataSerializer(
     }
 
     protected fun getPackagesFqNames(module: ModuleDescriptor): Set<FqName> {
-        val result = mutableSetOf<FqName>()
-
-        fun getSubPackagesOfModule(fqName: FqName) =
-            if (includeOnlyModuleContent) {
-                module.packageFragmentProviderForModuleContentWithoutDependencies.getSubPackagesOf(fqName) { true }
-            } else {
-                module.getSubPackagesOf(fqName) { true }
-            }
-
-        fun getSubPackages(fqName: FqName) {
-            result.add(fqName)
-            getSubPackagesOfModule(fqName).forEach { getSubPackages(it) }
+        val allPackages = if (includeOnlyModuleContent) {
+            module.packageFragmentProviderForModuleContentWithoutDependencies.getAllPackages()
+        } else {
+            module.getAllPackages()
         }
 
-        getSubPackages(FqName.ROOT)
-        return result
+        return allPackages.toSet()
     }
 
     fun serializeHeader(

@@ -45,6 +45,8 @@ interface ModuleDescriptor : DeclarationDescriptor {
 
     fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName>
 
+    fun getAllPackages(): Collection<FqName>
+
     /**
      * @return dependency modules in the same order in which this module depends on them. Does not include `this`
      */

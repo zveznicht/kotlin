@@ -139,4 +139,8 @@ class AndroidSyntheticPackageFragmentProvider(
             .filter { (k, _) -> !k.isRoot && k.parent() == fqName }
             .mapTo(mutableListOf()) { it.key }
     }
+
+    override fun getAllPackages(): Collection<FqName> {
+        return packages.keys
+    }
 }

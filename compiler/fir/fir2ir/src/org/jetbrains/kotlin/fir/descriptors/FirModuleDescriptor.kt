@@ -41,6 +41,10 @@ class FirModuleDescriptor(val session: FirSession) : ModuleDescriptor {
         TODO("not implemented")
     }
 
+    override fun getAllPackages(): Collection<FqName> {
+        TODO("Not yet implemented")
+    }
+
     override val allDependencyModules: List<ModuleDescriptor>
         get() = TODO("not implemented")
     override val expectedByModules: List<ModuleDescriptor>

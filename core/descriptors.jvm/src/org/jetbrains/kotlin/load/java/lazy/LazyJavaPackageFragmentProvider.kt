@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.load.java.lazy.descriptors.LazyJavaPackageFragment
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.storage.CacheWithNotNullValues
+import java.lang.UnsupportedOperationException
 
 class LazyJavaPackageFragmentProvider(
     components: JavaResolverComponents
@@ -43,4 +44,8 @@ class LazyJavaPackageFragmentProvider(
 
     override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean) =
         getPackageFragment(fqName)?.getSubPackageFqNames().orEmpty()
+
+    override fun getAllPackages(): Collection<FqName> {
+        throw UnsupportedOperationException("This method is not supposed to be called.")
+    }
 }

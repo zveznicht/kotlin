@@ -204,6 +204,10 @@ private class DelegatingPackageFragmentProvider<M : ModuleInfo>(
         return resolverForProject.resolverForModuleDescriptor(module).packageFragmentProvider.getSubPackagesOf(fqName, nameFilter)
     }
 
+    override fun getAllPackages(): Collection<FqName> {
+        return resolverForProject.resolverForModuleDescriptor(module).packageFragmentProvider.getAllPackages()
+    }
+
     private fun certainlyDoesNotExist(fqName: FqName): Boolean {
         if (resolverForProject.isResolverForModuleDescriptorComputed(module)) return false // let this request get cached inside delegate
 

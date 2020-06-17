@@ -36,6 +36,10 @@ abstract class DeserializerForDecompilerBase(val directoryPackageFqName: FqName)
         override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> {
             throw UnsupportedOperationException("This method is not supposed to be called.")
         }
+
+        override fun getAllPackages(): Collection<FqName> {
+            throw UnsupportedOperationException("This method is not supposed to be called.")
+        }
     }
 
     override fun resolveTopLevelClass(classId: ClassId) = deserializationComponents.deserializeClass(classId)

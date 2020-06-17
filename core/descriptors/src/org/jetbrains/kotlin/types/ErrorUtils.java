@@ -73,6 +73,12 @@ public class ErrorUtils {
 
             @NotNull
             @Override
+            public Collection<FqName> getAllPackages() {
+                return emptyList();
+            }
+
+            @NotNull
+            @Override
             public Name getName() {
                 return Name.special("<ERROR MODULE>");
             }
