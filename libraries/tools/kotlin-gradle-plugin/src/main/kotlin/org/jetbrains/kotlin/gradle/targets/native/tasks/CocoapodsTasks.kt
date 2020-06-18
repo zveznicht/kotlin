@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.GENERATE_WRAPPER_PROPERTY
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.KOTLIN_TARGET_FOR_IOS_DEVICE
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.KOTLIN_TARGET_FOR_WATCHOS_DEVICE
+import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.POD_SPEC_TASK_NAME
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.SYNC_TASK_NAME
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.asValidFrameworkName
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.cocoapodsBuildDirs
@@ -122,11 +123,11 @@ open class PodspecTask : DefaultTask() {
         """.trimMargin()
             )
 
-            cocoapodsExtension.podfile?.also {
+            if (hasPodfileOwnOrParent) {
                 logger.quiet(
                     """
                     Generated a podspec file at: ${absolutePath}.
-                    To include it in your Xcode project, check that the following dependency snippet exists in ${it.path}:
+                    To include it in your Xcode project, check that the following dependency snippet exists in your Podfile:
 
                     pod '$specName', :path => '${parentFile.absolutePath}'
 
@@ -136,6 +137,15 @@ open class PodspecTask : DefaultTask() {
 
         }
     }
+
+    private val hasPodfileOwnOrParent: Boolean
+        get() = if (project.rootProject == project) cocoapodsExtension.podfile != null
+        else cocoapodsExtension.podfile != null
+                || (
+                project.parent?.tasks?.named(POD_SPEC_TASK_NAME, PodspecTask::class.java)?.get()?.hasPodfileOwnOrParent
+                    ?: false
+                )
+
 }
 
 
