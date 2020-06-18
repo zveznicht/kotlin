@@ -304,7 +304,8 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
             //TODO avoid subproject task management here
             project.allprojects.map { it.tasks.named(POD_SPEC_TASK_NAME, PodspecTask::class.java) }
                 .forEach { podspecTaskProvider ->
-                    it.inputs.file(podspecTaskProvider.get().outputFileProvider)
+                    podspecTaskProvider.get().takeIf { task -> task.cocoapodsExtension.needPodspec }
+                        ?.also { task -> it.inputs.file(task.outputFileProvider) }
                     it.dependsOn(podspecTaskProvider)
                 }
         }
