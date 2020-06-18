@@ -54,6 +54,7 @@ import javax.inject.Inject;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
     private final LazyResolveStorageManager storageManager;
@@ -179,6 +180,8 @@ public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
 
         this.declarationProviderFactory = declarationProviderFactory;
 
+        ResolveSession self = this;
+
         this.packageFragmentProvider = new PackageFragmentProvider() {
             @NotNull
             @Override
@@ -201,7 +204,7 @@ public class ResolveSession implements KotlinCodeAnalyzer, LazyClassContext {
             @NotNull
             @Override
             public Collection<FqName> getAllPackages() {
-                throw new Error("How to implement this?");
+                return self.getAllPackages().stream().map(LazyPackageDescriptor::getFqName).collect(Collectors.toList());
             }
         };
 
