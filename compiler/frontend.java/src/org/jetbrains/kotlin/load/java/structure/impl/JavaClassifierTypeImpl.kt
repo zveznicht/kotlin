@@ -24,8 +24,6 @@ import java.util.ArrayList
 
 class JavaClassifierTypeImpl(psiClassType: PsiClassType) : JavaTypeImpl<PsiClassType>(psiClassType), JavaClassifierType {
 
-    private var resolutionResult: ResolutionResult? = null
-
     override val classifier: JavaClassifierImpl<*>?
         get() = resolve().classifier
 
@@ -65,15 +63,13 @@ class JavaClassifierTypeImpl(psiClassType: PsiClassType) : JavaTypeImpl<PsiClass
     )
 
     private fun resolve(): ResolutionResult {
-        return resolutionResult ?: run {
+        return run {
             val result = psi.resolveGenerics()
             val psiClass = result.element
             val substitutor = result.substitutor
             ResolutionResult(
                 psiClass?.let { JavaClassifierImpl.create(it) }, substitutor, PsiClassType.isRaw(result)
-            ).apply {
-                resolutionResult = this
-            }
+            )
         }
     }
 
