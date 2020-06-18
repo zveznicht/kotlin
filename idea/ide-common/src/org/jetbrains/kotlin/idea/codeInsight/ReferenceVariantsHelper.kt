@@ -336,9 +336,9 @@ class ReferenceVariantsHelper(
         kindFilter: DescriptorKindFilter,
         nameFilter: (Name) -> Boolean
     ) {
-        addNonExtensionMembers(receiverTypes, kindFilter, nameFilter, constructorFilter = { it.isInner })
-        addMemberExtensions(implicitReceiverTypes, receiverTypes, callType, kindFilter, nameFilter)
-        addScopeAndSyntheticExtensions(resolutionScope, receiverTypes, callType, kindFilter, nameFilter)
+        addNonExtensionMembers(receiverTypes, kindFilter, nameFilter, constructorFilter = { it.isInner; true })
+//        addMemberExtensions(implicitReceiverTypes, receiverTypes, callType, kindFilter, nameFilter)
+//        addScopeAndSyntheticExtensions(resolutionScope, receiverTypes, callType, kindFilter, nameFilter)
     }
 
     private fun MutableSet<DeclarationDescriptor>.addMemberExtensions(
