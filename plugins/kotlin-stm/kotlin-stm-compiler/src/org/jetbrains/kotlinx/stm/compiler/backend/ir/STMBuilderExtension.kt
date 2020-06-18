@@ -253,7 +253,7 @@ class STMBuilderExtension(override val compilerContext: IrPluginContext) : IrBui
                         type = delegateFieldExpr.type
                             .safeAs<IrSimpleType>()
                             ?.arguments
-                            ?.first()
+                            ?.firstOrNull()
                             ?.typeOrNull
                             ?: throw StmLoweringException("Expected delegate field for property $propertyName to be defined and have a type")
                     )

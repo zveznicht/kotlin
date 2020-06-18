@@ -155,7 +155,7 @@ open class StmResolveExtension : SyntheticResolveExtension {
         val property = thisDescriptor.unsubstitutedMemberScope.getContributedVariables(
             varName,
             NoLookupLocation.FROM_BACKEND
-        ).first()
+        ).firstOrNull() ?: return
 
         if (name.asString().startsWith(GET_PREFIX)) {
             val newGetter = createAndInitFunctionDescriptor(
