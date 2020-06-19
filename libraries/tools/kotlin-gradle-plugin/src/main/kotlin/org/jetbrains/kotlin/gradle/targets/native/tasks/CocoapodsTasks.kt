@@ -190,8 +190,10 @@ open class DummyFrameworkTask : DefaultTask() {
     private fun copyTextResource(from: String, to: File, transform: (String) -> String = { it }) {
         to.parentFile.mkdirs()
         to.printWriter().use { file ->
-            javaClass.getResourceAsStream(from).reader().forEachLine {
-                file.println(transform(it))
+            javaClass.getResourceAsStream(from).use {
+                it.reader().forEachLine { str ->
+                    file.println(transform(str))
+                }
             }
         }
     }

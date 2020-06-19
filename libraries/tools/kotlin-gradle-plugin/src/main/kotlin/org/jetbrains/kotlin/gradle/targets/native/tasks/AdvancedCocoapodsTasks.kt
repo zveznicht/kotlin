@@ -72,7 +72,7 @@ open class PodInstallTask : DefaultTask() {
                 directory(podfileDir)
             }.start()
             val podInstallRetCode = podInstallProcess.waitFor()
-            val podInstallOutput = podInstallProcess.inputStream.reader().readText()
+            val podInstallOutput = podInstallProcess.inputStream.use { it.reader().readText() }
 
             check(podInstallRetCode == 0) {
                 listOf(
@@ -139,7 +139,7 @@ open class PodGenTask : CocoapodsWithSyntheticTask() {
             directory(podspecDir)
         }.start()
         val podGenRetCode = podGenProcess.waitFor()
-        val outputText = podGenProcess.inputStream.reader().readText()
+        val outputText = podGenProcess.inputStream.use { it.reader().readText() }
 
         check(podGenRetCode == 0) {
             listOfNotNull(
@@ -204,7 +204,7 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
         check(buildSettingsRetCode == 0) {
             listOf(
                 "Executing of '${buildSettingsReceivingCommand.joinToString(" ")}' failed with code $buildSettingsRetCode and message:",
-                buildSettingsProcess.errorStream.reader().readText()
+                buildSettingsProcess.errorStream.use { it.reader().readText() }
             ).joinToString("\n")
         }
 
@@ -261,7 +261,7 @@ open class PodBuildTask : CocoapodsWithSyntheticTask() {
             check(podBuildRetCode == 0) {
                 listOf(
                     "Executing of '${podXcodeBuildCommand.joinToString(" ")}' failed with code $podBuildRetCode and message:",
-                    podBuildProcess.errorStream.reader().readText()
+                    podBuildProcess.errorStream.use { it.reader().readText() }
                 ).joinToString("\n")
             }
         }
