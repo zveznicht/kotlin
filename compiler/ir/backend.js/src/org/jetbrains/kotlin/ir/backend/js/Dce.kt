@@ -228,6 +228,11 @@ fun usefulDeclarations(roots: Iterable<IrDeclaration>, context: JsIrBackendConte
                     }
                 }
 
+                if (declaration.isObject && declaration.isExported(context)) {
+                    context.mapping.objectToGetInstanceFunction[declaration]!!
+                        .enqueue(declaration, "Exported object getInstance function")
+                }
+
                 declaration.annotations.forEach {
                     val annotationClass = it.symbol.owner.constructedClass
                     if (annotationClass.isAssociatedObjectAnnotatedAnnotation) {
