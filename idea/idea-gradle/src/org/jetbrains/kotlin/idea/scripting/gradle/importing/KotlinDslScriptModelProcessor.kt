@@ -64,6 +64,7 @@ fun processScriptModel(
                     sync.failed = true
                 }
             }
+            // todo add root cause if possible or merge errors
             throw IllegalStateException(KotlinIdeaGradleBundle.message("title.kotlin.build.script"))
         }
     }

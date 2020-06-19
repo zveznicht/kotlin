@@ -118,6 +118,7 @@ class ScriptClassRootsCache(
         }
 
     private fun hasNewRoots(old: ScriptClassRootsCache): Boolean {
+        // TODO remove roots - this may cause exception because we didn't invalidate cache that is returned in nonclasspathfinder
         val oldClassRoots = old.allDependenciesClassFiles.toSet()
         val oldSourceRoots = old.allDependenciesSources.toSet()
 
