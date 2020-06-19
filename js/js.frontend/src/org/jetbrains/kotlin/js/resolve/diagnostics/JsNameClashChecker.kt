@@ -169,9 +169,9 @@ class JsNameClashChecker(
             is PackageFragmentDescriptor -> {
                 collect(descriptor.getMemberScope(), scope, bindingContext)
                 val module = DescriptorUtils.getContainingModule(descriptor)
-                module.getAllPackages().filter { it.parent() == descriptor.fqName }
+                module.getAllPackages().filter { !it.isRoot && it.parent() == descriptor.fqName }
                         .flatMap { module.getPackage(it).fragments }
-                        .forEach { collect(it, scope, bindingContext)  }
+                        .forEach { collect(it, scope, bindingContext) }
             }
             is ClassDescriptor -> collect(descriptor.defaultType.memberScope, scope, bindingContext)
         }
