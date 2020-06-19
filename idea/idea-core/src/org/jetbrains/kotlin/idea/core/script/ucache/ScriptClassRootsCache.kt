@@ -114,11 +114,15 @@ class ScriptClassRootsCache(
         when (old) {
             null -> FullUpdate(this)
             this -> NotChanged(this)
-            else -> IncrementalUpdates(this, hasNewRoots(old), getChangedScripts(old))
+            else -> IncrementalUpdates(
+                this,
+                this.hasNewRoots(old),
+                old.hasNewRoots(this),
+                getChangedScripts(old)
+            )
         }
 
     private fun hasNewRoots(old: ScriptClassRootsCache): Boolean {
-        // TODO remove roots - this may cause exception because we didn't invalidate cache that is returned in nonclasspathfinder
         val oldClassRoots = old.allDependenciesClassFiles.toSet()
         val oldSourceRoots = old.allDependenciesSources.toSet()
 
@@ -155,13 +159,14 @@ class ScriptClassRootsCache(
     class IncrementalUpdates(
         override val cache: ScriptClassRootsCache,
         override val hasNewRoots: Boolean,
+        private val doesntHaveOldRoots: Boolean,
         private val updatedScripts: Set<String>
     ) : Updates {
         override val hasUpdatedScripts: Boolean get() = updatedScripts.isNotEmpty()
         override fun isScriptChanged(scriptPath: String) = scriptPath in updatedScripts
 
         override val changed: Boolean
-            get() = hasNewRoots || updatedScripts.isNotEmpty()
+            get() = hasNewRoots || updatedScripts.isNotEmpty() || doesntHaveOldRoots
     }
 
     class FullUpdate(override val cache: ScriptClassRootsCache) : Updates {
