@@ -5,6 +5,8 @@
 @JvmDefaultWithoutCompatibility
 interface NoDefaultImpl {
     fun test() {}
+    val prop: String
+        get() = "123"
 }
 
 interface WithDefaultImpl: NoDefaultImpl {
@@ -13,7 +15,20 @@ interface WithDefaultImpl: NoDefaultImpl {
 
 interface WithDefaultImplPure {
     fun test() {}
+    val prop: String
+        get() = "123"
 }
+
+interface WithDefaultImplDeprecated: WithDefaultImplPure {
+    @java.lang.Deprecated
+    override fun test() {
+        super.test()
+    }
+
+    override val prop: String
+        @java.lang.Deprecated get() = super.prop
+}
+
 
 @JvmDefaultWithoutCompatibility
 interface NoDefaultImpl2FromDefaultImpls : WithDefaultImplPure {
