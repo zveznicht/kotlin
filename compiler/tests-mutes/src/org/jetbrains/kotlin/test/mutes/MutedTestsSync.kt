@@ -52,8 +52,7 @@ private fun formatClassnameWithInnerClasses(classname: String): String {
 }
 
 private val authUser = object : Authorization {
-    override val header: Pair<String, String>
-        get() = "Authorization" to "Bearer ${System.getenv("TEAMCITY_TOKEN")}"
+    override val header = "Authorization" to "Bearer ${System.getenv("buildserver-labs-intellij-net.token")}"
 }
 private val headers = mapOf("Content-type" to "application/json", "Accept" to "application/json")
 private val TAG = "[MUTED-BY-CSVFILE]"
