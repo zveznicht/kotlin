@@ -108,7 +108,7 @@ interface KotlinPaths {
         Empty(),
         Compiler(Jar.Compiler, Jar.StdLib, Jar.Reflect, Jar.ScriptRuntime, Jar.Trove4j, Jar.KotlinDaemon),
         CompilerWithScripting(Compiler, Jar.ScriptingPlugin, Jar.ScriptingImpl, Jar.ScriptingLib, Jar.ScriptingJvmLib),
-        MainKts(Jar.MainKts, Jar.ScriptRuntime, Jar.StdLib, Jar.Reflect)
+        MainKts(Jar.MainKts, Jar.ScriptRuntime, Jar.StdLib, Jar.Reflect, Jar.CoroutinesCore)
         ;
 
         constructor(vararg jars: Jar) : this(jars.asList())
