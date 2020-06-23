@@ -20,14 +20,24 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
 class PackageFragmentProviderImpl(
-        private val packageFragments: Collection<PackageFragmentDescriptor>
+    private val packageFragments: Collection<PackageFragmentDescriptor>
 ) : PackageFragmentProvider {
     override fun getPackageFragments(fqName: FqName): List<PackageFragmentDescriptor> =
-            packageFragments.filter { it.fqName == fqName }
+        packageFragments.filter { it.fqName == fqName }
 
     override fun getSubPackagesOf(fqName: FqName, nameFilter: (Name) -> Boolean): Collection<FqName> =
-            packageFragments.asSequence()
-                    .map { it.fqName }
-                    .filter { !it.isRoot && it.parent() == fqName }
-                    .toList()
+        allFqNames.filter { !it.isRoot && it.parent() == fqName }
+
+    private val allFqNames by lazy {
+        val fqNameSet = mutableSetOf<FqName>()
+
+        fun FqName.process() {
+            fqNameSet += this
+            if (!this.isRoot) this.parent().process()
+        }
+
+        packageFragments.forEach { it.fqName.process() }
+
+        fqNameSet.toList()
+    }
 }
