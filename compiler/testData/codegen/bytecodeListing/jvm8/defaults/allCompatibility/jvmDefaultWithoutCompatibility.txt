@@ -32,22 +32,6 @@ public interface WithDefaultImpl {
 }
 
 @kotlin.Metadata
-public final class WithDefaultImplDeprecated$DefaultImpls {
-    inner class WithDefaultImplDeprecated$DefaultImpls
-    public deprecated static @java.lang.Deprecated @org.jetbrains.annotations.NotNull method getProp(@org.jetbrains.annotations.NotNull p0: WithDefaultImplDeprecated): java.lang.String
-    public deprecated static @java.lang.Deprecated method test(@org.jetbrains.annotations.NotNull p0: WithDefaultImplDeprecated): void
-}
-
-@kotlin.Metadata
-public interface WithDefaultImplDeprecated {
-    inner class WithDefaultImplDeprecated$DefaultImpls
-    public synthetic static method access$getProp$jd(p0: WithDefaultImplDeprecated): java.lang.String
-    public synthetic static method access$test$jd(p0: WithDefaultImplDeprecated): void
-    public @java.lang.Deprecated @org.jetbrains.annotations.NotNull method getProp(): java.lang.String
-    public @java.lang.Deprecated method test(): void
-}
-
-@kotlin.Metadata
 public final class WithDefaultImplPure$DefaultImpls {
     inner class WithDefaultImplPure$DefaultImpls
     public deprecated static @java.lang.Deprecated @org.jetbrains.annotations.NotNull method getProp(@org.jetbrains.annotations.NotNull p0: WithDefaultImplPure): java.lang.String

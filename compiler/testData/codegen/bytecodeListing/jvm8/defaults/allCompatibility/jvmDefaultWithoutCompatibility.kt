@@ -19,17 +19,6 @@ interface WithDefaultImplPure {
         get() = "123"
 }
 
-interface WithDefaultImplDeprecated: WithDefaultImplPure {
-    @java.lang.Deprecated
-    override fun test() {
-        super.test()
-    }
-
-    override val prop: String
-        @java.lang.Deprecated get() = super.prop
-}
-
-
 @JvmDefaultWithoutCompatibility
 interface NoDefaultImpl2FromDefaultImpls : WithDefaultImplPure {
     fun test2() {}

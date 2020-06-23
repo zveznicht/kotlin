@@ -397,8 +397,9 @@ fun IrClass.isOptionalAnnotationClass(): Boolean =
 val IrAnnotationContainer.deprecationFlags: Int
     get() {
         val annotation = annotations.findAnnotation(FQ_NAMES.deprecated)
-            ?: return if ((this as? IrDeclaration)?.origin == JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE &&
-                annotations.hasAnnotation(DeprecationResolver.JAVA_DEPRECATED)
+            ?: return if ((this as? IrDeclaration)?.origin?.let {
+                    it == JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE_FOR_COMPATIBILITY
+                } == true
             ) Opcodes.ACC_DEPRECATED else 0
         val isHidden = (annotation.getValueArgument(2) as? IrGetEnumValue)?.symbol?.owner
             ?.name?.asString() == DeprecationLevel.HIDDEN.name
