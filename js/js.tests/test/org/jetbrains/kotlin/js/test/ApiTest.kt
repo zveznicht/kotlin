@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.renderer.*
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.MemberComparator
 import org.jetbrains.kotlin.resolve.descriptorUtil.isEffectivelyPublicApi
-import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import org.jetbrains.kotlin.test.KotlinTestWithEnvironment
 import java.io.File
@@ -160,7 +159,6 @@ class ApiTest : KotlinTestWithEnvironment() {
     }
 
     private fun Map<FqName, String>.checkRecursively(dir: String) {
-
 
         if (OVERWRITE_EXPECTED_OUTPUT) {
             dir.cleanDir()
