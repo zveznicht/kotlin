@@ -167,7 +167,7 @@ private const val mutesPackageName = "org.jetbrains.kotlin.test.mutes"
 // FIX ME WHEN BUNCH 192 REMOVED
 // FIX ME WHEN BUNCH as36 REMOVED
 enum class Scope(val id: String, val localDBPath: File, val isBuildType: Boolean) {
-    COMMON("Kotlin_BuildPlayground_Jupiter_Tests", File("$tempDBPathDir/mute-common.csv"), false),
+    COMMON(System.getProperty("$mutesPackageName.tests.project.id"), File("$tempDBPathDir/mute-common.csv"), false),
     IJ193(System.getProperty("$mutesPackageName.193"), File("$tempDBPathDir/mute-platform.csv"), true),
     IJ192(System.getProperty("$mutesPackageName.192"), File("$tempDBPathDir/mute-platform.csv.192"), true),
     IJ201(System.getProperty("$mutesPackageName.201"), File("$tempDBPathDir/mute-platform.csv.201"), true),
