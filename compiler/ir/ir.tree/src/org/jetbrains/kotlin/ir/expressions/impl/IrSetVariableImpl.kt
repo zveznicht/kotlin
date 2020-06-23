@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
-import org.jetbrains.kotlin.descriptors.VariableDescriptor
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrSetVariable
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
@@ -26,15 +26,12 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IrSetVariableImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
     override val symbol: IrVariableSymbol,
     override val origin: IrStatementOrigin?
-) :
-    IrExpressionBase(startOffset, endOffset, type),
-    IrSetVariable {
-
+) : IrSetVariable() {
     constructor(
         startOffset: Int,
         endOffset: Int,
@@ -59,4 +56,6 @@ class IrSetVariableImpl(
     override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
         value = value.transform(transformer, data)
     }
+
+    override var attributeOwnerId: IrAttributeContainer = this
 }

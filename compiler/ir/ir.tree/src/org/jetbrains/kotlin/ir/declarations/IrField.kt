@@ -12,21 +12,21 @@ import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.types.IrType
 
-interface IrField :
-    IrSymbolDeclaration<IrFieldSymbol>,
+abstract class IrField :
+    IrPureDeclaration(), IrSymbolDeclaration<IrFieldSymbol>,
     IrDeclarationWithName, IrDeclarationWithVisibility, IrDeclarationParent {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: PropertyDescriptor
+    abstract override val descriptor: PropertyDescriptor
 
-    val type: IrType
-    val isFinal: Boolean
-    val isExternal: Boolean
-    val isStatic: Boolean
+    abstract val type: IrType
+    abstract val isFinal: Boolean
+    abstract val isExternal: Boolean
+    abstract val isStatic: Boolean
 
-    var initializer: IrExpressionBody?
+    abstract var initializer: IrExpressionBody?
 
-    var correspondingPropertySymbol: IrPropertySymbol?
+    abstract var correspondingPropertySymbol: IrPropertySymbol?
 
-    override val metadata: MetadataSource?
+    abstract override val metadata: MetadataSource?
 }

@@ -16,5 +16,4 @@
 
 package org.jetbrains.kotlin.ir.declarations
 
-interface IrErrorDeclaration : IrDeclaration
-
+abstract class IrErrorDeclaration : IrPureDeclaration()

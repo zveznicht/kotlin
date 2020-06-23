@@ -158,12 +158,12 @@ private class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringP
             override fun visitClassNew(declaration: IrClass): IrStatement =
                 if (declaration.isEnumEntry) super.visitClassNew(declaration) else declaration
 
-            override fun visitGetValue(expression: IrGetValue): IrExpression =
+            override fun visitGetValue(expression: IrGetValue): IrPureExpression =
                 loweredEnumConstructorParameters[expression.symbol]?.let {
                     IrGetValueImpl(expression.startOffset, expression.endOffset, it.type, it.symbol, expression.origin)
                 } ?: expression
 
-            override fun visitEnumConstructorCall(expression: IrEnumConstructorCall): IrExpression {
+            override fun visitEnumConstructorCall(expression: IrEnumConstructorCall): IrPureExpression {
                 expression.transformChildrenVoid(this)
                 val scopeOwnerSymbol = currentScope!!.scope.scopeOwnerSymbol
                 return context.createIrBuilder(scopeOwnerSymbol).at(expression).run {
@@ -179,7 +179,7 @@ private class EnumClassLowering(val context: JvmBackendContext) : ClassLoweringP
                 }
             }
 
-            override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+            override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrPureExpression {
                 expression.transformChildrenVoid(this)
                 val replacement = loweredEnumConstructors[expression.symbol]
                     ?: return expression

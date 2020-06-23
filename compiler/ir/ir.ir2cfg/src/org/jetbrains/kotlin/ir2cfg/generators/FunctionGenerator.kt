@@ -86,7 +86,7 @@ class FunctionGenerator(val function: IrFunction) {
             return body.expression.process()
         }
 
-        override fun visitExpression(expression: IrExpression, data: Boolean): IrStatement? {
+        override fun visitExpression(expression: IrPureExpression, data: Boolean): IrStatement? {
             if (data) {
                 builder.add(expression)
             }

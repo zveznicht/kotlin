@@ -72,7 +72,7 @@ private class AddContinuationLowering(private val context: JvmBackendContext) : 
                 return super.visitFunction(declaration).also { functionStack.pop() }
             }
 
-            override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+            override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
                 val transformed = super.visitFunctionReference(expression) as IrFunctionReference
                 // The only references not yet transformed into objects are inline lambdas; the continuation
                 // for those will be taken from the inline functions they are passed to, not the enclosing scope.
@@ -81,7 +81,7 @@ private class AddContinuationLowering(private val context: JvmBackendContext) : 
                 }
             }
 
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 val transformed = super.visitCall(expression) as IrCall
                 return transformed.retargetToSuspendView(context, functionStack.peek() ?: return transformed) {
                     IrCallImpl(startOffset, endOffset, type, it, origin, superQualifierSymbol)
@@ -115,7 +115,7 @@ private class AddContinuationLowering(private val context: JvmBackendContext) : 
             (lambda.function.parent as IrDeclarationContainer).declarations.remove(lambda.function)
         }
         irFile.transformChildrenVoid(object : IrElementTransformerVoidWithContext() {
-            override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+            override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
                 val info = suspendLambdas[expression] ?: return super.visitFunctionReference(expression)
                 return context.createIrBuilder(expression.symbol, expression.startOffset, expression.endOffset).run {
                     val expressionArguments = expression.getArguments().map { it.second }
@@ -228,7 +228,7 @@ private class AddContinuationLowering(private val context: JvmBackendContext) : 
         }.owner
         return addFunctionOverride(superMethod).apply {
             body = irFunction.moveBodyTo(this, mapOf())?.transform(object : IrElementTransformerVoid() {
-                override fun visitGetValue(expression: IrGetValue): IrExpression {
+                override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                     val parameter = (expression.symbol.owner as? IrValueParameter)?.takeIf { it.parent == irFunction }
                         ?: return expression
                     val field = if (parameter.index < 0) receiverField!! else fields[parameter.index]
@@ -621,7 +621,7 @@ private class AddContinuationLowering(private val context: JvmBackendContext) : 
                 return result
             }
 
-            override fun visitFieldAccess(expression: IrFieldAccessExpression, data: MutableFlag?): IrExpression {
+            override fun visitFieldAccess(expression: IrFieldAccessExpression, data: MutableFlag?): IrPureExpression {
                 if (expression.symbol.owner.origin == LocalDeclarationsLowering.DECLARATION_ORIGIN_FIELD_FOR_CROSSINLINE_CAPTURED_VALUE)
                     data?.capturesCrossinline = true
                 return super.visitFieldAccess(expression, data)

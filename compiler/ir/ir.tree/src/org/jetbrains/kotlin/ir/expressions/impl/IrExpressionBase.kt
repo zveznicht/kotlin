@@ -16,15 +16,14 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
-import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
-import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.types.IrType
 
 abstract class IrExpressionBase(
-    startOffset: Int,
-    endOffset: Int,
+    override val startOffset: Int,
+    override val endOffset: Int,
     override val type: IrType
-) : IrElementBase(startOffset, endOffset), IrExpression {
+) : IrPureExpression() {
     override var attributeOwnerId: IrAttributeContainer = this
 }

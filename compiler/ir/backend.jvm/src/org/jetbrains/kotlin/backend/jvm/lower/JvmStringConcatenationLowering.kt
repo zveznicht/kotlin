@@ -19,12 +19,7 @@ import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.expressions.IrConst
-import org.jetbrains.kotlin.ir.expressions.IrConstKind
-import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
-import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
-import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.constructors
 import org.jetbrains.kotlin.ir.util.functions
@@ -117,7 +112,7 @@ private class JvmStringConcatenationLowering(val context: JvmBackendContext) : F
         }
     }
 
-    override fun visitStringConcatenation(expression: IrStringConcatenation): IrExpression {
+    override fun visitStringConcatenation(expression: IrStringConcatenation): IrPureExpression {
         expression.transformChildrenVoid(this)
         return context.createJvmIrBuilder(currentScope!!.scope.scopeOwnerSymbol, expression.startOffset, expression.endOffset).run {
             // When `String.plus(Any?)` is invoked with receiver of platform type String or String with enhanced nullability, this could
@@ -167,6 +162,6 @@ private class JvmStringConcatenationLowering(val context: JvmBackendContext) : F
                     }
                 }
             }
-        }
+        } as IrPureExpression
     }
 }

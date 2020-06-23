@@ -16,24 +16,30 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrErrorExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpressionWithCopy
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IrErrorExpressionImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
     override val description: String
-) :
-    IrTerminalExpressionBase(startOffset, endOffset, type),
-    IrExpressionWithCopy,
-    IrErrorExpression {
-
+) : IrErrorExpression(), IrExpressionWithCopy {
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =
         visitor.visitErrorExpression(this, data)
 
     override fun copy(): IrErrorExpressionImpl =
         IrErrorExpressionImpl(startOffset, endOffset, type, description)
+
+    override var attributeOwnerId: IrAttributeContainer = this
+
+    override fun <D> acceptChildren(visitor: IrElementVisitor<Unit, D>, data: D) {
+    }
+
+    override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
+    }
 }

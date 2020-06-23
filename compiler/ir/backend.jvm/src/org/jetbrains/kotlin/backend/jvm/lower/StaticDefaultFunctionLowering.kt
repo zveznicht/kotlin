@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.expressions.impl.IrReturnImpl
 import org.jetbrains.kotlin.ir.util.irCall
@@ -72,7 +73,7 @@ private class StaticDefaultFunctionLowering(val context: JvmBackendContext) : Ir
             declaration
     )
 
-    override fun visitReturn(expression: IrReturn): IrExpression {
+    override fun visitReturn(expression: IrReturn): IrPureExpression {
         return super.visitReturn(
             if (context.staticDefaultStubs.containsKey(expression.returnTargetSymbol)) {
                 with(expression) {
@@ -93,7 +94,7 @@ private class StaticDefaultCallLowering(
         irFile.accept(this, null)
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         val callee = expression.symbol.owner
         if (callee.origin !== IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER || expression.dispatchReceiver == null) {
             return super.visitCall(expression)

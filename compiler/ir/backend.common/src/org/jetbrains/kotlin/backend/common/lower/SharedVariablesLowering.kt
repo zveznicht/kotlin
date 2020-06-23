@@ -91,7 +91,7 @@ class SharedVariablesLowering(val context: BackendContext) : BodyLoweringPass {
                     }
                 }
 
-                override fun visitDeclaration(declaration: IrDeclaration, data: IrDeclarationParent?) {
+                override fun visitDeclaration(declaration: IrPureDeclaration, data: IrDeclarationParent?) {
                     super.visitDeclaration(declaration, declaration as? IrDeclarationParent ?: data)
                 }
 
@@ -151,7 +151,7 @@ class SharedVariablesLowering(val context: BackendContext) : BodyLoweringPass {
             })
 
             irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
-                override fun visitGetValue(expression: IrGetValue): IrExpression {
+                override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                     expression.transformChildrenVoid(this)
 
                     val newDeclaration = getTransformedSymbol(expression.symbol) ?: return expression
@@ -159,7 +159,7 @@ class SharedVariablesLowering(val context: BackendContext) : BodyLoweringPass {
                     return context.sharedVariablesManager.getSharedValue(newDeclaration, expression)
                 }
 
-                override fun visitSetVariable(expression: IrSetVariable): IrExpression {
+                override fun visitSetVariable(expression: IrSetVariable): IrPureExpression {
                     expression.transformChildrenVoid(this)
 
                     val newDeclaration = getTransformedSymbol(expression.symbol) ?: return expression

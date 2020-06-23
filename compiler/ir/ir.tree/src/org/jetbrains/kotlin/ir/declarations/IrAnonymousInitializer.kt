@@ -21,11 +21,10 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.symbols.IrAnonymousInitializerSymbol
 
-interface IrAnonymousInitializer : IrSymbolDeclaration<IrAnonymousInitializerSymbol> {
+abstract class IrAnonymousInitializer : IrPureDeclaration(), IrSymbolDeclaration<IrAnonymousInitializerSymbol> {
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ClassDescriptor // TODO special descriptor for anonymous initializer blocks
-    val isStatic: Boolean
+    abstract override val descriptor: ClassDescriptor // TODO special descriptor for anonymous initializer blocks
+    abstract val isStatic: Boolean
 
-    var body: IrBlockBody
+    abstract var body: IrBlockBody
 }
-

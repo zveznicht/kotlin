@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.ir.expressions
 
+import org.jetbrains.kotlin.ir.IrPureElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.types.IrType
@@ -28,7 +29,11 @@ interface IrExpression : IrStatement, IrVarargElement, IrAttributeContainer {
         accept(transformer, data) as IrExpression
 }
 
+abstract class IrPureExpression : IrPureElement(), IrExpression {
+    override fun <D> transform(transformer: IrElementTransformer<D>, data: D): IrPureExpression =
+        accept(transformer, data) as IrPureExpression
+}
+
 interface IrExpressionWithCopy : IrExpression {
     fun copy(): IrExpressionWithCopy
 }
-

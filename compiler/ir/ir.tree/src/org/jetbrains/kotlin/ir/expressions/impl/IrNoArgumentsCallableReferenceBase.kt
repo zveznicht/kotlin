@@ -16,29 +16,18 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
-import org.jetbrains.kotlin.ir.expressions.IrCallableReference
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import org.jetbrains.kotlin.ir.types.IrType
 
-abstract class IrNoArgumentsCallableReferenceBase<S : IrSymbol>(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
-    typeArgumentsCount: Int,
-    origin: IrStatementOrigin? = null
-) :
-    IrMemberAccessExpressionBase<S>(startOffset, endOffset, type, typeArgumentsCount, 0, origin),
-    IrCallableReference<S> {
+interface IrNoArgumentsCallableReferenceBase<S : IrSymbol> : IrMemberAccessExpressionBase<S> {
+    val symbol: S
 
-    private fun throwNoValueArguments(): Nothing {
+    private fun throwNoValueArguments(): Nothing =
         throw UnsupportedOperationException("Property reference $symbol has no value arguments")
-    }
 
-    override fun getValueArgument(index: Int): IrExpression? = throwNoValueArguments()
+    fun getValueArgument(index: Int): IrExpression? = throwNoValueArguments()
 
-    override fun putValueArgument(index: Int, valueArgument: IrExpression?) = throwNoValueArguments()
+    fun putValueArgument(index: Int, valueArgument: IrExpression?): Unit = throwNoValueArguments()
 
-    override fun removeValueArgument(index: Int) = throwNoValueArguments()
+    fun removeValueArgument(index: Int): Unit = throwNoValueArguments()
 }

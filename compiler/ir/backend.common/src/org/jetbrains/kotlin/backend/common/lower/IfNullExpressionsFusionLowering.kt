@@ -31,7 +31,7 @@ class IfNullExpressionsFusionLowering(val context: CommonBackendContext) : FileL
     }
 
     private inner class Transformer(private val currentFile: IrFile) : IrElementTransformerVoid() {
-        override fun visitBlock(expression: IrBlock): IrExpression =
+        override fun visitBlock(expression: IrBlock): IrPureExpression =
             visitExpression(expression.fuseIfNull())
 
         // We are looking for the "if-null" expressions:
@@ -86,7 +86,7 @@ class IfNullExpressionsFusionLowering(val context: CommonBackendContext) : FileL
         //      )
         // by applying FUSE_IF_NULL twice: in `a?.x ?: [...]` A0 is non-null and A1 is null, while in `[...] ?: z`
         // A1 is non-null and B1 is trivial (read of a temporary variable that stores the subject of the branch).
-        private fun IrBlock.fuseIfNull(): IrExpression {
+        private fun IrBlock.fuseIfNull(): IrPureExpression {
             val outer = matchIfNullExpr() ?: return this
             // We are going to erase 1st variable. Do so only if it is temporary (true for variables introduced for '?.' and '?:').
             if (outer.subjectVar.origin != IrDeclarationOrigin.IR_TEMPORARY_VARIABLE) return this

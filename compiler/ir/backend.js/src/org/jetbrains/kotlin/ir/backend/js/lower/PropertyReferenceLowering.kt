@@ -185,7 +185,7 @@ class PropertyReferenceLowering(private val context: JsIrBackendContext) : BodyL
             return irCall
         }
 
-        override fun visitPropertyReference(expression: IrPropertyReference): IrExpression {
+        override fun visitPropertyReference(expression: IrPropertyReference): IrPureExpression {
             expression.transformChildrenVoid(this)
 
             val factoryFunction = buildFactoryFunction(expression)
@@ -210,7 +210,7 @@ class PropertyReferenceLowering(private val context: JsIrBackendContext) : BodyL
             }
         }
 
-        override fun visitLocalDelegatedPropertyReference(expression: IrLocalDelegatedPropertyReference): IrExpression {
+        override fun visitLocalDelegatedPropertyReference(expression: IrLocalDelegatedPropertyReference): IrPureExpression {
             expression.transformChildrenVoid(this)
 
             val builderCall = expression.run {

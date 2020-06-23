@@ -40,26 +40,26 @@ class ScriptRemoveReceiverLowering(val context: CommonBackendContext) : FileLowe
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     fun lower(script: IrScript): List<IrScript> {
         val transformer: IrElementTransformerVoid = object : IrElementTransformerVoid() {
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 if (expression.symbol.owner.parent is IrScript) {
                     expression.dispatchReceiver = null
                 }
                 return super.visitCall(expression)
             }
 
-            override fun visitGetValue(expression: IrGetValue): IrExpression {
+            override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                 return if (expression.symbol === script.thisReceiver.symbol) expression.nullConst()
                 else expression
             }
 
-            override fun visitFieldAccess(expression: IrFieldAccessExpression): IrExpression {
+            override fun visitFieldAccess(expression: IrFieldAccessExpression): IrPureExpression {
                 if (expression.symbol.owner.parent is IrScript) {
                     expression.receiver = null
                 }
                 return super.visitFieldAccess(expression)
             }
 
-            override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+            override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 if (expression.symbol.owner.parent is IrScript) {
@@ -94,7 +94,7 @@ class ScriptRemoveReceiverLowering(val context: CommonBackendContext) : FileLowe
                 return expression
             }
 
-            override fun visitPropertyReference(expression: IrPropertyReference): IrExpression {
+            override fun visitPropertyReference(expression: IrPropertyReference): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
 

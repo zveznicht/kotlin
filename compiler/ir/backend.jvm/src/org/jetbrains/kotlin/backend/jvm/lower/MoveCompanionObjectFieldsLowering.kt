@@ -134,14 +134,14 @@ private class RemapObjectFieldAccesses(val context: JvmBackendContext) : FileLow
     private fun IrField.remap(): IrField? =
         correspondingPropertySymbol?.owner?.let(context.declarationFactory::getStaticBackingField)
 
-    override fun visitGetField(expression: IrGetField): IrExpression =
+    override fun visitGetField(expression: IrGetField): IrPureExpression =
         expression.symbol.owner.remap()?.let {
             with(expression) {
                 IrGetFieldImpl(startOffset, endOffset, it.symbol, type, /* receiver = */ null, origin, superQualifierSymbol)
             }
         } ?: super.visitGetField(expression)
 
-    override fun visitSetField(expression: IrSetField): IrExpression =
+    override fun visitSetField(expression: IrSetField): IrPureExpression =
         expression.symbol.owner.remap()?.let {
             with(expression) {
                 val newValue = value.transform(this@RemapObjectFieldAccesses, null)

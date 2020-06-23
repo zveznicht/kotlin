@@ -9,10 +9,7 @@ import org.jetbrains.kotlin.backend.common.BodyLoweringPass
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.ir.expressions.IrBody
-import org.jetbrains.kotlin.ir.expressions.IrConst
-import org.jetbrains.kotlin.ir.expressions.IrConstKind
-import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
@@ -43,7 +40,7 @@ class ConstTransformer(private val context: JsIrBackendContext) : IrElementTrans
     private fun createLong(v: Long): IrExpression =
         lowerConst(context.intrinsics.longClassSymbol, IrConstImpl.Companion::int, v.toInt(), (v shr 32).toInt())
 
-    override fun <T> visitConst(expression: IrConst<T>): IrExpression {
+    override fun <T> visitConst(expression: IrConst<T>): IrPureExpression {
         with(context.intrinsics) {
             if (expression.type.isUnsigned()) {
                 return when (expression.type.classifierOrNull) {
@@ -56,7 +53,7 @@ class ConstTransformer(private val context: JsIrBackendContext) : IrElementTrans
                     uLongClassSymbol -> lowerConst(uLongClassSymbol, { _, _, _, v -> createLong(v) }, IrConstKind.Long.valueOf(expression))
 
                     else -> error("Unknown unsigned type")
-                }
+                } as IrPureExpression
             }
             return when {
                 expression.kind is IrConstKind.Char ->
@@ -66,7 +63,7 @@ class ConstTransformer(private val context: JsIrBackendContext) : IrElementTrans
                     createLong(IrConstKind.Long.valueOf(expression))
 
                 else -> super.visitConst(expression)
-            }
+            } as IrPureExpression
         }
     }
 }

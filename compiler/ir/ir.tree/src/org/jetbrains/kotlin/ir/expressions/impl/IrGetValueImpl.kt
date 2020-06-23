@@ -5,27 +5,21 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IrGetValueImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
-    symbol: IrValueSymbol,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
+    override val symbol: IrValueSymbol,
     override val origin: IrStatementOrigin? = null
-) :
-    IrTerminalDeclarationReferenceBase<IrValueSymbol>(
-        startOffset,
-        endOffset,
-        type,
-        symbol
-    ),
-    IrGetValue {
-
+) : IrGetValue() {
     constructor(
         startOffset: Int,
         endOffset: Int,
@@ -38,4 +32,12 @@ class IrGetValueImpl(
 
     override fun copy(): IrGetValue =
         IrGetValueImpl(startOffset, endOffset, type, symbol, origin)
+
+    override var attributeOwnerId: IrAttributeContainer = this
+
+    override fun <D> acceptChildren(visitor: IrElementVisitor<Unit, D>, data: D) {
+    }
+
+    override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
+    }
 }

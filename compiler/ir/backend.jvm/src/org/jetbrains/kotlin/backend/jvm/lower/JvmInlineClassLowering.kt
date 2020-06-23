@@ -212,7 +212,7 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
                         //
                         // Within the constructor we replace references to "this" with references to "thisVar".
                         // This is safe, since the delegating constructor call precedes all references to "this".
-                        override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+                        override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrPureExpression {
                             expression.transformChildrenVoid()
                             return irSetVar(thisVar.symbol, expression)
                         }
@@ -229,7 +229,7 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
                         //         return Unit
                         //       }
                         //     }
-                        override fun visitReturn(expression: IrReturn): IrExpression {
+                        override fun visitReturn(expression: IrReturn): IrPureExpression {
                             expression.transformChildrenVoid()
                             if (expression.returnTargetSymbol != constructor.symbol)
                                 return expression
@@ -270,7 +270,7 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
         }
     }
 
-    override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+    override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
         if (expression.origin == InlineClassAbi.UNMANGLED_FUNCTION_REFERENCE)
             return super.visitFunctionReference(expression)
 
@@ -286,7 +286,7 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
         }.copyAttributes(expression)
     }
 
-    override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrExpression {
+    override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrPureExpression {
         val function = expression.symbol.owner
         val replacement = context.inlineClassReplacements.getReplacementFunction(function)
             ?: return super.visitFunctionAccess(expression)
@@ -367,7 +367,7 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
         }
     }
 
-    override fun visitCall(expression: IrCall): IrExpression =
+    override fun visitCall(expression: IrCall): IrPureExpression =
         when {
             // Getting the underlying field of an inline class merely changes the IR type,
             // since the underlying representations are the same.
@@ -384,7 +384,7 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
             }
             else ->
                 super.visitCall(expression)
-        }
+        } as IrPureExpression
 
     private val IrCall.isSpecializedInlineClassEqEq: Boolean
         get() {
@@ -401,7 +401,7 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
                     context.state.languageVersionSettings.apiVersion >= ApiVersion.KOTLIN_1_4
         }
 
-    override fun visitGetField(expression: IrGetField): IrExpression {
+    override fun visitGetField(expression: IrGetField): IrPureExpression {
         val field = expression.symbol.owner
         val parent = field.parent
         if (parent is IrClass && parent.isInline && field.name == parent.inlineClassFieldName) {
@@ -411,7 +411,7 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
         return super.visitGetField(expression)
     }
 
-    override fun visitReturn(expression: IrReturn): IrExpression {
+    override fun visitReturn(expression: IrReturn): IrPureExpression {
         expression.returnTargetSymbol.owner.safeAs<IrFunction>()?.let { target ->
             context.inlineClassReplacements.getReplacementFunction(target)?.let {
                 return context.createIrBuilder(it.symbol, expression.startOffset, expression.endOffset).irReturn(
@@ -431,7 +431,7 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
         }
     }
 
-    override fun visitContainerExpression(expression: IrContainerExpression): IrExpression {
+    override fun visitContainerExpression(expression: IrContainerExpression): IrPureExpression {
         visitStatementContainer(expression)
         return expression
     }
@@ -441,7 +441,7 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
         return body
     }
 
-    override fun visitGetValue(expression: IrGetValue): IrExpression {
+    override fun visitGetValue(expression: IrGetValue): IrPureExpression {
         valueMap[expression.symbol]?.let {
             return IrGetValueImpl(
                 expression.startOffset, expression.endOffset,
@@ -451,7 +451,7 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
         return super.visitGetValue(expression)
     }
 
-    override fun visitSetVariable(expression: IrSetVariable): IrExpression {
+    override fun visitSetVariable(expression: IrSetVariable): IrPureExpression {
         valueMap[expression.symbol]?.let {
             return IrSetVariableImpl(
                 expression.startOffset, expression.endOffset,

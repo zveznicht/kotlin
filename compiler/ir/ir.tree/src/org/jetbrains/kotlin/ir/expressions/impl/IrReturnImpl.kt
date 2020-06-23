@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.ir.expressions.impl
 
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrReturn
 import org.jetbrains.kotlin.ir.symbols.IrReturnTargetSymbol
@@ -26,14 +27,13 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IrReturnImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
     override val returnTargetSymbol: IrReturnTargetSymbol,
     override var value: IrExpression
-) :
-    IrExpressionBase(startOffset, endOffset, type),
-    IrReturn {
+) : IrReturn() {
+    override var attributeOwnerId: IrAttributeContainer = this
 
     @ObsoleteDescriptorBasedAPI
     override val returnTarget: FunctionDescriptor get() = returnTargetSymbol.descriptor

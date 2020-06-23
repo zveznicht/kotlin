@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrPureElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
@@ -41,7 +42,9 @@ interface IrDeclaration : IrStatement, IrMutableAnnotationContainer, IrMetadataS
     var origin: IrDeclarationOrigin
 
     var parent: IrDeclarationParent
+}
 
+abstract class IrPureDeclaration : IrPureElement(), IrDeclaration {
     override fun <D> transform(transformer: IrElementTransformer<D>, data: D): IrStatement =
         accept(transformer, data) as IrStatement
 }

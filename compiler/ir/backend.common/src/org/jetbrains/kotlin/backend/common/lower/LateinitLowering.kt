@@ -144,7 +144,7 @@ class LateinitUsageLowering(val backendContext: CommonBackendContext) : BodyLowe
         })
 
         irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitGetValue(expression: IrGetValue): IrExpression {
+            override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                 val irVar = nullableVariables[expression.symbol.owner] ?: return expression
 
                 val parent = irVar.parent as IrSymbolOwner
@@ -159,7 +159,7 @@ class LateinitUsageLowering(val backendContext: CommonBackendContext) : BodyLowe
                 }
             }
 
-            override fun visitSetVariable(expression: IrSetVariable): IrExpression {
+            override fun visitSetVariable(expression: IrSetVariable): IrPureExpression {
                 expression.transformChildrenVoid(this)
                 val newVar = nullableVariables[expression.symbol.owner] ?: return expression
                 return with(expression) {
@@ -167,7 +167,7 @@ class LateinitUsageLowering(val backendContext: CommonBackendContext) : BodyLowe
                 }
             }
 
-            override fun visitGetField(expression: IrGetField): IrExpression {
+            override fun visitGetField(expression: IrGetField): IrPureExpression {
                 expression.transformChildrenVoid(this)
                 val newField = backendContext.mapping.lateInitFieldToNullableField[expression.symbol.owner] ?: return expression
                 return with(expression) {
@@ -175,7 +175,7 @@ class LateinitUsageLowering(val backendContext: CommonBackendContext) : BodyLowe
                 }
             }
 
-            override fun visitSetField(expression: IrSetField): IrExpression {
+            override fun visitSetField(expression: IrSetField): IrPureExpression {
                 expression.transformChildrenVoid(this)
                 val newField = backendContext.mapping.lateInitFieldToNullableField[expression.symbol.owner] ?: return expression
                 return with(expression) {
@@ -183,7 +183,7 @@ class LateinitUsageLowering(val backendContext: CommonBackendContext) : BodyLowe
                 }
             }
 
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 if (!Symbols.isLateinitIsInitializedPropertyGetter(expression.symbol)) return expression
@@ -200,7 +200,7 @@ class LateinitUsageLowering(val backendContext: CommonBackendContext) : BodyLowe
 
                 return expression.run { backendContext.createIrBuilder(symbol, startOffset, endOffset) }.run {
                     irNotEquals(irGetField(receiver.dispatchReceiver, nullableField), irNull())
-                }
+                } as IrPureExpression
             }
         })
     }

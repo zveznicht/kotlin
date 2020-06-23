@@ -41,11 +41,11 @@ class PolymorphicSignatureLowering(val context: JvmBackendContext) : IrElementTr
 
     // If the return type is Any?, then it is also polymorphic (e.g. MethodHandle.invokeExact
     // has polymorphic return type, while VarHandle.compareAndSet does not).
-    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrExpression =
+    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrPureExpression =
         (expression.argument as? IrCall)?.takeIf { expression.isCast() && it.type.isNullableAny() }?.transform(expression.typeOperand)
             ?: super.visitTypeOperator(expression)
 
-    override fun visitCall(expression: IrCall): IrExpression =
+    override fun visitCall(expression: IrCall): IrPureExpression =
         expression.transform(null) ?: super.visitCall(expression)
 
     private fun IrCall.transform(castReturnType: IrType?): IrCall? {

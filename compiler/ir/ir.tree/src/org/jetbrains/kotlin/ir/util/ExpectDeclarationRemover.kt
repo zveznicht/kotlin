@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrExpressionBodyImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
@@ -129,7 +130,7 @@ class ExpectDeclarationRemover(val symbolTable: ReferenceSymbolTable, private va
     private fun IrExpression.remapExpectValueSymbols(): IrExpression {
         return this.transform(object : IrElementTransformerVoid() {
 
-            override fun visitGetValue(expression: IrGetValue): IrExpression {
+            override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                 expression.transformChildrenVoid()
                 val newValue = remapExpectValue(expression.symbol)
                     ?: return expression

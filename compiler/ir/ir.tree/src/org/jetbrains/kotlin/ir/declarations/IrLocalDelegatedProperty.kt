@@ -21,20 +21,17 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.symbols.IrLocalDelegatedPropertySymbol
 import org.jetbrains.kotlin.ir.types.IrType
 
-interface IrLocalDelegatedProperty :
-    IrDeclarationWithName,
-    IrSymbolOwner {
-
+abstract class IrLocalDelegatedProperty : IrPureDeclaration(), IrDeclarationWithName, IrSymbolOwner {
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: VariableDescriptorWithAccessors
-    override val symbol: IrLocalDelegatedPropertySymbol
+    abstract override val descriptor: VariableDescriptorWithAccessors
+    abstract override val symbol: IrLocalDelegatedPropertySymbol
 
-    val type: IrType
-    val isVar: Boolean
+    abstract val type: IrType
+    abstract val isVar: Boolean
 
-    var delegate: IrVariable
-    var getter: IrFunction
-    var setter: IrFunction?
+    abstract var delegate: IrVariable
+    abstract var getter: IrFunction
+    abstract var setter: IrFunction?
 
-    override val metadata: MetadataSource.LocalDelegatedProperty?
+    abstract override val metadata: MetadataSource.LocalDelegatedProperty?
 }

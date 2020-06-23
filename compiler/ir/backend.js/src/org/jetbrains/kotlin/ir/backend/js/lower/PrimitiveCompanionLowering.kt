@@ -11,10 +11,7 @@ import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.expressions.IrBody
-import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrGetObjectValue
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetObjectValueImpl
 import org.jetbrains.kotlin.ir.types.isPrimitiveType
 import org.jetbrains.kotlin.ir.types.isString
@@ -59,7 +56,7 @@ class PrimitiveCompanionLowering(val context: JsIrBackendContext) : BodyLowering
 
     override fun lower(irBody: IrBody, container: IrDeclaration) {
         irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitGetObjectValue(expression: IrGetObjectValue): IrExpression {
+            override fun visitGetObjectValue(expression: IrGetObjectValue): IrPureExpression {
                 val irClass = expression.symbol.owner
                 val actualCompanion = getActualPrimitiveCompanion(irClass) ?: return expression
                 return IrGetObjectValueImpl(
@@ -70,7 +67,7 @@ class PrimitiveCompanionLowering(val context: JsIrBackendContext) : BodyLowering
                 )
             }
 
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 val newCall = super.visitCall(expression) as IrCall
 
                 val function = expression.symbol.owner as IrSimpleFunction

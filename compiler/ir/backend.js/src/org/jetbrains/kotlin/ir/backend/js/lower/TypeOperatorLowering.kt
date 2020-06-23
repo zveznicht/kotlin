@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.backend.js.utils.isPure
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
+import org.jetbrains.kotlin.ir.declarations.IrPureDeclaration
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrCompositeImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
@@ -64,10 +65,10 @@ class TypeOperatorLowering(val context: JsIrBackendContext) : BodyLoweringPass {
 
     override fun lower(irBody: IrBody, container: IrDeclaration) {
         irBody.transformChildren(object : IrElementTransformer<IrDeclarationParent> {
-            override fun visitDeclaration(declaration: IrDeclaration, data: IrDeclarationParent) =
+            override fun visitDeclaration(declaration: IrPureDeclaration, data: IrDeclarationParent) =
                 super.visitDeclaration(declaration, declaration as? IrDeclarationParent ?: data)
 
-            override fun visitTypeOperator(expression: IrTypeOperatorCall, data: IrDeclarationParent): IrExpression {
+            override fun visitTypeOperator(expression: IrTypeOperatorCall, data: IrDeclarationParent): IrPureExpression {
                 super.visitTypeOperator(expression, data)
 
                 return when (expression.operator) {
@@ -82,7 +83,7 @@ class TypeOperatorLowering(val context: JsIrBackendContext) : BodyLoweringPass {
                     IrTypeOperator.SAFE_CAST -> lowerCast(expression, data, true)
                     IrTypeOperator.REINTERPRET_CAST -> expression
                     IrTypeOperator.SAM_CONVERSION -> TODO("SAM conversion: ${expression.render()}")
-                }
+                } as IrPureExpression
             }
 
             private fun lowerImplicitNotNull(expression: IrTypeOperatorCall, declaration: IrDeclarationParent): IrExpression {

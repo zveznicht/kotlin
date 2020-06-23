@@ -85,12 +85,12 @@ class LiveLocalsTransformer(
     private val unitType: IrType
 ) :
     IrElementTransformerVoid() {
-    override fun visitGetValue(expression: IrGetValue): IrExpression {
+    override fun visitGetValue(expression: IrGetValue): IrPureExpression {
         val field = localMap[expression.symbol] ?: return expression
         return expression.run { IrGetFieldImpl(startOffset, endOffset, field, type, receiver(), origin) }
     }
 
-    override fun visitSetVariable(expression: IrSetVariable): IrExpression {
+    override fun visitSetVariable(expression: IrSetVariable): IrPureExpression {
         expression.transformChildrenVoid(this)
         val field = localMap[expression.symbol] ?: return expression
         return expression.run { IrSetFieldImpl(startOffset, endOffset, field, receiver(), value, unitType, origin) }

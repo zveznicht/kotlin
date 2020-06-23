@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrErrorCallExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.types.IrType
@@ -24,16 +25,15 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.utils.SmartList
 
 class IrErrorCallExpressionImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
     override val description: String
-) :
-    IrExpressionBase(startOffset, endOffset, type),
-    IrErrorCallExpression {
-
+) : IrErrorCallExpression() {
     override var explicitReceiver: IrExpression? = null
     override val arguments: MutableList<IrExpression> = SmartList()
+
+    override var attributeOwnerId: IrAttributeContainer = this
 
     fun addArgument(argument: IrExpression) {
         arguments.add(argument)

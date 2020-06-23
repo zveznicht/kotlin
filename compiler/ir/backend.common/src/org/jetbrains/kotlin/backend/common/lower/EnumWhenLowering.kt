@@ -43,7 +43,7 @@ open class EnumWhenLowering(protected val context: CommonBackendContext) : IrEle
         visitFile(irFile)
     }
 
-    override fun visitBlock(expression: IrBlock): IrExpression {
+    override fun visitBlock(expression: IrBlock): IrPureExpression {
         // NB: See BranchingExpressionGenerator to get insight about `when` block translation to IR.
         if (expression.origin != IrStatementOrigin.WHEN) {
             return super.visitBlock(expression)
@@ -79,7 +79,7 @@ open class EnumWhenLowering(protected val context: CommonBackendContext) : IrEle
         return expression
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         // We are looking for branch that is a comparison of the subject and another enum entry.
         if (expression.symbol != context.irBuiltIns.eqeqSymbol) {
             return super.visitCall(expression)

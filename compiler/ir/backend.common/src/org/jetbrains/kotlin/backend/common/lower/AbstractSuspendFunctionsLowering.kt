@@ -115,7 +115,7 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
     private fun transformCallableReferencesToSuspendLambdas(irElement: IrElement) {
         irElement.transformChildrenVoid(object : IrElementTransformerVoid() {
 
-            override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+            override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 if (!expression.isSuspend)

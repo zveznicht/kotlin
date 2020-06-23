@@ -16,8 +16,6 @@
 
 package org.jetbrains.kotlin.ir.expressions
 
-
-interface IrGetClass : IrExpression {
-    var argument: IrExpression
+abstract class IrGetClass : IrPureExpression() {
+    abstract var argument: IrExpression
 }
-

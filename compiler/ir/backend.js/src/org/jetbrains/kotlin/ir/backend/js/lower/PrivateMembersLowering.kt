@@ -150,7 +150,7 @@ class PrivateMemberBodiesLowering(val context: JsIrBackendContext) : BodyLowerin
 
     override fun lower(irBody: IrBody, container: IrDeclaration) {
         irBody.transform(object : IrElementTransformerVoid() {
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 super.visitCall(expression)
 
                 return expression.symbol.owner.correspondingStatic?.let {
@@ -158,7 +158,7 @@ class PrivateMemberBodiesLowering(val context: JsIrBackendContext) : BodyLowerin
                 } ?: expression
             }
 
-            override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+            override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
                 super.visitFunctionReference(expression)
 
                 return expression.symbol.owner.correspondingStatic?.let {
@@ -173,7 +173,7 @@ class PrivateMemberBodiesLowering(val context: JsIrBackendContext) : BodyLowerin
                 } ?: expression
             }
 
-            override fun visitPropertyReference(expression: IrPropertyReference): IrExpression {
+            override fun visitPropertyReference(expression: IrPropertyReference): IrPureExpression {
                 super.visitPropertyReference(expression)
 
                 val staticGetter = expression.getter?.owner?.correspondingStatic

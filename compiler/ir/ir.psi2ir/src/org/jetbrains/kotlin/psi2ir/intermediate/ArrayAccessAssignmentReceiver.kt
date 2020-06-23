@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.psi2ir.intermediate
 
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrPureElement
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
@@ -184,11 +185,11 @@ class ArrayAccessAssignmentReceiver(
     private class SamConversionsRewriter(
         private val replacementVars: Map<IrVariable, IrVariable>
     ) : IrElementTransformerVoid() {
-        override fun visitElement(element: IrElement): IrElement {
+        override fun visitElement(element: IrPureElement): IrPureElement {
             return element.apply { transformChildrenVoid() }
         }
 
-        override fun visitTypeOperator(expression: IrTypeOperatorCall): IrExpression {
+        override fun visitTypeOperator(expression: IrTypeOperatorCall): IrPureExpression {
             val irGetVar = expression.getSamConvertedGetValue()
             if (irGetVar != null) {
                 val valueDeclaration = irGetVar.symbol.owner
@@ -201,7 +202,7 @@ class ArrayAccessAssignmentReceiver(
             return expression.apply { transformChildrenVoid() }
         }
 
-        override fun visitGetValue(expression: IrGetValue): IrExpression {
+        override fun visitGetValue(expression: IrGetValue): IrPureExpression {
             val symbol = expression.symbol
             if (symbol.owner in replacementVars) {
                 throw AssertionError(

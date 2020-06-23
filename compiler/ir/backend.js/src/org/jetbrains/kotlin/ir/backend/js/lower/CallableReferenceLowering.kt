@@ -51,7 +51,7 @@ class CallableReferenceLowering(private val context: CommonBackendContext) : Bod
             return body
         }
 
-        override fun visitFunctionExpression(expression: IrFunctionExpression): IrExpression {
+        override fun visitFunctionExpression(expression: IrFunctionExpression): IrPureExpression {
             expression.transformChildrenVoid(this)
 
             val function = expression.function
@@ -71,7 +71,7 @@ class CallableReferenceLowering(private val context: CommonBackendContext) : Bod
             }
         }
 
-        override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+        override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
             expression.transformChildrenVoid(this)
 
             val (clazz, ctor) = buildFunctionReference(expression)

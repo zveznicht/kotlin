@@ -17,25 +17,25 @@
 package org.jetbrains.kotlin.ir.expressions
 
 import org.jetbrains.kotlin.descriptors.VariableDescriptor
+import org.jetbrains.kotlin.ir.IrPureElement
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
-import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 
-interface IrTry : IrExpression {
-    var tryResult: IrExpression
+abstract class IrTry : IrPureExpression() {
+    abstract var tryResult: IrExpression
 
-    val catches: List<IrCatch>
+    abstract val catches: List<IrCatch>
 
-    var finallyExpression: IrExpression?
+    abstract var finallyExpression: IrExpression?
 }
 
-interface IrCatch : IrElement {
+abstract class IrCatch : IrPureElement() {
     @ObsoleteDescriptorBasedAPI
-    val parameter: VariableDescriptor
+    abstract val parameter: VariableDescriptor
 
-    var catchParameter: IrVariable
-    var result: IrExpression
+    abstract var catchParameter: IrVariable
+    abstract var result: IrExpression
 
     override fun <D> transform(transformer: IrElementTransformer<D>, data: D): IrCatch =
         super.transform(transformer, data) as IrCatch

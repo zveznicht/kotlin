@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.ir.expressions
 
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 
-interface IrDelegatingConstructorCall : IrFunctionAccessExpression {
-    override val symbol: IrConstructorSymbol
+abstract class IrDelegatingConstructorCall : IrFunctionAccessExpression() {
+    abstract override val symbol: IrConstructorSymbol
 }
-

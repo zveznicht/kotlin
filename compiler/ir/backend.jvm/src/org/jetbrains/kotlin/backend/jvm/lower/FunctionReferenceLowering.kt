@@ -52,7 +52,7 @@ internal class FunctionReferenceLowering(private val context: JvmBackendContext)
         irFile.transformChildrenVoid(this)
     }
 
-    override fun visitBlock(expression: IrBlock): IrExpression {
+    override fun visitBlock(expression: IrBlock): IrPureExpression {
         if (!expression.origin.isLambda)
             return super.visitBlock(expression)
 
@@ -65,7 +65,7 @@ internal class FunctionReferenceLowering(private val context: JvmBackendContext)
         return FunctionReferenceBuilder(reference).build()
     }
 
-    override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+    override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
         expression.transformChildrenVoid(this)
         return if (expression.isIgnored) expression else FunctionReferenceBuilder(expression).build()
     }
@@ -76,7 +76,7 @@ internal class FunctionReferenceLowering(private val context: JvmBackendContext)
     // This avoids materializing an invokable KFunction representing, thus producing one less class.
     // This is actually very common, as `Interface { something }` is a local function + a SAM-conversion
     // of a reference to it into an implementation.
-    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrExpression {
+    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrPureExpression {
         if (expression.operator == IrTypeOperator.SAM_CONVERSION) {
             val invokable = expression.argument
             val reference = if (invokable is IrFunctionReference) {
@@ -193,7 +193,7 @@ internal class FunctionReferenceLowering(private val context: JvmBackendContext)
 
         private val receiverField = context.ir.symbols.functionReferenceReceiverField.owner
 
-        fun build(): IrExpression = context.createJvmIrBuilder(currentScope!!.scope.scopeOwnerSymbol).run {
+        fun build(): IrPureExpression = context.createJvmIrBuilder(currentScope!!.scope.scopeOwnerSymbol).run {
             irBlock(irFunctionReference.startOffset, irFunctionReference.endOffset) {
                 val constructor = createConstructor()
                 val boundReceiverVar =

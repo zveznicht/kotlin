@@ -34,7 +34,7 @@ interface IrElementTransformer<in D> : IrElementVisitor<IrElement, D> {
     override fun visitExternalPackageFragment(declaration: IrExternalPackageFragment, data: D): IrExternalPackageFragment =
         declaration.also { it.transformChildren(this, data) }
 
-    override fun visitDeclaration(declaration: IrDeclaration, data: D): IrStatement =
+    override fun visitDeclaration(declaration: IrPureDeclaration, data: D): IrStatement =
         declaration.also { it.transformChildren(this, data) }
 
     override fun visitScript(declaration: IrScript, data: D) = visitDeclaration(declaration, data)
@@ -62,7 +62,7 @@ interface IrElementTransformer<in D> : IrElementVisitor<IrElement, D> {
     override fun visitSuspendableExpression(expression: IrSuspendableExpression, data: D) = visitExpression(expression, data)
     override fun visitSuspensionPoint(expression: IrSuspensionPoint, data: D) = visitExpression(expression, data)
 
-    override fun visitExpression(expression: IrExpression, data: D): IrExpression =
+    override fun visitExpression(expression: IrPureExpression, data: D): IrPureExpression =
         expression.also { it.transformChildren(this, data) }
 
     override fun <T> visitConst(expression: IrConst<T>, data: D) = visitExpression(expression, data)

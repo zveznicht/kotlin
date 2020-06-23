@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
@@ -30,7 +31,7 @@ class JvmStandardLibraryBuiltInsLowering(val context: JvmBackendContext) : FileL
         if (context.state.target < JvmTarget.JVM_1_8) return
 
         val transformer = object : IrElementTransformerVoid() {
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 expression.transformChildren(this, null)
 
                 val parentClass = expression.symbol.owner.parent.fqNameForIrSerialization.asString()

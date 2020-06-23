@@ -24,26 +24,27 @@ import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 
-interface IrFunction :
-    IrDeclarationWithName, IrDeclarationWithVisibility, IrTypeParametersContainer, IrSymbolOwner, IrDeclarationParent, IrReturnTarget {
+abstract class IrFunction :
+    IrPureDeclaration(), IrDeclarationWithName, IrDeclarationWithVisibility, IrTypeParametersContainer, IrSymbolOwner,
+    IrDeclarationParent, IrReturnTarget {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: FunctionDescriptor
-    override val symbol: IrFunctionSymbol
+    abstract override val descriptor: FunctionDescriptor
+    abstract override val symbol: IrFunctionSymbol
 
-    val isInline: Boolean // NB: there's an inline constructor for Array and each primitive array class
-    val isExternal: Boolean
-    val isExpect: Boolean
+    abstract val isInline: Boolean // NB: there's an inline constructor for Array and each primitive array class
+    abstract val isExternal: Boolean
+    abstract val isExpect: Boolean
 
-    var returnType: IrType
+    abstract var returnType: IrType
 
-    var dispatchReceiverParameter: IrValueParameter?
-    var extensionReceiverParameter: IrValueParameter?
-    var valueParameters: List<IrValueParameter>
+    abstract var dispatchReceiverParameter: IrValueParameter?
+    abstract var extensionReceiverParameter: IrValueParameter?
+    abstract var valueParameters: List<IrValueParameter>
 
-    var body: IrBody?
+    abstract var body: IrBody?
 
-    override var metadata: MetadataSource?
+    abstract override var metadata: MetadataSource?
 }
 
 @ObsoleteDescriptorBasedAPI

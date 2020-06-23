@@ -340,7 +340,7 @@ class RenderIrElementVisitor(private val normalizeNames: Boolean = false) : IrEl
     override fun visitElement(element: IrElement, data: Nothing?): String =
         "?ELEMENT? ${element::class.java.simpleName} $element"
 
-    override fun visitDeclaration(declaration: IrDeclaration, data: Nothing?): String =
+    override fun visitDeclaration(declaration: IrPureDeclaration, data: Nothing?): String =
         "?DECLARATION? ${declaration::class.java.simpleName} $declaration"
 
     override fun visitModuleFragment(declaration: IrModuleFragment, data: Nothing?): String =
@@ -542,7 +542,7 @@ class RenderIrElementVisitor(private val normalizeNames: Boolean = false) : IrEl
     override fun visitSyntheticBody(body: IrSyntheticBody, data: Nothing?): String =
         "SYNTHETIC_BODY kind=${body.kind}"
 
-    override fun visitExpression(expression: IrExpression, data: Nothing?): String =
+    override fun visitExpression(expression: IrPureExpression, data: Nothing?): String =
         "? ${expression::class.java.simpleName} type=${expression.type.render()}"
 
     override fun <T> visitConst(expression: IrConst<T>, data: Nothing?): String =

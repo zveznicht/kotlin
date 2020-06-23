@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrFieldImpl
 import org.jetbrains.kotlin.ir.descriptors.WrappedFieldDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetField
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.IrSetField
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetFieldImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrSetFieldImpl
@@ -125,7 +126,7 @@ private class FieldRenamer(private val newNames: Map<IrField, Name>) : IrElement
 }
 
 private class FieldAccessTransformer(private val oldToNew: Map<IrField, IrFieldSymbol>) : IrElementTransformerVoid() {
-    override fun visitGetField(expression: IrGetField): IrExpression {
+    override fun visitGetField(expression: IrGetField): IrPureExpression {
         val newSymbol = oldToNew[expression.symbol.owner] ?: return super.visitGetField(expression)
 
         return IrGetFieldImpl(
@@ -135,7 +136,7 @@ private class FieldAccessTransformer(private val oldToNew: Map<IrField, IrFieldS
         )
     }
 
-    override fun visitSetField(expression: IrSetField): IrExpression {
+    override fun visitSetField(expression: IrSetField): IrPureExpression {
         val newSymbol = oldToNew[expression.symbol.owner] ?: return super.visitSetField(expression)
 
         return IrSetFieldImpl(

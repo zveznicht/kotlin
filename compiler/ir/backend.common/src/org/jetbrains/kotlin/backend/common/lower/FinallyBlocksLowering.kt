@@ -28,7 +28,7 @@ import org.jetbrains.kotlin.name.Name
 class FinallyBlocksLowering(val context: CommonBackendContext, private val throwableType: IrType): FileLoweringPass, IrElementTransformerVoidWithContext() {
 
     private interface HighLevelJump {
-        fun toIr(context: CommonBackendContext, startOffset: Int, endOffset: Int, value: IrExpression): IrExpression
+        fun toIr(context: CommonBackendContext, startOffset: Int, endOffset: Int, value: IrExpression): IrPureExpression
     }
 
     private data class Return(val target: IrReturnTargetSymbol): HighLevelJump {
@@ -93,7 +93,7 @@ class FinallyBlocksLowering(val context: CommonBackendContext, private val throw
         }
     }
 
-    override fun visitContainerExpression(expression: IrContainerExpression): IrExpression {
+    override fun visitContainerExpression(expression: IrContainerExpression): IrPureExpression {
         if (expression !is IrReturnableBlockImpl)
             return super.visitContainerExpression(expression)
 
@@ -102,13 +102,13 @@ class FinallyBlocksLowering(val context: CommonBackendContext, private val throw
         }
     }
 
-    override fun visitLoop(loop: IrLoop): IrExpression {
+    override fun visitLoop(loop: IrLoop): IrPureExpression {
         using(LoopScope(loop)) {
             return super.visitLoop(loop)
         }
     }
 
-    override fun visitBreak(jump: IrBreak): IrExpression {
+    override fun visitBreak(jump: IrBreak): IrPureExpression {
         val startOffset = jump.startOffset
         val endOffset = jump.endOffset
         val irBuilder = context.createIrBuilder(currentScope!!.scope.scopeOwnerSymbol, startOffset, endOffset)
@@ -121,7 +121,7 @@ class FinallyBlocksLowering(val context: CommonBackendContext, private val throw
         ) ?: jump
     }
 
-    override fun visitContinue(jump: IrContinue): IrExpression {
+    override fun visitContinue(jump: IrContinue): IrPureExpression {
         val startOffset = jump.startOffset
         val endOffset = jump.endOffset
         val irBuilder = context.createIrBuilder(currentScope!!.scope.scopeOwnerSymbol, startOffset, endOffset)
@@ -134,7 +134,7 @@ class FinallyBlocksLowering(val context: CommonBackendContext, private val throw
         ) ?: jump
     }
 
-    override fun visitReturn(expression: IrReturn): IrExpression {
+    override fun visitReturn(expression: IrReturn): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         return performHighLevelJump(
@@ -151,7 +151,7 @@ class FinallyBlocksLowering(val context: CommonBackendContext, private val throw
                                      startOffset: Int,
                                      endOffset: Int,
                                      value: IrExpression
-    ): IrExpression? {
+    ): IrPureExpression? {
         val tryScopes = scopeStack.reversed()
                 .takeWhile { !targetScopePredicate(it) }
                 .filterIsInstance<TryScope>()
@@ -167,7 +167,7 @@ class FinallyBlocksLowering(val context: CommonBackendContext, private val throw
                                      startOffset: Int,
                                      endOffset: Int,
                                      value: IrExpression
-    ): IrExpression {
+    ): IrPureExpression {
         if (index == tryScopes.size)
             return jump.toIr(context, startOffset, endOffset, value)
 
@@ -200,7 +200,7 @@ class FinallyBlocksLowering(val context: CommonBackendContext, private val throw
         }
     }
 
-    override fun visitTry(aTry: IrTry): IrExpression {
+    override fun visitTry(aTry: IrTry): IrPureExpression {
         val finallyExpression = aTry.finallyExpression
                 ?: return super.visitTry(aTry)
 
@@ -265,7 +265,7 @@ class FinallyBlocksLowering(val context: CommonBackendContext, private val throw
     private fun IrBuilderWithScope.irInlineFinally(symbol: IrReturnableBlockSymbol, type: IrType,
                                                                                     value: IrExpression,
                                                                                     finallyExpression: IrExpression
-    ): IrExpression {
+    ): IrPureExpression {
         val returnTypeClassifier = (type as? IrSimpleType)?.classifier
         return when (returnTypeClassifier) {
             context.irBuiltIns.unitClass, context.irBuiltIns.nothingClass -> irBlock(value, null, type) {

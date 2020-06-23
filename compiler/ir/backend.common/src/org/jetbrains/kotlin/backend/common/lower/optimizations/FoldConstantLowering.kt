@@ -239,7 +239,7 @@ class FoldConstantLowering(
     @ExperimentalUnsignedTypes
     override fun lower(irBody: IrBody, container: IrDeclaration) {
         irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 expression.transformChildrenVoid()
 
                 return when {
@@ -248,10 +248,10 @@ class FoldConstantLowering(
                     expression.dispatchReceiver != null && expression.valueArgumentsCount == 1 -> tryFoldingBinaryOps(expression)
                     expression.dispatchReceiver == null && expression.valueArgumentsCount == 2 -> tryFoldingBuiltinBinaryOps(expression)
                     else -> expression
-                }
+                } as IrPureExpression
             }
 
-            override fun visitStringConcatenation(expression: IrStringConcatenation): IrExpression {
+            override fun visitStringConcatenation(expression: IrStringConcatenation): IrPureExpression {
                 expression.transformChildrenVoid()
                 val folded = mutableListOf<IrExpression>()
                 for (next in expression.arguments) {
@@ -271,7 +271,7 @@ class FoldConstantLowering(
                     ?: IrStringConcatenationImpl(expression.startOffset, expression.endOffset, expression.type, folded)
             }
 
-            override fun visitTypeOperator(expression: IrTypeOperatorCall): IrExpression {
+            override fun visitTypeOperator(expression: IrTypeOperatorCall): IrPureExpression {
                 expression.transformChildrenVoid()
                 val argument = expression.argument
                 return if (argument is IrConst<*> && expression.operator == IrTypeOperator.IMPLICIT_INTEGER_COERCION)

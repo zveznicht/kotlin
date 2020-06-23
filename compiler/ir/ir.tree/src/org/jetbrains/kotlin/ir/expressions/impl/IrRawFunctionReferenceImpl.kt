@@ -16,19 +16,28 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrRawFunctionReference
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IrRawFunctionReferenceImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
-    symbol: IrFunctionSymbol
-) : IrTerminalDeclarationReferenceBase<IrFunctionSymbol>(startOffset, endOffset, type, symbol), IrRawFunctionReference {
-
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
+    override val symbol: IrFunctionSymbol
+) : IrRawFunctionReference() {
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {
         return visitor.visitRawFunctionReference(this, data)
+    }
+
+    override var attributeOwnerId: IrAttributeContainer = this
+
+    override fun <D> acceptChildren(visitor: IrElementVisitor<Unit, D>, data: D) {
+    }
+
+    override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
     }
 }

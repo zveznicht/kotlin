@@ -68,7 +68,7 @@ class ClassReferenceLowering(val context: JsIrBackendContext) : BodyLoweringPass
         }
     }
 
-    private fun callGetKClassFromExpression(returnType: IrType, typeArgument: IrType, argument: IrExpression): IrExpression {
+    private fun callGetKClassFromExpression(returnType: IrType, typeArgument: IrType, argument: IrExpression): IrPureExpression {
         val primitiveKClass = getFinalPrimitiveKClass(returnType, typeArgument)
         if (primitiveKClass != null)
             return JsIrBuilder.buildBlock(returnType, listOf(argument, primitiveKClass))
@@ -129,14 +129,14 @@ class ClassReferenceLowering(val context: JsIrBackendContext) : BodyLoweringPass
     private fun callJsClass(type: IrType) =
         JsIrBuilder.buildCall(intrinsics.jsClass, typeArguments = listOf(type))
 
-    private fun buildCall(name: IrSimpleFunctionSymbol, vararg args: IrExpression): IrExpression =
+    private fun buildCall(name: IrSimpleFunctionSymbol, vararg args: IrExpression): IrPureExpression =
         JsIrBuilder.buildCall(name).apply {
             args.forEachIndexed { index, irExpression ->
                 putValueArgument(index, irExpression)
             }
         }
 
-    private fun createKType(type: IrType, visitedTypeParams: MutableSet<IrTypeParameter>): IrExpression {
+    private fun createKType(type: IrType, visitedTypeParams: MutableSet<IrTypeParameter>): IrPureExpression {
 
         if (type is IrSimpleType)
             return createSimpleKType(type, visitedTypeParams)
@@ -145,11 +145,11 @@ class ClassReferenceLowering(val context: JsIrBackendContext) : BodyLoweringPass
         error("Unexpected type $type")
     }
 
-    private fun createDynamicType(): IrExpression {
+    private fun createDynamicType(): IrPureExpression {
         return buildCall(context.intrinsics.createDynamicKType!!)
     }
 
-    private fun createSimpleKType(type: IrSimpleType, visitedTypeParams: MutableSet<IrTypeParameter>): IrExpression {
+    private fun createSimpleKType(type: IrSimpleType, visitedTypeParams: MutableSet<IrTypeParameter>): IrPureExpression {
         val classifier: IrClassifierSymbol = type.classifier
 
         // TODO: Check why do we have un-substituted reified parameters
@@ -243,7 +243,7 @@ class ClassReferenceLowering(val context: JsIrBackendContext) : BodyLoweringPass
                     typeArgument = expression.classType.makeNotNull()
                 )
 
-            override fun visitCall(expression: IrCall): IrExpression =
+            override fun visitCall(expression: IrCall): IrPureExpression =
                 if (Symbols.isTypeOfIntrinsic(expression.symbol)) {
                     createKType(expression.getTypeArgument(0)!!, hashSetOf())
                 } else {

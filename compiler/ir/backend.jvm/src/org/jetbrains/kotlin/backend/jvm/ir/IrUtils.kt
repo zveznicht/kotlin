@@ -233,7 +233,7 @@ fun IrBody.replaceThisByStaticReference(
     oldThisReceiverParameter: IrValueParameter
 ): IrBody =
     transform(object : IrElementTransformerVoid() {
-        override fun visitGetValue(expression: IrGetValue): IrExpression {
+        override fun visitGetValue(expression: IrGetValue): IrPureExpression {
             if (expression.symbol == oldThisReceiverParameter.symbol) {
                 val instanceField = declarationFactory.getPrivateFieldForObjectInstance(irClass)
                 return IrGetFieldImpl(

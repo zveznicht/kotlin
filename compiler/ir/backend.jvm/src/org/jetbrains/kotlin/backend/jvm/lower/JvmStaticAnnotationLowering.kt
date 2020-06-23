@@ -31,6 +31,7 @@ import org.jetbrains.kotlin.ir.builders.irGetField
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.util.*
@@ -160,7 +161,7 @@ private fun IrFunction.isJvmStaticInSingleton(): Boolean {
 private class MakeCallsStatic(
     val context: JvmBackendContext
 ) : IrElementTransformerVoid() {
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         if (expression.symbol.owner.isJvmStaticInSingleton() && expression.dispatchReceiver != null) {
             // Imported functions do not have their receiver parameter nulled by SingletonObjectJvmStaticLowering,
             // so we have to do it here.
@@ -172,7 +173,7 @@ private class MakeCallsStatic(
 
             return context.createIrBuilder(expression.symbol, expression.startOffset, expression.endOffset).irBlock(expression) {
                 // OldReceiver has to be evaluated for its side effects.
-                val oldReceiver = super.visitExpression(expression.dispatchReceiver!!)
+                val oldReceiver = super.visitExpression(expression.dispatchReceiver!! as IrPureExpression)
                 // `coerceToUnit()` is private in InsertImplicitCasts, have to reproduce it here
                 val oldReceiverVoid = IrTypeOperatorCallImpl(
                     oldReceiver.startOffset, oldReceiver.endOffset,
@@ -186,7 +187,7 @@ private class MakeCallsStatic(
                 +super.visitCall(
                     irCall(expression, newFunction = newCallee).apply { dispatchReceiver = null }
                 )
-            }
+            } as IrPureExpression
         }
         return super.visitCall(expression)
     }

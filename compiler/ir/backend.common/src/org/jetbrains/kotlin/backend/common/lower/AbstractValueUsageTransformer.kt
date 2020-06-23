@@ -79,11 +79,11 @@ abstract class AbstractValueUsageTransformer(
 
     protected open fun IrExpression.useAsVarargElement(expression: IrVararg): IrExpression = this
 
-    override fun visitPropertyReference(expression: IrPropertyReference): IrExpression {
+    override fun visitPropertyReference(expression: IrPropertyReference): IrPureExpression {
         TODO()
     }
 
-    override fun visitLocalDelegatedPropertyReference(expression: IrLocalDelegatedPropertyReference): IrExpression {
+    override fun visitLocalDelegatedPropertyReference(expression: IrLocalDelegatedPropertyReference): IrPureExpression {
         TODO()
     }
 
@@ -91,7 +91,7 @@ abstract class AbstractValueUsageTransformer(
   //      TODO()
   //  }
 
-    override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrExpression {
+    override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         with(expression) {
@@ -119,7 +119,7 @@ abstract class AbstractValueUsageTransformer(
         return body
     }
 
-    override fun visitContainerExpression(expression: IrContainerExpression): IrExpression {
+    override fun visitContainerExpression(expression: IrContainerExpression): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         if (expression.statements.isEmpty()) {
@@ -140,7 +140,7 @@ abstract class AbstractValueUsageTransformer(
         return expression
     }
 
-    override fun visitReturn(expression: IrReturn): IrExpression {
+    override fun visitReturn(expression: IrReturn): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         expression.value = expression.value.useAsReturnValue(expression.returnTargetSymbol)
@@ -148,7 +148,7 @@ abstract class AbstractValueUsageTransformer(
         return expression
     }
 
-    override fun visitSetVariable(expression: IrSetVariable): IrExpression {
+    override fun visitSetVariable(expression: IrSetVariable): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         expression.value = expression.value.useForVariable(expression.symbol.owner)
@@ -156,7 +156,7 @@ abstract class AbstractValueUsageTransformer(
         return expression
     }
 
-    override fun visitSetField(expression: IrSetField): IrExpression {
+    override fun visitSetField(expression: IrSetField): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         expression.value = expression.value.useForField(expression.symbol.owner)
@@ -182,7 +182,7 @@ abstract class AbstractValueUsageTransformer(
         return declaration
     }
 
-    override fun visitWhen(expression: IrWhen): IrExpression {
+    override fun visitWhen(expression: IrWhen): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         for (irBranch in expression.branches) {
@@ -193,7 +193,7 @@ abstract class AbstractValueUsageTransformer(
         return expression
     }
 
-    override fun visitLoop(loop: IrLoop): IrExpression {
+    override fun visitLoop(loop: IrLoop): IrPureExpression {
         loop.transformChildrenVoid(this)
 
         loop.condition = loop.condition.useAs(irBuiltIns.booleanType)
@@ -203,7 +203,7 @@ abstract class AbstractValueUsageTransformer(
         return loop
     }
 
-    override fun visitThrow(expression: IrThrow): IrExpression {
+    override fun visitThrow(expression: IrThrow): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         expression.value = expression.value.useAs(irBuiltIns.throwableType)
@@ -211,7 +211,7 @@ abstract class AbstractValueUsageTransformer(
         return expression
     }
 
-    override fun visitTry(aTry: IrTry): IrExpression {
+    override fun visitTry(aTry: IrTry): IrPureExpression {
         aTry.transformChildrenVoid(this)
 
         aTry.tryResult = aTry.tryResult.useAsResult(aTry)
@@ -225,7 +225,7 @@ abstract class AbstractValueUsageTransformer(
         return aTry
     }
 
-    override fun visitVararg(expression: IrVararg): IrExpression {
+    override fun visitVararg(expression: IrVararg): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         expression.elements.forEachIndexed { i, element ->
@@ -241,7 +241,7 @@ abstract class AbstractValueUsageTransformer(
         return expression
     }
 
-    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrExpression {
+    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         expression.argument = expression.argument.useInTypeOperator(expression.operator, expression.typeOperand)
@@ -268,7 +268,7 @@ abstract class AbstractValueUsageTransformer(
         return declaration
     }
 
-    override fun visitStringConcatenation(expression: IrStringConcatenation): IrExpression {
+    override fun visitStringConcatenation(expression: IrStringConcatenation): IrPureExpression {
         expression.transformChildrenVoid()
         if (expression is IrStringConcatenationImpl) {
             for ((i, arg) in expression.arguments.withIndex()) {

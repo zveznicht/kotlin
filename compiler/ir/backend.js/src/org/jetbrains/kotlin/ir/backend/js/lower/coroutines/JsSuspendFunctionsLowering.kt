@@ -133,7 +133,7 @@ class JsSuspendFunctionsLowering(ctx: JsIrBackendContext) : AbstractSuspendFunct
 
         // Move return targets to new function
         functionBody.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitReturn(expression: IrReturn): IrExpression {
+            override fun visitReturn(expression: IrReturn): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 return if (expression.returnTargetSymbol != simplifiedFunction.symbol)

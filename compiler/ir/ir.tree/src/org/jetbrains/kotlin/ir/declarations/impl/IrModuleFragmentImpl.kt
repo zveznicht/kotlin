@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.name.Name
 class IrModuleFragmentImpl(
     override val descriptor: ModuleDescriptor,
     override val irBuiltins: IrBuiltIns
-) : IrModuleFragment {
+) : IrModuleFragment() {
 
     constructor(descriptor: ModuleDescriptor, irBuiltins: IrBuiltIns, files: List<IrFile>) : this(descriptor, irBuiltins) {
         this.files.addAll(files)

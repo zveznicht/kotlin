@@ -53,13 +53,13 @@ internal class InlineCallableReferenceToLambdaPhase(val context: JvmBackendConte
         irFile.transformChildrenVoid(this)
     }
 
-    override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+    override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
         expression.transformChildrenVoid(this)
         if (expression !in inlinableReferences || expression.origin.isLambda) return expression
         return expandInlineFunctionReferenceToLambda(expression, expression.symbol.owner)
     }
 
-    override fun visitPropertyReference(expression: IrPropertyReference): IrExpression {
+    override fun visitPropertyReference(expression: IrPropertyReference): IrPureExpression {
         expression.transformChildrenVoid(this)
         if (expression !in inlinableReferences) return expression
 
@@ -72,7 +72,7 @@ internal class InlineCallableReferenceToLambdaPhase(val context: JvmBackendConte
         }
     }
 
-    private fun expandInlineFieldReferenceToLambda(expression: IrPropertyReference, field: IrField): IrExpression {
+    private fun expandInlineFieldReferenceToLambda(expression: IrPropertyReference, field: IrField): IrPureExpression {
         val irBuilder = context.createJvmIrBuilder(currentScope!!.scope.scopeOwnerSymbol, expression.startOffset, expression.endOffset)
         return irBuilder.irBlock(expression, IrStatementOrigin.LAMBDA) {
             val function = buildFun {
@@ -110,10 +110,10 @@ internal class InlineCallableReferenceToLambdaPhase(val context: JvmBackendConte
             ).apply {
                 copyAttributes(expression)
             }
-        }
+        } as IrPureExpression
     }
 
-    private fun expandInlineFunctionReferenceToLambda(expression: IrCallableReference<*>, referencedFunction: IrFunction): IrExpression {
+    private fun expandInlineFunctionReferenceToLambda(expression: IrCallableReference<*>, referencedFunction: IrFunction): IrPureExpression {
         val irBuilder = context.createJvmIrBuilder(currentScope!!.scope.scopeOwnerSymbol, expression.startOffset, expression.endOffset)
         return irBuilder.irBlock(expression, IrStatementOrigin.LAMBDA) {
 
@@ -191,6 +191,6 @@ internal class InlineCallableReferenceToLambdaPhase(val context: JvmBackendConte
             ).apply {
                 copyAttributes(expression)
             }
-        }
+        } as IrPureExpression
     }
 }

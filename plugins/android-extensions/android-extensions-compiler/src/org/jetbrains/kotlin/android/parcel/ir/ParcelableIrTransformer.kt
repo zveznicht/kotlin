@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionReferenceImpl
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
@@ -59,7 +60,7 @@ class ParcelableIrTransformer(private val context: IrPluginContext, private val 
 
         // Remap broken stubs, which psi2ir generates for the synthetic descriptors coming from the ParcelizeResolveExtension.
         moduleFragment.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 val remappedSymbol = symbolMap[expression.symbol]
                     ?: return super.visitCall(expression)
                 return IrCallImpl(
@@ -71,7 +72,7 @@ class ParcelableIrTransformer(private val context: IrPluginContext, private val 
                 }
             }
 
-            override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+            override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
                 val remappedSymbol = symbolMap[expression.symbol]
                 val remappedReflectionTarget = expression.reflectionTarget?.let { symbolMap[it] }
                 if (remappedSymbol == null && remappedReflectionTarget == null)

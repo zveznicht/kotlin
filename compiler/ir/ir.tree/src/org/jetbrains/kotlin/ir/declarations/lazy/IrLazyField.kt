@@ -10,7 +10,9 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrField
+import org.jetbrains.kotlin.ir.declarations.MetadataSource
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.impl.IrExpressionBodyImpl
@@ -25,9 +27,9 @@ import org.jetbrains.kotlin.name.Name
 
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 class IrLazyField(
-    startOffset: Int,
-    endOffset: Int,
-    origin: IrDeclarationOrigin,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override var origin: IrDeclarationOrigin,
     override val symbol: IrFieldSymbol,
     override val descriptor: PropertyDescriptor,
     override val name: Name,
@@ -35,11 +37,9 @@ class IrLazyField(
     override val isFinal: Boolean,
     override val isExternal: Boolean,
     override val isStatic: Boolean,
-    stubGenerator: DeclarationStubGenerator,
-    typeTranslator: TypeTranslator
-) : IrLazyDeclarationBase(startOffset, endOffset, origin, stubGenerator, typeTranslator),
-    IrField {
-
+    override val stubGenerator: DeclarationStubGenerator,
+    override val typeTranslator: TypeTranslator
+) : IrLazyDeclarationBase, IrField() {
     init {
         symbol.bind(this)
     }
@@ -65,6 +65,11 @@ class IrLazyField(
     override var correspondingPropertySymbol: IrPropertySymbol? by lazyVar {
         stubGenerator.generatePropertyStub(descriptor).symbol
     }
+
+    override var parent: IrDeclarationParent by createLazyParent()
+
+    override val metadata: MetadataSource?
+        get() = null
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {
         return visitor.visitField(this, data)

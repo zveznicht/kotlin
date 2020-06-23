@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.fir.types.isNullableAny
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.lazy.lazyVar
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.util.transform
@@ -28,18 +29,26 @@ import org.jetbrains.kotlin.name.Name
 
 class Fir2IrLazyClass(
     components: Fir2IrComponents,
-    startOffset: Int,
-    endOffset: Int,
-    origin: IrDeclarationOrigin,
-    fir: FirRegularClass,
-    symbol: Fir2IrClassSymbol
-) : AbstractFir2IrLazyDeclaration<FirRegularClass, IrClass>(
-    components, startOffset, endOffset, origin, fir, symbol
-), IrClass {
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override var origin: IrDeclarationOrigin,
+    override val fir: FirRegularClass,
+    override val symbol: Fir2IrClassSymbol
+) : IrClass(), AbstractFir2IrLazyDeclaration<FirRegularClass, IrClass>, Fir2IrComponents by components {
     init {
         symbol.bind(this)
         classifierStorage.preCacheTypeParameters(fir)
     }
+
+    override lateinit var typeParameters: List<IrTypeParameter>
+
+    override lateinit var parent: IrDeclarationParent
+
+    override var annotations: List<IrConstructorCall> by createLazyAnnotations()
+
+    override var metadata: MetadataSource?
+        get() = null
+        set(_) = error("We should never need to store metadata of external declarations.")
 
     override val source: SourceElement
         get() = SourceElement.NO_SOURCE
@@ -47,9 +56,6 @@ class Fir2IrLazyClass(
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ClassDescriptor
         get() = super.descriptor as ClassDescriptor
-
-    override val symbol: Fir2IrClassSymbol
-        get() = super.symbol as Fir2IrClassSymbol
 
     override val name: Name
         get() = fir.name

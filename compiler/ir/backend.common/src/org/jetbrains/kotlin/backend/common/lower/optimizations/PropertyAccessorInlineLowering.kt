@@ -28,7 +28,7 @@ class PropertyAccessorInlineLowering(private val context: CommonBackendContext) 
 
         private val unitType = context.irBuiltIns.unitType
 
-        override fun visitCall(expression: IrCall): IrExpression {
+        override fun visitCall(expression: IrCall): IrPureExpression {
             expression.transformChildrenVoid(this)
 
             val callee = expression.symbol.owner as IrSimpleFunction
@@ -49,7 +49,7 @@ class PropertyAccessorInlineLowering(private val context: CommonBackendContext) 
             if (property.isConst) {
                 val initializer =
                     (property.backingField?.initializer ?: error("Constant property has to have a backing field with initializer"))
-                return initializer.expression.deepCopyWithSymbols()
+                return initializer.expression.deepCopyWithSymbols() as IrPureExpression
             }
 
             val backingField = property.backingField ?: return expression
@@ -65,7 +65,7 @@ class PropertyAccessorInlineLowering(private val context: CommonBackendContext) 
             return expression
         }
 
-        private fun tryInlineSimpleGetter(call: IrCall, callee: IrSimpleFunction, backingField: IrField): IrExpression? {
+        private fun tryInlineSimpleGetter(call: IrCall, callee: IrSimpleFunction, backingField: IrField): IrPureExpression? {
             if (!isSimpleGetter(callee, backingField)) return null
 
             return call.run {
@@ -92,7 +92,7 @@ class PropertyAccessorInlineLowering(private val context: CommonBackendContext) 
             return false
         }
 
-        private fun tryInlineSimpleSetter(call: IrCall, callee: IrSimpleFunction, backingField: IrField): IrExpression? {
+        private fun tryInlineSimpleSetter(call: IrCall, callee: IrSimpleFunction, backingField: IrField): IrPureExpression? {
             if (!isSimpleSetter(callee, backingField)) return null
 
             return call.run {

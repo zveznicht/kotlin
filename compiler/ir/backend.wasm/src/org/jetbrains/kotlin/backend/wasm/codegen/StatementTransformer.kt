@@ -19,7 +19,7 @@ class StatementTransformer : BaseTransformer<WasmInstruction, WasmCodegenContext
         return WasmSetLocal(varName, expressionToWasmInstruction(init, data))
     }
 
-    override fun visitExpression(expression: IrExpression, data: WasmCodegenContext): WasmInstruction {
+    override fun visitExpression(expression: IrPureExpression, data: WasmCodegenContext): WasmInstruction {
         return expressionToWasmInstruction(expression, data)
     }
 }

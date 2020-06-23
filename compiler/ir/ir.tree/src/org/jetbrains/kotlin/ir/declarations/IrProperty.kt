@@ -20,25 +20,26 @@ import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 
-interface IrProperty :
+abstract class IrProperty :
+    IrPureDeclaration(),
     IrDeclarationWithName,
     IrDeclarationWithVisibility,
     IrOverridableMember,
     IrSymbolOwner {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: PropertyDescriptor
-    override val symbol: IrPropertySymbol
+    abstract override val descriptor: PropertyDescriptor
+    abstract override val symbol: IrPropertySymbol
 
-    val isVar: Boolean
-    val isConst: Boolean
-    val isLateinit: Boolean
-    val isDelegated: Boolean
-    val isExternal: Boolean
-    val isExpect: Boolean
-    val isFakeOverride: Boolean
+    abstract val isVar: Boolean
+    abstract val isConst: Boolean
+    abstract val isLateinit: Boolean
+    abstract val isDelegated: Boolean
+    abstract val isExternal: Boolean
+    abstract val isExpect: Boolean
+    abstract val isFakeOverride: Boolean
 
-    var backingField: IrField?
-    var getter: IrSimpleFunction?
-    var setter: IrSimpleFunction?
+    abstract var backingField: IrField?
+    abstract var getter: IrSimpleFunction?
+    abstract var setter: IrSimpleFunction?
 }

@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionReferenceImpl
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
@@ -25,7 +26,7 @@ class ProvisionalFunctionExpressionLowering :
         irBody.transformChildrenVoid(this)
     }
 
-    override fun visitFunctionExpression(expression: IrFunctionExpression): IrExpression {
+    override fun visitFunctionExpression(expression: IrFunctionExpression): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         val startOffset = expression.startOffset

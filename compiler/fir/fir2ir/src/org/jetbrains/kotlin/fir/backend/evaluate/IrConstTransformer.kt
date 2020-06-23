@@ -29,9 +29,9 @@ class IrConstTransformer(irBuiltIns: IrBuiltIns) : IrElementTransformerVoid() {
         return if (this !is IrErrorExpression) this else original
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         if (expression.accept(IrCompileTimeChecker(mode = EvaluationMode.ONLY_BUILTINS), null)) {
-            return interpreter.interpret(expression).replaceIfError(expression)
+            return interpreter.interpret(expression).replaceIfError(expression) as IrPureExpression
         }
         return expression
     }
@@ -50,7 +50,7 @@ class IrConstTransformer(irBuiltIns: IrBuiltIns) : IrElementTransformerVoid() {
         return declaration
     }
 
-    override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
+    override fun visitDeclaration(declaration: IrPureDeclaration): IrStatement {
         transformAnnotations(declaration)
         return super.visitDeclaration(declaration)
     }

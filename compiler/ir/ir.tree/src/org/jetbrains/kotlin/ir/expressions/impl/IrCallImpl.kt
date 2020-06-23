@@ -17,7 +17,9 @@
 package org.jetbrains.kotlin.ir.expressions.impl
 
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.typeParametersCount
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
@@ -28,22 +30,23 @@ import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IrCallImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
     override val symbol: IrFunctionSymbol,
-    typeArgumentsCount: Int,
-    valueArgumentsCount: Int,
-    origin: IrStatementOrigin? = null,
+    override val typeArgumentsCount: Int,
+    override val valueArgumentsCount: Int,
+    override val origin: IrStatementOrigin? = null,
     override val superQualifierSymbol: IrClassSymbol? = null
-) :
-    IrCallWithIndexedArgumentsBase(
-        startOffset, endOffset, type,
-        typeArgumentsCount,
-        valueArgumentsCount,
-        origin
-    ),
-    IrCall {
+) : IrCall(), IrCallWithIndexedArgumentsBase {
+    override var dispatchReceiver: IrExpression? = null
+    override var extensionReceiver: IrExpression? = null
+
+    override val argumentsByParameterIndex: Array<IrExpression?> = arrayOfNulls(valueArgumentsCount)
+
+    override val typeArgumentsByIndex: Array<IrType?> = arrayOfNulls(typeArgumentsCount)
+
+    override var attributeOwnerId: IrAttributeContainer = this
 
     init {
         if (symbol is IrConstructorSymbol) {
@@ -77,6 +80,16 @@ class IrCallImpl(
         startOffset, endOffset, type, symbol, typeArgumentsCount, symbol.descriptor.valueParameters.size,
         origin, superQualifierSymbol
     )
+
+    override fun getTypeArgument(index: Int): IrType? = super.getTypeArgument(index)
+
+    override fun putTypeArgument(index: Int, type: IrType?): Unit = super.putTypeArgument(index, type)
+
+    override fun getValueArgument(index: Int): IrExpression? = super.getValueArgument(index)
+
+    override fun putValueArgument(index: Int, valueArgument: IrExpression?): Unit = super.putValueArgument(index, valueArgument)
+
+    override fun removeValueArgument(index: Int): Unit = super.removeValueArgument(index)
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =
         visitor.visitCall(this, data)

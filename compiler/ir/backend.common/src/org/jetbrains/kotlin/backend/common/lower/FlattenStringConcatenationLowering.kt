@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
 import org.jetbrains.kotlin.ir.expressions.impl.IrStringConcatenationImpl
 import org.jetbrains.kotlin.ir.types.*
@@ -156,7 +157,7 @@ class FlattenStringConcatenationLowering(val context: CommonBackendContext) : Fi
                     expression.acceptChildrenVoid(this)
                 }
 
-                override fun visitExpression(expression: IrExpression) {
+                override fun visitExpression(expression: IrPureExpression) {
                     // These IrExpressions are neither IrCalls nor IrStringConcatenations and should be added as an argument.
                     arguments.add(expression)
                 }
@@ -170,7 +171,7 @@ class FlattenStringConcatenationLowering(val context: CommonBackendContext) : Fi
         irFile.transformChildrenVoid(this)
     }
 
-    override fun visitExpression(expression: IrExpression): IrExpression {
+    override fun visitExpression(expression: IrPureExpression): IrPureExpression {
         // Only modify/flatten string concatenation expressions.
         val transformedExpression =
             if (isStringConcatenationExpression(expression) || expression is IrCall && expression.isSpecialToStringCall)

@@ -10,15 +10,16 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.symbols.IrTypeAliasSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 
-interface IrTypeAlias :
+abstract class IrTypeAlias :
+    IrPureDeclaration(),
     IrSymbolDeclaration<IrTypeAliasSymbol>,
     IrDeclarationWithName,
     IrDeclarationWithVisibility,
     IrTypeParametersContainer {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: TypeAliasDescriptor
+    abstract override val descriptor: TypeAliasDescriptor
 
-    val isActual: Boolean
-    val expandedType: IrType
+    abstract val isActual: Boolean
+    abstract val expandedType: IrType
 }

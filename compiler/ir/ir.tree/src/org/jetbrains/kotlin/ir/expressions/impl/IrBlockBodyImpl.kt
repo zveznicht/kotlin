@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
-import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.expressions.IrBlockBody
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
@@ -24,12 +23,9 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import java.util.*
 
 class IrBlockBodyImpl(
-    startOffset: Int,
-    endOffset: Int
-) :
-    IrElementBase(startOffset, endOffset),
-    IrBlockBody {
-
+    override val startOffset: Int,
+    override val endOffset: Int
+) : IrBlockBody() {
     constructor(startOffset: Int, endOffset: Int, statements: List<IrStatement>) : this(startOffset, endOffset) {
         this.statements.addAll(statements)
     }

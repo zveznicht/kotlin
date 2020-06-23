@@ -17,11 +17,24 @@
 package org.jetbrains.kotlin.ir.util
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrPureElement
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationContainer
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 
 inline fun <reified T : IrElement> MutableList<T>.transform(transformation: (T) -> IrElement) {
+    forEachIndexed { i, item ->
+        set(i, transformation(item) as T)
+    }
+}
+
+inline fun <reified T : IrPureElement> MutableList<T>.transformPure(transformation: (T) -> IrPureElement) {
+    forEachIndexed { i, item ->
+        set(i, transformation(item) as T)
+    }
+}
+
+inline fun <reified T : IrPureElement> MutableList<T>.transformPureToInterface(transformation: (T) -> IrElement) {
     forEachIndexed { i, item ->
         set(i, transformation(item) as T)
     }
@@ -68,7 +81,7 @@ fun IrDeclarationContainer.transformDeclarationsFlat(transformation: (IrDeclarat
 /**
  * Transforms the list of elements with the given transformer. Return the same List instance if no element instances have changed.
  */
-fun <T : IrElement, D> List<T>.transformIfNeeded(transformer: IrElementTransformer<D>, data: D): List<T> {
+fun <T : IrPureElement, D> List<T>.transformIfNeeded(transformer: IrElementTransformer<D>, data: D): List<T> {
     var result: ArrayList<T>? = null
     for ((i, item) in withIndex()) {
         @Suppress("UNCHECKED_CAST")

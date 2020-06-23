@@ -63,14 +63,14 @@ private fun IrBody.move(
     targetSymbol: IrReturnTargetSymbol,
     arguments: Map<IrValueParameter, IrValueDeclaration>
 ): IrBody = transform(object : VariableRemapper(arguments) {
-    override fun visitReturn(expression: IrReturn): IrExpression = super.visitReturn(
+    override fun visitReturn(expression: IrReturn): IrPureExpression = super.visitReturn(
         if (expression.returnTargetSymbol == source.symbol)
             IrReturnImpl(expression.startOffset, expression.endOffset, expression.type, targetSymbol, expression.value)
         else
             expression
     )
 
-    override fun visitBlock(expression: IrBlock): IrExpression {
+    override fun visitBlock(expression: IrBlock): IrPureExpression {
         // Might be an inline lambda argument; if the function has already been moved out, visit it explicitly.
         if (expression.origin == IrStatementOrigin.LAMBDA || expression.origin == IrStatementOrigin.ANONYMOUS_FUNCTION)
             if (expression.statements[0] !is IrFunction && expression.statements[1] is IrFunctionReference)
@@ -78,7 +78,7 @@ private fun IrBody.move(
         return super.visitBlock(expression)
     }
 
-    override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
+    override fun visitDeclaration(declaration: IrPureDeclaration): IrStatement {
         if (declaration.parent == source)
             declaration.parent = target
         return super.visitDeclaration(declaration)

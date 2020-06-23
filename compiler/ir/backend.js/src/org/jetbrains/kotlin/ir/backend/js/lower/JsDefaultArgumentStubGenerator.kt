@@ -56,7 +56,7 @@ val BIND_CALL = object : IrStatementOriginImpl("BIND_CALL") {}
 class JsDefaultCallbackGenerator(val context: JsIrBackendContext): BodyLoweringPass {
     override fun lower(irBody: IrBody, container: IrDeclaration) {
         irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 super.visitCall(expression)
                 if (expression.origin != DEFAULT_DISPATCH_CALL || expression.superQualifierSymbol == null) return expression
 

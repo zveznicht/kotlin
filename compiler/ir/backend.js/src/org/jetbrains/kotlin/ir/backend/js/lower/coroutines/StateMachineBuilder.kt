@@ -47,8 +47,8 @@ class IrDispatchPoint(val target: SuspendState) : IrExpressionBase(UNDEFINED_OFF
     override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {}
 }
 
-class DispatchPointTransformer(val action: (SuspendState) -> IrExpression) : IrElementTransformerVoid() {
-    override fun visitExpression(expression: IrExpression): IrExpression {
+class DispatchPointTransformer(val action: (SuspendState) -> IrPureExpression) : IrElementTransformerVoid() {
+    override fun visitExpression(expression: IrPureExpression): IrPureExpression {
         val dispatchPoint = expression as? IrDispatchPoint
             ?: return super.visitExpression(expression)
         return action(dispatchPoint.target)

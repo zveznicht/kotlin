@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.backend.js.ir.JsIrBuilder
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
+import org.jetbrains.kotlin.ir.declarations.IrPureDeclaration
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrBranchImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrCatchImpl
@@ -51,12 +52,12 @@ class MultipleCatchesLowering(private val context: JsIrBackendContext) : BodyLow
     override fun lower(irBody: IrBody, container: IrDeclaration) {
         irBody.transform(object : IrElementTransformer<IrDeclarationParent> {
 
-            override fun visitDeclaration(declaration: IrDeclaration, data: IrDeclarationParent): IrStatement {
+            override fun visitDeclaration(declaration: IrPureDeclaration, data: IrDeclarationParent): IrStatement {
                 val parent = (declaration as? IrDeclarationParent) ?: data
                 return super.visitDeclaration(declaration, parent)
             }
 
-            override fun visitTry(aTry: IrTry, data: IrDeclarationParent): IrExpression {
+            override fun visitTry(aTry: IrTry, data: IrDeclarationParent): IrPureExpression {
                 aTry.transformChildren(this, data)
 
                 if (aTry.catches.isEmpty()) return aTry.also { assert(it.finallyExpression != null) }

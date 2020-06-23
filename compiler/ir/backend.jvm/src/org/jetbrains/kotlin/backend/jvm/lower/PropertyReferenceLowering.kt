@@ -207,13 +207,13 @@ internal class PropertyReferenceLowering(val context: JvmBackendContext) : Class
                 return super.visitLocalDelegatedProperty(declaration)
             }
 
-            override fun visitPropertyReference(expression: IrPropertyReference): IrExpression =
+            override fun visitPropertyReference(expression: IrPropertyReference): IrPureExpression =
                 cachedKProperty(expression)
 
-            override fun visitLocalDelegatedPropertyReference(expression: IrLocalDelegatedPropertyReference): IrExpression =
+            override fun visitLocalDelegatedPropertyReference(expression: IrLocalDelegatedPropertyReference): IrPureExpression =
                 cachedKProperty(expression)
 
-            private fun cachedKProperty(expression: IrCallableReference<*>): IrExpression {
+            private fun cachedKProperty(expression: IrCallableReference<*>): IrPureExpression {
                 if (expression.origin != IrStatementOrigin.PROPERTY_REFERENCE_FOR_DELEGATE)
                     return createSpecializedKProperty(expression)
 
@@ -258,7 +258,7 @@ internal class PropertyReferenceLowering(val context: JvmBackendContext) : Class
             //
             // and then `C()::property` -> `C$property$0(C())`.
             //
-            private fun createSpecializedKProperty(expression: IrCallableReference<*>): IrExpression {
+            private fun createSpecializedKProperty(expression: IrCallableReference<*>): IrPureExpression {
                 val referenceClass = createKPropertySubclass(expression)
                 return context.createIrBuilder(
                         currentScope?.scope?.scopeOwnerSymbol ?: irClass.symbol, expression.startOffset, expression.endOffset

@@ -353,7 +353,7 @@ class CheckIrElementVisitor(
         expression.setter?.ensureBound(expression)
     }
 
-    override fun visitExpression(expression: IrExpression) {
+    override fun visitExpression(expression: IrPureExpression) {
         checkType(expression.type, expression)
         super.visitExpression(expression)
     }

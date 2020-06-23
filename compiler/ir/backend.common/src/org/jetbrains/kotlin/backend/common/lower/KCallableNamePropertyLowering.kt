@@ -54,7 +54,7 @@ private class KCallableNamePropertyTransformer(val lower: KCallableNamePropertyL
         }
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         val callableReference = expression.dispatchReceiver as? IrCallableReference<*> ?: return expression
 
         //TODO rewrite checking

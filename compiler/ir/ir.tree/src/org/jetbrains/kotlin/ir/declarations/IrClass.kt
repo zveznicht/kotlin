@@ -21,30 +21,30 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 
-interface IrClass :
-    IrSymbolDeclaration<IrClassSymbol>, IrDeclarationWithName, IrDeclarationWithVisibility,
+abstract class IrClass :
+    IrPureDeclaration(), IrSymbolDeclaration<IrClassSymbol>, IrDeclarationWithName, IrDeclarationWithVisibility,
     IrDeclarationContainer, IrTypeParametersContainer, IrAttributeContainer {
 
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ClassDescriptor
+    abstract override val descriptor: ClassDescriptor
 
-    override var visibility: Visibility
+    abstract override var visibility: Visibility
 
-    val kind: ClassKind
-    var modality: Modality
-    val isCompanion: Boolean
-    val isInner: Boolean
-    val isData: Boolean
-    val isExternal: Boolean
-    val isInline: Boolean
-    val isExpect: Boolean
-    val isFun: Boolean
+    abstract val kind: ClassKind
+    abstract var modality: Modality
+    abstract val isCompanion: Boolean
+    abstract val isInner: Boolean
+    abstract val isData: Boolean
+    abstract val isExternal: Boolean
+    abstract val isInline: Boolean
+    abstract val isExpect: Boolean
+    abstract val isFun: Boolean
 
-    val source: SourceElement
+    abstract val source: SourceElement
 
-    var superTypes: List<IrType>
+    abstract var superTypes: List<IrType>
 
-    var thisReceiver: IrValueParameter?
+    abstract var thisReceiver: IrValueParameter?
 }
 
 fun IrClass.addMember(member: IrDeclaration) {

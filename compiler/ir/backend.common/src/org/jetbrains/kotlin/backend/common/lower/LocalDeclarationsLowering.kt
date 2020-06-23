@@ -142,7 +142,7 @@ class LocalDeclarationsLowering(
         /**
          * @return the expression to get the value for given declaration, or `null` if [IrGetValue] should be used.
          */
-        abstract fun irGet(startOffset: Int, endOffset: Int, valueDeclaration: IrValueDeclaration): IrExpression?
+        abstract fun irGet(startOffset: Int, endOffset: Int, valueDeclaration: IrValueDeclaration): IrPureExpression?
     }
 
     private abstract class LocalContextWithClosureAsParameters : LocalContext() {
@@ -152,7 +152,7 @@ class LocalDeclarationsLowering(
 
         val capturedValueToParameter: MutableMap<IrValueDeclaration, IrValueParameter> = mutableMapOf()
 
-        override fun irGet(startOffset: Int, endOffset: Int, valueDeclaration: IrValueDeclaration): IrExpression? {
+        override fun irGet(startOffset: Int, endOffset: Int, valueDeclaration: IrValueDeclaration): IrPureExpression? {
             val parameter = capturedValueToParameter[valueDeclaration] ?: return null
 
             return IrGetValueImpl(startOffset, endOffset, parameter.type, parameter.symbol)
@@ -182,7 +182,7 @@ class LocalDeclarationsLowering(
         // the deterministic iteration order that `mutableMapOf` provides.
         val capturedValueToField: MutableMap<IrValueDeclaration, IrField> = mutableMapOf()
 
-        override fun irGet(startOffset: Int, endOffset: Int, valueDeclaration: IrValueDeclaration): IrExpression? {
+        override fun irGet(startOffset: Int, endOffset: Int, valueDeclaration: IrValueDeclaration): IrPureExpression? {
             val field = capturedValueToField[valueDeclaration] ?: return null
 
             val receiver = declaration.thisReceiver!!
@@ -194,7 +194,7 @@ class LocalDeclarationsLowering(
     }
 
     private class LocalClassMemberContext(val member: IrFunction, val classContext: LocalClassContext) : LocalContext() {
-        override fun irGet(startOffset: Int, endOffset: Int, valueDeclaration: IrValueDeclaration): IrExpression? {
+        override fun irGet(startOffset: Int, endOffset: Int, valueDeclaration: IrValueDeclaration): IrPureExpression? {
             val field = classContext.capturedValueToField[valueDeclaration] ?: return null
 
             val receiver = member.dispatchReceiverParameter!!
@@ -317,7 +317,7 @@ class LocalDeclarationsLowering(
                 } ?: super.visitConstructor(declaration)
             }
 
-            override fun visitGetValue(expression: IrGetValue): IrExpression {
+            override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                 val declaration = expression.symbol.owner
 
                 localContext?.irGet(expression.startOffset, expression.endOffset, declaration)?.let {
@@ -331,7 +331,7 @@ class LocalDeclarationsLowering(
                 return expression
             }
 
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 val oldCallee = expression.symbol.owner
@@ -340,7 +340,7 @@ class LocalDeclarationsLowering(
                 return createNewCall(expression, newCallee).fillArguments2(expression, newCallee)
             }
 
-            override fun visitConstructorCall(expression: IrConstructorCall): IrExpression {
+            override fun visitConstructorCall(expression: IrConstructorCall): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 val oldCallee = expression.symbol.owner
@@ -349,7 +349,7 @@ class LocalDeclarationsLowering(
                 return createNewCall(expression, newCallee).fillArguments2(expression, newCallee)
             }
 
-            override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+            override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 val oldCallee = expression.symbol.owner
@@ -409,7 +409,7 @@ class LocalDeclarationsLowering(
                 return this
             }
 
-            override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+            override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 val oldCallee = expression.symbol.owner
@@ -432,7 +432,7 @@ class LocalDeclarationsLowering(
                 }
             }
 
-            override fun visitReturn(expression: IrReturn): IrExpression {
+            override fun visitReturn(expression: IrReturn): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 val oldReturnTarget = expression.returnTargetSymbol.owner as? IrFunction ?: return expression
@@ -445,14 +445,14 @@ class LocalDeclarationsLowering(
                 )
             }
 
-            override fun visitDeclarationReference(expression: IrDeclarationReference): IrExpression {
+            override fun visitDeclarationReference(expression: IrDeclarationReference): IrPureExpression {
                 if (expression.symbol.owner in transformedDeclarations) {
                     TODO()
                 }
                 return super.visitDeclarationReference(expression)
             }
 
-            override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
+            override fun visitDeclaration(declaration: IrPureDeclaration): IrStatement {
                 if (declaration is IrSymbolOwner && declaration in transformedDeclarations) {
                     TODO()
                 }

@@ -21,10 +21,7 @@ import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.*
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrGetValue
-import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
-import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrInstanceInitializerCallImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.classifierOrFail
@@ -90,7 +87,7 @@ abstract class SingleAbstractMethodLowering(val context: CommonBackendContext) :
         return declaration
     }
 
-    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrExpression {
+    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrPureExpression {
         if (expression.operator != IrTypeOperator.SAM_CONVERSION)
             return super.visitTypeOperator(expression)
         // TODO: there must be exactly one wrapper per Java interface; ideally, if the interface has generic
@@ -98,7 +95,7 @@ abstract class SingleAbstractMethodLowering(val context: CommonBackendContext) :
         //       erases to the same result at codegen time.
         val erasedSuperType = getSuperTypeForWrapper(expression.typeOperand)
         val superType = if (expression.typeOperand.isNullable()) erasedSuperType.makeNullable() else erasedSuperType
-        val invokable = expression.argument.transform(this, null)
+        val invokable = (expression.argument as IrPureExpression).transform(this, null)
         context.createIrBuilder(currentScope!!.scope.scopeOwnerSymbol).apply {
             // Do not generate a wrapper class for null, it has no invoke() anyway.
             if (invokable.isNullConst())

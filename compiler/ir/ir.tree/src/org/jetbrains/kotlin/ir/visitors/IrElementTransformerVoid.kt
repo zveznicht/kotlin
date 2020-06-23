@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.ir.visitors
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrPureElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -24,14 +25,26 @@ import org.jetbrains.kotlin.ir.expressions.*
 abstract class IrElementTransformerVoid : IrElementTransformer<Nothing?> {
     protected fun <T : IrElement> T.transformChildren() = apply { transformChildrenVoid() }
 
-    open fun visitElement(element: IrElement): IrElement = element.transformChildren()
-    final override fun visitElement(element: IrElement, data: Nothing?): IrElement = visitElement(element)
+    open fun visitElement(element: IrPureElement): IrPureElement {
+        element.transformChildren(this@IrElementTransformerVoid, null)
+        return element
+    }
 
-    open fun visitModuleFragment(declaration: IrModuleFragment): IrModuleFragment = declaration.transformChildren()
+    final override fun visitElement(element: IrElement, data: Nothing?): IrElement = visitElement(element as IrPureElement)
+
+    open fun visitModuleFragment(declaration: IrModuleFragment): IrModuleFragment {
+        declaration.transformChildren(this@IrElementTransformerVoid, null)
+        return declaration
+    }
+
     final override fun visitModuleFragment(declaration: IrModuleFragment, data: Nothing?): IrModuleFragment =
         visitModuleFragment(declaration)
 
-    open fun visitPackageFragment(declaration: IrPackageFragment): IrPackageFragment = declaration.transformChildren()
+    open fun visitPackageFragment(declaration: IrPackageFragment): IrPackageFragment {
+        declaration.transformChildren(this@IrElementTransformerVoid, null)
+        return declaration
+    }
+
     final override fun visitPackageFragment(declaration: IrPackageFragment, data: Nothing?): IrElement = visitPackageFragment(declaration)
 
     open fun visitFile(declaration: IrFile): IrFile = visitPackageFragment(declaration) as IrFile
@@ -43,8 +56,11 @@ abstract class IrElementTransformerVoid : IrElementTransformer<Nothing?> {
     final override fun visitExternalPackageFragment(declaration: IrExternalPackageFragment, data: Nothing?): IrExternalPackageFragment =
         visitExternalPackageFragment(declaration)
 
-    open fun visitDeclaration(declaration: IrDeclaration): IrStatement = declaration.transformChildren()
-    final override fun visitDeclaration(declaration: IrDeclaration, data: Nothing?): IrStatement = visitDeclaration(declaration)
+    open fun visitDeclaration(declaration: IrPureDeclaration): IrStatement = declaration.apply {
+        declaration.transformChildren(this@IrElementTransformerVoid, null)
+    }
+
+    final override fun visitDeclaration(declaration: IrPureDeclaration, data: Nothing?): IrStatement = visitDeclaration(declaration)
 
     open fun visitScript(declaration: IrScript) = visitDeclaration(declaration)
     final override fun visitScript(declaration: IrScript, data: Nothing?) = visitScript(declaration)
@@ -90,7 +106,11 @@ abstract class IrElementTransformerVoid : IrElementTransformer<Nothing?> {
     open fun visitTypeAlias(declaration: IrTypeAlias) = visitDeclaration(declaration)
     final override fun visitTypeAlias(declaration: IrTypeAlias, data: Nothing?) = visitTypeAlias(declaration)
 
-    open fun visitBody(body: IrBody): IrBody = body.transformChildren()
+    open fun visitBody(body: IrBody): IrBody {
+        body.transformChildren(this@IrElementTransformerVoid, null)
+        return body
+    }
+
     final override fun visitBody(body: IrBody, data: Nothing?): IrBody = visitBody(body)
 
     open fun visitExpressionBody(body: IrExpressionBody) = visitBody(body)
@@ -109,8 +129,12 @@ abstract class IrElementTransformerVoid : IrElementTransformer<Nothing?> {
     open fun visitSuspensionPoint(expression: IrSuspensionPoint) = visitExpression(expression)
     final override fun visitSuspensionPoint(expression: IrSuspensionPoint, data: Nothing?) = visitSuspensionPoint(expression)
 
-    open fun visitExpression(expression: IrExpression): IrExpression = expression.transformChildren()
-    final override fun visitExpression(expression: IrExpression, data: Nothing?): IrExpression = visitExpression(expression)
+    open fun visitExpression(expression: IrPureExpression): IrPureExpression {
+        expression.transformChildren(this@IrElementTransformerVoid, null)
+        return expression
+    }
+
+    final override fun visitExpression(expression: IrPureExpression, data: Nothing?): IrPureExpression = visitExpression(expression)
 
     open fun <T> visitConst(expression: IrConst<T>) = visitExpression(expression)
     final override fun <T> visitConst(expression: IrConst<T>, data: Nothing?) = visitConst(expression)
@@ -118,7 +142,11 @@ abstract class IrElementTransformerVoid : IrElementTransformer<Nothing?> {
     open fun visitVararg(expression: IrVararg) = visitExpression(expression)
     final override fun visitVararg(expression: IrVararg, data: Nothing?) = visitVararg(expression)
 
-    open fun visitSpreadElement(spread: IrSpreadElement) = spread.transformChildren()
+    open fun visitSpreadElement(spread: IrSpreadElement): IrSpreadElement {
+        spread.transformChildren(this@IrElementTransformerVoid, null)
+        return spread
+    }
+
     final override fun visitSpreadElement(spread: IrSpreadElement, data: Nothing?): IrSpreadElement = visitSpreadElement(spread)
 
     open fun visitContainerExpression(expression: IrContainerExpression) = visitExpression(expression)
@@ -221,10 +249,18 @@ abstract class IrElementTransformerVoid : IrElementTransformer<Nothing?> {
     open fun visitWhen(expression: IrWhen) = visitExpression(expression)
     final override fun visitWhen(expression: IrWhen, data: Nothing?) = visitWhen(expression)
 
-    open fun visitBranch(branch: IrBranch) = branch.transformChildren()
+    open fun visitBranch(branch: IrBranch): IrBranch {
+        branch.transformChildren(this@IrElementTransformerVoid, null)
+        return branch
+    }
+
     final override fun visitBranch(branch: IrBranch, data: Nothing?): IrBranch = visitBranch(branch)
 
-    open fun visitElseBranch(branch: IrElseBranch) = branch.transformChildren()
+    open fun visitElseBranch(branch: IrElseBranch): IrElseBranch {
+        branch.transformChildren(this@IrElementTransformerVoid, null)
+        return branch
+    }
+
     final override fun visitElseBranch(branch: IrElseBranch, data: Nothing?): IrElseBranch = visitElseBranch(branch)
 
     open fun visitLoop(loop: IrLoop) = visitExpression(loop)
@@ -239,7 +275,11 @@ abstract class IrElementTransformerVoid : IrElementTransformer<Nothing?> {
     open fun visitTry(aTry: IrTry) = visitExpression(aTry)
     final override fun visitTry(aTry: IrTry, data: Nothing?) = visitTry(aTry)
 
-    open fun visitCatch(aCatch: IrCatch): IrCatch = aCatch.apply { transformChildrenVoid() }
+    open fun visitCatch(aCatch: IrCatch): IrCatch {
+        aCatch.transformChildren(this@IrElementTransformerVoid, null)
+        return aCatch
+    }
+
     final override fun visitCatch(aCatch: IrCatch, data: Nothing?): IrCatch = visitCatch(aCatch)
 
     open fun visitBreakContinue(jump: IrBreakContinue) = visitExpression(jump)

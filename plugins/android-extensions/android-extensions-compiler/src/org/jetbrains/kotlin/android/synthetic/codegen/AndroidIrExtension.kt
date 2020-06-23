@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrExternalPackageFragmentImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
@@ -117,7 +118,7 @@ private class AndroidIrTransformer(val extension: AndroidIrExtension, val plugin
         return super.visitClassNew(declaration)
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         if (expression.symbol.descriptor is AndroidSyntheticFunction) {
             // TODO actually call the appropriate CLEAR_CACHE_METHOD_NAME-named function
             return IrBlockImpl(expression.startOffset, expression.endOffset, pluginContext.irBuiltIns.unitType)

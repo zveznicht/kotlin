@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetValue
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 
 internal val checkNotNullPhase = makeIrFilePhase(
     ::CheckNotNullLowering,
@@ -26,7 +27,7 @@ internal val checkNotNullPhase = makeIrFilePhase(
 private class CheckNotNullLowering(private val backendContext: JvmBackendContext) : FileLoweringPass, IrElementTransformerVoidWithContext() {
     override fun lower(irFile: IrFile) = irFile.transformChildrenVoid()
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         if (expression.symbol != backendContext.irBuiltIns.checkNotNullSymbol)
             return super.visitCall(expression)
 

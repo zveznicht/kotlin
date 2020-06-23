@@ -16,11 +16,11 @@
 
 package org.jetbrains.kotlin.ir.expressions
 
-interface IrBreakContinue : IrExpression {
-    var loop: IrLoop
-    val label: String?
+abstract class IrBreakContinue : IrPureExpression() {
+    abstract var loop: IrLoop
+    abstract val label: String?
 }
 
-interface IrBreak : IrBreakContinue
+abstract class IrBreak : IrBreakContinue()
 
-interface IrContinue : IrBreakContinue
+abstract class IrContinue : IrBreakContinue()

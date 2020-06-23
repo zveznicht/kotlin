@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.util.*
@@ -122,7 +123,7 @@ private class InterfaceSuperCallsLowering(val context: JvmBackendContext) : IrEl
         irFile.transformChildrenVoid(this)
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         if (expression.superQualifierSymbol?.owner?.isInterface != true || expression.isSuperToAny()) {
             return super.visitCall(expression)
         }
@@ -148,7 +149,7 @@ private class InterfaceDefaultCallsLowering(val context: JvmBackendContext) : Ir
         irFile.transformChildrenVoid(this)
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         val callee = expression.symbol.owner
 
         if (!callee.hasInterfaceParent() ||
@@ -196,7 +197,7 @@ internal val interfaceObjectCallsPhase = makeIrFilePhase(
 private class InterfaceObjectCallsLowering(val context: JvmBackendContext) : IrElementTransformerVoid(), FileLoweringPass {
     override fun lower(irFile: IrFile) = irFile.transformChildrenVoid(this)
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         if (expression.superQualifierSymbol != null && !expression.isSuperToAny())
             return super.visitCall(expression)
         val callee = expression.symbol.owner

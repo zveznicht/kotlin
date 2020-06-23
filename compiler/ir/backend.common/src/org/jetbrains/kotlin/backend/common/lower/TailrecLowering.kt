@@ -121,13 +121,13 @@ private class BodyTransformer(
 
     val parameters = irFunction.explicitParameters
 
-    override fun visitGetValue(expression: IrGetValue): IrExpression {
+    override fun visitGetValue(expression: IrGetValue): IrPureExpression {
         expression.transformChildrenVoid(this)
         val value = parameterToNew[expression.symbol.owner] ?: return expression
         return builder.at(expression).irGet(value)
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         expression.transformChildrenVoid(this)
         if (expression !in tailRecursionCalls) {
             return expression
@@ -165,7 +165,7 @@ private class BodyTransformer(
                     .deepCopyWithVariables()
                     .transform(object : IrElementTransformerVoid() {
 
-                        override fun visitGetValue(expression: IrGetValue): IrExpression {
+                        override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                             expression.transformChildrenVoid(this)
 
                             val variable = parameterToVariable[expression.symbol.owner] ?: return expression

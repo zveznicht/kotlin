@@ -17,46 +17,29 @@
 package org.jetbrains.kotlin.ir.expressions.impl
 
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
-import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
-abstract class IrCallWithIndexedArgumentsBase(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
-    typeArgumentsCount: Int,
-    valueArgumentsCount: Int,
-    origin: IrStatementOrigin? = null
-) :
-    IrMemberAccessExpressionBase<IrFunctionSymbol>(
-        startOffset,
-        endOffset,
-        type,
-        typeArgumentsCount,
-        valueArgumentsCount,
-        origin
-    ) {
+interface IrCallWithIndexedArgumentsBase : IrMemberAccessExpressionBase<IrFunctionSymbol> {
+    val valueArgumentsCount: Int
+    val argumentsByParameterIndex: Array<IrExpression?>
 
-    private val argumentsByParameterIndex: Array<IrExpression?> = arrayOfNulls(valueArgumentsCount)
-
-    override fun getValueArgument(index: Int): IrExpression? {
+    fun getValueArgument(index: Int): IrExpression? {
         if (index >= valueArgumentsCount) {
             throw AssertionError("$this: No such value argument slot: $index")
         }
         return argumentsByParameterIndex[index]
     }
 
-    override fun putValueArgument(index: Int, valueArgument: IrExpression?) {
+    fun putValueArgument(index: Int, valueArgument: IrExpression?) {
         if (index >= valueArgumentsCount) {
             throw AssertionError("$this: No such value argument slot: $index")
         }
         argumentsByParameterIndex[index] = valueArgument
     }
 
-    override fun removeValueArgument(index: Int) {
+    fun removeValueArgument(index: Int) {
         argumentsByParameterIndex[index] = null
     }
 

@@ -18,10 +18,7 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrFunctionReference
-import org.jetbrains.kotlin.ir.expressions.IrReturn
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrLocalDelegatedPropertySymbol
@@ -245,7 +242,7 @@ internal class InterfaceLowering(val context: JvmBackendContext) : IrElementTran
             })
     }
 
-    override fun visitReturn(expression: IrReturn): IrExpression {
+    override fun visitReturn(expression: IrReturn): IrPureExpression {
         val newFunction = removedFunctions[expression.returnTargetSymbol]?.owner
         return super.visitReturn(
             if (newFunction != null) {
@@ -258,7 +255,7 @@ internal class InterfaceLowering(val context: JvmBackendContext) : IrElementTran
         )
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         val newFunction = removedFunctions[expression.symbol]?.owner
         return super.visitCall(
             if (newFunction != null) {
@@ -269,7 +266,7 @@ internal class InterfaceLowering(val context: JvmBackendContext) : IrElementTran
         )
     }
 
-    override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+    override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
         val newFunction = removedFunctions[expression.symbol]?.owner
         return super.visitFunctionReference(
             if (newFunction != null) {

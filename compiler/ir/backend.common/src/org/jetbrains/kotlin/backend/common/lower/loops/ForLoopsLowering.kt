@@ -103,7 +103,7 @@ class ForLoopsLowering(val context: CommonBackendContext) : BodyLoweringPass {
 
         // Update references in break/continue.
         irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitBreakContinue(jump: IrBreakContinue): IrExpression {
+            override fun visitBreakContinue(jump: IrBreakContinue): IrPureExpression {
                 oldLoopToNewLoop[jump.loop]?.let { jump.loop = it }
                 return jump
             }
@@ -123,7 +123,7 @@ private class RangeLoopTransformer(
 
     fun getScopeOwnerSymbol() = currentScope?.scope?.scopeOwnerSymbol ?: container.symbol
 
-    override fun visitBlock(expression: IrBlock): IrExpression {
+    override fun visitBlock(expression: IrBlock): IrPureExpression {
         // LoopExpressionGenerator in psi2ir lowers `for (loopVar in <someIterable>) { // Loop body }` into an IrBlock with origin FOR_LOOP.
         // This block has 2 statements:
         //

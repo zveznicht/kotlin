@@ -73,14 +73,14 @@ class ReturnableBlockLowering(val context: CommonBackendContext) : BodyLoweringP
 
 class ReturnableBlockTransformer(val context: CommonBackendContext, val containerSymbol: IrSymbol? = null) : IrElementTransformerVoidWithContext() {
     private var labelCnt = 0
-    private val returnMap = mutableMapOf<IrReturnableBlockSymbol, (IrReturn) -> IrExpression>()
+    private val returnMap = mutableMapOf<IrReturnableBlockSymbol, (IrReturn) -> IrPureExpression>()
 
-    override fun visitReturn(expression: IrReturn): IrExpression {
+    override fun visitReturn(expression: IrReturn): IrPureExpression {
         expression.transformChildrenVoid()
         return returnMap[expression.returnTargetSymbol]?.invoke(expression) ?: expression
     }
 
-    override fun visitContainerExpression(expression: IrContainerExpression): IrExpression {
+    override fun visitContainerExpression(expression: IrContainerExpression): IrPureExpression {
         if (expression !is IrReturnableBlock) return super.visitContainerExpression(expression)
 
         val scopeSymbol = currentScope?.scope?.scopeOwnerSymbol ?: containerSymbol

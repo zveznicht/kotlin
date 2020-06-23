@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.declarations.IrSymbolDeclaration
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.isNothing
@@ -29,7 +30,7 @@ class KotlinNothingValueExceptionLowering(
     }
 
     private inner class Transformer(val parent: IrSymbol) : IrElementTransformerVoid() {
-        override fun visitCall(expression: IrCall): IrExpression =
+        override fun visitCall(expression: IrCall): IrPureExpression =
             if (expression.type.isNothing()) {
                 // Replace call 'foo' of type 'kotlin.Nothing' with a block:
                 //

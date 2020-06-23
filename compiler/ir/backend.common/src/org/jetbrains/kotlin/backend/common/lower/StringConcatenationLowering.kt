@@ -24,11 +24,9 @@ import org.jetbrains.kotlin.ir.builders.IrBuilderWithScope
 import org.jetbrains.kotlin.ir.builders.createTmpVariable
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
-import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
-import org.jetbrains.kotlin.ir.declarations.IrSymbolDeclaration
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.IrStringConcatenation
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.isNullableAny
@@ -86,7 +84,7 @@ private class StringConcatenationTransformer(val lower: StringConcatenationLower
         return appendFunctions[type] ?: defaultAppendFunction
     }
 
-    override fun visitStringConcatenation(expression: IrStringConcatenation): IrExpression {
+    override fun visitStringConcatenation(expression: IrStringConcatenation): IrPureExpression {
         assert(!buildersStack.isEmpty())
 
         expression.transformChildrenVoid(this)
@@ -103,10 +101,10 @@ private class StringConcatenationTransformer(val lower: StringConcatenationLower
             +irCall(toStringFunction).apply {
                 dispatchReceiver = irGet(stringBuilderImpl)
             }
-        }
+        } as IrPureExpression
     }
 
-    override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
+    override fun visitDeclaration(declaration: IrPureDeclaration): IrStatement {
         if (declaration !is IrSymbolDeclaration<*>) {
             return super.visitDeclaration(declaration)
         }

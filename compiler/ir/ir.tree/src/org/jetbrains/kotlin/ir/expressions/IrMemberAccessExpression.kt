@@ -16,22 +16,22 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.types.KotlinType
 
-interface IrMemberAccessExpression<S : IrSymbol> : IrDeclarationReference {
-    var dispatchReceiver: IrExpression?
-    var extensionReceiver: IrExpression?
+abstract class IrMemberAccessExpression<S : IrSymbol> : IrDeclarationReference() {
+    abstract var dispatchReceiver: IrExpression?
+    abstract var extensionReceiver: IrExpression?
 
-    override val symbol: S
+    abstract override val symbol: S
 
-    val origin: IrStatementOrigin?
+    abstract val origin: IrStatementOrigin?
 
-    val typeArgumentsCount: Int
-    fun getTypeArgument(index: Int): IrType?
-    fun putTypeArgument(index: Int, type: IrType?)
+    abstract val typeArgumentsCount: Int
+    abstract fun getTypeArgument(index: Int): IrType?
+    abstract fun putTypeArgument(index: Int, type: IrType?)
 
-    val valueArgumentsCount: Int
-    fun getValueArgument(index: Int): IrExpression?
-    fun putValueArgument(index: Int, valueArgument: IrExpression?)
-    fun removeValueArgument(index: Int)
+    abstract val valueArgumentsCount: Int
+    abstract fun getValueArgument(index: Int): IrExpression?
+    abstract fun putValueArgument(index: Int, valueArgument: IrExpression?)
+    abstract fun removeValueArgument(index: Int)
 }
 
 fun IrMemberAccessExpression<*>.getTypeArgument(typeParameterDescriptor: TypeParameterDescriptor): IrType? =
@@ -66,7 +66,7 @@ val CallableDescriptor.typeParametersCount: Int
 fun IrMemberAccessExpression<*>.getTypeArgumentOrDefault(irTypeParameter: IrTypeParameter) =
     getTypeArgument(irTypeParameter.index) ?: irTypeParameter.defaultType
 
-interface IrFunctionAccessExpression : IrMemberAccessExpression<IrFunctionSymbol>
+abstract class IrFunctionAccessExpression : IrMemberAccessExpression<IrFunctionSymbol>()
 
 fun IrMemberAccessExpression<*>.getValueArgument(valueParameterDescriptor: ValueParameterDescriptor) =
     getValueArgument(valueParameterDescriptor.index)

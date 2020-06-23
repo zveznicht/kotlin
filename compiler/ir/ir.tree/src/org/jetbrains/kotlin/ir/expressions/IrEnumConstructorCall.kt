@@ -18,7 +18,6 @@ package org.jetbrains.kotlin.ir.expressions
 
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 
-
-interface IrEnumConstructorCall : IrFunctionAccessExpression {
-    override val symbol: IrConstructorSymbol
+abstract class IrEnumConstructorCall : IrFunctionAccessExpression() {
+    abstract override val symbol: IrConstructorSymbol
 }

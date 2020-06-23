@@ -11,9 +11,9 @@ import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.IrPureDeclaration
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -43,12 +43,12 @@ private class JvmArgumentNullabilityAssertionsLowering(context: JvmBackendContex
     override fun visitElement(element: IrElement, data: AssertionScope): IrElement =
         super.visitElement(element, AssertionScope.Enabled)
 
-    override fun visitDeclaration(declaration: IrDeclaration, data: AssertionScope): IrStatement =
+    override fun visitDeclaration(declaration: IrPureDeclaration, data: AssertionScope): IrStatement =
         super.visitDeclaration(declaration, AssertionScope.Enabled)
 
-    override fun visitTypeOperator(expression: IrTypeOperatorCall, data: AssertionScope): IrExpression =
+    override fun visitTypeOperator(expression: IrTypeOperatorCall, data: AssertionScope): IrPureExpression =
         if (expression.operator == IrTypeOperator.IMPLICIT_NOTNULL && (data == AssertionScope.Disabled || isCallAssertionsDisabled))
-            expression.argument.transform(this, data)
+            expression.argument.transform(this, data) as IrPureExpression
         else
             super.visitTypeOperator(expression, data)
 
@@ -78,12 +78,12 @@ private class JvmArgumentNullabilityAssertionsLowering(context: JvmBackendContex
         return expression
     }
 
-    override fun visitGetField(expression: IrGetField, data: AssertionScope): IrExpression {
+    override fun visitGetField(expression: IrGetField, data: AssertionScope): IrPureExpression {
         expression.receiver = expression.receiver?.transform(this, AssertionScope.Disabled)
         return expression
     }
 
-    override fun visitSetField(expression: IrSetField, data: AssertionScope): IrExpression {
+    override fun visitSetField(expression: IrSetField, data: AssertionScope): IrPureExpression {
         expression.receiver = expression.receiver?.transform(this, AssertionScope.Disabled)
         expression.value = expression.value.transform(this, data)
         return expression

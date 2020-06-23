@@ -16,20 +16,20 @@
 
 package org.jetbrains.kotlin.ir.expressions
 
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrPureElement
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 
-interface IrWhen : IrExpression {
-    val origin: IrStatementOrigin?
+abstract class IrWhen : IrPureExpression() {
+    abstract val origin: IrStatementOrigin?
 
-    val branches: MutableList<IrBranch>
+    abstract val branches: MutableList<IrBranch>
 }
 
-interface IrBranch : IrElement {
-    var condition: IrExpression
-    var result: IrExpression
+abstract class IrBranch : IrPureElement() {
+    abstract var condition: IrExpression
+    abstract var result: IrExpression
 
-    override fun <D> transform(transformer: IrElementTransformer<D>, data: D): IrBranch
+    abstract override fun <D> transform(transformer: IrElementTransformer<D>, data: D): IrBranch
 }
 
-interface IrElseBranch : IrBranch
+abstract class IrElseBranch : IrBranch()

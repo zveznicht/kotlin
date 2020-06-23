@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.ir.declarations.impl
 import org.jetbrains.kotlin.descriptors.VariableDescriptorWithAccessors
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrLocalDelegatedPropertySymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
@@ -26,17 +27,14 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.name.Name
 
 class IrLocalDelegatedPropertyImpl(
-    startOffset: Int,
-    endOffset: Int,
-    origin: IrDeclarationOrigin,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override var origin: IrDeclarationOrigin,
     override val symbol: IrLocalDelegatedPropertySymbol,
     override val name: Name,
     override val type: IrType,
     override val isVar: Boolean
-) :
-    IrDeclarationBase(startOffset, endOffset, origin),
-    IrLocalDelegatedProperty {
-
+) : IrLocalDelegatedProperty() {
     init {
         symbol.bind(this)
     }
@@ -50,6 +48,16 @@ class IrLocalDelegatedPropertyImpl(
     override lateinit var getter: IrFunction
 
     override var setter: IrFunction? = null
+
+    private var _parent: IrDeclarationParent? = null
+    override var parent: IrDeclarationParent
+        get() = _parent
+            ?: throw UninitializedPropertyAccessException("Parent not initialized: $this")
+        set(v) {
+            _parent = v
+        }
+
+    override var annotations: List<IrConstructorCall> = emptyList()
 
     override var metadata: MetadataSource.LocalDelegatedProperty? = null
 

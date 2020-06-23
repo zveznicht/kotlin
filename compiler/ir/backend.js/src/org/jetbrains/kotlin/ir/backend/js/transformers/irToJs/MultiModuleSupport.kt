@@ -13,10 +13,7 @@ import org.jetbrains.kotlin.ir.backend.js.utils.sanitizeName
 import org.jetbrains.kotlin.ir.builders.declarations.addValueParameter
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrGetField
-import org.jetbrains.kotlin.ir.expressions.IrSetField
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.util.constructedClass
 import org.jetbrains.kotlin.ir.util.isEffectivelyExternal
@@ -183,7 +180,7 @@ fun breakCrossModuleFieldAccess(
 
         module.transformChildrenVoid(object : IrElementTransformerVoid() {
 
-            override fun visitGetField(expression: IrGetField): IrExpression {
+            override fun visitGetField(expression: IrGetField): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 return expression.symbol.owner.transformAccess {
@@ -192,7 +189,7 @@ fun breakCrossModuleFieldAccess(
                 } ?: expression
             }
 
-            override fun visitSetField(expression: IrSetField): IrExpression {
+            override fun visitSetField(expression: IrSetField): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 return expression.symbol.owner.transformAccess {

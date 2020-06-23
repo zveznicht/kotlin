@@ -357,7 +357,7 @@ class ES6ConstructorLowering(val context: JsIrBackendContext) : BodyLoweringPass
     //transformer
     private fun putBoxToSuperCall(boxSymbol: IrValueSymbol, constructor: IrConstructor) {
         constructor.transformChildren(object : IrElementTransformerVoid() {
-            override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+            override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrPureExpression {
                 return expression.also { it.putValueArgument(ES6_INIT_BOX_PARAMETER, JsIrBuilder.buildGetValue(boxSymbol)) }
             }
         }, null)
@@ -398,7 +398,7 @@ private fun replaceCallToDefaultPrimary(context: JsIrBackendContext, constructor
 //transformer
 private fun redirectOldThisToNewOne(constructor: IrConstructor, newThis: IrVariable) {
     constructor.transformChildren(object : IrElementTransformerVoid() {
-        override fun visitGetValue(expression: IrGetValue): IrExpression {
+        override fun visitGetValue(expression: IrGetValue): IrPureExpression {
             return if (expression.symbol.owner === constructor.parentAsClass.thisReceiver!!) {
                 with(expression) { IrGetValueImpl(startOffset, endOffset, type, newThis.symbol) }
             } else {
@@ -413,7 +413,7 @@ private fun redirectOldThisToNewOne(constructor: IrConstructor, newThis: IrVaria
  */
 private fun LowerCtorHelper.changeReturnUnitToReturnInstance(newThis: IrVariable) {
     constructor.transformChildren(object : IrElementTransformerVoid() {
-        override fun visitReturn(expression: IrReturn): IrExpression {
+        override fun visitReturn(expression: IrReturn): IrPureExpression {
             return JsIrBuilder.buildReturn(
                 constructor.symbol,
                 JsIrBuilder.buildGetValue(newThis.symbol),
@@ -425,7 +425,7 @@ private fun LowerCtorHelper.changeReturnUnitToReturnInstance(newThis: IrVariable
 
 private fun hackEnums(constructor: IrConstructor) {
     constructor.transformChildren(object : IrElementTransformerVoid() {
-        override fun visitTypeOperator(expression: IrTypeOperatorCall): IrExpression {
+        override fun visitTypeOperator(expression: IrTypeOperatorCall): IrPureExpression {
             return (expression.argument as? IrDelegatingConstructorCall) ?: expression
         }
     }, null)
@@ -550,7 +550,7 @@ private fun changeIrConstructorToIrFunction(context: JsIrBackendContext, contain
         val parametersMap = container.valueParameters.zip(valueParameters).toMap()
         body = container.body
         transformChildren(object : IrElementTransformerVoid() {
-            override fun visitGetValue(expression: IrGetValue): IrExpression {
+            override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                 val newParam = parametersMap[expression.symbol.owner]
                 return if (newParam != null) JsIrBuilder.buildGetValue(newParam.symbol) else expression
             }

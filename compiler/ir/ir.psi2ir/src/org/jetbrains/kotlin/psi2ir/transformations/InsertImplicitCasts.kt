@@ -113,7 +113,7 @@ internal class InsertImplicitCasts(
     private val IrDeclarationReference.substitutedDescriptor
         get() = callToSubstitutedDescriptorMap[this] ?: symbol.descriptor as CallableDescriptor
 
-    override fun visitCallableReference(expression: IrCallableReference<*>): IrExpression {
+    override fun visitCallableReference(expression: IrCallableReference<*>): IrPureExpression {
         val substitutedDescriptor = expression.substitutedDescriptor
         return expression.transformPostfix {
             transformReceiverArguments(substitutedDescriptor)
@@ -144,7 +144,7 @@ internal class InsertImplicitCasts(
                 descriptor.dispatchReceiverParameter?.type
         }
 
-    override fun visitMemberAccess(expression: IrMemberAccessExpression<*>): IrExpression {
+    override fun visitMemberAccess(expression: IrMemberAccessExpression<*>): IrPureExpression {
         val substitutedDescriptor = expression.substitutedDescriptor
         return expression.transformPostfix {
             transformReceiverArguments(substitutedDescriptor)
@@ -178,7 +178,7 @@ internal class InsertImplicitCasts(
             }
         }
 
-    override fun visitContainerExpression(expression: IrContainerExpression): IrExpression =
+    override fun visitContainerExpression(expression: IrContainerExpression): IrPureExpression =
         expression.transformPostfix {
             if (statements.isEmpty()) return this
 
@@ -194,7 +194,7 @@ internal class InsertImplicitCasts(
             }
         }
 
-    override fun visitReturn(expression: IrReturn): IrExpression =
+    override fun visitReturn(expression: IrReturn): IrPureExpression =
         expression.transformPostfix {
             value = if (expression.returnTargetSymbol is IrConstructorSymbol) {
                 value.coerceToUnit(irBuiltIns)
@@ -205,17 +205,17 @@ internal class InsertImplicitCasts(
             }
         }
 
-    override fun visitSetVariable(expression: IrSetVariable): IrExpression =
+    override fun visitSetVariable(expression: IrSetVariable): IrPureExpression =
         expression.transformPostfix {
             value = value.cast(expression.symbol.owner.type)
         }
 
-    override fun visitGetField(expression: IrGetField): IrExpression =
+    override fun visitGetField(expression: IrGetField): IrPureExpression =
         expression.transformPostfix {
             receiver = receiver?.cast(getEffectiveDispatchReceiverType(expression.substitutedDescriptor))
         }
 
-    override fun visitSetField(expression: IrSetField): IrExpression =
+    override fun visitSetField(expression: IrSetField): IrPureExpression =
         expression.transformPostfix {
             val substituted = expression.substitutedDescriptor as PropertyDescriptor
             receiver = receiver?.cast(getEffectiveDispatchReceiverType(substituted))
@@ -249,7 +249,7 @@ internal class InsertImplicitCasts(
             super.visitClass(declaration)
         }
 
-    override fun visitWhen(expression: IrWhen): IrExpression =
+    override fun visitWhen(expression: IrWhen): IrPureExpression =
         expression.transformPostfix {
             for (irBranch in branches) {
                 irBranch.condition = irBranch.condition.cast(builtIns.booleanType)
@@ -257,18 +257,18 @@ internal class InsertImplicitCasts(
             }
         }
 
-    override fun visitLoop(loop: IrLoop): IrExpression =
+    override fun visitLoop(loop: IrLoop): IrPureExpression =
         loop.transformPostfix {
             condition = condition.cast(builtIns.booleanType)
             body = body?.coerceToUnit(irBuiltIns)
         }
 
-    override fun visitThrow(expression: IrThrow): IrExpression =
+    override fun visitThrow(expression: IrThrow): IrPureExpression =
         expression.transformPostfix {
             value = value.cast(builtIns.throwable.defaultType)
         }
 
-    override fun visitTry(aTry: IrTry): IrExpression =
+    override fun visitTry(aTry: IrTry): IrPureExpression =
         aTry.transformPostfix {
             tryResult = tryResult.cast(type)
 
@@ -279,7 +279,7 @@ internal class InsertImplicitCasts(
             finallyExpression = finallyExpression?.coerceToUnit(irBuiltIns)
         }
 
-    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrExpression =
+    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrPureExpression =
         when (expression.operator) {
             IrTypeOperator.SAM_CONVERSION -> expression.transformPostfix {
                 argument = argument.cast(typeOperand.originalKotlinType!!.getSubstitutedFunctionTypeForSamType())
@@ -293,14 +293,14 @@ internal class InsertImplicitCasts(
                 // (possibly generating another IrTypeOperatorCall(IMPLICIT_CAST, ...), if required).
 
                 expression.transformChildrenVoid()
-                expression.argument.cast(expression.typeOperand)
+                expression.argument.cast(expression.typeOperand) as IrPureExpression
             }
 
             else ->
                 super.visitTypeOperator(expression)
         }
 
-    override fun visitVararg(expression: IrVararg): IrExpression =
+    override fun visitVararg(expression: IrVararg): IrPureExpression =
         expression.transformPostfix {
             elements.forEachIndexed { i, element ->
                 when (element) {

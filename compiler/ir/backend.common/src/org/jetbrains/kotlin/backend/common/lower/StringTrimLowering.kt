@@ -9,10 +9,7 @@ import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.lower.matchers.SimpleCalleeMatcher
 import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.IrConst
-import org.jetbrains.kotlin.ir.expressions.IrConstKind
-import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.types.isString
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
@@ -24,7 +21,7 @@ class StringTrimLowering(val context: CommonBackendContext) : FileLoweringPass, 
         irFile.transformChildrenVoid(this)
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         return when {
             trimIndentMatcher(expression) -> maybeComputeTrimIndent(expression)
             trimMarginMatcher(expression) -> maybeComputeTrimMargin(expression)
@@ -32,13 +29,13 @@ class StringTrimLowering(val context: CommonBackendContext) : FileLoweringPass, 
         }
     }
 
-    private fun maybeComputeTrimIndent(call: IrCall): IrExpression {
+    private fun maybeComputeTrimIndent(call: IrCall): IrPureExpression {
         val receiverString = call.extensionReceiver!!.getConstantString() ?: return call
         val newString = receiverString.trimIndent()
         return IrConstImpl.string(call.startOffset, call.endOffset, call.type, newString)
     }
 
-    private fun maybeComputeTrimMargin(call: IrCall): IrExpression {
+    private fun maybeComputeTrimMargin(call: IrCall): IrPureExpression {
         val receiverString = call.extensionReceiver!!.getConstantString() ?: return call
 
         val prefixArgument = call.getValueArgument(0)

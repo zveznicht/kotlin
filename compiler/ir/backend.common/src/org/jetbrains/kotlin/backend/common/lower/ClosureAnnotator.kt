@@ -249,7 +249,7 @@ class ClosureAnnotator(irElement: IrElement, declaration: IrDeclaration) {
             expression.setter?.let { processMemberAccess(it.owner, data) }
         }
 
-        override fun visitExpression(expression: IrExpression, data: ClosureBuilder?) {
+        override fun visitExpression(expression: IrPureExpression, data: ClosureBuilder?) {
             super.visitExpression(expression, data)
             val typeParameterContainerScopeBuilder = data?.let {
                 (it.owner as? IrConstructor)?.closureBuilder ?: it

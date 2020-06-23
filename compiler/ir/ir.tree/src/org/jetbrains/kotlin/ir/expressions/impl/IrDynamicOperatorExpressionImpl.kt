@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrDynamicOperator
 import org.jetbrains.kotlin.ir.expressions.IrDynamicOperatorExpression
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -14,13 +15,12 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.utils.SmartList
 
 class IrDynamicOperatorExpressionImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
     override val operator: IrDynamicOperator
-) :
-    IrExpressionBase(startOffset, endOffset, type),
-    IrDynamicOperatorExpression {
+) : IrDynamicOperatorExpression() {
+    override var attributeOwnerId: IrAttributeContainer = this
 
     override lateinit var receiver: IrExpression
 

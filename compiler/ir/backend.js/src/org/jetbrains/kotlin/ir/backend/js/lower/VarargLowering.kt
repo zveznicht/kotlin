@@ -81,7 +81,7 @@ private class VarargTransformer(
 
         fun boxArrayIfNeeded(array: IrExpression) =
             if (arrayInlineClass == null)
-                array
+                array as IrPureExpression
             else with(array) {
                 IrConstructorCallImpl.fromSymbolOwner(
                     startOffset,
@@ -108,7 +108,7 @@ private class VarargTransformer(
             elements.toArrayLiteral(primitiveArrayType, primitiveElementType)
     }
 
-    override fun visitVararg(expression: IrVararg): IrExpression {
+    override fun visitVararg(expression: IrVararg): IrPureExpression {
         expression.transformChildrenVoid(this)
 
         val currentList = mutableListOf<IrExpression>()
@@ -196,7 +196,7 @@ private class VarargTransformer(
         return arrayInfo.boxArrayIfNeeded(res)
     }
 
-    private fun transformFunctionAccessExpression(expression: IrFunctionAccessExpression): IrExpression {
+    private fun transformFunctionAccessExpression(expression: IrFunctionAccessExpression): IrPureExpression {
         expression.transformChildrenVoid()
         val size = expression.valueArgumentsCount
 

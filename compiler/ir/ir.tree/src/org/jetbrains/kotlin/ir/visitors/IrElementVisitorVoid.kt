@@ -38,7 +38,7 @@ interface IrElementVisitorVoid : IrElementVisitor<Unit, Nothing?> {
     override fun visitFile(declaration: IrFile, data: Nothing?) = visitFile(declaration)
 
     fun visitDeclaration(declaration: IrDeclaration) = visitElement(declaration)
-    override fun visitDeclaration(declaration: IrDeclaration, data: Nothing?) = visitDeclaration(declaration)
+    override fun visitDeclaration(declaration: IrPureDeclaration, data: Nothing?) = visitDeclaration(declaration)
 
     fun visitClass(declaration: IrClass) = visitDeclaration(declaration)
     override fun visitClass(declaration: IrClass, data: Nothing?) = visitClass(declaration)
@@ -101,8 +101,8 @@ interface IrElementVisitorVoid : IrElementVisitor<Unit, Nothing?> {
     fun visitSuspensionPoint(expression: IrSuspensionPoint) = visitExpression(expression)
     override fun visitSuspensionPoint(expression: IrSuspensionPoint, data: Nothing?) = visitSuspensionPoint(expression)
 
-    fun visitExpression(expression: IrExpression) = visitElement(expression)
-    override fun visitExpression(expression: IrExpression, data: Nothing?) = visitExpression(expression)
+    fun visitExpression(expression: IrPureExpression) = visitElement(expression)
+    override fun visitExpression(expression: IrPureExpression, data: Nothing?) = visitExpression(expression)
 
     fun <T> visitConst(expression: IrConst<T>) = visitExpression(expression)
     override fun <T> visitConst(expression: IrConst<T>, data: Nothing?) = visitConst(expression)

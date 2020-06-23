@@ -94,7 +94,7 @@ private class TypeOperatorLowering(private val context: JvmBackendContext) : Fil
             builder.irAs(argument, type)
     }
 
-    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrExpression = with(builder) {
+    override fun visitTypeOperator(expression: IrTypeOperatorCall): IrPureExpression = with(builder) {
         at(expression)
         return when (expression.operator) {
             IrTypeOperator.IMPLICIT_COERCION_TO_UNIT ->
@@ -162,7 +162,7 @@ private class TypeOperatorLowering(private val context: JvmBackendContext) : Fil
                 expression.transformChildrenVoid()
                 expression
             }
-        }
+        } as IrPureExpression
     }
 
     private fun IrElement.extents(): Pair<Int, Int> {

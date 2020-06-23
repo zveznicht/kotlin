@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.expressions.IrBody
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFunctionAccessExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
@@ -41,11 +42,11 @@ class CallsLowering(val context: JsIrBackendContext) : BodyLoweringPass {
                 return super.visitFunction(declaration)
             }
 
-            override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrExpression {
+            override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrPureExpression {
                 val call = super.visitFunctionAccess(expression)
                 if (call is IrFunctionAccessExpression) {
                     for (transformer in transformers) {
-                        val newCall = transformer.transformFunctionAccess(call)
+                        val newCall = transformer.transformFunctionAccess(call) as IrPureExpression
                         if (newCall !== call) {
                             return newCall
                         }

@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.backend.common.CommonBackendContext
 import org.jetbrains.kotlin.backend.common.ir.isElseBranch
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrPureElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.backend.js.ir.JsIrBuilder
@@ -136,7 +137,7 @@ class BlockDecomposerTransformer(
         return declaration.transform(statementTransformer, null)
     }
 
-    override fun visitElement(element: IrElement) = element.transform(statementTransformer, null)
+    override fun visitElement(element: IrPureElement): IrPureElement = element.transform(statementTransformer, null) as IrPureElement
 
     private fun processStatements(statements: MutableList<IrStatement>) {
         statements.transformFlat {
@@ -149,7 +150,7 @@ class BlockDecomposerTransformer(
 
     private fun makeLoopLabel() = "\$l\$${tmpVarCounter++}"
 
-    private fun IrStatement.asExpression(last: IrExpression): IrExpression {
+    private fun IrStatement.asExpression(last: IrExpression): IrPureExpression {
         val composite = JsIrBuilder.buildComposite(last.type)
         composite.statements += transform(statementTransformer, null)
         composite.statements += last
@@ -180,9 +181,9 @@ class BlockDecomposerTransformer(
 
         override fun visitContainerExpression(expression: IrContainerExpression) = expression.apply { processStatements(statements) }
 
-        override fun visitExpression(expression: IrExpression) = expression.transform(expressionTransformer, null)
+        override fun visitExpression(expression: IrPureExpression) = expression.transform(expressionTransformer, null)
 
-        override fun visitReturn(expression: IrReturn): IrExpression {
+        override fun visitReturn(expression: IrReturn): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val composite = expression.value as? IrComposite ?: return expression
@@ -191,7 +192,7 @@ class BlockDecomposerTransformer(
             }
         }
 
-        override fun visitThrow(expression: IrThrow): IrExpression {
+        override fun visitThrow(expression: IrThrow): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val composite = expression.value as? IrComposite ?: return expression
@@ -211,7 +212,7 @@ class BlockDecomposerTransformer(
             }
         }
 
-        override fun visitSetField(expression: IrSetField): IrExpression {
+        override fun visitSetField(expression: IrSetField): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val receiverResult = expression.receiver as? IrComposite
@@ -264,7 +265,7 @@ class BlockDecomposerTransformer(
             }
         }
 
-        override fun visitSetVariable(expression: IrSetVariable): IrExpression {
+        override fun visitSetVariable(expression: IrSetVariable): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val composite = expression.value as? IrComposite ?: return expression
@@ -286,7 +287,7 @@ class BlockDecomposerTransformer(
         //   body {}
         // }
         //
-        override fun visitWhileLoop(loop: IrWhileLoop): IrExpression {
+        override fun visitWhileLoop(loop: IrWhileLoop): IrPureExpression {
             val newBody = loop.body?.transform(statementTransformer, null)
             val newCondition = loop.condition.transform(expressionTransformer, null)
 
@@ -330,7 +331,7 @@ class BlockDecomposerTransformer(
         //   cond = c_block {}
         // } while (cond)
         //
-        override fun visitDoWhileLoop(loop: IrDoWhileLoop): IrExpression {
+        override fun visitDoWhileLoop(loop: IrDoWhileLoop): IrPureExpression {
             val newBody = loop.body?.transform(statementTransformer, null)
             val newCondition = loop.condition.transform(expressionTransformer, null)
 
@@ -387,7 +388,7 @@ class BlockDecomposerTransformer(
         //              else_block {}
         //           }
         // }
-        override fun visitWhen(expression: IrWhen): IrExpression {
+        override fun visitWhen(expression: IrWhen): IrPureExpression {
 
             var compositeCount = 0
 
@@ -433,9 +434,9 @@ class BlockDecomposerTransformer(
 
     private inner class ExpressionTransformer : IrElementTransformerVoid() {
 
-        override fun visitExpression(expression: IrExpression) = expression.transformChildren()
+        override fun visitExpression(expression: IrPureExpression) = expression.transformChildren()
 
-        override fun visitGetField(expression: IrGetField): IrExpression {
+        override fun visitGetField(expression: IrGetField): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val composite = expression.receiver as? IrComposite ?: return expression
@@ -445,7 +446,7 @@ class BlockDecomposerTransformer(
             }
         }
 
-        override fun visitTypeOperator(expression: IrTypeOperatorCall): IrExpression {
+        override fun visitTypeOperator(expression: IrTypeOperatorCall): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val composite = expression.argument as? IrComposite ?: return expression
@@ -455,7 +456,7 @@ class BlockDecomposerTransformer(
             }
         }
 
-        override fun visitGetClass(expression: IrGetClass): IrExpression {
+        override fun visitGetClass(expression: IrGetClass): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val composite = expression.argument as? IrComposite ?: return expression
@@ -482,7 +483,7 @@ class BlockDecomposerTransformer(
 
         override fun visitVariable(declaration: IrVariable) = declaration.asExpression(unitValue)
 
-        override fun visitStringConcatenation(expression: IrStringConcatenation): IrExpression {
+        override fun visitStringConcatenation(expression: IrStringConcatenation): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val compositeCount = expression.arguments.count { it is IrComposite }
@@ -531,7 +532,7 @@ class BlockDecomposerTransformer(
         }
 
         // TODO: remove this when vararg is lowered
-        override fun visitVararg(expression: IrVararg): IrExpression {
+        override fun visitVararg(expression: IrVararg): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val compositeCount = expression.elements.count { it is IrComposite }
@@ -566,7 +567,7 @@ class BlockDecomposerTransformer(
         // var p4_tmp = p4
         // var p5_tmp = block {}
         // d_tmp.foo(p1_tmp, p2_tmp, p3_tmp, p4_tmp, p5_tmp, p6, p7)
-        override fun visitMemberAccess(expression: IrMemberAccessExpression<*>): IrExpression {
+        override fun visitMemberAccess(expression: IrMemberAccessExpression<*>): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val oldArguments = mutableListOf(expression.dispatchReceiver, expression.extensionReceiver)
@@ -590,7 +591,7 @@ class BlockDecomposerTransformer(
             return expression.run { IrCompositeImpl(startOffset, endOffset, type, origin, newStatements) }
         }
 
-        override fun visitDynamicMemberExpression(expression: IrDynamicMemberExpression): IrExpression {
+        override fun visitDynamicMemberExpression(expression: IrDynamicMemberExpression): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val composite = expression.receiver as? IrComposite ?: return expression
@@ -600,7 +601,7 @@ class BlockDecomposerTransformer(
             }
         }
 
-        override fun visitDynamicOperatorExpression(expression: IrDynamicOperatorExpression): IrExpression {
+        override fun visitDynamicOperatorExpression(expression: IrDynamicOperatorExpression): IrPureExpression {
             expression.transformChildrenVoid(expressionTransformer)
 
             val oldArguments = listOf(expression.receiver) + expression.arguments
@@ -645,7 +646,7 @@ class BlockDecomposerTransformer(
             return operator.isAssignmentOperator || (receiverIsMemberAccess && operatorDependsOnMemberAccess)
         }
 
-        override fun visitContainerExpression(expression: IrContainerExpression): IrExpression {
+        override fun visitContainerExpression(expression: IrContainerExpression): IrPureExpression {
 
             expression.run { if (statements.isEmpty()) return IrCompositeImpl(startOffset, endOffset, type, origin, listOf(unitValue)) }
 
@@ -683,7 +684,7 @@ class BlockDecomposerTransformer(
         //   } finally {}
         //   tmp
         // ]
-        override fun visitTry(aTry: IrTry): IrExpression {
+        override fun visitTry(aTry: IrTry): IrPureExpression {
             val irVar = makeTempVar(aTry.type)
 
             val newTryResult = wrap(aTry.tryResult, irVar)
@@ -721,7 +722,7 @@ class BlockDecomposerTransformer(
         //
         // kept `as is` otherwise
 
-        override fun visitWhen(expression: IrWhen): IrExpression {
+        override fun visitWhen(expression: IrWhen): IrPureExpression {
 
             var hasComposites = false
             val decomposedResults = expression.branches.map {

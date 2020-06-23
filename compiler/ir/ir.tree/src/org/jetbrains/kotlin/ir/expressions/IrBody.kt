@@ -16,25 +16,25 @@
 
 package org.jetbrains.kotlin.ir.expressions
 
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrPureElement
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 
-interface IrBody : IrElement {
+abstract class IrBody : IrPureElement() {
     override fun <D> transform(transformer: IrElementTransformer<D>, data: D): IrBody =
         accept(transformer, data) as IrBody
 }
 
-interface IrExpressionBody : IrBody {
-    var expression: IrExpression
+abstract class IrExpressionBody : IrBody() {
+    abstract var expression: IrExpression
 
     override fun <D> transform(transformer: IrElementTransformer<D>, data: D): IrExpressionBody =
         accept(transformer, data) as IrExpressionBody
 }
 
-interface IrBlockBody : IrBody, IrStatementContainer
+abstract class IrBlockBody : IrBody(), IrStatementContainer
 
-interface IrSyntheticBody : IrBody {
-    val kind: IrSyntheticBodyKind
+abstract class IrSyntheticBody : IrBody() {
+    abstract val kind: IrSyntheticBodyKind
 }
 
 enum class IrSyntheticBodyKind {

@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
 import org.jetbrains.kotlin.ir.expressions.IrTypeOperatorCall
@@ -26,19 +27,18 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IrTypeOperatorCallImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
     override val operator: IrTypeOperator,
     override val typeOperand: IrType
-) :
-    IrExpressionBase(startOffset, endOffset, type),
-    IrTypeOperatorCall {
-
+) : IrTypeOperatorCall() {
     override lateinit var argument: IrExpression
 
     override val typeOperandClassifier: IrClassifierSymbol
         get() = typeOperand.classifierOrFail
+
+    override var attributeOwnerId: IrAttributeContainer = this
 
     constructor(
         startOffset: Int,

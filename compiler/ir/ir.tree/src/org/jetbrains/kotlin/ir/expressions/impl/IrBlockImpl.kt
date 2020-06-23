@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.ir.expressions.impl
 
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.IrStatement
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrBlock
 import org.jetbrains.kotlin.ir.expressions.IrReturnableBlock
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
@@ -28,13 +29,12 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IrBlockImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
-    origin: IrStatementOrigin? = null
-) :
-    IrContainerExpressionBase(startOffset, endOffset, type, origin),
-    IrBlock {
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
+    override val origin: IrStatementOrigin? = null
+) : IrBlock() {
+    override var attributeOwnerId: IrAttributeContainer = this
 
     constructor(
         startOffset: Int,
@@ -64,16 +64,13 @@ fun IrBlockImpl.inlineStatement(statement: IrStatement) {
 }
 
 class IrReturnableBlockImpl(
-        startOffset: Int,
-        endOffset: Int,
-        type: IrType,
-        override val symbol: IrReturnableBlockSymbol,
-        origin: IrStatementOrigin? = null,
-        override val inlineFunctionSymbol: IrFunctionSymbol? = null
-) :
-    IrContainerExpressionBase(startOffset, endOffset, type, origin),
-    IrReturnableBlock {
-
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
+    override val symbol: IrReturnableBlockSymbol,
+    override val origin: IrStatementOrigin? = null,
+    override val inlineFunctionSymbol: IrFunctionSymbol? = null
+) : IrReturnableBlock() {
     @ObsoleteDescriptorBasedAPI
     override val descriptor = symbol.descriptor
 
@@ -105,4 +102,6 @@ class IrReturnableBlockImpl(
             statements[i] = irStatement.transform(transformer, data)
         }
     }
+
+    override var attributeOwnerId: IrAttributeContainer = this
 }

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.util.irCall
 import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
@@ -20,7 +21,7 @@ class BuiltInsLowering(val context: WasmBackendContext) : FileLoweringPass {
     private val irBuiltins = context.irBuiltIns
     private val symbols = context.wasmSymbols
 
-    fun transformCall(call: IrCall): IrExpression {
+    fun transformCall(call: IrCall): IrPureExpression {
         when (val symbol = call.symbol) {
             irBuiltins.eqeqSymbol, irBuiltins.eqeqeqSymbol, in irBuiltins.ieee754equalsFunByOperandType.values -> {
                 val type = call.getValueArgument(0)!!.type
@@ -38,7 +39,7 @@ class BuiltInsLowering(val context: WasmBackendContext) : FileLoweringPass {
 
     override fun lower(irFile: IrFile) {
         irFile.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 val newExpression = transformCall(expression)
                 newExpression.transformChildrenVoid(this)
                 return newExpression

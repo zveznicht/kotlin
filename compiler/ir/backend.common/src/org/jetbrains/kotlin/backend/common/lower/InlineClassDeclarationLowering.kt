@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockBodyImpl
-import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
@@ -86,7 +85,7 @@ class InlineClassLowering(val context: CommonBackendContext) {
 
                     (irConstructor.body as IrBlockBody).statements.forEach { statement ->
                         +statement.transform(object : IrElementTransformerVoid() {
-                            override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+                            override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrPureExpression {
                                 expression.transformChildrenVoid()
                                 return irBlock(expression) {
                                     thisVar = createTmpVariable(
@@ -97,7 +96,7 @@ class InlineClassLowering(val context: CommonBackendContext) {
                                 }
                             }
 
-                            override fun visitGetValue(expression: IrGetValue): IrExpression {
+                            override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                                 expression.transformChildrenVoid()
                                 if (expression.symbol == irClass.thisReceiver?.symbol) {
                                     return irGet(thisVar)
@@ -107,14 +106,14 @@ class InlineClassLowering(val context: CommonBackendContext) {
                                 return expression
                             }
 
-                            override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
+                            override fun visitDeclaration(declaration: IrPureDeclaration): IrStatement {
                                 declaration.transformChildrenVoid(this)
                                 if (declaration.parent == irConstructor)
                                     declaration.parent = staticMethod
                                 return declaration
                             }
 
-                            override fun visitReturn(expression: IrReturn): IrExpression {
+                            override fun visitReturn(expression: IrReturn): IrPureExpression {
                                 expression.transformChildrenVoid()
                                 if (expression.returnTargetSymbol == irConstructor.symbol) {
                                     return irReturn(irBlock(expression.startOffset, expression.endOffset) {
@@ -144,7 +143,7 @@ class InlineClassLowering(val context: CommonBackendContext) {
                 statements.addAll((functionBody as IrBlockBody).statements)
 
                 transformChildrenVoid(object : IrElementTransformerVoid() {
-                    override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
+                    override fun visitDeclaration(declaration: IrPureDeclaration): IrStatement {
                         declaration.transformChildrenVoid(this)
                         if (declaration.parent == function)
                             declaration.parent = staticMethod
@@ -152,7 +151,7 @@ class InlineClassLowering(val context: CommonBackendContext) {
                         return declaration
                     }
 
-                    override fun visitGetValue(expression: IrGetValue): IrExpression {
+                    override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                         val valueDeclaration = expression.symbol.owner as? IrValueParameter ?: return super.visitGetValue(expression)
 
                         return context.createIrBuilder(staticMethod.symbol).irGet(
@@ -209,7 +208,7 @@ class InlineClassLowering(val context: CommonBackendContext) {
         override fun lower(irBody: IrBody, container: IrDeclaration) {
             irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
 
-                override fun visitConstructorCall(expression: IrConstructorCall): IrExpression {
+                override fun visitConstructorCall(expression: IrConstructorCall): IrPureExpression {
                     expression.transformChildrenVoid(this)
                     val function = expression.symbol.owner
                     if (!function.parentAsClass.isInline || function.isPrimary) {
@@ -219,7 +218,7 @@ class InlineClassLowering(val context: CommonBackendContext) {
                     return irCall(expression, getOrCreateStaticMethod(function))
                 }
 
-                override fun visitCall(expression: IrCall): IrExpression {
+                override fun visitCall(expression: IrCall): IrPureExpression {
                     expression.transformChildrenVoid(this)
                     val function = expression.symbol.owner
                     if (function.parent !is IrClass ||
@@ -238,7 +237,7 @@ class InlineClassLowering(val context: CommonBackendContext) {
                     )
                 }
 
-                override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+                override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrPureExpression {
                     expression.transformChildrenVoid(this)
                     val function = expression.symbol.owner
                     val klass = function.parentAsClass

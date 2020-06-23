@@ -13,12 +13,10 @@ import org.jetbrains.kotlin.fir.backend.toIrType
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.symbols.Fir2IrConstructorSymbol
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
-import org.jetbrains.kotlin.ir.declarations.IrClass
-import org.jetbrains.kotlin.ir.declarations.IrConstructor
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
-import org.jetbrains.kotlin.ir.declarations.IrValueParameter
+import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.lazy.lazyVar
 import org.jetbrains.kotlin.ir.expressions.IrBody
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.parentClassOrNull
 import org.jetbrains.kotlin.ir.util.transformIfNeeded
@@ -28,18 +26,26 @@ import org.jetbrains.kotlin.name.Name
 
 class Fir2IrLazyConstructor(
     components: Fir2IrComponents,
-    startOffset: Int,
-    endOffset: Int,
-    origin: IrDeclarationOrigin,
-    fir: FirConstructor,
-    symbol: Fir2IrConstructorSymbol
-) : AbstractFir2IrLazyDeclaration<FirConstructor, IrConstructor>(
-    components, startOffset, endOffset, origin, fir, symbol
-), IrConstructor {
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override var origin: IrDeclarationOrigin,
+    override val fir: FirConstructor,
+    override val symbol: Fir2IrConstructorSymbol
+) : IrConstructor(), AbstractFir2IrLazyDeclaration<FirConstructor, IrConstructor>, Fir2IrComponents by components {
     init {
         symbol.bind(this)
         classifierStorage.preCacheTypeParameters(fir)
     }
+
+    override lateinit var typeParameters: List<IrTypeParameter>
+
+    override lateinit var parent: IrDeclarationParent
+
+    override var annotations: List<IrConstructorCall> by createLazyAnnotations()
+
+    override var metadata: MetadataSource?
+        get() = null
+        set(_) = error("We should never need to store metadata of external declarations.")
 
     override val isPrimary: Boolean
         get() = fir.isPrimary
@@ -47,9 +53,6 @@ class Fir2IrLazyConstructor(
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ClassConstructorDescriptor
         get() = super.descriptor as ClassConstructorDescriptor
-
-    override val symbol: Fir2IrConstructorSymbol
-        get() = super.symbol as Fir2IrConstructorSymbol
 
     override val isInline: Boolean
         get() = fir.isInline

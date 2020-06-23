@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.ir.util
 import org.jetbrains.kotlin.descriptors.ScriptDescriptor
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrPureElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.*
@@ -81,7 +82,7 @@ open class DeepCopyIrTreeWithSymbols(
 
     protected fun IrType.remapType() = typeRemapper.remapType(this)
 
-    override fun visitElement(element: IrElement): IrElement =
+    override fun visitElement(element: IrPureElement): IrPureElement =
         throw IllegalArgumentException("Unsupported element type: $element")
 
     override fun visitModuleFragment(declaration: IrModuleFragment): IrModuleFragment =
@@ -109,7 +110,7 @@ open class DeepCopyIrTreeWithSymbols(
             declaration.transformDeclarationsTo(this)
         }
 
-    override fun visitDeclaration(declaration: IrDeclaration): IrStatement =
+    override fun visitDeclaration(declaration: IrPureDeclaration): IrStatement =
         throw IllegalArgumentException("Unsupported declaration type: $declaration")
 
     override fun visitScript(declaration: IrScript): IrStatement {
@@ -379,7 +380,7 @@ open class DeepCopyIrTreeWithSymbols(
     override fun visitSyntheticBody(body: IrSyntheticBody): IrSyntheticBody =
         IrSyntheticBodyImpl(body.startOffset, body.endOffset, body.kind)
 
-    override fun visitExpression(expression: IrExpression): IrExpression =
+    override fun visitExpression(expression: IrPureExpression): IrPureExpression =
         throw IllegalArgumentException("Unsupported expression type: $expression")
 
     override fun <T> visitConst(expression: IrConst<T>): IrConst<T> =

@@ -56,9 +56,9 @@ enum class IrTypeOperator {
     REINTERPRET_CAST;
 }
 
-interface IrTypeOperatorCall : IrExpression {
-    val operator: IrTypeOperator
-    var argument: IrExpression
-    val typeOperand: IrType
-    val typeOperandClassifier: IrClassifierSymbol
+abstract class IrTypeOperatorCall : IrPureExpression() {
+    abstract val operator: IrTypeOperator
+    abstract var argument: IrExpression
+    abstract val typeOperand: IrType
+    abstract val typeOperandClassifier: IrClassifierSymbol
 }

@@ -11,10 +11,7 @@ import org.jetbrains.kotlin.backend.common.ir.Symbols
 import org.jetbrains.kotlin.backend.common.ir.createTemporaryVariableWithWrappedDescriptor
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.config.languageVersionSettings
-import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
-import org.jetbrains.kotlin.ir.IrElement
-import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
+import org.jetbrains.kotlin.ir.*
 import org.jetbrains.kotlin.ir.builders.irReturn
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
@@ -23,8 +20,12 @@ import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrReturnableBlockSymbolImpl
-import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.IrSimpleType
+import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.isNullable
+import org.jetbrains.kotlin.ir.types.typeOrNull
 import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
@@ -79,7 +80,7 @@ class FunctionInlining(
 
     fun inline(irModule: IrModuleFragment) = irModule.accept(this, data = null)
 
-    override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrExpression {
+    override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrPureExpression {
         expression.transformChildrenVoid(this)
         val callee = when (expression) {
             is IrCall -> expression.symbol.owner
@@ -177,7 +178,7 @@ class FunctionInlining(
                 inlineFunctionSymbol = callee.symbol
             ).apply {
                 transformChildrenVoid(object : IrElementTransformerVoid() {
-                    override fun visitReturn(expression: IrReturn): IrExpression {
+                    override fun visitReturn(expression: IrReturn): IrPureExpression {
                         expression.transformChildrenVoid(this)
 
                         if (expression.returnTargetSymbol == copiedCallee.symbol)
@@ -193,7 +194,7 @@ class FunctionInlining(
 
         private inner class ParameterSubstitutor : IrElementTransformerVoid() {
 
-            override fun visitGetValue(expression: IrGetValue): IrExpression {
+            override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                 val newExpression = super.visitGetValue(expression) as IrGetValue
                 val argument = substituteMap[newExpression.symbol.owner] ?: return newExpression
 
@@ -201,12 +202,12 @@ class FunctionInlining(
 
                 return if (argument is IrGetValueWithoutLocation)
                     argument.withLocation(newExpression.startOffset, newExpression.endOffset)
-                else (copyIrElement.copy(argument) as IrExpression)
+                else (copyIrElement.copy(argument) as IrPureExpression)
             }
 
             //-----------------------------------------------------------------//
 
-            override fun visitCall(expression: IrCall): IrExpression {
+            override fun visitCall(expression: IrCall): IrPureExpression {
                 if (!isLambdaCall(expression))
                     return super.visitCall(expression)
 
@@ -293,7 +294,7 @@ class FunctionInlining(
                         for (index in 0 until functionArgument.typeArgumentsCount)
                             putTypeArgument(index, functionArgument.getTypeArgument(index))
                     }.implicitCastIfNeededTo(expression.type)
-                    return this@FunctionInlining.visitExpression(super.visitExpression(immediateCall))
+                    return this@FunctionInlining.visitExpression(super.visitExpression(immediateCall as IrPureExpression))
                 }
                 if (functionArgument !is IrFunctionExpression)
                     return super.visitCall(expression)
@@ -313,7 +314,7 @@ class FunctionInlining(
 
             //-----------------------------------------------------------------//
 
-            override fun visitElement(element: IrElement) = element.accept(this, null)
+            override fun visitElement(element: IrPureElement): IrPureElement = element.accept(this, null) as IrPureElement
         }
 
         private fun IrExpression.implicitCastIfNeededTo(type: IrType) =
@@ -509,13 +510,13 @@ class FunctionInlining(
     }
 
     private class IrGetValueWithoutLocation(
-        symbol: IrValueSymbol,
+        override val symbol: IrValueSymbol,
         override val origin: IrStatementOrigin? = null
-    ) : IrTerminalDeclarationReferenceBase<IrValueSymbol>(
-        UNDEFINED_OFFSET, UNDEFINED_OFFSET,
-        symbol.owner.type,
-        symbol
-    ), IrGetValue {
+    ) : IrGetValue() {
+        override val startOffset: Int get() = UNDEFINED_OFFSET
+        override val endOffset: Int get() = UNDEFINED_OFFSET
+        override val type: IrType get() = symbol.owner.type
+
         override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D) =
             visitor.visitGetValue(this, data)
 
@@ -525,6 +526,14 @@ class FunctionInlining(
 
         fun withLocation(startOffset: Int, endOffset: Int) =
             IrGetValueImpl(startOffset, endOffset, type, symbol, origin)
+
+        override var attributeOwnerId: IrAttributeContainer = this
+
+        override fun <D> acceptChildren(visitor: IrElementVisitor<Unit, D>, data: D) {
+        }
+
+        override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
+        }
     }
 }
 

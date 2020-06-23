@@ -33,6 +33,8 @@ interface IrElement {
     fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D): Unit
 }
 
+abstract class IrPureElement : IrElement
+
 interface IrStatement : IrElement {
     override fun <D> transform(transformer: IrElementTransformer<D>, data: D): IrStatement =
         super.transform(transformer, data) as IrStatement

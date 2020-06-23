@@ -53,7 +53,7 @@ class DeclarationIrBuilder(
 abstract class AbstractVariableRemapper : IrElementTransformerVoid() {
     protected abstract fun remapVariable(value: IrValueDeclaration): IrValueDeclaration?
 
-    override fun visitGetValue(expression: IrGetValue): IrExpression =
+    override fun visitGetValue(expression: IrGetValue): IrPureExpression =
         remapVariable(expression.symbol.owner)?.let {
             IrGetValueImpl(expression.startOffset, expression.endOffset, it.type, it.symbol, expression.origin)
         } ?: expression
@@ -87,7 +87,7 @@ inline fun IrGeneratorWithScope.irBlock(
     expression: IrExpression, origin: IrStatementOrigin? = null,
     resultType: IrType? = expression.type,
     body: IrBlockBuilder.() -> Unit
-) =
+): IrPureExpression =
     this.irBlock(expression.startOffset, expression.endOffset, origin, resultType, body)
 
 inline fun IrGeneratorWithScope.irComposite(

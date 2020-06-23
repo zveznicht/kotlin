@@ -9,62 +9,46 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.declarations.impl.IrDeclarationBase
 import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.DeclarationStubGenerator
 import org.jetbrains.kotlin.ir.util.TypeTranslator
 import org.jetbrains.kotlin.resolve.scopes.MemberScope
 import org.jetbrains.kotlin.types.KotlinType
+import kotlin.properties.ReadWriteProperty
 
 @OptIn(ObsoleteDescriptorBasedAPI::class)
-abstract class IrLazyDeclarationBase(
-    startOffset: Int,
-    endOffset: Int,
-    origin: IrDeclarationOrigin,
-    private val stubGenerator: DeclarationStubGenerator,
-    protected val typeTranslator: TypeTranslator
-) : IrDeclarationBase(startOffset, endOffset, origin) {
+interface IrLazyDeclarationBase : IrDeclaration {
+    val stubGenerator: DeclarationStubGenerator
+    val typeTranslator: TypeTranslator
 
-    protected fun KotlinType.toIrType() = typeTranslator.translateType(this)
+    fun KotlinType.toIrType(): IrType = typeTranslator.translateType(this)
 
-    protected fun ReceiverParameterDescriptor.generateReceiverParameterStub(): IrValueParameter =
-        IrValueParameterImpl(
-            UNDEFINED_OFFSET, UNDEFINED_OFFSET, origin, this,
-            type.toIrType(), null
-        )
+    fun ReceiverParameterDescriptor.generateReceiverParameterStub(): IrValueParameter =
+        IrValueParameterImpl(UNDEFINED_OFFSET, UNDEFINED_OFFSET, origin, this, type.toIrType(), null)
 
-    protected fun generateMemberStubs(memberScope: MemberScope, container: MutableList<IrDeclaration>) {
+    fun generateMemberStubs(memberScope: MemberScope, container: MutableList<IrDeclaration>) {
         generateChildStubs(memberScope.getContributedDescriptors(), container)
     }
 
-    protected fun generateChildStubs(descriptors: Collection<DeclarationDescriptor>, declarations: MutableList<IrDeclaration>) {
-        descriptors.mapNotNullTo(declarations) { generateMemberStub(it) }
-    }
-
-    private fun generateMemberStub(descriptor: DeclarationDescriptor): IrDeclaration? {
-        if (descriptor is DeclarationDescriptorWithVisibility && Visibilities.isPrivate(descriptor.visibility)) return null
-        return stubGenerator.generateMemberStub(descriptor)
-    }
-
-    override var parent: IrDeclarationParent by lazyVar {
-        createLazyParent()!!
-    }
-
-    override var annotations: List<IrConstructorCall> by lazyVar {
-        descriptor.annotations.mapNotNull(typeTranslator.constantValueGenerator::generateAnnotationConstructorCall).toMutableList()
+    fun generateChildStubs(descriptors: Collection<DeclarationDescriptor>, declarations: MutableList<IrDeclaration>) {
+        descriptors.mapNotNullTo(declarations) { descriptor ->
+            if (descriptor is DeclarationDescriptorWithVisibility && Visibilities.isPrivate(descriptor.visibility)) null
+            else stubGenerator.generateMemberStub(descriptor)
+        }
     }
 
     override val metadata: MetadataSource?
         get() = null
 
-    private fun createLazyParent(): IrDeclarationParent? {
+    fun createLazyParent(): ReadWriteProperty<Any?, IrDeclarationParent> = lazyVar {
         val currentDescriptor = descriptor
 
         val containingDeclaration =
             ((currentDescriptor as? PropertyAccessorDescriptor)?.correspondingProperty ?: currentDescriptor).containingDeclaration
 
-        return when (containingDeclaration) {
+        when (containingDeclaration) {
             is PackageFragmentDescriptor -> run {
                 val parent = this.takeUnless { it is IrClass }?.let {
                     stubGenerator.generateOrGetFacadeClass(descriptor)
@@ -77,5 +61,9 @@ abstract class IrLazyDeclarationBase(
             is PropertyDescriptor -> stubGenerator.generateFunctionStub(containingDeclaration.run { getter ?: setter!! })
             else -> throw AssertionError("Package or class expected: $containingDeclaration; for $currentDescriptor")
         }
+    }
+
+    fun createLazyAnnotations(): ReadWriteProperty<Any?, List<IrConstructorCall>> = lazyVar {
+        descriptor.annotations.mapNotNull(typeTranslator.constantValueGenerator::generateAnnotationConstructorCall).toMutableList()
     }
 }

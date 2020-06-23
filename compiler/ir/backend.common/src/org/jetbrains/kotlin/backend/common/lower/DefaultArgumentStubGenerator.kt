@@ -114,7 +114,7 @@ open class DefaultArgumentStubGenerator(
                         val expressionBody = valueParameter.defaultValue!!
                         expressionBody.patchDeclarationParents(newIrFunction)
                         expressionBody.transformChildrenVoid(object : IrElementTransformerVoid() {
-                            override fun visitGetValue(expression: IrGetValue): IrExpression {
+                            override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                                 log { "GetValue: ${expression.symbol.owner}" }
                                 val valueSymbol = variables[expression.symbol.owner] ?: return expression
                                 return irGet(valueSymbol)
@@ -279,7 +279,7 @@ open class DefaultParameterInjector(
         }
     }
 
-    override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+    override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrPureExpression {
         expression.transformChildrenVoid()
         return visitFunctionAccessExpression(expression) {
             with(expression) {
@@ -292,7 +292,7 @@ open class DefaultParameterInjector(
         }
     }
 
-    override fun visitConstructorCall(expression: IrConstructorCall): IrExpression {
+    override fun visitConstructorCall(expression: IrConstructorCall): IrPureExpression {
         expression.transformChildrenVoid()
         return visitFunctionAccessExpression(expression) {
             with(expression) {
@@ -301,7 +301,7 @@ open class DefaultParameterInjector(
         }
     }
 
-    override fun visitEnumConstructorCall(expression: IrEnumConstructorCall): IrExpression {
+    override fun visitEnumConstructorCall(expression: IrEnumConstructorCall): IrPureExpression {
         expression.transformChildrenVoid()
         return visitFunctionAccessExpression(expression) {
             with(expression) {
@@ -314,7 +314,7 @@ open class DefaultParameterInjector(
         }
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         expression.transformChildrenVoid()
         return visitFunctionAccessExpression(expression) {
             with(expression) {

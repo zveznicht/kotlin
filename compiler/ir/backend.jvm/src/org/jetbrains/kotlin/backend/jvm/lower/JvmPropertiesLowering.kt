@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrFieldAccessExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.expressions.impl.IrBlockBodyImpl
 import org.jetbrains.kotlin.ir.types.classifierOrFail
 import org.jetbrains.kotlin.ir.types.makeNotNull
@@ -47,7 +48,7 @@ class JvmPropertiesLowering(private val backendContext: JvmBackendContext) : IrE
         return declaration
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         val simpleFunction = (expression.symbol.owner as? IrSimpleFunction) ?: return super.visitCall(expression)
         val property = simpleFunction.correspondingPropertySymbol?.owner ?: return super.visitCall(expression)
         expression.transformChildrenVoid()
@@ -65,10 +66,10 @@ class JvmPropertiesLowering(private val backendContext: JvmBackendContext) : IrE
         return expression
     }
 
-    private fun IrBuilderWithScope.substituteSetter(irProperty: IrProperty, expression: IrCall): IrExpression =
+    private fun IrBuilderWithScope.substituteSetter(irProperty: IrProperty, expression: IrCall): IrPureExpression =
         patchReceiver(irSetField(expression.dispatchReceiver, irProperty.resolveFakeOverride()!!.backingField!!, expression.getValueArgument(0)!!))
 
-    private fun IrBuilderWithScope.substituteGetter(irProperty: IrProperty, expression: IrCall): IrExpression {
+    private fun IrBuilderWithScope.substituteGetter(irProperty: IrProperty, expression: IrCall): IrPureExpression {
         val backingField = irProperty.resolveFakeOverride()!!.backingField!!
         val value = irGetField(expression.dispatchReceiver, backingField)
         return if (irProperty.isLateinit) {
@@ -86,7 +87,7 @@ class JvmPropertiesLowering(private val backendContext: JvmBackendContext) : IrE
         }
     }
 
-    private fun IrBuilderWithScope.patchReceiver(expression: IrFieldAccessExpression): IrExpression =
+    private fun IrBuilderWithScope.patchReceiver(expression: IrFieldAccessExpression): IrPureExpression =
         if (expression.symbol.owner.isStatic && expression.receiver != null) {
             irBlock {
                 +expression.receiver!!.coerceToUnit(context.irBuiltIns)

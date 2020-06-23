@@ -28,14 +28,14 @@ private class SingletonReferencesLowering(val context: JvmBackendContext) : File
         irFile.transformChildrenVoid(this)
     }
 
-    override fun visitEnumConstructorCall(expression: IrEnumConstructorCall): IrExpression {
+    override fun visitEnumConstructorCall(expression: IrEnumConstructorCall): IrPureExpression {
         constructingEnums.push(expression.symbol.owner.parent)
         val call = super.visitEnumConstructorCall(expression)
         constructingEnums.pop()
         return call
     }
 
-    override fun visitGetEnumValue(expression: IrGetEnumValue): IrExpression {
+    override fun visitGetEnumValue(expression: IrGetEnumValue): IrPureExpression {
         val candidate = expression.symbol.owner.correspondingClass
         val appropriateThis = thisOfClass(candidate)
         return if (candidate != null && appropriateThis != null && !isVisitingSuperConstructor(candidate)) {
@@ -51,7 +51,7 @@ private class SingletonReferencesLowering(val context: JvmBackendContext) : File
         }
     }
 
-    override fun visitGetObjectValue(expression: IrGetObjectValue): IrExpression {
+    override fun visitGetObjectValue(expression: IrGetObjectValue): IrPureExpression {
         // When in an instance method of the object, use the dispatch receiver. Do not use the dispatch
         // receiver in the constructor, as in the case of an `object` the only way it can be used is
         // in a super constructor call argument (=> it has JVM type "uninitialized this" and is not usable)

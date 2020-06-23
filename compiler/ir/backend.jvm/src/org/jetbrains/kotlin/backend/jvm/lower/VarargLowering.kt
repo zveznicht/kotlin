@@ -38,14 +38,14 @@ private class VarargLowering(val context: JvmBackendContext) : FileLoweringPass,
     override fun lower(irFile: IrFile) = irFile.transformChildrenVoid()
 
     // Ignore annotations
-    override fun visitConstructorCall(expression: IrConstructorCall): IrExpression {
+    override fun visitConstructorCall(expression: IrConstructorCall): IrPureExpression {
         val constructor = expression.symbol.owner
         if (constructor.constructedClass.isAnnotationClass)
             return expression
         return super.visitConstructorCall(expression)
     }
 
-    override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrExpression {
+    override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrPureExpression {
         expression.transformChildrenVoid()
         val function = expression.symbol
 
@@ -71,11 +71,11 @@ private class VarargLowering(val context: JvmBackendContext) : FileLoweringPass,
                 createBuilder(expression.startOffset, expression.endOffset).irArrayOf(expression.type)
             else ->
                 expression
-        }
+        } as IrPureExpression
     }
 
-    override fun visitVararg(expression: IrVararg): IrExpression =
-        createBuilder(expression.startOffset, expression.endOffset).irArray(expression.type) { addVararg(expression) }
+    override fun visitVararg(expression: IrVararg): IrPureExpression =
+        createBuilder(expression.startOffset, expression.endOffset).irArray(expression.type) { addVararg(expression) } as IrPureExpression
 
     private fun IrArrayBuilder.addVararg(expression: IrVararg) {
         loop@ for (element in expression.elements) {

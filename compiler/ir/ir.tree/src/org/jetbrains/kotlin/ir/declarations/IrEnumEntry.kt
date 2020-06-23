@@ -21,11 +21,10 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.symbols.IrEnumEntrySymbol
 
-interface IrEnumEntry : IrSymbolDeclaration<IrEnumEntrySymbol>, IrDeclarationWithName {
+abstract class IrEnumEntry : IrPureDeclaration(), IrSymbolDeclaration<IrEnumEntrySymbol>, IrDeclarationWithName {
     @ObsoleteDescriptorBasedAPI
-    override val descriptor: ClassDescriptor
+    abstract override val descriptor: ClassDescriptor
 
-    var correspondingClass: IrClass?
-    var initializerExpression: IrExpressionBody?
+    abstract var correspondingClass: IrClass?
+    abstract var initializerExpression: IrExpressionBody?
 }
-

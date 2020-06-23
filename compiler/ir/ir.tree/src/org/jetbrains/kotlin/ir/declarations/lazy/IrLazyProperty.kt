@@ -9,10 +9,8 @@ import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.PropertyDescriptor
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
-import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
-import org.jetbrains.kotlin.ir.declarations.IrField
-import org.jetbrains.kotlin.ir.declarations.IrProperty
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.util.DeclarationStubGenerator
 import org.jetbrains.kotlin.ir.util.TypeTranslator
@@ -24,9 +22,9 @@ import org.jetbrains.kotlin.resolve.hasBackingField
 
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 class IrLazyProperty(
-    startOffset: Int,
-    endOffset: Int,
-    origin: IrDeclarationOrigin,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override var origin: IrDeclarationOrigin,
     override val symbol: IrPropertySymbol,
     override val descriptor: PropertyDescriptor,
     override val name: Name,
@@ -39,13 +37,10 @@ class IrLazyProperty(
     override val isExternal: Boolean,
     override val isExpect: Boolean,
     override val isFakeOverride: Boolean,
-    stubGenerator: DeclarationStubGenerator,
-    typeTranslator: TypeTranslator,
+    override val stubGenerator: DeclarationStubGenerator,
+    override val typeTranslator: TypeTranslator,
     bindingContext: BindingContext? = null
-) :
-    IrLazyDeclarationBase(startOffset, endOffset, origin, stubGenerator, typeTranslator),
-    IrProperty {
-
+) : IrLazyDeclarationBase, IrProperty() {
     init {
         symbol.bind(this)
     }
@@ -60,16 +55,22 @@ class IrLazyProperty(
             }
         } else null
     }
+
     override var getter: IrSimpleFunction? by lazyVar {
         descriptor.getter?.let { stubGenerator.generateFunctionStub(it, createPropertyIfNeeded = false) }?.apply {
             correspondingPropertySymbol = this@IrLazyProperty.symbol
         }
     }
+
     override var setter: IrSimpleFunction? by lazyVar {
         descriptor.setter?.let { stubGenerator.generateFunctionStub(it, createPropertyIfNeeded = false) }?.apply {
             correspondingPropertySymbol = this@IrLazyProperty.symbol
         }
     }
+
+    override var parent: IrDeclarationParent by createLazyParent()
+
+    override var annotations: List<IrConstructorCall> by createLazyAnnotations()
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =
         visitor.visitProperty(this, data)

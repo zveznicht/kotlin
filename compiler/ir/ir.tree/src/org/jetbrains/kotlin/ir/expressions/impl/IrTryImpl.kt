@@ -18,7 +18,7 @@ package org.jetbrains.kotlin.ir.expressions.impl
 
 import org.jetbrains.kotlin.descriptors.VariableDescriptor
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
-import org.jetbrains.kotlin.ir.IrElementBase
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCatch
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -29,12 +29,11 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.utils.SmartList
 
 class IrTryImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType
-) :
-    IrExpressionBase(startOffset, endOffset, type),
-    IrTry {
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType
+) : IrTry() {
+    override var attributeOwnerId: IrAttributeContainer = this
 
     constructor(
         startOffset: Int,
@@ -75,12 +74,9 @@ class IrTryImpl(
 }
 
 class IrCatchImpl(
-    startOffset: Int,
-    endOffset: Int
-) :
-    IrElementBase(startOffset, endOffset),
-    IrCatch {
-
+    override val startOffset: Int,
+    override val endOffset: Int
+) : IrCatch() {
     constructor(
         startOffset: Int,
         endOffset: Int,

@@ -5,23 +5,22 @@
 
 package org.jetbrains.kotlin.ir.declarations
 
-import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 
-interface IrSimpleFunction :
-    IrFunction,
+abstract class IrSimpleFunction :
+    IrFunction(),
     IrSymbolDeclaration<IrSimpleFunctionSymbol>,
     IrOverridableDeclaration<IrSimpleFunctionSymbol>,
     IrOverridableMember,
     IrAttributeContainer {
 
-    val isTailrec: Boolean
-    val isSuspend: Boolean
-    val isFakeOverride: Boolean
-    val isOperator: Boolean
+    abstract val isTailrec: Boolean
+    abstract val isSuspend: Boolean
+    abstract val isFakeOverride: Boolean
+    abstract val isOperator: Boolean
 
-    var correspondingPropertySymbol: IrPropertySymbol?
+    abstract var correspondingPropertySymbol: IrPropertySymbol?
 }
 
 val IrFunction.isPropertyAccessor: Boolean

@@ -47,7 +47,7 @@ private fun <T> IrConst<T>.copyWithOffsets(startOffset: Int, endOffset: Int) =
 class ConstLowering(val context: JvmBackendContext) : IrElementTransformerVoid(), FileLoweringPass {
     override fun lower(irFile: IrFile) = irFile.transformChildrenVoid()
 
-    private fun IrExpression.lowerConstRead(field: IrField?): IrExpression? {
+    private fun IrExpression.lowerConstRead(field: IrField?): IrPureExpression? {
         val value = field?.constantValue() ?: return null
         return if (context.state.shouldInlineConstVals)
             value.copyWithOffsets(startOffset, endOffset)
@@ -55,13 +55,13 @@ class ConstLowering(val context: JvmBackendContext) : IrElementTransformerVoid()
             IrGetFieldImpl(startOffset, endOffset, field.symbol, field.type)
     }
 
-    override fun visitCall(expression: IrCall): IrExpression {
+    override fun visitCall(expression: IrCall): IrPureExpression {
         val function = (expression.symbol.owner as? IrSimpleFunction) ?: return super.visitCall(expression)
         val property = function.correspondingPropertySymbol?.owner ?: return super.visitCall(expression)
         // If `constantValue` is not null, `function` can only be the getter because the property is immutable.
         return expression.lowerConstRead(property.backingField) ?: super.visitCall(expression)
     }
 
-    override fun visitGetField(expression: IrGetField): IrExpression =
+    override fun visitGetField(expression: IrGetField): IrPureExpression =
         expression.lowerConstRead(expression.symbol.owner) ?: super.visitGetField(expression)
 }

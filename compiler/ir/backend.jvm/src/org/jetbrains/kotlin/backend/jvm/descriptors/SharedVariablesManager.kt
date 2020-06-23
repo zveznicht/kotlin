@@ -122,14 +122,14 @@ class JvmSharedVariablesManager(
         }
     }
 
-    private fun unsafeCoerce(value: IrExpression, from: IrType, to: IrType): IrExpression =
+    private fun unsafeCoerce(value: IrExpression, from: IrType, to: IrType): IrPureExpression =
         IrCallImpl(value.startOffset, value.endOffset, to, symbols.unsafeCoerceIntrinsic).apply {
             putTypeArgument(0, from)
             putTypeArgument(1, to)
             putValueArgument(0, value)
         }
 
-    override fun getSharedValue(sharedVariableSymbol: IrVariableSymbol, originalGet: IrGetValue): IrExpression =
+    override fun getSharedValue(sharedVariableSymbol: IrVariableSymbol, originalGet: IrGetValue): IrPureExpression =
         with(originalGet) {
             val unboxedType = InlineClassAbi.unboxType(symbol.owner.type)
             val provider = getProvider(unboxedType ?: symbol.owner.type)
@@ -138,7 +138,7 @@ class JvmSharedVariablesManager(
             unboxedType?.let { unsafeCoerce(unboxedRead, it, symbol.owner.type) } ?: unboxedRead
         }
 
-    override fun setSharedValue(sharedVariableSymbol: IrVariableSymbol, originalSet: IrSetVariable): IrExpression =
+    override fun setSharedValue(sharedVariableSymbol: IrVariableSymbol, originalSet: IrSetVariable): IrPureExpression =
         with(originalSet) {
             val unboxedType = InlineClassAbi.unboxType(symbol.owner.type)
             val unboxedValue = unboxedType?.let { unsafeCoerce(value, symbol.owner.type, it) } ?: value

@@ -72,7 +72,7 @@ class StaticLambdaLowering(val backendContext: JvmBackendContext) : FileLowering
             }
         }
 
-    override fun visitConstructorCall(expression: IrConstructorCall): IrExpression {
+    override fun visitConstructorCall(expression: IrConstructorCall): IrPureExpression {
         val constructor = expression.symbol.owner
         if (!constructor.constructedClass.isSyntheticSingleton)
             return super.visitConstructorCall(expression)

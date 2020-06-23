@@ -76,7 +76,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
     private val getterMap = mutableMapOf<Pair<IrFieldSymbol, IrDeclarationParent>, IrSimpleFunctionSymbol>()
     private val setterMap = mutableMapOf<Pair<IrFieldSymbol, IrDeclarationParent>, IrSimpleFunctionSymbol>()
 
-    override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrExpression {
+    override fun visitFunctionAccess(expression: IrFunctionAccessExpression): IrPureExpression {
         if (expression.usesDefaultArguments()) {
             return super.visitFunctionAccess(expression)
         }
@@ -153,7 +153,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
         return super.visitExpression(modifyFunctionAccessExpression(expression, accessor))
     }
 
-    override fun visitGetField(expression: IrGetField): IrExpression {
+    override fun visitGetField(expression: IrGetField): IrPureExpression {
         val dispatchReceiverType = expression.receiver?.type
         return super.visitExpression(
             if (!expression.symbol.isAccessible(false, dispatchReceiverType?.classifierOrNull as? IrClassSymbol)) {
@@ -170,7 +170,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
         )
     }
 
-    override fun visitSetField(expression: IrSetField): IrExpression {
+    override fun visitSetField(expression: IrSetField): IrPureExpression {
         val dispatchReceiverType = expression.receiver?.type
         return super.visitExpression(
             if (!expression.symbol.isAccessible(false, dispatchReceiverType?.classifierOrNull as? IrClassSymbol)) {
@@ -196,7 +196,7 @@ internal class SyntheticAccessorLowering(val context: JvmBackendContext) : IrEle
         return super.visitConstructor(declaration)
     }
 
-    override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+    override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
         val function = expression.symbol.owner
 
         if (!expression.origin.isLambda && function is IrConstructor && function.isOrShouldBeHidden) {

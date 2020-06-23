@@ -290,7 +290,7 @@ private class UpdateConstantFacadePropertyReferences(
         irClass.transformChildrenVoid(object : IrElementTransformerVoid() {
             override fun visitClass(declaration: IrClass): IrStatement = declaration
 
-            override fun visitClassReference(expression: IrClassReference): IrExpression = IrClassReferenceImpl(
+            override fun visitClassReference(expression: IrClassReference): IrPureExpression = IrClassReferenceImpl(
                 expression.startOffset, expression.endOffset, facadeClass.defaultType, facadeClass.symbol, facadeClass.defaultType
             )
         })

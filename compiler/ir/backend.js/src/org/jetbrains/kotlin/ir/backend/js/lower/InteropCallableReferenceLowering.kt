@@ -37,7 +37,7 @@ class InteropCallableReferenceLowering(val context: JsIrBackendContext) : BodyLo
     }
 
     inner class CallableReferenceLowerTransformer : IrElementTransformerVoid() {
-        override fun visitConstructorCall(expression: IrConstructorCall): IrExpression {
+        override fun visitConstructorCall(expression: IrConstructorCall): IrPureExpression {
             expression.transformChildrenVoid(this)
             if (expression.origin === CallableReferenceLowering.Companion.CALLABLE_REFERENCE_CREATE) {
                 return transformToJavaScriptFunction(expression)
@@ -46,7 +46,7 @@ class InteropCallableReferenceLowering(val context: JsIrBackendContext) : BodyLo
         }
     }
 
-    private fun transformToJavaScriptFunction(expression: IrConstructorCall): IrExpression {
+    private fun transformToJavaScriptFunction(expression: IrConstructorCall): IrPureExpression {
         // TODO: perform inlining
         val factory = buildFactoryFunction(expression)
         newDeclarations += factory

@@ -145,7 +145,7 @@ class InnerClassesMemberBodyLowering(val context: BackendContext) : BodyLowering
             override fun visitClassNew(declaration: IrClass): IrStatement =
                 declaration
 
-            override fun visitGetValue(expression: IrGetValue): IrExpression {
+            override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 val implicitThisClass = expression.symbol.classForImplicitThis
@@ -157,7 +157,7 @@ class InnerClassesMemberBodyLowering(val context: BackendContext) : BodyLowering
                 val function = (currentFunction?.irElement ?: enclosingFunction) as? IrFunction
                 val enclosingThisReceiver = function?.dispatchReceiverParameter ?: irClass.thisReceiver!!
 
-                var irThis: IrExpression = IrGetValueImpl(startOffset, endOffset, enclosingThisReceiver.symbol, origin)
+                var irThis: IrPureExpression = IrGetValueImpl(startOffset, endOffset, enclosingThisReceiver.symbol, origin)
                 var innerClass = irClass
                 while (innerClass != implicitThisClass) {
                     if (!innerClass.isInner) {
@@ -191,7 +191,7 @@ val innerClassConstructorCallsPhase = makeIrFilePhase(
 class InnerClassConstructorCallsLowering(val context: BackendContext) : BodyLoweringPass {
     override fun lower(irBody: IrBody, container: IrDeclaration) {
         irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitConstructorCall(expression: IrConstructorCall): IrExpression {
+            override fun visitConstructorCall(expression: IrConstructorCall): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 val dispatchReceiver = expression.dispatchReceiver ?: return expression
@@ -214,7 +214,7 @@ class InnerClassConstructorCallsLowering(val context: BackendContext) : BodyLowe
                 return newCall
             }
 
-            override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+            override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 val dispatchReceiver = expression.dispatchReceiver ?: return expression
@@ -236,7 +236,7 @@ class InnerClassConstructorCallsLowering(val context: BackendContext) : BodyLowe
                 return newCall
             }
 
-            override fun visitFunctionReference(expression: IrFunctionReference): IrExpression {
+            override fun visitFunctionReference(expression: IrFunctionReference): IrPureExpression {
                 expression.transformChildrenVoid(this)
 
                 val callee = expression.symbol as? IrConstructorSymbol ?: return expression

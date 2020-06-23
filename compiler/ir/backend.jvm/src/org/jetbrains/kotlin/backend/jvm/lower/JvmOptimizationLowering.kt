@@ -185,7 +185,7 @@ class JvmOptimizationLowering(val context: JvmBackendContext) : FileLoweringPass
                 return expression
             }
 
-            override fun visitWhen(expression: IrWhen, currentClass: IrClass?): IrExpression {
+            override fun visitWhen(expression: IrWhen, currentClass: IrClass?): IrPureExpression {
                 val isCompilerGenerated = expression.origin == null
                 expression.transformChildren(this, currentClass)
                 // Remove all branches with constant false condition.
@@ -240,7 +240,8 @@ class JvmOptimizationLowering(val context: JvmBackendContext) : FileLoweringPass
                 return if (expression.branches.size == 0) {
                     IrBlockImpl(expression.startOffset, expression.endOffset, context.irBuiltIns.unitType)
                 } else {
-                    expression.branches.first().takeIf { it.condition.isTrueConst() && isCompilerGenerated }?.result ?: expression
+                    expression.branches.first().takeIf { it.condition.isTrueConst() && isCompilerGenerated }?.result as IrPureExpression?
+                        ?: expression
                 }
             }
 
@@ -335,13 +336,13 @@ class JvmOptimizationLowering(val context: JvmBackendContext) : FileLoweringPass
                 return body
             }
 
-            override fun visitContainerExpression(expression: IrContainerExpression, currentClass: IrClass?): IrExpression {
+            override fun visitContainerExpression(expression: IrContainerExpression, currentClass: IrClass?): IrPureExpression {
                 expression.transformChildren(this, currentClass)
                 removeUnnecessaryTemporaryVariables(expression.statements)
                 return expression
             }
 
-            override fun visitGetValue(expression: IrGetValue, currentClass: IrClass?): IrExpression {
+            override fun visitGetValue(expression: IrGetValue, currentClass: IrClass?): IrPureExpression {
                 // Replace IrGetValue of an immutable temporary variable with a constant
                 // initializer with the constant initializer.
                 val variable = expression.symbol.owner

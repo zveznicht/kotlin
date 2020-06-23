@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrGetClass
 import org.jetbrains.kotlin.ir.types.IrType
@@ -23,13 +24,10 @@ import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IrGetClassImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType
-) :
-    IrExpressionBase(startOffset, endOffset, type),
-    IrGetClass {
-
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType
+) : IrGetClass() {
     constructor(startOffset: Int, endOffset: Int, type: IrType, argument: IrExpression) : this(startOffset, endOffset, type) {
         this.argument = argument
     }
@@ -47,4 +45,6 @@ class IrGetClassImpl(
     override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
         argument = argument.transform(transformer, data)
     }
+
+    override var attributeOwnerId: IrAttributeContainer = this
 }

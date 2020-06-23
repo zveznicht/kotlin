@@ -97,7 +97,7 @@ class ObjectUsageLowering(
         }
 
         irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitGetObjectValue(expression: IrGetObjectValue): IrExpression {
+            override fun visitGetObjectValue(expression: IrGetObjectValue): IrPureExpression {
                 val obj: IrClass = expression.symbol.owner
                 if (obj.isEffectivelyExternal()) return expression
                 return JsIrBuilder.buildCall(context.getOrCreateGetInstanceFunction(obj).symbol)

@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrVariable
 import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrPureExpression
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.defaultType
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
@@ -285,7 +286,7 @@ internal abstract class HeaderInfoBuilder(context: CommonBackendContext, private
     }
 
     /** Builds a [HeaderInfo] for iterable expressions not handled in [visitCall]. */
-    override fun visitExpression(iterable: IrExpression, iteratorCall: IrCall?): HeaderInfo? {
+    override fun visitExpression(iterable: IrPureExpression, iteratorCall: IrCall?): HeaderInfo? {
         return expressionHandlers.firstNotNullResult { it.handle(iterable, iteratorCall, null, scopeOwnerSymbol()) }
             ?: super.visitExpression(iterable, iteratorCall)
     }

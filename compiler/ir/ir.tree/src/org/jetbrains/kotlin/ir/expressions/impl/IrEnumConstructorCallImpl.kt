@@ -17,28 +17,33 @@
 package org.jetbrains.kotlin.ir.expressions.impl
 
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrEnumConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.typeParametersCount
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IrEnumConstructorCallImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
     override val symbol: IrConstructorSymbol,
-    typeArgumentsCount: Int,
-    valueArgumentsCount: Int
-) :
-    IrCallWithIndexedArgumentsBase(
-        startOffset,
-        endOffset,
-        type,
-        typeArgumentsCount = typeArgumentsCount,
-        valueArgumentsCount = valueArgumentsCount
-    ),
-    IrEnumConstructorCall {
+    override val typeArgumentsCount: Int,
+    override val valueArgumentsCount: Int
+) : IrEnumConstructorCall(), IrCallWithIndexedArgumentsBase {
+    override var dispatchReceiver: IrExpression? = null
+    override var extensionReceiver: IrExpression? = null
+
+    override val argumentsByParameterIndex: Array<IrExpression?> = arrayOfNulls(valueArgumentsCount)
+
+    override val typeArgumentsByIndex: Array<IrType?> = arrayOfNulls(typeArgumentsCount)
+
+    override var attributeOwnerId: IrAttributeContainer = this
+
+    override val origin: IrStatementOrigin? get() = null
 
     @ObsoleteDescriptorBasedAPI
     constructor(
@@ -56,6 +61,16 @@ class IrEnumConstructorCallImpl(
         symbol: IrConstructorSymbol,
         typeArgumentsCount: Int
     ) : this(startOffset, endOffset, type, symbol, typeArgumentsCount, symbol.descriptor.valueParameters.size)
+
+    override fun getTypeArgument(index: Int): IrType? = super.getTypeArgument(index)
+
+    override fun putTypeArgument(index: Int, type: IrType?): Unit = super.putTypeArgument(index, type)
+
+    override fun getValueArgument(index: Int): IrExpression? = super.getValueArgument(index)
+
+    override fun putValueArgument(index: Int, valueArgument: IrExpression?): Unit = super.putValueArgument(index, valueArgument)
+
+    override fun removeValueArgument(index: Int): Unit = super.removeValueArgument(index)
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {
         return visitor.visitEnumConstructorCall(this, data)

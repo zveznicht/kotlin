@@ -60,7 +60,7 @@ private class AnonymousObjectSuperConstructorLowering(val context: JvmBackendCon
         irFile.transformChildrenVoid()
     }
 
-    override fun visitBlock(expression: IrBlock): IrExpression {
+    override fun visitBlock(expression: IrBlock): IrPureExpression {
         if (expression.origin != IrStatementOrigin.OBJECT_LITERAL)
             return super.visitBlock(expression)
 

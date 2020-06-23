@@ -16,18 +16,15 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
-import org.jetbrains.kotlin.ir.IrElementBase
 import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrSpreadElement
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
 class IrSpreadElementImpl(
-    startOffset: Int,
-    endOffset: Int
-) :
-    IrElementBase(startOffset, endOffset),
-    IrSpreadElement {
+    override val startOffset: Int,
+    override val endOffset: Int
+) : IrSpreadElement() {
 
     constructor(startOffset: Int, endOffset: Int, expression: IrExpression) : this(startOffset, endOffset) {
         this.expression = expression

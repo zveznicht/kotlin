@@ -36,7 +36,7 @@ open class InitializersLowering(context: CommonBackendContext) : InitializersLow
         }
 
         container.body?.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall): IrExpression {
+            override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall): IrPureExpression {
                 return IrBlockImpl(irClass.startOffset, irClass.endOffset, context.irBuiltIns.unitType, null, instanceInitializerStatements)
                     .deepCopyWithSymbols(container).also {
                         // Handle declarations, copied from initializers

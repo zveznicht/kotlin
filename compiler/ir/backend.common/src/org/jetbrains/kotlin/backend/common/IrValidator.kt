@@ -98,7 +98,7 @@ object CheckDeclarationParentsVisitor : IrElementVisitor<Unit, IrDeclarationPare
         element.acceptChildren(this, element as? IrDeclarationParent ?: data)
     }
 
-    override fun visitDeclaration(declaration: IrDeclaration, data: IrDeclarationParent?) {
+    override fun visitDeclaration(declaration: IrPureDeclaration, data: IrDeclarationParent?) {
         checkParent(declaration, data)
         super.visitDeclaration(declaration, data)
     }

@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.ir.expressions.impl
 
+import org.jetbrains.kotlin.ir.declarations.IrAttributeContainer
 import org.jetbrains.kotlin.ir.expressions.IrVararg
 import org.jetbrains.kotlin.ir.expressions.IrVarargElement
 import org.jetbrains.kotlin.ir.types.IrType
@@ -24,14 +25,11 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.utils.SmartList
 
 class IrVarargImpl(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
+    override val startOffset: Int,
+    override val endOffset: Int,
+    override val type: IrType,
     override val varargElementType: IrType
-) :
-    IrExpressionBase(startOffset, endOffset, type),
-    IrVararg {
-
+) : IrVararg() {
     constructor(
         startOffset: Int,
         endOffset: Int,
@@ -65,4 +63,6 @@ class IrVarargImpl(
             elements[i] = irVarargElement.transform(transformer, data) as IrVarargElement
         }
     }
+
+    override var attributeOwnerId: IrAttributeContainer = this
 }

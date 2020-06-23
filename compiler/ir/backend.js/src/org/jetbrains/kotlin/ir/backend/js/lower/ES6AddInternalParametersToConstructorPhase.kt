@@ -85,7 +85,7 @@ class ES6AddInternalParametersToConstructorPhase(val context: JsIrBackendContext
         context.mapping.constructorToInitFunction[constructor] = initFunction
 
         initFunction.transformChildren(object : IrElementTransformerVoid() {
-            override fun visitDeclaration(declaration: IrDeclaration): IrStatement {
+            override fun visitDeclaration(declaration: IrPureDeclaration): IrStatement {
                 declaration.parent = initFunction
                 return declaration
             }
@@ -118,7 +118,7 @@ class ES6AddInternalParametersToConstructorPhase(val context: JsIrBackendContext
             body = JsIrBuilder.buildBlockBody(constructor.body?.statements ?: emptyList())
 
             transformChildren(object : IrElementTransformerVoid() {
-                override fun visitGetValue(expression: IrGetValue): IrExpression {
+                override fun visitGetValue(expression: IrGetValue): IrPureExpression {
                     return if (expression.symbol.owner === constructor.parentAsClass.thisReceiver!!) {
                         with(expression) { IrGetValueImpl(startOffset, endOffset, type, valueParameters.single().symbol) }
                     } else {
@@ -133,7 +133,7 @@ class ES6AddInternalParametersToConstructorPhase(val context: JsIrBackendContext
      * Pass `null` for ES6_INIT_BOX_PARAMETER and ES6_RESULT_TYPE_PARAMETER
      */
     inner class CallSiteTransformer : IrElementTransformerVoid() {
-        override fun visitConstructorCall(expression: IrConstructorCall): IrExpression {
+        override fun visitConstructorCall(expression: IrConstructorCall): IrPureExpression {
             val constructor = expression.symbol.owner
             val parent = constructor.parentAsClass
 
@@ -169,7 +169,7 @@ class ES6AddInternalParametersToConstructorPhase(val context: JsIrBackendContext
             }
         }
 
-        override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+        override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrPureExpression {
             val constructor = expression.symbol.owner
             val parent = constructor.parentAsClass
 

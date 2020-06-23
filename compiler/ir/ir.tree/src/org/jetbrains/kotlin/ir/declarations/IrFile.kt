@@ -17,9 +17,8 @@
 package org.jetbrains.kotlin.ir.declarations
 
 import org.jetbrains.kotlin.descriptors.PackageFragmentDescriptor
-import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrPureElement
 import org.jetbrains.kotlin.ir.SourceManager
-import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.symbols.IrExternalPackageFragmentSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFileSymbol
 import org.jetbrains.kotlin.ir.symbols.IrPackageFragmentSymbol
@@ -28,24 +27,24 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 import java.io.File
 
-interface IrPackageFragment : IrElement, IrDeclarationContainer, IrSymbolOwner {
-    val packageFragmentDescriptor: PackageFragmentDescriptor
-    override val symbol: IrPackageFragmentSymbol
+abstract class IrPackageFragment : IrPureElement(), IrDeclarationContainer, IrSymbolOwner {
+    abstract val packageFragmentDescriptor: PackageFragmentDescriptor
+    abstract override val symbol: IrPackageFragmentSymbol
 
-    val fqName: FqName
+    abstract val fqName: FqName
 }
 
-interface IrExternalPackageFragment : IrPackageFragment {
-    override val symbol: IrExternalPackageFragmentSymbol
-    val containerSource: DeserializedContainerSource?
+abstract class IrExternalPackageFragment : IrPackageFragment() {
+    abstract override val symbol: IrExternalPackageFragmentSymbol
+    abstract val containerSource: DeserializedContainerSource?
 }
 
-interface IrFile : IrPackageFragment, IrMutableAnnotationContainer, IrMetadataSourceOwner {
-    override val symbol: IrFileSymbol
+abstract class IrFile : IrPackageFragment(), IrMutableAnnotationContainer, IrMetadataSourceOwner {
+    abstract override val symbol: IrFileSymbol
 
-    val fileEntry: SourceManager.FileEntry
+    abstract val fileEntry: SourceManager.FileEntry
 
-    override val metadata: MetadataSource.File?
+    abstract override val metadata: MetadataSource.File?
 
     override fun <D> transform(transformer: IrElementTransformer<D>, data: D): IrFile =
         accept(transformer, data) as IrFile

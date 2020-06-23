@@ -143,7 +143,7 @@ class SecondaryConstructorLowering(val context: JsIrBackendContext) : Declaratio
 
         val newThisSymbol = symbolMapping.values.last().symbol
 
-        override fun visitReturn(expression: IrReturn): IrExpression = IrReturnImpl(
+        override fun visitReturn(expression: IrReturn): IrPureExpression = IrReturnImpl(
             expression.startOffset,
             expression.endOffset,
             expression.type,

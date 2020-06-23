@@ -17,37 +17,26 @@
 package org.jetbrains.kotlin.ir.expressions.impl
 
 import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
-import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 
-abstract class IrMemberAccessExpressionBase<S : IrSymbol>(
-    startOffset: Int,
-    endOffset: Int,
-    type: IrType,
-    final override val typeArgumentsCount: Int,
-    final override val valueArgumentsCount: Int,
-    final override val origin: IrStatementOrigin? = null
-) :
-    IrExpressionBase(startOffset, endOffset, type),
-    IrMemberAccessExpression<S> {
+interface IrMemberAccessExpressionBase<S : IrSymbol> : IrExpression {
+    val typeArgumentsCount: Int
+    val typeArgumentsByIndex: Array<IrType?>
 
-    override var dispatchReceiver: IrExpression? = null
-    override var extensionReceiver: IrExpression? = null
+    var dispatchReceiver: IrExpression?
+    var extensionReceiver: IrExpression?
 
-    private val typeArgumentsByIndex = arrayOfNulls<IrType>(typeArgumentsCount)
-
-    override fun getTypeArgument(index: Int): IrType? {
+    fun getTypeArgument(index: Int): IrType? {
         if (index >= typeArgumentsCount) {
             throw AssertionError("$this: No such type argument slot: $index")
         }
         return typeArgumentsByIndex[index]
     }
 
-    override fun putTypeArgument(index: Int, type: IrType?) {
+    fun putTypeArgument(index: Int, type: IrType?) {
         if (index >= typeArgumentsCount) {
             throw AssertionError("$this: No such type argument slot: $index")
         }

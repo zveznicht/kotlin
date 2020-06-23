@@ -45,7 +45,7 @@ class EnumUsageLowering(val context: JsIrBackendContext) : BodyLoweringPass {
 
     override fun lower(irBody: IrBody, container: IrDeclaration) {
         irBody.transformChildrenVoid(object : IrElementTransformerVoid() {
-            override fun visitGetEnumValue(expression: IrGetEnumValue): IrExpression {
+            override fun visitGetEnumValue(expression: IrGetEnumValue): IrPureExpression {
                 val enumEntry = expression.symbol.owner
                 val klass = enumEntry.parent as IrClass
                 return if (klass.isExternal) lowerExternalEnumEntry(enumEntry, klass) else lowerEnumEntry(enumEntry, klass)
@@ -181,7 +181,7 @@ private fun JsCommonBackendContext.fixReferencesToConstructorParameters(irClass:
     body.transformChildrenVoid(object : IrElementTransformerVoid() {
         private val builder = createIrBuilder(irClass.symbol)
 
-        override fun visitGetValue(expression: IrGetValue): IrExpression {
+        override fun visitGetValue(expression: IrGetValue): IrPureExpression {
             mapping.enumConstructorOldToNewValueParameters[expression.symbol.owner]?.let {
                 return builder.irGet(it)
             }
@@ -244,7 +244,7 @@ class EnumClassConstructorBodyTransformer(val context: JsCommonBackendContext) :
                 }
             }
 
-        override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+        override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrPureExpression {
             val delegatingConstructor = expression.symbol.owner. let { it.newConstructor ?: it }
 
             return builder.irDelegatingConstructorCall(delegatingConstructor).apply {
@@ -284,7 +284,7 @@ class EnumClassConstructorBodyTransformer(val context: JsCommonBackendContext) :
             else
                 builder.irCall(constructor)
 
-        override fun visitEnumConstructorCall(expression: IrEnumConstructorCall): IrExpression {
+        override fun visitEnumConstructorCall(expression: IrEnumConstructorCall): IrPureExpression {
             var constructor = expression.symbol.owner
             val constructorWasTransformed = constructor.newConstructor != null
 

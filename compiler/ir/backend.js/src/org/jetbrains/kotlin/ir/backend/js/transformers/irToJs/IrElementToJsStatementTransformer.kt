@@ -37,7 +37,7 @@ class IrElementToJsStatementTransformer : BaseIrElementToJsNodeTransformer<JsSta
         return JsBlock(expression.statements.map { it.accept(this, context) })
     }
 
-    override fun visitExpression(expression: IrExpression, context: JsGenerationContext): JsStatement {
+    override fun visitExpression(expression: IrPureExpression, context: JsGenerationContext): JsStatement {
         return JsExpressionStatement(expression.accept(IrElementToJsExpressionTransformer(), context))
     }
 
