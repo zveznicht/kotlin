@@ -270,6 +270,11 @@ public class ExpressionTypingVisitorForStatements extends ExpressionTypingVisito
         boolean hasRemBinaryOperation = atLeastOneOperation(binaryOperationDescriptors.getResultingCalls(), OperatorNameConventions.REM);
 
         boolean oneTypeOfModRemOperations = hasRemAssignOperation == hasRemBinaryOperation;
+
+        if (assignmentOperationType != null && binaryOperationType != null) {
+            context.trace.report(ASSIGNMENT_OPERATOR_SHOULD_RETURN_UNIT.on(operationSign, assignmentOperationDescriptors.getResultingDescriptor(), operationSign));
+        }
+
         if (assignmentOperationDescriptors.isSuccess() && binaryOperationDescriptors.isSuccess() && oneTypeOfModRemOperations) {
             // Both 'plus()' and 'plusAssign()' available => ambiguity
             OverloadResolutionResults<FunctionDescriptor> ambiguityResolutionResults = OverloadResolutionResultsUtil.ambiguity(assignmentOperationDescriptors, binaryOperationDescriptors);
