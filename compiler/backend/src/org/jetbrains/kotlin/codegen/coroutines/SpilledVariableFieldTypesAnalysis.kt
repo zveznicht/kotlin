@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.codegen.coroutines
 
 import org.jetbrains.kotlin.codegen.inline.insnOpcodeText
+import org.jetbrains.kotlin.codegen.inline.insnText
 import org.jetbrains.kotlin.codegen.inline.nodeText
 import org.jetbrains.kotlin.codegen.optimization.common.MethodAnalyzer
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes
@@ -16,6 +17,7 @@ import org.jetbrains.org.objectweb.asm.tree.*
 import org.jetbrains.org.objectweb.asm.tree.analysis.Frame
 import org.jetbrains.org.objectweb.asm.tree.analysis.Interpreter
 import org.jetbrains.org.objectweb.asm.tree.analysis.Value
+import java.io.File
 import java.lang.IllegalStateException
 
 // BasicValue interpreter from ASM does not distinct 'int' types from other int-like types like 'byte' or 'boolean',
@@ -51,7 +53,7 @@ internal open class SpilledVariableFieldTypeValue(open var type: Type?, val insn
 
 private class MergedSpilledVariableFieldTypeValue(
     val values: Set<SpilledVariableFieldTypeValue>
-) : SpilledVariableFieldTypeValue(null, null) {
+) : SpilledVariableFieldTypeValue(null, values.first().insn) {
     override var type: Type?
         get() = values.first().type
         set(newType) {
@@ -284,7 +286,7 @@ private class SpilledVariableFieldTypesInterpreter(
             //  val i: Int = b.toInt()
             // In this case, `b` and `i` have the same source, but different types.
             // The example also shows, that the types should be `I`.
-            ISTORE -> SpilledVariableFieldTypeValue(Type.INT_TYPE, insn)
+            // ISTORE -> SpilledVariableFieldTypeValue(Type.INT_TYPE, insn)
             // Sometimes we cannot get the type from the usage only
             // For example,
             //  val c = '1'
