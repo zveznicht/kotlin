@@ -193,4 +193,27 @@ class SubpluginsIT : BaseGradleIT() {
             assertFileExists("${kotlinClassesDir(sourceSet = "test")}MyTestClass.class")
         }
     }
+
+    @Test
+    fun testKotlinVersionDowngradeInSupbrojectKt39809() = with(Project("multiprojectWithDependency")) {
+        setupWorkingDir()
+
+        projectDir.resolve("projA/build.gradle").modify {
+            """
+                buildscript {
+                	repositories {
+                		mavenCentral()
+                	}
+                	dependencies {
+                		classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.70")
+                	}
+                }
+                
+                $it
+            """.trimIndent()
+        }
+        build(":projA:compileKotlin") {
+            assertSuccessful()
+        }
+    }
 }

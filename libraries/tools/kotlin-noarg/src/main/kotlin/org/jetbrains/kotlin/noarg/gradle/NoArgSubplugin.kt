@@ -18,13 +18,18 @@ package org.jetbrains.kotlin.noarg.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.compile.AbstractCompile
+import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
+import org.jetbrains.kotlin.gradle.dsl.KotlinCommonOptions
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.noarg.gradle.model.builder.NoArgModelBuilder
 import javax.inject.Inject
 
 class NoArgGradleSubplugin @Inject internal constructor(private val registry: ToolingModelBuilderRegistry) :
-    KotlinCompilerPluginSupportPlugin {
+    KotlinCompilerPluginSupportPlugin,
+    @Suppress("DEPRECATION") // implementing to fix KT-39809
+    KotlinGradleSubplugin<AbstractCompile> {
 
     companion object {
         fun getNoArgExtension(project: Project): NoArgExtension {
@@ -73,4 +78,18 @@ class NoArgGradleSubplugin @Inject internal constructor(private val registry: To
     override fun getCompilerPluginId() = "org.jetbrains.kotlin.noarg"
     override fun getPluginArtifact(): SubpluginArtifact =
         JetBrainsSubpluginArtifact(artifactId = NOARG_ARTIFACT_NAME)
+
+    //region Stub implementation for legacy API, KT-39809
+    internal constructor(): this(object : ToolingModelBuilderRegistry {
+        override fun register(p0: ToolingModelBuilder) = Unit
+        override fun getBuilder(p0: String): ToolingModelBuilder? = null
+    })
+
+    override fun isApplicable(project: Project, task: AbstractCompile): Boolean = false
+
+    override fun apply(
+        project: Project, kotlinCompile: AbstractCompile, javaCompile: AbstractCompile?, variantData: Any?, androidProjectHandler: Any?,
+        kotlinCompilation: KotlinCompilation<KotlinCommonOptions>?
+    ): List<SubpluginOption> = emptyList()
+    //endregion
 }
