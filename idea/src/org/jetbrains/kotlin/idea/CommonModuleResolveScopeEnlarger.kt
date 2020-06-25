@@ -37,7 +37,8 @@ class CommonModuleResolveScopeEnlarger : ResolveScopeEnlarger() {
 
         val implementingModule = module.implementingModules.find { it.platform.isJvm() } ?: return null
 
-        var result = GlobalSearchScope.EMPTY_SCOPE
+        var result = GlobalSearchScope.moduleScope(implementingModule)
+
         for (entry in ModuleRootManager.getInstance(implementingModule).orderEntries) {
             if (entry is JdkOrderEntry) {
                 val scopeForSdk = LibraryScopeCache.getInstance(project).getScopeForSdk(entry)
