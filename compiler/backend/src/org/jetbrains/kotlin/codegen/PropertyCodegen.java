@@ -438,7 +438,8 @@ public class PropertyCodegen {
             );
 
             if (annotatedField != null) {
-                AnnotationCodegen.forField(fv, memberCodegen, state)
+                boolean isPrivateField = (modifiers & ACC_PRIVATE) != 0;
+                AnnotationCodegen.forField(fv, memberCodegen, state, isPrivateField)
                         .genAnnotations(annotatedField, type, propertyDescriptor.getType());
             }
         }
