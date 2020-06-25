@@ -157,6 +157,7 @@ open class SymbolTable(
             return createOwner(symbol)
         }
 
+        @OptIn(ObsoleteDescriptorBasedAPI::class)
         inline fun referenced(d: D, orElse: () -> S): S {
             @Suppress("UNCHECKED_CAST")
             val d0 = d.original as D

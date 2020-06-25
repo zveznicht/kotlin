@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
 
 interface IrValueParameter : IrValueDeclaration, IrSymbolDeclaration<IrValueParameterSymbol> {
-    @ObsoleteDescriptorBasedAPI
     override val wrappedDescriptor: ParameterDescriptor
 
     @ObsoleteDescriptorBasedAPI

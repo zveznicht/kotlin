@@ -134,6 +134,7 @@ abstract class WrappedCallableDescriptor<T : IrDeclaration>(
             ?: emptyList()
     }
 
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun getReturnType(): KotlinType? = (owner as? IrFunction)?.returnType?.toKotlinType()
 
     override fun getValueParameters(): List<ValueParameterDescriptor> {

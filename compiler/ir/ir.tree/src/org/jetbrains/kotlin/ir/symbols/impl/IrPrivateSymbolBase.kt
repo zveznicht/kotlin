@@ -71,6 +71,7 @@ abstract class IrBindableSymbolBase<out D : DeclarationDescriptor, B : IrSymbolO
     override val owner: B
         get() = _owner ?: throw IllegalStateException("Symbol with ${javaClass.simpleName} is unbound")
 
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun bind(owner: B) {
         if (_owner == null) {
             _owner = owner

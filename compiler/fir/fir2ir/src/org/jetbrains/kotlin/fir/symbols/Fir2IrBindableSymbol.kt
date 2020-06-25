@@ -37,7 +37,6 @@ abstract class Fir2IrBindableSymbol<out D : DeclarationDescriptor, B : IrSymbolO
     override val isBound: Boolean
         get() = _owner != null
 
-    @ObsoleteDescriptorBasedAPI
     override val wrappedDescriptor: D by lazy {
         when (val owner = owner) {
             is IrEnumEntry -> WrappedEnumEntryDescriptor().apply { bind(owner) }
@@ -66,6 +65,8 @@ abstract class Fir2IrBindableSymbol<out D : DeclarationDescriptor, B : IrSymbolO
             else -> throw IllegalStateException("Unsupported owner in Fir2IrBindableSymbol: $owner")
         } as D
     }
+
+    @ObsoleteDescriptorBasedAPI
     override val initialDescriptor: D get() = wrappedDescriptor
 
     companion object {

@@ -55,6 +55,7 @@ abstract class IrBindablePublicSymbolBase<out D : DeclarationDescriptor, B : IrS
     override val owner: B
         get() = _owner ?: throw IllegalStateException("Symbol for $signature is unbound")
 
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     override fun bind(owner: B) {
         if (_owner == null) {
             _owner = owner
