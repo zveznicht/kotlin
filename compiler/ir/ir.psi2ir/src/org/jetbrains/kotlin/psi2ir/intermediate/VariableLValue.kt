@@ -48,7 +48,7 @@ class VariableLValue(
         IrSetVariableImpl(
             startOffset, endOffset,
             context.irBuiltIns.unitType,
-            symbol.assertedCast<IrVariableSymbol> { "Not a variable: ${symbol.wrappedDescriptor}" },
+            symbol.assertedCast<IrVariableSymbol> { "Not a variable: ${symbol.initialDescriptor}" },
             irExpression, origin
         )
 
