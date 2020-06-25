@@ -178,7 +178,7 @@ class SerializableIrGenerator(
             context: SerializationPluginContext,
             bindingContext: BindingContext
         ) {
-            val serializableClass = irClass.wrappedDescriptor
+            val serializableClass = irClass.initialDescriptor
 
             if (serializableClass.isInternalSerializable) {
                 SerializableIrGenerator(irClass, context, bindingContext).generate()

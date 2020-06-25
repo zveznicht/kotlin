@@ -42,7 +42,7 @@ class SerializableCompanionIrGenerator(
             context: SerializationPluginContext,
             bindingContext: BindingContext
         ) {
-            val companionDescriptor = irClass.wrappedDescriptor
+            val companionDescriptor = irClass.initialDescriptor
             val serializableClass = getSerializableClassDescriptorByCompanion(companionDescriptor) ?: return
             if (serializableClass.shouldHaveGeneratedMethodsInCompanion) {
                 SerializableCompanionIrGenerator(irClass, context, bindingContext).generate()
@@ -65,7 +65,7 @@ class SerializableCompanionIrGenerator(
 
         val irSerializableClass = compilerContext.referenceClass(serializableDescriptor.fqNameSafe)?.owner ?: return
         val serializableWithAlreadyPresent = irSerializableClass.annotations.any {
-            it.symbol.wrappedDescriptor.constructedClass.fqNameSafe == annotationMarkerClass.fqNameSafe
+            it.symbol.initialDescriptor.constructedClass.fqNameSafe == annotationMarkerClass.fqNameSafe
         }
         if (serializableWithAlreadyPresent) return
 

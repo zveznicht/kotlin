@@ -442,13 +442,13 @@ interface IrBuilderExtension {
             ?: throw IllegalStateException("Serializable class must have single primary constructor")
         // default arguments of original constructor
         val defaultsMap: Map<ParameterDescriptor, IrExpression?> =
-            original.valueParameters.associate { it.wrappedDescriptor to it.defaultValue?.expression }
+            original.valueParameters.associate { it.initialDescriptor to it.defaultValue?.expression }
         return fun(f: IrField): IrExpression? {
             val i = f.initializer?.expression ?: return null
             val irExpression =
                 if (i is IrGetValueImpl && i.origin == IrStatementOrigin.INITIALIZE_PROPERTY_FROM_PARAMETER) {
                     // this is a primary constructor property, use corresponding default of value parameter
-                    defaultsMap.getValue(i.symbol.wrappedDescriptor as ParameterDescriptor)
+                    defaultsMap.getValue(i.symbol.initialDescriptor as ParameterDescriptor)
                 } else {
                     i
                 }
