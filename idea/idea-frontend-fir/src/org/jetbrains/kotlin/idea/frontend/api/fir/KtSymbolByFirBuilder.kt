@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.idea.frontend.api.fir
 
+import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirValueParameterImpl
@@ -26,7 +27,6 @@ import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassLikeSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtTypeParameterSymbol
-import org.jetbrains.kotlin.idea.frontend.api.symbols.KtVariableSymbol
 
 internal class KtSymbolByFirBuilder(
     firProvider: FirSymbolProvider,
@@ -36,19 +36,24 @@ internal class KtSymbolByFirBuilder(
     private val firProvider by weakRef(firProvider)
     private val typeCheckerContext by weakRef(typeCheckerContext)
 
-    fun buildSymbol(fir: FirDeclaration): KtSymbol = when (fir) {
-        is FirRegularClass -> buildClassSymbol(fir)
-        is FirSimpleFunction -> buildFunctionSymbol(fir)
-        is FirProperty -> buildVariableSymbol(fir)
-        is FirValueParameterImpl -> buildParameterSymbol(fir)
-        is FirConstructor -> buildConstructorSymbol(fir)
-        is FirTypeParameter -> buildTypeParameterSymbol(fir)
-        is FirTypeAlias -> buildTypeAliasSymbol(fir)
-        is FirEnumEntry -> buildEnumEntrySymbol(fir)
-        is FirField -> buildFieldSymbol(fir)
-        is FirAnonymousFunction -> buildAnonymousFunctionSymbol(fir)
-        else ->
-            TODO(fir::class.toString())
+    private val symbolsCache = BuilderCache<FirDeclaration, KtSymbol>()
+    private val typesCache = BuilderCache<ConeKotlinType, KtType>()
+
+    fun buildSymbol(fir: FirDeclaration): KtSymbol = symbolsCache.cache(fir) {
+        when (fir) {
+            is FirRegularClass -> buildClassSymbol(fir)
+            is FirSimpleFunction -> buildFunctionSymbol(fir)
+            is FirProperty -> buildVariableSymbol(fir)
+            is FirValueParameterImpl -> buildParameterSymbol(fir)
+            is FirConstructor -> buildConstructorSymbol(fir)
+            is FirTypeParameter -> buildTypeParameterSymbol(fir)
+            is FirTypeAlias -> buildTypeAliasSymbol(fir)
+            is FirEnumEntry -> buildEnumEntrySymbol(fir)
+            is FirField -> buildFieldSymbol(fir)
+            is FirAnonymousFunction -> buildAnonymousFunctionSymbol(fir)
+            else ->
+                TODO(fir::class.toString())
+        }
     }
 
     fun buildClassLikeSymbol(fir: FirClassLikeDeclaration<*>): KtClassLikeSymbol = when (fir) {
@@ -58,23 +63,25 @@ internal class KtSymbolByFirBuilder(
             TODO(fir::class.toString())
     }
 
-    fun buildClassSymbol(fir: FirRegularClass) = KtFirClassOrObjectSymbol(fir, token, this)
+    fun buildClassSymbol(fir: FirRegularClass) = symbolsCache.cache(fir) { KtFirClassOrObjectSymbol(fir, token, this) }
 
     // TODO it can be a constructor parameter, which may be split into parameter & property
     // we should handle them both
-    fun buildParameterSymbol(fir: FirValueParameterImpl) = KtFirFunctionValueParameterSymbol(fir, token)
-    fun buildFirConstructorParameter(fir: FirValueParameterImpl) = KtFirConstructorValueParameterSymbol(fir, token)
+    fun buildParameterSymbol(fir: FirValueParameterImpl) = symbolsCache.cache(fir) { KtFirFunctionValueParameterSymbol(fir, token) }
+    fun buildFirConstructorParameter(fir: FirValueParameterImpl) =
+        symbolsCache.cache(fir) { KtFirConstructorValueParameterSymbol(fir, token) }
 
-    fun buildFunctionSymbol(fir: FirSimpleFunction) = KtFirFunctionSymbol(fir, token, this)
-    fun buildConstructorSymbol(fir: FirConstructor) = KtFirConstructorSymbol(fir, token, this)
-    fun buildTypeParameterSymbol(fir: FirTypeParameter) = KtFirTypeParameterSymbol(fir, token)
-    fun buildTypeAliasSymbol(fir: FirTypeAlias) = KtFirTypeAliasSymbol(fir, token)
-    fun buildEnumEntrySymbol(fir: FirEnumEntry) = KtFirEnumEntrySymbol(fir, token)
-    fun buildFieldSymbol(fir: FirField) = KtFirFieldSymbol(fir, token)
-    fun buildAnonymousFunctionSymbol(fir: FirAnonymousFunction) = KtFirAnonymousFunctionSymbol(fir, token, this)
+    fun buildFunctionSymbol(fir: FirSimpleFunction) = symbolsCache.cache(fir) { KtFirFunctionSymbol(fir, token, this) }
+    fun buildConstructorSymbol(fir: FirConstructor) = symbolsCache.cache(fir) { KtFirConstructorSymbol(fir, token, this) }
+    fun buildTypeParameterSymbol(fir: FirTypeParameter) = symbolsCache.cache(fir) { KtFirTypeParameterSymbol(fir, token) }
 
-    fun buildVariableSymbol(fir: FirProperty): KtVariableSymbol {
-        return when {
+    fun buildTypeAliasSymbol(fir: FirTypeAlias) = symbolsCache.cache(fir) { KtFirTypeAliasSymbol(fir, token) }
+    fun buildEnumEntrySymbol(fir: FirEnumEntry) = symbolsCache.cache(fir) { KtFirEnumEntrySymbol(fir, token) }
+    fun buildFieldSymbol(fir: FirField) = symbolsCache.cache(fir) { KtFirFieldSymbol(fir, token) }
+    fun buildAnonymousFunctionSymbol(fir: FirAnonymousFunction) = symbolsCache.cache(fir) { KtFirAnonymousFunctionSymbol(fir, token, this) }
+
+    fun buildVariableSymbol(fir: FirProperty) = symbolsCache.cache(fir) {
+        when {
             fir.isLocal -> KtFirLocalVariableSymbol(fir, token)
             else -> KtFirPropertySymbol(fir, token)
         }
@@ -103,14 +110,24 @@ internal class KtSymbolByFirBuilder(
         ProjectionKind.STAR -> error("KtStarProjectionTypeArgument be directly created")
     }
 
-    fun buildKtType(coneType: ConeKotlinType): KtType = when (coneType) {
-        is ConeClassLikeTypeImpl -> KtFirClassType(coneType, typeCheckerContext, token, this)
-        is ConeTypeParameterType -> KtFirTypeParameterType(coneType, typeCheckerContext, token, this)
-        is ConeClassErrorType -> KtFirErrorType(coneType, typeCheckerContext, token)
-        is ConeFlexibleType -> KtFirFlexibleType(coneType, typeCheckerContext, token, this)
-        is ConeIntersectionType -> KtFirIntersectionType(coneType, typeCheckerContext, token, this)
-        else -> TODO()
+    fun buildKtType(coneType: ConeKotlinType): KtType = typesCache.cache(coneType) {
+        when (coneType) {
+            is ConeClassLikeTypeImpl -> KtFirClassType(coneType, typeCheckerContext, token, this)
+            is ConeTypeParameterType -> KtFirTypeParameterType(coneType, typeCheckerContext, token, this)
+            is ConeClassErrorType -> KtFirErrorType(coneType, typeCheckerContext, token)
+            is ConeFlexibleType -> KtFirFlexibleType(coneType, typeCheckerContext, token, this)
+            is ConeIntersectionType -> KtFirIntersectionType(coneType, typeCheckerContext, token, this)
+            else -> TODO()
+        }
     }
+}
+
+private class BuilderCache<From, To> {
+    // the capacity & load factor values here are default ones which are used ing java.util.Map
+    private val cache = ContainerUtil.createWeakMap<From, To>(16, .75f, ContainerUtil.identityStrategy())
+
+    inline fun <reified S : To> cache(key: From, calculation: () -> S): S =
+        cache.getOrPut(key, calculation) as S
 }
 
 internal fun FirElement.buildSymbol(builder: KtSymbolByFirBuilder) =
