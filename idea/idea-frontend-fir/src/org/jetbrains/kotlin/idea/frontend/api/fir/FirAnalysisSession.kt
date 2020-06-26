@@ -40,7 +40,12 @@ class FirAnalysisSession(
 ) : FrontendAnalysisSession(element.project) {
     internal val token get() = validityToken
 
-    internal val firSymbolBuilder = KtSymbolByFirBuilder(validityToken)
+    internal val firSymbolBuilder = KtSymbolByFirBuilder(
+        element.session.firSymbolProvider,
+        ConeTypeCheckerContext(isErrorTypeEqualsToAnything = true, isStubTypeEqualsToAnything = true, element.session),
+        validityToken
+    )
+
     override val symbolProvider: KtSymbolProvider =
         FirKtSymbolProvider(
             this,
@@ -52,10 +57,10 @@ class FirAnalysisSession(
         assertIsValid()
     }
 
-    override fun getSmartCastedToTypes(expression: KtExpression): Collection<TypeInfo>? {
+    override fun getSmartCastedToTypes(expression: KtExpression): Collection<KtType>? {
         assertIsValid()
         // TODO filter out not used smartcasts
-        return expression.getOrBuildFirSafe<FirExpressionWithSmartcast>()?.typesFromSmartCast?.map { it.asTypeInfo(expression.session) }
+        return expression.getOrBuildFirSafe<FirExpressionWithSmartcast>()?.typesFromSmartCast?.map { it.asTypeInfo() }
     }
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -70,13 +75,13 @@ class FirAnalysisSession(
         return buildList {
             (qualifiedExpression.dispatchReceiver as? FirExpressionWithSmartcast)?.let { smartCasted ->
                 ImplicitReceiverSmartCast(
-                    smartCasted.typesFromSmartCast.map { it.asTypeInfo(session) },
+                    smartCasted.typesFromSmartCast.map { it.asTypeInfo() },
                     ImplicitReceiverSmartcastKind.DISPATCH
                 )
             }?.let(::add)
             (qualifiedExpression.extensionReceiver as? FirExpressionWithSmartcast)?.let { smartCasted ->
                 ImplicitReceiverSmartCast(
-                    smartCasted.typesFromSmartCast.map { it.asTypeInfo(session) },
+                    smartCasted.typesFromSmartCast.map { it.asTypeInfo() },
                     ImplicitReceiverSmartcastKind.EXTENSION
                 )
             }?.let(::add)
@@ -84,15 +89,15 @@ class FirAnalysisSession(
     }
 
 
-    override fun getReturnTypeForKtDeclaration(declaration: KtDeclaration): TypeInfo {
+    override fun getReturnTypeForKtDeclaration(declaration: KtDeclaration): KtType {
         assertIsValid()
         val firDeclaration = declaration.getOrBuildFirOfType<FirCallableDeclaration<*>>()
-        return firDeclaration.returnTypeRef.coneTypeUnsafe<ConeKotlinType>().asTypeInfo(declaration.session)
+        return firDeclaration.returnTypeRef.coneTypeUnsafe<ConeKotlinType>().asTypeInfo()
     }
 
-    override fun getKtExpressionType(expression: KtExpression): TypeInfo {
+    override fun getKtExpressionType(expression: KtExpression): KtType {
         assertIsValid()
-        return expression.getOrBuildFirOfType<FirExpression>().typeRef.coneTypeUnsafe<ConeKotlinType>().asTypeInfo(expression.session)
+        return expression.getOrBuildFirOfType<FirExpression>().typeRef.coneTypeUnsafe<ConeKotlinType>().asTypeInfo()
     }
 
     override fun isSubclassOf(klass: KtClassOrObject, superClassId: ClassId): Boolean {
@@ -168,14 +173,7 @@ class FirAnalysisSession(
         }
     }
 
-    private fun ConeKotlinType.asTypeInfo(session: FirSession) =
-        ConeTypeInfo(this, createTypeCheckingContext(session), validityToken)
-
-    private fun createTypeCheckingContext(session: FirSession) = ConeTypeCheckerContext(
-        isErrorTypeEqualsToAnything = true, // TODO?
-        isStubTypeEqualsToAnything = true,  // TODO?
-        session = session
-    )
+    private fun ConeKotlinType.asTypeInfo() = firSymbolBuilder.buildKtType(this)
 
     companion object {
 

@@ -8,6 +8,14 @@ package org.jetbrains.kotlin.idea.frontend.api.fir
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirValueParameterImpl
+import org.jetbrains.kotlin.fir.resolve.providers.FirProvider
+import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
+import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
+import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
+import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
+import org.jetbrains.kotlin.fir.types.*
+import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
+import org.jetbrains.kotlin.idea.frontend.api.*
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
@@ -29,10 +37,20 @@ import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtLocalVariableSymb
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtPropertySymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtFunctionSymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtFunctionValueParameterSymbol
+import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassLikeSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbol
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtTypeParameterSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtVariableSymbol
 
-internal class KtSymbolByFirBuilder(private val validityToken: Invalidatable) {
+internal class KtSymbolByFirBuilder(
+    firProvider: FirSymbolProvider,
+    typeCheckerContext: ConeTypeCheckerContext,
+    override val token: Invalidatable
+) : InvalidatableByValidityToken {
+    private val firProvider by weakRef(firProvider)
+    private val typeCheckerContext by weakRef(typeCheckerContext)
+
     fun buildSymbol(fir: FirDeclaration): KtSymbol = when (fir) {
         is FirRegularClass -> buildClassSymbol(fir)
         is FirSimpleFunction -> buildFunctionSymbol(fir)
@@ -48,26 +66,65 @@ internal class KtSymbolByFirBuilder(private val validityToken: Invalidatable) {
             TODO(fir::class.toString())
     }
 
-    fun buildClassSymbol(fir: FirRegularClass) = KtFirClassOrObjectSymbol(fir, validityToken, this)
+    fun buildClassLikeSymbol(fir: FirClassLikeDeclaration<*>): KtClassLikeSymbol = when (fir) {
+        is FirRegularClass -> buildClassSymbol(fir)
+        is FirTypeAlias -> buildTypeAliasSymbol(fir)
+        else ->
+            TODO(fir::class.toString())
+    }
+
+    fun buildClassSymbol(fir: FirRegularClass) = KtFirClassOrObjectSymbol(fir, token, this)
 
     // TODO it can be a constructor parameter, which may be split into parameter & property
     // we should handle them both
-    fun buildParameterSymbol(fir: FirValueParameterImpl) = KtFirFunctionValueParameterSymbol(fir, validityToken)
-    fun buildFirConstructorParameter(fir: FirValueParameterImpl) = KtFirConstructorValueParameterSymbol(fir, validityToken)
+    fun buildParameterSymbol(fir: FirValueParameterImpl) = KtFirFunctionValueParameterSymbol(fir, token)
+    fun buildFirConstructorParameter(fir: FirValueParameterImpl) = KtFirConstructorValueParameterSymbol(fir, token)
 
-    fun buildFunctionSymbol(fir: FirSimpleFunction) = KtFirFunctionSymbol(fir, validityToken, this)
-    fun buildConstructorSymbol(fir: FirConstructor) = KtFirConstructorSymbol(fir, validityToken, this)
-    fun buildTypeParameterSymbol(fir: FirTypeParameter) = KtFirTypeParameterSymbol(fir, validityToken)
-    fun buildTypeAliasSymbol(fir: FirTypeAlias) = KtFirTypeAliasSymbol(fir, validityToken)
-    fun buildEnumEntrySymbol(fir: FirEnumEntry) = KtFirEnumEntrySymbol(fir, validityToken)
-    fun buildFieldSymbol(fir: FirField) = KtFirFieldSymbol(fir, validityToken)
-    fun buildAnonymousFunctionSymbol(fir: FirAnonymousFunction) = KtFirAnonymousFunctionSymbol(fir, validityToken, this)
+    fun buildFunctionSymbol(fir: FirSimpleFunction) = KtFirFunctionSymbol(fir, token, this)
+    fun buildConstructorSymbol(fir: FirConstructor) = KtFirConstructorSymbol(fir, token, this)
+    fun buildTypeParameterSymbol(fir: FirTypeParameter) = KtFirTypeParameterSymbol(fir, token)
+    fun buildTypeAliasSymbol(fir: FirTypeAlias) = KtFirTypeAliasSymbol(fir, token)
+    fun buildEnumEntrySymbol(fir: FirEnumEntry) = KtFirEnumEntrySymbol(fir, token)
+    fun buildFieldSymbol(fir: FirField) = KtFirFieldSymbol(fir, token)
+    fun buildAnonymousFunctionSymbol(fir: FirAnonymousFunction) = KtFirAnonymousFunctionSymbol(fir, token, this)
 
     fun buildVariableSymbol(fir: FirProperty): KtVariableSymbol {
         return when {
-            fir.isLocal -> KtFirLocalVariableSymbol(fir, validityToken)
-            else -> KtFirPropertySymbol(fir, validityToken)
+            fir.isLocal -> KtFirLocalVariableSymbol(fir, token)
+            else -> KtFirPropertySymbol(fir, token)
         }
+    }
+
+    fun buildClassLikeSymbolByLookupTag(lookupTag: ConeClassLikeLookupTag): KtClassLikeSymbol? = withValidityAssertion {
+        firProvider.getSymbolByLookupTag(lookupTag)?.fir?.let(::buildClassLikeSymbol)
+    }
+
+    fun buildTypeParameterSymbolByLookupTag(lookupTag: ConeTypeParameterLookupTag): KtTypeParameterSymbol? = withValidityAssertion {
+        (firProvider.getSymbolByLookupTag(lookupTag) as? FirTypeParameterSymbol)?.fir?.let(::buildTypeParameterSymbol)
+    }
+
+    fun buildTypeArgument(coneType: ConeTypeProjection): KtTypeArgument = when (coneType) {
+        is ConeStarProjection -> KtStarProjectionTypeArgument
+        is ConeKotlinTypeProjection -> KtFirTypeArgumentWithVariance(
+            buildKtType(coneType.type),
+            coneType.kind.toVariance()
+        )
+    }
+
+    private fun ProjectionKind.toVariance() = when (this) {
+        ProjectionKind.OUT -> KtTypeArgumentVariance.COVARIANT
+        ProjectionKind.IN -> KtTypeArgumentVariance.CONTRAVARIANT
+        ProjectionKind.INVARIANT -> KtTypeArgumentVariance.INVARIANT
+        ProjectionKind.STAR -> error("KtStarProjectionTypeArgument be directly created")
+    }
+
+    fun buildKtType(coneType: ConeKotlinType): KtType = when (coneType) {
+        is ConeClassLikeTypeImpl -> KtFirClassType(coneType, typeCheckerContext, token, this)
+        is ConeTypeParameterType -> KtFirTypeParameterType(coneType, typeCheckerContext, token, this)
+        is ConeClassErrorType -> KtFirErrorType(coneType, typeCheckerContext, token)
+        is ConeFlexibleType -> KtFirFlexibleType(coneType, typeCheckerContext, token, this)
+        is ConeIntersectionType -> KtFirIntersectionType(coneType, typeCheckerContext, token, this)
+        else -> TODO()
     }
 }
 

@@ -10,15 +10,14 @@ import org.jetbrains.kotlin.fir.types.ConeTypeCheckerContext
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.fir.types.coneTypeUnsafe
 import org.jetbrains.kotlin.idea.frontend.api.Invalidatable
-import org.jetbrains.kotlin.idea.frontend.api.InvalidatableByValidityToken
-import org.jetbrains.kotlin.idea.frontend.api.TypeInfo
-import org.jetbrains.kotlin.idea.frontend.api.fir.ConeTypeInfo
+import org.jetbrains.kotlin.idea.frontend.api.KtType
+import org.jetbrains.kotlin.idea.frontend.api.fir.FirKtType
 
-internal fun FirTypeRef.asTypeInfo(session: FirSession, invalidatable: Invalidatable): TypeInfo {
+internal fun FirTypeRef.asTypeInfo(session: FirSession, invalidatable: Invalidatable): KtType {
     val context = ConeTypeCheckerContext(
         isErrorTypeEqualsToAnything = true,
         isStubTypeEqualsToAnything = true,
         session = session
     )
-    return ConeTypeInfo(coneTypeUnsafe(), context, invalidatable)
+    return FirKtType(coneTypeUnsafe(), context, invalidatable)
 }

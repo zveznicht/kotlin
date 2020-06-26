@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.fir.declarations.isOperator
 import org.jetbrains.kotlin.fir.declarations.isSuspend
 import org.jetbrains.kotlin.idea.fir.findPsi
 import org.jetbrains.kotlin.idea.frontend.api.Invalidatable
-import org.jetbrains.kotlin.idea.frontend.api.TypeInfo
+import org.jetbrains.kotlin.idea.frontend.api.KtType
 import org.jetbrains.kotlin.idea.frontend.api.fir.KtSymbolByFirBuilder
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.asTypeInfo
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.cached
@@ -33,7 +33,7 @@ internal class KtFirFunctionSymbol(
     override val fir: FirSimpleFunction by weakRef(fir)
     override val psi: PsiElement? by cached { fir.findPsi(fir.session) }
     override val name: Name get() = withValidityAssertion { fir.name }
-    override val type: TypeInfo by cached { fir.returnTypeRef.asTypeInfo(fir.session, token) }
+    override val type: KtType by cached { fir.returnTypeRef.asTypeInfo(fir.session, token) }
     override val valueParameters: List<KtFirFunctionValueParameterSymbol> by cached {
         fir.valueParameters.map { valueParameter ->
             check(valueParameter is FirValueParameterImpl)
@@ -46,7 +46,7 @@ internal class KtFirFunctionSymbol(
         }
     }
     override val isSuspend: Boolean get() = withValidityAssertion { fir.isSuspend }
-    override val receiverType: TypeInfo? by cached { fir.receiverTypeRef?.asTypeInfo(fir.session, token) }
+    override val receiverType: KtType? by cached { fir.receiverTypeRef?.asTypeInfo(fir.session, token) }
     override val isOperator: Boolean get() = withValidityAssertion { fir.isOperator }
     override val isExtension: Boolean get() = withValidityAssertion { fir.receiverTypeRef != null }
     override val fqName: FqName? get() = withValidityAssertion { fir.symbol.callableId.asFqNameForDebugInfo() }

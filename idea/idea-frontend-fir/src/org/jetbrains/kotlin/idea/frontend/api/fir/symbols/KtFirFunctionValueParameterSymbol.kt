@@ -6,15 +6,13 @@
 package org.jetbrains.kotlin.idea.frontend.api.fir.symbols
 
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.fir.declarations.FirProperty
 import org.jetbrains.kotlin.fir.declarations.impl.FirValueParameterImpl
 import org.jetbrains.kotlin.idea.fir.findPsi
 import org.jetbrains.kotlin.idea.frontend.api.Invalidatable
-import org.jetbrains.kotlin.idea.frontend.api.TypeInfo
+import org.jetbrains.kotlin.idea.frontend.api.KtType
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.asTypeInfo
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.cached
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
-import org.jetbrains.kotlin.idea.frontend.api.symbols.KtLocalVariableSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSimpleFunctionParameterSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbolKind
 import org.jetbrains.kotlin.idea.frontend.api.withValidityAssertion
@@ -29,6 +27,6 @@ internal class KtFirFunctionValueParameterSymbol(
     override val psi: PsiElement? by cached { fir.findPsi(fir.session) }
 
     override val name: Name get() = withValidityAssertion { fir.name }
-    override val type: TypeInfo by cached { fir.returnTypeRef.asTypeInfo(fir.session, token) }
+    override val type: KtType by cached { fir.returnTypeRef.asTypeInfo(fir.session, token) }
     override val symbolKind: KtSymbolKind get() = KtSymbolKind.LOCAL
 }
