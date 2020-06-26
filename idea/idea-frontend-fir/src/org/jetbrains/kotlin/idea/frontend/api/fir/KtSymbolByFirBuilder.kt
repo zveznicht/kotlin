@@ -24,11 +24,6 @@ import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirFunctionSymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirFunctionValueParameterSymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassLikeSymbol
-import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtClassOrObjectSymbol
-import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtLocalVariableSymbol
-import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtPropertySymbol
-import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtFunctionSymbol
-import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtFunctionValueParameterSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtTypeParameterSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtVariableSymbol
