@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.idea.frontend.api.fir.symbols
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.fir.declarations.impl.FirValueParameterImpl
 import org.jetbrains.kotlin.idea.fir.findPsi
-import org.jetbrains.kotlin.idea.frontend.api.Invalidatable
+import org.jetbrains.kotlin.idea.frontend.api.ValidityOwner
 import org.jetbrains.kotlin.idea.frontend.api.KtType
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.asTypeInfo
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.cached
@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.name.Name
 
 internal class KtFirConstructorValueParameterSymbol(
     fir: FirValueParameterImpl,
-    override val token: Invalidatable
+    override val token: ValidityOwner
 ) : KtConstructorParameterSymbol(), KtFirSymbol<FirValueParameterImpl> {
     override val fir: FirValueParameterImpl by weakRef(fir)
     override val psi: PsiElement? by cached { fir.findPsi(fir.session) }

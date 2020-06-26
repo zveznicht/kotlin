@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.idea.frontend.api.fir
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirValueParameterImpl
-import org.jetbrains.kotlin.fir.resolve.providers.FirProvider
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
@@ -16,14 +15,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.idea.frontend.api.*
-import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
-import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
-import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
-import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
-import org.jetbrains.kotlin.fir.types.*
-import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
-import org.jetbrains.kotlin.idea.frontend.api.*
-import org.jetbrains.kotlin.idea.frontend.api.Invalidatable
+import org.jetbrains.kotlin.idea.frontend.api.ValidityOwner
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.*
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirClassOrObjectSymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirLocalVariableSymbol
@@ -37,8 +29,6 @@ import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtLocalVariableSymb
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtPropertySymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtFunctionSymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.FirKtFunctionValueParameterSymbol
-import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
-import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassLikeSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtTypeParameterSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtVariableSymbol
@@ -46,8 +36,8 @@ import org.jetbrains.kotlin.idea.frontend.api.symbols.KtVariableSymbol
 internal class KtSymbolByFirBuilder(
     firProvider: FirSymbolProvider,
     typeCheckerContext: ConeTypeCheckerContext,
-    override val token: Invalidatable
-) : InvalidatableByValidityToken {
+    override val token: ValidityOwner
+) : ValidityOwnerByValidityToken {
     private val firProvider by weakRef(firProvider)
     private val typeCheckerContext by weakRef(typeCheckerContext)
 
