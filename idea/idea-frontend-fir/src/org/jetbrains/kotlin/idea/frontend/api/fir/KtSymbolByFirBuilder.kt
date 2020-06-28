@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.idea.frontend.api.fir
 
+import com.intellij.openapi.project.Project
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.declarations.*
@@ -27,10 +28,13 @@ import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassLikeSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtTypeParameterSymbol
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtVariableSymbol
+import org.jetbrains.kotlin.name.FqName
 
 internal class KtSymbolByFirBuilder(
     firProvider: FirSymbolProvider,
     typeCheckerContext: ConeTypeCheckerContext,
+    private val project: Project,
     override val token: ValidityOwner
 ) : ValidityOwnerByValidityToken {
     private val firProvider by weakRef(firProvider)
@@ -80,7 +84,7 @@ internal class KtSymbolByFirBuilder(
     fun buildFieldSymbol(fir: FirField) = symbolsCache.cache(fir) { KtFirFieldSymbol(fir, token) }
     fun buildAnonymousFunctionSymbol(fir: FirAnonymousFunction) = symbolsCache.cache(fir) { KtFirAnonymousFunctionSymbol(fir, token, this) }
 
-    fun buildVariableSymbol(fir: FirProperty) = symbolsCache.cache(fir) {
+    fun buildVariableSymbol(fir: FirProperty): KtVariableSymbol = symbolsCache.cache(fir) {
         when {
             fir.isLocal -> KtFirLocalVariableSymbol(fir, token)
             else -> KtFirPropertySymbol(fir, token)
@@ -93,6 +97,15 @@ internal class KtSymbolByFirBuilder(
 
     fun buildTypeParameterSymbolByLookupTag(lookupTag: ConeTypeParameterLookupTag): KtTypeParameterSymbol? = withValidityAssertion {
         (firProvider.getSymbolByLookupTag(lookupTag) as? FirTypeParameterSymbol)?.fir?.let(::buildTypeParameterSymbol)
+    }
+
+
+    fun createPackageSymbolIfOneExists(packageFqName: FqName): KtFirPackageSymbol? {
+        val exists = firProvider.getPackage(packageFqName) != null
+        if (!exists) {
+            return null
+        }
+        return KtFirPackageSymbol(packageFqName, project, token)
     }
 
     fun buildTypeArgument(coneType: ConeTypeProjection): KtTypeArgument = when (coneType) {
