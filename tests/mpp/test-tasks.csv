@@ -1,0 +1,6 @@
+:kotlin-ultimate:ide:android-studio-native:test,AS40
+//:idea:idea-gradle:test
+//:idea:test
+//:compiler:test
+//:js:js.tests:test
+//:kotlin-gradle-plugin-integration-tests:test,193

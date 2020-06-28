@@ -44,6 +44,8 @@ plugins {
     id("org.jetbrains.gradle.plugin.idea-ext")
     id("org.gradle.crypto.checksum") version "1.2.0"
     signing
+    java
+    jacoco
 }
 
 pill {
@@ -77,6 +79,22 @@ val kotlinLanguageVersion by extra("1.4")
 allprojects {
     group = "org.jetbrains.kotlin"
     version = kotlinVersion
+}
+
+val projectsForTestCoverage =
+    listOf("android-studio-native", "idea-gradle", "idea", "compiler", "js.tests", "kotlin-gradle-plugin-integration-tests")
+
+configure(subprojects
+              .filter { it.name in projectsForTestCoverage })
+{
+    apply(plugin = "java")
+    apply(plugin = "jacoco")
+
+    println("Configure: $name")
+
+    tasks.jacocoTestReport {
+        dependsOn(tasks.test) // tests are required to run before generating the report
+    }
 }
 
 extra["kotlin_root"] = rootDir
@@ -507,6 +525,29 @@ gradle.taskGraph.whenReady {
         else
             ZipEntryCompression.STORED
     }
+
+    if (allTasks.filterIsInstance<JacocoReport>().isNotEmpty()) {
+        val patterns = mutableMapOf<String, MutableList<String>>()
+
+        File("tests/mpp/mpp-tests.csv")
+            .readLines()
+            .asSequence()
+            .filter { it.isNotEmpty() }
+            .forEach { line ->
+                val (pattern, patternType) = line.split(',').map { it.trim() }
+                patterns.getOrPut(patternType) { mutableListOf() }.add(pattern)
+            }
+
+        allTasks.filterIsInstance<Test>().forEach { testTask ->
+            patterns["exclude"]?.let { testTask.exclude(it) }
+            patterns["include"]?.let { testTask.include(it) }
+            testTask.filter {
+                isFailOnNoMatchingTests = false
+            }
+            testTask.outputs.upToDateWhen { false }
+            testTask.ignoreFailures = true
+        }
+    }
 }
 
 val dist = tasks.register("dist") {
@@ -816,7 +857,7 @@ tasks {
         }
     }
 
-    register("test") {
+    named("test") {
         doLast {
             throw GradleException("Don't use directly, use aggregate tasks *-check instead")
         }
@@ -1065,4 +1106,57 @@ if (disableVerificationTasks) {
             }
         }
     }
+}
+
+jacoco {
+    toolVersion = "0.8.5"
+}
+
+tasks.register<JacocoReport>("jacocoFullRootReport") {
+    val condition = { project: Project ->
+        project.convention.findByType(typeOf<SourceSetContainer>()) != null &&
+                project.the<SourceSetContainer>().findByName("main") != null
+    }
+    dependsOn(subprojects.filter { it.name in projectsForTestCoverage}.map { it.tasks.withType<JacocoReport>() })
+    additionalSourceDirs.setFrom(
+        subprojects.filter { condition(it) }.map { it.the<SourceSetContainer>()["main"].allSource.srcDirs })
+    sourceDirectories.setFrom(
+        subprojects.filter { condition(it) }.map { it.the<SourceSetContainer>()["main"].allSource.srcDirs })
+    classDirectories.setFrom(
+        subprojects.filter { condition(it) }.map { it.the<SourceSetContainer>()["main"].output })
+    executionData.setFrom(project.fileTree(".") { include("**/build/jacoco/test.exec") })
+
+    reports {
+        xml.isEnabled = false
+        csv.isEnabled = false
+        html.isEnabled = true
+        html.destination = file("${buildDir}/reports/jacoco/full/html")
+    }
+
+    classDirectories.setFrom(files(classDirectories.files.map {
+        fileTree(it) { exclude("**/StandardKt*", "**/NewJavaToKotlinServices*", "**/CacheUtilKt*") }
+    }))
+}
+
+tasks.register<JacocoReport>("jacocoRootReport") {
+    val condition = { project: Project -> project.name in projectsForTestCoverage }
+    dependsOn("jacocoFullRootReport")
+    additionalSourceDirs.setFrom(
+        subprojects.filter { condition(it) }.map { it.the<SourceSetContainer>()["main"].allSource.srcDirs })
+    sourceDirectories.setFrom(
+        subprojects.filter { condition(it) }.map { it.the<SourceSetContainer>()["main"].allSource.srcDirs })
+    classDirectories.setFrom(
+        subprojects.filter { condition(it) }.map { it.the<SourceSetContainer>()["main"].output })
+    executionData.setFrom(project.fileTree(".") { include("**/build/jacoco/test.exec") })
+
+    reports {
+        xml.isEnabled = false
+        csv.isEnabled = false
+        html.isEnabled = true
+        html.destination = file("${buildDir}/reports/jacoco/html")
+    }
+
+    classDirectories.setFrom(files(classDirectories.files.map {
+        fileTree(it) { exclude("**/StandardKt*", "**/NewJavaToKotlinServices*", "**/CacheUtilKt*") }
+    }))
 }
