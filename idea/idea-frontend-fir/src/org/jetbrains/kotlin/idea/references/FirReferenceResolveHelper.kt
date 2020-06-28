@@ -22,7 +22,9 @@ import org.jetbrains.kotlin.idea.frontend.api.fir.KtSymbolByFirBuilder
 import org.jetbrains.kotlin.idea.frontend.api.fir.buildSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbol
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.collectDescendantsOfType
 import org.jetbrains.kotlin.psi.psiUtil.getNonStrictParentOfType
 
 internal object FirReferenceResolveHelper {
@@ -135,12 +137,15 @@ internal object FirReferenceResolveHelper {
                     if (parent.selectorExpression !== expression) {
                         // Special: package reference in the middle of import directive
                         // import a.<caret>b.c.SomeClass
-                        // TODO: return reference to PsiPackage
-//                        return listOf(expression)
-                        return emptyList()
+                        val fqName = expression
+                            .collectDescendantsOfType<KtSimpleNameExpression>()
+                            .joinToString(separator = ".") { it.getReferencedName() }
+                            .let(::FqName)
+                        return listOfNotNull(symbolBuilder.createPackageSymbolIfOneExists(fqName))
                     }
                     parent = parent.parent
                 }
+
                 val classId = fir.resolvedClassId
                 if (classId != null) {
                     return listOfNotNull(classId.toTargetPsi(session, symbolBuilder))
