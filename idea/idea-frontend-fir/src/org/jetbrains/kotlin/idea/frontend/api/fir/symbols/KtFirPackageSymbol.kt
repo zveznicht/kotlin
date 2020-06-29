@@ -11,9 +11,10 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.file.PsiPackageImpl
 import org.jetbrains.kotlin.idea.frontend.api.ValidityOwner
 import org.jetbrains.kotlin.idea.frontend.api.ValidityOwnerByValidityToken
+import org.jetbrains.kotlin.idea.frontend.api.fir.KtFirAnalysisSession
+import org.jetbrains.kotlin.idea.frontend.api.fir.KtSymbolByFirBuilder
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.cached
-import org.jetbrains.kotlin.idea.frontend.api.symbols.KtPackageSymbol
-import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbolOrigin
+import org.jetbrains.kotlin.idea.frontend.api.symbols.*
 import org.jetbrains.kotlin.name.FqName
 
 class KtFirPackageSymbol(
@@ -27,4 +28,9 @@ class KtFirPackageSymbol(
 
     override val origin: KtSymbolOrigin
         get() = KtSymbolOrigin.SOURCE // TODO
+
+    override fun createPointer(): KtSymbolPointer<KtPackageSymbol> = symbolPointer {
+        check(this is KtFirAnalysisSession)
+        firSymbolBuilder.createPackageSymbolIfOneExists(fqName)
+    }
 }
