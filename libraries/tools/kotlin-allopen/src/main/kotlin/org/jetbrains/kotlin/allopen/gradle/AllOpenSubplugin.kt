@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.allopen.gradle
 
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.compile.AbstractCompile
@@ -81,11 +82,14 @@ class AllOpenGradleSubplugin @Inject internal constructor(private val registry: 
         override fun getBuilder(p0: String): ToolingModelBuilder? = null
     })
 
-    override fun isApplicable(project: Project, task: AbstractCompile): Boolean = false
+    override fun isApplicable(project: Project, task: AbstractCompile): Boolean = true
 
     override fun apply(
         project: Project, kotlinCompile: AbstractCompile, javaCompile: AbstractCompile?, variantData: Any?, androidProjectHandler: Any?,
         kotlinCompilation: KotlinCompilation<KotlinCommonOptions>?
-    ): List<SubpluginOption> = emptyList()
+    ): List<SubpluginOption> = throw GradleException(
+        "This version of the kotlin-allopen Gradle plugin is built for a newer Kotlin version. " +
+                "Please use an older version of kotlin-allopen or upgrade the Kotlin version to make them match."
+    )
     //endregion
 }
