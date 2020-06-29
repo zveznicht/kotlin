@@ -83,15 +83,12 @@ inline fun <reified E : Throwable> expectFailure(
     } catch (ex: Throwable) {
         exceptionWasThrown = true
         // Exception is expected.
-        assertTrue(
-            "Exception '${kotlin.math.E::class.qualifiedName}' is expected but '${ex::class.qualifiedName}' was thrown.",
-            ex is E
-        )
+        assertTrue("'${ex::class}' was thrown.", ex is E)
         exceptionCheck?.invoke(ex as E)
     }
 
     if (!exceptionWasThrown) {
-        fail("Exception '${kotlin.math.E::class.simpleName}' is expected but no exception was thrown.${failureMessage?.let { " $it" } ?: ""}")
+        fail("No exception was thrown.${failureMessage?.let { " $it" } ?: ""}")
     }
 }
 
