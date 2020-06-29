@@ -41,8 +41,7 @@ class IrInlineCodegen(
     reifiedTypeInliner: ReifiedTypeInliner<IrType>
 ) :
     InlineCodegen<ExpressionCodegen>(
-        // TODO: initialDescriptor is needed to generate incremental compilation data. Need to get rid of it.
-        codegen, state, function.initialDescriptor, methodOwner, signature, typeParameterMappings, sourceCompiler, reifiedTypeInliner
+        codegen, state, function.wrappedDescriptor, methodOwner, signature, typeParameterMappings, sourceCompiler, reifiedTypeInliner
     ),
     IrCallGenerator {
 
