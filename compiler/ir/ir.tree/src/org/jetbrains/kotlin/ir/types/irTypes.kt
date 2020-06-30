@@ -97,7 +97,7 @@ private fun makeKotlinType(
             else -> error(it)
         }
     }
-    return classifier.initialDescriptor.defaultType.replace(newArguments = kotlinTypeArguments).makeNullableAsSpecified(hasQuestionMark)
+    return classifier.wrappedDescriptor.defaultType.replace(newArguments = kotlinTypeArguments).makeNullableAsSpecified(hasQuestionMark)
 }
 
 val IrClassifierSymbol.defaultType: IrType
