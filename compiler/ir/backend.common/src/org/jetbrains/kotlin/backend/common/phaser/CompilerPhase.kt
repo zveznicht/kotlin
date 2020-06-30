@@ -18,8 +18,7 @@ class PhaserState<Data>(
 // Copy state, forgetting the sticky postconditions (which will not be applicable to the new type)
 fun <Input, Output> PhaserState<Input>.changeType() = PhaserState<Output>(alreadyDone, depth, phaseCount, mutableSetOf())
 
-
-fun <R, D> PhaserState<D>.downlevel(nlevels: Int = 1, block: () -> R): R {
+inline fun <R, D> PhaserState<D>.downlevel(nlevels: Int, block: () -> R): R {
     depth += nlevels
     val result = block()
     depth -= nlevels
@@ -35,28 +34,29 @@ interface CompilerPhase<in Context : CommonBackendContext, Input, Output> {
     val stickyPostconditions: Set<Checker<Output>> get() = emptySet()
 }
 
-fun <Context: CommonBackendContext, Input, Output> CompilerPhase<Context,  Input, Output>.invokeToplevel(
+fun <Context : CommonBackendContext, Input, Output> CompilerPhase<Context, Input, Output>.invokeToplevel(
     phaseConfig: PhaseConfig,
     context: Context,
     input: Input
 ): Output = invoke(phaseConfig, PhaserState(), context, input)
 
-interface SameTypeCompilerPhase<in Context: CommonBackendContext, Data> : CompilerPhase<Context, Data, Data>
+interface SameTypeCompilerPhase<in Context : CommonBackendContext, Data> : CompilerPhase<Context, Data, Data>
 
 // A failing checker should just throw an exception.
 typealias Checker<Data> = (Data) -> Unit
 
-interface NamedCompilerPhase<in Context : CommonBackendContext, Input, Output> : CompilerPhase<Context, Input, Output> {
+interface NamedCompilerPhase<in Context : CommonBackendContext, Data> : SameTypeCompilerPhase<Context, Data> {
     val name: String
     val description: String
     val prerequisite: Set<AnyNamedPhase> get() = emptySet()
-    val preconditions: Set<Checker<Input>>
-    val postconditions: Set<Checker<Output>>
-    val actionsBefore: Set<Action<Input, Context>>
-    val actionsAfter: Set<Action<Output, Context>>
+    val preconditions: Set<Checker<Data>>
+    val postconditions: Set<Checker<Data>>
+    val actionsBefore: Set<Action<Data, Context>>
+    val actionsAfter: Set<Action<Data, Context>>
 }
 
-typealias AnyNamedPhase = NamedCompilerPhase<*, *, *>
+typealias AnyNamedPhase = NamedCompilerPhase<*, *>
+
 enum class BeforeOrAfter { BEFORE, AFTER }
 
 data class ActionState(
@@ -74,25 +74,24 @@ infix operator fun <Data, Context> Action<Data, Context>.plus(other: Action<Data
         other(phaseState, data, context)
     }
 
-abstract class AbstractNamedPhaseWrapper<in Context : CommonBackendContext, Input, Output>(
+class SameTypeNamedPhaseWrapper<in Context : CommonBackendContext, Data>(
     override val name: String,
     override val description: String,
     override val prerequisite: Set<AnyNamedPhase>,
-    private val lower: CompilerPhase<Context, Input, Output>,
-    override val preconditions: Set<Checker<Input>> = emptySet(),
-    override val postconditions: Set<Checker<Output>> = emptySet(),
-    override val stickyPostconditions: Set<Checker<Output>> = emptySet(),
-    override val actionsBefore: Set<Action<Input, Context>> = emptySet(),
-    override val actionsAfter: Set<Action<Output, Context>> = emptySet(),
+    private val lower: CompilerPhase<Context, Data, Data>,
+    override val preconditions: Set<Checker<Data>> = emptySet(),
+    override val postconditions: Set<Checker<Data>> = emptySet(),
+    override val stickyPostconditions: Set<Checker<Data>> = emptySet(),
+    private val actions: Set<Action<Data, Context>> = emptySet(),
     private val nlevels: Int = 0
-) : NamedCompilerPhase<Context, Input, Output> {
+) : NamedCompilerPhase<Context, Data> {
+    override val actionsBefore: Set<Action<Data, Context>> get() = actions
 
-    override fun invoke(phaseConfig: PhaseConfig, phaserState: PhaserState<Input>, context: Context, input: Input): Output {
-        if (this is SameTypeCompilerPhase<*, *> &&
-            this !in phaseConfig.enabled
-        ) {
-            @Suppress("UNCHECKED_CAST")
-            return input as Output
+    override val actionsAfter: Set<Action<Data, Context>> get() = actions
+
+    override fun invoke(phaseConfig: PhaseConfig, phaserState: PhaserState<Data>, context: Context, input: Data): Data {
+        if (this !in phaseConfig.enabled) {
+            return input
         }
 
         assert(phaserState.alreadyDone.containsAll(prerequisite)) {
@@ -111,7 +110,7 @@ abstract class AbstractNamedPhaseWrapper<in Context : CommonBackendContext, Inpu
         return output
     }
 
-    private fun runBefore(phaseConfig: PhaseConfig, phaserState: PhaserState<Input>, context: Context, input: Input) {
+    private fun runBefore(phaseConfig: PhaseConfig, phaserState: PhaserState<Data>, context: Context, input: Data) {
         val state = ActionState(phaseConfig, this, phaserState.phaseCount, BeforeOrAfter.BEFORE)
         for (action in actionsBefore) action(state, input, context)
 
@@ -120,7 +119,7 @@ abstract class AbstractNamedPhaseWrapper<in Context : CommonBackendContext, Inpu
         }
     }
 
-    private fun runBody(phaseConfig: PhaseConfig, phaserState: PhaserState<Input>, context: Context, input: Input): Output {
+    private fun runBody(phaseConfig: PhaseConfig, phaserState: PhaserState<Data>, context: Context, input: Data): Data {
         return if (phaseConfig.needProfiling) {
             runAndProfile(phaseConfig, phaserState, context, input)
         } else {
@@ -130,22 +129,21 @@ abstract class AbstractNamedPhaseWrapper<in Context : CommonBackendContext, Inpu
         }
     }
 
-    private fun runAfter(phaseConfig: PhaseConfig, phaserState: PhaserState<Input>, context: Context, output: Output) {
+    private fun runAfter(phaseConfig: PhaseConfig, phaserState: PhaserState<Data>, context: Context, output: Data) {
         val state = ActionState(phaseConfig, this, phaserState.phaseCount, BeforeOrAfter.AFTER)
         for (action in actionsAfter) action(state, output, context)
 
         if (phaseConfig.checkConditions) {
             for (post in postconditions) post(output)
             for (post in stickyPostconditions) post(output)
-            if (phaseConfig.checkStickyConditions && this is SameTypeCompilerPhase<*, *>) {
-                @Suppress("UNCHECKED_CAST") val phaserStateO = phaserState as PhaserState<Output>
-                for (post in phaserStateO.stickyPostconditions) post(output)
+            if (phaseConfig.checkStickyConditions) {
+                for (post in phaserState.stickyPostconditions) post(output)
             }
         }
     }
 
-    private fun runAndProfile(phaseConfig: PhaseConfig, phaserState: PhaserState<Input>, context: Context, source: Input): Output {
-        var result: Output? = null
+    private fun runAndProfile(phaseConfig: PhaseConfig, phaserState: PhaserState<Data>, context: Context, source: Data): Data {
+        var result: Data? = null
         val msec = measureTimeMillis {
             result = phaserState.downlevel(nlevels) {
                 lower.invoke(phaseConfig, phaserState, context, source)
@@ -156,26 +154,8 @@ abstract class AbstractNamedPhaseWrapper<in Context : CommonBackendContext, Inpu
         return result!!
     }
 
-    private fun checkAndRun(set: Set<AnyNamedPhase>, block: () -> Unit) {
-        if (this in set) block()
-    }
-
-    override fun getNamedSubphases(startDepth: Int): List<Pair<Int, NamedCompilerPhase<*, *, *>>> =
+    override fun getNamedSubphases(startDepth: Int): List<Pair<Int, NamedCompilerPhase<*, *>>> =
         listOf(startDepth to this) + lower.getNamedSubphases(startDepth + nlevels)
 
     override fun toString() = "Compiler Phase @$name"
 }
-
-class SameTypeNamedPhaseWrapper<in Context : CommonBackendContext, Data>(
-    name: String,
-    description: String,
-    prerequisite: Set<AnyNamedPhase>,
-    lower: CompilerPhase<Context, Data, Data>,
-    preconditions: Set<Checker<Data>> = emptySet(),
-    postconditions: Set<Checker<Data>> = emptySet(),
-    stickyPostconditions: Set<Checker<Data>> = lower.stickyPostconditions,
-    actions: Set<Action<Data, Context>> = emptySet(),
-    nlevels: Int = 0
-) : AbstractNamedPhaseWrapper<Context, Data, Data>(
-    name, description, prerequisite, lower, preconditions, postconditions, stickyPostconditions, actions, actions, nlevels
-), SameTypeCompilerPhase<Context, Data>
