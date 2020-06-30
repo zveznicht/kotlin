@@ -127,13 +127,21 @@ open class BuiltinSymbolsBase(protected val irBuiltIns: IrBuiltIns, protected va
         Name.identifier("toUInt"),
         NoLookupLocation.FROM_BACKEND
     ).filter { it.containingDeclaration !is BuiltInsPackageFragment && it.extensionReceiverParameter != null }
-        .map { Pair(it.extensionReceiverParameter!!.type, symbolTable.referenceSimpleFunction(it)) }.toMap()
+        .map {
+            val c = symbolTable.referenceClassifier(it.extensionReceiverParameter!!.type.constructor.declarationDescriptor!!)
+            val f = symbolTable.referenceSimpleFunction(it)
+            c to f
+        }.toMap()
 
     val toULongByExtensionReceiver = builtInsPackage("kotlin").getContributedFunctions(
         Name.identifier("toULong"),
         NoLookupLocation.FROM_BACKEND
     ).filter { it.containingDeclaration !is BuiltInsPackageFragment && it.extensionReceiverParameter != null }
-        .map { Pair(it.extensionReceiverParameter!!.type, symbolTable.referenceSimpleFunction(it)) }.toMap()
+        .map {
+            val c = symbolTable.referenceClassifier(it.extensionReceiverParameter!!.type.constructor.declarationDescriptor!!)
+            val f = symbolTable.referenceSimpleFunction(it)
+            c to f
+        }.toMap()
 
     val any = symbolTable.referenceClass(builtIns.any)
     val unit = symbolTable.referenceClass(builtIns.unit)
