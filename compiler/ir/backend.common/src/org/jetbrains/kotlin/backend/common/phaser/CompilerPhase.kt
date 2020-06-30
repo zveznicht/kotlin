@@ -45,16 +45,6 @@ interface SameTypeCompilerPhase<in Context : CommonBackendContext, Data> : Compi
 // A failing checker should just throw an exception.
 typealias Checker<Data> = (Data) -> Unit
 
-interface NamedCompilerPhase<in Context : CommonBackendContext, Data> : SameTypeCompilerPhase<Context, Data> {
-    val name: String
-    val description: String
-    val prerequisite: Set<AnyNamedPhase> get() = emptySet()
-    val preconditions: Set<Checker<Data>>
-    val postconditions: Set<Checker<Data>>
-    val actionsBefore: Set<Action<Data, Context>>
-    val actionsAfter: Set<Action<Data, Context>>
-}
-
 typealias AnyNamedPhase = NamedCompilerPhase<*, *>
 
 enum class BeforeOrAfter { BEFORE, AFTER }
@@ -74,21 +64,17 @@ infix operator fun <Data, Context> Action<Data, Context>.plus(other: Action<Data
         other(phaseState, data, context)
     }
 
-class SameTypeNamedPhaseWrapper<in Context : CommonBackendContext, Data>(
-    override val name: String,
-    override val description: String,
-    override val prerequisite: Set<AnyNamedPhase>,
+class NamedCompilerPhase<in Context : CommonBackendContext, Data>(
+    val name: String,
+    val description: String,
+    val prerequisite: Set<AnyNamedPhase>,
     private val lower: CompilerPhase<Context, Data, Data>,
-    override val preconditions: Set<Checker<Data>> = emptySet(),
-    override val postconditions: Set<Checker<Data>> = emptySet(),
+    val preconditions: Set<Checker<Data>> = emptySet(),
+    val postconditions: Set<Checker<Data>> = emptySet(),
     override val stickyPostconditions: Set<Checker<Data>> = emptySet(),
     private val actions: Set<Action<Data, Context>> = emptySet(),
     private val nlevels: Int = 0
-) : NamedCompilerPhase<Context, Data> {
-    override val actionsBefore: Set<Action<Data, Context>> get() = actions
-
-    override val actionsAfter: Set<Action<Data, Context>> get() = actions
-
+) : SameTypeCompilerPhase<Context, Data> {
     override fun invoke(phaseConfig: PhaseConfig, phaserState: PhaserState<Data>, context: Context, input: Data): Data {
         if (this !in phaseConfig.enabled) {
             return input
@@ -101,7 +87,13 @@ class SameTypeNamedPhaseWrapper<in Context : CommonBackendContext, Data>(
         context.inVerbosePhase = this in phaseConfig.verbose
 
         runBefore(phaseConfig, phaserState, context, input)
-        val output = runBody(phaseConfig, phaserState, context, input)
+        val output = if (phaseConfig.needProfiling) {
+            runAndProfile(phaseConfig, phaserState, context, input)
+        } else {
+            phaserState.downlevel(nlevels) {
+                lower.invoke(phaseConfig, phaserState, context, input)
+            }
+        }
         runAfter(phaseConfig, phaserState, context, output)
 
         phaserState.alreadyDone.add(this)
@@ -112,26 +104,16 @@ class SameTypeNamedPhaseWrapper<in Context : CommonBackendContext, Data>(
 
     private fun runBefore(phaseConfig: PhaseConfig, phaserState: PhaserState<Data>, context: Context, input: Data) {
         val state = ActionState(phaseConfig, this, phaserState.phaseCount, BeforeOrAfter.BEFORE)
-        for (action in actionsBefore) action(state, input, context)
+        for (action in actions) action(state, input, context)
 
         if (phaseConfig.checkConditions) {
             for (pre in preconditions) pre(input)
         }
     }
 
-    private fun runBody(phaseConfig: PhaseConfig, phaserState: PhaserState<Data>, context: Context, input: Data): Data {
-        return if (phaseConfig.needProfiling) {
-            runAndProfile(phaseConfig, phaserState, context, input)
-        } else {
-            phaserState.downlevel(nlevels) {
-                lower.invoke(phaseConfig, phaserState, context, input)
-            }
-        }
-    }
-
     private fun runAfter(phaseConfig: PhaseConfig, phaserState: PhaserState<Data>, context: Context, output: Data) {
         val state = ActionState(phaseConfig, this, phaserState.phaseCount, BeforeOrAfter.AFTER)
-        for (action in actionsAfter) action(state, output, context)
+        for (action in actions) action(state, output, context)
 
         if (phaseConfig.checkConditions) {
             for (post in postconditions) post(output)

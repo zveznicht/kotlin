@@ -58,7 +58,7 @@ fun <Context : CommonBackendContext> namedIrModulePhase(
     stickyPostconditions: Set<Checker<IrModuleFragment>> = lower.stickyPostconditions,
     actions: Set<Action<IrModuleFragment, Context>> = setOf(defaultDumper, validationAction),
     nlevels: Int = 1
-) = SameTypeNamedPhaseWrapper(
+) = NamedCompilerPhase(
     name,
     description,
     prerequisite,
@@ -80,7 +80,7 @@ fun <Context : CommonBackendContext> namedIrFilePhase(
     stickyPostconditions: Set<Checker<IrFile>> = lower.stickyPostconditions,
     actions: Set<Action<IrFile, Context>> = setOf(defaultDumper, validationAction),
     nlevels: Int = 1
-) = SameTypeNamedPhaseWrapper(
+) = NamedCompilerPhase(
     name,
     description,
     prerequisite,
@@ -102,7 +102,7 @@ fun <Context : CommonBackendContext, Element : IrElement> makeCustomPhase(
     stickyPostconditions: Set<Checker<Element>> = emptySet(),
     actions: Set<Action<Element, Context>> = setOf(defaultDumper, validationAction),
     nlevels: Int = 1
-) = SameTypeNamedPhaseWrapper(
+) = NamedCompilerPhase(
     name,
     description,
     prerequisite,
@@ -130,7 +130,7 @@ fun <Context : CommonBackendContext> namedUnitPhase(
     prerequisite: Set<AnyNamedPhase> = emptySet(),
     nlevels: Int = 1,
     lower: CompilerPhase<Context, Unit, Unit>
-) = SameTypeNamedPhaseWrapper(
+) = NamedCompilerPhase(
     name, description, prerequisite,
     lower = lower,
     nlevels = nlevels
