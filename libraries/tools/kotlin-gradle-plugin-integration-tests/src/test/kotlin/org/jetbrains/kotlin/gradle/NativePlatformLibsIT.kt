@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.konan.target.KonanTarget
 import org.jetbrains.kotlin.konan.target.presetName
 import org.jetbrains.kotlin.konan.util.DependencyDirectories
 import org.junit.Assume
+import org.junit.Ignore
 import org.junit.Test
 
 class NativePlatformLibsIT : BaseGradleIT() {
@@ -43,10 +44,21 @@ class NativePlatformLibsIT : BaseGradleIT() {
         }
     }
 
+    override fun defaultBuildOptions(): BuildOptions {
+        return super.defaultBuildOptions().copy(forceOutputToStdout = true)
+    }
+
     private fun BaseGradleIT.Project.buildWithLightDist(vararg tasks: String, check: CompiledProject.() -> Unit) =
         build(*tasks, "-Pkotlin.native.distribution.type=light", check = check)
 
     @Test
+    fun repro() {
+        println("Start repro test")
+        Thread.sleep(20 * 60 * 1000)
+        println("Repro finished")
+    }
+
+    @Ignore @Test
     fun testNoGenerationForOldCompiler() = with(platformLibrariesProject("linuxX64")) {
         deleteInstalledCompilers()
 
@@ -60,7 +72,7 @@ class NativePlatformLibsIT : BaseGradleIT() {
         }
     }
 
-    @Test
+    @Ignore @Test
     fun testNoGenerationByDefault() = with(platformLibrariesProject("linuxX64")) {
         deleteInstalledCompilers()
 
@@ -72,7 +84,7 @@ class NativePlatformLibsIT : BaseGradleIT() {
         }
     }
 
-    @Test
+    @Ignore @Test
     fun testLibrariesGeneration() {
         deleteInstalledCompilers()
 
@@ -101,7 +113,7 @@ class NativePlatformLibsIT : BaseGradleIT() {
         }
     }
 
-    @Test
+    @Ignore @Test
     fun testNoGenerationForUnsupportedHost() {
         deleteInstalledCompilers()
 
@@ -116,7 +128,7 @@ class NativePlatformLibsIT : BaseGradleIT() {
         }
     }
 
-    @Test
+    @Ignore @Test
     fun testRerunGeneratorIfCacheKindChanged() {
         // Currently we can generate caches only for macos_x64 and ios_x64.
         Assume.assumeTrue(HostManager.hostIsMac)
@@ -138,7 +150,7 @@ class NativePlatformLibsIT : BaseGradleIT() {
         }
     }
 
-    @Test
+    @Ignore @Test
     fun testCanUsePrebuiltDistribution() = with(platformLibrariesProject("linuxX64")) {
         deleteInstalledCompilers()
 
@@ -149,7 +161,7 @@ class NativePlatformLibsIT : BaseGradleIT() {
         }
     }
 
-    @Test
+    @Ignore @Test
     fun testDeprecatedRestrictedDistributionProperty() = with(platformLibrariesProject("linuxX64")) {
         build("tasks", "-Pkotlin.native.restrictedDistribution=true", "-Pkotlin.native.version=$oldCompilerVersion") {
             assertSuccessful()
@@ -171,7 +183,7 @@ class NativePlatformLibsIT : BaseGradleIT() {
         }
     }
 
-    @Test
+    @Ignore @Test
     fun testSettingDistributionTypeForOldCompiler() = with(platformLibrariesProject("linuxX64")) {
         build("tasks", "-Pkotlin.native.distribution.type=prebuilt", "-Pkotlin.native.version=$oldCompilerVersion") {
             assertSuccessful()
@@ -190,7 +202,7 @@ class NativePlatformLibsIT : BaseGradleIT() {
         }
     }
 
-    @Test
+    @Ignore @Test
     fun testSettingGenerationMode() = with(platformLibrariesProject("linuxX64")) {
         deleteInstalledCompilers()
 
@@ -201,7 +213,7 @@ class NativePlatformLibsIT : BaseGradleIT() {
         }
     }
 
-    @Test
+    @Ignore @Test
     fun testCompilerReinstallation() = with(platformLibrariesProject("linuxX64")) {
         deleteInstalledCompilers()
 
