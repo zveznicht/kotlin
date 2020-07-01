@@ -506,33 +506,6 @@ gradle.taskGraph.whenReady {
         else
             ZipEntryCompression.STORED
     }
-
-    if (allTasks.filterIsInstance<AggregateTest>().isNotEmpty()) {
-        val patterns = mutableMapOf<String, MutableList<String>>()
-
-        allTasks.filterIsInstance<AggregateTest>().forEach { aggregateTask ->
-            if (File(aggregateTask.testPatternPath).exists()) {
-                File(aggregateTask.testPatternPath)
-                    .readLines()
-                    .asSequence()
-                    .map { pattern -> pattern.trim().split(',').map { it.trim() } }
-                    .filter { it.isNotEmpty() }
-                    .drop(1).forEach {
-                        if (patterns.containsKey(it[1])) patterns[it[1]]?.add(it[0]) else patterns[it[1]] = mutableListOf(it[0])
-                    }
-            }
-        }
-        allTasks.filterIsInstance<Test>().forEach { testTask ->
-            patterns["exclude"]?.let { testTask.exclude(it) }
-            patterns["include"]?.let { testTask.include(it) }
-            testTask.filter { isFailOnNoMatchingTests = false }
-            testTask.outputs.upToDateWhen { false } // Run tests every time
-        }
-
-        if (!project.gradle.startParameter.taskNames.all { tasks.findByPath(it) is AggregateTest }) {
-            logger.warn("Please, don't use AggregateTest and Default test tasks together. You can get incorrect results.")
-        }
-    }
 }
 
 val dist = tasks.register("dist") {
@@ -839,10 +812,28 @@ tasks {
     }
 
     register("kmmTest", AggregateTest::class) {
-        testTasksPath = "tests/mpp/kmm-tasks.csv"
+        dependsOn(
+            ":idea:idea-gradle:test"
+//            ":idea:test",
+//            ":compiler:test",
+//            ":js:js.tests:test"
+        )
+//        if (Ide.IJ193.orHigher())
+//            dependsOn(":kotlin-gradle-plugin-integration-tests:test")
+        if (Ide.AS40.orHigher())
+            dependsOn(":kotlin-ultimate:ide:android-studio-native:test")
+
         testPatternPath = "tests/mpp/kmm-patterns.csv"
 
         configure()
+
+        gradle.taskGraph.whenReady {
+            allTasks.filterIsInstance<Test>().forEach { testTask -> subTaskConfigure(testTask) }
+
+            if (!project.gradle.startParameter.taskNames.all { findByPath(it) is AggregateTest }) {
+                logger.warn("Please, don't use AggregateTest and non-AggregateTest test tasks together. You can get incorrect results.")
+            }
+        }
     }
 
     register("test") {
