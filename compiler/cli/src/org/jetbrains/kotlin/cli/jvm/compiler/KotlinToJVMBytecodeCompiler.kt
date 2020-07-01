@@ -74,6 +74,7 @@ import org.jetbrains.kotlin.idea.MainFunctionDetector
 import org.jetbrains.kotlin.ir.backend.jvm.jvmResolveLibraries
 import org.jetbrains.kotlin.ir.backend.jvm.serialization.JvmManglerDesc
 import org.jetbrains.kotlin.ir.backend.jvm.serialization.JvmManglerIr
+import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.javac.JavacWrapper
 import org.jetbrains.kotlin.load.kotlin.ModuleVisibilityManager
 import org.jetbrains.kotlin.modules.Module
@@ -386,7 +387,8 @@ object KotlinToJVMBytecodeCompiler {
                     mangler = FirJvmKotlinMangler(session)
                 )
             val fakeOverrideBuilder = FakeOverrideBuilder(
-                symbolTable, IdSignatureSerializer(JvmManglerIr), components.irBuiltIns
+                symbolTable, IdSignatureSerializer(JvmManglerIr), components.irBuiltIns,
+                newOrigin = IrDeclarationOrigin.DEFINED
             )
             fakeOverrideBuilder.provideFakeOverrides(moduleFragment)
 
