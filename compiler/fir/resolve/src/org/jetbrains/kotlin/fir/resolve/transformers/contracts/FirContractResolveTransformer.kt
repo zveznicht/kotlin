@@ -102,6 +102,10 @@ open class FirContractResolveTransformer(
             return property.compose()
         }
 
+        override fun transformScript(script: FirScript, data: ResolutionMode): CompositeTransformResult<FirStatement> {
+            return script.compose()
+        }
+
         private fun transformPropertyAccessor(
             propertyAccessor: FirPropertyAccessor,
             owner: FirProperty
