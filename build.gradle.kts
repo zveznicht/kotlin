@@ -823,7 +823,8 @@ tasks {
         if (Ide.AS40.orHigher())
             dependsOn(":kotlin-ultimate:ide:android-studio-native:test")
 
-        configure("tests/mpp/kmm-patterns.csv")
+        testPatternFile = file("tests/mpp/kmm-patterns.csv")
+        configure()
     }
 
     register("test") {

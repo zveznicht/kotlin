@@ -3,13 +3,17 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
+import org.gradle.api.GradleException
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.testing.Test
 import java.io.File
 
 // You can see "How To" via link: https://jetbrains.quip.com/xQ2WAUy9bZmy/How-to-use-AggregateTest-task
 open class AggregateTest : Test() { // Inherit from Test to see test results in IDEA Test viewer
-    private var patterns: MutableMap<String, MutableList<String>> = mutableMapOf<String, MutableList<String>>()
+    private var patterns: MutableMap<String, MutableList<String>> = mutableMapOf()
+
+    @InputFile
+    lateinit var testPatternFile: File
 
     // Stubs to avoid exceptions when initializing a base 'Test' class
     init {
@@ -18,8 +22,8 @@ open class AggregateTest : Test() { // Inherit from Test to see test results in 
         testClassesDirs = project.files("stub")
     }
 
-    fun configure(testPatternPath: String) {
-        initPatterns(testPatternPath)
+    fun configure() {
+        initPatterns()
 
         project.gradle.taskGraph.whenReady {
             allTasks.filterIsInstance<Test>().forEach { testTask -> subTaskConfigure(testTask) }
@@ -30,10 +34,10 @@ open class AggregateTest : Test() { // Inherit from Test to see test results in 
         }
     }
 
-    private fun initPatterns(testPatternPath: String) {
-        if (!File(testPatternPath).exists())
-            return
-        File(testPatternPath)
+    private fun initPatterns() {
+        if (!testPatternFile.exists())
+            throw GradleException("File with test patterns is not found")
+        testPatternFile
             .readLines()
             .asSequence()
             .filter { it.isNotEmpty() }
