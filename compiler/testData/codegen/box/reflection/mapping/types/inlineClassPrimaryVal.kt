@@ -1,5 +1,7 @@
 // TARGET_BACKEND: JVM
 // WITH_REFLECT
+// IGNORE_BACKEND: JVM_IR
+// ^ TODO fix reflection for primary inline class properties with mangled getter method
 package test
 
 import kotlin.reflect.KCallable
