@@ -823,17 +823,8 @@ tasks {
         if (Ide.AS40.orHigher())
             dependsOn(":kotlin-ultimate:ide:android-studio-native:test")
 
-        testPatternPath = "tests/mpp/kmm-patterns.csv"
-
+        initPatterns("tests/mpp/kmm-patterns.csv")
         configure()
-
-        gradle.taskGraph.whenReady {
-            allTasks.filterIsInstance<Test>().forEach { testTask -> subTaskConfigure(testTask) }
-
-            if (!project.gradle.startParameter.taskNames.all { findByPath(it) is AggregateTest }) {
-                logger.warn("Please, don't use AggregateTest and non-AggregateTest test tasks together. You can get incorrect results.")
-            }
-        }
     }
 
     register("test") {
@@ -851,6 +842,16 @@ tasks {
             doFirst {
                 println("##teamcity[setParameter name='bootstrap.kotlin.version' value='$bootstrapKotlinVersion']")
             }
+        }
+    }
+}
+
+fun AggregateTest.configure() {
+    gradle.taskGraph.whenReady {
+        allTasks.filterIsInstance<Test>().forEach { testTask -> subTaskConfigure(testTask) }
+
+        if (!project.gradle.startParameter.taskNames.all { tasks.findByPath(it) is AggregateTest }) {
+            logger.warn("Please, don't use AggregateTest and non-AggregateTest test tasks together. You can get incorrect results.")
         }
     }
 }

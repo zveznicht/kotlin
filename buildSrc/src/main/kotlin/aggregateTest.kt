@@ -9,9 +9,6 @@ import java.io.File
 
 // You can see "How To" via link: https://jetbrains.quip.com/xQ2WAUy9bZmy/How-to-use-AggregateTest-task
 open class AggregateTest : Test() { // Inherit from Test to see test results in IDEA Test viewer
-    @Input
-    lateinit var testPatternPath: String
-
     private var patterns: MutableMap<String, MutableList<String>> = mutableMapOf<String, MutableList<String>>()
 
     // Stubs to avoid exceptions when initializing a base 'Test' class
@@ -21,7 +18,7 @@ open class AggregateTest : Test() { // Inherit from Test to see test results in 
         testClassesDirs = project.files("stub")
     }
 
-    fun configure() {
+    fun initPatterns(testPatternPath: String) {
         if (!File(testPatternPath).exists())
             return
         File(testPatternPath)
