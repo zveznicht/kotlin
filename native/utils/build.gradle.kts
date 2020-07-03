@@ -19,8 +19,11 @@ sourceSets {
     "test" { projectDefault() }
 }
 
-// TODO: this single known external consumer of this artifact is Kotlin/Native backend,
-//  so publishing could be stopped after migration to monorepo
+
+// There are two consumers of this module as a separate published artifact:
+// - K/N and it's build infrastructure - until migration to monorepo is finished.
+// - Kotlin Gradle plugin - until a separate public API for host info is implemented (KT-39994).
+// TODO: Stop publishing this artifact when it's no longer needed.
 publish()
 
 standardPublicJars()

@@ -40,7 +40,12 @@ dependencies {
 
     compile(kotlinStdlib())
     compile(project(":kotlin-util-klib"))
-    compileOnly(project(":native:kotlin-native-utils"))
+
+    // This module is already included into kotlin-compiler-embeddable.
+    // But we add a separate dependency on it to provide users who write their plugins with HostManager (KT-39450).
+    // TODO: Convert this dependency into compileOnly once KT-39994 is fixed.
+    compile(project(":native:kotlin-native-utils"))
+
     compileOnly(project(":kotlin-reflect-api"))
     compileOnly(project(":kotlin-android-extensions"))
     compileOnly(project(":kotlin-build-common"))
