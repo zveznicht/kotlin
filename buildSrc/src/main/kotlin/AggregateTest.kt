@@ -15,17 +15,14 @@ open class AggregateTest : Test() { // Inherit from Test to see test results in 
     @InputFile
     lateinit var testPatternFile: File
 
-    // Stubs to avoid exceptions when initializing a base 'Test' class
     init {
-        binaryResultsDirectory.convention(project.layout.buildDirectory.dir("stub"))
-        classpath = project.files("stub")
-        testClassesDirs = project.files("stub")
-    }
-
-    fun configure() {
-        initPatterns()
+        // Set empty FileCollection to avoid NPE when initializing a base 'Test' class
+        classpath = project.objects.fileCollection()
+        testClassesDirs = project.objects.fileCollection()
 
         project.gradle.taskGraph.whenReady {
+            initPatterns()
+
             allTasks.filterIsInstance<Test>().forEach { testTask -> subTaskConfigure(testTask) }
 
             if (!project.gradle.startParameter.taskNames.all { project.tasks.findByPath(it) is AggregateTest }) {
