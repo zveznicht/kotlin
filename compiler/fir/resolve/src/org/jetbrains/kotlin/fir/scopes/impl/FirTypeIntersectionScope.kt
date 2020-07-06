@@ -7,9 +7,7 @@ package org.jetbrains.kotlin.fir.scopes.impl
 
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.FirSession
-import org.jetbrains.kotlin.fir.declarations.FirCallableMemberDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirProperty
-import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
+import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.scopes.FirOverrideChecker
 import org.jetbrains.kotlin.fir.scopes.FirScope
@@ -147,8 +145,8 @@ class FirTypeIntersectionScope private constructor(
             require(bFir is FirSimpleFunction) { "b is " + b.javaClass }
             return isTypeMoreSpecific(aReturnType, bReturnType)
         }
-        if (aFir is FirProperty) {
-            require(bFir is FirProperty) { "b is " + b.javaClass }
+        if (aFir is FirVariable<*>) {
+            require(bFir is FirVariable<*>) { "b is " + b.javaClass }
             // TODO: if (!OverridingUtil.isAccessorMoreSpecific(pa.getSetter(), pb.getSetter())) return false
             return if (aFir.isVar && bFir.isVar) {
                 AbstractTypeChecker.equalTypes(typeContext as AbstractTypeCheckerContext, aReturnType, bReturnType)
