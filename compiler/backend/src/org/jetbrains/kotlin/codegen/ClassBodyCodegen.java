@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodSignature;
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter;
 import org.jetbrains.kotlin.resolve.scopes.MemberScope;
 import org.jetbrains.kotlin.types.KotlinType;
+import org.jetbrains.kotlin.util.DeclarationUtilKt;
 import org.jetbrains.org.objectweb.asm.Type;
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter;
 import org.jetbrains.org.objectweb.asm.commons.Method;
@@ -38,6 +39,7 @@ import static org.jetbrains.kotlin.codegen.binding.CodegenBinding.enumEntryNeedS
 import static org.jetbrains.kotlin.resolve.DescriptorToSourceUtils.descriptorToDeclaration;
 import static org.jetbrains.kotlin.resolve.jvm.AsmTypes.OBJECT_TYPE;
 import static org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOriginKind.CLASS_MEMBER_DELEGATION_TO_DEFAULT_IMPL;
+import static org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOriginKind.CLASS_MEMBER_DELEGATION_TO_INTERFACE_IMPL_TO_AVOID_CLASH;
 import static org.jetbrains.kotlin.util.DeclarationUtilKt.findInterfaceImplementation;
 
 public abstract class ClassBodyCodegen extends MemberCodegen<KtPureClassOrObject> {
@@ -237,15 +239,39 @@ public abstract class ClassBodyCodegen extends MemberCodegen<KtPureClassOrObject
             boolean isErasedInlineClass
     ) {
         // Skip Java 8 default methods
-        if (CodegenUtilKt.isDefinitelyNotDefaultImplsMethod(interfaceFun) ||
-            JvmAnnotationUtilKt.checkIsImplementationCompiledToJvmDefault(interfaceFun, state.getJvmDefaultMode())) {
+        if (CodegenUtilKt.isDefinitelyNotDefaultImplsMethod(interfaceFun)) {
             return;
         }
 
         KotlinTypeMapper typeMapper = state.getTypeMapper();
+        CallableMemberDescriptor actualImplementation = interfaceFun.getKind().isReal() ? interfaceFun : DeclarationUtilKt.findImplementationFromInterface(interfaceFun);
+        assert actualImplementation instanceof FunctionDescriptor : "Can't find actual implementation for " + inheritedFun;
+        boolean isDefaultToJvmDefault = false;
+        if (JvmAnnotationUtilKt.isCompiledToJvmDefault(actualImplementation, state.getJvmDefaultMode())) {
+            if (!isJvmInterface(inheritedFun.getContainingDeclaration())) {
+                //TODO: make calculation lazy, convert to streams
+                //TODO: investigate possible clashes with bridges
+                List<FunctionDescriptor> possibleClashes =
+                        JvmDefaultUtilsKt.findPossibleMethodClashesWithOldScheme(inheritedFun, state.getJvmDefaultMode());
+                String implementationDesc =
+                        typeMapper.mapSignatureSkipGeneric((FunctionDescriptor) actualImplementation).getAsmMethod().getDescriptor();
+                for (FunctionDescriptor clash : possibleClashes) {
+                    if (implementationDesc.equals(typeMapper.mapSignatureSkipGeneric(clash).getAsmMethod().getDescriptor())) {
+                        isDefaultToJvmDefault = true;
+                        break;
+                    }
+                }
+            }
+            if (!isDefaultToJvmDefault) {
+                return;
+            }
+        }
+        boolean isInterfaceDelegation = isDefaultToJvmDefault;
         functionCodegen.generateMethod(
                 new JvmDeclarationOrigin(
-                        CLASS_MEMBER_DELEGATION_TO_DEFAULT_IMPL, descriptorToDeclaration(interfaceFun), interfaceFun, null
+                        isDefaultToJvmDefault
+                        ? CLASS_MEMBER_DELEGATION_TO_INTERFACE_IMPL_TO_AVOID_CLASH
+                        : CLASS_MEMBER_DELEGATION_TO_DEFAULT_IMPL, descriptorToDeclaration(interfaceFun), interfaceFun, null
                 ),
                 inheritedFun,
                 new FunctionGenerationStrategy.CodegenBased(state) {
@@ -261,12 +287,14 @@ public abstract class ClassBodyCodegen extends MemberCodegen<KtPureClassOrObject
                         }
 
                         ClassDescriptor containingTrait = (ClassDescriptor) containingDeclaration;
-                        Type traitImplType = typeMapper.mapDefaultImpls(containingTrait);
+                        Type traitImplType = isInterfaceDelegation ? typeMapper.mapType(containingTrait) : typeMapper.mapDefaultImpls(containingTrait);
 
                         FunctionDescriptor originalInterfaceFun = interfaceFun.getOriginal();
-                        Method traitMethod = typeMapper.mapAsmMethod(originalInterfaceFun, OwnerKind.DEFAULT_IMPLS);
+                        Method traitMethod = typeMapper.mapAsmMethod(originalInterfaceFun, isInterfaceDelegation
+                                                                                           ? OwnerKind.IMPLEMENTATION
+                                                                                           : OwnerKind.DEFAULT_IMPLS);
 
-                        putArgumentsOnStack(codegen, signature, traitMethod);
+                        putArgumentsOnStack(codegen, signature, traitMethod, isInterfaceDelegation);
                         InstructionAdapter iv = codegen.v;
 
                         if (KotlinBuiltIns.isCloneable(containingTrait) && traitMethod.getName().equals("clone")) {
@@ -275,7 +303,12 @@ public abstract class ClassBodyCodegen extends MemberCodegen<KtPureClassOrObject
                             iv.invokespecial("java/lang/Object", "clone", "()Ljava/lang/Object;", false);
                         }
                         else {
-                            iv.invokestatic(traitImplType.getInternalName(), traitMethod.getName(), traitMethod.getDescriptor(), false);
+                            if (isInterfaceDelegation) {
+                                iv.invokespecial(traitImplType.getInternalName(), traitMethod.getName(), traitMethod.getDescriptor(), true);
+                            }
+                            else {
+                                iv.invokestatic(traitImplType.getInternalName(), traitMethod.getName(), traitMethod.getDescriptor(), false);
+                            }
                         }
 
                         Type returnType = signature.getReturnType();
@@ -286,7 +319,8 @@ public abstract class ClassBodyCodegen extends MemberCodegen<KtPureClassOrObject
                     private void putArgumentsOnStack(
                             @NotNull ExpressionCodegen codegen,
                             @NotNull JvmMethodSignature signature,
-                            @NotNull Method defaultImplsMethod
+                            @NotNull Method defaultImplsMethod,
+                            boolean isInterfaceDelegation
                     ) {
                         InstructionAdapter iv = codegen.v;
                         Type[] myArgTypes = signature.getAsmMethod().getArgumentTypes();
@@ -301,7 +335,7 @@ public abstract class ClassBodyCodegen extends MemberCodegen<KtPureClassOrObject
                         if (isErasedInlineClass) myArgI++;
                         argVar += receiverType.getType().getSize();
 
-                        int toArgI = 1;
+                        int toArgI = isInterfaceDelegation ? 0: 1;
 
                         List<ParameterDescriptor> myParameters = getParameters(inheritedFun);
                         List<ParameterDescriptor> toParameters = getParameters(interfaceFun);

@@ -510,6 +510,16 @@ public class CompileKotlinAgainstKotlinTestGenerated extends AbstractCompileKotl
                     KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/compileKotlinAgainstKotlin/jvm8/defaults/interop"), Pattern.compile("^(.+)\\.kt$"), null, true);
                 }
 
+                @TestMetadata("genericClash.kt")
+                public void testGenericClash() throws Exception {
+                    runTest("compiler/testData/compileKotlinAgainstKotlin/jvm8/defaults/interop/genericClash.kt");
+                }
+
+                @TestMetadata("genericNoClash.kt")
+                public void testGenericNoClash() throws Exception {
+                    runTest("compiler/testData/compileKotlinAgainstKotlin/jvm8/defaults/interop/genericNoClash.kt");
+                }
+
                 @TestMetadata("newAndOldSchemes.kt")
                 public void testNewAndOldSchemes() throws Exception {
                     runTest("compiler/testData/compileKotlinAgainstKotlin/jvm8/defaults/interop/newAndOldSchemes.kt");
@@ -528,6 +538,16 @@ public class CompileKotlinAgainstKotlinTestGenerated extends AbstractCompileKotl
                 @TestMetadata("newSchemeWithJvmDefault.kt")
                 public void testNewSchemeWithJvmDefault() throws Exception {
                     runTest("compiler/testData/compileKotlinAgainstKotlin/jvm8/defaults/interop/newSchemeWithJvmDefault.kt");
+                }
+
+                @TestMetadata("simpleClash.kt")
+                public void testSimpleClash() throws Exception {
+                    runTest("compiler/testData/compileKotlinAgainstKotlin/jvm8/defaults/interop/simpleClash.kt");
+                }
+
+                @TestMetadata("simpleClashOnClash.kt")
+                public void testSimpleClashOnClash() throws Exception {
+                    runTest("compiler/testData/compileKotlinAgainstKotlin/jvm8/defaults/interop/simpleClashOnClash.kt");
                 }
             }
         }
