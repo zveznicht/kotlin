@@ -233,12 +233,14 @@ fun IrBuilderWithScope.irCall(
     callee: IrSimpleFunctionSymbol,
     type: IrType,
     valueArgumentsCount: Int = callee.owner.valueParameters.size,
-    typeArgumentsCount: Int = callee.owner.typeParameters.size
+    typeArgumentsCount: Int = callee.owner.typeParameters.size,
+    superQualifierSymbol: IrClassSymbol? = null
 ): IrCall =
     IrCallImpl(
         startOffset, endOffset, type, callee,
         typeArgumentsCount = typeArgumentsCount,
-        valueArgumentsCount = valueArgumentsCount
+        valueArgumentsCount = valueArgumentsCount,
+        superQualifierSymbol = superQualifierSymbol
     )
 
 fun IrBuilderWithScope.irCall(

@@ -289,7 +289,7 @@ class JvmDeclarationFactory(
             }
         }
 
-    fun getDefaultImplsRedirection(fakeOverride: IrSimpleFunction): IrSimpleFunction =
+    fun getImplementationRedirection(fakeOverride: IrSimpleFunction, isDelegationToInterface: Boolean): IrSimpleFunction =
         defaultImplsRedirections.getOrPut(fakeOverride) {
             assert(fakeOverride.isFakeOverride)
             val irClass = fakeOverride.parentAsClass
