@@ -3420,6 +3420,11 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/checkcastOptimization"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
         }
 
+        @TestMetadata("genereicParamDowncast.kt")
+        public void testGenereicParamDowncast() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/genereicParamDowncast.kt");
+        }
+
         @TestMetadata("kt19128.kt")
         public void testKt19128() throws Exception {
             runTest("compiler/testData/codegen/box/checkcastOptimization/kt19128.kt");
