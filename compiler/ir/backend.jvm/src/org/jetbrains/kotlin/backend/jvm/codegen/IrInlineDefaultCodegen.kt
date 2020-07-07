@@ -26,7 +26,8 @@ object IrInlineDefaultCodegen : IrInlineCallGenerator {
         argumentExpression: IrExpression,
         parameterType: Type,
         codegen: ExpressionCodegen,
-        blockInfo: BlockInfo
+        blockInfo: BlockInfo,
+        allowImplicitCast: Boolean
     ) {
         // This codegen is only used for calls to the underlying function in a $default stub.
         // For such calls we know that we are passing along the value parameters and reusing the same indices.
