@@ -22,7 +22,13 @@ fun test(array: Array<Base>) {
     }()
 }
 
+// 3 CHECKCAST SuperBase
+
+// JVM_TEMPLATES:
 // 7 CHECKCAST
 // 1 CHECKCAST kotlin/jvm/functions/Function0
-// 3 CHECKCAST SuperBase
 // 3 CHECKCAST Base
+
+// JVM_IR_TEMPLATES:
+// 5 CHECKCAST
+// 2 CHECKCAST Base
