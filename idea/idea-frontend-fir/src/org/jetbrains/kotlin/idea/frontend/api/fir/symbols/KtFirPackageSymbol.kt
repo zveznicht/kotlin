@@ -10,13 +10,16 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.file.PsiPackageImpl
 import com.intellij.psi.search.GlobalSearchScope
+import com.intellij.psi.search.ProjectScope
 import org.jetbrains.kotlin.idea.frontend.api.ValidityOwner
 import org.jetbrains.kotlin.idea.frontend.api.ValidityOwnerByValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.fir.KtFirAnalysisSession
-import org.jetbrains.kotlin.idea.frontend.api.fir.KtSymbolByFirBuilder
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.cached
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtPackageSymbol
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbolOrigin
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbolPointer
+import org.jetbrains.kotlin.idea.frontend.api.symbols.symbolPointer
 import org.jetbrains.kotlin.idea.stubindex.PackageIndexUtil
-import org.jetbrains.kotlin.idea.frontend.api.symbols.*
 import org.jetbrains.kotlin.name.FqName
 
 class KtFirPackageSymbol(
@@ -25,7 +28,7 @@ class KtFirPackageSymbol(
     override val token: ValidityOwner
 ) : KtPackageSymbol(), ValidityOwnerByValidityToken {
     override val psi: PsiElement? by cached {
-        PsiPackageImpl(PsiManager.getInstance(project), fqName.asString().replace('/', '.'))
+        KtPsiPackage(PsiManager.getInstance(project), fqName)
     }
 
     override val origin: KtSymbolOrigin
@@ -35,4 +38,12 @@ class KtFirPackageSymbol(
         check(session is KtFirAnalysisSession)
         session.firSymbolBuilder.createPackageSymbolIfOneExists(fqName)
     }
+}
+
+class KtPsiPackage(
+    manager: PsiManager,
+    private val fqName: FqName
+) : PsiPackageImpl(manager, fqName.asString().replace('/', '.')) {
+    override fun copy(): PsiElement = KtPsiPackage(manager, fqName)
+    override fun isValid(): Boolean = PackageIndexUtil.packageExists(fqName, GlobalSearchScope.allScope(project), project)
 }
