@@ -21,12 +21,13 @@ open class AggregateTest : Test() { // Inherit from Test to see test results in 
         testClassesDirs = project.objects.fileCollection()
 
         project.gradle.taskGraph.whenReady {
-            initPatterns()
+            if (allTasks.filterIsInstance<AggregateTest>().isNotEmpty()) {
+                initPatterns()
+                allTasks.filterIsInstance<Test>().forEach { testTask -> subTaskConfigure(testTask) }
 
-            allTasks.filterIsInstance<Test>().forEach { testTask -> subTaskConfigure(testTask) }
-
-            if (!project.gradle.startParameter.taskNames.all { project.tasks.findByPath(it) is AggregateTest }) {
-                logger.warn("Please, don't use AggregateTest and non-AggregateTest test tasks together. You can get incorrect results.")
+                if (!project.gradle.startParameter.taskNames.all { project.tasks.findByPath(it) is AggregateTest }) {
+                    logger.warn("Please, don't use AggregateTest and non-AggregateTest test tasks together. You can get incorrect results.")
+                }
             }
         }
     }
@@ -48,7 +49,7 @@ open class AggregateTest : Test() { // Inherit from Test to see test results in 
     private fun subTaskConfigure(testTask: Test) {
         testTask.outputs.upToDateWhen { false }
         testTask.ignoreFailures = true
-
+        println("Configure ${testTask.name}")
         testTask.filter {
             isFailOnNoMatchingTests = false
             patterns["include"]?.let {
