@@ -75,19 +75,13 @@ class DataClassMembersGenerator(
     ) : DataClassMethodGenerator(ktClassOrObject, declarationGenerator.context.bindingContext) {
 
         private val irDataClassMembersGenerator =
-            object : DataClassMembersGenerator<PropertyDescriptor>(context, context.symbolTable, irClass, origin) {
+            object : DataClassMembersGenerator<FunctionDescriptor, PropertyDescriptor, ValueParameterDescriptor>(context, context.symbolTable, irClass, origin) {
                 override fun declareSimpleFunction(startOffset: Int, endOffset: Int, functionDescriptor: FunctionDescriptor): IrFunction =
                     declareSimpleFunction(startOffset, endOffset, origin, functionDescriptor)
 
                 override fun generateSyntheticFunctionParameterDeclarations(irFunction: IrFunction) {
                     FunctionGenerator(declarationGenerator).generateSyntheticFunctionParameterDeclarations(irFunction)
                 }
-
-                override fun getBackingField(parameter: ValueParameterDescriptor?, irValueParameter: IrValueParameter?): IrField? =
-                    parameter?.let {
-                        val property = getOrFail(BindingContext.VALUE_PARAMETER_AS_PROPERTY, parameter)
-                        return getBackingField(property)
-                    }
 
                 override fun transform(typeParameterDescriptor: TypeParameterDescriptor): IrType =
                     typeParameterDescriptor.defaultType.toIrType()
@@ -97,6 +91,8 @@ class DataClassMembersGenerator(
                 }
 
                 override fun PropertyDescriptor.isNullable(): Boolean = type.isNullable()
+
+                override fun PropertyDescriptor.getName(): Name = name
 
                 override fun PropertyDescriptor.getHashCodeFunction(recordSubstituted: (FunctionDescriptor) -> Unit): IrSimpleFunctionSymbol =
                     getHashCodeFunction(type, recordSubstituted)
@@ -133,6 +129,31 @@ class DataClassMembersGenerator(
                 override fun PropertyDescriptor.getIrBackingField(): IrField =
                     irClass.properties.single { it.initialDescriptor == this }.backingField!!
 
+                override fun PropertyDescriptor.isArrayOrPrimitiveArray(): Boolean {
+                    val typeConstructorDescriptor = type.constructor.declarationDescriptor
+                    return typeConstructorDescriptor is ClassDescriptor &&
+                            KotlinBuiltIns.isArrayOrPrimitiveArray(typeConstructorDescriptor)
+                }
+
+                // Build a member from a descriptor (psi2ir) as well as its body.
+                override fun buildMember(
+                    function: FunctionDescriptor,
+                    startOffset: Int,
+                    endOffset: Int,
+                    body: MemberFunctionBuilder.(IrFunction) -> Unit
+                ) {
+                    MemberFunctionBuilder(startOffset, endOffset, declareSimpleFunction(startOffset, endOffset, function)).addToClass { irFunction ->
+                        irFunction.buildWithScope {
+                            generateSyntheticFunctionParameterDeclarations(irFunction)
+                            body(irFunction)
+                        }
+                    }
+                }
+
+                override fun ValueParameterDescriptor.getParameterBackingField(): IrField {
+                    val property = getOrFail(BindingContext.VALUE_PARAMETER_AS_PROPERTY, this)
+                    return property.getIrBackingField()
+                }
             }
 
         override fun generateComponentFunction(function: FunctionDescriptor, parameter: ValueParameterDescriptor) {
@@ -141,10 +162,10 @@ class DataClassMembersGenerator(
             val ktParameter = DescriptorToSourceUtils.descriptorToDeclaration(parameter)
                 ?: throw AssertionError("No definition for data class constructor parameter $parameter")
 
-            val backingField = irDataClassMembersGenerator.getBackingField(parameter, null) ?: return
-            irDataClassMembersGenerator.generateComponentFunction(
-                function, backingField, ktParameter.startOffset, ktParameter.endOffset
-            )
+            with(irDataClassMembersGenerator) {
+                val backingField = parameter.getParameterBackingField()
+                generateComponentFunction(function, backingField, ktParameter.startOffset, ktParameter.endOffset)
+            }
         }
 
         override fun generateCopyFunction(function: FunctionDescriptor, constructorParameters: List<KtParameter>) {

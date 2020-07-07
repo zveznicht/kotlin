@@ -72,7 +72,7 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
             .generateCopyBody(irFunction)
 
     private inner class MyDataClassMethodsGenerator(val irClass: IrClass, val classId: ClassId, val origin: IrDeclarationOrigin) {
-        private val irDataClassMembersGenerator = object : DataClassMembersGenerator<IrProperty>(
+        private val irDataClassMembersGenerator = object : DataClassMembersGenerator<IrFunction, IrProperty, IrValueParameter>(
             IrGeneratorContextBase(components.irBuiltIns),
             components.symbolTable,
             irClass,
@@ -85,13 +85,6 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
             override fun generateSyntheticFunctionParameterDeclarations(irFunction: IrFunction) {
                 // TODO
             }
-
-            override fun getBackingField(parameter: ValueParameterDescriptor?, irValueParameter: IrValueParameter?): IrField? =
-                irValueParameter?.let {
-                    irClass.properties.single { irProperty ->
-                        irProperty.name == irValueParameter.name && irProperty.backingField?.type == irValueParameter.type
-                    }.backingField
-                }
 
             override fun transform(typeParameterDescriptor: TypeParameterDescriptor): IrType {
                 // TODO
@@ -106,6 +99,8 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
             private val IrProperty.type get() = backingField!!.type as IrSimpleType
 
             override fun IrProperty.isNullable(): Boolean = type.isNullable()
+
+            override fun IrProperty.getName() = name
 
             override fun IrProperty.getHashCodeFunction(recordSubstituted: (FunctionDescriptor) -> Unit): IrSimpleFunctionSymbol =
                 type.getHashCodeFunction()
@@ -159,6 +154,26 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
 
 
             override fun IrProperty.getIrBackingField(): IrField = backingField!!
+
+            override fun IrProperty.isArrayOrPrimitiveArray(): Boolean =
+                (type.classifier as? IrClassSymbol)?.isArrayOrPrimitiveArray() == true
+
+            // Use a prebuilt member (fir2ir) and build a member body for it.
+            override fun buildMember(
+                function: IrFunction,
+                startOffset: Int,
+                endOffset: Int,
+                body: MemberFunctionBuilder.(IrFunction) -> Unit
+            ) {
+                MemberFunctionBuilder(startOffset, endOffset, function).build { irFunction ->
+                    irFunction.buildWithScope {
+                        generateSyntheticFunctionParameterDeclarations(irFunction)
+                        body(irFunction)
+                    }
+                }
+            }
+
+            override fun IrValueParameter.getParameterBackingField() = getBackingField()
         }
 
         fun generateDispatchReceiverParameter(irFunction: IrFunction, valueParameterDescriptor: WrappedValueParameterDescriptor) =
@@ -262,9 +277,10 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
         fun generateComponentBody(irFunction: IrFunction) {
             val index = getComponentIndex(irFunction)!!
             val valueParameter = irClass.primaryConstructor!!.valueParameters[index - 1]
-            val backingField = irDataClassMembersGenerator.getBackingField(null, valueParameter)!!
-            irDataClassMembersGenerator
-                .generateComponentFunction(irFunction, backingField, valueParameter.startOffset, valueParameter.endOffset)
+            with(irDataClassMembersGenerator) {
+                val backingField = valueParameter.getParameterBackingField()
+                generateComponentFunction(irFunction, backingField, valueParameter.startOffset, valueParameter.endOffset)
+            }
         }
 
         fun generateCopyBody(irFunction: IrFunction) =

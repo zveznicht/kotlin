@@ -1023,6 +1023,13 @@ inline fun <T, D : DeclarationDescriptor> SymbolTable.withScope(owner: D, block:
     return result
 }
 
+inline fun <T, D: IrDeclaration> SymbolTable.withScope(owner: D, block: SymbolTable.(D) -> T): T {
+    enterScope(owner)
+    val result = block(owner)
+    leaveScope(owner)
+    return result
+}
+
 inline fun <T, D : DeclarationDescriptor> ReferenceSymbolTable.withReferenceScope(owner: D, block: ReferenceSymbolTable.(D) -> T): T {
     enterScope(owner)
     val result = block(owner)
