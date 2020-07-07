@@ -17,18 +17,28 @@
 package org.jetbrains.kotlin.psi2ir.generators
 
 import org.jetbrains.kotlin.backend.common.DataClassMethodGenerator
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.DataClassMembersGenerator
 import org.jetbrains.kotlin.ir.util.declareSimpleFunctionWithOverrides
+import org.jetbrains.kotlin.ir.util.properties
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
+import org.jetbrains.kotlin.resolve.scopes.MemberScope
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.types.isNullable
+import org.jetbrains.kotlin.types.typeUtil.representativeUpperBound
+
 
 /**
  * A generator that generates synthetic members of data class as well as part of inline class.
@@ -64,27 +74,66 @@ class DataClassMembersGenerator(
         val origin: IrDeclarationOrigin
     ) : DataClassMethodGenerator(ktClassOrObject, declarationGenerator.context.bindingContext) {
 
-        private val irDataClassMembersGenerator = object : DataClassMembersGenerator(context, context.symbolTable, irClass, origin) {
-            override fun declareSimpleFunction(startOffset: Int, endOffset: Int, functionDescriptor: FunctionDescriptor): IrFunction =
-                declareSimpleFunction(startOffset, endOffset, origin, functionDescriptor)
+        private val irDataClassMembersGenerator =
+            object : DataClassMembersGenerator<PropertyDescriptor>(context, context.symbolTable, irClass, origin) {
+                override fun declareSimpleFunction(startOffset: Int, endOffset: Int, functionDescriptor: FunctionDescriptor): IrFunction =
+                    declareSimpleFunction(startOffset, endOffset, origin, functionDescriptor)
 
-            override fun generateSyntheticFunctionParameterDeclarations(irFunction: IrFunction) {
-                FunctionGenerator(declarationGenerator).generateSyntheticFunctionParameterDeclarations(irFunction)
-            }
-
-            override fun getBackingField(parameter: ValueParameterDescriptor?, irValueParameter: IrValueParameter?): IrField? =
-                parameter?.let {
-                    val property = getOrFail(BindingContext.VALUE_PARAMETER_AS_PROPERTY, parameter)
-                    return getBackingField(property)
+                override fun generateSyntheticFunctionParameterDeclarations(irFunction: IrFunction) {
+                    FunctionGenerator(declarationGenerator).generateSyntheticFunctionParameterDeclarations(irFunction)
                 }
 
-            override fun transform(typeParameterDescriptor: TypeParameterDescriptor): IrType =
-                typeParameterDescriptor.defaultType.toIrType()
+                override fun getBackingField(parameter: ValueParameterDescriptor?, irValueParameter: IrValueParameter?): IrField? =
+                    parameter?.let {
+                        val property = getOrFail(BindingContext.VALUE_PARAMETER_AS_PROPERTY, parameter)
+                        return getBackingField(property)
+                    }
 
-            override fun commitSubstituted(irMemberAccessExpression: IrMemberAccessExpression, descriptor: CallableDescriptor) {
-                irMemberAccessExpression.commitSubstituted(descriptor)
+                override fun transform(typeParameterDescriptor: TypeParameterDescriptor): IrType =
+                    typeParameterDescriptor.defaultType.toIrType()
+
+                override fun commitSubstituted(irMemberAccessExpression: IrMemberAccessExpression, descriptor: CallableDescriptor) {
+                    irMemberAccessExpression.commitSubstituted(descriptor)
+                }
+
+                override fun PropertyDescriptor.isNullable(): Boolean = type.isNullable()
+
+                override fun PropertyDescriptor.getHashCodeFunction(recordSubstituted: (FunctionDescriptor) -> Unit): IrSimpleFunctionSymbol =
+                    getHashCodeFunction(type, recordSubstituted)
+
+                private fun MemberScope.findHashCodeFunctionOrNull() =
+                    getContributedFunctions(Name.identifier("hashCode"), NoLookupLocation.FROM_BACKEND)
+                        .find { it.valueParameters.isEmpty() }
+
+                private fun getHashCodeFunction(type: KotlinType): FunctionDescriptor =
+                    type.memberScope.findHashCodeFunctionOrNull()
+                        ?: context.builtIns.any.unsubstitutedMemberScope.findHashCodeFunctionOrNull()!!
+
+                private fun getHashCodeFunction(
+                    type: KotlinType,
+                    recordSubstituted: (FunctionDescriptor) -> Unit
+                ): IrSimpleFunctionSymbol =
+                    when (val typeConstructorDescriptor = type.constructor.declarationDescriptor) {
+                        is ClassDescriptor ->
+                            if (KotlinBuiltIns.isArrayOrPrimitiveArray(typeConstructorDescriptor))
+                                context.irBuiltIns.dataClassArrayMemberHashCodeSymbol
+                            else {
+                                val substituted = getHashCodeFunction(type)
+                                recordSubstituted(substituted)
+                                symbolTable.referenceSimpleFunction(substituted.original)
+                            }
+
+                        is TypeParameterDescriptor ->
+                            getHashCodeFunction(typeConstructorDescriptor.representativeUpperBound, recordSubstituted)
+
+                        else ->
+                            throw AssertionError("Unexpected type: $type")
+                    }
+
+                override fun PropertyDescriptor.getIrBackingField(): IrField =
+                    irClass.properties.single { it.initialDescriptor == this }.backingField!!
+
             }
-        }
 
         override fun generateComponentFunction(function: FunctionDescriptor, parameter: ValueParameterDescriptor) {
             if (!irClass.isData) return
