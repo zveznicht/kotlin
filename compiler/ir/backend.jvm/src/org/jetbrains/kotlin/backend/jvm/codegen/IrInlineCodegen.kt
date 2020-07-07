@@ -73,7 +73,8 @@ class IrInlineCodegen(
         argumentExpression: IrExpression,
         parameterType: Type,
         codegen: ExpressionCodegen,
-        blockInfo: BlockInfo
+        blockInfo: BlockInfo,
+        allowImplicitCast: Boolean
     ) {
         val isInlineParameter = irValueParameter.isInlineParameter()
         if (isInlineParameter && isInlineIrExpression(argumentExpression)) {
