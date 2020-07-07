@@ -1,0 +1,15 @@
+/*
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
+ */
+
+package org.jetbrains.kotlin.idea.codeInliner
+
+inline fun <T> Iterator<T>.stopAfter(crossinline predicate: (T) -> Boolean): Iterator<T> = iterator {
+    for (element in this@stopAfter) {
+        yield(element)
+        if (predicate(element)) {
+            break
+        }
+    }
+}
