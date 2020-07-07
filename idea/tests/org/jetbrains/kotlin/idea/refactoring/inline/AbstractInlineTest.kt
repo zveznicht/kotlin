@@ -1,13 +1,10 @@
 /*
- * Copyright 2010-2019 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
 package org.jetbrains.kotlin.idea.refactoring.inline
 
-import com.intellij.codeInsight.TargetElementUtil
-import com.intellij.codeInsight.TargetElementUtil.ELEMENT_NAME_ACCEPTED
-import com.intellij.codeInsight.TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED
 import com.intellij.lang.refactoring.InlineActionHandler
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.util.io.FileUtil
@@ -37,14 +34,15 @@ abstract class AbstractInlineTest : KotlinLightCodeInsightFixtureTestCase() {
         val extraFiles = mainFile.parentFile.listFiles { _, name ->
             name != mainFileName && name.startsWith("$mainFileBaseName.") && (name.endsWith(".kt") || name.endsWith(".java"))
         }
+
         val extraFilesToPsi = extraFiles.associateBy { fixture.configureByFile(it.name) }
         val file = myFixture.configureByFile(fileName())
 
         withCustomCompilerOptions(file.text, project, module) {
             val afterFileExists = afterFile.exists()
 
-            val targetElement =
-                TargetElementUtil.findTargetElement(myFixture.editor, ELEMENT_NAME_ACCEPTED or REFERENCED_ELEMENT_ACCEPTED) ?: return@withCustomCompilerOptions
+
+            val targetElement = myFixture.elementAtCaret
 
             @Suppress("DEPRECATION")
             val handler = Extensions.getExtensions(InlineActionHandler.EP_NAME).firstOrNull { it.canInlineElement(targetElement) }

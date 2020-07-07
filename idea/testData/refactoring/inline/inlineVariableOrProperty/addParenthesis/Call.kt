@@ -1,4 +1,6 @@
+// ERROR: Variable 'v' is never used
+
 fun f() {
-    val v = -predicate
-    println(<caret>v())
+    val v<caret> = -predicate
+    println(v())
 }
