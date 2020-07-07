@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue;
 import org.jetbrains.kotlin.types.KotlinType;
 import org.jetbrains.kotlin.types.SimpleType;
 import org.jetbrains.kotlin.types.TypeUtils;
+import org.jetbrains.kotlin.types.checker.KotlinTypeChecker;
 import org.jetbrains.org.objectweb.asm.Label;
 import org.jetbrains.org.objectweb.asm.Opcodes;
 import org.jetbrains.org.objectweb.asm.Type;
@@ -105,26 +106,46 @@ public abstract class StackValue {
         put(type, kotlinType, v);
     }
 
-    public void put(@NotNull InstructionAdapter v) {
-        put(type, null, v, false);
+    public final void put(@NotNull InstructionAdapter v) {
+        put(type, null, v, false, false);
     }
 
-    public void put(@NotNull Type type, @NotNull InstructionAdapter v) {
-        put(type, null, v, false);
+    public final void put(@NotNull Type type, @NotNull InstructionAdapter v) {
+        put(type, null, v, false, false);
     }
 
-    public void put(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
-        put(type, kotlinType, v, false);
+    public final void put(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        put(type, kotlinType, v, false, false);
     }
 
-    public void put(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v, boolean skipReceiver) {
+    public final void put(
+            @NotNull Type type,
+            @Nullable KotlinType kotlinType,
+            @NotNull InstructionAdapter v,
+            boolean skipReceiver
+    ) {
+        put(type, kotlinType, v, skipReceiver, false);
+    }
+
+    public final void put(
+            @NotNull Type type,
+            @Nullable KotlinType kotlinType,
+            @NotNull InstructionAdapter v,
+            boolean skipReceiver,
+            boolean allowImplicitCast
+    ) {
         if (!skipReceiver) {
             putReceiver(v, true);
         }
-        putSelector(type, kotlinType, v);
+        putSelector(type, kotlinType, v, allowImplicitCast);
     }
 
-    public abstract void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v);
+    public abstract void putSelector(
+            @NotNull Type type,
+            @Nullable KotlinType kotlinType,
+            @NotNull InstructionAdapter v,
+            boolean allowImplicitCast
+    );
 
     public boolean isNonStaticAccess(boolean isRead) {
         return false;
@@ -525,8 +546,17 @@ public abstract class StackValue {
         coerce(this.type, this.kotlinType, toType, toKotlinType, v);
     }
 
-    protected void coerceFrom(@NotNull Type topOfStackType, @Nullable KotlinType topOfStackKotlinType, @NotNull InstructionAdapter v) {
-        coerce(topOfStackType, topOfStackKotlinType, this.type, this.kotlinType, v);
+    protected void coerceTo(@NotNull Type toType, @Nullable KotlinType toKotlinType, @NotNull InstructionAdapter v, boolean allowImplicitCast) {
+        coerce(this.type, this.kotlinType, toType, toKotlinType, v, allowImplicitCast);
+    }
+
+    protected void coerceFrom(
+            @NotNull Type topOfStackType,
+            @Nullable KotlinType topOfStackKotlinType,
+            @NotNull InstructionAdapter v,
+            boolean allowImplicitCast
+    ) {
+        coerce(topOfStackType, topOfStackKotlinType, this.type, this.kotlinType, v, allowImplicitCast);
     }
 
     public static void coerce(
@@ -536,7 +566,26 @@ public abstract class StackValue {
             @Nullable KotlinType toKotlinType,
             @NotNull InstructionAdapter v
     ) {
+        coerce(fromType, fromKotlinType, toType, toKotlinType, v, false);
+    }
+    public static void coerce(
+            @NotNull Type fromType,
+            @Nullable KotlinType fromKotlinType,
+            @NotNull Type toType,
+            @Nullable KotlinType toKotlinType,
+            @NotNull InstructionAdapter v,
+            boolean allowImplicitCast
+    ) {
         if (coerceInlineClasses(fromType, fromKotlinType, toType, toKotlinType, v)) return;
+        if (allowImplicitCast &&
+            fromKotlinType != null &&
+            toKotlinType != null &&
+            fromType.getSort() == Type.OBJECT &&
+            toType.getSort() == Type.OBJECT &&
+            !fromType.equals(OBJECT_TYPE) && //TODO: investigate a bunch of failed coroutines tests
+            !KotlinBuiltIns.isNothingOrNullableNothing(fromKotlinType)) {
+            if (KotlinTypeChecker.DEFAULT.isSubtypeOf(fromKotlinType, toKotlinType)) return; //use implicit cast
+        }
         coerce(fromType, toType, v);
     }
 
@@ -994,7 +1043,12 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             coerceTo(type, kotlinType, v);
         }
     }
@@ -1017,14 +1071,19 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             v.load(index, this.type);
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         @Override
         public void storeSelector(@NotNull Type topOfStackType, @Nullable KotlinType topOfStackKotlinType, @NotNull InstructionAdapter v) {
-            coerceFrom(topOfStackType, topOfStackKotlinType, v);
+            coerceFrom(topOfStackType, topOfStackKotlinType, v, false/*need more investigation*/);
             v.store(index, this.type);
         }
     }
@@ -1049,15 +1108,20 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             v.load(index, this.type);
             StackValue.genNonNullAssertForLateinit(v, name.asString());
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         @Override
         public void storeSelector(@NotNull Type topOfStackType, @Nullable KotlinType topOfStackKotlinType, @NotNull InstructionAdapter v) {
-            coerceFrom(topOfStackType, topOfStackKotlinType, v);
+            coerceFrom(topOfStackType, topOfStackKotlinType, v, false);
             v.store(index, this.type);
             PseudoInsnsKt.storeNotNull(v);
         }
@@ -1098,7 +1162,12 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             ResolvedCall<FunctionDescriptor> resolvedCall = getResolvedCall(true);
             List<? extends ValueArgument> arguments = resolvedCall.getCall().getValueArguments();
             assert arguments.size() == 2 : "Resolved call for 'getValue' should have 2 arguments, but was " +
@@ -1142,8 +1211,13 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
-            coerceTo(type, kotlinType, v);
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         @Override
@@ -1199,7 +1273,12 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             if (value instanceof Integer || value instanceof Byte || value instanceof Short) {
                 v.iconst(((Number) value).intValue());
             }
@@ -1220,7 +1299,7 @@ public abstract class StackValue {
             }
 
             if (value != null || AsmUtil.isPrimitive(type)) {
-                coerceTo(type, kotlinType, v);
+                coerceTo(type, kotlinType, v, allowImplicitCast);
             }
         }
     }
@@ -1235,7 +1314,7 @@ public abstract class StackValue {
 
         @Override
         public void storeSelector(@NotNull Type topOfStackType, @Nullable KotlinType topOfStackKotlinType, @NotNull InstructionAdapter v) {
-            coerceFrom(topOfStackType, topOfStackKotlinType, v);
+            coerceFrom(topOfStackType, topOfStackKotlinType, v, true);
             v.astore(this.type);
         }
 
@@ -1246,10 +1325,11 @@ public abstract class StackValue {
 
         @Override
         public void putSelector(
-                @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v
+                @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
         ) {
             v.aload(this.type);    // assumes array and index are on the stack
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
     }
 
@@ -1265,7 +1345,8 @@ public abstract class StackValue {
 
         @Override
         public void putSelector(
-                @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v
+                @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
         ) {
             coerceTo(type, kotlinType, v);
         }
@@ -1306,7 +1387,12 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             ResolvedCall<?> call = isGetter ? resolvedGetCall : resolvedSetCall;
             StackValue newReceiver = StackValue.receiver(call, receiver, codegen, callable);
             ArgumentGenerator generator = createArgumentGenerator();
@@ -1452,13 +1538,18 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             if (getter == null) {
                 throw new UnsupportedOperationException("no getter specified");
             }
             CallGenerator callGenerator = getCallGenerator();
             callGenerator.genCall(getter, resolvedGetCall, genDefaultMaskIfPresent(callGenerator), codegen);
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         private boolean genDefaultMaskIfPresent(CallGenerator callGenerator) {
@@ -1622,14 +1713,19 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             v.visitFieldInsn(isStaticPut ? GETSTATIC : GETFIELD, owner.getInternalName(), name, this.type.getDescriptor());
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         @Override
         public void storeSelector(@NotNull Type topOfStackType, @Nullable KotlinType topOfStackKotlinType, @NotNull InstructionAdapter v) {
-            coerceFrom(topOfStackType, topOfStackKotlinType, v);
+            coerceFrom(topOfStackType, topOfStackKotlinType, v, true);
             v.visitFieldInsn(isStaticStore ? PUTSTATIC : PUTFIELD, owner.getInternalName(), name, this.type.getDescriptor());
         }
 
@@ -1706,7 +1802,12 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             if (getter == null) {
                 assert fieldName != null : "Property should have either a getter or a field name: " + descriptor;
                 assert backingFieldOwner != null : "Property should have either a getter or a backingFieldOwner: " + descriptor;
@@ -1723,7 +1824,7 @@ public abstract class StackValue {
                         genNonNullAssertForLateinit(v, this.descriptor.getName().asString());
                     }
                 }
-                coerceTo(type, kotlinType, v);
+                coerceTo(type, kotlinType, v, allowImplicitCast);
             }
             else {
                 PropertyGetterDescriptor getterDescriptor = descriptor.getGetter();
@@ -1800,7 +1901,7 @@ public abstract class StackValue {
                 value = ((Double) value).floatValue();
             }
 
-            StackValue.constant(value, this.type, this.kotlinType).putSelector(type, kotlinType, v);
+            StackValue.constant(value, this.type, this.kotlinType).putSelector(type, kotlinType, v, false);
 
             return true;
         }
@@ -1830,7 +1931,7 @@ public abstract class StackValue {
         @Override
         public void storeSelector(@NotNull Type topOfStackType, @Nullable KotlinType topOfStackKotlinType, @NotNull InstructionAdapter v) {
             if (setter == null) {
-                coerceFrom(topOfStackType, topOfStackKotlinType, v);
+                coerceFrom(topOfStackType, topOfStackKotlinType, v, true);
                 assert fieldName != null : "Property should have either a setter or a field name: " + descriptor;
                 assert backingFieldOwner != null : "Property should have either a setter or a backingFieldOwner: " + descriptor;
                 v.visitFieldInsn(isStaticStore ? PUTSTATIC : PUTFIELD, backingFieldOwner.getInternalName(), fieldName, this.type.getDescriptor());
@@ -1893,7 +1994,12 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             generator.gen(expression, type, kotlinType);
         }
     }
@@ -1924,20 +2030,25 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             Type refType = refType(this.type);
             Type sharedType = sharedTypeForType(this.type);
             v.visitFieldInsn(GETFIELD, sharedType.getInternalName(), "element", refType.getDescriptor());
             if (isLateinit) {
                 StackValue.genNonNullAssertForLateinit(v, name.asString());
             }
-            coerceFrom(refType, null, v);
-            coerceTo(type, kotlinType, v);
+            coerceFrom(refType, null, v, true);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         @Override
         public void storeSelector(@NotNull Type topOfStackType, @Nullable KotlinType topOfStackKotlinType, @NotNull InstructionAdapter v) {
-            coerceFrom(topOfStackType, topOfStackKotlinType, v);
+            coerceFrom(topOfStackType, topOfStackKotlinType, v, true);
             Type refType = refType(this.type);
             Type sharedType = sharedTypeForType(this.type);
             v.visitFieldInsn(PUTFIELD, sharedType.getInternalName(), "element", refType.getDescriptor());
@@ -1989,20 +2100,25 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             Type sharedType = sharedTypeForType(this.type);
             Type refType = refType(this.type);
             v.visitFieldInsn(GETFIELD, sharedType.getInternalName(), "element", refType.getDescriptor());
             if (isLateinit) {
                 StackValue.genNonNullAssertForLateinit(v, variableName.asString());
             }
-            coerceFrom(refType, null, v);
-            coerceTo(type, kotlinType, v);
+            coerceFrom(refType, null, v, false);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         @Override
         public void storeSelector(@NotNull Type topOfStackType, @Nullable KotlinType topOfStackKotlinType, @NotNull InstructionAdapter v) {
-            coerceFrom(topOfStackType, topOfStackKotlinType, v);
+            coerceFrom(topOfStackType, topOfStackKotlinType, v, true);
             v.visitFieldInsn(PUTFIELD, sharedTypeForType(type).getInternalName(), "element", refType(type).getDescriptor());
         }
 
@@ -2027,7 +2143,12 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             StackValue stackValue = codegen.generateThisOrOuter(descriptor, isSuper);
             stackValue.put(
                     coerceType ? type : stackValue.type,
@@ -2048,7 +2169,12 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             if (!type.equals(Type.VOID_TYPE)) {
                 v.load(index, Type.INT_TYPE);
                 coerceTo(type, kotlinType, v);
@@ -2068,7 +2194,12 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             v.iinc(index, increment);
             if (!type.equals(Type.VOID_TYPE)) {
                 v.load(index, Type.INT_TYPE);
@@ -2095,13 +2226,18 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             value = StackValue.complexReceiver(value, true, false, true);
             value.put(this.type, this.kotlinType, v);
 
             value.store(codegen.invokeFunction(resolvedCall, StackValue.onStack(this.type, this.kotlinType)), v, true);
 
-            value.put(this.type, this.kotlinType, v, true);
+            value.put(this.type, this.kotlinType, v, true, false);
             coerceTo(type, kotlinType, v);
         }
     }
@@ -2219,7 +2355,8 @@ public abstract class StackValue {
 
         @Override
         public void putSelector(
-                @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v
+                @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
         ) {
             boolean wasPut = false;
             StackValue receiver = originalValueWithReceiver.receiver;
@@ -2252,10 +2389,11 @@ public abstract class StackValue {
 
         @Override
         public void putSelector(
-                @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v
+                @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
         ) {
             for (StackValue instruction : instructions) {
-                instruction.put(instruction.type, instruction.kotlinType, v);
+                instruction.put(instruction.type, instruction.kotlinType, v, false, allowImplicitCast);
             }
         }
     }
@@ -2279,9 +2417,10 @@ public abstract class StackValue {
 
         @Override
         public void putSelector(
-                @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v
+                @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
         ) {
-            originalValue.putSelector(type, kotlinType, v);
+            originalValue.putSelector(type, kotlinType, v, false);
         }
 
         @Override
@@ -2338,7 +2477,12 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             receiver.put(this.type, this.kotlinType, v);
             if (ifNull != null) {
                 //not a primitive
@@ -2359,7 +2503,12 @@ public abstract class StackValue {
         }
 
         @Override
-        public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+        public void putSelector(
+                @NotNull Type type,
+                @Nullable KotlinType kotlinType,
+                @NotNull InstructionAdapter v,
+                boolean allowImplicitCast
+        ) {
             Label end = new Label();
 
             v.goTo(end);
