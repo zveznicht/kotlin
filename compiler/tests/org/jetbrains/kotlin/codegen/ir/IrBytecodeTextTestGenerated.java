@@ -889,6 +889,39 @@ public class IrBytecodeTextTestGenerated extends AbstractIrBytecodeTextTest {
         public void testKt22714() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/checkcast/kt22714.kt");
         }
+
+        @TestMetadata("compiler/testData/codegen/bytecodeText/checkcast/implicit")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Implicit extends AbstractIrBytecodeTextTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM_IR, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInImplicit() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/bytecodeText/checkcast/implicit"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+            }
+
+            @TestMetadata("generic.kt")
+            public void testGeneric() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/generic.kt");
+            }
+
+            @TestMetadata("simple.kt")
+            public void testSimple() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/simple.kt");
+            }
+
+            @TestMetadata("simpleExplicitCast.kt")
+            public void testSimpleExplicitCast() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/simpleExplicitCast.kt");
+            }
+
+            @TestMetadata("simpleWithExplicitCastOnMerge.kt")
+            public void testSimpleWithExplicitCastOnMerge() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/simpleWithExplicitCastOnMerge.kt");
+            }
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/bytecodeText/coercionToUnitOptimization")
