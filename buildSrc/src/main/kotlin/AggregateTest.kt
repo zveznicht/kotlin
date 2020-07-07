@@ -49,7 +49,6 @@ open class AggregateTest : Test() { // Inherit from Test to see test results in 
     private fun subTaskConfigure(testTask: Test) {
         testTask.outputs.upToDateWhen { false }
         testTask.ignoreFailures = true
-        println("Configure ${testTask.name}")
         testTask.filter {
             isFailOnNoMatchingTests = false
             patterns["include"]?.let {
