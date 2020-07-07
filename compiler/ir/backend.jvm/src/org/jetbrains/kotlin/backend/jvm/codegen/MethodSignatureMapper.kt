@@ -337,7 +337,7 @@ class MethodSignatureMapper(private val context: JvmBackendContext) {
         val signature = mapOverriddenSpecialBuiltinIfNeeded(caller, declaration, isSuperCall)
             ?: mapSignatureSkipGeneric(declaration)
 
-        return IrCallableMethod(owner, invokeOpcode, signature, isInterface)
+        return IrCallableMethod(owner, invokeOpcode, signature, isInterface, declaration.returnType)
     }
 
     // TODO: get rid of this (probably via some special lowering)
