@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.backend.generators
 
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.fir.backend.Fir2IrComponents
 import org.jetbrains.kotlin.fir.backend.FirMetadataSource
@@ -36,7 +37,11 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
 import org.jetbrains.kotlin.ir.descriptors.WrappedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.ir.descriptors.WrappedValueParameterDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
-import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
+import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.util.DataClassMembersGenerator
 import org.jetbrains.kotlin.ir.util.defaultType
@@ -69,7 +74,7 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
             .generateCopyBody(irFunction)
 
     private inner class MyDataClassMethodsGenerator(val irClass: IrClass, val classId: ClassId, val origin: IrDeclarationOrigin) {
-        private val irDataClassMembersGenerator = object : DataClassMembersGenerator(
+        private val irDataClassMembersGenerator = object : DataClassMembersGenerator<IrFunction, IrProperty, IrValueParameter>(
             IrGeneratorContextBase(components.irBuiltIns),
             components.symbolTable,
             irClass,
@@ -83,13 +88,6 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
                 // TODO
             }
 
-            override fun getBackingField(parameter: ValueParameterDescriptor?, irValueParameter: IrValueParameter?): IrField? =
-                irValueParameter?.let {
-                    irClass.properties.single { irProperty ->
-                        irProperty.name == irValueParameter.name && irProperty.backingField?.type == irValueParameter.type
-                    }.backingField
-                }
-
             override fun transform(typeParameterDescriptor: TypeParameterDescriptor): IrType {
                 // TODO
                 return components.irBuiltIns.anyType
@@ -98,6 +96,86 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
             override fun commitSubstituted(irMemberAccessExpression: IrMemberAccessExpression<*>, descriptor: CallableDescriptor) {
                 // TODO
             }
+
+            // In data classes, every property has a backing field.
+            private val IrProperty.type get() = backingField!!.type as IrSimpleType
+
+            override fun IrProperty.isNullable(): Boolean = type.isNullable()
+
+            override fun IrProperty.getName() = name
+
+            override fun IrProperty.getHashCodeFunction(recordSubstituted: (FunctionDescriptor) -> Unit): IrSimpleFunctionSymbol =
+                type.getHashCodeFunction()
+
+            private fun IrSimpleType.getHashCodeFunction(): IrSimpleFunctionSymbol {
+                val classifier = this.classifier
+                if (!classifier.isBound) return components.irBuiltIns.anyClass.owner.getHashCodeFunction()
+                return when (classifier) {
+                    is IrClassSymbol ->
+                        if (classifier.isArrayOrPrimitiveArray())
+                            components.irBuiltIns.dataClassArrayMemberHashCodeSymbol
+                        else
+                            classifier.owner.getHashCodeFunction()
+                    is IrTypeParameterSymbol ->
+                        (classifier.owner.representativeUpperBound.defaultType as IrSimpleType).getHashCodeFunction()
+                    else ->
+                        error("Unexpected classifier: $classifier")
+                }
+            }
+
+            private val IrTypeParameter.representativeUpperBound: IrClassifierSymbol
+                get() {
+                    assert(superTypes.isNotEmpty()) { "Upper bounds should not be empty: $this" }
+
+                    return superTypes.firstOrNull {
+                        val classifier = (it as? IrSimpleType)?.classifier as? IrClassSymbol ?: return@firstOrNull false
+                        if (!classifier.isBound) return@firstOrNull false
+                        classifier.owner.let { !it.isInterface && !it.isAnnotationClass }
+                    }?.classifierOrFail
+                        ?: superTypes.firstOrNull {
+                            val classifier = (it as? IrSimpleType)?.classifier as? IrClassSymbol ?: return@firstOrNull false
+                            classifier.isBound
+                        }?.classifierOrFail
+                        ?: components.irBuiltIns.anyClass
+                }
+
+            private fun IrClass.getHashCodeFunction(): IrSimpleFunctionSymbol =
+                functions.singleOrNull {
+                    it.valueParameters.size == 0 &&
+                            it.extensionReceiverParameter == null &&
+                            it.name.asString() == "hashCode"
+                }?.symbol
+                    ?: components.irBuiltIns.anyClass.owner.getHashCodeFunction()
+
+            private fun IrClassSymbol.isArrayOrPrimitiveArray(): Boolean =
+                owner.fqNameWhenAvailable?.let {
+                    it.toUnsafe() == KotlinBuiltIns.FQ_NAMES.array ||
+                            (it.parent() == KotlinBuiltIns.BUILT_INS_PACKAGE_FQ_NAME &&
+                                    it.shortName() in KotlinBuiltIns.FQ_NAMES.primitiveArrayTypeShortNames)
+                } == true
+
+
+            override fun IrProperty.getIrBackingField(): IrField = backingField!!
+
+            override fun IrProperty.isArrayOrPrimitiveArray(): Boolean =
+                (type.classifier as? IrClassSymbol)?.isArrayOrPrimitiveArray() == true
+
+            // Use a prebuilt member (fir2ir) and build a member body for it.
+            override fun buildMember(
+                function: IrFunction,
+                startOffset: Int,
+                endOffset: Int,
+                body: MemberFunctionBuilder.(IrFunction) -> Unit
+            ) {
+                MemberFunctionBuilder(startOffset, endOffset, function).build { irFunction ->
+                    irFunction.buildWithScope {
+                        generateSyntheticFunctionParameterDeclarations(irFunction)
+                        body(irFunction)
+                    }
+                }
+            }
+
+            override fun IrValueParameter.getParameterBackingField() = getBackingField()
         }
 
         fun generateDispatchReceiverParameter(irFunction: IrFunction, valueParameterDescriptor: WrappedValueParameterDescriptor) =
@@ -135,7 +213,6 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
             val properties = irClass.declarations
                 .filterIsInstance<IrProperty>()
                 .take(propertyParametersCount)
-                .map { it.descriptor }
             if (properties.isEmpty()) {
                 return emptyList()
             }
@@ -202,9 +279,10 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
         fun generateComponentBody(irFunction: IrFunction) {
             val index = getComponentIndex(irFunction)!!
             val valueParameter = irClass.primaryConstructor!!.valueParameters[index - 1]
-            val backingField = irDataClassMembersGenerator.getBackingField(null, valueParameter)!!
-            irDataClassMembersGenerator
-                .generateComponentFunction(irFunction, backingField, valueParameter.startOffset, valueParameter.endOffset)
+            with(irDataClassMembersGenerator) {
+                val backingField = valueParameter.getParameterBackingField()
+                generateComponentFunction(irFunction, backingField, valueParameter.startOffset, valueParameter.endOffset)
+            }
         }
 
         fun generateCopyBody(irFunction: IrFunction) =
