@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.backend.jvm.lower.inlineclasses.InlineClassAbi
 import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.StackValue
 import org.jetbrains.kotlin.ir.descriptors.toIrBasedKotlinType
+import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes
@@ -55,11 +56,12 @@ abstract class PromisedValue(val codegen: ExpressionCodegen, val type: Type, val
         }
 
         if (type != target) {
-            if (allowImplicitCasts && type.sort == Type.OBJECT && target.sort == Type.OBJECT && !irType.isNothing() &&
-                irType.isSubtypeOf(
-                    irTarget,
-                    codegen.context.irBuiltIns
-                )
+            if (allowImplicitCasts && type.sort == Type.OBJECT && target.sort == Type.OBJECT &&
+                type != AsmTypes.VOID_WRAPPER_TYPE &&
+                type != AsmTypes.OBJECT_TYPE &&
+                //TODO: Missed type parameters in coroutines types
+                irType.classifierOrNull?.let { (it.owner as? IrClass)?.origin == JvmLoweredDeclarationOrigin.SUSPEND_LAMBDA } != true &&
+                irType.isSubtypeOf(irTarget, codegen.context.irBuiltIns)
             ) {
                 return
             }
