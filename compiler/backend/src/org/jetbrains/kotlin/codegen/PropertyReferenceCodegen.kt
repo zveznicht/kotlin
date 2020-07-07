@@ -30,6 +30,8 @@ import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.PropertyImportedFromObject
 import org.jetbrains.kotlin.resolve.descriptorUtil.builtIns
 import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperClassNotAny
+import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.resolve.isInlineClassType
 import org.jetbrains.kotlin.resolve.isUnderlyingPropertyOfInlineClass
 import org.jetbrains.kotlin.resolve.jvm.AsmTypes.*
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin
@@ -347,13 +349,15 @@ class PropertyReferenceCodegen(
             if (isGetter) {
                 value.put(OBJECT_TYPE, targetKotlinType, v)
             } else {
-                value.store(
-                    StackValue.local(
-                        codegen.frameMap.getIndex(
-                            codegen.context.functionDescriptor.valueParameters.last()
-                        ),
-                        OBJECT_TYPE, targetKotlinType
+                val local = StackValue.local(
+                    codegen.frameMap.getIndex(
+                        codegen.context.functionDescriptor.valueParameters.last()
                     ),
+                    OBJECT_TYPE, originalFunctionDesc.module.builtIns.nullableAnyType
+                )
+
+                value.store(
+                    if (targetKotlinType.isInlineClassType()) StackValue.coercion(local, OBJECT_TYPE, targetKotlinType) else local,
                     v
                 )
             }
