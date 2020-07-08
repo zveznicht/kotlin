@@ -127,15 +127,15 @@ abstract class WrappedCallableDescriptor<T : IrDeclaration>(
     override fun getDispatchReceiverParameter(): ReceiverParameterDescriptor? = null
 
     override fun getTypeParameters(): List<TypeParameterDescriptor> {
-        TODO("not implemented")
+        return emptyList() // temporary
     }
 
     override fun getReturnType(): KotlinType? {
-        TODO("not implemented")
+        return null // temporary
     }
 
     override fun getValueParameters(): List<ValueParameterDescriptor> {
-        TODO("not implemented")
+        return emptyList() // temporary
     }
 
     override fun hasStableParameterNames(): Boolean {
