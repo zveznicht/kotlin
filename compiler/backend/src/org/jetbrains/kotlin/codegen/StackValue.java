@@ -1078,7 +1078,7 @@ public abstract class StackValue {
                 boolean allowImplicitCast
         ) {
             v.load(index, this.type);
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         @Override
@@ -1116,7 +1116,7 @@ public abstract class StackValue {
         ) {
             v.load(index, this.type);
             StackValue.genNonNullAssertForLateinit(v, name.asString());
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         @Override
@@ -1217,7 +1217,7 @@ public abstract class StackValue {
                 @NotNull InstructionAdapter v,
                 boolean allowImplicitCast
         ) {
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         @Override
@@ -1299,7 +1299,7 @@ public abstract class StackValue {
             }
 
             if (value != null || AsmUtil.isPrimitive(type)) {
-                coerceTo(type, kotlinType, v);
+                coerceTo(type, kotlinType, v, allowImplicitCast);
             }
         }
     }
@@ -1329,7 +1329,7 @@ public abstract class StackValue {
                 boolean allowImplicitCast
         ) {
             v.aload(this.type);    // assumes array and index are on the stack
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
     }
 
@@ -1549,7 +1549,7 @@ public abstract class StackValue {
             }
             CallGenerator callGenerator = getCallGenerator();
             callGenerator.genCall(getter, resolvedGetCall, genDefaultMaskIfPresent(callGenerator), codegen);
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         private boolean genDefaultMaskIfPresent(CallGenerator callGenerator) {
@@ -1824,7 +1824,7 @@ public abstract class StackValue {
                         genNonNullAssertForLateinit(v, this.descriptor.getName().asString());
                     }
                 }
-                coerceTo(type, kotlinType, v);
+                coerceTo(type, kotlinType, v, allowImplicitCast);
             }
             else {
                 PropertyGetterDescriptor getterDescriptor = descriptor.getGetter();
@@ -2053,7 +2053,7 @@ public abstract class StackValue {
                 StackValue.genNonNullAssertForLateinit(v, name.asString());
             }
             coerceFrom(refType, null, v, true);
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         @Override
@@ -2123,7 +2123,7 @@ public abstract class StackValue {
                 StackValue.genNonNullAssertForLateinit(v, variableName.asString());
             }
             coerceFrom(refType, null, v, false);
-            coerceTo(type, kotlinType, v);
+            coerceTo(type, kotlinType, v, allowImplicitCast);
         }
 
         @Override
