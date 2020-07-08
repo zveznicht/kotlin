@@ -787,7 +787,12 @@ public class DescriptorAsmUtil {
 
         return new StackValue(stackValue.type, stackValue.kotlinType) {
             @Override
-            public void putSelector(@NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v) {
+            public void putSelector(
+                    @NotNull Type type,
+                    @Nullable KotlinType kotlinType,
+                    @NotNull InstructionAdapter v,
+                    boolean allowImplicitCast
+            ) {
                 Type innerType = stackValue.type;
                 KotlinType innerKotlinType = stackValue.kotlinType;
                 stackValue.put(innerType, innerKotlinType, v);
