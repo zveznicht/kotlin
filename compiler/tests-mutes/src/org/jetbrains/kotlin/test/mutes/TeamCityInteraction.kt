@@ -29,7 +29,8 @@ internal fun getMutedTestsOnTeamcityForRootProject(): List<MuteTestJson> {
     return alreadyMutedTestsOnTeamCity.mapNotNull { jsonObjectMapper.treeToValue<MuteTestJson>(it) }
 }
 
-internal fun uploadMutedTests(uploadMap: Map<String, MuteTestJson>) {
+internal fun uploadMutedTests(uploadMap: Map<String, MuteTestJson>, scopeId: String) {
+    logSynchronization(uploadMap.keys, scopeId, true)
     for ((_, muteTestJson) in uploadMap) {
         val response = khttp.post(
             "$buildServerUrl/app/rest/mutes",
@@ -41,7 +42,8 @@ internal fun uploadMutedTests(uploadMap: Map<String, MuteTestJson>) {
     }
 }
 
-internal fun deleteMutedTests(deleteMap: Map<String, MuteTestJson>) {
+internal fun deleteMutedTests(deleteMap: Map<String, MuteTestJson>, scopeId: String) {
+    logSynchronization(deleteMap.keys, scopeId, false)
     for ((_, muteTestJson) in deleteMap) {
         val response = khttp.delete(
             "$buildServerUrl/app/rest/mutes/id:${muteTestJson.id}",
@@ -64,5 +66,13 @@ private fun checkResponseAndLog(response: Response) {
                     "${response.text}\n" +
                     "${response.request.data ?: ""}"
         )
+    }
+}
+
+private fun logSynchronization(testsList: Set<String>, scopeId: String, willMute: Boolean) {
+    if (testsList.isNotEmpty()) {
+        val action = if (willMute) "muted" else "unmuted"
+        println("Listed tests (${testsList.count()}) will be $action for the scope $scopeId: ")
+        println(testsList.joinToString(separator = "\n", postfix = "\n"))
     }
 }

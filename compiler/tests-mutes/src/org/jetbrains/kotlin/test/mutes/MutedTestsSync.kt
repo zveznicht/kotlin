@@ -23,8 +23,9 @@ fun syncMutedTestsOnTeamCityWithDatabase() {
         val locallyMutedTests: Map<String, MuteTestJson> = getMutedTestsFromDatabase(scope)
         val deleteList = remotelyMutedTestsForSpecificScope - locallyMutedTests.keys
         val uploadList = locallyMutedTests - remotelyMutedTestsForSpecificScope.keys
-        deleteMutedTests(deleteList)
-        uploadMutedTests(uploadList)
+        val scopeId = scope.id ?: ""
+        deleteMutedTests(deleteList, scopeId)
+        uploadMutedTests(uploadList, scopeId)
     }
 }
 
