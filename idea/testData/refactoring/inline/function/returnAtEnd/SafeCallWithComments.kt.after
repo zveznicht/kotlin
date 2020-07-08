@@ -1,11 +1,11 @@
 fun f(s: String?) {
-    s?.let {
+    if (s != null) {
         // above function
         /* after open brace */ // after open brace
         /* above println */
         println(1) // after println
         // above return
-        it.hashCode() * 1 // after return
+        s.hashCode() * 1 // after return
         // below return
         // at the end
         /* after function 1 */   /* after function 2 */ // after function 3
@@ -34,24 +34,24 @@ fun f(s: String?) {
     }
 
     val s3 = s?.substring(1)
-    s3?.let {
+    if (s3 != null) {
         // above function
         /* after open brace */ // after open brace
         /* above println */
         println(2) // after println
         // above return
-        it.hashCode() * 2 // after return
+        s3.hashCode() * 2 // after return
         // below return
         // at the end
         /* after function 1 */   /* after function 2 */ // after function 3
     }
-    s3?.let {
+    if (s3 != null) {
         // above function
         /* after open brace */ // after open brace
         /* above println */
         println(3) // after println
         // above return
-        it.hashCode() * 3 // after return
+        s3.hashCode() * 3 // after return
         // below return
         // at the end
         /* after function 1 */   /* after function 2 */ // after function 3
@@ -70,13 +70,14 @@ fun f(s: String?) {
 }
 
 fun doo(s: String?) {
-    s?.substring(1)?.let {
+    val substring = s?.substring(1)
+    if (substring != null) {
         // above function
         /* after open brace */ // after open brace
         /* above println */
         println(2) // after println
         // above return
-        it.hashCode() * 2 // after return
+        substring.hashCode() * 2 // after return
         // below return
         // at the end
         /* after function 1 */   /* after function 2 */ // after function 3

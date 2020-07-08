@@ -548,6 +548,11 @@ public class InlineTestGenerated extends AbstractInlineTest {
                 runTest("idea/testData/refactoring/inline/function/returnAtEnd/Recursive.kt");
             }
 
+            @TestMetadata("RedundantSafeCall.kt")
+            public void testRedundantSafeCall() throws Exception {
+                runTest("idea/testData/refactoring/inline/function/returnAtEnd/RedundantSafeCall.kt");
+            }
+
             @TestMetadata("ReturnFromLambda.kt")
             public void testReturnFromLambda() throws Exception {
                 runTest("idea/testData/refactoring/inline/function/returnAtEnd/ReturnFromLambda.kt");
@@ -561,6 +566,11 @@ public class InlineTestGenerated extends AbstractInlineTest {
             @TestMetadata("SafeCallWithComments.kt")
             public void testSafeCallWithComments() throws Exception {
                 runTest("idea/testData/refactoring/inline/function/returnAtEnd/SafeCallWithComments.kt");
+            }
+
+            @TestMetadata("SafeCallWithLet.kt")
+            public void testSafeCallWithLet() throws Exception {
+                runTest("idea/testData/refactoring/inline/function/returnAtEnd/SafeCallWithLet.kt");
             }
 
             @TestMetadata("SingleStatement.kt")
