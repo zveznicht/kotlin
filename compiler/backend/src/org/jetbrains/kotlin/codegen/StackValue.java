@@ -1753,7 +1753,7 @@ public abstract class StackValue {
                 @NotNull StackValue receiver, @NotNull ExpressionCodegen codegen, @Nullable ResolvedCall resolvedCall,
                 boolean skipLateinitAssertion, @Nullable KotlinType delegateKotlinType
         ) {
-            super(type, descriptor.getType(), isStatic(isStaticBackingField, getter), isStatic(isStaticBackingField, setter), receiver, true);
+            super(type, descriptor.getOriginal().getType(), isStatic(isStaticBackingField, getter), isStatic(isStaticBackingField, setter), receiver, true);
             this.backingFieldOwner = backingFieldOwner;
             this.getter = getter;
             this.setter = setter;
@@ -1840,7 +1840,7 @@ public abstract class StackValue {
                 }
 
                 Type typeOfValueOnStack = getter.getReturnType();
-                KotlinType kotlinTypeOfValueOnStack = getterDescriptor.getReturnType();
+                KotlinType kotlinTypeOfValueOnStack = getterDescriptor.getOriginal().getReturnType();
                 if (DescriptorUtils.isAnnotationClass(descriptor.getContainingDeclaration())) {
                     if (this.type.equals(K_CLASS_TYPE)) {
                         wrapJavaClassIntoKClass(v);
@@ -1854,7 +1854,7 @@ public abstract class StackValue {
                     }
                 }
 
-                coerce(typeOfValueOnStack, kotlinTypeOfValueOnStack, type, kotlinType, v);
+                coerce(typeOfValueOnStack, kotlinTypeOfValueOnStack, type, kotlinType, v, allowImplicitCast);
 
                 // For non-private lateinit properties in companion object, the assertion is generated in the public getFoo method
                 // in the companion and _not_ in the synthetic accessor access$getFoo$cp in the outer class. The reason is that this way,
