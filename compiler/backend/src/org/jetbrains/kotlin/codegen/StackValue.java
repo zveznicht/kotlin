@@ -1839,7 +1839,7 @@ public abstract class StackValue {
                 }
 
                 Type typeOfValueOnStack = getter.getReturnType();
-                KotlinType kotlinTypeOfValueOnStack = getterDescriptor.getReturnType();
+                KotlinType kotlinTypeOfValueOnStack = getterDescriptor.getOriginal().getReturnType();
                 if (DescriptorUtils.isAnnotationClass(descriptor.getContainingDeclaration())) {
                     if (this.type.equals(K_CLASS_TYPE)) {
                         wrapJavaClassIntoKClass(v);
