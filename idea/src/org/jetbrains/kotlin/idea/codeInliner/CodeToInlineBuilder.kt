@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.codeInliner.CommentHolder.CommentNode.Companion.mergeComments
+import org.jetbrains.kotlin.idea.codeInliner.CommentHolder.Companion.collectComments
 import org.jetbrains.kotlin.idea.core.asExpression
 import org.jetbrains.kotlin.idea.imports.importableFqName
 import org.jetbrains.kotlin.idea.intentions.InsertExplicitTypeArgumentsIntention
@@ -22,7 +23,6 @@ import org.jetbrains.kotlin.idea.references.canBeResolvedViaImport
 import org.jetbrains.kotlin.idea.resolve.ResolutionFacade
 import org.jetbrains.kotlin.idea.util.IdeDescriptorRenderers
 import org.jetbrains.kotlin.idea.util.getResolutionScope
-import org.jetbrains.kotlin.idea.util.isLineBreak
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.*
@@ -95,16 +95,14 @@ class CodeToInlineBuilder(
 
     private fun saveComments(codeToInline: MutableCodeToInline, contextDeclaration: KtDeclaration) {
         val topLevelLeadingComments = contextDeclaration.collectDescendantsOfType<PsiComment>(
-            canGoInside = { it == contextDeclaration || it !is KtExpression }
-        ) { it.parent != contextDeclaration || it.getNextSiblingIgnoringWhitespaceAndComments() != null }.map {
-            CommentHolder.CommentNode.create(it)
-        }
+            canGoInside = { it == contextDeclaration || it !is KtExpression },
+            predicate = { it.parent != contextDeclaration || it.getNextSiblingIgnoringWhitespaceAndComments() != null }
+        ).map { CommentHolder.CommentNode.create(it) }
 
-        val children = contextDeclaration.children.asList()
-        val lastChild = children.lastOrNull { it !is PsiComment && it !is PsiWhiteSpace }
-        val topLevelTrailingComments = lastChild?.siblings(forward = true, withItself = false)
-            ?.filterIsInstance<PsiComment>()
-            ?.mapTo(mutableListOf()) { CommentHolder.CommentNode.create(it) }
+        val topLevelTrailingComments = contextDeclaration.children
+            .lastOrNull { it !is PsiComment && it !is PsiWhiteSpace }
+            ?.siblings(forward = true, withItself = false)
+            ?.collectComments()
             ?: emptyList()
 
         val bodyBlockExpression = contextDeclaration.safeAs<KtDeclarationWithBody>()?.bodyBlockExpression
@@ -135,33 +133,22 @@ class CodeToInlineBuilder(
 
     private fun addCommentHoldersForStatements(mutableCodeToInline: MutableCodeToInline, blockExpression: KtBlockExpression) {
         val expressions = mutableCodeToInline.expressions
-        val iterator = blockExpression.children().mapNotNull { it.psi }.iterator()
-        var indexOfIteration = 0
-        while (iterator.hasNext()) {
-            val leadingComments = mutableListOf<CommentHolder.CommentNode>()
-            val trailingComments = mutableListOf<CommentHolder.CommentNode>()
-            iterator.stopAfter { it is KtExpression }.forEach {
-                if (it is PsiComment) leadingComments.add(CommentHolder.CommentNode.create(it))
-            }
 
-            iterator.stopAfter { it.isLineBreak() || it is KtExpression }.forEach {
-                if (it is PsiComment) trailingComments.add(CommentHolder.CommentNode.create(it))
-            }
+        for ((indexOfIteration, commentHolder) in CommentHolder.extract(blockExpression).withIndex()) {
+            if (commentHolder.isEmpty) continue
 
-            if (leadingComments.isNotEmpty() || trailingComments.isNotEmpty()) {
-                if (expressions.isEmpty()) {
-                    mutableCodeToInline.addExtraComments(CommentHolder(leadingComments, trailingComments))
+            if (expressions.isEmpty()) {
+                mutableCodeToInline.addExtraComments(commentHolder)
+            } else {
+                val expression = expressions.elementAtOrNull(indexOfIteration)
+                if (expression != null) {
+                    expression.mergeComments(commentHolder)
                 } else {
-                    val expression = expressions.elementAtOrNull(indexOfIteration)
-                    if (expression != null) {
-                        expression.mergeComments(CommentHolder(leadingComments, trailingComments))
-                    } else {
-                        expressions.last().mergeComments(CommentHolder(emptyList(), leadingComments + trailingComments))
-                    }
+                    expressions.last().mergeComments(
+                        CommentHolder(emptyList(), trailingComments = commentHolder.leadingComments + commentHolder.trailingComments)
+                    )
                 }
             }
-
-            ++indexOfIteration
         }
     }
 

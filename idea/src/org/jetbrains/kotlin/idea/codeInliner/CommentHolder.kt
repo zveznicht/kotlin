@@ -10,7 +10,11 @@ import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
+import org.jetbrains.kotlin.idea.util.isLineBreak
+import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.psi.psiUtil.children
 import org.jetbrains.kotlin.psi.psiUtil.nextLeaf
 import org.jetbrains.kotlin.psi.psiUtil.prevLeaf
 
@@ -31,6 +35,8 @@ class CommentHolder(val leadingComments: List<CommentNode>, val trailingComments
         this.trailingComments + other.trailingComments
     )
 
+    val isEmpty: Boolean get() = leadingComments.isEmpty() && trailingComments.isEmpty()
+
     class CommentNode(val indentBefore: String, val comment: String, val indentAfter: String) {
         companion object {
             fun create(comment: PsiComment): CommentNode = CommentNode(indentBefore(comment), comment.text, indentAfter(comment))
@@ -46,6 +52,21 @@ class CommentHolder(val leadingComments: List<CommentNode>, val trailingComments
 
     companion object {
         val COMMENTS_TO_RESTORE_KEY: Key<CommentHolder> = Key("COMMENTS_TO_RESTORE")
+
+        fun extract(blockExpression: KtBlockExpression): Sequence<CommentHolder> = sequence {
+            val children = blockExpression.children().mapNotNull { it.psi }.iterator()
+
+            while (children.hasNext()) {
+                val before = children.stopAfter { it is KtExpression }.asSequence().collectComments()
+                val after = children.stopAfter { it.isLineBreak() || it is KtExpression }.asSequence().collectComments()
+
+                yield(CommentHolder(before, after))
+            }
+        }
+
+        fun Sequence<PsiElement>.collectComments(): List<CommentNode> = this.filterIsInstance<PsiComment>()
+            .map { CommentNode.create(it) }
+            .toList()
     }
 }
 
