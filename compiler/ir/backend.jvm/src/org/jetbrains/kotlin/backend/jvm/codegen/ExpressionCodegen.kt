@@ -820,7 +820,7 @@ class ExpressionCodegen(
             returnType = unboxedInlineClass.asmType
         }
         val afterReturnLabel = Label()
-        expression.value.accept(this, data).materializeAt(returnType, returnIrType)
+        expression.value.accept(this, data).materializeAt(returnType, returnIrType, true)
         generateFinallyBlocksIfNeeded(returnType, afterReturnLabel, data)
         expression.markLineNumber(startOffset = true)
         if (isNonLocalReturn) {

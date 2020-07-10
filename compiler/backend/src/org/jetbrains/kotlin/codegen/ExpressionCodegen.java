@@ -424,10 +424,16 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
 
     public void gen(KtElement expr, Type type, KotlinType kotlinType) {
         StackValue value = Type.VOID_TYPE.equals(type) ? genStatement(expr) : gen(expr);
-        putStackValue(expr, type, kotlinType, value);
+        putStackValue(expr, type, kotlinType, value, false);
     }
 
-    private void putStackValue(@Nullable KtElement expr, @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull StackValue value) {
+    private void putStackValue(
+            @Nullable KtElement expr,
+            @NotNull Type type,
+            @Nullable KotlinType kotlinType,
+            @NotNull StackValue value,
+            boolean allowImplicitCast
+    ) {
         // for repl store the result of the last line into special field
         if (value.type != Type.VOID_TYPE) {
             ScriptContext context = getScriptContext();
@@ -443,7 +449,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             }
         }
 
-        value.put(type, kotlinType, v);
+        value.put(type, kotlinType, v, false, allowImplicitCast);
     }
 
     @Nullable
@@ -1735,7 +1741,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             }
             StackValue valueToReturn = returnedExpression != null ? gen(returnedExpression) : StackValue.none();
 
-            putStackValue(returnedExpression, returnType, returnKotlinType, valueToReturn);
+            putStackValue(returnedExpression, returnType, returnKotlinType, valueToReturn, true);
 
             Label afterReturnLabel = new Label();
             generateFinallyBlocksIfNeeded(returnType, returnKotlinType, afterReturnLabel);
