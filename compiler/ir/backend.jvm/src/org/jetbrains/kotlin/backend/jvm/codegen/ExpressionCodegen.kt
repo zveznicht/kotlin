@@ -731,7 +731,7 @@ class ExpressionCodegen(
         return unitValue
     }
 
-    override fun visitReturn(expression: IrReturn, data: BlockInfo): PromisedValue {
+    override fun            visitReturn(expression: IrReturn, data: BlockInfo): PromisedValue {
         val returnTarget = expression.returnTargetSymbol.owner
         val owner =
             returnTarget as? IrFunction
@@ -751,7 +751,7 @@ class ExpressionCodegen(
 
         val returnType = if (owner == irFunction) signature.returnType else methodSignatureMapper.mapReturnType(owner)
         val afterReturnLabel = Label()
-        expression.value.accept(this, data).materializeAt(returnType, owner.returnType)
+        expression.value.accept(this, data).materializeAt(returnType, owner.returnType, true)
         generateFinallyBlocksIfNeeded(returnType, afterReturnLabel, data)
         expression.markLineNumber(startOffset = true)
         if (isNonLocalReturn) {
