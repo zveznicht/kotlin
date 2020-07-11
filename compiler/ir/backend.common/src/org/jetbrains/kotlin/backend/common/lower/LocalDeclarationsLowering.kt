@@ -591,6 +591,7 @@ class LocalDeclarationsLowering(
 
             val newDeclaration = buildFun(oldDeclaration.descriptor) {
                 updateFrom(oldDeclaration)
+                originalDeclaration = oldDeclaration.originalDeclaration
                 name = newName
                 visibility = Visibilities.PRIVATE
                 modality = Modality.FINAL

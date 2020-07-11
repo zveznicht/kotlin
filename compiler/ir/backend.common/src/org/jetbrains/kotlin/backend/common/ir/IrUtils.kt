@@ -542,7 +542,8 @@ fun createStaticFunctionWithReceivers(
         isExpect = oldFunction.isExpect,
         isFakeOverride = isFakeOverride,
         isOperator = oldFunction is IrSimpleFunction && oldFunction.isOperator,
-        isInfix = oldFunction is IrSimpleFunction && oldFunction.isInfix
+        isInfix = oldFunction is IrSimpleFunction && oldFunction.isInfix,
+        originalDeclaration = oldFunction.originalDeclaration
     ).apply {
         descriptor.bind(this)
         parent = irParent
