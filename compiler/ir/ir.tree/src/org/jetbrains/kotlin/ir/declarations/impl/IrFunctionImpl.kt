@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
 abstract class IrFunctionCommonImpl(
     startOffset: Int,
@@ -37,10 +38,11 @@ abstract class IrFunctionCommonImpl(
     override val isInfix: Boolean,
     isExpect: Boolean,
     override val isFakeOverride: Boolean,
-    originalDeclaration: IrFunction?
+    originalDeclaration: IrFunction? = null,
+    containerSource: DeserializedContainerSource? = null
 ) :
     IrFunctionBase<FunctionCarrier>(
-        startOffset, endOffset, origin, name, visibility, isInline, isExternal, isExpect, returnType, originalDeclaration
+        startOffset, endOffset, origin, name, visibility, isInline, isExternal, isExpect, returnType, originalDeclaration, containerSource
     ),
     IrSimpleFunction,
     FunctionCarrier {
@@ -99,10 +101,11 @@ class IrFunctionImpl(
     isInfix: Boolean,
     isExpect: Boolean,
     override val isFakeOverride: Boolean = origin == IrDeclarationOrigin.FAKE_OVERRIDE,
-    originalDeclaration: IrFunction? = null
+    originalDeclaration: IrFunction? = null,
+    containerSource: DeserializedContainerSource? = null
 ) : IrFunctionCommonImpl(startOffset, endOffset, origin, name, visibility, modality, returnType, isInline,
     isExternal, isTailrec, isSuspend, isOperator, isInfix, isExpect, isFakeOverride,
-    originalDeclaration) {
+    originalDeclaration, containerSource) {
 
     @ObsoleteDescriptorBasedAPI
     override val descriptor: FunctionDescriptor get() = symbol.descriptor
@@ -132,7 +135,7 @@ class IrFakeOverrideFunctionImpl(
     isExpect: Boolean
 ) : IrFunctionCommonImpl(startOffset, endOffset, origin, name, visibility, modality, returnType, isInline,
     isExternal, isTailrec, isSuspend, isOperator, isInfix, isExpect,
-    isFakeOverride = true, originalDeclaration = null)
+    isFakeOverride = true)
 {
     private var _symbol: IrSimpleFunctionSymbol? = null
 

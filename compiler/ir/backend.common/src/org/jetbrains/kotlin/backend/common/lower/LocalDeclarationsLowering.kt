@@ -589,7 +589,7 @@ class LocalDeclarationsLowering(
             // TODO: consider using fields to access the closure of enclosing class.
             val (capturedValues, capturedTypeParameters) = localFunctionContext.closure
 
-            val newDeclaration = buildFun(oldDeclaration.descriptor) {
+            val newDeclaration = buildFun {
                 updateFrom(oldDeclaration)
                 originalDeclaration = oldDeclaration.originalDeclaration
                 name = newName

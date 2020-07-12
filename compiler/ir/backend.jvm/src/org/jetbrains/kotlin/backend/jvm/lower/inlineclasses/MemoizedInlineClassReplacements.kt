@@ -184,9 +184,10 @@ class MemoizedInlineClassReplacements(private val mangleReturnTypes: Boolean) {
         replacementOrigin: IrDeclarationOrigin,
         noFakeOverride: Boolean = false,
         body: IrFunction.() -> Unit
-    ): IrSimpleFunction = buildFun(function.descriptor) {
+    ) = buildFun {
         updateFrom(function)
         originalDeclaration = function.originalDeclaration
+        containerSource = function.containerSource
         if (function is IrConstructor) {
             // The [updateFrom] call will set the modality to FINAL for constructors, while the JVM backend would use OPEN here.
             modality = Modality.OPEN

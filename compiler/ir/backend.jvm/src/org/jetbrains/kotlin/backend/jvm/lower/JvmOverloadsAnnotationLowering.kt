@@ -125,7 +125,7 @@ private class JvmOverloadsAnnotationLowering(val context: JvmBackendContext) : C
                     isInline = oldFunction.isInline
                 }
             }
-            is IrSimpleFunction -> buildFun(oldFunction.descriptor) {
+            is IrSimpleFunction -> buildFun {
                 origin = JvmLoweredDeclarationOrigin.JVM_OVERLOADS_WRAPPER
                 name = oldFunction.name
                 visibility = oldFunction.visibility

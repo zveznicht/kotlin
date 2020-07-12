@@ -192,9 +192,10 @@ private class MakeCallsStatic(
     }
 
     private fun IrSimpleFunction.copyRemovingDispatchReceiver(): IrSimpleFunction =
-        buildFun(descriptor) {
+        buildFun {
             updateFrom(this@copyRemovingDispatchReceiver)
             originalDeclaration = this@copyRemovingDispatchReceiver.originalDeclaration
+            containerSource = this@copyRemovingDispatchReceiver.containerSource
             name = this@copyRemovingDispatchReceiver.name
             returnType = this@copyRemovingDispatchReceiver.returnType
         }.also {
