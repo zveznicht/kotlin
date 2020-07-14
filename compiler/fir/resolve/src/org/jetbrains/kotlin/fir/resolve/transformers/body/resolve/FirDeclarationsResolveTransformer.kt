@@ -218,7 +218,8 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
         if (property.delegateFieldSymbol != null) {
             replacePropertyReferenceTypeInDelegateAccessors(property)
         }
-        property.transformOtherChildren(transformer, ResolutionMode.ContextIndependent)
+        property.transformTypeParameters(transformer, ResolutionMode.ContextIndependent)
+            .transformOtherChildren(transformer, ResolutionMode.ContextIndependent)
     }
 
     override fun transformWrappedDelegateExpression(
@@ -253,6 +254,7 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
             val resolutionMode = withExpectedType(variable.returnTypeRef)
             variable.transformInitializer(transformer, resolutionMode)
                 .transformDelegate(transformer, resolutionMode)
+                .transformTypeParameters(transformer, resolutionMode)
                 .transformOtherChildren(transformer, resolutionMode)
                 .transformInitializer(integerLiteralTypeApproximator, null)
             if (variable.initializer != null) {
@@ -271,6 +273,7 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
         return transformReturnTypeRef(transformer, data)
             .transformInitializer(transformer, data)
             .transformDelegate(transformer, data)
+            .transformTypeParameters(transformer, data)
             .transformOtherChildren(transformer, data)
     }
 
