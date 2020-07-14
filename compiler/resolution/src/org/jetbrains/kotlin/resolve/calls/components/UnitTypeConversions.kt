@@ -8,10 +8,10 @@ package org.jetbrains.kotlin.resolve.calls.components
 import org.jetbrains.kotlin.builtins.*
 import org.jetbrains.kotlin.descriptors.ParameterDescriptor
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemOperation
+import org.jetbrains.kotlin.resolve.calls.inference.model.LowerPriorityToPreserveCompatibility
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.KotlinResolutionCandidate
 import org.jetbrains.kotlin.resolve.calls.model.SimpleKotlinCallArgument
-import org.jetbrains.kotlin.resolve.calls.model.markCandidateForCompatibilityResolve
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.UnwrappedType
 import org.jetbrains.kotlin.types.isDynamic
@@ -84,7 +84,7 @@ object UnitTypeConversions : ParameterTypeConversion {
 
         candidate.resolvedCall.registerArgumentWithUnitConversion(argument, nonUnitReturnedParameterType)
 
-        candidate.markCandidateForCompatibilityResolve()
+        candidate.addDiagnostic(LowerPriorityToPreserveCompatibility)
 
         return nonUnitReturnedParameterType
     }

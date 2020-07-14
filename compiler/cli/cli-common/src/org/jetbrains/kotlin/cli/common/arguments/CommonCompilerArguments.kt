@@ -388,7 +388,6 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
                 put(LanguageFeature.NewInference, LanguageFeature.State.ENABLED)
                 put(LanguageFeature.SamConversionPerArgument, LanguageFeature.State.ENABLED)
                 put(LanguageFeature.FunctionReferenceWithDefaultValueAsOtherType, LanguageFeature.State.ENABLED)
-                put(LanguageFeature.DisableCompatibilityModeForNewInference, LanguageFeature.State.ENABLED)
             }
 
             if (inlineClasses) {
@@ -468,8 +467,6 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
 
             if (!functionReferenceWithDefaultValueFeaturePassedExplicitly)
                 put(LanguageFeature.FunctionReferenceWithDefaultValueAsOtherType, LanguageFeature.State.ENABLED)
-
-            put(LanguageFeature.DisableCompatibilityModeForNewInference, LanguageFeature.State.ENABLED)
         }
 
         if (featuresThatForcePreReleaseBinaries.isNotEmpty()) {
