@@ -95,7 +95,9 @@ open class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransform
                         qualifiedAccessExpression.resultType = superTypeRef
                     }
                     !is FirImplicitTypeRef -> {
-                        callee.transformChildren(transformer, ResolutionMode.ContextIndependent)
+                        components.typeResolverTransformer.withAllowedBareTypes {
+                            callee.transformChildren(transformer, ResolutionMode.ContextIndependent)
+                        }
                         qualifiedAccessExpression.resultType = callee.superTypeRef
                     }
                     else -> {
