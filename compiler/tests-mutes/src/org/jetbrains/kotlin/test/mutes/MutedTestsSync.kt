@@ -25,7 +25,7 @@ fun syncMutedTestsOnTeamCityWithDatabase() {
 
     for ((originalBunchId, foundBunchId) in bunches) {
         getBuildTypeId(originalBunchId)?.let { buildTypeId ->
-            syncMutedTests(remotelyMutedTests.getTests(buildTypeId), locallyMutedTests.getTests(foundBunchId, buildTypeId))
+            syncMutedTests(remotelyMutedTests.getTestsJson(buildTypeId), locallyMutedTests.getTestsJson(foundBunchId, buildTypeId))
         }
     }
 }
@@ -69,36 +69,34 @@ object Bunches {
 }
 
 private const val mutesPackageName = "org.jetbrains.kotlin.test.mutes"
-internal const val localProjectId = "COMMON"
-internal val remoteProjectId = getMandatoryProperty("$mutesPackageName.tests.project.id")
-
+internal val projectId = getMandatoryProperty("$mutesPackageName.tests.project.id")
 internal fun getBuildTypeId(bunchId: String) = System.getProperty("$mutesPackageName.$bunchId")
 
 class RemotelyMutedTests {
-    val tests = getMutedTestsOnTeamcityForRootProject(remoteProjectId)
-    val projectTests = getTests(remoteProjectId, false)
-
-    internal fun getTests(scopeId: String, isBuildType: Boolean = true): Map<String, MuteTestJson> {
+    val tests = getMutedTestsOnTeamcityForRootProject(projectId)
+    val projectTests = getTestsJson(projectId, false)
+    internal fun getTestsJson(scopeId: String, isBuildType: Boolean = true): Map<String, MuteTestJson> {
         return filterMutedTestsByScope(tests, scopeId, isBuildType)
     }
 }
 
 class LocallyMutedTests {
     val tests = getMutedTestsFromDatabase()
-    val projectTests = getTests(localProjectId, remoteProjectId, false)
+    private val muteCommonTestKey = "COMMON"
+    val projectTests = getTestsJson(muteCommonTestKey, projectId, false)
 
-    internal fun getTests(platformId: String, scopeId: String, isBuildType: Boolean = true): Map<String, MuteTestJson> {
+    internal fun getTestsJson(platformId: String, scopeId: String, isBuildType: Boolean = true): Map<String, MuteTestJson> {
         return transformMutedTestsToJson(tests[platformId], scopeId, isBuildType)
     }
 
     private fun getMutedTestsFromDatabase(): Map<String, List<MutedTest>> {
         val mutedTestsMap = mutableMapOf<String, List<MutedTest>>()
         val databaseDir = "../../tests"
+
         val commonDatabaseFile = File(databaseDir, "mute-common.csv")
+        mutedTestsMap[muteCommonTestKey] = flakyTests(commonDatabaseFile)
+
         val platformDatabaseFile = File(databaseDir, "mute-platform.csv")
-
-        mutedTestsMap[localProjectId] = flakyTests(commonDatabaseFile)
-
         File(databaseDir).walkTopDown().filter { f -> f.name.startsWith(platformDatabaseFile.name) }.toList().map { f ->
             val key = if (f.extension != "csv") f.extension else Bunches.baseBunchId
             mutedTestsMap[key] = flakyTests(f)
