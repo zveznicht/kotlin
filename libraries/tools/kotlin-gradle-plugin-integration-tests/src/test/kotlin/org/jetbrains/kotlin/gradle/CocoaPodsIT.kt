@@ -16,6 +16,7 @@ import org.junit.Test
 import java.io.File
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 class CocoaPodsIT : BaseGradleIT() {
@@ -23,14 +24,14 @@ class CocoaPodsIT : BaseGradleIT() {
     override val defaultGradleVersion: GradleVersionRequired
         get() = GradleVersionRequired.FOR_MPP_SUPPORT
 
-
     // We use Kotlin DSL. Earlier Gradle versions fail at accessors codegen.
-    val gradleVersion = GradleVersionRequired.FOR_MPP_SUPPORT
+    private val gradleVersion = GradleVersionRequired.FOR_MPP_SUPPORT
 
     val PODFILE_IMPORT_DIRECTIVE_PLACEHOLDER = "<import_mode_directive>"
 
-    val cocoapodsSingleKtPod = "new-mpp-cocoapods-single"
-    val cocoapodsMultipleKtPods = "new-mpp-cocoapods-multiple"
+    private val cocoapodsSingleKtPod = "new-mpp-cocoapods-single"
+    private val cocoapodsMultipleKtPods = "new-mpp-cocoapods-multiple"
+    private val templateProjectName = "new-mpp-cocoapods-template"
 
     @Test
     fun testPodspecSingle() = doTestPodspec(
@@ -78,31 +79,40 @@ class CocoaPodsIT : BaseGradleIT() {
     )
 
     @Test
-    fun testPodImportUseFrameworksSingle() = doTestPodImport(
-        cocoapodsSingleKtPod,
-        "ios-app",
-        ImportMode.FRAMEWORKS,
-        listOf("kotlin-library")
-    )
+    fun testPodImportUseFrameworksSingle() {
+        val project = getProjectByName(cocoapodsSingleKtPod)
+        val subprojects = listOf("kotlin-library")
+        with(project) {
+            preparePodfile("ios-app", ImportMode.FRAMEWORKS)
+        }
+        project.testImport("podImport", CustomHooks { podImportAsserts() })
+        subprojects.forEach {
+            project.testImport(":$it:podImport", CustomHooks { podImportAsserts(it) })
+        }
+    }
 
     @Test
-    fun testPodImportUseModularHeadersSingle() =
-        doTestPodImport(
-            cocoapodsSingleKtPod,
-            "ios-app",
-            ImportMode.MODULAR_HEADERS,
-            listOf("kotlin-library")
-        )
+    fun testPodImportUseModularHeadersSingle() {
+        val project = getProjectByName(cocoapodsSingleKtPod)
+        val subprojects = listOf("kotlin-library")
+        with(project) {
+            preparePodfile("ios-app", ImportMode.MODULAR_HEADERS)
+        }
+        project.testImport("podImport", CustomHooks { podImportAsserts() })
+        subprojects.forEach {
+            project.testImport(":$it:podImport", CustomHooks { podImportAsserts(it) })
+        }
+    }
 
     @Test
-    fun testPodspecMupltiple() = doTestPodspec(
+    fun testPodspecMultiple() = doTestPodspec(
         cocoapodsMultipleKtPods,
         mapOf("kotlin-library" to null, "second-library" to null),
         mapOf("kotlin-library" to kotlinLibraryPodspecContent(), "second-library" to secondLibraryPodspecContent()),
     )
 
     @Test
-    fun testPodspecCustomFrameworkNameMupltiple() = doTestPodspec(
+    fun testPodspecCustomFrameworkNameMultiple() = doTestPodspec(
         cocoapodsMultipleKtPods,
         mapOf("kotlin-library" to "FirstMultiplatformLibrary", "second-library" to "SecondMultiplatformLibrary"),
         mapOf(
@@ -112,7 +122,7 @@ class CocoaPodsIT : BaseGradleIT() {
     )
 
     @Test
-    fun testXcodeUseFrameworksMupltiple() = doTestXcode(
+    fun testXcodeUseFrameworksMultiple() = doTestXcode(
         cocoapodsMultipleKtPods,
         ImportMode.FRAMEWORKS,
         "ios-app",
@@ -120,7 +130,7 @@ class CocoaPodsIT : BaseGradleIT() {
     )
 
     @Test
-    fun testXcodeUseFrameworksWithCustomFrameworkNameMupltiple() = doTestXcode(
+    fun testXcodeUseFrameworksWithCustomFrameworkNameMultiple() = doTestXcode(
         cocoapodsMultipleKtPods,
         ImportMode.FRAMEWORKS,
         "ios-app",
@@ -128,7 +138,7 @@ class CocoaPodsIT : BaseGradleIT() {
     )
 
     @Test
-    fun testXcodeUseModularHeadersMupltiple() = doTestXcode(
+    fun testXcodeUseModularHeadersMultiple() = doTestXcode(
         cocoapodsMultipleKtPods,
         ImportMode.MODULAR_HEADERS,
         "ios-app",
@@ -136,7 +146,7 @@ class CocoaPodsIT : BaseGradleIT() {
     )
 
     @Test
-    fun testXcodeUseModularHeadersWithCustomFrameworkNameMupltiple() = doTestXcode(
+    fun testXcodeUseModularHeadersWithCustomFrameworkNameMultiple() = doTestXcode(
         cocoapodsMultipleKtPods,
         ImportMode.MODULAR_HEADERS,
         "ios-app",
@@ -144,21 +154,415 @@ class CocoaPodsIT : BaseGradleIT() {
     )
 
     @Test
-    fun testPodImportUseFrameworksMupltiple() = doTestPodImport(
-        cocoapodsMultipleKtPods,
-        "ios-app",
-        ImportMode.FRAMEWORKS,
-        listOf("kotlin-library", "second-library")
-    )
+    fun testPodImportUseFrameworksMultiple() {
+        val project = getProjectByName(cocoapodsMultipleKtPods)
+        val subprojects = listOf("kotlin-library", "second-library")
+        with(project) {
+            preparePodfile("ios-app", ImportMode.FRAMEWORKS)
+        }
+        project.testImport("podImport", CustomHooks { podImportAsserts() })
+        subprojects.forEach {
+            project.testImport(":$it:podImport", CustomHooks { podImportAsserts(it) })
+        }
+    }
 
     @Test
-    fun testPodImportUseModularHeadersMupltiple() =
-        doTestPodImport(
-            cocoapodsMultipleKtPods,
-            "ios-app",
-            ImportMode.MODULAR_HEADERS,
-            listOf("kotlin-library", "second-library")
+    fun testPodImportUseModularHeadersMultiple() {
+        val project = getProjectByName(cocoapodsMultipleKtPods)
+        val subprojects = listOf("kotlin-library", "second-library")
+        with(project) {
+            preparePodfile("ios-app", ImportMode.MODULAR_HEADERS)
+        }
+        project.testImport("podImport", CustomHooks { podImportAsserts() })
+        subprojects.forEach {
+            project.testImport(":$it:podImport", CustomHooks { podImportAsserts(it) })
+        }
+    }
+
+    @Test
+    fun testSourcesDownloads() {
+        val project = getProjectByName(templateProjectName)
+        val podName = "example"
+        val podRepo = "https://github.com/alozhkin/spec_repo_example"
+        with(project.gradleBuildScript()) {
+            addPod(podName)
+            addSource(podRepo)
+        }
+        val hooks = CustomHooks()
+        project.testDownload(":podDownload", hooks, listOf(podRepo))
+    }
+
+    private val gitDownloadRepo = "https://github.com/AFNetworking/AFNetworking"
+    private val gitDownloadPodName = "AFNetworking"
+
+    @Test
+    fun testPodDownloadGitNoTagNorCommit() {
+        val project = getProjectByName(templateProjectName)
+        with(project.gradleBuildScript()) {
+            addPod(gitDownloadPodName, produceGitBlock(gitDownloadRepo))
+        }
+        val hooks = CustomHooks()
+        hooks.addHook {
+            checkGitRepo()
+        }
+        project.testDownload(":podDownload", hooks, listOf(gitDownloadRepo))
+    }
+
+    @Test
+    fun testPodDownloadGitTag() {
+        val project = getProjectByName(templateProjectName)
+        val tag = "4.0.0"
+        with(project.gradleBuildScript()) {
+            addPod(gitDownloadPodName, produceGitBlock(gitDownloadRepo, tagName = tag))
+        }
+        val hooks = CustomHooks()
+        hooks.addHook {
+            checkGitRepo(tagName = tag)
+        }
+        project.testDownload(":podDownload", hooks, listOf(gitDownloadRepo))
+    }
+
+    @Test
+    fun testPodDownloadGitCommit() {
+        val project = getProjectByName(templateProjectName)
+        val commit = "9c07ac0a5645abb58850253eeb109ed0dca515c1"
+        with(project.gradleBuildScript()) {
+            addPod(gitDownloadPodName, produceGitBlock(gitDownloadRepo, commitName = commit))
+        }
+        val hooks = CustomHooks()
+        hooks.addHook {
+            checkGitRepo(commitName = commit)
+        }
+        project.testDownload(":podDownload", hooks, listOf(gitDownloadRepo))
+    }
+
+    @Test
+    fun testPodDownloadGitBranch() {
+        val project = getProjectByName(templateProjectName)
+        val branch = "2974"
+        with(project.gradleBuildScript()) {
+            addPod(gitDownloadPodName, produceGitBlock(gitDownloadRepo, branchName = branch))
+        }
+        val hooks = CustomHooks()
+        hooks.addHook {
+            checkGitRepo(branchName = branch)
+        }
+        project.testDownload(":podDownload", hooks, listOf(gitDownloadRepo))
+    }
+
+    @Test
+    fun testPodDownloadGitBranchAndCommit() {
+        val project = getProjectByName(templateProjectName)
+        val branch = "2974"
+        val commit = "21637dd6164c0641e414bdaf3885af6f1ef15aee"
+        with(project.gradleBuildScript()) {
+            addPod(gitDownloadPodName, produceGitBlock(gitDownloadRepo, branchName = branch, commitName = commit))
+        }
+        val hooks = CustomHooks()
+        hooks.addHook {
+            checkGitRepo(commitName = commit)
+        }
+        project.testDownload(":podDownload", hooks, listOf(gitDownloadRepo))
+    }
+
+    // tag priority is bigger then branch priority
+    @Test
+    fun testPodDownloadGitBranchAndTag() {
+        val project = getProjectByName(templateProjectName)
+        val branch = "2974"
+        val tag = "4.0.0"
+        with(project.gradleBuildScript()) {
+            addPod(gitDownloadPodName, produceGitBlock(gitDownloadRepo, branchName = branch, tagName = tag))
+        }
+        val hooks = CustomHooks()
+        hooks.addHook {
+            checkGitRepo(tagName = tag)
+        }
+        project.testDownload(":podDownload", hooks, listOf(gitDownloadRepo))
+    }
+
+    @Test
+    fun testPodDownloadUrl() {
+        val project = getProjectByName(templateProjectName)
+        val podspec = "$gitDownloadPodName.podspec"
+        val repo = "https://raw.githubusercontent.com/AFNetworking/AFNetworking/master"
+        with(project.gradleBuildScript()) {
+            addPod(gitDownloadPodName, "podspec = url(\"$repo/$podspec\")")
+        }
+        val hooks = CustomHooks()
+        hooks.addHook {
+            assertTrue(url().resolve(podspec).exists())
+        }
+        project.testDownload(":podDownload", hooks, listOf(gitDownloadRepo))
+    }
+
+    @Test
+    fun testDownloadAndImport() {
+        val project = getProjectByName(templateProjectName)
+        val tag = "4.0.0"
+        with(project.gradleBuildScript()) {
+            addPod(gitDownloadPodName, produceGitBlock(gitDownloadRepo, tagName = tag))
+        }
+        val hooks = CustomHooks()
+        hooks.addHook {
+            podImportAsserts()
+            checkGitRepo(tagName = tag)
+        }
+        project.testDownload(
+            ":podImport",
+            hooks,
+            listOf(gitDownloadRepo),
+            "-Pkotlin.native.cocoapods.generate.wrapper=true"
         )
+    }
+
+    @Test
+    fun testUpToDate() {
+        val project = getProjectByName(templateProjectName)
+        val podName = "Aerodramus"
+        with(project.gradleBuildScript()) {
+            addPod(podName)
+        }
+        val hooks = CustomHooks()
+        project.test(":podDownload", hooks)
+        hooks.addHook {
+            assertTasksUpToDate(":podDownload")
+        }
+        project.test(":podDownload", hooks)
+    }
+
+    @Test
+    fun warnIfDeprecatedPodspecPathIsUsed() {
+        val project = getProjectByName(cocoapodsSingleKtPod)
+        val hooks = CustomHooks()
+        hooks.addHook {
+            assertContains("Please use directory with podspec file, not podspec file itself")
+        }
+        project.test(":kotlin-library:podDownload", hooks)
+    }
+
+
+    // paths
+
+    private fun CompiledProject.url() = synthetic().resolve("url")
+
+    private fun CompiledProject.git() = synthetic().resolve("git")
+
+    private fun CompiledProject.synthetic() =
+        fileInWorkingDir("build").resolve("cocoapods").resolve("synthetic")
+
+
+    // test configuration phase
+
+    private class CustomHooks() {
+        private val hooks = mutableSetOf<CompiledProject.() -> Unit>()
+
+        constructor(hook: CompiledProject.() -> Unit) : this() {
+            hooks.add(hook)
+        }
+
+        fun addHook(hook: CompiledProject.() -> Unit) {
+            hooks.add(hook)
+        }
+
+        fun trigger(project: CompiledProject) {
+            hooks.forEach { function ->
+                project.function()
+            }
+        }
+    }
+
+    private fun Project.test(
+        taskName: String,
+        hooks: CustomHooks? = null,
+        vararg args: String
+    ) {
+        // check that test executable
+        assumeTrue(HostManager.hostIsMac)
+        build(taskName, *args) {
+            //base checks
+            assertSuccessful()
+            hooks?.trigger(this)
+        }
+    }
+
+    private fun Project.testDownload(
+        taskName: String,
+        hooks: CustomHooks = CustomHooks(),
+        repos: List<String>,
+        vararg args: String
+    ) {
+        hooks.addHook {
+            for (repo in repos) {
+                assumeTrue(isRepoAvailable(repo))
+            }
+        }
+        test(taskName, hooks, *args)
+    }
+
+    private fun Project.testImport(
+        s: String,
+        hooks: CustomHooks,
+        vararg args: String
+    ) {
+        assumeTrue(KotlinCocoapodsPlugin.isAvailableToProduceSynthetic())
+        test(s, hooks, "-Pkotlin.native.cocoapods.generate.wrapper=true", *args)
+    }
+
+    private fun getProjectByName(projectName: String) = transformProjectWithPluginsDsl(projectName, gradleVersion)
+
+
+    // build script configuration phase
+
+    private fun File.addPod(podName: String, configuration: String? = null) {
+        val pod = "pod(\"$podName\")"
+        val podBlock = configuration?.wrap(pod) ?: pod
+        appendToCocoapodsBlock(podBlock)
+    }
+
+    private fun File.addSource(source: String) = appendToCocoapodsBlock("url(\"$source\")".wrap("sources"))
+
+    private fun File.appendToCocoapodsBlock(str: String) = appendLine(str.wrap("cocoapods").wrap("kotlin"))
+
+    private fun String.wrap(s: String): String = """
+        |$s {
+        |    $this
+        |}
+    """.trimMargin()
+
+    private fun File.appendLine(s: String) = appendText("\n$s")
+
+    private fun produceGitBlock(
+        repo: String = gitDownloadRepo,
+        branchName: String? = null,
+        commitName: String? = null,
+        tagName: String? = null
+    ): String {
+        val branch = if (branchName != null) "branch = \"$branchName\"" else ""
+        val commit = if (commitName != null) "commit = \"$commitName\"" else ""
+        val tag = if (tagName != null) "tag = \"$tagName\"" else ""
+        return """podspec = git("$repo") {
+                      |    $branch
+                      |    $commit
+                      |    $tag
+                      |}
+                    """.trimMargin()
+    }
+
+
+    // proposition phase
+
+    private fun CompiledProject.checkGitRepo(
+        branchName: String? = null,
+        commitName: String? = null,
+        tagName: String? = null,
+        aPodDownloadName: String = gitDownloadPodName
+    ) {
+        val gitDir = git().resolve(aPodDownloadName)
+        val podspecFile = gitDir.resolve("$aPodDownloadName.podspec")
+        assertTrue(podspecFile.exists())
+        if (tagName != null) {
+            checkTag(gitDir, tagName)
+        }
+        checkCommit(gitDir, commitName)
+        if (branchName != null) {
+            checkBranch(gitDir, branchName)
+        }
+    }
+
+    private fun checkTag(gitDir: File, tagName: String) {
+        runCommand(
+            gitDir,
+            "git", "name-rev",
+            "--tags",
+            "--name-only",
+            "HEAD"
+        ) {
+            val (retCode, out, _) = this
+            assertEquals(0, retCode)
+            assertTrue(out.contains(tagName))
+        }
+    }
+
+    private fun checkCommit(gitDir: File, commitName: String?) {
+        runCommand(
+            gitDir,
+            "git", "log", "--pretty=oneline"
+        ) {
+            val (retCode, out, _) = this
+            assertEquals(0, retCode)
+            // get rid of '\n' at the end
+            assertEquals(1, out.trimEnd().lines().size)
+            if (commitName != null) {
+                assertEquals(commitName, out.substringBefore(" "))
+            }
+        }
+    }
+
+    private fun checkBranch(gitDir: File, branchName: String) {
+        runCommand(
+            gitDir,
+            "git", "show-branch"
+        ) {
+            val (retCode, out, _) = this
+            assertEquals(0, retCode)
+            // get rid of '\n' at the end
+            assertEquals(1, out.trimEnd().lines().size)
+            assertEquals("[$branchName]", out.substringBefore(" "))
+        }
+    }
+
+    private fun isRepoAvailable(repo: String): Boolean {
+        var responseCode = 0
+        runCommand(
+            File("/"),
+            "curl",
+            "-s",
+            "-o",
+            "/dev/null",
+            "-w",
+            "%{http_code}",
+            "-L",
+            repo,
+            "--retry", "2"
+        ) {
+            val (retCode, out, _) = this
+            assertEquals(0, retCode)
+            responseCode = out.toInt()
+        }
+        return responseCode == 200
+    }
+
+    private fun CompiledProject.podImportAsserts(projectName: String? = null) {
+
+        val buildScriptText = project.gradleBuildScript(projectName).readText()
+        val taskPrefix = projectName?.let { ":$it" } ?: ""
+        val podspec = "podspec"
+        val podInstall = "podInstall"
+        assertSuccessful()
+
+        if ("noPodspec()" in buildScriptText) {
+            assertTasksSkipped("$taskPrefix:$podspec")
+        }
+
+        if ("podfile" in buildScriptText) {
+            assertTasksExecuted("$taskPrefix:$podInstall")
+        } else {
+            assertTasksSkipped("$taskPrefix:$podInstall")
+        }
+        assertTasksRegisteredByPrefix(listOf("$taskPrefix:$POD_GEN_TASK_NAME"))
+        if (buildScriptText.matches("pod\\(.*\\)".toRegex())) {
+            assertTasksExecutedByPrefix(listOf("$taskPrefix:$POD_GEN_TASK_NAME"))
+        }
+
+        with(listOf(POD_SETUP_BUILD_TASK_NAME, POD_BUILD_DEPENDENCIES_TASK_NAME).map { "$taskPrefix:$it" }) {
+            if (buildScriptText.matches("pod\\(.*\\)".toRegex())) {
+                assertTasksRegisteredByPrefix(this)
+                assertTasksExecutedByPrefix(this)
+            }
+        }
+    }
+
 
     private fun doTestPodspec(
         projectName: String,
@@ -207,57 +611,6 @@ class CocoaPodsIT : BaseGradleIT() {
             }
         }
     }
-
-    private fun doTestPodImport(
-        projectName: String,
-        iosAppLocation: String,
-        mode: ImportMode,
-        subprojects: List<String>
-    ) {
-        assumeTrue(HostManager.hostIsMac)
-        assumeTrue(KotlinCocoapodsPlugin.isAvailableToProduceSynthetic())
-
-        val gradleProject = transformProjectWithPluginsDsl(projectName, gradleVersion)
-        with(gradleProject) {
-            preparePodfile(iosAppLocation, mode)
-            podImportAsserts()
-            subprojects.forEach { podImportAsserts(it) }
-        }
-    }
-
-    private fun BaseGradleIT.Project.podImportAsserts(subproject: String? = null) {
-        val buildScriptText = gradleBuildScript(subproject).readText()
-        val taskPrefix = subproject?.let { ":$it" } ?: ""
-        val podImport = "podImport"
-        val podspec = "podspec"
-        val podInstall = "podInstall"
-
-        build("$taskPrefix:$podImport", "-Pkotlin.native.cocoapods.generate.wrapper=true") {
-            assertSuccessful()
-
-            if ("noPodspec()" in buildScriptText) {
-                assertTasksSkipped("$taskPrefix:$podspec")
-            }
-
-            if ("podfile" in buildScriptText) {
-                assertTasksExecuted("$taskPrefix:$podInstall")
-            } else {
-                assertTasksSkipped("$taskPrefix:$podInstall")
-            }
-            assertTasksRegisteredByPrefix(listOf("$taskPrefix:$POD_GEN_TASK_NAME"))
-            if (buildScriptText.matches("pod\\(.*\\)".toRegex())) {
-                assertTasksExecutedByPrefix(listOf("$taskPrefix:$POD_GEN_TASK_NAME"))
-            }
-
-            with(listOf(POD_SETUP_BUILD_TASK_NAME, POD_BUILD_DEPENDENCIES_TASK_NAME).map { "$taskPrefix:$it" }) {
-                if (buildScriptText.matches("pod\\(.*\\)".toRegex())) {
-                    assertTasksRegisteredByPrefix(this)
-                    assertTasksExecutedByPrefix(this)
-                }
-            }
-        }
-    }
-
 
     private enum class ImportMode(val directive: String) {
         FRAMEWORKS("use_frameworks!"),
