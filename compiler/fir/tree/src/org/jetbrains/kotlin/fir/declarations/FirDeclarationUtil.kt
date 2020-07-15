@@ -14,8 +14,11 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirRegularClassImpl
 import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousObjectSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
-import org.jetbrains.kotlin.fir.types.*
+import org.jetbrains.kotlin.fir.types.ConeClassLikeType
+import org.jetbrains.kotlin.fir.types.ConeFlexibleType
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
+import org.jetbrains.kotlin.fir.types.classId
+import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.name.ClassId
 
 fun FirTypeParameterBuilder.addDefaultBoundIfNecessary(isFlexible: Boolean = false) {
@@ -43,7 +46,6 @@ inline val FirMemberDeclaration.modality get() = status.modality
 inline val FirMemberDeclaration.visibility get() = status.visibility
 inline val FirMemberDeclaration.allowsToHaveFakeOverride: Boolean
     get() = !Visibilities.isPrivate(visibility) && visibility != Visibilities.INVISIBLE_FAKE
-inline val FirMemberDeclaration.effectiveVisibility get() = status.effectiveVisibility
 inline val FirMemberDeclaration.isActual get() = status.isActual
 inline val FirMemberDeclaration.isExpect get() = status.isExpect
 inline val FirMemberDeclaration.isInner get() = status.isInner
@@ -114,7 +116,8 @@ fun FirRegularClass.addDeclaration(declaration: FirDeclaration) {
     }
 }
 
-private object IsFromVarargKey: FirDeclarationDataKey()
+private object IsFromVarargKey : FirDeclarationDataKey()
+
 var FirProperty.isFromVararg: Boolean? by FirDeclarationDataRegistry.data(IsFromVarargKey)
 
 fun FirAnnotatedDeclaration.hasAnnotation(classId: ClassId): Boolean {
