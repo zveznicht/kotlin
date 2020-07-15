@@ -26,8 +26,9 @@ private fun isMutedInDatabase(testClass: Class<*>, methodKey: String): Boolean {
 private fun isMutedInDatabaseWithLog(testClass: Class<*>, methodKey: String): Boolean {
     val mutedInDatabase = isMutedInDatabase(testClass, methodKey)
 
-    if (mutedInDatabase)
+    if (mutedInDatabase) {
         System.err.println(mutedMessage(testClass, methodKey))
+    }
 
     return mutedInDatabase
 }
