@@ -81,8 +81,8 @@ class RemotelyMutedTests {
 }
 
 class LocallyMutedTests {
-    val tests = getMutedTestsFromDatabase()
     private val muteCommonTestKey = "COMMON"
+    val tests = getMutedTestsFromDatabase()
     val projectTests = getTestsJson(muteCommonTestKey, projectId, false)
 
     internal fun getTestsJson(platformId: String, scopeId: String, isBuildType: Boolean = true): Map<String, MuteTestJson> {
