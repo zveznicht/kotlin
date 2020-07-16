@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.idea.resolve
 import com.intellij.openapi.util.io.FileUtil
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.containers.MultiMap
-import org.jetbrains.kotlin.backend.common.pop
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.test.KotlinLightCodeInsightFixtureTestCase
@@ -97,64 +96,79 @@ abstract class AbstractResolveModeComparisonTest : KotlinLightCodeInsightFixture
 
     private fun findOffsets(resolveModesMarkup: Map<KtElement, List<BodyResolveMode>>): MultiMap<Int, Mark> {
         val offsets = MultiMap.createSmart<Int, Mark>()
-        for ((ktElement, resolveModesForElement) in resolveModesMarkup) {
-            val start = ktElement.startOffset
-            val end = ktElement.endOffset
-            if (resolveModesForElement.isEmpty())
-                offsets.putValue(start, Mark.NotAnalyzed())
+
+        val elementPositionComparator = Comparator<Map.Entry<KtElement, List<BodyResolveMode>>> { (element1, _), (element2, _) ->
+            if (element1.startOffset == element2.startOffset)
+                element2.endOffset.compareTo(element1.endOffset)
             else
-                offsets.putValue(start, Mark.Analyzed(resolveModesForElement))
-            offsets.putValue(end, Mark.End())
+                element1.startOffset.compareTo(element2.startOffset)
         }
+
+        resolveModesMarkup.entries.sortedWith(elementPositionComparator).forEachIndexed { index, (ktElement, resolveModesForElement) ->
+            val ordinal = index + 1
+            val startMark = if (resolveModesForElement.isNotEmpty())
+                Mark.Analyzed(ordinal, resolveModesForElement)
+            else
+                Mark.NotAnalyzed(ordinal)
+
+            offsets.putValue(ktElement.startOffset, startMark)
+            offsets.putValue(ktElement.endOffset, Mark.End(ordinal))
+        }
+
         return offsets
     }
 
     private fun composeTextWithMarkup(offsets: MultiMap<Int, Mark>): String {
         val builder = StringBuilder()
         var offsetBefore = 0
-        var counter = 0
-        val endIndices = ArrayDeque<Int>()
         for ((offset, marks) in offsets.entrySet().sortedBy { it.key }) {
             builder.append(file.text.substring(offsetBefore, offset))
-            for (mark in marks) {
-                if (mark !is Mark.End) {
-                    counter += 1
-                    endIndices.add(counter)
-                }
-
-                when (mark) {
+            for (mark in marks.sorted()) {
+                val renderedMark = when (mark) {
                     is Mark.Analyzed -> {
-                        val modes = mark.modes!!
+                        val modes = mark.modes
                         val modesRepresentation =
                             if (modes.size == RESOLVE_MODES.size) "All"
                             else modes.joinToString { it.toString().toLowerCase().capitalize() }
-                        builder.append("/*${modesRepresentation} ($counter)*/")
+                        "/*$modesRepresentation (${mark.ordinal})*/"
                     }
                     is Mark.NotAnalyzed -> {
-                        builder.append("/*None ($counter)*/")
+                        "/*None (${mark.ordinal})*/"
                     }
                     is Mark.End -> {
-                        builder.append("/*(${endIndices.pop()})*/")
+                        "/*(${mark.ordinal})*/"
                     }
-                    else -> error("Sealed")
                 }
+                builder.append(renderedMark)
             }
             offsetBefore = offset
         }
-        builder.append(file.text.substring(offsetBefore, file.textLength))
+        builder.append(file.text.substring(offsetBefore))
 
         return builder.toString()
     }
 
-    private sealed class Mark(val modes: List<BodyResolveMode>? = null) {
-        class NotAnalyzed : Mark()
-        class Analyzed(modes: List<BodyResolveMode>) : Mark(modes) {
+    private sealed class Mark(val ordinal: Int) : Comparable<Mark> {
+        class NotAnalyzed(ordinal: Int) : Mark(ordinal)
+        class Analyzed(ordinal: Int, val modes: List<BodyResolveMode>) : Mark(ordinal) {
             init {
                 require(modes.isNotEmpty()) { "'Analyzed' mark should not be created without modes" }
             }
         }
 
-        class End : Mark()
+        class End(ordinal: Int) : Mark(ordinal)
+
+        // Sort is intended for marks with same offsets.
+        // Previous element's end goes before next element's start. Ends are closing in reverse order to elements' ordinals.
+        override fun compareTo(other: Mark): Int {
+            if (this is End) {
+                if (other !is End) return -1
+                return -ordinal.compareTo(other.ordinal)
+            } else {
+                if (other is End) return 1
+                return ordinal.compareTo(other.ordinal)
+            }
+        }
     }
 
     private companion object {
