@@ -1,6 +1,7 @@
 package org.jetbrains.kotlin.test.mutes
 
 import com.fasterxml.jackson.module.kotlin.treeToValue
+import khttp.DEFAULT_TIMEOUT
 import khttp.responses.Response
 import khttp.structures.authorization.Authorization
 
@@ -44,7 +45,8 @@ internal fun deleteMutedTests(deleteMap: Map<String, MuteTestJson>) {
         val response = khttp.delete(
             "$buildServerUrl/app/rest/mutes/id:${muteTestJson.id}",
             headers = headers,
-            auth = authUser
+            auth = authUser,
+            timeout = DEFAULT_TIMEOUT * 2
         )
         try {
             checkResponseAndLog(response)
