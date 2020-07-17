@@ -84,7 +84,7 @@ internal fun IrPropertyBuilder.buildProperty(originalDescriptor: PropertyDescrip
         IrPropertySymbolImpl(wrappedDescriptor),
         name, visibility, modality,
         isVar, isConst, isLateinit, isDelegated, isExternal, isExpect,
-        isFakeOverride, containerSource
+        isFakeOverride, originalDeclaration, containerSource
     ).also {
         wrappedDescriptor.bind(it)
     }

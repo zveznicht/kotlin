@@ -38,5 +38,6 @@ interface IrProperty : IrOverridableMember, IrMetadataSourceOwner {
     var getter: IrSimpleFunction?
     var setter: IrSimpleFunction?
 
+    val originalDeclaration: IrProperty
     val containerSource: DeserializedContainerSource?
 }

@@ -20,6 +20,7 @@ class IrPropertyBuilder : IrDeclarationBuilder() {
     var isExpect: Boolean = false
     var isFakeOverride: Boolean = false
 
+    var originalDeclaration: IrProperty? = null
     var containerSource: DeserializedContainerSource? = null
 
     fun updateFrom(from: IrProperty) {
