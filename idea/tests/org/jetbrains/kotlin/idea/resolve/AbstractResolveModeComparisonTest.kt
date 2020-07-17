@@ -96,15 +96,9 @@ abstract class AbstractResolveModeComparisonTest : KotlinLightCodeInsightFixture
 
     private fun findOffsets(resolveModesMarkup: Map<KtElement, List<BodyResolveMode>>): MultiMap<Int, Mark> {
         val offsets = MultiMap.createSmart<Int, Mark>()
+        val elementPositionComparator = compareBy(KtElement::startOffset).thenByDescending(KtElement::endOffset)
 
-        val elementPositionComparator = Comparator<Map.Entry<KtElement, List<BodyResolveMode>>> { (element1, _), (element2, _) ->
-            if (element1.startOffset == element2.startOffset)
-                element2.endOffset.compareTo(element1.endOffset)
-            else
-                element1.startOffset.compareTo(element2.startOffset)
-        }
-
-        resolveModesMarkup.entries.sortedWith(elementPositionComparator).forEachIndexed { index, (ktElement, resolveModesForElement) ->
+        resolveModesMarkup.toSortedMap(elementPositionComparator).entries.forEachIndexed { index, (ktElement, resolveModesForElement) ->
             val ordinal = index + 1
             val startMark = if (resolveModesForElement.isNotEmpty())
                 Mark.Analyzed(ordinal, resolveModesForElement)
@@ -121,26 +115,18 @@ abstract class AbstractResolveModeComparisonTest : KotlinLightCodeInsightFixture
     private fun composeTextWithMarkup(offsets: MultiMap<Int, Mark>): String {
         val builder = StringBuilder()
         var offsetBefore = 0
+
+        val markComparator = compareBy<Mark>(
+            { if (it is Mark.End) 0 else 1 }, // Ends go first
+            { if (it is Mark.End) -it.ordinal else it.ordinal } // Ends sorted descending, others - ascending
+        )
+
         for ((offset, marks) in offsets.entrySet().sortedBy { it.key }) {
             builder.append(file.text.substring(offsetBefore, offset))
-            for (mark in marks.sorted()) {
-                val renderedMark = when (mark) {
-                    is Mark.Analyzed -> {
-                        val modes = mark.modes
-                        val modesRepresentation =
-                            if (modes.size == RESOLVE_MODES.size) "All"
-                            else modes.joinToString { it.toString().toLowerCase().capitalize() }
-                        "/*$modesRepresentation (${mark.ordinal})*/"
-                    }
-                    is Mark.NotAnalyzed -> {
-                        "/*None (${mark.ordinal})*/"
-                    }
-                    is Mark.End -> {
-                        "/*(${mark.ordinal})*/"
-                    }
-                }
-                builder.append(renderedMark)
-            }
+
+            val sortedMarks = marks.sortedWith(markComparator)
+            builder.append(sortedMarks.joinToString("") { renderMark(it) })
+
             offsetBefore = offset
         }
         builder.append(file.text.substring(offsetBefore))
@@ -148,7 +134,23 @@ abstract class AbstractResolveModeComparisonTest : KotlinLightCodeInsightFixture
         return builder.toString()
     }
 
-    private sealed class Mark(val ordinal: Int) : Comparable<Mark> {
+    private fun renderMark(mark: Mark): String = when (mark) {
+        is Mark.Analyzed -> {
+            val modes = mark.modes
+            val modesRepresentation =
+                if (modes.size == RESOLVE_MODES.size) "All"
+                else modes.joinToString { it.toString().toLowerCase().capitalize() }
+            "/*$modesRepresentation (${mark.ordinal})*/"
+        }
+        is Mark.NotAnalyzed -> {
+            "/*None (${mark.ordinal})*/"
+        }
+        is Mark.End -> {
+            "/*(${mark.ordinal})*/"
+        }
+    }
+
+    private sealed class Mark(val ordinal: Int) {
         class NotAnalyzed(ordinal: Int) : Mark(ordinal)
         class Analyzed(ordinal: Int, val modes: List<BodyResolveMode>) : Mark(ordinal) {
             init {
@@ -157,18 +159,6 @@ abstract class AbstractResolveModeComparisonTest : KotlinLightCodeInsightFixture
         }
 
         class End(ordinal: Int) : Mark(ordinal)
-
-        // Sort is intended for marks with same offsets.
-        // Previous element's end goes before next element's start. Ends are closing in reverse order to elements' ordinals.
-        override fun compareTo(other: Mark): Int {
-            if (this is End) {
-                if (other !is End) return -1
-                return -ordinal.compareTo(other.ordinal)
-            } else {
-                if (other is End) return 1
-                return ordinal.compareTo(other.ordinal)
-            }
-        }
     }
 
     private companion object {
