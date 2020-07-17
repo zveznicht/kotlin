@@ -77,7 +77,7 @@ inline class FunctionFlags(val flags: Long) {
 
                 val flags = IrFlags.getFunctionFlags(
                     hasAnnotation, visibility, modality, kind,
-                    isOperator, false, isInline, isTailrec, isExternal, isSuspend, isExpect
+                    isOperator, isInfix, isInline, isTailrec, isExternal, isSuspend, isExpect
                 )
 
                 return flags.toLong()
