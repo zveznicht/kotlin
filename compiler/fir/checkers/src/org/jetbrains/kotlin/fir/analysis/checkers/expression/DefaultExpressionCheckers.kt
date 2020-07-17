@@ -13,7 +13,8 @@ object CommonExpressionCheckers : ExpressionCheckers() {
         FirSuperclassNotAccessibleFromInterfaceChecker,
         FirAbstractSuperCallChecker,
         FirQualifiedSupertypeExtendedByOtherSupertypeChecker,
-        FirProjectionsOnNonClassTypeArgumentChecker
+        FirProjectionsOnNonClassTypeArgumentChecker,
+        FirTypeArgumentsNotAllowedExpressionChecker,
     )
     override val functionCallCheckers: List<FirFunctionCallChecker> = listOf()
 }

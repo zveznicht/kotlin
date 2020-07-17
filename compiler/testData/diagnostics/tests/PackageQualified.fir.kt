@@ -13,7 +13,7 @@ package foobar.a
 package foobar
 
 abstract class Foo<T>() {
-    abstract val x : T<Int>
+    abstract val x : T<!TYPE_ARGUMENTS_NOT_ALLOWED!><Int><!>
 }
 
 // FILE: b.kt
