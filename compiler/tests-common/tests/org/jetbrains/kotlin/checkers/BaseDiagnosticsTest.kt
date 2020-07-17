@@ -76,6 +76,8 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
         super.tearDown()
     }
 
+    override fun parseDirectivesPerFiles() = true
+
     override fun createTestModule(
         name: String,
         dependencies: List<String>,
