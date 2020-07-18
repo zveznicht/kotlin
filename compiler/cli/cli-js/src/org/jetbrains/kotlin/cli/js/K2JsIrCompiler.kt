@@ -48,7 +48,9 @@ import org.jetbrains.kotlin.utils.PathUtil
 import org.jetbrains.kotlin.utils.fileUtils.withReplacedExtensionOrNull
 import org.jetbrains.kotlin.utils.join
 import java.io.File
+import java.io.FileWriter
 import java.io.IOException
+import java.io.PrintWriter
 
 enum class ProduceKind {
     DEFAULT,  // Determine what to produce based on js-v1 options
@@ -182,6 +184,9 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
             it.libraryFile.absolutePath in friendAbsolutePaths
         }
 
+        val loadedLazily = arguments.irLoadedLazily?.split(',') ?: emptyList()
+        config.configuration.put(JSConfigurationKeys.ASYNC_IMPORTS, loadedLazily)
+
         if (arguments.irProduceKlibDir || arguments.irProduceKlibFile) {
             val outputKlibPath =
                 if (arguments.irProduceKlibDir)
@@ -235,8 +240,7 @@ class K2JsIrCompiler : CLICompiler<K2JSCompilerArguments>() {
                     generateFullJs = !arguments.irDce,
                     generateDceJs = arguments.irDce,
                     dceDriven = arguments.irDceDriven,
-                    multiModule = arguments.irPerModule,
-                    relativeRequirePath = true
+                    multiModule = arguments.irPerModule
                 )
             } catch (e: JsIrCompilationError) {
                 return COMPILATION_ERROR

@@ -436,6 +436,7 @@ class GenerateIrRuntime {
                 configuration,
                 emptyList(),
                 friendModuleDescriptors = emptyList(),
+                lazyModuleDependencies = emptyList(),
                 thisIsBuiltInsModule = true,
                 customBuiltInsModule = null
             )

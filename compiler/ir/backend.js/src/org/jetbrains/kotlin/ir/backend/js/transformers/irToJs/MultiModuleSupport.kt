@@ -103,7 +103,7 @@ private class CrossModuleReferenceInfoImpl(val topLevelDeclarationToModule: Map<
 
 }
 
-fun buildCrossModuleReferenceInfo(modules: Iterable<IrModuleFragment>): CrossModuleReferenceInfo {
+fun buildCrossModuleReferenceInfo(modules: Iterable<IrModuleFragment>, backendContext: JsIrBackendContext): CrossModuleReferenceInfo {
     val map = mutableMapOf<IrDeclaration, IrModuleFragment>()
 
     modules.forEach { module ->
@@ -111,6 +111,16 @@ fun buildCrossModuleReferenceInfo(modules: Iterable<IrModuleFragment>): CrossMod
             file.declarations.forEach { declaration ->
                 map[declaration] = module
             }
+        }
+
+        backendContext.packageLevelJsModules[module]?.forEach { file ->
+            file.declarations.forEach { declaration ->
+                map[declaration] = module
+            }
+        }
+
+        backendContext.declarationLevelJsModules[module]?.forEach { declaration ->
+            map[declaration] = module
         }
     }
 
@@ -207,11 +217,13 @@ fun breakCrossModuleFieldAccess(
 }
 
 val IrModuleFragment.safeName: String
-    get() {
-        var result = name.asString()
+    get() = name.asString().transformToSafeModuleName()
 
-        if (result.startsWith('<')) result = result.substring(1)
-        if (result.endsWith('>')) result = result.substring(0, result.length - 1)
+fun String.transformToSafeModuleName(): String {
+    var result = this
 
-        return sanitizeName("kotlin-$result")
-    }
+    if (result.startsWith('<')) result = result.substring(1)
+    if (result.endsWith('>')) result = result.substring(0, result.length - 1)
+
+    return sanitizeName("kotlin-$result")
+}

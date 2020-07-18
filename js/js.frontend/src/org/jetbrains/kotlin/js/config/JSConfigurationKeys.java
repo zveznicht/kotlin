@@ -86,4 +86,7 @@ public class JSConfigurationKeys {
 
     public static final CompilerConfigurationKey<Boolean> DISABLE_FAKE_OVERRIDE_VALIDATOR =
             CompilerConfigurationKey.create("disable IR fake override validator");
+
+    public static final CompilerConfigurationKey<List<String>> ASYNC_IMPORTS =
+            CompilerConfigurationKey.create("dependencies, loaded asynchronously");
 }

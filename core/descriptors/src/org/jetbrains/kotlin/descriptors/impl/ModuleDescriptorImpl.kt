@@ -124,6 +124,21 @@ class ModuleDescriptorImpl @JvmOverloads constructor(
         setDependencies(ModuleDependenciesImpl(descriptors, friends, emptyList()))
     }
 
+    fun setDependencies(descriptors: List<ModuleDescriptorImpl>, friends: Set<ModuleDescriptorImpl>, lazyDependencies: Set<ModuleDescriptorImpl>) {
+        setDependencies(ModuleDependenciesImpl(descriptors, friends, emptyList()))
+        this.lazyDependencies = lazyDependencies
+    }
+
+    fun setLazyDependencies(lazyDependencies: Set<ModuleDescriptorImpl>) {
+        this.lazyDependencies = lazyDependencies
+    }
+
+    private var lazyDependencies: Set<ModuleDescriptorImpl> = emptySet()
+
+    override fun shouldLazyLoad(targetModule: ModuleDescriptor): Boolean {
+        return targetModule in lazyDependencies
+    }
+
     override fun shouldSeeInternalsOf(targetModule: ModuleDescriptor): Boolean {
         if (this == targetModule) return true
         if (targetModule in dependencies!!.modulesWhoseInternalsAreVisible) return true

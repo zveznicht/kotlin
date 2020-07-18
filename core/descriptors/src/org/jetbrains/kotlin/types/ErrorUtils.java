@@ -53,6 +53,11 @@ public class ErrorUtils {
 
     static {
         ERROR_MODULE = new ModuleDescriptor() {
+            @Override
+            public boolean shouldLazyLoad(@NotNull ModuleDescriptor targetModule) {
+                return false;
+            }
+
             @Nullable
             @Override
             public <T> T getCapability(@NotNull Capability<T> capability) {

@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.backend.common.lower.optimizations.FoldConstantLower
 import org.jetbrains.kotlin.backend.common.lower.optimizations.PropertyAccessorInlineLowering
 import org.jetbrains.kotlin.backend.common.phaser.*
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.backend.js.lower.*
 import org.jetbrains.kotlin.ir.backend.js.lower.calls.CallsLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.cleanup.CleanupLowering
@@ -644,12 +645,19 @@ private val cleanupLoweringPhase = makeBodyLoweringPhase(
     description = "Clean up IR before codegen"
 )
 
+private val triggerModuleLoadingPhase = makeBodyLoweringPhase(
+    ::TriggerModuleLoading,
+    name = "TriggerModuleLowering",
+    description = "Trigger module loading"
+)
+
 val loweringList = listOf<Lowering>(
     scriptRemoveReceiverLowering,
     validateIrBeforeLowering,
     expectDeclarationsRemovingPhase,
     stripTypeAliasDeclarationsPhase,
     arrayConstructorPhase,
+    triggerModuleLoadingPhase,
     lateinitNullableFieldsPhase,
     lateinitDeclarationLoweringPhase,
     lateinitUsageLoweringPhase,
@@ -690,7 +698,7 @@ val loweringList = listOf<Lowering>(
     propertyReferenceLoweringPhase,
     interopCallableReferenceLoweringPhase,
     returnableBlockLoweringPhase,
-    forLoopsLoweringPhase,
+//    forLoopsLoweringPhase,
     primitiveCompanionLoweringPhase,
     propertyAccessorInlinerLoweringPhase,
     foldConstantLoweringPhase,

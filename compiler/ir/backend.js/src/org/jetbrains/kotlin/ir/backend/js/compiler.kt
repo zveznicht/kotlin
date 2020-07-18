@@ -48,11 +48,11 @@ fun compile(
     dceDriven: Boolean = false,
     es6mode: Boolean = false,
     multiModule: Boolean = false,
-    relativeRequirePath: Boolean = false
+    lazyImportName: String = "import"
 ): CompilerResult {
     stageController = StageController()
 
-    val (moduleFragment: IrModuleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer) =
+    val (moduleFragment: IrModuleFragment, dependencyModules, irBuiltIns, symbolTable, deserializer, lazyImportMap) =
         loadIr(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, PersistentIrFactory)
 
     val moduleDescriptor = moduleFragment.descriptor
@@ -62,7 +62,16 @@ fun compile(
         is MainModule.Klib -> dependencyModules
     }
 
-    val context = JsIrBackendContext(moduleDescriptor, irBuiltIns, symbolTable, allModules.first(), exportedDeclarations, configuration, es6mode = es6mode)
+    val context = JsIrBackendContext(
+        moduleDescriptor,
+        irBuiltIns,
+        symbolTable,
+        allModules.first(),
+        exportedDeclarations,
+        configuration,
+        es6mode = es6mode,
+        lazyImportMap = lazyImportMap
+    )
 
     // Load declarations referenced during `context` initialization
     val irProviders = listOf(deserializer)
@@ -95,7 +104,7 @@ fun compile(
             fullJs = true,
             dceJs = false,
             multiModule = multiModule,
-            relativeRequirePath = relativeRequirePath
+            lazyImportName = lazyImportName
         )
         return transformer.generateModule(allModules)
     } else {
@@ -106,7 +115,7 @@ fun compile(
             fullJs = generateFullJs,
             dceJs = generateDceJs,
             multiModule = multiModule,
-            relativeRequirePath = relativeRequirePath
+            lazyImportName = lazyImportName
         )
         return transformer.generateModule(allModules)
     }

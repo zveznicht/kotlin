@@ -101,6 +101,8 @@ abstract class BasicIrBoxTest(
 
         val transitiveLibraries = config.configuration[JSConfigurationKeys.TRANSITIVE_LIBRARIES]!!.map { File(it).name }
 
+        val lazyImports = config.configuration[JSConfigurationKeys.ASYNC_IMPORTS]!!
+
         val allKlibPaths = (runtimeKlibs + transitiveLibraries.map {
             compilationCache[it] ?: error("Can't find compiled module for dependency $it")
         }).map { File(it).absolutePath }
@@ -143,7 +145,8 @@ abstract class BasicIrBoxTest(
                     generateFullJs = true,
                     generateDceJs = runIrDce,
                     es6mode = runEs6Mode,
-                    multiModule = splitPerModule || perModule
+                    multiModule = splitPerModule || perModule,
+                    lazyImportName = "import2" // avoid breaking test runner
                 )
 
                 compiledModule.jsCode!!.writeTo(outputFile, config)
@@ -169,7 +172,8 @@ abstract class BasicIrBoxTest(
                     exportedDeclarations = setOf(FqName.fromSegments(listOfNotNull(testPackage, testFunction))),
                     dceDriven = true,
                     es6mode = runEs6Mode,
-                    multiModule = splitPerModule || perModule
+                    multiModule = splitPerModule || perModule,
+                    lazyImportName = "import2" // avoid breaking test runner
                 ).jsCode!!.writeTo(pirOutputFile, config)
             }
         } else {

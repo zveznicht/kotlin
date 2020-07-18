@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.backend.js.export.ExportModelToJsStatements
 import org.jetbrains.kotlin.ir.backend.js.export.ExportedModule
 import org.jetbrains.kotlin.ir.backend.js.export.toTypeScript
 import org.jetbrains.kotlin.ir.backend.js.lower.StaticMembersLowering
+import org.jetbrains.kotlin.ir.backend.js.lower.TriggerModuleLoading
 import org.jetbrains.kotlin.ir.backend.js.utils.*
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
@@ -23,6 +24,9 @@ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.js.backend.ast.*
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
 import org.jetbrains.kotlin.utils.DFS
+import java.io.BufferedWriter
+import java.io.FileWriter
+import java.io.PrintWriter
 
 class IrModuleToJsTransformer(
     private val backendContext: JsIrBackendContext,
@@ -32,7 +36,7 @@ class IrModuleToJsTransformer(
     private val fullJs: Boolean = true,
     private val dceJs: Boolean = false,
     private val multiModule: Boolean = false,
-    private val relativeRequirePath: Boolean = false
+    private val lazyImportName: String = "import"
 ) {
     private val generateRegionComments = backendContext.configuration.getBoolean(JSConfigurationKeys.GENERATE_REGION_COMMENTS)
 
@@ -41,7 +45,7 @@ class IrModuleToJsTransformer(
             externalPackageFragment.values + listOf(
                 bodilessBuiltInsPackageFragment,
                 intrinsics.externalPackageFragment
-            ) + packageLevelJsModules
+            ) + packageLevelJsModules.values.flatMap { it }
         }
 
         val exportedModule = ExportModelGenerator(backendContext).generateExport(modules)
@@ -76,7 +80,7 @@ class IrModuleToJsTransformer(
     private fun generateWrappedModuleBody(modules: Iterable<IrModuleFragment>, exportedModule: ExportedModule, namer: NameTables): JsCode {
         if (multiModule) {
 
-            val refInfo = buildCrossModuleReferenceInfo(modules)
+            val refInfo = buildCrossModuleReferenceInfo(modules, backendContext)
 
             val rM = modules.reversed()
 
@@ -94,7 +98,8 @@ class IrModuleToJsTransformer(
             val dependencies = others.mapIndexed { index, module ->
                 val moduleName = sanitizeName(module.safeName)
 
-                val exportedDeclarations = ExportModelGenerator(backendContext).let { module.files.flatMap { file -> it.generateExport(file) } }
+                val exportedDeclarations =
+                    ExportModelGenerator(backendContext).let { module.files.flatMap { file -> it.generateExport(file) } }
 
                 moduleName to generateWrappedModuleBody2(
                     listOf(module),
@@ -142,6 +147,7 @@ class IrModuleToJsTransformer(
 
         val (importStatements, importedJsModules) =
             generateImportStatements(
+                modules,
                 getNameForExternalDeclaration = { rootContext.getNameForStaticDeclaration(it) },
                 declareFreshGlobal = { JsName(sanitizeName(it)) } // TODO: Declare fresh name
             )
@@ -153,7 +159,12 @@ class IrModuleToJsTransformer(
 
         val callToMain = generateCallToMain(modules, rootContext)
 
-        val (crossModuleImports, importedKotlinModules) = generateCrossModuleImports(nameGenerator, modules, dependencies, { JsName(sanitizeName(it)) })
+        val (crossModuleImports, importedKotlinModules) = generateCrossModuleImports(
+            nameGenerator,
+            modules,
+            dependencies,
+            { JsName(sanitizeName(it)) })
+
         val crossModuleExports = generateCrossModuleExports(modules, refInfo, internalModuleName)
 
         val program = JsProgram()
@@ -197,17 +208,74 @@ class IrModuleToJsTransformer(
         val imports = mutableListOf<JsStatement>()
         val modules = mutableListOf<JsImportedModule>()
 
+        namerWithImports.getNameForStaticFunction(backendContext.setModuleLoader.owner)
+        namerWithImports.getNameForStaticFunction(backendContext.isLoaded.owner)
+        namerWithImports.getNameForStaticFunction(backendContext.reportLoaded.owner)
+
         namerWithImports.imports().forEach { (module, names) ->
             check(module in allowedDependencies) {
                 val deps = if (names.size > 10) "[${names.take(10).joinToString()}, ...]" else "$names"
                 "Module ${currentModules.map { it.name.asString() }} depend on module ${module.name.asString()} via $deps"
             }
 
-            val moduleName = declareFreshGlobal(module.safeName)
-            modules += JsImportedModule(moduleName.ident, moduleName, moduleName.makeRef(), relativeRequirePath)
+            if (module in currentModules || currentModules.any { !backendContext.shouldLazyLoad(it.descriptor, module.descriptor) }) {
+                val moduleName = declareFreshGlobal(module.safeName)
+                modules += JsImportedModule("./${moduleName.ident}.js", moduleName, moduleName.makeRef())
 
-            names.forEach {
-                imports += JsVars(JsVars.JsVar(JsName(it), JsNameRef(it, JsNameRef("\$crossModule\$", moduleName.makeRef()))))
+                names.forEach {
+                    imports += JsVars(JsVars.JsVar(JsName(it), JsNameRef(it, JsNameRef("\$crossModule\$", moduleName.makeRef()))))
+                }
+            } else {
+                val moduleName = JsName(module.safeName)
+                imports += JsVars(JsVars.JsVar(moduleName))
+
+                names.forEach {
+                    imports += JsVars(JsVars.JsVar(JsName(it)))
+                }
+
+
+                val loader = JsFunction(JsDynamicScope, "loader for ${module.name.asString()}")
+                loader.body = JsBlock(
+                    JsReturn(
+                        JsInvocation(
+                            JsNameRef("then", JsInvocation(JsNameRef(lazyImportName), JsStringLiteral("./${module.safeName}.js"))),
+                            JsFunction(JsDynamicScope, "initializer for ${module.name.asString()}").apply {
+                                val moduleParam = JsName("module")
+                                parameters += JsParameter(moduleParam)
+                                val initIfNeeded = JsIf(
+                                    JsAstUtils.not(
+                                        JsInvocation(
+                                            namerWithImports.getNameForStaticFunction(backendContext.isLoaded.owner).makeRef(),
+                                            JsStringLiteral(currentModules.single().name.asString()),
+                                            JsStringLiteral(module.name.asString()),
+                                            JsBooleanLiteral(false)
+                                        )
+                                    ),
+                                    JsBlock(listOf(
+                                        JsInvocation(
+                                            namerWithImports.getNameForStaticFunction(backendContext.reportLoaded.owner).makeRef(),
+                                            JsStringLiteral(currentModules.single().name.asString()),
+                                            JsStringLiteral(module.name.asString())
+                                        ).makeStmt(),
+                                        JsAstUtils.assignment(moduleName.makeRef(), JsNameRef("default", moduleParam.makeRef())).makeStmt()
+                                    ) + names.map {
+                                        JsAstUtils.assignment(
+                                            JsNameRef(it),
+                                            JsNameRef(it, JsNameRef("\$crossModule\$", moduleName.makeRef()))
+                                        ).makeStmt()
+                                    })
+                                )
+                                body = JsBlock(initIfNeeded)
+                            })
+                    )
+                )
+
+                imports += JsInvocation(
+                    namerWithImports.getNameForStaticFunction(backendContext.setModuleLoader.owner).makeRef(),
+                    JsStringLiteral(currentModules.single().name.asString()),
+                    JsStringLiteral(module.name.asString()),
+                    loader
+                ).makeStmt()
             }
         }
 
@@ -320,49 +388,55 @@ class IrModuleToJsTransformer(
     }
 
     private fun generateImportStatements(
+        modules: Iterable<IrModuleFragment>,
         getNameForExternalDeclaration: (IrDeclarationWithName) -> JsName,
         declareFreshGlobal: (String) -> JsName
     ): Pair<MutableList<JsStatement>, List<JsImportedModule>> {
-        val declarationLevelJsModules =
-            backendContext.declarationLevelJsModules.map { externalDeclaration ->
+        val declarationLevelJsModules = mutableListOf<JsImportedModule>()
+
+        modules.forEach {
+            backendContext.declarationLevelJsModules[it]?.forEach { externalDeclaration ->
                 val jsModule = externalDeclaration.getJsModule()!!
                 val name = getNameForExternalDeclaration(externalDeclaration)
-                JsImportedModule(jsModule, name, name.makeRef())
+                declarationLevelJsModules += JsImportedModule(jsModule, name, name.makeRef())
             }
+        }
 
         val packageLevelJsModules = mutableListOf<JsImportedModule>()
         val importStatements = mutableListOf<JsStatement>()
 
-        for (file in backendContext.packageLevelJsModules) {
-            val jsModule = file.getJsModule()
-            val jsQualifier = file.getJsQualifier()
+        modules.mapNotNull { backendContext.packageLevelJsModules[it] }.forEach { jsModules ->
+            for (file in jsModules) {
+                val jsModule = file.getJsModule()
+                val jsQualifier = file.getJsQualifier()
 
-            assert(jsModule != null || jsQualifier != null)
+                assert(jsModule != null || jsQualifier != null)
 
-            val qualifiedReference: JsNameRef
+                val qualifiedReference: JsNameRef
 
-            if (jsModule != null) {
-                val internalName = declareFreshGlobal("\$module\$$jsModule")
-                packageLevelJsModules += JsImportedModule(jsModule, internalName, null)
+                if (jsModule != null) {
+                    val internalName = declareFreshGlobal("\$module\$$jsModule")
+                    packageLevelJsModules += JsImportedModule(jsModule, internalName, null)
 
-                qualifiedReference =
-                    if (jsQualifier == null)
-                        internalName.makeRef()
-                    else
-                        JsNameRef(jsQualifier, internalName.makeRef())
-            } else {
-                qualifiedReference = JsNameRef(jsQualifier!!)
-            }
-
-            file.declarations
-                .asSequence()
-                .filterIsInstance<IrDeclarationWithName>()
-                .forEach { declaration ->
-                    val declName = getNameForExternalDeclaration(declaration)
-                    importStatements.add(
-                        JsVars(JsVars.JsVar(declName, JsNameRef(declName, qualifiedReference)))
-                    )
+                    qualifiedReference =
+                        if (jsQualifier == null)
+                            internalName.makeRef()
+                        else
+                            JsNameRef(jsQualifier, internalName.makeRef())
+                } else {
+                    qualifiedReference = JsNameRef(jsQualifier!!)
                 }
+
+                file.declarations
+                    .asSequence()
+                    .filterIsInstance<IrDeclarationWithName>()
+                    .forEach { declaration ->
+                        val declName = getNameForExternalDeclaration(declaration)
+                        importStatements.add(
+                            JsVars(JsVars.JsVar(declName, JsNameRef(declName, qualifiedReference)))
+                        )
+                    }
+            }
         }
 
         val importedJsModules = (declarationLevelJsModules + packageLevelJsModules).distinctBy { it.key }

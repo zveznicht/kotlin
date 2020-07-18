@@ -62,6 +62,7 @@ public class JsConfig {
 
     private List<ModuleDescriptorImpl> moduleDescriptors;
     private List<ModuleDescriptorImpl> friendModuleDescriptors;
+    private List<ModuleDescriptorImpl> lazyDependencyDescriptors;
 
     private boolean initialized = false;
 
@@ -279,6 +280,12 @@ public class JsConfig {
         return friendModuleDescriptors;
     }
 
+    @NotNull
+    public List<ModuleDescriptorImpl> getLazyDependencyDescriptors() {
+        init();
+        return lazyDependencyDescriptors;
+    }
+
     public void init() {
         if (!initialized) {
             JsConfig.Reporter reporter = new Reporter() {
@@ -297,6 +304,17 @@ public class JsConfig {
 
         if (friendModuleDescriptors == null) {
             friendModuleDescriptors = CollectionsKt.map(friends, this::createModuleDescriptor);
+        }
+
+        if (lazyDependencyDescriptors == null) {
+            Set<String> asyncImports = new HashSet<>(configuration.getList(JSConfigurationKeys.ASYNC_IMPORTS));
+            lazyDependencyDescriptors = CollectionsKt.filter(moduleDescriptors, (ModuleDescriptorImpl m) -> asyncImports.contains(m.getName().asString()));
+
+            if (lazyDependencyDescriptors.size() != asyncImports.size()) {
+                List<String> moduleNames = CollectionsKt.map(moduleDescriptors, (ModuleDescriptorImpl m) -> m.getName().asString());
+                List<String> wrongModules = CollectionsKt.filter(asyncImports, (String name) -> !moduleNames.contains(name));
+                throw new Error("Cannot build the lazy loaded module set. Available modules: " + moduleNames + "; wrong async module references: " + wrongModules);
+            }
         }
     }
 

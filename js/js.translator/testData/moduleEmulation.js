@@ -9,6 +9,10 @@ function require(moduleId) {
     return emulatedModules[moduleId];
 }
 
+function import2(moduleId) {
+    return Promise.resolve({ default: emulatedModules[moduleId] })
+}
+
 var $kotlin_test_internal$ = {
     require: require,
     beginModule : function () {
@@ -16,6 +20,7 @@ var $kotlin_test_internal$ = {
     },
     endModule : function(moduleId) {
         emulatedModules[moduleId] = module.exports;
+        emulatedModules['./' + moduleId + '.js'] = module.exports;
     },
     setModuleId: function(moduleId) {
         currentModuleId = moduleId;
@@ -39,5 +44,6 @@ function define(moduleId, dependencies, body) {
     if (result != null) {
         emulatedModules[moduleId] = result;
     }
+    emulatedModules['./' + moduleId + '.js'] = emulatedModules[moduleId];
 }
 define.amd = {};

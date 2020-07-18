@@ -893,6 +893,19 @@ public class BoxJsTestGenerated extends AbstractBoxJsTest {
         public void testTopLevelProperty() throws Exception {
             runTest("js/js.translator/testData/box/crossModuleRefIR/topLevelProperty.kt");
         }
+
+        @TestMetadata("js/js.translator/testData/box/crossModuleRefIR/lazyLoading")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class LazyLoading extends AbstractBoxJsTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.JS, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInLazyLoading() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("js/js.translator/testData/box/crossModuleRefIR/lazyLoading"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.JS, true);
+            }
+        }
     }
 
     @TestMetadata("js/js.translator/testData/box/dataClass")

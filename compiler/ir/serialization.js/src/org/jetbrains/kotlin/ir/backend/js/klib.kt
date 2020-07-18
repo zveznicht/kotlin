@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 import org.jetbrains.kotlin.js.analyzer.JsAnalysisResult
 import org.jetbrains.kotlin.js.config.JSConfigurationKeys
+import org.jetbrains.kotlin.js.config.JsConfig
 import org.jetbrains.kotlin.konan.properties.propertyList
 import org.jetbrains.kotlin.konan.util.KlibMetadataFactories
 import org.jetbrains.kotlin.library.*
@@ -63,6 +64,9 @@ import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.utils.DFS
 import java.io.File
+import java.io.FileWriter
+import java.io.PrintWriter
+import java.util.*
 import org.jetbrains.kotlin.konan.file.File as KFile
 
 val KotlinLibrary.moduleName: String
@@ -196,7 +200,8 @@ data class IrModuleInfo(
     val allDependencies: List<IrModuleFragment>,
     val bultins: IrBuiltIns,
     val symbolTable: SymbolTable,
-    val deserializer: JsIrLinker
+    val deserializer: JsIrLinker,
+    val lazyImportMap: Map<ModuleDescriptor, Iterable<ModuleDescriptor>>
 )
 
 private fun sortDependencies(dependencies: List<KotlinLibrary>, mapping: Map<KotlinLibrary, ModuleDescriptor>): Collection<KotlinLibrary> {
@@ -219,6 +224,20 @@ fun loadIr(
 ): IrModuleInfo {
     val depsDescriptors = ModulesStructure(project, mainModule, analyzer, configuration, allDependencies, friendDependencies)
     val deserializeFakeOverrides = configuration.getBoolean(CommonConfigurationKeys.DESERIALIZE_FAKE_OVERRIDES)
+
+    val klibToDescriptor = allDependencies.getFullList().associateWith {
+        depsDescriptors.getModuleDescriptor(it)
+    }
+
+    val moduleNameToDescriptor = klibToDescriptor.values.associateBy { it.name.asString() }
+
+    val lazyImportMap: MutableMap<ModuleDescriptor, Iterable<ModuleDescriptor>> =
+        klibToDescriptor.entries.associateByTo(mutableMapOf(), { (_, md) -> md }, { (klib, _) ->
+            klib.manifestProperties.propertyList(KLIB_PROPERTY_LAZY_IMPORT, escapeInQuotes = true).map {
+                moduleNameToDescriptor[it]
+                    ?: error("Lazy loading: cannot find module $it; available modules: ${moduleNameToDescriptor.keys}")
+            }
+        })
 
     when (mainModule) {
         is MainModule.SourceFiles -> {
@@ -246,7 +265,9 @@ fun loadIr(
 
             irBuiltIns.knownBuiltins.forEach { it.acceptVoid(mangleChecker) }
 
-            return IrModuleInfo(moduleFragment, deserializedModuleFragments, irBuiltIns, symbolTable, irLinker)
+            lazyImportMap[moduleFragment.descriptor] = configuration.getList(JSConfigurationKeys.ASYNC_IMPORTS).map { moduleNameToDescriptor[it]!! }
+
+            return IrModuleInfo(moduleFragment, deserializedModuleFragments, irBuiltIns, symbolTable, irLinker, lazyImportMap)
         }
         is MainModule.Klib -> {
             val moduleDescriptor = depsDescriptors.getModuleDescriptor(mainModule.lib)
@@ -282,7 +303,7 @@ fun loadIr(
             ExternalDependenciesGenerator(symbolTable, listOf(irLinker), configuration.languageVersionSettings).generateUnboundSymbolsAsDependencies()
             irLinker.postProcess()
 
-            return IrModuleInfo(moduleFragment, deserializedModuleFragments, irBuiltIns, symbolTable, irLinker)
+            return IrModuleInfo(moduleFragment, deserializedModuleFragments, irBuiltIns, symbolTable, irLinker, lazyImportMap)
         }
     }
 }
@@ -377,6 +398,8 @@ private class ModulesStructure(
         require(mainModule is MainModule.SourceFiles)
         val files = mainModule.files
 
+        val asyncDeps = compilerConfiguration.getList(JSConfigurationKeys.ASYNC_IMPORTS).toSet()
+
         analyzer.analyzeAndReport(files) {
             TopDownAnalyzerFacadeForJSIR.analyzeFiles(
                 files,
@@ -384,6 +407,7 @@ private class ModulesStructure(
                 compilerConfiguration,
                 allDependencies.getFullList().map { getModuleDescriptor(it) },
                 friendModuleDescriptors = friendDependencies.map { getModuleDescriptor(it) },
+                lazyModuleDependencies = allDependencies.getFullList().map { getModuleDescriptor(it) }.filter { it.name.asString() in asyncDeps },
                 thisIsBuiltInsModule = builtInModuleDescriptor == null,
                 customBuiltInsModule = builtInModuleDescriptor
             )
@@ -437,6 +461,8 @@ private class ModulesStructure(
         else
             null // null in case compiling builtInModule itself
 }
+
+const val KLIB_PROPERTY_LAZY_IMPORT = "lazyImport"
 
 private fun getDescriptorForElement(
     context: BindingContext,
@@ -524,12 +550,17 @@ fun serializeModuleIntoKlib(
         irVersion = KlibIrVersion.INSTANCE.toString()
     )
 
+    val properties = Properties().also { p ->
+        val lazyImports = configuration.getList(JSConfigurationKeys.ASYNC_IMPORTS).joinToString(" ")
+        p.setProperty(KLIB_PROPERTY_LAZY_IMPORT, lazyImports)
+    }
+
     buildKotlinLibrary(
         linkDependencies = dependencies,
         ir = fullSerializedIr,
         metadata = serializedMetadata,
         dataFlowGraph = null,
-        manifestProperties = null,
+        manifestProperties = properties,
         moduleName = moduleName,
         nopack = nopack,
         perFile = perFile,

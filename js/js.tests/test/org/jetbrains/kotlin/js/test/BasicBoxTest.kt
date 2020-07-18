@@ -165,6 +165,7 @@ abstract class BasicBoxTest(
                 val dependencies = module.dependenciesSymbols.map { modules[it]?.outputFileName(outputDir) + ".meta.js" }
                 val allDependencies = module.allTransitiveDependencies().map { modules[it]?.outputFileName(outputDir) + ".meta.js" }
                 val friends = module.friendsSymbols.map { modules[it]?.outputFileName(outputDir) + ".meta.js" }
+                val asyncImports = module.asyncDependencies
 
                 val outputFileName = module.outputFileName(outputDir) + ".js"
                 val dceOutputFileName = module.outputFileName(dceOutputDir) + ".js"
@@ -172,7 +173,7 @@ abstract class BasicBoxTest(
                 val isMainModule = mainModuleName == module.name
                 generateJavaScriptFile(
                     testFactory.tmpDir,
-                    file.parent, module, outputFileName, dceOutputFileName, pirOutputFileName, dependencies, allDependencies, friends, modules.size > 1,
+                    file.parent, module, outputFileName, dceOutputFileName, pirOutputFileName, dependencies, allDependencies, friends, asyncImports, modules.size > 1,
                     !SKIP_SOURCEMAP_REMAPPING.matcher(fileContent).find(), outputPrefixFile, outputPostfixFile,
                     actualMainCallParameters, testPackage, testFunction, needsFullIrRuntime, isMainModule, expectActualLinker, skipDceDriven, splitPerModule
                 )
@@ -386,6 +387,7 @@ abstract class BasicBoxTest(
         dependencies: List<String>,
         allDependencies: List<String>,
         friends: List<String>,
+        asyncImports: List<String>,
         multiModule: Boolean,
         remap: Boolean,
         outputPrefixFile: File?,
@@ -413,7 +415,7 @@ abstract class BasicBoxTest(
         val psiFiles = createPsiFiles(allSourceFiles.sortedBy { it.canonicalPath }.map { it.canonicalPath })
 
         val sourceDirs = (testFiles + additionalFiles).map { File(it).parent }.distinct()
-        val config = createConfig(sourceDirs, module, dependencies, allDependencies, friends, multiModule, tmpDir, incrementalData = null, expectActualLinker = expectActualLinker)
+        val config = createConfig(sourceDirs, module, dependencies, allDependencies, friends, asyncImports, multiModule, tmpDir, incrementalData = null, expectActualLinker = expectActualLinker)
         val outputFile = File(outputFileName)
         val dceOutputFile = File(dceOutputFileName)
         val pirOutputFile = File(pirOutputFileName)
@@ -468,7 +470,7 @@ abstract class BasicBoxTest(
                 .sortedBy { it.canonicalPath }
                 .map { sourceToTranslationUnit[it]!! }
 
-        val recompiledConfig = createConfig(sourceDirs, module, dependencies, allDependencies, friends, multiModule, tmpDir, incrementalData, expectActualLinker)
+        val recompiledConfig = createConfig(sourceDirs, module, dependencies, allDependencies, friends, emptyList(), multiModule, tmpDir, incrementalData, expectActualLinker)
         val recompiledOutputFile = File(outputFile.parentFile, outputFile.nameWithoutExtension + "-recompiled.js")
 
         translateFiles(
@@ -683,7 +685,7 @@ abstract class BasicBoxTest(
     private fun createPsiFiles(fileNames: List<String>): List<KtFile> = fileNames.map(this::createPsiFile)
 
     private fun createConfig(
-        sourceDirs: List<String>, module: TestModule, dependencies: List<String>, allDependencies: List<String>, friends: List<String>,
+        sourceDirs: List<String>, module: TestModule, dependencies: List<String>, allDependencies: List<String>, friends: List<String>, asyncImports: List<String>,
         multiModule: Boolean, tmpDir: File, incrementalData: IncrementalData?, expectActualLinker: Boolean
     ): JsConfig {
         val configuration = environment.configuration.copy()
@@ -703,6 +705,7 @@ abstract class BasicBoxTest(
         configuration.put(JSConfigurationKeys.LIBRARIES, libraries)
         configuration.put(JSConfigurationKeys.TRANSITIVE_LIBRARIES, allDependencies)
         configuration.put(JSConfigurationKeys.FRIEND_PATHS, friends)
+        configuration.put(JSConfigurationKeys.ASYNC_IMPORTS, asyncImports)
 
         configuration.put(CommonConfigurationKeys.MODULE_NAME, module.name.removeSuffix(OLD_MODULE_SUFFIX))
         configuration.put(JSConfigurationKeys.MODULE_KIND, module.moduleKind)
@@ -889,6 +892,21 @@ abstract class BasicBoxTest(
         var sourceMapSourceEmbedding = SourceMapSourceEmbedding.NEVER
 
         val hasFilesToRecompile get() = files.any { it.recompile }
+
+        val asyncDependencies: List<String>
+            get() {
+                val result = mutableListOf<String>()
+
+                files.forEach {
+                    val text = File(it.fileName).readText()
+                    val matcher = ASYNC_IMPORT.matcher(text)
+                    if (matcher.find()) {
+                        result += matcher.group(1).split(',').map { it.trim() }
+                    }
+                }
+
+                return result
+            }
     }
 
     override fun createEnvironment() =
@@ -933,6 +951,8 @@ abstract class BasicBoxTest(
         private val EXPECT_ACTUAL_LINKER = Pattern.compile("^// EXPECT_ACTUAL_LINKER *$", Pattern.MULTILINE)
         private val SKIP_DCE_DRIVEN = Pattern.compile("^// *SKIP_DCE_DRIVEN *$", Pattern.MULTILINE)
         private val SPLIT_PER_MODULE = Pattern.compile("^// *SPLIT_PER_MODULE *$", Pattern.MULTILINE)
+        private val ASYNC_IMPORT = Pattern.compile("^// *ASYNC_IMPORT: *(.+)$", Pattern.MULTILINE)
+
 
         @JvmStatic
         protected val runTestInNashorn = getBoolean("kotlin.js.useNashorn")

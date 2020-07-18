@@ -70,14 +70,14 @@ private fun isBuiltInClass(declaration: IrDeclaration): Boolean =
     declaration is IrClass && declaration.fqNameWhenAvailable in BODILESS_BUILTIN_CLASSES
 
 fun moveBodilessDeclarationsToSeparatePlace(context: JsIrBackendContext, moduleFragment: IrModuleFragment) {
-    MoveBodilessDeclarationsToSeparatePlaceLowering(context).let { moveBodiless ->
+    MoveBodilessDeclarationsToSeparatePlaceLowering(context, moduleFragment).let { moveBodiless ->
         moduleFragment.files.forEach {
             moveBodiless.lower(it)
         }
     }
 }
 
-class MoveBodilessDeclarationsToSeparatePlaceLowering(private val context: JsIrBackendContext) : DeclarationTransformer {
+class MoveBodilessDeclarationsToSeparatePlaceLowering(private val context: JsIrBackendContext, private val currentModule: IrModuleFragment) : DeclarationTransformer {
 
     override fun transformFlat(declaration: IrDeclaration): List<IrDeclaration>? {
         val irFile = declaration.parent as? IrFile ?: return null
@@ -94,7 +94,7 @@ class MoveBodilessDeclarationsToSeparatePlaceLowering(private val context: JsIrB
             externalPackageFragment.declarations += declaration
             declaration.parent = externalPackageFragment
 
-            context.packageLevelJsModules += externalPackageFragment
+            context.packageLevelJsModules.getOrPut(currentModule) { mutableSetOf() } += externalPackageFragment
 
             declaration.collectAllExternalDeclarations()
 
@@ -109,7 +109,7 @@ class MoveBodilessDeclarationsToSeparatePlaceLowering(private val context: JsIrB
                 return emptyList()
             } else if (d.isEffectivelyExternal()) {
                 if (d.getJsModule() != null)
-                    context.declarationLevelJsModules.add(d)
+                    context.declarationLevelJsModules.getOrPut(currentModule) { mutableListOf() }.add(d)
 
                 externalPackageFragment.declarations += d
                 d.parent = externalPackageFragment

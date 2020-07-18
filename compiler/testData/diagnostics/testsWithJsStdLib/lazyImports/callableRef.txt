@@ -1,0 +1,12 @@
+// -- Module: <lib> --
+package
+
+public fun fn(): kotlin.Unit
+
+
+// -- Module: <main> --
+package
+
+public fun test(): kotlin.Unit
+public fun testIntrinsics(): kotlin.Unit
+public suspend fun testSuspend(): kotlin.Unit

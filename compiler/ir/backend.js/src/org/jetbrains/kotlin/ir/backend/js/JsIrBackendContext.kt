@@ -42,8 +42,14 @@ class JsIrBackendContext(
     val additionalExportedDeclarations: Set<FqName>,
     override val configuration: CompilerConfiguration, // TODO: remove configuration from backend context
     override val scriptMode: Boolean = false,
-    override val es6mode: Boolean = false
+    override val es6mode: Boolean = false,
+    val lazyImportMap: Map<ModuleDescriptor, Iterable<ModuleDescriptor>> = emptyMap()
 ) : JsCommonBackendContext {
+
+    fun shouldLazyLoad(from: ModuleDescriptor, to: ModuleDescriptor): Boolean {
+        return to in (lazyImportMap[from] ?: emptySet())
+    }
+
     override val transformedFunction
         get() = error("Use Mapping.inlineClassMemberToStatic instead")
 
@@ -68,8 +74,8 @@ class JsIrBackendContext(
         FqName("kotlin")
     )
 
-    val packageLevelJsModules = mutableSetOf<IrFile>()
-    val declarationLevelJsModules = mutableListOf<IrDeclarationWithName>()
+    val packageLevelJsModules = mutableMapOf<IrModuleFragment, MutableSet<IrFile>>()
+    val declarationLevelJsModules = mutableMapOf<IrModuleFragment, MutableList<IrDeclarationWithName>>()
 
     private val internalPackageFragmentDescriptor = EmptyPackageFragmentDescriptor(builtIns.builtInsModule, FqName("kotlin.js.internal"))
     val implicitDeclarationFile = run {
@@ -303,6 +309,12 @@ class JsIrBackendContext(
 
     val kpropertyBuilder = getFunctions(FqName("kotlin.js.getPropertyCallableRef")).single().let { symbolTable.referenceSimpleFunction(it) }
     val klocalDelegateBuilder = getFunctions(FqName("kotlin.js.getLocalDelegateReference")).single().let { symbolTable.referenceSimpleFunction(it) }
+
+    val loadModule = getFunctions(FqName("kotlin.loadModule")).single().let { symbolTable.referenceSimpleFunction(it) }
+    val setModuleLoader = getFunctions(FqName("kotlin.setModuleLoader")).single().let { symbolTable.referenceSimpleFunction(it) }
+    val isLoaded = getFunctions(FqName("kotlin.isLoaded")).single().let { symbolTable.referenceSimpleFunction(it) }
+    val reportLoaded = getFunctions(FqName("kotlin.reportLoaded")).single().let { symbolTable.referenceSimpleFunction(it) }
+    val moduleNotLoaded = getClass(FqName("kotlin.js.ModuleNotLoaded")).let { symbolTable.referenceClass(it) }
 
     private fun referenceOperators(): Map<Name, MutableMap<IrClassifierSymbol, IrSimpleFunctionSymbol>> {
         val primitiveIrSymbols = irBuiltIns.primitiveIrTypes.map { it.classifierOrFail as IrClassSymbol }

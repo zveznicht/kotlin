@@ -1,0 +1,27 @@
+// -- Module: <lib> --
+package
+
+public final class C {
+    public constructor C()
+    public final val p: kotlin.Int = 0
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public final fun fn(): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public interface I {
+    public abstract val p: kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public abstract fun fn(): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+
+// -- Module: <main> --
+package
+
+public fun test(/*0*/ c: C, /*1*/ i: I): kotlin.Unit
+public fun testIntrinsics(/*0*/ c: C, /*1*/ i: I): kotlin.Unit
+public suspend fun testSuspend(/*0*/ c: C, /*1*/ i: I): kotlin.Unit

@@ -17,16 +17,12 @@
 package org.jetbrains.kotlin.js.backend.ast
 
 
-class JsImportedModule @JvmOverloads constructor(
+class JsImportedModule(
     val externalName: String,
     var internalName: JsName,
-    val plainReference: JsExpression?,
-    val relativeRequirePath: Boolean = false
+    val plainReference: JsExpression?
 ) {
     val key = JsImportedModuleKey(externalName, plainReference?.toString())
 }
-
-val JsImportedModule.requireName: String
-    get() = if (relativeRequirePath) "./$externalName.js" else externalName
 
 data class JsImportedModuleKey(val baseName: String, val plainName: String?)

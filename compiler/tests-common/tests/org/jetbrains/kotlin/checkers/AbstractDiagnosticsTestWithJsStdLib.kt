@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.serialization.js.ModuleKind
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.test.KotlinTestUtils
 import java.util.*
+import java.util.regex.Pattern
 
 abstract class AbstractDiagnosticsTestWithJsStdLib : AbstractDiagnosticsTest() {
     private var lazyConfig: Lazy<JsConfig>? = lazy(LazyThreadSafetyMode.NONE) {
@@ -56,6 +57,8 @@ abstract class AbstractDiagnosticsTestWithJsStdLib : AbstractDiagnosticsTest() {
         // TODO: support LANGUAGE directive in JS diagnostic tests
         moduleTrace.record<ModuleDescriptor, ModuleKind>(MODULE_KIND, moduleContext.module, getModuleKind(files))
         config.configuration.languageVersionSettings = languageVersionSettings
+        val module = moduleContext.module as ModuleDescriptorImpl
+        module.setLazyDependencies(getAsyncDependencies(module, files).toSet())
         return TopDownAnalyzerFacadeForJS.analyzeFilesWithGivenTrace(files, moduleTrace, moduleContext, config.configuration)
     }
 
@@ -76,6 +79,25 @@ abstract class AbstractDiagnosticsTestWithJsStdLib : AbstractDiagnosticsTest() {
         }
 
         return kind
+    }
+
+    private val ASYNC_IMPORT = Pattern.compile("^// *ASYNC_IMPORT: *(.+)$", Pattern.MULTILINE)
+
+    private fun getAsyncDependencies(module: ModuleDescriptorImpl, ktFiles: List<KtFile>): List<ModuleDescriptorImpl> {
+
+        val dependencies = module.allDependencyModules.associateBy { it.name.asString() }
+
+        val result = mutableListOf<ModuleDescriptorImpl>()
+
+        for (file in ktFiles) {
+            val text = file.text
+            val matcher = ASYNC_IMPORT.matcher(text)
+            if (matcher.find()) {
+                result += matcher.group(1).split(',').map { dependencies["<${it.trim()}>"] as ModuleDescriptorImpl }
+            }
+        }
+
+        return result
     }
 
     override fun getAdditionalDependencies(module: ModuleDescriptorImpl): List<ModuleDescriptorImpl> =

@@ -44,6 +44,7 @@ abstract class AbstractTopDownAnalyzerFacadeForJS {
         configuration: CompilerConfiguration,
         moduleDescriptors: List<ModuleDescriptorImpl>,
         friendModuleDescriptors: List<ModuleDescriptorImpl>,
+        lazyModuleDependencies: List<ModuleDescriptorImpl>,
         thisIsBuiltInsModule: Boolean = false,
         customBuiltInsModule: ModuleDescriptorImpl? = null
     ): JsAnalysisResult {
@@ -73,7 +74,7 @@ abstract class AbstractTopDownAnalyzerFacadeForJS {
         }
 
         val dependencies = mutableSetOf(context.module) + moduleDescriptors + builtIns.builtInsModule
-        context.module.setDependencies(dependencies.toList(), friendModuleDescriptors.toSet())
+        context.module.setDependencies(dependencies.toList(), friendModuleDescriptors.toSet(), lazyModuleDependencies.toSet())
 
         val moduleKind = configuration.get(JSConfigurationKeys.MODULE_KIND, ModuleKind.PLAIN)
 
@@ -147,6 +148,6 @@ object TopDownAnalyzerFacadeForJS : AbstractTopDownAnalyzerFacadeForJS() {
         config: JsConfig
     ): JsAnalysisResult {
         config.init()
-        return analyzeFiles(files, config.project, config.configuration, config.moduleDescriptors, config.friendModuleDescriptors)
+        return analyzeFiles(files, config.project, config.configuration, config.moduleDescriptors, config.friendModuleDescriptors, config.lazyDependencyDescriptors)
     }
 }

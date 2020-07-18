@@ -44,7 +44,7 @@ private fun IrField.isConstant(): Boolean {
 
 private fun buildRoots(modules: Iterable<IrModuleFragment>, context: JsIrBackendContext): Iterable<IrDeclaration> {
     val rootDeclarations =
-        (modules.flatMap { it.files } + context.packageLevelJsModules + context.externalPackageFragment.values).flatMapTo(mutableListOf()) { file ->
+        (modules.flatMap { it.files } + context.packageLevelJsModules.values.flatMap { it } + context.externalPackageFragment.values).flatMapTo(mutableListOf()) { file ->
             file.declarations.flatMap { if (it is IrProperty) listOfNotNull(it.backingField, it.getter, it.setter) else listOf(it) }
                 .filter {
                     it is IrField && it.initializer != null && it.fqNameWhenAvailable?.asString()?.startsWith("kotlin") != true
@@ -56,6 +56,10 @@ private fun buildRoots(modules: Iterable<IrModuleFragment>, context: JsIrBackend
         }
 
     rootDeclarations += context.testRoots.values
+    rootDeclarations += context.loadModule.owner
+    rootDeclarations += context.setModuleLoader.owner
+    rootDeclarations += context.isLoaded.owner
+    rootDeclarations += context.reportLoaded.owner
 
     JsMainFunctionDetector.getMainFunctionOrNull(modules.last())?.let { mainFunction ->
         rootDeclarations += mainFunction

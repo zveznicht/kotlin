@@ -61,4 +61,6 @@ interface ModuleDescriptor : DeclarationDescriptor {
     val isValid: Boolean
 
     fun assertValid()
+
+    fun shouldLazyLoad(targetModule: ModuleDescriptor): Boolean = false
 }

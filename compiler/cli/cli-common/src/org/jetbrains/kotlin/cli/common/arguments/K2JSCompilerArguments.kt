@@ -139,6 +139,13 @@ class K2JSCompilerArguments : CommonCompilerArguments() {
     var irPerModule: Boolean by FreezableVar(false)
 
     @Argument(
+        value = "-Xir-loaded-lazily",
+        valueDescription = "module1,module2,...moduleN",
+        description = "Names of lazy loaded modules"
+    )
+    var irLoadedLazily: String? by NullableStringFreezableVar(null)
+
+    @Argument(
         value = "-Xinclude",
         valueDescription = "<path>",
         description = "A path to an intermediate library that should be processed in the same manner as source files."

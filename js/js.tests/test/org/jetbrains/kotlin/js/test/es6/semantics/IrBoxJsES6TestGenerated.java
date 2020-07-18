@@ -893,6 +893,34 @@ public class IrBoxJsES6TestGenerated extends AbstractIrBoxJsES6Test {
         public void testTopLevelProperty() throws Exception {
             runTest("js/js.translator/testData/box/crossModuleRefIR/topLevelProperty.kt");
         }
+
+        @TestMetadata("js/js.translator/testData/box/crossModuleRefIR/lazyLoading")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class LazyLoading extends AbstractIrBoxJsES6Test {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.JS_IR_ES6, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInLazyLoading() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("js/js.translator/testData/box/crossModuleRefIR/lazyLoading"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.JS_IR_ES6, true);
+            }
+
+            @TestMetadata("callableReference.kt")
+            public void testCallableReference() throws Exception {
+                runTest("js/js.translator/testData/box/crossModuleRefIR/lazyLoading/callableReference.kt");
+            }
+
+            @TestMetadata("fn.kt")
+            public void testFn() throws Exception {
+                runTest("js/js.translator/testData/box/crossModuleRefIR/lazyLoading/fn.kt");
+            }
+
+            @TestMetadata("prop.kt")
+            public void testProp() throws Exception {
+                runTest("js/js.translator/testData/box/crossModuleRefIR/lazyLoading/prop.kt");
+            }
+        }
     }
 
     @TestMetadata("js/js.translator/testData/box/dataClass")

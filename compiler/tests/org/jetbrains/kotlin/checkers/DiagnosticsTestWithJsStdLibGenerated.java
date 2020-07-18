@@ -461,6 +461,49 @@ public class DiagnosticsTestWithJsStdLibGenerated extends AbstractDiagnosticsTes
         }
     }
 
+    @TestMetadata("compiler/testData/diagnostics/testsWithJsStdLib/lazyImports")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class LazyImports extends AbstractDiagnosticsTestWithJsStdLib {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInLazyImports() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/testsWithJsStdLib/lazyImports"), Pattern.compile("^(.+)\\.kt$"), null, true);
+        }
+
+        @TestMetadata("callableRef.kt")
+        public void testCallableRef() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithJsStdLib/lazyImports/callableRef.kt");
+        }
+
+        @TestMetadata("constructors.kt")
+        public void testConstructors() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithJsStdLib/lazyImports/constructors.kt");
+        }
+
+        @TestMetadata("inheritance.kt")
+        public void testInheritance() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithJsStdLib/lazyImports/inheritance.kt");
+        }
+
+        @TestMetadata("memberCall.kt")
+        public void testMemberCall() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithJsStdLib/lazyImports/memberCall.kt");
+        }
+
+        @TestMetadata("objectReference.kt")
+        public void testObjectReference() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithJsStdLib/lazyImports/objectReference.kt");
+        }
+
+        @TestMetadata("simpleCall.kt")
+        public void testSimpleCall() throws Exception {
+            runTest("compiler/testData/diagnostics/testsWithJsStdLib/lazyImports/simpleCall.kt");
+        }
+    }
+
     @TestMetadata("compiler/testData/diagnostics/testsWithJsStdLib/module")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)

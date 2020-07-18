@@ -115,7 +115,8 @@ abstract class AbstractIrGeneratorTestCase : CodegenTestCase() {
                 TopDownAnalyzerFacadeForJS.analyzeFiles(
                     ktFilesToAnalyze, environment.project, environment.configuration,
                     moduleDescriptors = emptyList(),
-                    friendModuleDescriptors = emptyList()
+                    friendModuleDescriptors = emptyList(),
+                    lazyModuleDependencies = emptyList()
                 ),
                 psi2ir, ktFilesToAnalyze, GeneratorExtensions()
             )
