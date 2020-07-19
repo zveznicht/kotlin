@@ -67,9 +67,9 @@ val configuredJdks: List<JdkId> =
 val defaultSnapshotVersion: String by extra
 val buildNumber by extra(findProperty("build.number")?.toString() ?: defaultSnapshotVersion)
 val kotlinVersion by extra(
-        findProperty("deployVersion")?.toString()?.let { deploySnapshotStr ->
-            if (deploySnapshotStr != "default.snapshot") deploySnapshotStr else defaultSnapshotVersion
-        } ?: buildNumber
+    findProperty("deployVersion")?.toString()?.let { deploySnapshotStr ->
+        if (deploySnapshotStr != "default.snapshot") deploySnapshotStr else defaultSnapshotVersion
+    } ?: buildNumber
 )
 
 val kotlinLanguageVersion by extra("1.4")
@@ -517,9 +517,11 @@ gradle.taskGraph.whenReady {
     fun Boolean.toOnOff(): String = if (this) "on" else "off"
     val profile = if (isTeamcityBuild) "CI" else "Local"
 
-    logger.warn("$profile build profile is active (proguard is ${kotlinBuildProperties.proguard.toOnOff()}" +
-                            ", jar compression is ${kotlinBuildProperties.jarCompression.toOnOff()})." +
-                            " Use -Pteamcity=<true|false> to reproduce CI/local build")
+    logger.warn(
+        "$profile build profile is active (proguard is ${kotlinBuildProperties.proguard.toOnOff()}" +
+                ", jar compression is ${kotlinBuildProperties.jarCompression.toOnOff()})." +
+                " Use -Pteamcity=<true|false> to reproduce CI/local build"
+    )
 
     allTasks.filterIsInstance<org.gradle.jvm.tasks.Jar>().forEach { task ->
         task.entryCompression = if (kotlinBuildProperties.jarCompression)
@@ -1102,3 +1104,5 @@ if (disableVerificationTasks) {
         }
     }
 }
+
+apply(from = "gradle/taskClasspath.gradle.kts")
