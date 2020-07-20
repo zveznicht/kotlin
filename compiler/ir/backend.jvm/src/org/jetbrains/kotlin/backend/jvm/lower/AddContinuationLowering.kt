@@ -655,8 +655,6 @@ private fun IrFunction.createSuspendFunctionStub(context: JvmBackendContext): Ir
     require(this.isSuspend && this is IrSimpleFunction)
     return buildFun {
         updateFrom(this@createSuspendFunctionStub)
-        originalDeclaration = this@createSuspendFunctionStub.originalDeclaration
-        containerSource = this@createSuspendFunctionStub.containerSource
         name = this@createSuspendFunctionStub.name
         origin = this@createSuspendFunctionStub.origin
         returnType = context.irBuiltIns.anyNType

@@ -48,6 +48,8 @@ class IrFunctionBuilder : IrDeclarationBuilder() {
             isOperator = from.isOperator
             isInfix = from.isInfix
             isFakeOverride = from.isFakeOverride
+            originalDeclaration = from.originalDeclaration
+            containerSource = from.containerSource
         } else {
             modality = Modality.FINAL
             isTailrec = false

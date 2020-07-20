@@ -516,8 +516,6 @@ private fun IrFunction.generateDefaultsFunctionImpl(
         is IrSimpleFunction ->
             buildFun {
                 updateFrom(this@generateDefaultsFunctionImpl)
-                originalDeclaration = this@generateDefaultsFunctionImpl.originalDeclaration
-                containerSource = this@generateDefaultsFunctionImpl.containerSource
                 name = Name.identifier("${this@generateDefaultsFunctionImpl.name}\$default")
                 origin = newOrigin
                 this.isFakeOverride = isFakeOverride
