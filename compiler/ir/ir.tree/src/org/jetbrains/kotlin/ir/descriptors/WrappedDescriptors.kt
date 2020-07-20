@@ -624,11 +624,17 @@ open class WrappedClassDescriptor(
     private val _typeConstructor: TypeConstructor by lazy {
         LazyTypeConstructor(
             this,
-            { declaredTypeParameters },
+            ::collectTypeParameters,
             { owner.superTypes.map { it.toKotlinType() } },
             LockBasedStorageManager.NO_LOCKS
         )
     }
+
+    private fun collectTypeParameters(): List<TypeParameterDescriptor> =
+        generateSequence(owner, { klass -> klass.takeIf { it.isInner }?.parentAsClass })
+            .flatMap { it.typeParameters }
+            .map { it.descriptor }
+            .toList()
 
     override fun getTypeConstructor(): TypeConstructor = _typeConstructor
 
