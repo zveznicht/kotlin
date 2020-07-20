@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.annotations.KotlinRetention
 import org.jetbrains.kotlin.descriptors.annotations.KotlinTarget
 import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.descriptors.toIrBasedKotlinType
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
@@ -159,7 +160,7 @@ abstract class AnnotationCodegen(
         }
 
         // A flexible type whose lower bound in not-null and upper bound is nullable, should not be annotated
-        if (type.toKotlinType().isNullabilityFlexible()) {
+        if (type.toIrBasedKotlinType().isNullabilityFlexible()) {
             return
         }
 
