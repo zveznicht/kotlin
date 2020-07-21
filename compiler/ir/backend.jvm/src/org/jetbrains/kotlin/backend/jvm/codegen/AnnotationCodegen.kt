@@ -160,7 +160,7 @@ abstract class AnnotationCodegen(
         }
 
         // A flexible type whose lower bound in not-null and upper bound is nullable, should not be annotated
-        if (type.toIrBasedKotlinType().isNullabilityFlexible()) {
+        if (type.toKotlinType().isNullabilityFlexible()) {
             return
         }
 
