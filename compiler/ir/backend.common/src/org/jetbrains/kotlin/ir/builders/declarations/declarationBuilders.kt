@@ -123,7 +123,8 @@ inline fun IrProperty.addSetter(builder: IrFunctionBuilder.() -> Unit = {}): IrS
         }
     }
 
-fun IrFunctionBuilder.buildFunction(): IrSimpleFunction {
+@PublishedApi
+internal fun IrFunctionBuilder.buildFunction(): IrSimpleFunction {
     val wrappedDescriptor = if (originalDeclaration is IrLazyFunction || containerSource != null)
         WrappedFunctionDescriptorWithContainerSource()
     else
