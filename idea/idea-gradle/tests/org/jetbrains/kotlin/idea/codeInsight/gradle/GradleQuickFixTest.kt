@@ -47,7 +47,10 @@ class GradleQuickFixTest : GradleImportingTestCase() {
     }
 
     private fun doGradleQuickFixTest(localInspectionTool: LocalInspectionTool) {
-        val buildGradleVFile = createProjectSubFile("build.gradle", File(getTestDataPath(), "build.gradle").readText())
+        val buildGradleVFile = createProjectSubFile(
+            "build.gradle", File(getTestDataPath(), "build.gradle").readText()
+                .replace("{{kotlin_plugin_version}}", LATEST_STABLE_GRADLE_PLUGIN_VERSION)
+        )
         importProject()
 
         applyInspectionFixes(localInspectionTool, buildGradleVFile)
@@ -79,5 +82,6 @@ class GradleQuickFixTest : GradleImportingTestCase() {
 
     private fun checkResult(file: VirtualFile) {
         KotlinTestUtils.assertEqualsToFile(File(getTestDataPath(), "build.gradle.after"), LoadTextUtil.loadText(file).toString())
+        { s -> s.replace("{{kotlin_plugin_version}}", LATEST_STABLE_GRADLE_PLUGIN_VERSION) }
     }
 }

@@ -88,7 +88,7 @@ import java.util.zip.ZipFile
 @Parameterized.UseParametersRunnerFactory(RunnerFactoryWithMuteInDatabase::class)
 abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
 
-    protected var sdkCreationChecker : KotlinSdkCreationChecker? = null
+    protected var sdkCreationChecker: KotlinSdkCreationChecker? = null
 
     private val removedSdks: MutableList<Sdk> = SmartList()
 
@@ -113,7 +113,7 @@ abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
 
     open fun isApplicableTest(): Boolean = true
 
-    open fun jvmHeapArgsByGradleVersion(version: String) : String = when {
+    open fun jvmHeapArgsByGradleVersion(version: String): String = when {
         version.startsWith("4.") ->
             // work-around due to memory leak in class loaders in gradle. The amount of used memory in the gradle daemon
             // is drammatically increased on every reimport of project due to sequential compilation of build scripts.
@@ -367,13 +367,17 @@ abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
         }
             .forEach {
                 if (it.name == GradleConstants.SETTINGS_FILE_NAME && !File(testDataDirectory(), it.name + SUFFIX).exists()) return@forEach
-                val actualText = LoadTextUtil.loadText(it).toString()
+                var actualText = LoadTextUtil.loadText(it).toString()
+                mapOf("kotlin_plugin_version" to LATEST_STABLE_GRADLE_PLUGIN_VERSION).forEach { key, value ->
+                    actualText = actualText.replace("{{${key}}}", value)
+                }
                 val expectedFileName = if (File(testDataDirectory(), it.name + ".$gradleVersion" + SUFFIX).exists()) {
                     it.name + ".$gradleVersion" + SUFFIX
                 } else {
                     it.name + SUFFIX
                 }
                 KotlinTestUtils.assertEqualsToFile(File(testDataDirectory(), expectedFileName), actualText)
+                { s -> s.replace("{{kotlin_plugin_version}}", LATEST_STABLE_GRADLE_PLUGIN_VERSION) }
             }
     }
 
