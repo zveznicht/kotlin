@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.fir.types.FirUserTypeRef
 import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.fir.visitors.compose
+import org.jetbrains.kotlin.idea.util.getElementTextInContext
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -263,8 +264,15 @@ internal fun KtElement.getOrBuildFir(
             else -> error("Unsupported: ${container.text}")
         }
 
-    val psi = when (this) {
-        is KtPropertyDelegate -> this.expression ?: this
+    val psi = when {
+        this is KtPropertyDelegate -> this.expression ?: this
+        this is KtQualifiedExpression && selectorExpression is KtCallExpression -> {
+            /*
+             KtQualifiedExpression with KtCallExpression in selector transformed in FIR to FirFunctionCall expression
+             Which will have a receiver as qualifier
+             */
+            selectorExpression ?: error("Incomplete code:\n${this.getElementTextInContext()}")
+        }
         else -> this
     }
     return state.getCachedMapping(this) ?: run {
