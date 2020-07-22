@@ -60,6 +60,8 @@ var _varCustomWithField: Int = 1
     get() = field * 10
     set(value) { field = value * 10 }
 
+lateinit var _late_init_string: String
+
 // Classes
 
 class A

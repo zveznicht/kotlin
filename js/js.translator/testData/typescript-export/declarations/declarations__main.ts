@@ -71,6 +71,17 @@ function box(): string {
     foo._varCustomWithField = 10;
     assert(foo._varCustomWithField === 1000);
 
+    let uninitializedException: any = null;
+    try {
+        let tmp = foo._late_init_string;
+    } catch (e) {
+        uninitializedException = e;
+    }
+    assert(uninitializedException != null);
+    assert(uninitializedException.message === "lateinit property _late_init_string has not been initialized")
+    foo._late_init_string = "abc";
+    assert(foo._late_init_string === "abc");
+
     new A();
     assert(new A1(10).x === 10);
     assert(new A2("10", true).x === "10");

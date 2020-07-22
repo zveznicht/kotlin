@@ -19,6 +19,7 @@ declare namespace JS_TESTS {
         const _valCustomWithField: number;
         let _varCustom: number;
         let _varCustomWithField: number;
+        let _late_init_string: string;
         class A {
             constructor();
         }
