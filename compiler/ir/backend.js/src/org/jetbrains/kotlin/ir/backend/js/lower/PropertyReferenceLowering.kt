@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.ir.backend.js.lower
 import org.jetbrains.kotlin.backend.common.BodyLoweringPass
 import org.jetbrains.kotlin.backend.common.ir.copyTo
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
+import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
@@ -63,6 +64,7 @@ class PropertyReferenceLowering(private val context: JsIrBackendContext) : BodyL
                 endOffset = reference.endOffset
                 returnType = reference.type
                 name = Name.identifier("${property.name.asString()}\$factory")
+                visibility = Visibilities.INTERNAL
             }
 
             val boundArguments = listOfNotNull(reference.dispatchReceiver, reference.extensionReceiver)

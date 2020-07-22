@@ -75,6 +75,9 @@ function box() {
     assert(uninitializedException.message === "lateinit property _late_init_string has not been initialized");
     foo._late_init_string = "abc";
     assert(foo._late_init_string === "abc");
+    assert(!foo._isLazyInitialized);
+    assert(foo._lazy === "Lazy Value");
+    assert(foo._isLazyInitialized);
     new A();
     assert(new A1(10).x === 10);
     assert(new A2("10", true).x === "10");

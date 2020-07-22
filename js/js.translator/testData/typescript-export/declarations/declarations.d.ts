@@ -20,6 +20,8 @@ declare namespace JS_TESTS {
         let _varCustom: number;
         let _varCustomWithField: number;
         let _late_init_string: string;
+        let _isLazyInitialized: boolean;
+        const _lazy: string;
         class A {
             constructor();
         }

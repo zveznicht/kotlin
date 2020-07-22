@@ -62,6 +62,12 @@ var _varCustomWithField: Int = 1
 
 lateinit var _late_init_string: String
 
+var _isLazyInitialized = false
+val _lazy: String by lazy {
+    _isLazyInitialized = true
+    "Lazy Value"
+}
+
 // Classes
 
 class A
