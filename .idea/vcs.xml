@@ -32,5 +32,6 @@
   </component>
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/libraries/tools/kotlin-gradle-plugin-integration-tests/new-mpp-cocoapods-template/build/cocoapods/synthetic/git/AFNetworking" vcs="Git" />
   </component>
 </project>
