@@ -44,10 +44,8 @@ class DslMembersCompletion(
             callTypeAndReceiver = callTypeAndReceiver,
             receiverTypes = listOf(nearestReceiver.type)
         )
-        extensionDescriptors.forEach {
-            collector.addDescriptorElements(it, elementFactory, notImported = true, withReceiverCast = false)
-        }
 
+        collector.addDescriptorElements(extensionDescriptors, elementFactory, notImported = true, withReceiverCast = false)
         collector.flushToResultSet()
     }
 

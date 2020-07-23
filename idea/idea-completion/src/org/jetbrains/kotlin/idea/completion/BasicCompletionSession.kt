@@ -286,10 +286,8 @@ class BasicCompletionSession(
                 if (receiverTypes != null) {
                     ExtensionFunctionTypeValueCompletion(receiverTypes, callTypeAndReceiver.callType, lookupElementFactory)
                         .processVariables(contextVariablesProvider)
-                        .forEach {
-                            val lookupElements =
-                                it.factory.createStandardLookupElementsForDescriptor(it.invokeDescriptor, useReceiverTypes = true)
-                            collector.addElements(lookupElements)
+                        .forEach { (invokeDescriptor, factory) ->
+                            collector.addDescriptorElements(invokeDescriptor, factory)
                         }
                 }
 
@@ -871,4 +869,29 @@ private object NonSamConstructorFunctionExclude : DescriptorKindExclude() {
     override fun excludes(descriptor: DeclarationDescriptor) = descriptor is FunctionDescriptor && descriptor !is SamConstructorDescriptor
 
     override val fullyExcludedDescriptorKinds: Int get() = 0
+}
+
+fun LookupElementsCollector.addDescriptorElements(
+    descriptors: Iterable<DeclarationDescriptor>,
+    lookupElementFactory: AbstractLookupElementFactory,
+    notImported: Boolean = false,
+    withReceiverCast: Boolean = false
+) {
+    for (descriptor in descriptors) {
+        this.addDescriptorElements(descriptor, lookupElementFactory, notImported, withReceiverCast)
+    }
+}
+
+fun LookupElementsCollector.addDescriptorElements(
+    descriptor: DeclarationDescriptor,
+    lookupElementFactory: AbstractLookupElementFactory,
+    notImported: Boolean = false,
+    withReceiverCast: Boolean = false
+) {
+    var lookupElements = lookupElementFactory.createStandardLookupElementsForDescriptor(descriptor, useReceiverTypes = true)
+    if (withReceiverCast) {
+        lookupElements = lookupElements.map { it.withReceiverCast() }
+    }
+
+    addElements(lookupElements, notImported)
 }

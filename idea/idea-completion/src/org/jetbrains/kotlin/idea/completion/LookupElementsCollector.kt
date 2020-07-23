@@ -11,7 +11,6 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.ElementPattern
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.MemberDescriptor
 import org.jetbrains.kotlin.idea.completion.handlers.WithExpressionPrefixInsertHandler
 import org.jetbrains.kotlin.idea.completion.handlers.WithTailInsertHandler
@@ -54,32 +53,6 @@ class LookupElementsCollector(
 
     fun addLookupElementPostProcessor(processor: (LookupElement) -> LookupElement) {
         postProcessors.add(processor)
-    }
-
-    fun addDescriptorElements(
-        descriptors: Iterable<DeclarationDescriptor>,
-        lookupElementFactory: AbstractLookupElementFactory,
-        notImported: Boolean = false,
-        withReceiverCast: Boolean = false
-    ) {
-        for (descriptor in descriptors) {
-            addDescriptorElements(descriptor, lookupElementFactory, notImported, withReceiverCast)
-        }
-    }
-
-    fun addDescriptorElements(
-        descriptor: DeclarationDescriptor,
-        lookupElementFactory: AbstractLookupElementFactory,
-        notImported: Boolean = false,
-        withReceiverCast: Boolean = false
-    ) {
-        var lookupElements = lookupElementFactory.createStandardLookupElementsForDescriptor(descriptor, useReceiverTypes = true)
-
-        if (withReceiverCast) {
-            lookupElements = lookupElements.map { it.withReceiverCast() }
-        }
-
-        addElements(lookupElements, notImported)
     }
 
     fun addElement(element: LookupElement, notImported: Boolean = false) {
