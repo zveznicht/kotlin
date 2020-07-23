@@ -68,7 +68,7 @@ public class Emulator {
 
     private GeneralCommandLine getStartCommand() {
         GeneralCommandLine commandLine = new GeneralCommandLine();
-        commandLine.setExePath(pathManager.getEmulatorFolderInAndroidSdk() + "/" + "emulator");
+        commandLine.setExePath(pathManager.getEmulatorFolderInAndroidSdk() + "/" + "emulator-headless");
         commandLine.addParameter("-avd");
         commandLine.addParameter(AVD_NAME);
         commandLine.addParameter("-no-audio");
