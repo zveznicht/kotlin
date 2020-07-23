@@ -15,6 +15,8 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.JsCommonBackendContext
 import org.jetbrains.kotlin.ir.backend.js.JsLoweredDeclarationOrigin
+import org.jetbrains.kotlin.ir.backend.js.export.isExported
+import org.jetbrains.kotlin.ir.backend.js.export.isExportedMemberFunction
 import org.jetbrains.kotlin.ir.backend.js.utils.functionSignature
 import org.jetbrains.kotlin.ir.backend.js.utils.getJsName
 import org.jetbrains.kotlin.ir.builders.*
@@ -112,7 +114,7 @@ class BridgesConstruction(val context: JsCommonBackendContext) : DeclarationTran
     ): IrFunction {
 
         val origin =
-            if (bridge.isEffectivelyExternal() || bridge.getJsName() != null)
+            if (bridge.isEffectivelyExternal() || bridge.getJsName() != null || bridge.isExportedMemberFunction())
                 JsLoweredDeclarationOrigin.BRIDGE_TO_EXTERNAL_FUNCTION
             else
                 IrDeclarationOrigin.BRIDGE

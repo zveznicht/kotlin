@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.ir.backend.js.utils
 
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
+import org.jetbrains.kotlin.ir.backend.js.export.isExported
 import org.jetbrains.kotlin.ir.declarations.IrConstructor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationWithName
@@ -45,7 +47,7 @@ class StableNamesCollector : IrElementVisitorVoid {
                 memberNames
 
         val stableName =
-            if (declaration.isEffectivelyExternal())
+            if (declaration.isEffectivelyExternal() || declaration.isExported(null))
                 stableNameForExternalDeclaration(declaration)
             else
                 stableNameForNonExternalDeclaration(declaration, isStatic)
