@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.DiagnosticFactory2
 import org.jetbrains.kotlin.diagnostics.Errors
+import org.jetbrains.kotlin.diagnostics.PsiDiagnosticUtils
 import org.jetbrains.kotlin.diagnostics.reportDiagnosticOnce
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.FqName
@@ -30,10 +31,15 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 import org.jetbrains.kotlin.psi.psiUtil.getTopmostParentQualifiedExpressionForSelector
+import org.jetbrains.kotlin.psi.psiUtil.parents
 import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
+import org.jetbrains.kotlin.resolve.calls.model.isReallySuccess
+import org.jetbrains.kotlin.resolve.calls.resolvedCallUtil.getExplicitReceiverValue
+import org.jetbrains.kotlin.resolve.calls.smartcasts.Nullability
+import org.jetbrains.kotlin.resolve.calls.tower.NewVariableAsFunctionResolvedCallImpl
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
 import org.jetbrains.kotlin.resolve.constants.KClassValue
@@ -45,7 +51,12 @@ import org.jetbrains.kotlin.resolve.deprecation.DeprecationSettings
 import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
+import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
+import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
+import org.jetbrains.kotlin.types.isFlexible
+import org.jetbrains.kotlin.types.isNullable
+import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.kotlin.utils.SmartSet
 import org.jetbrains.kotlin.utils.addIfNotNull
 
@@ -79,9 +90,51 @@ class ExperimentalUsageChecker(project: Project) : CallChecker {
     )
 
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
+        checkNullableSafeCall(resolvedCall, context)
+
         val experimentalities =
             resolvedCall.resultingDescriptor.loadExperimentalities(moduleAnnotationsResolver, context.languageVersionSettings)
         reportNotAcceptedExperimentalities(experimentalities, reportOn, context)
+    }
+
+    private val OPERATORS = mutableSetOf<Name>().apply {
+        addAll(OperatorNameConventions.ASSIGNMENT_OPERATIONS)
+        add(OperatorNameConventions.INC)
+        add(OperatorNameConventions.DEC)
+        add(OperatorNameConventions.INVOKE)
+        add(OperatorNameConventions.GET)
+        add(OperatorNameConventions.SET)
+    }
+
+    private fun checkNullableSafeCall(resolvedCall: ResolvedCall<*>, context: CallCheckerContext) {
+        if (!resolvedCall.isReallySuccess()) return
+        val name = resolvedCall.resultingDescriptor.name
+        if (name !in OPERATORS) return
+
+        if (resolvedCall is NewVariableAsFunctionResolvedCallImpl) {
+            val variableCall = resolvedCall.variableCall
+            if (!context.isNullableReceiver(variableCall.getExplicitReceiverValue())) return
+        } else {
+
+            if (!context.isNullableReceiver(resolvedCall.extensionReceiver)) return
+        }
+        val callElement = resolvedCall.call.callElement
+        if (callElement is KtCallExpression && name.identifier == (callElement.calleeExpression as? KtNameReferenceExpression)?.getReferencedName()) return
+
+        error("$name at ${callElement.containingFile}:${PsiDiagnosticUtils.atLocation(callElement)}")
+    }
+
+    private fun CallCheckerContext.isNullableReceiver(receiverValue: ReceiverValue?): Boolean {
+        if (receiverValue !is ExpressionReceiver) return false
+        if (!receiverValue.type.isNullable() || receiverValue.type.isFlexible()) return false
+
+        val expression = receiverValue.expression
+
+        if (expression !is KtQualifiedExpression && expression.parents.all { it !is KtSafeQualifiedExpression }) return false
+
+        val dataFlowValue = dataFlowValueFactory.createDataFlowValue(expression, receiverValue.type, resolutionContext)
+
+        return (dataFlowInfo.getStableNullability(dataFlowValue) != Nullability.NOT_NULL)
     }
 
     companion object {
