@@ -25,15 +25,15 @@ import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrExternalPackageFragmentImpl
-import org.jetbrains.kotlin.ir.expressions.IrCall
-import org.jetbrains.kotlin.ir.expressions.IrExpression
-import org.jetbrains.kotlin.ir.expressions.IrTypeOperator
+import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
-import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
+import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.isClass
 import org.jetbrains.kotlin.ir.util.isObject
+import org.jetbrains.kotlin.ir.visitors.IrElementTransformer
+import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.name.Name
@@ -45,6 +45,181 @@ abstract class AndroidIrExtension : IrGenerationExtension {
 
     override fun generate(moduleFragment: IrModuleFragment, pluginContext: IrPluginContext) {
         moduleFragment.transform(AndroidIrTransformer(this, pluginContext), null)
+    }
+
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
+    override fun resolveSymbol(symbol: IrSymbol): IrDeclaration? {
+
+        fun isAndroidDescriptor(descriptor: DeclarationDescriptor): Boolean {
+            if (descriptor is PropertyAccessorDescriptor) {
+                return descriptor.correspondingProperty is AndroidSyntheticProperty
+            }
+            return descriptor is AndroidSyntheticProperty || descriptor is AndroidSyntheticFunction
+        }
+
+        val descriptor = symbol.descriptor
+
+        if (!isAndroidDescriptor(descriptor)) return super.resolveSymbol(symbol)
+
+        if (descriptor is PropertyDescriptor) {
+            val prop = symbol as IrPropertySymbol
+            return object : IrProperty {
+                @ObsoleteDescriptorBasedAPI
+                override val descriptor: PropertyDescriptor get() = descriptor
+                override val symbol: IrPropertySymbol get() = prop
+                override val isVar: Boolean get() = descriptor.isVar
+                override val isConst: Boolean get() = descriptor.isConst
+                override val isLateinit: Boolean get() = descriptor.isLateInit
+                override val isDelegated: Boolean get() = descriptor.isDelegated
+                override val isExternal: Boolean get() = descriptor.isExternal
+                override val isExpect: Boolean get() = descriptor.isExpect
+                override val isFakeOverride: Boolean get() = descriptor.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE
+                override var backingField: IrField? = null
+                override var getter: IrSimpleFunction?
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override var setter: IrSimpleFunction?
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override val modality: Modality get() = descriptor.modality
+                override var visibility: Visibility
+                    get() = descriptor.visibility
+                    set(value) {}
+                override var origin: IrDeclarationOrigin
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override var parent: IrDeclarationParent
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override val startOffset: Int
+                    get() = UNDEFINED_OFFSET
+                override val endOffset: Int
+                    get() = UNDEFINED_OFFSET
+
+                override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {
+                    TODO("Not yet implemented")
+                }
+
+                override fun <D> acceptChildren(visitor: IrElementVisitor<Unit, D>, data: D) {
+                    TODO("Not yet implemented")
+                }
+
+                override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
+                    TODO("Not yet implemented")
+                }
+
+                override var annotations: List<IrConstructorCall>
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override val name: Name
+                    get() = descriptor.name
+                override var metadata: MetadataSource?
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+
+                init {
+                    prop.bind(this)
+                }
+            }
+        }
+
+        if (descriptor is FunctionDescriptor) {
+            val func = symbol as IrSimpleFunctionSymbol
+            return object : IrSimpleFunction {
+                override val isTailrec: Boolean
+                    get() = TODO("Not yet implemented")
+                override val isSuspend: Boolean
+                    get() = TODO("Not yet implemented")
+                override val isFakeOverride: Boolean
+                    get() = TODO("Not yet implemented")
+                override val isOperator: Boolean
+                    get() = TODO("Not yet implemented")
+                override val isInfix: Boolean
+                    get() = TODO("Not yet implemented")
+                override var correspondingPropertySymbol: IrPropertySymbol?
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+
+                @ObsoleteDescriptorBasedAPI
+                override val descriptor: FunctionDescriptor
+                    get() = TODO("Not yet implemented")
+                override val symbol: IrSimpleFunctionSymbol
+                    get() = TODO("Not yet implemented")
+                override val isInline: Boolean
+                    get() = TODO("Not yet implemented")
+                override val isExternal: Boolean
+                    get() = TODO("Not yet implemented")
+                override val isExpect: Boolean
+                    get() = TODO("Not yet implemented")
+                override var returnType: IrType
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override var dispatchReceiverParameter: IrValueParameter?
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override var extensionReceiverParameter: IrValueParameter?
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override var valueParameters: List<IrValueParameter>
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override var body: IrBody?
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override val name: Name
+                    get() = TODO("Not yet implemented")
+                override var origin: IrDeclarationOrigin
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override var parent: IrDeclarationParent
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override val startOffset: Int
+                    get() = TODO("Not yet implemented")
+                override val endOffset: Int
+                    get() = TODO("Not yet implemented")
+
+                override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {
+                    TODO("Not yet implemented")
+                }
+
+                override fun <D> acceptChildren(visitor: IrElementVisitor<Unit, D>, data: D) {
+                    TODO("Not yet implemented")
+                }
+
+                override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
+                    TODO("Not yet implemented")
+                }
+
+                override var annotations: List<IrConstructorCall>
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override var visibility: Visibility
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override var typeParameters: List<IrTypeParameter>
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override var metadata: MetadataSource?
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override var overriddenSymbols: List<IrSimpleFunctionSymbol>
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+                override val modality: Modality
+                    get() = TODO("Not yet implemented")
+                override var attributeOwnerId: IrAttributeContainer
+                    get() = TODO("Not yet implemented")
+                    set(value) {}
+
+                init {
+                    func.bind(this)
+                }
+            }
+        }
+
+        TODO("Implement other type of descriptors $descriptor")
+
     }
 }
 
