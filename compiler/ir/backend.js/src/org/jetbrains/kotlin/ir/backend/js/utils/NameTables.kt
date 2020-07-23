@@ -8,7 +8,9 @@ package org.jetbrains.kotlin.ir.backend.js.utils
 import org.jetbrains.kotlin.backend.common.ir.isMethodOfAny
 import org.jetbrains.kotlin.backend.common.ir.isTopLevel
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.backend.js.JsLoweredDeclarationOrigin
+import org.jetbrains.kotlin.ir.backend.js.export.isExported
 import org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir.JsManglerIr
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrLoop
@@ -113,6 +115,9 @@ fun functionSignature(declaration: IrFunction): Signature {
     if (declaration.isEffectivelyExternal()) {
         return stableName
     }
+    if (declaration is IrSimpleFunction && declaration.correspondingPropertySymbol == null && declaration.isExported(null)) {
+        return stableName
+    }
     if (declaration.getJsName() != null) {
         return stableName
     }
@@ -154,7 +159,7 @@ class NameTables(
     packages: List<IrPackageFragment>,
     reservedForGlobal: MutableSet<String> = mutableSetOf(),
     reservedForMember: MutableSet<String> = mutableSetOf(),
-    val mappedNames: MutableMap<String, String> = mutableMapOf()
+    val mappedNames: MutableMap<String, String> = mutableMapOf(),
 ) {
     val globalNames: NameTable<IrDeclaration>
     private val memberNames: NameTable<Signature>

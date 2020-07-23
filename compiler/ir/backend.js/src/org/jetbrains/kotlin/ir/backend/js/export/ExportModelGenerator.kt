@@ -378,8 +378,11 @@ private fun getExportCandidate(declaration: IrDeclaration): IrDeclarationWithNam
     return declaration
 }
 
-private fun shouldDeclarationBeExported(declaration: IrDeclarationWithName, context: JsIrBackendContext): Boolean {
-    if (declaration.fqNameWhenAvailable in context.additionalExportedDeclarations)
+private fun shouldDeclarationBeExported(declaration: IrDeclarationWithName, context: JsIrBackendContext?): Boolean {
+    if (declaration is IrDeclarationWithVisibility && declaration.visibility != Visibilities.PUBLIC)
+        return false
+
+    if (context != null && declaration.fqNameWhenAvailable in context.additionalExportedDeclarations)
         return true
 
     if (declaration.isJsExport())
@@ -392,7 +395,8 @@ private fun shouldDeclarationBeExported(declaration: IrDeclarationWithName, cont
     }
 }
 
-fun IrDeclaration.isExported(context: JsIrBackendContext): Boolean {
+// TODO: Don't pass context. Mark IR nodes themselves as exported.
+fun IrDeclaration.isExported(context: JsIrBackendContext?): Boolean {
     val candidate = getExportCandidate(this) ?: return false
     return shouldDeclarationBeExported(candidate, context)
 }
