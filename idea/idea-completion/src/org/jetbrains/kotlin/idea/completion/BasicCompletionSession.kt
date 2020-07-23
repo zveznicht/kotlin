@@ -504,12 +504,11 @@ class BasicCompletionSession(
                                 .onEach { foundDescriptors += it.original }
 
                             collector.addDescriptorElements(
-                                unique.toList(), factory,
-                                prohibitDuplicates = true
+                                unique.toList(), factory
                             )
                             collector.addDescriptorElements(
                                 uniqueNotImportedExtensions.toList(), factory,
-                                notImported = true, prohibitDuplicates = true
+                                notImported = true
                             )
 
                             flushToResultSet()
@@ -823,11 +822,11 @@ class BasicCompletionSession(
         fun addReferenceVariants(referenceVariants: ReferenceVariants) {
             collector.addDescriptorElements(
                 referenceVariantsHelper.excludeNonInitializedVariable(referenceVariants.imported, position),
-                lookupElementFactory, prohibitDuplicates = true
+                lookupElementFactory
             )
             collector.addDescriptorElements(
                 referenceVariants.notImportedExtensions, lookupElementFactory,
-                notImported = true, prohibitDuplicates = true
+                notImported = true
             )
         }
 

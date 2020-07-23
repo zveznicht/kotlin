@@ -11,13 +11,11 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.ElementPattern
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.MemberDescriptor
 import org.jetbrains.kotlin.idea.completion.handlers.WithExpressionPrefixInsertHandler
 import org.jetbrains.kotlin.idea.completion.handlers.WithTailInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
-import org.jetbrains.kotlin.resolve.ImportedFromObjectCallableDescriptor
 import java.util.*
 import kotlin.math.max
 
@@ -39,7 +37,6 @@ class LookupElementsCollector(
     private val resultSet = resultSet.withPrefixMatcher(prefixMatcher).withRelevanceSorter(sorter)
 
     private val postProcessors = ArrayList<(LookupElement) -> LookupElement>()
-    private val processedCallables = mutableSetOf<CallableDescriptor>()
 
     var isResultEmpty: Boolean = true
         private set
@@ -63,11 +60,10 @@ class LookupElementsCollector(
         descriptors: Iterable<DeclarationDescriptor>,
         lookupElementFactory: AbstractLookupElementFactory,
         notImported: Boolean = false,
-        withReceiverCast: Boolean = false,
-        prohibitDuplicates: Boolean = false
+        withReceiverCast: Boolean = false
     ) {
         for (descriptor in descriptors) {
-            addDescriptorElements(descriptor, lookupElementFactory, notImported, withReceiverCast, prohibitDuplicates)
+            addDescriptorElements(descriptor, lookupElementFactory, notImported, withReceiverCast)
         }
     }
 
@@ -75,11 +71,8 @@ class LookupElementsCollector(
         descriptor: DeclarationDescriptor,
         lookupElementFactory: AbstractLookupElementFactory,
         notImported: Boolean = false,
-        withReceiverCast: Boolean = false,
-        prohibitDuplicates: Boolean = false
+        withReceiverCast: Boolean = false
     ) {
-        if (prohibitDuplicates && descriptor is CallableDescriptor && unwrapIfImportedFromObject(descriptor) in processedCallables) return
-
         var lookupElements = lookupElementFactory.createStandardLookupElementsForDescriptor(descriptor, useReceiverTypes = true)
 
         if (withReceiverCast) {
@@ -87,8 +80,6 @@ class LookupElementsCollector(
         }
 
         addElements(lookupElements, notImported)
-
-        if (prohibitDuplicates && descriptor is CallableDescriptor) processedCallables.add(unwrapIfImportedFromObject(descriptor))
     }
 
     fun addElement(element: LookupElement, notImported: Boolean = false) {
@@ -171,6 +162,3 @@ private class DeclarationLookupObjectLookupElementDecorator(
 ) : LookupElementDecorator<LookupElement>(element) {
     override fun getPsiElement() = declarationLookupObject.psiElement
 }
-
-private fun unwrapIfImportedFromObject(descriptor: CallableDescriptor): CallableDescriptor =
-    if (descriptor is ImportedFromObjectCallableDescriptor<*>) descriptor.callableFromObject else descriptor

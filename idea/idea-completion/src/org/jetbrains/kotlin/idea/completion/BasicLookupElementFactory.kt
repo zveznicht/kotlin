@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.idea.completion.handlers.KotlinFunctionInsertHandler
 import org.jetbrains.kotlin.idea.core.completion.DeclarationLookupObject
 import org.jetbrains.kotlin.idea.core.completion.PackageLookupObject
 import org.jetbrains.kotlin.idea.core.unwrapIfFakeOverride
+import org.jetbrains.kotlin.idea.core.unwrapIfImportedFromObject
 import org.jetbrains.kotlin.idea.highlighter.dsl.DslHighlighterExtension
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.load.java.descriptors.JavaClassDescriptor
@@ -53,7 +54,7 @@ class BasicLookupElementFactory(
         parametersAndTypeGrayed: Boolean = false
     ): LookupElement {
         return createLookupElementUnwrappedDescriptor(
-            descriptor.unwrapIfFakeOverride(),
+            descriptor.unwrapIfFakeOverride().unwrapIfImportedFromObject(),
             qualifyNestedClasses,
             includeClassTypeArguments,
             parametersAndTypeGrayed

@@ -16,11 +16,8 @@ import org.jetbrains.kotlin.idea.util.getResolutionScope
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.DescriptorUtils
-import org.jetbrains.kotlin.resolve.OverridingUtil
+import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.isExtension
-import org.jetbrains.kotlin.resolve.findOriginalTopMostOverriddenDescriptors
 import org.jetbrains.kotlin.resolve.scopes.LexicalScope
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 import org.jetbrains.kotlin.resolve.scopes.utils.getImplicitReceiversHierarchy
@@ -144,4 +141,8 @@ fun <D : CallableMemberDescriptor> D.getDeepestSuperDeclarations(withThis: Boole
 
 fun <T : DeclarationDescriptor> T.unwrapIfFakeOverride(): T {
     return if (this is CallableMemberDescriptor) DescriptorUtils.unwrapFakeOverride(this) else this
+}
+
+fun DeclarationDescriptor.unwrapIfImportedFromObject(): DeclarationDescriptor {
+    return if (this is ImportedFromObjectCallableDescriptor<*>) callableFromObject else this
 }
