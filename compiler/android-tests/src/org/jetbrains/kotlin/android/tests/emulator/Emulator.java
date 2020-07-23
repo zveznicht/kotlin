@@ -73,6 +73,8 @@ public class Emulator {
         commandLine.addParameter(AVD_NAME);
         commandLine.addParameter("-no-audio");
         commandLine.addParameter("-no-window");
+        commandLine.addParameter("-gpu");
+        commandLine.addParameter("swiftshader_indirect");
         return commandLine;
     }
 
