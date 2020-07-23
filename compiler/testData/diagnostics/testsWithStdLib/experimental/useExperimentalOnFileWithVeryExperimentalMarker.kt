@@ -1,31 +1,34 @@
 // FIR_IDENTICAL
 // !USE_EXPERIMENTAL: kotlin.RequiresOptIn
-// FILE: api.kt
 
-package api
+class A(
+    val l: MutableList<Int>,
+    val f: () -> Unit,
+    var w: Int
+)
 
-@RequiresOptIn(level = RequiresOptIn.Level.WARNING)
-annotation class ExperimentalAPI
+operator fun <T> MutableCollection<in T>?.plusAssign(element: T) {
+    this?.add(element)
+}
 
-@ExperimentalAPI
-@RequiresOptIn(level = RequiresOptIn.Level.WARNING)
-annotation class VeryExperimentalAPI
+operator fun (() -> Unit)?.invoke() {}
 
-@ExperimentalAPI
-@VeryExperimentalAPI
-fun f() {}
+operator fun Int?.inc(): Int? = 1
+operator fun MutableList<Int>?.get(w: Int) = 1
+operator fun MutableList<Int>?.set(w: Int, r: Int) = 1
 
-@ExperimentalAPI
-fun g() {}
+operator fun <@kotlin.internal.OnlyInputTypes K, V> Map<out K, V>.get(key: K): V? = TODO()
 
-// FILE: usage.kt
+fun main(a: A?, q: Map<String, String>?, t: CharSequence) {
+    val l = a?.l
+    l[0]
 
-@file:OptIn(ExperimentalAPI::class, VeryExperimentalAPI::class)
-package usage
+    q?.get(t)
+    //a?.f()
+//
+//    a?.w++
+//
+//    a?.l[0]
+//    a?.l[0] += 1
 
-import api.*
-
-fun usage() {
-    f()
-    g()
 }

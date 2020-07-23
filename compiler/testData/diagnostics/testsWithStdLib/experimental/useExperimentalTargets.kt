@@ -1,58 +1,24 @@
-// FIR_IDENTICAL
-// !USE_EXPERIMENTAL: kotlin.RequiresOptIn
-// !DIAGNOSTICS: -UNUSED_PARAMETER
-// FILE: api.kt
+class A(
+    val l: MutableList<Int>,
+    var w: Int,
+    val q: () -> Unit
+)
 
-package api
+operator fun MutableList<Int>?.plusAssign(t: Int) {}
+operator fun MutableList<Int>?.set(t: Int, w: Int) {}
+operator fun MutableList<Int>?.get(t: Int) = 1
+operator fun Int?.inc(): Int = 1
+operator fun (() -> Unit)?.invoke() {}
 
-@RequiresOptIn(level = RequiresOptIn.Level.WARNING)
-@Target(AnnotationTarget.CLASS)
-annotation class E
+fun foo(a: A?) {
+    //a?.l += 1
+    //a?.l[0]
+    //a?.l[0]++
 
-@E
-open class Foo(val s: String = "")
+    val l = a?.l
+    l[0]
 
-// FILE: usage.kt
+    //a?.q()
 
-import api.*
-
-@OptIn(E::class)
-class Klass {
-    init {
-        Foo()
-    }
+    //a?.w++
 }
-
-class Constructor {
-    @OptIn(E::class) constructor() {
-        Foo()
-    }
-}
-
-@OptIn(E::class)
-val property = Foo().s
-
-@OptIn(E::class)
-fun function() {
-    Foo()
-}
-
-fun valueParameter(@OptIn(E::class) p: String = Foo().s): String {
-    @OptIn(E::class)
-    val localVariable: String = Foo().s
-    return localVariable
-}
-
-var propertyAccessors: String
-    @OptIn(E::class)
-    get() = Foo().s
-    @OptIn(E::class)
-    set(value) { Foo() }
-
-fun expression(): String {
-    val s = @OptIn(E::class) Foo().s
-    return s
-}
-
-@OptIn(E::class)
-typealias TypeAlias = Foo
