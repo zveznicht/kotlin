@@ -73,6 +73,8 @@ class LookupElementFactory(
 
     val insertHandlerProvider = basicFactory.insertHandlerProvider
 
+    private val callableWeigher = CallableWeigherComputer(receiverTypes)
+
     private val superFunctions: Set<FunctionDescriptor> by lazy {
         inDescriptor.parentsWithSelf.takeWhile { it !is ClassDescriptor }.filterIsInstance<FunctionDescriptor>().toList()
             .flatMap { it.findOriginalTopMostOverriddenDescriptors() }.toSet()
@@ -288,41 +290,39 @@ class LookupElementFactory(
         var element = basicFactory.createLookupElement(descriptor, qualifyNestedClasses, includeClassTypeArguments, parametersAndTypeGrayed)
 
         if (useReceiverTypes) {
-            val weight = callableWeight(descriptor)
+            val weight = callableWeigher.callableWeight(descriptor)
             if (weight != null) {
                 element.putUserData(CALLABLE_WEIGHT_KEY, weight) // store for use in lookup elements sorting
+                element = element.boldIfImmediate(weight)
             }
-
-            element = element.boldIfImmediate(weight)
         }
         return element
     }
 
-    private fun LookupElement.boldIfImmediate(weight: CallableWeight?): LookupElement {
-        val style = when (weight?.enum) {
+    private fun LookupElement.boldIfImmediate(weight: CallableWeight): LookupElement {
+        val style = when (weight.enum) {
             CallableWeightEnum.thisClassMember, CallableWeightEnum.thisTypeExtension -> Style.BOLD
             CallableWeightEnum.receiverCastRequired -> Style.GRAYED
             else -> Style.NORMAL
         }
-        return if (style != Style.NORMAL) {
-            object : LookupElementDecorator<LookupElement>(this) {
-                override fun renderElement(presentation: LookupElementPresentation) {
-                    super.renderElement(presentation)
-                    if (style == Style.BOLD) {
-                        presentation.isItemTextBold = true
-                    } else {
-                        presentation.itemTextForeground = CAST_REQUIRED_COLOR
-                        // gray all tail fragments too:
-                        val fragments = presentation.tailFragments
-                        presentation.clearTail()
-                        for (fragment in fragments) {
-                            presentation.appendTailText(fragment.text, true)
-                        }
+
+        if (style == Style.NORMAL) return this
+
+        return object : LookupElementDecorator<LookupElement>(this) {
+            override fun renderElement(presentation: LookupElementPresentation) {
+                super.renderElement(presentation)
+                if (style == Style.BOLD) {
+                    presentation.isItemTextBold = true
+                } else {
+                    presentation.itemTextForeground = CAST_REQUIRED_COLOR
+                    // gray all tail fragments too:
+                    val fragments = presentation.tailFragments
+                    presentation.clearTail()
+                    for (fragment in fragments) {
+                        presentation.appendTailText(fragment.text, true)
                     }
                 }
             }
-        } else {
-            this
         }
     }
 
@@ -331,8 +331,10 @@ class LookupElementFactory(
         BOLD,
         GRAYED
     }
+}
 
-    private fun callableWeight(descriptor: DeclarationDescriptor): CallableWeight? {
+private class CallableWeigherComputer(private val receiverTypes: Collection<ReceiverType>?) {
+    fun callableWeight(descriptor: DeclarationDescriptor): CallableWeight? {
         if (receiverTypes == null) return null
         if (descriptor !is CallableDescriptor) return null
 
@@ -352,13 +354,13 @@ class LookupElementFactory(
                 ?.let { return it }
 
             val overridden = descriptor.overriddenTreeUniqueAsSequence(useOriginal = false)
-            return overridden.map { callableWeightBasic(it, receiverTypes)!! }.minBy { it.enum }!!
+            return overridden.map { callableWeightBasic(it, receiverTypes) }.minByOrNull { it.enum }
         }
 
         return callableWeightBasic(descriptor, receiverTypes)
     }
 
-    private fun callableWeightBasic(descriptor: CallableDescriptor, receiverTypes: Collection<ReceiverType>): CallableWeight? {
+    private fun callableWeightBasic(descriptor: CallableDescriptor, receiverTypes: Collection<ReceiverType>): CallableWeight {
         descriptor.callableWeightBasedOnReceiver(receiverTypes, CallableWeight.receiverCastRequired)?.let { return it }
 
         return when (descriptor.containingDeclaration) {
