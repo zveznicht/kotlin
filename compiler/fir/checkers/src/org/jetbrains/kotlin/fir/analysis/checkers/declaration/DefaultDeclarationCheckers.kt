@@ -20,6 +20,7 @@ object CommonDeclarationCheckers : DeclarationCheckers() {
         FirLocalEntityNotAllowedChecker,
         FirTypeParametersInObjectChecker,
         FirConflictsChecker,
+        FirConstructorInInterfaceChecker,
     )
 
     override val memberDeclarationCheckers: List<FirMemberDeclarationChecker> = listOf(
@@ -29,6 +30,12 @@ object CommonDeclarationCheckers : DeclarationCheckers() {
         FirSupertypeInitializedWithoutPrimaryConstructor,
         FirDelegationSuperCallInEnumConstructorChecker,
         FirPrimaryConstructorRequiredForDataClassChecker,
+        FirMethodOfAnyImplementedInInterfaceChecker,
+        FirSupertypeInitializedInInterfaceChecker,
+        FirDelegationInInterfaceChecker,
+        FirInterfaceWithSuperclassChecker,
+        FirEnumClassSimpleChecker,
+        FirSealedSupertypeChecker,
     )
 
     override val regularClassCheckers: List<FirRegularClassChecker> = listOf(
