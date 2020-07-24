@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.gradle.targets.native.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.Optional
@@ -93,6 +94,7 @@ open class PodInstallTask : DefaultTask() {
     }
 }
 
+
 abstract class CocoapodsWithSyntheticTask : DefaultTask() {
     init {
         onlyIf {
@@ -104,15 +106,16 @@ abstract class CocoapodsWithSyntheticTask : DefaultTask() {
     internal lateinit var cocoapodsExtension: CocoapodsExtension
 }
 
-abstract class DownloadCocoapodsTask : CocoapodsWithSyntheticTask() {
-    @Input
-    lateinit var podName: Provider<String>
+abstract class PodDownloadTask : CocoapodsWithSyntheticTask() {
+    @get:Input
+    internal lateinit var podName: Provider<String>
 }
 
-open class PodDownloadUrlTask : DownloadCocoapodsTask() {
 
-    @Nested
-    lateinit var podspecLocation: Provider<Url>
+open class PodDownloadUrlTask : PodDownloadTask() {
+
+    @get:Nested
+    internal lateinit var podSource: Provider<Url>
 
     @get:Internal
     internal val urlDir = project.provider {
@@ -120,42 +123,28 @@ open class PodDownloadUrlTask : DownloadCocoapodsTask() {
     }
 
     @get:OutputDirectory
-    internal val podSource = project.provider {
+    internal val podSourceDir = project.provider {
         urlDir.get().resolve(podName.get())
     }
 
     @get:Internal
     internal val permittedFileExtensions = project.provider {
-        listOf("zip", "tar", "gz", "tg", "bz2")
+        listOf("zip", "tar", "tgz", "tbz", "txz", "gzip", "tar.gz", "tar.bz2", "tar.xz", "jar")
     }
 
     @TaskAction
     fun download() {
-        val url = podspecLocation.get().url.toString()
+        val podLocation = podSource.get()
+        val url = podLocation.url.toString()
         val repoUrl = url.substringBeforeLast("/")
-        val extension = url.substringAfterLast(".")
+        val extension = url.substringAfterLast("/").substringAfter(".")
         require(permittedFileExtensions.get().contains(extension)) { "Unknown file extension" }
+
         val repo = setupRepo(repoUrl)
-
-        val dependency = project.dependencies.create(
-            mapOf(
-                "name" to podName.get(),
-                "ext" to extension
-            )
-        )
-
+        val dependency = createDependency(extension)
         val configuration = project.configurations.detachedConfiguration(dependency)
-
-        val artifact = configuration.files.single()
-        project.copy {
-            if (extension == "zip") {
-                it.from(project.zipTree(artifact.absolutePath))
-            } else {
-                it.from(project.tarTree(artifact.absolutePath))
-            }
-            it.into(project.cocoapodsBuildDirs.externalSources("url"))
-        }
-
+        val artifact = configuration.singleFile
+        copyArtifactToUrlDir(artifact, extension, podLocation.flatten)
         project.repositories.remove(repo)
     }
 
@@ -170,22 +159,55 @@ open class PodDownloadUrlTask : DownloadCocoapodsTask() {
             }
         }
     }
+
+    private fun createDependency(extension: String) = project.dependencies.create(
+        mapOf(
+            "name" to podName.get(),
+            "version" to "1.0",
+            "ext" to extension
+        )
+    )
+
+    private fun copyArtifactToUrlDir(artifact: File, extension: String, flatten: Boolean?) {
+        project.copy {
+            val isFlatten = flatten ?: false
+            val destinationDir = if (isFlatten) podSourceDir.get() else urlDir.get()
+            it.into(destinationDir)
+            it.from(archiveTree(artifact.absolutePath, extension))
+            if (extension == "jar") {
+                it.exclude("META-INF/")
+            }
+        }
+    }
+
+    private fun archiveTree(path: String, extension: String): FileTree {
+        return if (extension == "zip" || extension == "jar") {
+            project.zipTree(path)
+        } else {
+            project.tarTree(path)
+        }
+    }
 }
 
 
-open class PodDownloadGitTask : DownloadCocoapodsTask() {
+open class PodDownloadGitTask : PodDownloadTask() {
 
-    @Nested
-    lateinit var podSource: Provider<Git>
+    @get:Nested
+    internal lateinit var podSource: Provider<Git>
 
-    @get:OutputDirectory
+    @get:Internal
     internal val gitDir = project.provider {
         project.cocoapodsBuildDirs.externalSources("git")
     }
 
+    @get:OutputDirectory
+    internal val repo = project.provider {
+        gitDir.get().resolve(podName.get())
+    }
+
     @TaskAction
     fun download() {
-        gitDir.get().resolve(podName.get()).deleteRecursively()
+        repo.get().deleteRecursively()
         val git = podSource.get()
         val branch = git.tag ?: git.branch
         val commit = git.commit
@@ -212,7 +234,7 @@ open class PodDownloadGitTask : DownloadCocoapodsTask() {
             "git",
             "init"
         )
-        val repo = gitDir.get().resolve(podName.get())
+        val repo = repo.get()
         repo.mkdir()
         val configProcess: ProcessBuilder.() -> Unit = { directory(repo) }
         runCommand(initCommand, configProcess)

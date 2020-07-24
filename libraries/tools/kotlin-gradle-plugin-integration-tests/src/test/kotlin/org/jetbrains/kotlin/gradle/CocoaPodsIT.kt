@@ -241,10 +241,13 @@ class CocoaPodsIT : BaseGradleIT() {
     fun testPodDownloadUrlTar() = doTestPodDownloadUrl("tar")
 
     @Test
-    fun testPodDownloadUrlGZ() = doTestPodDownloadUrl("gz")
+    fun testPodDownloadUrlGZ() = doTestPodDownloadUrl("tar.gz")
 
     @Test
-    fun testPodDownloadUrlBZ2() = doTestPodDownloadUrl("bz2")
+    fun testPodDownloadUrlBZ2() = doTestPodDownloadUrl("tar.bz2")
+
+    @Test
+    fun testPodDownloadUrlJar() = doTestPodDownloadUrl("jar")
 
     @Test
     fun testDownloadAndImport() {
@@ -272,7 +275,7 @@ class CocoaPodsIT : BaseGradleIT() {
     @Test
     fun testSubspecWithModuleName() {
         with(project.gradleBuildScript()) {
-            addPod("AFNetworking/Reachability","moduleName = \"CustomName\"")
+            addPod("AFNetworking/Reachability", "moduleName = \"CustomName\"")
             addPod("AFNetworking/Security")
         }
         hooks.addHook {
@@ -280,6 +283,7 @@ class CocoaPodsIT : BaseGradleIT() {
         }
         project.testImport()
     }
+
 
     // up-to-date tests
 
@@ -424,16 +428,17 @@ class CocoaPodsIT : BaseGradleIT() {
     fun doTestPodDownloadUrl(
         fileExtension: String,
         podName: String = "podspecWithFilesExample",
-        repoPath: String = "https://github.com/alozhkin/podspecWithFilesExample/raw/master"
+        repoPath: String = "https://github.com/alozhkin/podspecWithFilesExample/raw/master",
+        flatten: Boolean? = null
     ) {
         val repo = "$repoPath/$podName.$fileExtension"
         with(project.gradleBuildScript()) {
-            addPod(podName, "source = url(\"$repo\")")
+            addPod(podName, "source = url(\"$repo\", $flatten)")
         }
         hooks.addHook {
             assertTrue(url().resolve(podName).exists())
         }
-        project.testDownload(listOf(repo))
+        project.testImport(listOf(repo))
     }
 
     private fun Project.testImport(

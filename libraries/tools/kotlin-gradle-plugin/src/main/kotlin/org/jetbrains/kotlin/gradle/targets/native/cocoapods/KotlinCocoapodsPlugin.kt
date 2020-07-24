@@ -52,7 +52,7 @@ internal class CocoapodsBuildDirs(val project: Project) {
     val externalSources: File
         get() = root.resolve("externalSources")
 
-    fun externalSources(dir: String) = externalSources.resolve(dir)
+    fun externalSources(fileName: String) = externalSources.resolve(fileName)
 
     fun fatFramework(buildType: String) =
         root.resolve("fat-frameworks/${buildType.toLowerCase()}")
@@ -68,7 +68,6 @@ private val KotlinNativeTarget.toSetupBuildTaskName: String
         KotlinCocoapodsPlugin.POD_SETUP_BUILD_TASK_NAME,
         disambiguationClassifier
     )
-
 
 private val KotlinNativeTarget.toBuildDependenciesTaskName: String
     get() = lowerCamelCaseName(
@@ -199,7 +198,6 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         cocoapodsExtension: CocoapodsExtension
     ) {
         val moduleNames = mutableSetOf<String>()
-
 
         cocoapodsExtension.pods.all { pod ->
             if (moduleNames.contains(pod.moduleName)) {
@@ -349,7 +347,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                 is Url -> project.tasks.register(pod.toPodDownloadTaskName, PodDownloadUrlTask::class.java) {
                     it.cocoapodsExtension = cocoapodsExtension
                     it.podName = project.provider { pod.name }
-                    it.podspecLocation = project.provider { podSource as Url }
+                    it.podSource = project.provider { podSource as Url }
                 }
                 else -> return@all
             }
