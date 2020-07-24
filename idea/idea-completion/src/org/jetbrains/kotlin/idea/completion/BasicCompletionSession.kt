@@ -425,7 +425,6 @@ class BasicCompletionSession(
                 { true }, true, configuration.javaClassesNotToBeUsed
             ).collect({ descriptors += it }, { descriptors.addIfNotNull(it.resolveToDescriptor(resolutionFacade)) })
 
-            val foundDescriptors = mutableSetOf<DeclarationDescriptor>()
             descriptors.asSequence()
                 .filter {
                     it.kind == ClassKind.OBJECT ||
@@ -504,22 +503,8 @@ class BasicCompletionSession(
                     })
 
                     rvCollector.collectReferenceVariants(descriptorKindFilter) { (imported, notImportedExtensions) ->
-
-                        val unique = imported.asSequence()
-                            .filterNot { it.original in foundDescriptors }
-                            .onEach { foundDescriptors += it.original }
-
-                        val uniqueNotImportedExtensions = notImportedExtensions.asSequence()
-                            .filterNot { it.original in foundDescriptors }
-                            .onEach { foundDescriptors += it.original }
-
-                        collector.addDescriptorElements(
-                            unique.toList(), factory
-                        )
-                        collector.addDescriptorElements(
-                            uniqueNotImportedExtensions.toList(), factory,
-                            notImported = true
-                        )
+                        collector.addDescriptorElements(imported, factory)
+                        collector.addDescriptorElements(notImportedExtensions, factory, notImported = true)
 
                         flushToResultSet()
                     }
