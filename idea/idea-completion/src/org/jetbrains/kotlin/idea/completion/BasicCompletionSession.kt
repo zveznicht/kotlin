@@ -367,8 +367,8 @@ class BasicCompletionSession(
             if (callTypeAndReceiver.receiver == null && prefix.isNotEmpty()) {
                 completeNonImportedClassifiers()
             } else if (callTypeAndReceiver is CallTypeAndReceiver.DOT) {
-                val receiverExpression = callTypeAndReceiver.receiver as? KtSimpleNameExpression ?: return
-                completeStaticMembersFromNonImportedClassifiers(lookupElementFactory, receiverExpression)
+                val classifierQualifier = callTypeAndReceiver.receiver as? KtSimpleNameExpression ?: return
+                completeStaticMembersFromNonImportedClassifiers(lookupElementFactory, classifierQualifier)
             }
         }
 
@@ -403,111 +403,134 @@ class BasicCompletionSession(
 
         private fun completeStaticMembersFromNonImportedClassifiers(
             lookupElementFactory: LookupElementFactory,
-            receiver: KtSimpleNameExpression
+            classifierQualifier: KtSimpleNameExpression
         ) {
-            val qualifier = bindingContext[BindingContext.QUALIFIER, receiver]
-            if (qualifier != null) return
+            val classiferIsAlreadyResolved = bindingContext[BindingContext.QUALIFIER, classifierQualifier] != null
+            if (classiferIsAlreadyResolved) return
 
-            val helper = indicesHelper(false)
+            val classifiersWithStaticScopes = collectClassifiersWithStaticScopes(classifierQualifier)
 
-            val descriptors = mutableListOf<ClassifierDescriptorWithTypeParameters>()
+            for (classifier in classifiersWithStaticScopes) {
+                val scope = nameExpression?.getResolutionScope(bindingContext) ?: return
 
+                val classifierDeclaration = classifier.getImportableDescriptor()
+                val newScope = scope.addImportingScope(ExplicitImportsScope(listOf(classifierDeclaration)))
+
+                val newContext = (nameExpression.parent as KtExpression).analyzeInContext(newScope)
+
+                val rvHelper = ReferenceVariantsHelper(
+                    newContext,
+                    resolutionFacade,
+                    moduleDescriptor,
+                    isVisibleFilter,
+                    NotPropertiesService.getNotProperties(position)
+                )
+                val rvCollector = ReferenceVariantsCollector(
+                    rvHelper, indicesHelper(true), prefixMatcher,
+                    nameExpression, callTypeAndReceiver, resolutionFacade, newContext,
+                    importableFqNameClassifier, configuration
+                )
+
+                val receiverTypes = detectReceiverTypes(newContext, nameExpression, callTypeAndReceiver)
+
+                val factory = lookupElementFactory.copy(
+                    receiverTypes = receiverTypes,
+                    standardLookupElementsPostProcessor = {
+                        it.withNonImportedClassifierImport(classifierDeclaration, classifierQualifier) ?: it
+                    }
+                )
+
+                rvCollector.collectReferenceVariants(descriptorKindFilter) { (imported, notImportedExtensions) ->
+                    collector.addDescriptorElements(imported, factory)
+                    collector.addDescriptorElements(notImportedExtensions, factory, notImported = true)
+
+                    flushToResultSet()
+                }
+            }
+        }
+
+        private fun LookupElement.withNonImportedClassifierImport(
+            classifierDeclaration: DeclarationDescriptor,
+            classifierQualifier: KtSimpleNameExpression
+        ): LookupElement? {
+            val lookupDescriptor = (`object` as? DeclarationLookupObject)?.descriptor as? MemberDescriptor ?: return null
+
+            if (!classifierDeclaration.isAncestorOf(lookupDescriptor, false)) return null
+
+            if (lookupDescriptor is CallableMemberDescriptor &&
+                lookupDescriptor.isExtension &&
+                lookupDescriptor.extensionReceiverParameter?.importableFqName != classifierDeclaration.fqNameSafe
+            ) {
+                return null
+            }
+
+            val fqNameToImport = lookupDescriptor.containingDeclaration.importableFqName ?: return null
+
+            return object : LookupElementDecorator<LookupElement>(this) {
+                val name = fqNameToImport.shortName()
+                val packageName = fqNameToImport.parent()
+
+                override fun handleInsert(context: InsertionContext) {
+                    super.handleInsert(context)
+                    context.commitDocument()
+
+                    val file = context.file as? KtFile ?: return
+                    val receiverInFile = file.findElementAt(classifierQualifier.startOffset)?.getParentOfType<KtSimpleNameExpression>(false)
+                        ?: return
+                    receiverInFile.mainReference.bindToFqName(fqNameToImport, FORCED_SHORTENING)
+                }
+
+                override fun renderElement(presentation: LookupElementPresentation?) {
+                    super.renderElement(presentation)
+                    presentation?.appendTailText(
+                        KotlinIdeaCompletionBundle.message(
+                            "presentation.tail.for.0.in.1",
+                            name,
+                            packageName
+                        ), true
+                    )
+                }
+            }
+        }
+
+        private fun collectClassifiersWithStaticScopes(receiver: KtSimpleNameExpression): List<ClassifierDescriptorWithTypeParameters> {
+            val helper = indicesHelper(mayIncludeInaccessible = false)
             val fullTextPrefixMatcher = object : PrefixMatcher(receiver.getReferencedName()) {
                 override fun prefixMatches(name: String): Boolean = name == prefix
-
                 override fun cloneWithPrefix(prefix: String): PrefixMatcher {
                     throw UnsupportedOperationException("Not implemented")
                 }
             }
 
-            AllClassesCompletion(
+            val descriptors = mutableListOf<ClassifierDescriptorWithTypeParameters>()
+
+            val classifiersCollector = AllClassesCompletion(
                 parameters.withPosition(receiver, receiver.startOffset), helper, fullTextPrefixMatcher, resolutionFacade,
                 { true }, true, configuration.javaClassesNotToBeUsed
-            ).collect({ descriptors += it }, { descriptors.addIfNotNull(it.resolveToDescriptor(resolutionFacade)) })
+            )
 
-            descriptors.asSequence()
+            classifiersCollector.collect(
+                { descriptors += it },
+                { descriptors.addIfNotNull(it.resolveToDescriptor(resolutionFacade)) }
+            )
+
+            return descriptors.filter {
+                it.kind == ClassKind.OBJECT ||
+                        it.kind == ClassKind.ENUM_CLASS ||
+                        it.kind == ClassKind.ENUM_ENTRY ||
+                        it.hasCompanionObject ||
+                        it is JavaClassDescriptor
+            }
+        }
+
+        private fun classifiersWithStaticScopes(descriptors: MutableList<ClassifierDescriptorWithTypeParameters>): Sequence<ClassifierDescriptorWithTypeParameters> {
+            return descriptors.asSequence()
                 .filter {
                     it.kind == ClassKind.OBJECT ||
                             it.kind == ClassKind.ENUM_CLASS ||
                             it.kind == ClassKind.ENUM_ENTRY ||
                             it.hasCompanionObject ||
                             it is JavaClassDescriptor
-                }
-                .forEach { classifier ->
-                    val scope = nameExpression?.getResolutionScope(bindingContext) ?: return
-
-                    val desc = classifier.getImportableDescriptor()
-                    val newScope = scope.addImportingScope(ExplicitImportsScope(listOf(desc)))
-
-                    val newContext = (nameExpression.parent as KtExpression).analyzeInContext(newScope)
-
-                    val rvHelper = ReferenceVariantsHelper(
-                        newContext,
-                        resolutionFacade,
-                        moduleDescriptor,
-                        isVisibleFilter,
-                        NotPropertiesService.getNotProperties(position)
-                    )
-                    val rvCollector = ReferenceVariantsCollector(
-                        rvHelper, indicesHelper(true), prefixMatcher,
-                        nameExpression, callTypeAndReceiver, resolutionFacade, newContext,
-                        importableFqNameClassifier, configuration
-                    )
-
-                    val receiverTypes = detectReceiverTypes(newContext, nameExpression, callTypeAndReceiver)
-
-                    val factory = lookupElementFactory.copy(receiverTypes = receiverTypes, standardLookupElementsPostProcessor = {
-
-                            lookupElement ->
-                        val lookupDescriptor = (lookupElement.`object` as? DeclarationLookupObject)
-                            ?.descriptor as? MemberDescriptor ?: return@copy lookupElement
-
-                        if (!desc.isAncestorOf(lookupDescriptor, false)) return@copy lookupElement
-
-                        if (lookupDescriptor is CallableMemberDescriptor &&
-                            lookupDescriptor.isExtension &&
-                            lookupDescriptor.extensionReceiverParameter?.importableFqName != desc.fqNameSafe
-                        ) {
-                            return@copy lookupElement
-                        }
-
-                        val fqNameToImport = lookupDescriptor.containingDeclaration.importableFqName ?: return@copy lookupElement
-
-                        object : LookupElementDecorator<LookupElement>(lookupElement) {
-                            val name = fqNameToImport.shortName()
-                            val packageName = fqNameToImport.parent()
-
-                            override fun handleInsert(context: InsertionContext) {
-                                super.handleInsert(context)
-                                context.commitDocument()
-                                val file = context.file as? KtFile
-                                if (file != null) {
-                                    val receiverInFile =
-                                        file.findElementAt(receiver.startOffset)?.getParentOfType<KtSimpleNameExpression>(false)
-                                            ?: return
-                                    receiverInFile.mainReference.bindToFqName(fqNameToImport, FORCED_SHORTENING)
-                                }
-                            }
-
-                            override fun renderElement(presentation: LookupElementPresentation?) {
-                                super.renderElement(presentation)
-                                presentation?.appendTailText(
-                                    KotlinIdeaCompletionBundle.message(
-                                        "presentation.tail.for.0.in.1",
-                                        name,
-                                        packageName
-                                    ), true
-                                )
-                            }
-                        }
-                    })
-
-                    rvCollector.collectReferenceVariants(descriptorKindFilter) { (imported, notImportedExtensions) ->
-                        collector.addDescriptorElements(imported, factory)
-                        collector.addDescriptorElements(notImportedExtensions, factory, notImported = true)
-
-                        flushToResultSet()
-                    }
                 }
         }
 

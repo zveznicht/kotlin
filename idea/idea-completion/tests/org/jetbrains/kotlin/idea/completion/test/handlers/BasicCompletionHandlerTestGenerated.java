@@ -777,8 +777,6 @@ public class BasicCompletionHandlerTestGenerated extends AbstractBasicCompletion
     @RunWith(JUnit3RunnerWithInners.class)
     public static class StaticMemberOfNotImported extends AbstractBasicCompletionHandlerTest {
         private void runTest(String testDataFilePath) throws Exception {
-            int a = 10;
-            a *= 0.9;
             KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
         }
 
