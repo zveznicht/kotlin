@@ -777,6 +777,8 @@ public class BasicCompletionHandlerTestGenerated extends AbstractBasicCompletion
     @RunWith(JUnit3RunnerWithInners.class)
     public static class StaticMemberOfNotImported extends AbstractBasicCompletionHandlerTest {
         private void runTest(String testDataFilePath) throws Exception {
+            int a = 10;
+            a *= 0.9;
             KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
         }
 
@@ -807,6 +809,11 @@ public class BasicCompletionHandlerTestGenerated extends AbstractBasicCompletion
         @TestMetadata("ObjectMember.kt")
         public void testObjectMember() throws Exception {
             runTest("idea/idea-completion/testData/handlers/basic/staticMemberOfNotImported/ObjectMember.kt");
+        }
+
+        @TestMetadata("ObjectMemberWithTypeAlias.kt")
+        public void testObjectMemberWithTypeAlias() throws Exception {
+            runTest("idea/idea-completion/testData/handlers/basic/staticMemberOfNotImported/ObjectMemberWithTypeAlias.kt");
         }
     }
 
