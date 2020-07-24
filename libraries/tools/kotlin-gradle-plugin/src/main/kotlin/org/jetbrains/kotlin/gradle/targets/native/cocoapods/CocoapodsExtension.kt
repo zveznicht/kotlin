@@ -109,13 +109,13 @@ open class CocoapodsExtension(private val project: Project) {
     fun pod(name: String, version: String? = null, path: File? = null, moduleName: String = name.split("/")[0]) {
         // Empty string will lead to an attempt to create two podDownload tasks.
         // One is original podDownload and second is podDownload + pod.name
-        var podspec = path
+        var podSource = path
         if (path != null && !path.isDirectory) {
             project.logger.warn("Please use directory with podspec file, not podspec file itself")
-            podspec = path.parentFile
+            podSource = path.parentFile
         }
         require(name.isNotEmpty()) { "Please provide not empty pod name to avoid ambiguity" }
-        addToPods(CocoapodsDependency(name, moduleName, version, podspec?.let { Path(it) }))
+        addToPods(CocoapodsDependency(name, moduleName, version, podSource?.let { Path(it) }))
     }
 
 
@@ -172,9 +172,15 @@ open class CocoapodsExtension(private val project: Project) {
         override fun getName(): String = name
 
         /**
-         * Url to podspec file
+         * Url to archived (tar, jar, zip) pod folder, that should contain the podspec file and all sources required by it.
+         *
+         * Archive name should match pod name.
+         *
+         * @param url url to tar, jar or zip archive.
+         * @param flatten does archive contains subdirectory that needs to be expanded
          */
-        fun url(url: String): PodLocation = Url(URI(url))
+        @JvmOverloads
+        fun url(url: String, flatten: Boolean? = null): PodLocation = Url(URI(url), flatten)
 
         /**
          * Path to local pod
@@ -212,9 +218,12 @@ open class CocoapodsExtension(private val project: Project) {
         sealed class PodLocation {
             internal abstract fun getLocalPath(project: Project, podName: String): String
 
-            data class Url(@get:Input val url: URI) : PodLocation() {
+            data class Url(
+                @get:Input val url: URI,
+                @get:Input @get:Optional var flatten: Boolean? = null
+            ) : PodLocation() {
                 override fun getLocalPath(project: Project, podName: String): String {
-                    return project.cocoapodsBuildDirs.externalSources("url").absolutePath
+                    return project.cocoapodsBuildDirs.externalSources("url").resolve(podName).absolutePath
                 }
             }
 
