@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.gradle.targets.native.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
@@ -453,22 +454,32 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
 /**
  * The task compiles external cocoa pods sources.
  */
-open class PodBuildTask : CocoapodsWithSyntheticTask() {
+open class PodBuildTask : DefaultTask() {
 
-    @get:InputDirectory
+    @get:Internal
     internal lateinit var podsXcodeProjDir: Provider<File>
 
     @get:InputFile
     internal lateinit var buildSettingsFile: Provider<File>
 
-    @get:OutputDirectory
-    internal var buildDirProvider: Provider<File>? = project.provider {
+    @get:Internal
+    internal lateinit var kotlinNativeTarget: Provider<KotlinNativeTarget>
+
+    @get:Nested
+    lateinit var pod: Provider<CocoapodsDependency>
+
+    @get:Internal
+    internal var buildDirProvider: Provider<File> = project.provider {
         project.file(
             PodBuildSettingsProperties.readSettingsFromStream(
                 FileInputStream(buildSettingsFile.get())
             ).buildDir
         )
     }
+
+    @get:OutputFiles
+    @get:Optional
+    internal var buildResult: Provider<FileCollection>? = null
 
     @TaskAction
     fun buildDependencies() {
@@ -477,33 +488,35 @@ open class PodBuildTask : CocoapodsWithSyntheticTask() {
         )
 
         val podsXcodeProjDir = podsXcodeProjDir.get()
-        pods.get().forEach {
 
-            val podXcodeBuildCommand = listOf(
-                "xcodebuild",
-                "-project", podsXcodeProjDir.name,
-                "-scheme", it.schemeName,
-                "-sdk", kotlinNativeTarget.get().toValidSDK,
-                "-configuration", podBuildSettings.configuration
-            )
+        val podXcodeBuildCommand = listOf(
+            "xcodebuild",
+            "-project", podsXcodeProjDir.name,
+            "-scheme", pod.get().schemeName,
+            "-sdk", kotlinNativeTarget.get().toValidSDK,
+            "-configuration", podBuildSettings.configuration
+        )
 
-            val podBuildProcess = ProcessBuilder(podXcodeBuildCommand)
-                .apply {
-                    directory(podsXcodeProjDir.parentFile)
-                    inheritIO()
-                }.start()
+        val podBuildProcess = ProcessBuilder(podXcodeBuildCommand)
+            .apply {
+                directory(podsXcodeProjDir.parentFile)
+                inheritIO()
+            }.start()
 
-            val podBuildRetCode = podBuildProcess.waitFor()
-            check(podBuildRetCode == 0) {
-                listOf(
-                    "Executing of '${podXcodeBuildCommand.joinToString(" ")}' failed with code $podBuildRetCode and message:",
-                    podBuildProcess.errorStream.use { it.reader().readText() }
-                ).joinToString("\n")
-            }
+        val podBuildRetCode = podBuildProcess.waitFor()
+        check(podBuildRetCode == 0) {
+            listOf(
+                "Executing of '${podXcodeBuildCommand.joinToString(" ")}' failed with code $podBuildRetCode and message:",
+                podBuildProcess.errorStream.use { it.reader().readText() }
+            ).joinToString("\n")
         }
-        buildDirProvider = project.provider { project.file(podBuildSettings.buildDir) }
+        buildResult = project.provider {
+            project.objects.fileCollection()
+                .from(buildDirProvider.get().walkTopDown().filter { it.isDirectory && it.name == pod.get().schemeName }.toList())
+        }
     }
 }
+
 
 internal data class PodBuildSettingsProperties(
     internal val buildDir: String,
@@ -544,7 +557,7 @@ internal data class PodBuildSettingsProperties(
                 podSettings.delete()
                 podSettings.createNewFile()
 
-                val frameworkPath = frameworkPathsCollection.find { it.contains(pod.schemeName) }
+                val frameworkPath = frameworkPathsCollection.find { it.substringAfterLast("/") == pod.schemeName }
                 frameworkPath?.let { podSettings.appendText(it) }
             }
         }

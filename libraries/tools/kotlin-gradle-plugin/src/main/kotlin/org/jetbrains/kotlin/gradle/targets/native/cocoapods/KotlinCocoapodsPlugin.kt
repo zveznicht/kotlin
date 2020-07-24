@@ -79,11 +79,12 @@ private val KotlinNativeTarget.toSetupBuildTaskName: String
         disambiguationClassifier
     )
 
-private val KotlinNativeTarget.toBuildDependenciesTaskName: String
-    get() = lowerCamelCaseName(
-        KotlinCocoapodsPlugin.POD_BUILD_DEPENDENCIES_TASK_NAME,
-        disambiguationClassifier
-    )
+
+private fun KotlinNativeTarget.toBuildDependenciesTaskName(pod: CocoapodsDependency): String = lowerCamelCaseName(
+    KotlinCocoapodsPlugin.POD_BUILD_TASK_NAME,
+    pod.moduleName,
+    disambiguationClassifier
+)
 
 private val CocoapodsDependency.toPodDownloadTaskName: String
     get() = lowerCamelCaseName(
@@ -230,7 +231,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                         && project.findProperty(TARGET_PROPERTY) == null
                         && project.findProperty(CONFIGURATION_PROPERTY) == null
                     ) {
-                        val podBuildTaskProvider = project.tasks.named(target.toBuildDependenciesTaskName, PodBuildTask::class.java)
+                        val podBuildTaskProvider = project.tasks.named(target.toBuildDependenciesTaskName(pod), PodBuildTask::class.java)
                         interopTask.inputs.file(podBuildTaskProvider.map { it.buildSettingsFile })
 
                         val podSettings = getBuildPodSettingsFile(project, pod, target)
@@ -258,7 +259,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                             && project.findProperty(TARGET_PROPERTY) == null
                             && project.findProperty(CONFIGURATION_PROPERTY) == null
                         ) {
-                            val podBuildTaskProvider = project.tasks.named(target.toBuildDependenciesTaskName, PodBuildTask::class.java)
+                            val podBuildTaskProvider = project.tasks.named(target.toBuildDependenciesTaskName(pod), PodBuildTask::class.java)
                             val buildSettings =
                                 podBuildTaskProvider.get().buildSettingsFile.get()
                                     .inputStream()
@@ -289,10 +290,13 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
             PodSetupBuildTask::class.java
         )
         val classifier = target.disambiguationClassifier
-        return podSetupBuildTaskProvider.map {
-            it.buildSettingsDir.get()
+
+        fun File.getPodScheme(): String = this.name.substringAfterLast("$classifier-").substringBeforeLast(".")
+
+        return podSetupBuildTaskProvider.map { task ->
+            task.buildSettingsDir.get()
                 .listFiles()
-                ?.find { classifier != null && it.name.contains(classifier) && it.name.contains(pod.schemeName) }
+                ?.find { classifier != null && it.name.contains(classifier) && it.getPodScheme() == pod.schemeName }
         }
     }
 
@@ -423,17 +427,27 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         cocoapodsExtension: CocoapodsExtension
     ) {
 
-        kotlinExtension.supportedTargets().all { target ->
+        val schemeNames = mutableSetOf<String>()
 
-            val podSetupBuildTaskProvider = project.tasks.named(target.toSetupBuildTaskName, PodSetupBuildTask::class.java)
+        cocoapodsExtension.pods.all { pod ->
 
-            project.tasks.register(target.toBuildDependenciesTaskName, PodBuildTask::class.java) {
-                it.group = TASK_GROUP
-                it.description = "Calls `xcodebuild` on xcworkspace for the pod scheme"
-                it.kotlinNativeTarget = project.provider { target }
-                it.pods.set(cocoapodsExtension.pods)
-                it.podsXcodeProjDir = podSetupBuildTaskProvider.map { task -> task.podsXcodeProjDir.get() }
-                it.buildSettingsFile = podSetupBuildTaskProvider.map { task -> task.buildSettingsFile.get() }
+            if (schemeNames.contains(pod.schemeName)) {
+                return@all
+            }
+            schemeNames.add(pod.schemeName)
+
+            kotlinExtension.supportedTargets().all { target ->
+
+                val podSetupBuildTaskProvider = project.tasks.named(target.toSetupBuildTaskName, PodSetupBuildTask::class.java)
+
+                project.tasks.register(target.toBuildDependenciesTaskName(pod), PodBuildTask::class.java) {
+                    it.group = TASK_GROUP
+                    it.description = "Calls `xcodebuild` on xcworkspace for the pod scheme"
+                    it.kotlinNativeTarget = project.provider { target }
+                    it.pod = project.provider { pod }
+                    it.podsXcodeProjDir = podSetupBuildTaskProvider.map { task -> task.podsXcodeProjDir.get() }
+                    it.buildSettingsFile = podSetupBuildTaskProvider.map { task -> task.buildSettingsFile.get() }
+                }
             }
         }
     }
@@ -500,7 +514,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         const val POD_DOWNLOAD_TASK_NAME = "podDownload"
         const val POD_GEN_TASK_NAME = "podGen"
         const val POD_SETUP_BUILD_TASK_NAME = "podSetupBuild"
-        const val POD_BUILD_DEPENDENCIES_TASK_NAME = "podBuildDependencies"
+        const val POD_BUILD_TASK_NAME = "podBuild"
         const val POD_IMPORT_TASK_NAME = "podImport"
 
         // We don't move these properties in PropertiesProvider because
