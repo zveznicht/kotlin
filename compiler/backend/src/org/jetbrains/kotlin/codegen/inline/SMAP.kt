@@ -85,9 +85,14 @@ class SourceMapper(val sourceInfo: SourceInfo?) {
         get() = fileMappings.values.toList()
 
     init {
-        sourceInfo?.let {
-            // Explicitly map the file to itself -- we'll probably need a lot of lines from it, so this will produce fewer ranges.
-            getOrRegisterNewSource(it.source, it.pathOrCleanFQN).mapNewInterval(1, 1, it.linesInFile)
+        sourceInfo?.let { sourceInfo ->
+            // If 'sourceFileName' is null, this is a multi-file class facade with more than one part.
+            // Nothing is inlined into such classes.
+            sourceInfo.sourceFileName?.let { sourceFileName ->
+                // Explicitly map the file to itself -- we'll probably need a lot of lines from it, so this will produce fewer ranges.
+                getOrRegisterNewSource(sourceFileName, sourceInfo.pathOrCleanFQN)
+                    .mapNewInterval(1, 1, sourceInfo.linesInFile)
+            }
         }
     }
 
