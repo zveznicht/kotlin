@@ -12,6 +12,7 @@ import com.intellij.codeInsight.lookup.LookupElementDecorator
 import com.intellij.codeInsight.lookup.LookupElementPresentation
 import com.intellij.ui.JBColor
 import com.intellij.util.SmartList
+import com.intellij.util.containers.mapSmart
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.builtins.isFunctionType
 import org.jetbrains.kotlin.descriptors.*
@@ -98,31 +99,16 @@ class LookupElementFactory(
         }
 
         // special "[]" item for get-operator
-        if (callType == CallType.DOT && descriptor is FunctionDescriptor && descriptor.isOperator && descriptor.name == OperatorNameConventions.GET) {
+        if (callType == CallType.DOT && isGetOperatorCall(descriptor)) {
             val baseLookupElement = createLookupElement(descriptor, useReceiverTypes)
-            val lookupElement = object : LookupElementDecorator<LookupElement>(baseLookupElement) {
-                override fun getLookupString() = "[]"
-                override fun getAllLookupStrings() = setOf(lookupString)
-
-                override fun renderElement(presentation: LookupElementPresentation) {
-                    super.renderElement(presentation)
-                    presentation.itemText = lookupString
-                }
-
-                override fun handleInsert(context: InsertionContext) {
-                    val startOffset = context.startOffset
-                    assert(context.document.charsSequence[startOffset - 1] == '.')
-                    context.document.deleteString(startOffset - 1, startOffset)
-                    context.editor.moveCaret(startOffset)
-
-                    AutoPopupController.getInstance(context.project)?.autoPopupParameterInfo(context.editor, null)
-                }
-            }
-            lookupElement.assignPriority(ItemPriority.GET_OPERATOR)
-            result.add(lookupElement)
+            result.add(createSquareBracketsLookupElement(baseLookupElement))
         }
 
-        return result.map(standardLookupElementsPostProcessor)
+        return result.mapSmart(standardLookupElementsPostProcessor)
+    }
+
+    private fun isGetOperatorCall(descriptor: DeclarationDescriptor): Boolean {
+        return descriptor is FunctionDescriptor && descriptor.isOperator && descriptor.name == OperatorNameConventions.GET
     }
 
     private fun MutableCollection<LookupElement>.addSpecialFunctionCallElements(descriptor: FunctionDescriptor, useReceiverTypes: Boolean) {
@@ -223,6 +209,32 @@ class LookupElementFactory(
         lookupElement.assignPriority(ItemPriority.SUPER_METHOD_WITH_ARGUMENTS)
         lookupElement.putUserData(KotlinCompletionCharFilter.SUPPRESS_ITEM_SELECTION_BY_CHARS_ON_TYPING, Unit)
         return lookupElement
+    }
+
+    private fun createSquareBracketsLookupElement(lookupElement: LookupElement): LookupElement {
+        val squareBracketsLookup = SquareBracketsOperatorLookupElement(lookupElement)
+        squareBracketsLookup.assignPriority(ItemPriority.GET_OPERATOR)
+
+        return squareBracketsLookup
+    }
+
+    private class SquareBracketsOperatorLookupElement(lookupElement: LookupElement) : LookupElementDecorator<LookupElement>(lookupElement) {
+        override fun getLookupString() = "[]"
+        override fun getAllLookupStrings() = setOf(lookupString)
+
+        override fun renderElement(presentation: LookupElementPresentation) {
+            super.renderElement(presentation)
+            presentation.itemText = lookupString
+        }
+
+        override fun handleInsert(context: InsertionContext) {
+            val startOffset = context.startOffset
+            assert(context.document.charsSequence[startOffset - 1] == '.')
+            context.document.deleteString(startOffset - 1, startOffset)
+            context.editor.moveCaret(startOffset)
+
+            AutoPopupController.getInstance(context.project)?.autoPopupParameterInfo(context.editor, null)
+        }
     }
 
     private fun createFunctionCallElementWithArguments(
@@ -334,8 +346,10 @@ class LookupElementFactory(
 
         if (descriptor.overriddenDescriptors.isNotEmpty()) {
             // Optimization: when one of direct overridden fits, then nothing can fit better
-            descriptor.overriddenDescriptors.mapNotNull { it.callableWeightBasedOnReceiver(receiverTypes, onReceiverTypeMismatch = null) }
-                .minBy { it.enum }?.let { return it }
+            descriptor.overriddenDescriptors
+                .mapNotNull { it.callableWeightBasedOnReceiver(receiverTypes, onReceiverTypeMismatch = null) }
+                .minByOrNull { it.enum }
+                ?.let { return it }
 
             val overridden = descriptor.overriddenTreeUniqueAsSequence(useOriginal = false)
             return overridden.map { callableWeightBasic(it, receiverTypes)!! }.minBy { it.enum }!!
