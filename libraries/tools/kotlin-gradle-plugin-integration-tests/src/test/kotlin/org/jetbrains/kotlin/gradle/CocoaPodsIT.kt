@@ -256,10 +256,9 @@ class CocoaPodsIT : BaseGradleIT() {
             addPod(defaultPodName, produceGitBlock(defaultPodRepo, tagName = tag))
         }
         hooks.addHook {
-            podImportAsserts()
             checkGitRepo(tagName = tag)
         }
-        project.testImport(listOf(defaultPodRepo))
+        project.testImportWithAsserts(listOf(defaultPodRepo))
     }
 
     @Test
@@ -281,7 +280,7 @@ class CocoaPodsIT : BaseGradleIT() {
         hooks.addHook {
             assertTasksExecuted(defaultCinteropTaskName, cinteropTaskName + "AFNetworking/Security" + defaultTarget)
         }
-        project.testImport()
+        project.testImportWithAsserts()
     }
 
 
@@ -324,12 +323,31 @@ class CocoaPodsIT : BaseGradleIT() {
         hooks.addHook {
             assertTasksExecuted(tasks)
         }
-        project.testImport(listOf(defaultPodRepo))
+        project.testImportWithAsserts(listOf(defaultPodRepo))
 
         hooks.rewriteHooks {
             assertTasksUpToDate(tasks)
         }
         project.testImport(listOf(defaultPodRepo))
+    }
+
+    @Test
+    fun testSpecReposUTD() {
+        with(project.gradleBuildScript()) {
+            addPod("AFNetworking")
+        }
+        hooks.addHook {
+            assertTasksExecuted(defaultPodGenTaskName)
+        }
+        project.testSynthetic(defaultPodGenTaskName)
+        with(project.gradleBuildScript()) {
+            addSpecRepo("https://github.com/alozhkin/spec_repo_example.git")
+        }
+        project.testSynthetic(defaultPodGenTaskName)
+        hooks.rewriteHooks {
+            assertTasksUpToDate(defaultPodGenTaskName)
+        }
+        project.testSynthetic(defaultPodGenTaskName)
     }
 
 
@@ -343,10 +361,33 @@ class CocoaPodsIT : BaseGradleIT() {
             addPod(defaultPodName, produceGitBlock(defaultPodRepo, tagName = tag))
         }
         hooks.addHook {
-            podImportAsserts()
             checkGitRepo(tagName = tag)
         }
-        project.testImport(listOf(defaultPodRepo))
+        project.testImportWithAsserts(listOf(defaultPodRepo))
+    }
+
+
+    // other tests
+
+    @Test
+    fun testDownloadUrlTestSupportDashInNames() {
+        val fileExtension = "tar.gz"
+        val podName = "Pod-with-dashes"
+        val repoPath = "https://github.com/alozhkin/Pod-with-dashes/raw/master"
+        val flatten = true
+        val repo = "$repoPath/$podName.$fileExtension"
+        with(project.gradleBuildScript()) {
+            addPod(
+                podName,
+                """source = url("$repo", $flatten)
+                  |moduleName = "Pod_with_dashes"
+            """.trimMargin()
+            )
+        }
+        hooks.addHook {
+            assertTrue(url().resolve(podName).exists())
+        }
+        project.testImportWithAsserts(listOf(repo))
     }
 
 
@@ -397,10 +438,7 @@ class CocoaPodsIT : BaseGradleIT() {
         with(project) {
             preparePodfile("ios-app", importMode)
         }
-        hooks.addHook {
-            podImportAsserts()
-        }
-        project.testImport()
+        project.testImportWithAsserts()
         subprojects.forEach {
             hooks.rewriteHooks {
                 podImportAsserts(it)
@@ -438,7 +476,17 @@ class CocoaPodsIT : BaseGradleIT() {
         hooks.addHook {
             assertTrue(url().resolve(podName).exists())
         }
-        project.testImport(listOf(repo))
+        project.testImportWithAsserts(listOf(repo))
+    }
+
+    private fun Project.testImportWithAsserts(
+        repos: List<String> = listOf(),
+        vararg args: String
+    ) {
+        hooks.addHook {
+            podImportAsserts()
+        }
+        testImport(repos, *args)
     }
 
     private fun Project.testImport(
