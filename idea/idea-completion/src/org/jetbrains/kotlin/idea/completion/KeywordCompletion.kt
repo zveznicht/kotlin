@@ -179,7 +179,7 @@ object KeywordCompletion {
 
     private object UseSiteAnnotationTargetInsertHandler : InsertHandler<LookupElement> {
         override fun handleInsert(context: InsertionContext, item: LookupElement) {
-            WithTailInsertHandler(":", spaceBefore = false, spaceAfter = false).postHandleInsert(context, item)
+            WithTailInsertHandler.COLON.postHandleInsert(context, item)
         }
     }
 

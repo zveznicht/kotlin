@@ -120,7 +120,7 @@ private class JustTypingLookupElementDecorator(element: LookupElement, private v
                 '=' -> WithTailInsertHandler.EQ.postHandleInsert(context, delegate)
 
                 '!' -> {
-                    WithExpressionPrefixInsertHandler("!").postHandleInsert(context)
+                    WithExpressionPrefixInsertHandler.EXCL.postHandleInsert(context)
                     context.setAddCompletionChar(false)
                 }
             }

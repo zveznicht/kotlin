@@ -260,12 +260,11 @@ class SmartCompletion(
                         val whenExpression = entry.parent as KtWhenExpression
                         val entries = whenExpression.entries
                         if (whenExpression.elseExpression == null && entry == entries.last() && entries.size != 1) {
-                            val lookupElement = LookupElementBuilder.create("else").bold().withTailText(" ->")
-                            items.add(object : LookupElementDecorator<LookupElement>(lookupElement) {
-                                override fun handleInsert(context: InsertionContext) {
-                                    WithTailInsertHandler("->", spaceBefore = true, spaceAfter = true).handleInsert(context, delegate)
-                                }
-                            })
+                            val lookupElement = LookupElementBuilder.create("else").bold()
+                                .withTailText(" ->")
+                                .withInsertHandler { context, item -> WithTailInsertHandler.ARROW.postHandleInsert(context, item) }
+
+                            items.add(lookupElement)
                         }
                     }
                 }

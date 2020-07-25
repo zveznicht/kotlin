@@ -99,7 +99,7 @@ fun LookupElement.withOptions(options: ItemOptions): LookupElement {
             }
 
             override fun handleInsert(context: InsertionContext) {
-                WithExpressionPrefixInsertHandler("*").handleInsert(context, delegate)
+                WithExpressionPrefixInsertHandler.STAR.handleInsert(context, delegate)
             }
         }
     }
@@ -226,7 +226,7 @@ private fun MutableCollection<LookupElement>.addLookupElementsForNullable(
             }
 
             override fun handleInsert(context: InsertionContext) {
-                WithTailInsertHandler("!!", spaceBefore = false, spaceAfter = false).handleInsert(context, delegate)
+                WithTailInsertHandler.EXCLEXCL.handleInsert(context, delegate)
             }
         }.postProcess()
     }
@@ -239,7 +239,7 @@ private fun MutableCollection<LookupElement>.addLookupElementsForNullable(
             }
 
             override fun handleInsert(context: InsertionContext) {
-                WithTailInsertHandler("?:", spaceBefore = true, spaceAfter = true).handleInsert(context, delegate) //TODO: code style
+                WithTailInsertHandler.ELVIS.handleInsert(context, delegate) //TODO: code style
             }
         }.postProcess()
     }

@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.idea.completion.handlers
 
-import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.psi.PsiDocumentManager
@@ -26,8 +25,8 @@ import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 import org.jetbrains.kotlin.psi.psiUtil.getStrictParentOfType
 
-class WithExpressionPrefixInsertHandler(val prefix: String) : InsertHandler<LookupElement> {
-    override fun handleInsert(context: InsertionContext, item: LookupElement) {
+class WithExpressionPrefixInsertHandler private constructor(private val prefix: String) {
+    fun handleInsert(context: InsertionContext, item: LookupElement) {
         item.handleInsert(context)
 
         postHandleInsert(context)
@@ -53,5 +52,10 @@ class WithExpressionPrefixInsertHandler(val prefix: String) : InsertHandler<Look
         }
 
         context.document.insertString(expression.textRange.startOffset, prefix)
+    }
+
+    companion object {
+        val EXCL = WithExpressionPrefixInsertHandler("!")
+        val STAR = WithExpressionPrefixInsertHandler("*")
     }
 }

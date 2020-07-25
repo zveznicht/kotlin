@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.idea.completion.handlers
 
 import com.intellij.codeInsight.AutoPopupController
-import com.intellij.codeInsight.completion.InsertHandler
 import com.intellij.codeInsight.completion.InsertionContext
 import com.intellij.codeInsight.lookup.Lookup
 import com.intellij.codeInsight.lookup.LookupElement
@@ -27,13 +26,13 @@ import org.jetbrains.kotlin.idea.completion.KEEP_OLD_ARGUMENT_LIST_ON_TAB_KEY
 import org.jetbrains.kotlin.idea.completion.smart.SmartCompletion
 import org.jetbrains.kotlin.idea.completion.tryGetOffset
 
-class WithTailInsertHandler(
-    val tailText: String,
-    val spaceBefore: Boolean,
-    val spaceAfter: Boolean,
-    val overwriteText: Boolean = true
-) : InsertHandler<LookupElement> {
-    override fun handleInsert(context: InsertionContext, item: LookupElement) {
+class WithTailInsertHandler private constructor(
+    private val tailText: String,
+    private val spaceBefore: Boolean,
+    private val spaceAfter: Boolean,
+    private val overwriteText: Boolean = true
+) {
+    fun handleInsert(context: InsertionContext, item: LookupElement) {
         item.handleInsert(context)
         postHandleInsert(context, item)
     }
@@ -99,7 +98,11 @@ class WithTailInsertHandler(
     }
 
     companion object {
+        val ARROW = WithTailInsertHandler("->", spaceBefore = true, spaceAfter = true)
+        val EXCLEXCL = WithTailInsertHandler("!!", spaceBefore = false, spaceAfter = false)
+        val COLON = WithTailInsertHandler(":", spaceBefore = false, spaceAfter = false)
         val COMMA = WithTailInsertHandler(",", spaceBefore = false, spaceAfter = true /*TODO: use code style option*/)
+        val ELVIS = WithTailInsertHandler("?:", spaceBefore = true, spaceAfter = true)
         val RPARENTH = WithTailInsertHandler(")", spaceBefore = false, spaceAfter = false)
         val RBRACKET = WithTailInsertHandler("]", spaceBefore = false, spaceAfter = false)
         val RBRACE = WithTailInsertHandler("}", spaceBefore = true, spaceAfter = false)
