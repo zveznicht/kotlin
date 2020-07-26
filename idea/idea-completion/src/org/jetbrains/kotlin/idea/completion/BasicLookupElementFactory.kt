@@ -85,14 +85,16 @@ class BasicLookupElementFactory(
         if (qualifyNestedClasses) {
             val nestLevel = psiClass.parents.takeWhile { it is PsiClass }.count()
             if (nestLevel > 0) {
-                var itemText = psiClass.name
-                for (i in 1..nestLevel) {
+                val outerClassesNames = ArrayDeque<String>()
+                repeat(nestLevel) {
                     val outerClassName = containerName.substringAfterLast('.')
-                    element = element.withLookupString(outerClassName)
-                    itemText = outerClassName + "." + itemText
+                    outerClassesNames.addFirst(outerClassName)
                     containerName = containerName.substringBeforeLast('.', FqName.ROOT.toString())
                 }
-                element = element.withPresentableText(itemText!!)
+
+                val classPath = outerClassesNames.joinToString(".") + "." + psiClass.name
+                element = element.withLookupStrings(outerClassesNames)
+                element = element.withPresentableText(classPath)
             }
         }
 
@@ -163,10 +165,8 @@ class BasicLookupElementFactory(
             else -> {
                 lookupObject = object : DeclarationLookupObjectImpl(descriptor) {
                     override val psiElement by lazy {
-                        DescriptorToSourceUtils.getSourceFromDescriptor(descriptor) ?: DescriptorToSourceUtilsIde.getAnyDeclaration(
-                            project,
-                            descriptor
-                        )
+                        DescriptorToSourceUtils.getSourceFromDescriptor(descriptor)
+                            ?: DescriptorToSourceUtilsIde.getAnyDeclaration(project, descriptor)
                     }
 
                     override fun getIcon(flags: Int) = KotlinDescriptorIconProvider.getIcon(descriptor, psiElement, flags)
