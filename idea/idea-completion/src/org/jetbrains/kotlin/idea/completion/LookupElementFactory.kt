@@ -187,7 +187,9 @@ class LookupElementFactory(
                 presentation.clearTail()
                 presentation.appendTailText(" $lambdaPresentation ", false)
                 presentation.appendTailText(parametersPresentation, true)
-                basicFactory.appendContainerAndReceiverInformation(descriptor) { presentation.appendTailText(it, true) }
+                collectContainerAndReceiverTailTextParts(descriptor).forEach {
+                    presentation.appendTailText(it, true)
+                }
             }
 
             override fun handleInsert(context: InsertionContext) {
@@ -267,7 +269,9 @@ class LookupElementFactory(
 
             presentation.clearTail()
             presentation.appendTailText("($argumentText)", false)
-            basicFactory.appendContainerAndReceiverInformation(descriptor) { presentation.appendTailText(it, true) }
+            collectContainerAndReceiverTailTextParts(descriptor).forEach {
+                presentation.appendTailText(it, true)
+            }
         }
 
         override fun handleInsert(context: InsertionContext) {

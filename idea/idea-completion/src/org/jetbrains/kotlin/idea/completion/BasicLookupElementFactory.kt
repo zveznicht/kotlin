@@ -242,7 +242,9 @@ class BasicLookupElementFactory(
 
         var isMarkedAsDsl = false
         if (descriptor is CallableDescriptor) {
-            appendContainerAndReceiverInformation(descriptor) { element = element.appendTailText(it, true) }
+            collectContainerAndReceiverTailTextParts(descriptor).forEach {
+                element = element.appendTailText(it, true)
+            }
 
             val dslTextAttributes = DslHighlighterExtension.dslCustomTextStyle(descriptor)?.let {
                 EditorColorsManager.getInstance().globalScheme.getAttributes(it)
@@ -276,74 +278,77 @@ class BasicLookupElementFactory(
         result.isDslMember = isMarkedAsDsl
         return result
     }
+}
 
-    fun appendContainerAndReceiverInformation(descriptor: CallableDescriptor, appendTailText: (String) -> Unit) {
-        val information = CompletionInformationProvider.EP_NAME.extensions.firstNotNullResult {
-            it.getContainerAndReceiverInformation(descriptor)
-        }
-
-        if (information != null) {
-            appendTailText(information)
-            return
-        }
-
-        val extensionReceiver = descriptor.original.extensionReceiverParameter
-        if (extensionReceiver != null) {
-            when (descriptor) {
-                is SamAdapterExtensionFunctionDescriptor -> {
-                    // no need to show them as extensions
-                    return
-                }
-                is SyntheticJavaPropertyDescriptor -> {
-                    var from = descriptor.getMethod.name.asString() + "()"
-                    descriptor.setMethod?.let { from += "/" + it.name.asString() + "()" }
-                    appendTailText(KotlinIdeaCompletionBundle.message("presentation.tail.from.0", from))
-                    return
-                }
-                else -> {
-                    val receiverPresentation = SHORT_NAMES_RENDERER.renderType(extensionReceiver.type)
-                    appendTailText(KotlinIdeaCompletionBundle.message("presentation.tail.for.0", receiverPresentation))
-                }
-            }
-        }
-
-        val containerPresentation = containerPresentation(descriptor)
-        if (containerPresentation != null) {
-            appendTailText(" ")
-            appendTailText(containerPresentation)
-        }
+fun collectContainerAndReceiverTailTextParts(descriptor: CallableDescriptor): List<String> {
+    val information = CompletionInformationProvider.EP_NAME.extensions.firstNotNullResult {
+        it.getContainerAndReceiverInformation(descriptor)
     }
 
-    private fun containerPresentation(descriptor: DeclarationDescriptor): String? {
-        when {
-            descriptor.isArtificialImportAliasedDescriptor -> {
-                return "(${DescriptorUtils.getFqName(descriptor.original)})"
-            }
-
-            descriptor.isExtension -> {
-                val containerPresentation = when (val container = descriptor.containingDeclaration) {
-                    is ClassDescriptor -> DescriptorUtils.getFqNameFromTopLevelClass(container).toString()
-                    is PackageFragmentDescriptor -> container.fqName.toString()
-                    else -> return null
-                }
-                return KotlinIdeaCompletionBundle.message("presentation.tail.in.0", containerPresentation)
-            }
-
-            else -> {
-                val container = descriptor.containingDeclaration as? PackageFragmentDescriptor
-                // we show container only for global functions and properties
-                    ?: return null
-                //TODO: it would be probably better to show it also for static declarations which are not from the current class (imported)
-                return "(${container.fqName})"
-            }
-        }
+    if (information != null) {
+        return listOf(information)
     }
 
-    // add icon in renderElement only to pass presentation.isReal()
-    private fun LookupElement.withIconFromLookupObject(): LookupElement = object : LookupElementDecorator<LookupElement>(this) {
-        override fun renderElement(presentation: LookupElementPresentation) {
-            super.renderElement(presentation)
-            presentation.icon = DefaultLookupItemRenderer.getRawIcon(this@withIconFromLookupObject, presentation.isReal)
+    val result = mutableListOf<String>()
+    val extensionReceiver = descriptor.original.extensionReceiverParameter
+    if (extensionReceiver != null) {
+        when (descriptor) {
+            is SamAdapterExtensionFunctionDescriptor -> {
+                // no need to show them as extensions
+                return emptyList()
+            }
+            is SyntheticJavaPropertyDescriptor -> {
+                val getter = descriptor.getMethod.name.asString() + "()"
+                val setter = descriptor.setMethod?.let { it.name.asString() + "()" }
+
+                val from = if (setter != null) "$getter/$setter" else getter
+
+                return listOf(KotlinIdeaCompletionBundle.message("presentation.tail.from.0", from))
+            }
         }
+
+        val receiverPresentation = BasicLookupElementFactory.SHORT_NAMES_RENDERER.renderType(extensionReceiver.type)
+        result += KotlinIdeaCompletionBundle.message("presentation.tail.for.0", receiverPresentation)
+    }
+
+    val containerPresentation = containerPresentation(descriptor)
+    if (containerPresentation != null) {
+        result += " "
+        result += containerPresentation
+    }
+
+    return result
+}
+
+private fun containerPresentation(descriptor: DeclarationDescriptor): String? {
+    when {
+        descriptor.isArtificialImportAliasedDescriptor -> {
+            return "(${DescriptorUtils.getFqName(descriptor.original)})"
+        }
+
+        descriptor.isExtension -> {
+            val containerPresentation = when (val container = descriptor.containingDeclaration) {
+                is ClassDescriptor -> DescriptorUtils.getFqNameFromTopLevelClass(container).toString()
+                is PackageFragmentDescriptor -> container.fqName.toString()
+                else -> return null
+            }
+            return KotlinIdeaCompletionBundle.message("presentation.tail.in.0", containerPresentation)
+        }
+
+        else -> {
+            val container = descriptor.containingDeclaration as? PackageFragmentDescriptor
+            // we show container only for global functions and properties
+                ?: return null
+            //TODO: it would be probably better to show it also for static declarations which are not from the current class (imported)
+            return "(${container.fqName})"
+        }
+    }
+}
+
+// add icon in renderElement only to pass presentation.isReal()
+private fun LookupElement.withIconFromLookupObject(): LookupElement = object : LookupElementDecorator<LookupElement>(this) {
+    override fun renderElement(presentation: LookupElementPresentation) {
+        super.renderElement(presentation)
+        presentation.icon = DefaultLookupItemRenderer.getRawIcon(this@withIconFromLookupObject, presentation.isReal)
     }
 }

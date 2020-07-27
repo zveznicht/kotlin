@@ -61,7 +61,7 @@ class ExtensionFunctionTypeValueCompletion(
                                     presentation.clearTail()
                                     presentation.appendTailText(parameterTail.text, false)
 
-                                    lookupElementFactory.basicFactory.appendContainerAndReceiverInformation(variable) {
+                                    collectContainerAndReceiverTailTextParts(variable).forEach {
                                         presentation.appendTailText(it, true)
                                     }
                                 }
