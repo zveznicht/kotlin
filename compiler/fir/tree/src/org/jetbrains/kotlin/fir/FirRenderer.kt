@@ -159,6 +159,7 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
         }
         when (callableDeclaration) {
             is FirSimpleFunction -> print(callableDeclaration.name)
+            is FirContractFunction -> print(callableDeclaration.name)
             is FirVariable<*> -> print(callableDeclaration.name)
         }
 
@@ -274,6 +275,10 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
             if (memberDeclaration.isSuspend) {
                 print("suspend ")
             }
+        } else if (memberDeclaration is FirContractFunction) {
+            if (memberDeclaration.isContract) {
+                print("contract ")
+            }
         } else if (memberDeclaration is FirProperty) {
             if (memberDeclaration.isConst) {
                 print("const ")
@@ -310,6 +315,7 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
                 is FirRegularClass -> declaration.classKind.name.toLowerCase().replace("_", " ")
                 is FirTypeAlias -> "typealias"
                 is FirSimpleFunction -> "fun"
+                is FirContractFunction -> "fun"
                 is FirProperty -> {
                     val prefix = if (declaration.isLocal) "l" else ""
                     prefix + if (declaration.isVal) "val" else "var"
@@ -1171,6 +1177,10 @@ class FirRenderer(builder: StringBuilder, private val mode: RenderMode = RenderM
 
     override fun visitErrorNamedReference(errorNamedReference: FirErrorNamedReference) {
         visitNamedReference(errorNamedReference)
+    }
+
+    override fun visitContractFunction(contractFunction: FirContractFunction) {
+        visitCallableDeclaration(contractFunction)
     }
 
     override fun visitLegacyRawContractDescription(legacyRawContractDescription: FirLegacyRawContractDescription) {
