@@ -312,6 +312,9 @@ fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
             ) as? ClassQualifier)?.descriptor?.classValueType ?: (bindingContext.get(
                 BindingContext.QUALIFIER,
                 receiverExpression
+            ) as? ClassQualifier)?.descriptor?.defaultType ?: (bindingContext.get(
+                BindingContext.QUALIFIER,
+                receiverExpression
             ) as? TypeAliasQualifier)?.classDescriptor?.classValueType ?: return emptyList()
         ExpressionReceiver.create(receiverExpression, receiverType, bindingContext)
     }
