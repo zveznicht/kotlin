@@ -660,8 +660,8 @@ private fun IrSimpleFunction.isOrOverridesDefaultParameterStub(): Boolean =
 
 val defaultImplsOrigins = setOf(
     IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER,
-    IrDeclarationOrigin.DEFAULT_IMPLS_WITH_MOVED_RECEIVERS,
-    IrDeclarationOrigin.DEFAULT_IMPLS_WITH_MOVED_RECEIVERS_SYNTHETIC,
+    JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_WITH_MOVED_RECEIVERS,
+    JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_WITH_MOVED_RECEIVERS_SYNTHETIC,
     JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE,
     JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE_FOR_COMPATIBILITY,
     JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE_TO_SYNTHETIC,

@@ -616,4 +616,4 @@ val IrFunction.originalDeclaration: IrFunction
     get() = (this as? IrAttributeContainer)?.attributeOwnerId as? IrFunction ?: this
 
 val IrProperty.originalDeclaration: IrProperty
-    get() = (this as? IrAttributeContainer)?.attributeOwnerId as? IrProperty ?: this
+    get() = attributeOwnerId as? IrProperty ?: this

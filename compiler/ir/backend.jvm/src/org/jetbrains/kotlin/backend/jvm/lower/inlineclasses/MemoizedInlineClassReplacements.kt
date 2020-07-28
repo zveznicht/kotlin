@@ -211,7 +211,7 @@ class MemoizedInlineClassReplacements(private val mangleReturnTypes: Boolean) {
             metadata = function.metadata
             function.metadata = null
         }
-        (this as? IrAttributeContainer)?.copyAttributes(function as? IrAttributeContainer)
+        copyAttributes(function as? IrAttributeContainer)
 
         if (function is IrSimpleFunction) {
             val propertySymbol = function.correspondingPropertySymbol
@@ -222,7 +222,7 @@ class MemoizedInlineClassReplacements(private val mangleReturnTypes: Boolean) {
                         updateFrom(propertySymbol.owner)
                     }.apply {
                         parent = propertySymbol.owner.parent
-                        (this as? IrAttributeContainer)?.copyAttributes(propertySymbol.owner as? IrAttributeContainer)
+                        copyAttributes(propertySymbol.owner)
                     }
                 }
                 correspondingPropertySymbol = property.symbol

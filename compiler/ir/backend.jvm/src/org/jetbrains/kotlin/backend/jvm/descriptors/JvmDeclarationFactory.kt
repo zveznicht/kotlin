@@ -209,8 +209,8 @@ class JvmDeclarationFactory(
                     !forCompatibilityMode && !interfaceFun.isFakeOverride ->
                         when {
                             interfaceFun.origin == IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER -> interfaceFun.origin
-                            interfaceFun.origin.isSynthetic -> IrDeclarationOrigin.DEFAULT_IMPLS_WITH_MOVED_RECEIVERS_SYNTHETIC
-                            else -> IrDeclarationOrigin.DEFAULT_IMPLS_WITH_MOVED_RECEIVERS
+                            interfaceFun.origin.isSynthetic -> JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_WITH_MOVED_RECEIVERS_SYNTHETIC
+                            else -> JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_WITH_MOVED_RECEIVERS
                         }
                     interfaceFun.resolveFakeOverride()!!.origin.isSynthetic ->
                         if (forCompatibilityMode) JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE_FOR_COMPATIBILITY_SYNTHETIC

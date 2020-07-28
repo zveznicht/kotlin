@@ -591,7 +591,7 @@ fun createStaticFunctionWithReceivers(
 
         if (copyMetadata) metadata = oldFunction.metadata
 
-        copyAttributes(oldFunction as IrAttributeContainer)
+        copyAttributes(oldFunction as? IrAttributeContainer)
     }
 }
 

@@ -61,9 +61,6 @@ interface IrDeclarationOrigin {
     object ADAPTER_PARAMETER_FOR_SUSPEND_CONVERSION : IrDeclarationOriginImpl("ADAPTER_PARAMETER_FOR_SUSPEND_CONVERSION")
 
     object GENERATED_SAM_IMPLEMENTATION : IrDeclarationOriginImpl("GENERATED_SAM_IMPLEMENTATION", isSynthetic = true)
-    object DEFAULT_IMPLS_WITH_MOVED_RECEIVERS : IrDeclarationOriginImpl("STATIC_WITH_MOVED_RECEIVERS")
-    object DEFAULT_IMPLS_WITH_MOVED_RECEIVERS_SYNTHETIC
-        : IrDeclarationOriginImpl("STATIC_WITH_MOVED_RECEIVERS_SYNTHETIC", isSynthetic = true)
 
     val isSynthetic: Boolean get() = false
 }
