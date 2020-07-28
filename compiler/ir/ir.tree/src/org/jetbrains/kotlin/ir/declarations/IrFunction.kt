@@ -45,7 +45,6 @@ interface IrFunction :
 
     var body: IrBody?
 
-    val originalDeclaration: IrFunction
     val containerSource: DeserializedContainerSource?
 }
 

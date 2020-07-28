@@ -166,9 +166,7 @@ open class DeepCopyIrTreeWithSymbols(
             isExpect = declaration.isExpect,
             isFakeOverride = declaration.isFakeOverride,
             isOperator = declaration.isOperator,
-            isInfix = declaration.isInfix,
-            containerSource = declaration.containerSource,
-            originalDeclaration = declaration.originalDeclaration
+            isInfix = declaration.isInfix
         ).apply {
             overriddenSymbols = declaration.overriddenSymbols.map {
                 symbolRemapper.getReferencedFunction(it) as IrSimpleFunctionSymbol
@@ -188,8 +186,7 @@ open class DeepCopyIrTreeWithSymbols(
             isInline = declaration.isInline,
             isExternal = declaration.isExternal,
             isPrimary = declaration.isPrimary,
-            isExpect = declaration.isExpect,
-            containerSource = declaration.containerSource
+            isExpect = declaration.isExpect
         ).apply {
             transformFunctionChildren(declaration)
         }
@@ -225,8 +222,7 @@ open class DeepCopyIrTreeWithSymbols(
             isDelegated = declaration.isDelegated,
             isExpect = declaration.isExpect,
             isExternal = declaration.isExternal,
-            containerSource = declaration.containerSource,
-            originalDeclaration = declaration.originalDeclaration
+            containerSource = declaration.containerSource
         ).apply {
             transformAnnotations(declaration)
             this.backingField = declaration.backingField?.transform()?.also {

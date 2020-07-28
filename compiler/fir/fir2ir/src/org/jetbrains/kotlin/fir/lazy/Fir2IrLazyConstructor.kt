@@ -113,8 +113,6 @@ class Fir2IrLazyConstructor(
         get() = null
         set(_) = error("We should never need to store metadata of external declarations.")
 
-    override val originalDeclaration: IrFunction get() = this
-
     @ObsoleteDescriptorBasedAPI
     override val containerSource: DeserializedContainerSource?
         get() = (descriptor as? DescriptorWithContainerSource)?.containerSource

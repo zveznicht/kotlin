@@ -73,7 +73,6 @@ abstract class IrLazyFunctionBase(
         get() = null
         set(_) = error("We should never need to store metadata of external declarations.")
 
-    override val originalDeclaration: IrFunction get() = this
     override val containerSource: DeserializedContainerSource?
         get() = (descriptor as? DescriptorWithContainerSource)?.containerSource
 

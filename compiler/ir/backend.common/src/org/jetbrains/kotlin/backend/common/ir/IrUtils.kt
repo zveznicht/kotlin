@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.builders.declarations.buildReceiverParameter
 import org.jetbrains.kotlin.ir.builders.declarations.buildTypeParameter
 import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionBase
 import org.jetbrains.kotlin.ir.declarations.impl.IrFunctionImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
 import org.jetbrains.kotlin.ir.descriptors.*
@@ -543,8 +544,7 @@ fun createStaticFunctionWithReceivers(
         isFakeOverride = isFakeOverride,
         isOperator = oldFunction is IrSimpleFunction && oldFunction.isOperator,
         isInfix = oldFunction is IrSimpleFunction && oldFunction.isInfix,
-        containerSource = oldFunction.containerSource,
-        originalDeclaration = oldFunction.originalDeclaration
+        containerSource = oldFunction.containerSource
     ).apply {
         descriptor.bind(this)
         parent = irParent
@@ -590,6 +590,8 @@ fun createStaticFunctionWithReceivers(
                                        }
 
         if (copyMetadata) metadata = oldFunction.metadata
+
+        copyAttributes(oldFunction as IrAttributeContainer)
     }
 }
 

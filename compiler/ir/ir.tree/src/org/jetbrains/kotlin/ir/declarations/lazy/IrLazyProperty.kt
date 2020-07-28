@@ -76,10 +76,10 @@ class IrLazyProperty(
         get() = null
         set(_) = error("We should never need to store metadata of external declarations.")
 
-    override val originalDeclaration: IrProperty get() = this
-
     override val containerSource: DeserializedContainerSource?
         get() = (descriptor as? DeserializedPropertyDescriptor)?.containerSource
+
+    override var attributeOwnerId: IrAttributeContainer = this
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =
         visitor.visitProperty(this, data)

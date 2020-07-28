@@ -84,7 +84,7 @@ internal fun IrPropertyBuilder.buildProperty(): IrProperty {
         IrPropertySymbolImpl(wrappedDescriptor),
         name, visibility, modality,
         isVar, isConst, isLateinit, isDelegated, isExternal, isExpect,
-        isFakeOverride, originalDeclaration, containerSource
+        isFakeOverride, containerSource
     ).also {
         wrappedDescriptor.bind(it)
     }
@@ -134,7 +134,7 @@ internal fun IrFunctionBuilder.buildFunction(): IrSimpleFunction {
         IrSimpleFunctionSymbolImpl(wrappedDescriptor),
         name, visibility, modality, returnType,
         isInline, isExternal, isTailrec, isSuspend, isOperator, isInfix, isExpect, isFakeOverride,
-        originalDeclaration, containerSource
+        containerSource
     ).also {
         wrappedDescriptor.bind(it)
     }
@@ -148,8 +148,7 @@ internal fun IrFunctionBuilder.buildConstructor(): IrConstructor {
         IrConstructorSymbolImpl(wrappedDescriptor),
         Name.special("<init>"),
         visibility, returnType,
-        isInline = isInline, isExternal = isExternal, isPrimary = isPrimary, isExpect = isExpect,
-        originalDeclaration = originalDeclaration
+        isInline = isInline, isExternal = isExternal, isPrimary = isPrimary, isExpect = isExpect
     ).also {
         wrappedDescriptor.bind(it)
     }

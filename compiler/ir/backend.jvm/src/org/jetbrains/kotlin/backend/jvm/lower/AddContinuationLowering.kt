@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.load.java.JavaVisibilities
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.util.OperatorNameConventions
+import org.jetbrains.kotlin.utils.DFS
 
 internal val addContinuationPhase = makeIrFilePhase(
     ::AddContinuationLowering,
@@ -584,7 +585,6 @@ private class AddContinuationLowering(private val context: JvmBackendContext) : 
 
                 if (flag.capturesCrossinline || function.isInline) {
                     result += buildFun {
-                        originalDeclaration = view.originalDeclaration
                         containerSource = view.containerSource
                         name = Name.identifier(view.name.asString() + FOR_INLINE_SUFFIX)
                         returnType = view.returnType
@@ -647,9 +647,29 @@ private fun IrFunction.suspendFunctionViewOrStub(context: JvmBackendContext): Ir
 }
 
 internal fun IrFunction.suspendFunctionOriginal(): IrFunction =
-    if (this is IrSimpleFunction && isSuspend && !isStaticInlineClassReplacement)
+    if (this is IrSimpleFunction && isSuspend &&
+        !isStaticInlineClassReplacement &&
+        !isOrOverridesDefaultParameterStub() &&
+        !isDefaultImplsFunction
+    )
         attributeOwnerId as IrFunction
     else this
+
+private fun IrSimpleFunction.isOrOverridesDefaultParameterStub(): Boolean =
+    DFS.ifAny(listOf(this), { overriddenSymbols.map { it.owner } }, { it.origin == IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER })
+
+val defaultImplsOrigins = setOf(
+    IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER,
+    IrDeclarationOrigin.DEFAULT_IMPLS_WITH_MOVED_RECEIVERS,
+    IrDeclarationOrigin.DEFAULT_IMPLS_WITH_MOVED_RECEIVERS_SYNTHETIC,
+    JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE,
+    JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE_FOR_COMPATIBILITY,
+    JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE_TO_SYNTHETIC,
+    JvmLoweredDeclarationOrigin.DEFAULT_IMPLS_BRIDGE_FOR_COMPATIBILITY_SYNTHETIC
+)
+
+private val IrSimpleFunction.isDefaultImplsFunction: Boolean
+    get() = origin in defaultImplsOrigins
 
 private fun IrFunction.createSuspendFunctionStub(context: JvmBackendContext): IrFunction {
     require(this.isSuspend && this is IrSimpleFunction)

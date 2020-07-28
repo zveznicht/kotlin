@@ -34,7 +34,6 @@ class IrPropertyBuilder : IrDeclarationBuilder() {
         isExpect = from.isExpect
         isFakeOverride = from.isFakeOverride
 
-        originalDeclaration = from.originalDeclaration
         containerSource = from.containerSource
     }
 }

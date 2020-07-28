@@ -41,7 +41,6 @@ class IrConstructorImpl(
     isExternal: Boolean,
     override val isPrimary: Boolean,
     isExpect: Boolean,
-    originalDeclaration: IrFunction? = null,
     containerSource: DeserializedContainerSource? = null
 ) :
     IrFunctionBase<ConstructorCarrier>(
@@ -49,7 +48,7 @@ class IrConstructorImpl(
         visibility,
         isInline, isExternal, isExpect,
         returnType,
-        originalDeclaration, containerSource
+        containerSource
     ),
     IrConstructor,
     ConstructorCarrier {

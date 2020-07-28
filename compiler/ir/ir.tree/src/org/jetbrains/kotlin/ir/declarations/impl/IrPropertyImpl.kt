@@ -43,7 +43,6 @@ abstract class IrPropertyCommonImpl(
     override val isExternal: Boolean,
     override val isExpect: Boolean,
     override val isFakeOverride: Boolean = origin == IrDeclarationOrigin.FAKE_OVERRIDE,
-    private val _originalDeclaration: IrProperty? = null,
     override val containerSource: DeserializedContainerSource? = null
 ) : IrDeclarationBase<PropertyCarrier>(startOffset, endOffset, origin),
     IrProperty,
@@ -82,6 +81,15 @@ abstract class IrPropertyCommonImpl(
             }
         }
 
+    override var attributeOwnerIdField: IrAttributeContainer = this
+
+    override var attributeOwnerId: IrAttributeContainer
+        get() = getCarrier().attributeOwnerIdField
+        set(v) {
+            if (attributeOwnerId !== v) {
+                setCarrier().attributeOwnerIdField = v
+            }
+        }
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R {
         return visitor.visitProperty(this, data)
@@ -102,8 +110,6 @@ abstract class IrPropertyCommonImpl(
                 setCarrier().metadataField = v
             }
         }
-
-    override val originalDeclaration: IrProperty get() = _originalDeclaration ?: this
 
     override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
         backingField = backingField?.transform(transformer, data) as? IrField
@@ -127,12 +133,10 @@ class IrPropertyImpl(
     override val isExternal: Boolean,
     override val isExpect: Boolean = false,
     override val isFakeOverride: Boolean = origin == IrDeclarationOrigin.FAKE_OVERRIDE,
-    originalDeclaration: IrProperty? = null,
     containerSource: DeserializedContainerSource? = null
 ) : IrPropertyCommonImpl(
     startOffset, endOffset, origin, name, visibility, modality,
-    isVar, isConst, isLateinit, isDelegated, isExternal, isExpect, isFakeOverride,
-    originalDeclaration, containerSource
+    isVar, isConst, isLateinit, isDelegated, isExternal, isExpect, isFakeOverride, containerSource
 ) {
 
     init {

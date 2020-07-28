@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
-interface IrProperty : IrOverridableMember, IrMetadataSourceOwner {
+interface IrProperty : IrOverridableMember, IrMetadataSourceOwner, IrAttributeContainer {
     @ObsoleteDescriptorBasedAPI
     override val descriptor: PropertyDescriptor
     override val symbol: IrPropertySymbol
@@ -38,6 +38,5 @@ interface IrProperty : IrOverridableMember, IrMetadataSourceOwner {
     var getter: IrSimpleFunction?
     var setter: IrSimpleFunction?
 
-    val originalDeclaration: IrProperty
     val containerSource: DeserializedContainerSource?
 }

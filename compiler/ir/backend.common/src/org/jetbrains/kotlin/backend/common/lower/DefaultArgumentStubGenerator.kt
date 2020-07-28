@@ -526,6 +526,7 @@ private fun IrFunction.generateDefaultsFunctionImpl(
             }
         else -> throw IllegalStateException("Unknown function type")
     }
+    (newFunction as? IrAttributeContainer)?.copyAttributes(this@generateDefaultsFunctionImpl as? IrAttributeContainer)
     newFunction.copyTypeParametersFrom(this)
     newFunction.parent = parent
     newFunction.returnType = returnType.remapTypeParameters(classIfConstructor, newFunction.classIfConstructor)

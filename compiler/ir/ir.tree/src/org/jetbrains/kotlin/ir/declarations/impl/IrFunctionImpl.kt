@@ -38,11 +38,10 @@ abstract class IrFunctionCommonImpl(
     override val isInfix: Boolean,
     isExpect: Boolean,
     override val isFakeOverride: Boolean,
-    originalDeclaration: IrFunction? = null,
     containerSource: DeserializedContainerSource? = null
 ) :
     IrFunctionBase<FunctionCarrier>(
-        startOffset, endOffset, origin, name, visibility, isInline, isExternal, isExpect, returnType, originalDeclaration, containerSource
+        startOffset, endOffset, origin, name, visibility, isInline, isExternal, isExpect, returnType, containerSource
     ),
     IrSimpleFunction,
     FunctionCarrier {
@@ -101,11 +100,9 @@ class IrFunctionImpl(
     isInfix: Boolean,
     isExpect: Boolean,
     override val isFakeOverride: Boolean = origin == IrDeclarationOrigin.FAKE_OVERRIDE,
-    originalDeclaration: IrFunction? = null,
     containerSource: DeserializedContainerSource? = null
 ) : IrFunctionCommonImpl(startOffset, endOffset, origin, name, visibility, modality, returnType, isInline,
-    isExternal, isTailrec, isSuspend, isOperator, isInfix, isExpect, isFakeOverride,
-    originalDeclaration, containerSource) {
+    isExternal, isTailrec, isSuspend, isOperator, isInfix, isExpect, isFakeOverride, containerSource) {
 
     @ObsoleteDescriptorBasedAPI
     override val descriptor: FunctionDescriptor get() = symbol.descriptor
