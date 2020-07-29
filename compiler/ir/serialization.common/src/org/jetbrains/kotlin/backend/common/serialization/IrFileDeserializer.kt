@@ -1130,7 +1130,7 @@ abstract class IrFileDeserializer(
         return isPrivate && this is IrSimpleType && classifier.let { !it.isPublicApi && it !is IrTypeParameterSymbol }
     }
 
-    private fun <T : IrFunction> T.withBodyGuard(block: T.() -> Unit) {
+    protected fun <T : IrFunction> T.withBodyGuard(block: T.() -> Unit) {
         val oldBodiesPolicy = deserializeBodies
 
         fun checkInlineBody(): Boolean = deserializeInlineFunctions && this is IrSimpleFunction && isInline
@@ -1379,7 +1379,7 @@ abstract class IrFileDeserializer(
             allKnownStatementOrigins.mapNotNull { it.objectInstance as? IrStatementOriginImpl }.associateBy { it.debugName }
     }
 
-    private fun deserializeIrDeclarationOrigin(protoName: Int): IrDeclarationOriginImpl {
+    protected fun deserializeIrDeclarationOrigin(protoName: Int): IrDeclarationOriginImpl {
         val originName = deserializeString(protoName)
         return declarationOriginIndex[originName] ?: object : IrDeclarationOriginImpl(originName) {}
     }

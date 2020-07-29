@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.backend.common.LoggingContext
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideBuilder
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideControl
 import org.jetbrains.kotlin.backend.common.serialization.*
+import org.jetbrains.kotlin.backend.common.serialization.encodings.BinaryNameAndType
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureSerializer
 import org.jetbrains.kotlin.backend.common.serialization.proto.*
@@ -21,13 +22,9 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.impl.IrAnonymousInitializerImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrModuleFragmentImpl
-import org.jetbrains.kotlin.ir.declarations.impl.IrValueParameterImpl
-import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
 import org.jetbrains.kotlin.ir.descriptors.*
 import org.jetbrains.kotlin.ir.expressions.IrBody
-import org.jetbrains.kotlin.ir.expressions.impl.IrExpressionBodyImpl
 import org.jetbrains.kotlin.ir.symbols.IrFieldSymbol
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
@@ -39,6 +36,7 @@ import org.jetbrains.kotlin.load.java.lazy.descriptors.LazyJavaPackageFragment
 import org.jetbrains.kotlin.load.kotlin.JvmPackagePartSource
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedSimpleFunctionDescriptor
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrAnonymousInit as ProtoAnonymousInit
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrConstructor as ProtoConstructor
@@ -127,12 +125,12 @@ class JvmIrLinker(
         ) : KotlinIrLinker.IrDeserializerForFile(annotations, actuals, fileIndex, false, true, true, moduleDeserializer) {
             val bodies = mutableMapOf<IdSignature, IrBody>()
 
-            override fun deserializeIrValueParameter(proto: ProtoValueParameter, index: Int): IrValueParameterImpl {
+            override fun deserializeIrValueParameter(proto: ProtoValueParameter, index: Int): IrValueParameter {
                 val (symbol, _) = deserializeIrSymbolToDeclare(proto.base.symbol)
 
                 if (symbol.isBound) {
-                    return (symbol.owner as IrValueParameterImpl).apply {
-                        if (proto.hasDefaultValue()) defaultValue = IrExpressionBodyImpl(deserializeExpressionBody(proto.defaultValue))
+                    return (symbol.owner as IrValueParameter).apply {
+                        if (proto.hasDefaultValue()) defaultValue = irFactory.createExpressionBody(deserializeExpressionBody(proto.defaultValue))
                     }
                 }
 
@@ -152,6 +150,25 @@ class JvmIrLinker(
 
                 return super.deserializeIrClass(proto)
             }
+
+            private fun <T : IrFunction> T.deserializeIrFunctionBase(proto: ProtoFunctionBase) =
+                this.usingParent {
+                    typeParameters = deserializeTypeParameters(proto.typeParameterList, false)
+                    valueParameters = deserializeValueParameters(proto.valueParameterList)
+
+                    val nameType = BinaryNameAndType.decode(proto.nameType)
+                    returnType = deserializeIrType(nameType.typeIndex)
+
+                    withBodyGuard {
+                        if (proto.hasDispatchReceiver())
+                            dispatchReceiverParameter = deserializeIrValueParameter(proto.dispatchReceiver, -1)
+                        if (proto.hasExtensionReceiver())
+                            extensionReceiverParameter = deserializeIrValueParameter(proto.extensionReceiver, -1)
+                        if (proto.hasBody()) {
+                            body = deserializeStatementBody(proto.body) as IrBody
+                        }
+                    }
+                }
 
             private fun deserializeFunctionBase(symbol: IrSymbol, proto: ProtoFunctionBase): IrFunction {
                 val irFunction = symbol.owner as IrFunction
@@ -198,10 +215,10 @@ class JvmIrLinker(
                 return super.deserializeIrConstructor(proto)
             }
 
-            override fun deserializeIrVariable(proto: ProtoVariable): IrVariableImpl {
+            override fun deserializeIrVariable(proto: ProtoVariable): IrVariable {
                 val (symbol, _) = deserializeIrSymbolToDeclare(proto.base.symbol)
 
-                if (symbol.isBound) return (symbol.owner as IrVariableImpl).apply {
+                if (symbol.isBound) return (symbol.owner as IrVariable).apply {
                     if (proto.hasInitializer()) initializer = deserializeExpression(proto.initializer)
                 }
 
@@ -213,30 +230,30 @@ class JvmIrLinker(
 
                 if (symbol.isBound) return (symbol.owner as IrEnumEntry).apply {
                     if (proto.hasCorrespondingClass()) correspondingClass = deserializeIrClass(proto.correspondingClass)
-                    if (proto.hasInitializer()) initializerExpression = IrExpressionBodyImpl(deserializeExpressionBody(proto.initializer))
+                    if (proto.hasInitializer()) initializerExpression = irFactory.createExpressionBody(deserializeExpressionBody(proto.initializer))
                 }
 
                 return super.deserializeIrEnumEntry(proto)
             }
 
-            override fun deserializeIrAnonymousInit(proto: ProtoAnonymousInit): IrAnonymousInitializerImpl {
+            override fun deserializeIrAnonymousInit(proto: ProtoAnonymousInit): IrAnonymousInitializer {
                 val (symbol, _) = deserializeIrSymbolToDeclare(proto.base.symbol)
 
                 if (symbol.isBound) {
-                    return symbol.owner.apply { deserializeStatementBody(proto.body) } as IrAnonymousInitializerImpl
+                    return symbol.owner.apply { deserializeStatementBody(proto.body) } as IrAnonymousInitializer
                 }
 
                 return super.deserializeIrAnonymousInit(proto)
             }
 
-            override fun deserializeIrField(proto: ProtoField): IrField {
+            override fun deserializeIrField(proto: ProtoField, isPrivateProperty: Boolean): IrField {
                 val (symbol, _) = deserializeIrSymbolToDeclare(proto.base.symbol)
 
                 if (symbol.isBound) return (symbol.owner as IrField).apply {
-                    if (proto.hasInitializer()) initializer = IrExpressionBodyImpl(deserializeExpressionBody(proto.initializer))
+                    if (proto.hasInitializer()) initializer = irFactory.createExpressionBody(deserializeExpressionBody(proto.initializer))
                 }
 
-                return super.deserializeIrField(proto)
+                return super.deserializeIrField(proto, isPrivateProperty)
             }
 
             override fun deserializeIrProperty(proto: ProtoProperty): IrProperty {
@@ -254,7 +271,7 @@ class JvmIrLinker(
                         }
                     }
                     if (proto.hasBackingField()) {
-                        backingField = deserializeIrField(proto.backingField)
+                        backingField = deserializeIrField(proto.backingField, !symbol.isPublicApi)
                     }
                 }
 
