@@ -37,21 +37,27 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator
 import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolver
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.lazy.NoDescriptorForDeclarationException
-import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.types.KotlinType
 import java.util.concurrent.ConcurrentMap
 
 class IDELightClassGenerationSupport(private val project: Project) : LightClassGenerationSupport() {
 
-    private inner class KtUltraLightSupportImpl(private val element: KtElement) : KtUltraLightSupport {
+    private class KtUltraLightSupportImpl(private val element: KtElement) : KtUltraLightSupport {
 
         private val module = ModuleUtilCore.findModuleForPsiElement(element)
 
+        private val languageVersionSettings
+            get() = module?.languageVersionSettings ?: KotlinTypeMapper.LANGUAGE_VERSION_SETTINGS_DEFAULT
+
         override val isReleasedCoroutine
-            get() = module?.languageVersionSettings?.supportsFeature(LanguageFeature.ReleaseCoroutines) ?: true
+            get() = languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines) ?: true
+
+        override fun getConstantEvaluator(expression: KtExpression): ConstantExpressionEvaluator =
+            ConstantExpressionEvaluator(moduleDescriptor, KotlinTypeMapper.LANGUAGE_VERSION_SETTINGS_DEFAULT, expression.project)
 
         private val resolutionFacade get() = element.getResolutionFacade()
 
@@ -61,42 +67,23 @@ class IDELightClassGenerationSupport(private val project: Project) : LightClassG
             JvmCodegenUtil.getModuleName(moduleDescriptor)
         }
 
-        override fun findAnnotation(owner: KtAnnotated, fqName: FqName): Pair<KtAnnotationEntry, AnnotationDescriptor>? {
-            val candidates = owner.annotationEntries.filter {
-                it.shortName == fqName.shortName() || owner.containingKtFile.hasAlias(it.shortName)
+        override fun possiblyHasAlias(file: KtFile, shortName: Name): Boolean =
+            allAliases(file)[shortName.asString()] == true
+
+        private fun allAliases(file: KtFile): ConcurrentMap<String, Boolean> = CachedValuesManager.getCachedValue(file) {
+            val importAliases = file.importDirectives.mapNotNull { it.aliasName }.toSet()
+            val map = ConcurrentFactoryMap.createMap<String, Boolean> { s ->
+                s in importAliases || KotlinTypeAliasShortNameIndex.getInstance().get(s, file.project, file.resolveScope).isNotEmpty()
             }
-            for (entry in candidates) {
-                val descriptor = analyzeAnnotation(entry)
-                if (descriptor?.fqName == fqName) {
-                    return Pair(entry, descriptor)
-                }
-            }
-
-            if (owner is KtPropertyAccessor) {
-                // We might have from the beginning just resolve the descriptor of the accessor
-                // But we trying to avoid analysis in case property doesn't have any relevant annotations at all
-                // (in case of `findAnnotation` returns null)
-                if (findAnnotation(owner.property, fqName) == null) return null
-
-                val accessorDescriptor = owner.resolveToDescriptorIfAny() ?: return null
-
-                // Just reuse the logic of use-site targeted annotation from the compiler
-                val annotationDescriptor = accessorDescriptor.annotations.findAnnotation(fqName) ?: return null
-                val entry = annotationDescriptor.source.getPsi() as? KtAnnotationEntry ?: return null
-
-                return entry to annotationDescriptor
-            }
-
-            return null
+            CachedValueProvider.Result.create<ConcurrentMap<String, Boolean>>(map, PsiModificationTracker.MODIFICATION_COUNT)
         }
 
         override val deprecationResolver: DeprecationResolver get() = resolutionFacade.getFrontendService(DeprecationResolver::class.java)
 
-
         override val typeMapper: KotlinTypeMapper by lazyPub {
             KotlinTypeMapper(
                 BindingContext.EMPTY, ClassBuilderMode.LIGHT_CLASSES,
-                moduleName, KotlinTypeMapper.LANGUAGE_VERSION_SETTINGS_DEFAULT, // TODO use proper LanguageVersionSettings
+                moduleName, languageVersionSettings,
                 jvmTarget = JvmTarget.JVM_1_8,
                 typePreprocessor = KotlinType::cleanFromAnonymousTypes,
                 namePreprocessor = ::tryGetPredefinedName
@@ -150,18 +137,8 @@ class IDELightClassGenerationSupport(private val project: Project) : LightClassG
     override fun createUltraLightClassForScript(script: KtScript): KtUltraLightClassForScript? =
         KtUltraLightClassForScript(script, support = KtUltraLightSupportImpl(script))
 
-    private fun KtFile.hasAlias(shortName: Name?): Boolean {
-        if (shortName == null) return false
-        return allAliases(this)[shortName.asString()] == true
-    }
-
-    private fun allAliases(file: KtFile): ConcurrentMap<String, Boolean> = CachedValuesManager.getCachedValue(file) {
-        val importAliases = file.importDirectives.mapNotNull { it.aliasName }.toSet()
-        val map = ConcurrentFactoryMap.createMap<String, Boolean> { s ->
-            s in importAliases || KotlinTypeAliasShortNameIndex.getInstance().get(s, project, file.resolveScope).isNotEmpty()
-        }
-        CachedValueProvider.Result.create<ConcurrentMap<String, Boolean>>(map, PsiModificationTracker.MODIFICATION_COUNT)
-    }
+    override fun getUltraLightClassSupport(element: KtElement): KtUltraLightSupport =
+        KtUltraLightSupportImpl(element)
 
     private val scopeFileComparator = JavaElementFinder.byClasspathComparator(GlobalSearchScope.allScope(project))
 

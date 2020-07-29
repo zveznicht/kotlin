@@ -18,6 +18,8 @@ package org.jetbrains.kotlin.asJava
 
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiConstantEvaluationHelper
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.CachedValue
 import org.jetbrains.kotlin.asJava.builder.LightClassBuilderResult
@@ -50,6 +52,8 @@ abstract class LightClassGenerationSupport {
     abstract fun createUltraLightClass(element: KtClassOrObject): KtUltraLightClass?
 
     abstract fun createUltraLightClassForScript(script: KtScript): KtUltraLightClassForScript?
+
+    abstract fun getUltraLightClassSupport(element: KtElement): KtUltraLightSupport
 
     abstract fun createUltraLightClassForFacade(
         manager: PsiManager,

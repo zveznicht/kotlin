@@ -24,13 +24,26 @@ import org.jetbrains.kotlin.asJava.builder.InvalidLightClassDataHolder
 import org.jetbrains.kotlin.asJava.builder.LightClassConstructionContext
 import org.jetbrains.kotlin.asJava.builder.LightClassDataHolder
 import org.jetbrains.kotlin.asJava.builder.LightClassDataHolderImpl
-import org.jetbrains.kotlin.asJava.classes.KtUltraLightClass
-import org.jetbrains.kotlin.asJava.classes.KtUltraLightClassForFacade
-import org.jetbrains.kotlin.asJava.classes.KtUltraLightClassForScript
+import org.jetbrains.kotlin.asJava.classes.*
+import org.jetbrains.kotlin.codegen.ClassBuilderMode
+import org.jetbrains.kotlin.codegen.JvmCodegenUtil
+import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper
+import org.jetbrains.kotlin.config.JvmTarget
+import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.config.LanguageVersionSettings
+import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
+import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.load.java.components.JavaDeprecationSettings
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.deprecation.CoroutineCompatibilitySupport
+import org.jetbrains.kotlin.resolve.deprecation.DeprecationResolver
+import org.jetbrains.kotlin.storage.LockBasedStorageManager
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator as ResolveEvaluator
 
 /**
  * This class solves the problem of interdependency between analyzing Kotlin code and generating JetLightClasses
@@ -46,16 +59,92 @@ import org.jetbrains.kotlin.resolve.BindingContext
  */
 class CliLightClassGenerationSupport(private val traceHolder: CliTraceHolder) : LightClassGenerationSupport() {
 
+    private val ultraLightSupport = object : KtUltraLightSupport {
+
+        //TODO: languageVersionSettings is always default
+        private val languageVersionSettings: LanguageVersionSettings
+            get() = getContext().languageVersionSettings
+                ?: LanguageVersionSettingsImpl.DEFAULT
+
+        override val isReleasedCoroutine
+            get() = languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)
+
+        override fun possiblyHasAlias(file: KtFile, shortName: Name): Boolean = true
+
+        override fun getConstantEvaluator(expression: KtExpression): org.jetbrains.kotlin.resolve.constants.evaluate.ConstantExpressionEvaluator =
+            ResolveEvaluator(moduleDescriptor, languageVersionSettings, expression.project)
+
+        override val moduleDescriptor get() = traceHolder.module
+
+        override val moduleName: String get() = JvmCodegenUtil.getModuleName(moduleDescriptor)
+
+        override val deprecationResolver: DeprecationResolver
+            get() = DeprecationResolver(
+                LockBasedStorageManager.NO_LOCKS,
+                languageVersionSettings,
+                CoroutineCompatibilitySupport.ENABLED,
+                JavaDeprecationSettings
+            )
+
+        override val typeMapper: KotlinTypeMapper by lazyPub {
+            KotlinTypeMapper(
+                BindingContext.EMPTY,
+                ClassBuilderMode.LIGHT_CLASSES,
+                moduleName,
+                languageVersionSettings,
+                jvmTarget = JvmTarget.JVM_1_8,
+                typePreprocessor = KotlinType::cleanFromAnonymousTypes,
+                namePreprocessor = ::tryGetPredefinedName
+            )
+        }
+    }
+
     override fun createUltraLightClassForFacade(
         manager: PsiManager,
         facadeClassFqName: FqName,
         lightClassDataCache: CachedValue<LightClassDataHolder.ForFacade>,
         files: Collection<KtFile>
-    ): KtUltraLightClassForFacade? = null
+    ): KtUltraLightClassForFacade? {
 
-    override fun createUltraLightClass(element: KtClassOrObject): KtUltraLightClass? = null
+        if (files.any { it.isScript() }) return null
 
-    override fun createUltraLightClassForScript(script: KtScript): KtUltraLightClassForScript? = null
+        val filesToSupports: List<Pair<KtFile, KtUltraLightSupport>> = files.map {
+            it to UltraLightSupportViaService(it)
+        }
+
+        return KtUltraLightClassForFacade(
+            manager,
+            facadeClassFqName,
+            lightClassDataCache,
+            files,
+            filesToSupports
+        )
+    }
+
+    override fun createUltraLightClass(element: KtClassOrObject): KtUltraLightClass? {
+        if (element.shouldNotBeVisibleAsLightClass()) {
+            return null
+        }
+
+        return UltraLightSupportViaService(element).let { support ->
+            when {
+                element is KtObjectDeclaration && element.isObjectLiteral() ->
+                    KtUltraLightClassForAnonymousDeclaration(element, support)
+                element.safeIsLocal() ->
+                    KtUltraLightClassForLocalDeclaration(element, support)
+
+                (element.hasModifier(KtTokens.INLINE_KEYWORD)) ->
+                    KtUltraLightInlineClass(element, support)
+
+                else -> KtUltraLightClass(element, support)
+            }
+        }
+    }
+
+    override fun createUltraLightClassForScript(script: KtScript): KtUltraLightClassForScript? =
+        KtUltraLightClassForScript(script, support = UltraLightSupportViaService(script))
+
+    override fun getUltraLightClassSupport(element: KtElement): KtUltraLightSupport = ultraLightSupport
 
     override fun createDataHolderForClass(classOrObject: KtClassOrObject, builder: LightClassBuilder): LightClassDataHolder.ForClass {
         //force resolve companion for light class generation
@@ -89,4 +178,6 @@ class CliLightClassGenerationSupport(private val traceHolder: CliTraceHolder) : 
     override fun analyzeAnnotation(element: KtAnnotationEntry) = traceHolder.bindingContext.get(BindingContext.ANNOTATION, element)
 
     override fun analyzeWithContent(element: KtClassOrObject) = traceHolder.bindingContext
+
+
 }
