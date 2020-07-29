@@ -118,19 +118,16 @@ open class PodDownloadUrlTask : PodDownloadTask() {
     internal lateinit var podSource: Provider<Url>
 
     @get:Internal
-    internal val urlDir = project.provider {
-        project.cocoapodsBuildDirs.externalSources("url")
-    }
+    internal val urlDir = project.cocoapodsBuildDirs.externalSources("url")
+
 
     @get:OutputDirectory
     internal val podSourceDir = project.provider {
-        urlDir.get().resolve(podName.get())
+        urlDir.resolve(podName.get())
     }
 
     @get:Internal
-    internal val permittedFileExtensions = project.provider {
-        listOf("zip", "tar", "tgz", "tbz", "txz", "gzip", "tar.gz", "tar.bz2", "tar.xz", "jar")
-    }
+    internal val permittedFileExtensions = listOf("zip", "tar", "tgz", "tbz", "txz", "gzip", "tar.gz", "tar.bz2", "tar.xz", "jar")
 
     @TaskAction
     fun download() {
@@ -138,7 +135,7 @@ open class PodDownloadUrlTask : PodDownloadTask() {
         val url = podLocation.url.toString()
         val repoUrl = url.substringBeforeLast("/")
         val extension = url.substringAfterLast("/").substringAfter(".")
-        require(permittedFileExtensions.get().contains(extension)) { "Unknown file extension" }
+        require(permittedFileExtensions.contains(extension)) { "Unknown file extension" }
 
         val repo = setupRepo(repoUrl)
         val dependency = createDependency(extension)
@@ -171,7 +168,7 @@ open class PodDownloadUrlTask : PodDownloadTask() {
     private fun copyArtifactToUrlDir(artifact: File, extension: String, flatten: Boolean?) {
         project.copy {
             val isFlatten = flatten ?: false
-            val destinationDir = if (isFlatten) podSourceDir.get() else urlDir.get()
+            val destinationDir = if (isFlatten) podSourceDir.get() else urlDir
             it.into(destinationDir)
             it.from(archiveTree(artifact.absolutePath, extension))
             if (extension == "jar") {
@@ -196,13 +193,11 @@ open class PodDownloadGitTask : PodDownloadTask() {
     internal lateinit var podSource: Provider<Git>
 
     @get:Internal
-    internal val gitDir = project.provider {
-        project.cocoapodsBuildDirs.externalSources("git")
-    }
+    internal val gitDir = project.cocoapodsBuildDirs.externalSources("git")
 
     @get:OutputDirectory
     internal val repo = project.provider {
-        gitDir.get().resolve(podName.get())
+        gitDir.resolve(podName.get())
     }
 
     @TaskAction
@@ -265,7 +260,7 @@ open class PodDownloadGitTask : PodDownloadTask() {
             "--branch", branch,
             "--depth", "1"
         )
-        val configProcess: ProcessBuilder.() -> Unit = { directory(gitDir.get()) }
+        val configProcess: ProcessBuilder.() -> Unit = { directory(gitDir) }
         runCommand(shallowCloneCommand, configProcess)
     }
 
@@ -277,20 +272,20 @@ open class PodDownloadGitTask : PodDownloadTask() {
             podName.get(),
             "--depth", "1"
         )
-        val configProcess: ProcessBuilder.() -> Unit = { directory(gitDir.get()) }
+        val configProcess: ProcessBuilder.() -> Unit = { directory(gitDir) }
         runCommand(cloneHeadCommand, configProcess)
     }
 
     private fun fallback(podspecLocation: Git) {
         // removing any traces of other commands
-        gitDir.get().resolve(podName.get()).deleteRecursively()
+        gitDir.resolve(podName.get()).deleteRecursively()
         val cloneAllCommand = listOf(
             "git",
             "clone",
             "${podspecLocation.url}",
             podName.get()
         )
-        val configProcess: ProcessBuilder.() -> Unit = { directory(gitDir.get()) }
+        val configProcess: ProcessBuilder.() -> Unit = { directory(gitDir) }
         runCommand(cloneAllCommand, configProcess)
     }
 }
