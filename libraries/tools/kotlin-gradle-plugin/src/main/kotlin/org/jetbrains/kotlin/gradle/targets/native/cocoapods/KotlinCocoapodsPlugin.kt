@@ -6,6 +6,7 @@
 @file:Suppress("PackageDirectoryMismatch") // Old package for compatibility
 package org.jetbrains.kotlin.gradle.plugin.cocoapods
 
+import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
@@ -24,6 +25,7 @@ import org.jetbrains.kotlin.gradle.tasks.*
 import org.jetbrains.kotlin.gradle.tasks.registerTask
 import org.jetbrains.kotlin.gradle.utils.asValidTaskName
 import org.jetbrains.kotlin.gradle.utils.lowerCamelCaseName
+import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.File
@@ -86,6 +88,19 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
     private fun KotlinMultiplatformExtension.supportedTargets() = targets
         .withType(KotlinNativeTarget::class.java)
         .matching { it.konanTarget.family.isAppleFamily }
+
+    private val targetsPerFamily = mutableMapOf<Family, KotlinNativeTarget>()
+
+    private fun KotlinMultiplatformExtension.supportedTargetsPerFamily(): NamedDomainObjectCollection<KotlinNativeTarget> {
+        return targets
+            .withType(KotlinNativeTarget::class.java)
+            .matching {
+                val family = it.konanTarget.family
+                val res = family.isAppleFamily && (targetsPerFamily[family] == null || targetsPerFamily[family] == it)
+                targetsPerFamily.putIfAbsent(it.konanTarget.family, it)
+                res
+            }
+    }
 
     /**
      * Splits a string using a whitespace characters as delimiters.
@@ -214,7 +229,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                 // to avoid showing it in the `tasks` output.
             }
 
-            kotlinExtension.supportedTargets().all { target ->
+            kotlinExtension.supportedTargetsPerFamily().all { target ->
                 target.compilations.getByName(KotlinCompilation.MAIN_COMPILATION_NAME).cinterops.create(pod.moduleName) { interop ->
 
                     val interopTask = project.tasks.getByPath(interop.interopProcessingTaskName)
@@ -362,7 +377,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
 
         val podspecTaskProvider = project.tasks.named(POD_SPEC_TASK_NAME, PodspecTask::class.java)
         val downloadPods = project.tasks.named(POD_DOWNLOAD_TASK_NAME)
-        kotlinExtension.supportedTargets().all { target ->
+        kotlinExtension.supportedTargetsPerFamily().all { target ->
             project.tasks.register(target.toPodGenTaskName, PodGenTask::class.java) {
                 it.description = "Сreates a synthetic Xcode project to retrieve CocoaPods dependencies"
                 it.podspecProvider = podspecTaskProvider.get().outputFileProvider
@@ -380,7 +395,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         cocoapodsExtension: CocoapodsExtension
     ) {
 
-        kotlinExtension.supportedTargets().all { target ->
+        kotlinExtension.supportedTargetsPerFamily().all { target ->
 
             project.tasks.register(target.toSetupBuildTaskName, PodSetupBuildTask::class.java) {
                 it.group = TASK_GROUP
@@ -400,7 +415,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         cocoapodsExtension: CocoapodsExtension
     ) {
 
-        kotlinExtension.supportedTargets().all { target ->
+        kotlinExtension.supportedTargetsPerFamily().all { target ->
 
             val podSetupBuildTaskProvider = project.tasks.named(target.toSetupBuildTaskName, PodSetupBuildTask::class.java)
 
@@ -427,7 +442,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
             it.description = "Called on Gradle sync, depends on Cinterop tasks for every used pod"
             it.dependsOn(podInstallTaskProvider)
 
-            kotlinExtension.supportedTargets().all { target ->
+            kotlinExtension.supportedTargetsPerFamily().all { target ->
                 target.compilations.getByName(KotlinCompilation.MAIN_COMPILATION_NAME).cinterops.all { interop ->
                     val interopTaskProvider = project.tasks.named(interop.interopProcessingTaskName)
                     it.dependsOn(interopTaskProvider)
