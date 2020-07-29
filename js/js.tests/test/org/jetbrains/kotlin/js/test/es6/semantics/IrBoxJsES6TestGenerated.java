@@ -1211,6 +1211,11 @@ public class IrBoxJsES6TestGenerated extends AbstractIrBoxJsES6Test {
             runTest("js/js.translator/testData/box/delegation/delegationByArg.kt");
         }
 
+        @TestMetadata("delegationByCompanionToNothing.kt")
+        public void testDelegationByCompanionToNothing() throws Exception {
+            runTest("js/js.translator/testData/box/delegation/delegationByCompanionToNothing.kt");
+        }
+
         @TestMetadata("delegationByExprWithArgs.kt")
         public void testDelegationByExprWithArgs() throws Exception {
             runTest("js/js.translator/testData/box/delegation/delegationByExprWithArgs.kt");
@@ -1274,11 +1279,6 @@ public class IrBoxJsES6TestGenerated extends AbstractIrBoxJsES6Test {
         @TestMetadata("delegationToExternaInterface.kt")
         public void testDelegationToExternaInterface() throws Exception {
             runTest("js/js.translator/testData/box/delegation/delegationToExternaInterface.kt");
-        }
-
-        @TestMetadata("delegationbyCompanion.kt")
-        public void testDelegationbyCompanion() throws Exception {
-            runTest("js/js.translator/testData/box/delegation/delegationbyCompanion.kt");
         }
 
         @TestMetadata("jsNamePropertyDelegation.kt")
