@@ -81,3 +81,51 @@ class Test1 {
         }
     }
 }
+
+@kotlin.contracts.ExperimentalContracts
+class Test2 {
+    val a: String = ""
+    val b: String = ""
+    val c: String = ""
+    val d: String = ""
+
+    init {
+        var blackhole = ""
+        inlineMe {
+            blackhole += a
+        }
+        crossinlineMe {
+            blackhole += b
+        }
+        noinlineMe {
+            blackhole += c
+        }
+        notinline {
+            blackhole += d
+        }
+    }
+}
+
+@kotlin.contracts.ExperimentalContracts
+class Test4 {
+    val a: String = ""
+    val b: String = ""
+    val c: String = ""
+    val d: String = ""
+
+    init {
+        var blackhole: String
+        inlineMe {
+            blackhole = a
+        }
+        crossinlineMe {
+            blackhole = b
+        }
+        noinlineMe {
+            blackhole = c
+        }
+        notinline {
+            blackhole = d
+        }
+    }
+}
