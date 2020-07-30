@@ -195,6 +195,7 @@ open class CocoapodsExtension(private val project: Project) {
         /**
          * Configure pod from git repository. The podspec file is expected to be in the repository root.
          */
+        @JvmOverloads
         fun git(url: String, configure: (Git.() -> Unit)? = null): PodLocation {
             val git = Git(URI(url))
             if (configure != null) {
