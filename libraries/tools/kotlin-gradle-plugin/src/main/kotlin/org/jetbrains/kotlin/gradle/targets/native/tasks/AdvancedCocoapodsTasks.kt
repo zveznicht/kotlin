@@ -14,37 +14,32 @@ import org.gradle.api.tasks.Optional
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.*
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.CocoapodsExtension.CocoapodsDependency.PodLocation.*
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.cocoapodsBuildDirs
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.konan.target.Family
-import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStream
 import java.net.URI
 import java.util.*
 
-internal val KotlinNativeTarget.toBuildSettingsFileName: String
-    get() = "build-settings-$disambiguationClassifier.properties"
+internal val Family.toBuildSettingsFileName: String
+    get() = "build-settings-$name.properties"
 
-internal val KotlinNativeTarget.toValidSDK: String
-    get() = when (konanTarget) {
-        KonanTarget.IOS_X64 -> "iphonesimulator"
-        KonanTarget.IOS_ARM32, KonanTarget.IOS_ARM64 -> "iphoneos"
-        KonanTarget.WATCHOS_X86, KonanTarget.WATCHOS_X64 -> "watchsimulator"
-        KonanTarget.WATCHOS_ARM32, KonanTarget.WATCHOS_ARM64 -> "watchos"
-        KonanTarget.TVOS_X64 -> "appletvsimulator"
-        KonanTarget.TVOS_ARM64 -> "appletvos"
-        KonanTarget.MACOS_X64 -> "macosx"
-        else -> throw IllegalArgumentException("Bad target ${konanTarget.name}.")
+internal val Family.toValidSDK: String
+    get() = when (this) {
+        Family.IOS -> "iphonesimulator"
+        Family.WATCHOS -> "watchsimulator"
+        Family.TVOS -> "appletvsimulator"
+        Family.OSX -> "macosx"
+        else -> throw IllegalArgumentException("Bad family ${this.name}")
     }
 
-internal val KotlinNativeTarget.platformLiteral: String
-    get() = when (konanTarget.family) {
+internal val Family.platformLiteral: String
+    get() = when (this) {
         Family.OSX -> "macos"
         Family.IOS -> "ios"
         Family.TVOS -> "tvos"
         Family.WATCHOS -> "watchos"
-        else -> throw IllegalArgumentException("Unsupported native target '${konanTarget.name}'")
+        else -> throw IllegalArgumentException("Bad family ${this.name}")
     }
 
 /**
@@ -101,6 +96,9 @@ abstract class CocoapodsWithSyntheticTask : DefaultTask() {
             cocoapodsExtension.pods.isNotEmpty()
         }
     }
+
+    @Internal
+    lateinit var family: Family
 
     @get:Nested
     internal lateinit var cocoapodsExtension: CocoapodsExtension
@@ -329,13 +327,10 @@ open class PodGenTask : CocoapodsWithSyntheticTask() {
     @get:InputFile
     internal lateinit var podspecProvider: Provider<File>
 
-    @Internal
-    lateinit var kotlinNativeTarget: KotlinNativeTarget
-
     @get:OutputDirectory
     internal val podsXcodeProjDirProvider: Provider<File>
         get() = project.provider {
-            project.cocoapodsBuildDirs.synthetic(kotlinNativeTarget)
+            project.cocoapodsBuildDirs.synthetic(family)
                 .resolve(podspecProvider.get().nameWithoutExtension)
                 .resolve("Pods")
                 .resolve("Pods.xcodeproj")
@@ -351,8 +346,8 @@ open class PodGenTask : CocoapodsWithSyntheticTask() {
 
         val podGenProcessArgs = listOfNotNull(
             "pod", "gen",
-            "--platforms=${kotlinNativeTarget.platformLiteral}",
-            "--gen-directory=${project.cocoapodsBuildDirs.synthetic(kotlinNativeTarget).absolutePath}",
+            "--platforms=${family.platformLiteral}",
+            "--gen-directory=${project.cocoapodsBuildDirs.synthetic(family).absolutePath}",
             localPodspecPaths.takeIf { it.isNotEmpty() }?.joinToString(separator = ",")?.let { "--local-sources=$it" },
             sources.takeIf { it.isNotEmpty() }?.joinToString(separator = ",")?.let { "--sources=$it" },
             podspecProvider.get().name
@@ -370,13 +365,13 @@ open class PodGenTask : CocoapodsWithSyntheticTask() {
                 outputText,
                 outputText.takeIf {
                     it.contains("deployment target")
-                            || it.contains("requested platforms: [\"${kotlinNativeTarget.platformLiteral}\"]")
+                            || it.contains("requested platforms: [\"${family.platformLiteral}\"]")
                 }?.let {
                     """
                         Tip: try to configure deployment_target for ALL targets as follows:
                         cocoapods {
                             ...
-                            ${kotlinNativeTarget.konanTarget.family.name.toLowerCase()}.deploymentTarget = "..."
+                            ${family.name.toLowerCase()}.deploymentTarget = "..."
                             ...
                         }
                     """.trimIndent()
@@ -397,14 +392,11 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
     @get:InputDirectory
     internal lateinit var podsXcodeProjDirProvider: Provider<File>
 
-    @Internal
-    lateinit var kotlinNativeTarget: KotlinNativeTarget
-
     @get:OutputFile
     internal val buildSettingsFileProvider: Provider<File> = project.provider {
         project.cocoapodsBuildDirs
             .buildSettings
-            .resolve(kotlinNativeTarget.toBuildSettingsFileName)
+            .resolve(family.toBuildSettingsFileName)
     }
 
     @TaskAction
@@ -415,7 +407,7 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
             "xcodebuild", "-showBuildSettings",
             "-project", podsXcodeProjDir.name,
             "-scheme", cocoapodsExtension.frameworkName,
-            "-sdk", kotlinNativeTarget.toValidSDK
+            "-sdk", family.toValidSDK
         )
 
         val buildSettingsProcess = ProcessBuilder(buildSettingsReceivingCommand)
@@ -449,9 +441,6 @@ open class PodBuildTask : CocoapodsWithSyntheticTask() {
     @get:InputFile
     internal lateinit var buildSettingsFileProvider: Provider<File>
 
-    @Internal
-    lateinit var kotlinNativeTarget: KotlinNativeTarget
-
     @get:Optional
     @get:OutputDirectory
     internal var buildDirProvider: Provider<File>? = null
@@ -473,7 +462,7 @@ open class PodBuildTask : CocoapodsWithSyntheticTask() {
                 "xcodebuild",
                 "-project", podsXcodeProjDir.name,
                 "-scheme", it.schemeName,
-                "-sdk", kotlinNativeTarget.toValidSDK,
+                "-sdk", family.toValidSDK,
                 "-configuration", podBuildSettings.configuration
             )
 
