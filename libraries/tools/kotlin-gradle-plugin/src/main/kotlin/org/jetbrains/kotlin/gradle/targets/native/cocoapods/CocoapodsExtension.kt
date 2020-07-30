@@ -206,11 +206,6 @@ open class CocoapodsExtension(private val project: Project) {
         /**
          * Configure pod from git repository. The podspec file is expected to be in the repository root.
          */
-        fun git(url: String) = git(url) { }
-
-        /**
-         * Configure pod from git repository. The podspec file is expected to be in the repository root.
-         */
         fun git(url: String, configure: Closure<*>) = git(url) {
             ConfigureUtil.configure(configure, this)
         }
