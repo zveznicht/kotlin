@@ -602,7 +602,7 @@ class KotlinUastApiTest : AbstractKotlinUastTest() {
             assertEquals("UClass (name = Local)", localClass.asLogString())
             val localPrimaryConstructor = localFunctionResolved.toUElementOfType<UMethod>() ?: kfail("constructor expected")
             assertTrue(localPrimaryConstructor.isConstructor)
-            assertEquals(localClass, localPrimaryConstructor.getContainingUClass())
+            assertEquals(localClass.javaPsi, localPrimaryConstructor.javaPsi.cast<PsiMethod>().containingClass)
         }
     }
 
