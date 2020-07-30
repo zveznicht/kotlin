@@ -58,3 +58,26 @@ class Test {
         }
     }
 }
+
+@kotlin.contracts.ExperimentalContracts
+class Test1 {
+    val a: String = ""
+    val b: String = ""
+    val c: String = ""
+    val d: String = ""
+
+    init {
+        inlineMe {
+            a += "allowed"
+        }
+        crossinlineMe {
+            b += "not allowed"
+        }
+        noinlineMe {
+            c += "not allowed"
+        }
+        notinline {
+            d += "not allowed"
+        }
+    }
+}
