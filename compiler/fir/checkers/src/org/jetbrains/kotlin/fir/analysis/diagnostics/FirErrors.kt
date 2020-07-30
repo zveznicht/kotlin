@@ -91,4 +91,9 @@ object FirErrors {
     val REDUNDANT_EXPLICIT_TYPE by warning0<FirSourceElement, PsiElement>()
     val CAN_BE_VAL by warning0<FirSourceElement, PsiElement>()
     val CAN_BE_REPLACED_WITH_OPERATOR_ASSIGNMENT by warning0<FirSourceElement, PsiElement>()
+
+    val MANY_COMPANION_OBJECTS by error0<FirSourceElement, PsiElement>()
+    val LOCAL_OBJECT_NOT_ALLOWED by error0<FirSourceElement, PsiElement>()
+    val LOCAL_INTERFACE_NOT_ALLOWED by error0<FirSourceElement, PsiElement>()
+    val TYPE_PARAMETERS_IN_OBJECT by error0<FirSourceElement, PsiElement>()
 }
