@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.gradle.targets.native.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.file.FileTree
+import org.gradle.api.file.RelativePath
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.Optional
@@ -20,6 +21,7 @@ import java.io.FileInputStream
 import java.io.InputStream
 import java.net.URI
 import java.util.*
+import kotlin.concurrent.thread
 
 internal val Family.toBuildSettingsFileName: String
     get() = "build-settings-$name.properties"
@@ -300,22 +302,31 @@ private fun runCommand(
             }
         }.start()
 
-    val retCode = process.waitFor()
-    if (retCode != 0) {
-        errorHandler?.invoke(retCode, process) ?: throwStandardException(command, retCode, process)
-    }
-    return process.inputStream.use {
-        it.reader().readText()
-    }
-}
+    var inputText = ""
+    var errorText = ""
 
-private fun throwStandardException(command: List<String>, retCode: Int, process: Process) {
-    val errorText = process.errorStream.use {
-        it.reader().readText()
+    val inputThread = thread {
+        inputText = process.inputStream.use {
+            it.reader().readText()
+        }
     }
-    throw IllegalStateException(
-        "Executing of '${command.joinToString(" ")}' failed with code $retCode and message: $errorText"
-    )
+
+    val errorThread = thread {
+        errorText = process.errorStream.use {
+            it.reader().readText()
+        }
+    }
+
+    inputThread.join()
+    errorThread.join()
+
+    val retCode = process.waitFor()
+    check(retCode == 0) {
+        errorHandler?.invoke(retCode, process)
+            ?: "Executing of '${command.joinToString(" ")}' failed with code $retCode and message: $errorText"
+    }
+
+    return inputText
 }
 
 /**
