@@ -250,6 +250,9 @@ class CocoaPodsIT : BaseGradleIT() {
     fun testPodDownloadUrlJar() = doTestPodDownloadUrl("jar")
 
     @Test
+    fun testPodDownloadUrlWrongName() = doTestPodDownloadUrl(fileExtension = "zip", archiveName = "wrongName")
+
+    @Test
     fun testDownloadAndImport() {
         val tag = "4.0.0"
         with(project.gradleBuildScript()) {
@@ -467,9 +470,10 @@ class CocoaPodsIT : BaseGradleIT() {
         fileExtension: String,
         podName: String = "podspecWithFilesExample",
         repoPath: String = "https://github.com/alozhkin/podspecWithFilesExample/raw/master",
-        flatten: Boolean? = null
+        archiveName: String = podName,
+        flatten: Boolean = false
     ) {
-        val repo = "$repoPath/$podName.$fileExtension"
+        val repo = "$repoPath/$archiveName.$fileExtension"
         with(project.gradleBuildScript()) {
             addPod(podName, "source = url(\"$repo\", $flatten)")
         }

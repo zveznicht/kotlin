@@ -134,11 +134,13 @@ open class PodDownloadUrlTask : PodDownloadTask() {
         val podLocation = podSource.get()
         val url = podLocation.url.toString()
         val repoUrl = url.substringBeforeLast("/")
-        val extension = url.substringAfterLast("/").substringAfter(".")
+        val fileName = url.substringAfterLast("/")
+        val fileNameWithoutExtension = fileName.substringBefore(".")
+        val extension = fileName.substringAfter(".")
         require(permittedFileExtensions.contains(extension)) { "Unknown file extension" }
 
         val repo = setupRepo(repoUrl)
-        val dependency = createDependency(extension)
+        val dependency = createDependency(fileNameWithoutExtension, extension)
         val configuration = project.configurations.detachedConfiguration(dependency)
         val artifact = configuration.singleFile
         copyArtifactToUrlDir(artifact, extension, podLocation.flatten)
@@ -157,22 +159,28 @@ open class PodDownloadUrlTask : PodDownloadTask() {
         }
     }
 
-    private fun createDependency(extension: String) = project.dependencies.create(
+    private fun createDependency(fileNameWithoutExtension: String, extension: String) = project.dependencies.create(
         mapOf(
-            "name" to podName.get(),
+            "name" to fileNameWithoutExtension,
             "version" to "1.0",
             "ext" to extension
         )
     )
 
-    private fun copyArtifactToUrlDir(artifact: File, extension: String, flatten: Boolean?) {
+    private fun copyArtifactToUrlDir(artifact: File, extension: String, flatten: Boolean) {
+        val archiveTree = archiveTree(artifact.absolutePath, extension)
         project.copy {
-            val isFlatten = flatten ?: false
-            val destinationDir = if (isFlatten) podSourceDir.get() else urlDir
+            val destinationDir = podSourceDir.get()
             it.into(destinationDir)
-            it.from(archiveTree(artifact.absolutePath, extension))
+            it.from(archiveTree)
             if (extension == "jar") {
                 it.exclude("META-INF/")
+            }
+            if (!flatten) {
+                it.eachFile { file ->
+                    file.relativePath = RelativePath(true, *file.relativePath.segments.drop(1).toTypedArray())
+                }
+                it.includeEmptyDirs = false
             }
         }
     }
