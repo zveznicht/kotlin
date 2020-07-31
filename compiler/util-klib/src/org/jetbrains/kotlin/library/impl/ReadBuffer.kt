@@ -6,11 +6,8 @@
 package org.jetbrains.kotlin.library.impl
 
 import java.io.File
-import java.io.RandomAccessFile
-import java.lang.Integer.min
 import java.lang.ref.SoftReference
 import java.nio.ByteBuffer
-import kotlin.math.max
 
 sealed class ReadBuffer {
 
@@ -73,7 +70,7 @@ sealed class ReadBuffer {
         private var pos: Int = 0
 
         override var position: Int
-            get() = pos.also { assert(it == ensureBuffer().limit()) }
+            get() = pos.also { assert(it == ensureBuffer().position()) }
             set(value) {
                 val buf = ensureBuffer()
                 pos = value
