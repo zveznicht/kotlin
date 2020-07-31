@@ -612,8 +612,8 @@ val IrDeclaration.isFileClass: Boolean
 val IrValueDeclaration.isImmutable: Boolean
     get() = this is IrValueParameter || this is IrVariable && !isVar
 
-val IrFunction.originalDeclaration: IrFunction
+val IrFunction.originalFunction: IrFunction
     get() = (this as? IrAttributeContainer)?.attributeOwnerId as? IrFunction ?: this
 
-val IrProperty.originalDeclaration: IrProperty
+val IrProperty.originalProperty: IrProperty
     get() = attributeOwnerId as? IrProperty ?: this

@@ -448,7 +448,7 @@ class IrBasedFunctionDescriptorWithContainerSource(owner: IrSimpleFunction) : Ir
 }
 
 fun IrSimpleFunction.toIrBasedDescriptor() =
-    if (originalDeclaration is IrLazyFunction || containerSource != null)
+    if (originalFunction is IrLazyFunction || containerSource != null)
         when {
             isGetter -> IrBasedPropertyGetterDescriptorWithContainerSource(this)
             isSetter -> IrBasedPropertySetterDescriptorWithContainerSource(this)
@@ -857,7 +857,7 @@ class IrBasedPropertyDescriptorWithContainerSource(
     override val containerSource: DeserializedContainerSource? = owner.containerSource
 }
 
-fun IrProperty.toIrBasedDescriptor() = if (originalDeclaration is IrLazyProperty || containerSource != null)
+fun IrProperty.toIrBasedDescriptor() = if (originalProperty is IrLazyProperty || containerSource != null)
     IrBasedPropertyDescriptorWithContainerSource(this)
 else
     IrBasedPropertyDescriptor(this)

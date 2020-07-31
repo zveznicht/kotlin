@@ -244,7 +244,7 @@ class IrExpressionLambdaImpl(
     }
 
     // Need the descriptor without captured parameters here.
-    override val invokeMethodDescriptor: FunctionDescriptor = function.originalDeclaration.toIrBasedDescriptor()
+    override val invokeMethodDescriptor: FunctionDescriptor = function.originalFunction.toIrBasedDescriptor()
 
     override val hasDispatchReceiver: Boolean = false
 
