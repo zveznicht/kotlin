@@ -278,11 +278,23 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                                 interop.compilerOpts.addAll(args.splitQuotedArgs().map { "-I$it" })
                             }
 
-                            getBuildPodSettingsFile(project, pod, target).get().let { interop.compilerOpts.add("-F${it.readText()}") }
+                            getBuildPodSettingsFile(project, pod, target).orNull?.inputStream()?.use {
+                                val propertyName = PodBuildSettingsProperties.FRAMEWORK_SEARCH_PATHS
+                                readPropertyFromStream(it, propertyName).let { property ->
+                                    interop.compilerOpts.add("-F$property")
+                                }
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+
+    private fun readPropertyFromStream(inputStream: InputStream, property: String): String {
+        with(Properties()) {
+            load(inputStream)
+            return getProperty(property)
         }
     }
 

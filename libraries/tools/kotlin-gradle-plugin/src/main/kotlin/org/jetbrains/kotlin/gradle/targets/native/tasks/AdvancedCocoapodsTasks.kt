@@ -560,12 +560,12 @@ internal data class PodBuildSettingsProperties(
                 podsSchemeNames.add(pod.schemeName)
 
                 val buildSettingsName = buildSettingsFile.nameWithoutExtension
-                val podSettings = buildSettingsFile.resolveSibling("$buildSettingsName-${pod.schemeName}.settings")
+                val podSettings = buildSettingsFile.resolveSibling("$buildSettingsName-${pod.schemeName}.properties")
                 podSettings.delete()
                 podSettings.createNewFile()
 
                 val frameworkPath = frameworkPathsCollection.find { it.substringAfterLast("/") == pod.schemeName }
-                frameworkPath?.let { podSettings.appendText(it) }
+                frameworkPath?.let { podSettings.appendText("$FRAMEWORK_SEARCH_PATHS=$it") }
             }
         }
     }
