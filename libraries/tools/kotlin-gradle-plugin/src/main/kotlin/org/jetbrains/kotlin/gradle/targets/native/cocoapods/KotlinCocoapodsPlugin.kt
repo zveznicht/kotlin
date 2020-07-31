@@ -28,8 +28,6 @@ import org.jetbrains.kotlin.konan.target.Family
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import org.jetbrains.kotlin.konan.target.KonanTarget.*
-import org.jetbrains.kotlin.konan.target.KonanTarget.Companion.predefinedTargets
-import org.jetbrains.kotlin.utils.keysToMap
 import java.io.File
 
 internal val Project.cocoapodsBuildDirs: CocoapodsBuildDirs
@@ -70,16 +68,16 @@ private val Family.toPodGenTaskName: String
         name
     )
 
-private val Family.toSetupBuildTaskName: String
+private val String.toSetupBuildTaskName: String
     get() = lowerCamelCaseName(
         KotlinCocoapodsPlugin.POD_SETUP_BUILD_TASK_NAME,
-        name
+        this
     )
 
-private val Family.toBuildDependenciesTaskName: String
+private val String.toBuildDependenciesTaskName: String
     get() = lowerCamelCaseName(
         KotlinCocoapodsPlugin.POD_BUILD_DEPENDENCIES_TASK_NAME,
-        name
+        this
     )
 
 private val CocoapodsDependency.toPodDownloadTaskName: String
@@ -94,7 +92,17 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         .withType(KotlinNativeTarget::class.java)
         .matching { it.konanTarget.family.isAppleFamily }
 
-    private val targetsToFamily = predefinedTargets.values.keysToMap { it.family }
+    private val KotlinNativeTarget.toValidSDK: String
+        get() = when (konanTarget) {
+            IOS_X64 -> "iphonesimulator"
+            IOS_ARM32, IOS_ARM64 -> "iphoneos"
+            WATCHOS_X86, WATCHOS_X64 -> "watchsimulator"
+            WATCHOS_ARM32, WATCHOS_ARM64 -> "watchos"
+            TVOS_X64 -> "appletvsimulator"
+            TVOS_ARM64 -> "appletvos"
+            MACOS_X64 -> "macosx"
+            else -> throw IllegalArgumentException("Bad target ${konanTarget.name}.")
+        }
 
     /**
      * Splits a string using a whitespace characters as delimiters.
@@ -240,7 +248,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                         && project.findProperty(CONFIGURATION_PROPERTY) == null
                     ) {
                         val podBuildTaskProvider =
-                            project.tasks.named(target.konanTarget.family.toBuildDependenciesTaskName, PodBuildTask::class.java)
+                            project.tasks.named(target.toValidSDK.toBuildDependenciesTaskName, PodBuildTask::class.java)
                         interopTask.inputs.file(podBuildTaskProvider.get().buildSettingsFileProvider)
                         interopTask.dependsOn(podBuildTaskProvider)
                     }
@@ -267,7 +275,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                             && project.findProperty(CONFIGURATION_PROPERTY) == null
                         ) {
                             val podBuildTaskProvider =
-                                project.tasks.named(target.konanTarget.family.toBuildDependenciesTaskName, PodBuildTask::class.java)
+                                project.tasks.named(target.toValidSDK.toBuildDependenciesTaskName, PodBuildTask::class.java)
                             val buildSettings =
                                 podBuildTaskProvider.get().buildSettingsFileProvider.get()
                                     .inputStream()
@@ -376,7 +384,11 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         val downloadPods = project.tasks.named(POD_DOWNLOAD_TASK_NAME)
         kotlinExtension.supportedTargets().all { target ->
 
-            val family = target.getFamily(families) ?: return@all
+            val family = target.konanTarget.family
+            if (family in families) {
+                return@all
+            }
+            families += family
 
             project.tasks.register(family.toPodGenTaskName, PodGenTask::class.java) {
                 it.description = "Сreates a synthetic Xcode project to retrieve CocoaPods dependencies"
@@ -394,18 +406,17 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         kotlinExtension: KotlinMultiplatformExtension,
         cocoapodsExtension: CocoapodsExtension
     ) {
-        val families = mutableSetOf<Family>()
 
         kotlinExtension.supportedTargets().all { target ->
 
-            val family = target.getFamily(families) ?: return@all
+            val sdk = target.toValidSDK
+            val podGenTaskProvider = project.tasks.named(target.konanTarget.family.toPodGenTaskName, PodGenTask::class.java)
 
-            project.tasks.register(family.toSetupBuildTaskName, PodSetupBuildTask::class.java) {
+            project.tasks.register(sdk.toSetupBuildTaskName, PodSetupBuildTask::class.java) {
                 it.group = TASK_GROUP
                 it.description = "Collect environment variables from .xcworkspace file"
                 it.cocoapodsExtension = cocoapodsExtension
-                it.family = family
-                val podGenTaskProvider = project.tasks.named(family.toPodGenTaskName, PodGenTask::class.java)
+                it.sdk = project.provider { sdk }
                 it.podsXcodeProjDirProvider = podGenTaskProvider.get().podsXcodeProjDirProvider
                 it.dependsOn(podGenTaskProvider)
             }
@@ -417,33 +428,23 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         kotlinExtension: KotlinMultiplatformExtension,
         cocoapodsExtension: CocoapodsExtension
     ) {
-        val families = mutableSetOf<Family>()
 
         kotlinExtension.supportedTargets().all { target ->
 
-            val family = target.getFamily(families) ?: return@all
+            val sdk = target.toValidSDK
 
-            val podSetupBuildTaskProvider = project.tasks.named(family.toSetupBuildTaskName, PodSetupBuildTask::class.java)
+            val podSetupBuildTaskProvider = project.tasks.named(sdk.toSetupBuildTaskName, PodSetupBuildTask::class.java)
 
-            project.tasks.register(family.toBuildDependenciesTaskName, PodBuildTask::class.java) {
+            project.tasks.register(sdk.toBuildDependenciesTaskName, PodBuildTask::class.java) {
                 it.group = TASK_GROUP
                 it.description = "Calls `xcodebuild` on xcworkspace for the pod scheme"
-                it.family = family
+                it.sdk = project.provider { sdk }
                 it.cocoapodsExtension = cocoapodsExtension
                 it.podsXcodeProjDirProvider = podSetupBuildTaskProvider.get().podsXcodeProjDirProvider
                 it.buildSettingsFileProvider = podSetupBuildTaskProvider.get().buildSettingsFileProvider
                 it.dependsOn(podSetupBuildTaskProvider)
             }
         }
-    }
-
-    private fun KotlinNativeTarget.getFamily(families: MutableSet<Family>): Family? {
-        val family = targetsToFamily[konanTarget] ?: return null
-        if (family in families) {
-            return null
-        }
-        families += family
-        return family
     }
 
     private fun registerPodImportTask(

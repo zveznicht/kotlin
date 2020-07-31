@@ -23,19 +23,7 @@ import java.net.URI
 import java.util.*
 import kotlin.concurrent.thread
 
-internal val Family.toBuildSettingsFileName: String
-    get() = "build-settings-$name.properties"
-
-internal val Family.toValidSDK: String
-    get() = when (this) {
-        Family.IOS -> "iphonesimulator"
-        Family.WATCHOS -> "watchsimulator"
-        Family.TVOS -> "appletvsimulator"
-        Family.OSX -> "macosx"
-        else -> throw IllegalArgumentException("Bad family ${this.name}")
-    }
-
-internal val Family.platformLiteral: String
+private val Family.platformLiteral: String
     get() = when (this) {
         Family.OSX -> "macos"
         Family.IOS -> "ios"
@@ -98,9 +86,6 @@ abstract class CocoapodsWithSyntheticTask : DefaultTask() {
             cocoapodsExtension.pods.isNotEmpty()
         }
     }
-
-    @Internal
-    lateinit var family: Family
 
     @get:Nested
     internal lateinit var cocoapodsExtension: CocoapodsExtension
@@ -346,6 +331,9 @@ open class PodGenTask : CocoapodsWithSyntheticTask() {
     @get:InputFile
     internal lateinit var podspecProvider: Provider<File>
 
+    @get:Internal
+    lateinit var family: Family
+
     @get:OutputDirectory
     internal val podsXcodeProjDirProvider: Provider<File>
         get() = project.provider {
@@ -411,12 +399,18 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
     @get:InputDirectory
     internal lateinit var podsXcodeProjDirProvider: Provider<File>
 
+    @get:Input
+    internal lateinit var sdk: Provider<String>
+
     @get:OutputFile
     internal val buildSettingsFileProvider: Provider<File> = project.provider {
         project.cocoapodsBuildDirs
             .buildSettings
-            .resolve(family.toBuildSettingsFileName)
+            .resolve(sdk.get().toBuildSettingsFileName)
     }
+
+    private val String.toBuildSettingsFileName: String
+        get() = "build-settings-$this.properties"
 
     @TaskAction
     fun setupBuild() {
@@ -426,7 +420,7 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
             "xcodebuild", "-showBuildSettings",
             "-project", podsXcodeProjDir.name,
             "-scheme", cocoapodsExtension.frameworkName,
-            "-sdk", family.toValidSDK
+            "-sdk", sdk.get()
         )
 
         val buildSettingsProcess = ProcessBuilder(buildSettingsReceivingCommand)
@@ -460,6 +454,9 @@ open class PodBuildTask : CocoapodsWithSyntheticTask() {
     @get:InputFile
     internal lateinit var buildSettingsFileProvider: Provider<File>
 
+    @get:Input
+    internal lateinit var sdk: Provider<String>
+
     @get:Optional
     @get:OutputDirectory
     internal var buildDirProvider: Provider<File>? = null
@@ -481,7 +478,7 @@ open class PodBuildTask : CocoapodsWithSyntheticTask() {
                 "xcodebuild",
                 "-project", podsXcodeProjDir.name,
                 "-scheme", it.schemeName,
-                "-sdk", family.toValidSDK,
+                "-sdk", sdk.get(),
                 "-configuration", podBuildSettings.configuration
             )
 
