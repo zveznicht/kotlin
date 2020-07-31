@@ -821,7 +821,7 @@ class DeclarationsConverter(
         }
 
         val isImplicit = constructorDelegationCall.asText.isEmpty()
-        val isThis = (isImplicit && classWrapper.hasPrimaryConstructor) || thisKeywordPresent
+        val isThis = thisKeywordPresent //|| (isImplicit && classWrapper.hasPrimaryConstructor)
         val delegatedType =
             when {
                 isThis -> classWrapper.delegatedSelfTypeRef
