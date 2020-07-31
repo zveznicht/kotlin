@@ -456,20 +456,21 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
  */
 open class PodBuildTask : DefaultTask() {
 
-    @get:Internal
-    internal lateinit var podsXcodeProjDir: Provider<File>
+    @get:InputFiles
+    internal val generatedPodFiles = project.provider {
+        project.fileTree(podsXcodeProjDir.get()) {
+            it.include("**/${pod.get().schemeName}.xcscheme")
+        }
+    }
 
     @get:InputFile
     internal lateinit var buildSettingsFile: Provider<File>
-
-    @get:Internal
-    internal lateinit var kotlinNativeTarget: Provider<KotlinNativeTarget>
 
     @get:Nested
     lateinit var pod: Provider<CocoapodsDependency>
 
     @get:Internal
-    internal var buildDirProvider: Provider<File> = project.provider {
+    internal var buildDir: Provider<File> = project.provider {
         project.file(
             PodBuildSettingsProperties.readSettingsFromStream(
                 FileInputStream(buildSettingsFile.get())
@@ -477,9 +478,19 @@ open class PodBuildTask : DefaultTask() {
         )
     }
 
+    @get:Internal
+    internal lateinit var kotlinNativeTarget: Provider<KotlinNativeTarget>
+
     @get:OutputFiles
-    @get:Optional
-    internal var buildResult: Provider<FileCollection>? = null
+    internal val buildResult: Provider<FileCollection>? = project.provider {
+        project.fileTree(buildDir.get()) {
+            it.include("**/${pod.get().schemeName}.*/")
+            it.include("**/${pod.get().schemeName}/")
+        }
+    }
+
+    @get:Internal
+    internal lateinit var podsXcodeProjDir: Provider<File>
 
     @TaskAction
     fun buildDependencies() {
@@ -509,10 +520,6 @@ open class PodBuildTask : DefaultTask() {
                 "Executing of '${podXcodeBuildCommand.joinToString(" ")}' failed with code $podBuildRetCode and message:",
                 podBuildProcess.errorStream.use { it.reader().readText() }
             ).joinToString("\n")
-        }
-        buildResult = project.provider {
-            project.objects.fileCollection()
-                .from(buildDirProvider.get().walkTopDown().filter { it.isDirectory && it.name == pod.get().schemeName }.toList())
         }
     }
 }

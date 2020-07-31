@@ -27,6 +27,8 @@ import org.jetbrains.kotlin.gradle.utils.lowerCamelCaseName
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.File
+import java.io.InputStream
+import java.util.*
 
 /**
  * Splits a string using a whitespace characters as delimiters.

@@ -601,6 +601,25 @@ class CocoaPodsIT : BaseGradleIT() {
     }
 
     @Test
+    fun testPodBuildUTDClean() {
+        with(project.gradleBuildScript()) {
+            addPod(defaultPodName, produceGitBlock())
+        }
+        hooks.addHook {
+            assertTasksExecuted(defaultBuildTaskName)
+        }
+        project.testImport()
+
+        hooks.rewriteHooks {}
+        project.test(":clean")
+
+        hooks.addHook {
+            assertTasksExecuted(defaultBuildTaskName)
+        }
+        project.testImport()
+    }
+
+    @Test
     fun testPodInstallWithoutPodFile() {
         project.testSynthetic(podInstallTaskName)
     }
