@@ -180,7 +180,7 @@ open class CocoapodsExtension(private val project: Project) {
          * @param flatten does archive contains subdirectory that needs to be expanded
          */
         @JvmOverloads
-        fun url(url: String, flatten: Boolean? = null): PodLocation = Url(URI(url), flatten)
+        fun url(url: String, flatten: Boolean = false): PodLocation = Url(URI(url), flatten)
 
         /**
          * Path to local pod
@@ -216,7 +216,7 @@ open class CocoapodsExtension(private val project: Project) {
 
             data class Url(
                 @get:Input val url: URI,
-                @get:Input @get:Optional var flatten: Boolean? = null
+                @get:Input var flatten: Boolean
             ) : PodLocation() {
                 override fun getLocalPath(project: Project, podName: String): String {
                     return project.cocoapodsBuildDirs.externalSources("url").resolve(podName).absolutePath

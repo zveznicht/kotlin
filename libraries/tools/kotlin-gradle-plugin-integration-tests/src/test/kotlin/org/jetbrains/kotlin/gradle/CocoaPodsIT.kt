@@ -497,10 +497,8 @@ class CocoaPodsIT : BaseGradleIT() {
         repos: List<String> = listOf(),
         vararg args: String
     ) {
-        hooks.addHook {
-            for (repo in repos) {
-                assumeTrue(isRepoAvailable(repo))
-            }
+        for (repo in repos) {
+            assumeTrue(isRepoAvailable(repo))
         }
         testSynthetic(podImportTaskName, *args)
     }
@@ -509,10 +507,8 @@ class CocoaPodsIT : BaseGradleIT() {
         repos: List<String>,
         vararg args: String
     ) {
-        hooks.addHook {
-            for (repo in repos) {
-                assumeTrue(isRepoAvailable(repo))
-            }
+        for (repo in repos) {
+            assumeTrue(isRepoAvailable(repo))
         }
         test(podDownloadTaskName, *args)
     }
@@ -602,7 +598,7 @@ class CocoaPodsIT : BaseGradleIT() {
         if (tagName != null) {
             checkTag(gitDir, tagName)
         }
-        checkCommit(gitDir, commitName)
+        checkPresentCommits(gitDir, commitName)
         if (branchName != null) {
             checkBranch(gitDir, branchName)
         }
@@ -622,7 +618,7 @@ class CocoaPodsIT : BaseGradleIT() {
         }
     }
 
-    private fun checkCommit(gitDir: File, commitName: String?) {
+    private fun checkPresentCommits(gitDir: File, commitName: String?) {
         runCommand(
             gitDir,
             "git", "log", "--pretty=oneline"
