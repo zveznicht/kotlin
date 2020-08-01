@@ -6670,6 +6670,11 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
             runTestWithPackageReplacement("compiler/testData/codegen/box/coroutines/inlineSuspendFunction.kt", "kotlin.coroutines");
         }
 
+        @TestMetadata("inlineSuspendLambdaInInterface.kt")
+        public void testInlineSuspendLambdaInInterface() throws Exception {
+            runTest("compiler/testData/codegen/box/coroutines/inlineSuspendLambdaInInterface.kt");
+        }
+
         @TestMetadata("inlineSuspendLambdaNonLocalReturn.kt")
         public void testInlineSuspendLambdaNonLocalReturn_1_2() throws Exception {
             runTestWithPackageReplacement("compiler/testData/codegen/box/coroutines/inlineSuspendLambdaNonLocalReturn.kt", "kotlin.coroutines.experimental");
