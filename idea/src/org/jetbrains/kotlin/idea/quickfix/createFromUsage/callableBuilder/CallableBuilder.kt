@@ -221,7 +221,7 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
 
     private inner class Context(val callableInfo: CallableInfo) {
         val skipReturnType: Boolean
-        val jetFileToEdit: KtFile
+        val ktFile: KtFile
         val containingFileEditor: Editor
         val containingElement: PsiElement
         val dialogWithEditor: DialogWithEditor?
@@ -268,8 +268,8 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
             }
 
             dialogWithEditor = if (containingElement is KtElement) {
-                jetFileToEdit = containingElement.containingKtFile
-                containingFileEditor = if (jetFileToEdit != config.currentFile) {
+                ktFile = containingElement.containingKtFile
+                containingFileEditor = if (ktFile != config.currentFile) {
                     FileEditorManager.getInstance(project).selectedTextEditor!!
                 } else {
                     config.currentEditor!!
@@ -289,8 +289,8 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
                     additionalColumnsCount = config.currentEditor!!.settings.getRightMargin(project)
                     additionalLinesCount = 5
                 }
-                jetFileToEdit = PsiDocumentManager.getInstance(project).getPsiFile(containingFileEditor.document) as KtFile
-                jetFileToEdit.analysisContext = config.currentFile
+                ktFile = PsiDocumentManager.getInstance(project).getPsiFile(containingFileEditor.document) as KtFile
+                ktFile.analysisContext = config.currentFile
                 dialog
             }
 
@@ -410,7 +410,7 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
                     Variance.INVARIANT,
                     Name.identifier(parameterNames[it]),
                     it,
-                    jetFileToEdit.getResolutionFacade().frontendService()
+                    ktFile.getResolutionFacade().frontendService()
                 )
             }
 
@@ -579,7 +579,7 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
                 val container = if (containingElement is KtClass && callableInfo.isForCompanion) {
                     containingElement.getOrCreateCompanionObject()
                 } else containingElement
-                val declarationInPlace = placeDeclarationInContainer(declaration, container, config.originalElement, jetFileToEdit)
+                val declarationInPlace = placeDeclarationInContainer(declaration, container, config.originalElement, ktFile)
 
                 if (declarationInPlace is KtSecondaryConstructor) {
                     val containingClass = declarationInPlace.containingClassOrObject!!
@@ -793,9 +793,9 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
             assert(parameterList.size == callableInfo.parameterInfos.size)
 
             val typeParameters = ArrayList<TypeExpression>()
-            for ((parameter, jetParameter) in callableInfo.parameterInfos.zip(parameterList)) {
+            for ((parameter, ktParameter) in callableInfo.parameterInfos.zip(parameterList)) {
                 val parameterTypeExpression = TypeExpression.ForTypeReference(typeCandidates[parameter.typeInfo]!!)
-                val parameterTypeRef = jetParameter.typeReference!!
+                val parameterTypeRef = ktParameter.typeReference!!
                 builder.replaceElement(parameterTypeRef, parameterTypeExpression)
 
                 // add parameter name to the template
@@ -811,7 +811,7 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
 
                 // add expression to builder
                 val parameterNameExpression = ParameterNameExpression(possibleNames, parameterTypeToNamesMap)
-                val parameterNameIdentifier = jetParameter.nameIdentifier!!
+                val parameterNameIdentifier = ktParameter.nameIdentifier!!
                 builder.replaceElement(parameterNameIdentifier, parameterNameExpression)
 
                 typeParameters.add(parameterTypeExpression)
@@ -820,7 +820,7 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
         }
 
         private fun replaceWithLongerName(typeRefs: List<KtTypeReference>, theType: KotlinType) {
-            val psiFactory = KtPsiFactory(jetFileToEdit.project)
+            val psiFactory = KtPsiFactory(ktFile.project)
             val fullyQualifiedReceiverTypeRefs = theType.renderLong(typeParameterNameMap).map { psiFactory.createType(it) }
             (typeRefs zip fullyQualifiedReceiverTypeRefs).forEach { (shortRef, longRef) -> shortRef.replace(longRef) }
         }
@@ -931,13 +931,13 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
             PsiDocumentManager.getInstance(project).doPostponedOperationsAndUnblockDocument(containingFileEditor.document)
 
             val caretModel = containingFileEditor.caretModel
-            caretModel.moveToOffset(jetFileToEdit.node.startOffset)
+            caretModel.moveToOffset(ktFile.node.startOffset)
 
             val declaration = declarationPointer.element ?: return
 
             val declarationMarker = containingFileEditor.document.createRangeMarker(declaration.textRange)
 
-            val builder = TemplateBuilderImpl(jetFileToEdit)
+            val builder = TemplateBuilderImpl(ktFile)
             if (declaration is KtProperty) {
                 setupValVarTemplate(builder, declaration)
             }
@@ -980,7 +980,7 @@ class CallableBuilder(val config: CallableBuilderConfiguration) {
 
                         // file templates
                         val newDeclaration = PsiTreeUtil.findElementOfClassAtOffset(
-                            jetFileToEdit,
+                            ktFile,
                             declarationMarker.startOffset,
                             declaration::class.java,
                             false

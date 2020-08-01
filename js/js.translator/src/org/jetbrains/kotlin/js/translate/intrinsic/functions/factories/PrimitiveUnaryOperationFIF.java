@@ -291,8 +291,8 @@ public enum PrimitiveUnaryOperationFIF implements FunctionIntrinsicFactory {
             jsOperator = JsUnaryOperator.BIT_NOT;
         }
         else {
-            KtToken jetToken = OperatorConventions.UNARY_OPERATION_NAMES.inverse().get(name);
-            jsOperator = OperatorTable.getUnaryOperator(jetToken);
+            KtToken ktToken = OperatorConventions.UNARY_OPERATION_NAMES.inverse().get(name);
+            jsOperator = OperatorTable.getUnaryOperator(ktToken);
         }
 
         JsUnaryOperator finalJsOperator = jsOperator;

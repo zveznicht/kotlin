@@ -374,6 +374,10 @@ private class ErrorGradleScriptDefinition(project: Project, message: String? = n
         override fun toString(): String = "ErrorGradleScriptDefinition"
     }
 
+    override fun toString(): String {
+        return "ErrorGradleScriptDefinition($name)"
+    }
+
     override fun equals(other: Any?): Boolean = other is ErrorGradleScriptDefinition
     override fun hashCode(): Int = name.hashCode()
 }

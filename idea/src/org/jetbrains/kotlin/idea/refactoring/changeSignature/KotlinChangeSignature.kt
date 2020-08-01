@@ -250,11 +250,11 @@ fun createChangeInfo(
     configuration: KotlinChangeSignatureConfiguration,
     defaultValueContext: PsiElement
 ): KotlinChangeInfo? {
-    val jetChangeSignature = KotlinChangeSignature(project, callableDescriptor, configuration, defaultValueContext, null)
+    val ktChangeSignature = KotlinChangeSignature(project, callableDescriptor, configuration, defaultValueContext, null)
     val declarations =
         (callableDescriptor as? CallableMemberDescriptor)?.getDeepestSuperDeclarations() ?: listOf(callableDescriptor)
 
-    val adjustedDescriptor = jetChangeSignature.adjustDescriptor(declarations) ?: return null
+    val adjustedDescriptor = ktChangeSignature.adjustDescriptor(declarations) ?: return null
 
     val processor = KotlinChangeSignatureDialog.createRefactoringProcessorForSilentChangeSignature(
         project,

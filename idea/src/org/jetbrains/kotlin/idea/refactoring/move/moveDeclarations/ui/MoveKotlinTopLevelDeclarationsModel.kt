@@ -156,12 +156,11 @@ internal class MoveKotlinTopLevelDeclarationsModel(
 
         checkTargetFileName(targetFile.name)
 
-        val jetFile = targetFile.toPsiFile(project) as? KtFile
-        if (jetFile != null) {
-            if (sourceFiles.singleOrNull() == jetFile) {
+        (targetFile.toPsiFile(project) as? KtFile)?.let { ktFile ->
+            if (sourceFiles.singleOrNull() == ktFile) {
                 throw ConfigurationException(KotlinBundle.message("text.cannot.move.to.original.file"))
             }
-            return KotlinMoveTargetForExistingElement(jetFile)
+            return KotlinMoveTargetForExistingElement(ktFile)
         }
 
         val targetDirectoryPath = targetFile.toPath().parent

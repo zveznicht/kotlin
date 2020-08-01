@@ -62,10 +62,10 @@ class JavaTypeResolver(
         val javaComponentType = arrayType.componentType
         val primitiveType = (javaComponentType as? JavaPrimitiveType)?.type
         if (primitiveType != null) {
-            val jetType = c.module.builtIns.getPrimitiveArrayKotlinType(primitiveType)
+            val ktType = c.module.builtIns.getPrimitiveArrayKotlinType(primitiveType)
             return if (attr.isForAnnotationParameter)
-                jetType
-            else KotlinTypeFactory.flexibleType(jetType, jetType.makeNullableAsSpecified(true))
+                ktType
+            else KotlinTypeFactory.flexibleType(ktType, ktType.makeNullableAsSpecified(true))
         }
 
         val componentType = transformJavaType(

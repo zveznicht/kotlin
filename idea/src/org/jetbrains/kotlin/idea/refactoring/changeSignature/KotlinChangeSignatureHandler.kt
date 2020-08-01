@@ -102,9 +102,9 @@ class KotlinChangeSignatureHandler : ChangeSignatureHandler {
             } ?: element.getStrictParentOfType<KtSimpleNameExpression>()
 
             if (calleeExpr is KtSimpleNameExpression || calleeExpr is KtConstructorDelegationReferenceExpression) {
-                val jetElement = element.getStrictParentOfType<KtElement>() ?: return null
+                val ktElement = element.getStrictParentOfType<KtElement>() ?: return null
 
-                val bindingContext = jetElement.analyze(BodyResolveMode.FULL)
+                val bindingContext = ktElement.analyze(BodyResolveMode.FULL)
                 val descriptor = bindingContext[BindingContext.REFERENCE_TARGET, calleeExpr as KtReferenceExpression]
 
                 if (descriptor is ClassDescriptor || descriptor is CallableDescriptor) return calleeExpr

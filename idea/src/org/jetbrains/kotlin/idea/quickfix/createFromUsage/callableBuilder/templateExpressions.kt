@@ -72,8 +72,8 @@ internal class ParameterNameExpression(
         }
 
         // remember other parameter names for later use
-        val parameterNames = parameterList.parameters.mapNotNullTo(HashSet<String>()) { jetParameter ->
-            if (jetParameter == parameter) null else jetParameter.name
+        val parameterNames = parameterList.parameters.mapNotNullTo(HashSet<String>()) { ktParameter ->
+            if (ktParameter == parameter) null else ktParameter.name
         }
 
         // add fallback parameter name
@@ -111,7 +111,7 @@ internal abstract class TypeExpression(val typeCandidates: List<TypeCandidate>) 
 
     override fun calculateResult(context: ExpressionContext?): Result {
         val lookupItems = calculateLookupItems(context)
-        return TextResult(if (lookupItems.size == 0) "" else lookupItems[0].lookupString)
+        return TextResult(if (lookupItems.isEmpty()) "" else lookupItems[0].lookupString)
     }
 
     override fun calculateQuickResult(context: ExpressionContext?) = calculateResult(context)

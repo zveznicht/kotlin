@@ -68,8 +68,8 @@ class CodeFragmentCompletionInLibraryTest : AbstractJvmBasicCompletionTest() {
 
     private fun setupFixtureByCodeFragment(fragmentText: String) {
         val sourceFile = findLibrarySourceDir().findChild("customLibrary.kt")!!
-        val jetFile = PsiManager.getInstance(project).findFile(sourceFile) as KtFile
-        val fooFunctionFromLibrary = jetFile.declarations.first() as KtFunction
+        val ktFile = PsiManager.getInstance(project).findFile(sourceFile) as KtFile
+        val fooFunctionFromLibrary = ktFile.declarations.first() as KtFunction
         val codeFragment = KtPsiFactory(fooFunctionFromLibrary).createExpressionCodeFragment(
             fragmentText,
             getContextElement(fooFunctionFromLibrary.bodyExpression)

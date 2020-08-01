@@ -43,17 +43,17 @@ class KotlinChangeSignatureData(
         }
         parameters = baseDescriptor.valueParameters
             .mapTo(receiver?.let { arrayListOf(it) } ?: arrayListOf()) { parameterDescriptor ->
-                val jetParameter = valueParameters?.get(parameterDescriptor.index)
+                val ktParameter = valueParameters?.get(parameterDescriptor.index)
                 val parameterType = parameterDescriptor.type
-                val parameterTypeText = jetParameter?.typeReference?.text
+                val parameterTypeText = ktParameter?.typeReference?.text
                     ?: IdeDescriptorRenderers.SOURCE_CODE_SHORT_NAMES_NO_ANNOTATIONS.renderType(parameterType)
                 KotlinParameterInfo(
                     callableDescriptor = baseDescriptor,
                     originalIndex = parameterDescriptor.index,
                     name = parameterDescriptor.name.asString().quoteIfNeeded(),
                     originalTypeInfo = KotlinTypeInfo(false, parameterType, parameterTypeText),
-                    defaultValueForParameter = jetParameter?.defaultValue,
-                    valOrVar = jetParameter?.valOrVarKeyword.toValVar()
+                    defaultValueForParameter = ktParameter?.defaultValue,
+                    valOrVar = ktParameter?.valOrVarKeyword.toValVar()
                 )
             }
     }

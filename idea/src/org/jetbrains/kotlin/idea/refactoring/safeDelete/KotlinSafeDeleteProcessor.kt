@@ -323,10 +323,10 @@ class KotlinSafeDeleteProcessor : JavaSafeDeleteProcessor() {
 
     override fun findConflicts(element: PsiElement, allElementsToDelete: Array<out PsiElement>): MutableCollection<String>? {
         if (element is KtNamedFunction || element is KtProperty) {
-            val jetClass = element.getNonStrictParentOfType<KtClass>()
-            if (jetClass == null || jetClass.body != element.parent) return null
+            val ktClass = element.getNonStrictParentOfType<KtClass>()
+            if (ktClass == null || ktClass.body != element.parent) return null
 
-            val modifierList = jetClass.modifierList
+            val modifierList = ktClass.modifierList
             if (modifierList != null && modifierList.hasModifier(KtTokens.ABSTRACT_KEYWORD)) return null
 
             val bindingContext = (element as KtElement).analyze()
@@ -336,14 +336,14 @@ class KotlinSafeDeleteProcessor : JavaSafeDeleteProcessor() {
 
             return declarationDescriptor.overriddenDescriptors
                 .asSequence()
-                .filter { overridenDescriptor -> overridenDescriptor.modality == Modality.ABSTRACT }
-                .mapTo(ArrayList()) { overridenDescriptor ->
+                .filter { overriddenDescriptor -> overriddenDescriptor.modality == Modality.ABSTRACT }
+                .mapTo(ArrayList()) { overriddenDescriptor ->
                     KotlinBundle.message(
                         "override.declaration.x.implements.y",
                         formatFunction(declarationDescriptor, true),
                         formatClass(declarationDescriptor.containingDeclaration, true),
-                        formatFunction(overridenDescriptor, true),
-                        formatClass(overridenDescriptor.containingDeclaration, true)
+                        formatFunction(overriddenDescriptor, true),
+                        formatClass(overriddenDescriptor.containingDeclaration, true)
                     )
                 }
         }

@@ -94,8 +94,8 @@ class KotlinFieldBreakpointType :
                     }.firstOrNull()
 
                     is KtLightClassForSourceDeclaration -> {
-                        val jetClass = psiClass.kotlinOrigin
-                        createBreakpointIfPropertyExists(jetClass, jetClass.containingKtFile, className, fieldName)
+                        val ktClassOrObject = psiClass.kotlinOrigin
+                        createBreakpointIfPropertyExists(ktClassOrObject, ktClassOrObject.containingKtFile, className, fieldName)
                     }
                     else -> null
                 }
