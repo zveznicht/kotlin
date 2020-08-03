@@ -11,13 +11,14 @@ import org.jetbrains.kotlin.fir.analysis.checkers.cfa.FirControlFlowChecker
 object CommonDeclarationCheckers : DeclarationCheckers() {
     override val declarationCheckers: List<FirBasicDeclarationChecker> = listOf(
         FirAnnotationClassDeclarationChecker,
-        FirModifierChecker
+        FirModifierChecker,
     )
 
     override val memberDeclarationCheckers: List<FirMemberDeclarationChecker> = listOf(
         FirInfixFunctionDeclarationChecker,
         FirExposedVisibilityChecker,
         FirCyclicConstructorDelegationCallChecker,
+        FirSupertypeInitializedWithoutPrimaryConstructor,
     )
 
     override val constructorCheckers: List<FirConstructorChecker> = listOf(
