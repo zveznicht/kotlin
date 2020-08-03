@@ -906,6 +906,16 @@ public class FirDiagnosticsTestGenerated extends AbstractFirDiagnosticsTest {
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/cyclicConstructorDelegationCall.kt");
         }
 
+        @TestMetadata("delegationSuperCallInEnumConstructor.kt")
+        public void testDelegationSuperCallInEnumConstructor() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/delegationSuperCallInEnumConstructor.kt");
+        }
+
+        @TestMetadata("explicitDelegationCallRequired.kt")
+        public void testExplicitDelegationCallRequired() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/explicitDelegationCallRequired.kt");
+        }
+
         @TestMetadata("incompatibleModifiers.kt")
         public void testIncompatibleModifiers() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/incompatibleModifiers.kt");
@@ -924,6 +934,11 @@ public class FirDiagnosticsTestGenerated extends AbstractFirDiagnosticsTest {
         @TestMetadata("notASupertype.kt")
         public void testNotASupertype() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/notASupertype.kt");
+        }
+
+        @TestMetadata("primaryConstructorRequiredForDataClass.kt")
+        public void testPrimaryConstructorRequiredForDataClass() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/primaryConstructorRequiredForDataClass.kt");
         }
 
         @TestMetadata("projectionsOnNonClassTypeArguments.kt")
