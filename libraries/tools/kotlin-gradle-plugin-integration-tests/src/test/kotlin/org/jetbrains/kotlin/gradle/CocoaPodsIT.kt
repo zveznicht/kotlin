@@ -59,7 +59,7 @@ class CocoaPodsIT : BaseGradleIT() {
     private val defaultPodDownloadTaskName = podDownloadTaskName + defaultPodName
     private val defaultPodGenTaskName = podGenTaskName + defaultTarget
     private val defaultBuildTaskName = podBuildTaskName + defaultPodName + defaultTarget
-    private val defaultSetupBuildTaskName = podSetupBuildTaskName + defaultTarget
+    private val defaultSetupBuildTaskName = podSetupBuildTaskName + defaultPodName + defaultTarget
     private val defaultCinteropTaskName = cinteropTaskName + defaultPodName + defaultTarget
     private val downloadUrlTaskName = podDownloadTaskName + downloadUrlPodName.capitalize()
 
@@ -350,13 +350,14 @@ class CocoaPodsIT : BaseGradleIT() {
                 podspecTaskName,
                 podDownloadTaskName + anotherPodName,
                 defaultPodGenTaskName,
-                defaultSetupBuildTaskName,
+                podSetupBuildTaskName + anotherPodName + defaultTarget,
                 podBuildTaskName + anotherPodName + defaultTarget,
                 cinteropTaskName + anotherPodName + defaultTarget
             )
             assertTasksUpToDate(
-                defaultBuildTaskName,
                 defaultPodDownloadTaskName,
+                defaultSetupBuildTaskName,
+                defaultBuildTaskName,
                 defaultCinteropTaskName
             )
         }
@@ -376,6 +377,7 @@ class CocoaPodsIT : BaseGradleIT() {
             assertTasksUpToDate(
                 defaultBuildTaskName,
                 defaultPodDownloadTaskName,
+                defaultSetupBuildTaskName,
                 defaultCinteropTaskName
             )
         }
@@ -406,7 +408,7 @@ class CocoaPodsIT : BaseGradleIT() {
         hooks.rewriteHooks {
             assertTasksExecuted(
                 podGenTaskName + anotherTarget,
-                podSetupBuildTaskName + anotherTarget,
+                podSetupBuildTaskName + defaultPodName + anotherTarget,
                 podBuildTaskName + defaultPodName + anotherTarget,
                 cinteropTaskName + defaultPodName + anotherTarget
             )
@@ -430,7 +432,7 @@ class CocoaPodsIT : BaseGradleIT() {
             assertTasksNotRegisteredByPrefix(
                 listOf(
                     podGenTaskName + anotherTarget,
-                    podSetupBuildTaskName + anotherTarget,
+                    podSetupBuildTaskName + defaultPodName + anotherTarget,
                     podBuildTaskName + defaultPodName + anotherTarget,
                     cinteropTaskName + defaultPodName + anotherTarget
                 )

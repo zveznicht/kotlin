@@ -24,9 +24,6 @@ import java.io.InputStream
 import java.net.URI
 import java.util.*
 
-internal val KotlinNativeTarget.toBuildSettingsFileName: String
-    get() = "build-settings-$disambiguationClassifier.properties"
-
 internal val KotlinNativeTarget.toValidSDK: String
     get() = when (konanTarget) {
         KonanTarget.IOS_X64 -> "iphonesimulator"
@@ -316,17 +313,8 @@ private fun throwStandardException(command: List<String>, retCode: Int, process:
 }
 
 abstract class CocoapodsWithSyntheticTask : DefaultTask() {
-    @get:Nested
-    val pods = project.objects.listProperty(CocoapodsDependency::class.java)
-
     @get:Internal
     internal lateinit var kotlinNativeTarget: Provider<KotlinNativeTarget>
-
-    init {
-        onlyIf {
-            pods.get().isNotEmpty()
-        }
-    }
 }
 
 /**
@@ -335,11 +323,20 @@ abstract class CocoapodsWithSyntheticTask : DefaultTask() {
  */
 open class PodGenTask : CocoapodsWithSyntheticTask() {
 
+    init {
+        onlyIf {
+            pods.get().isNotEmpty()
+        }
+    }
+
     @get:InputFile
     internal lateinit var podspec: Provider<File>
 
     @get:Nested
     internal lateinit var specRepos: Provider<SpecRepos>
+
+    @get:Nested
+    val pods = project.objects.listProperty(CocoapodsDependency::class.java)
 
     @get:OutputDirectory
     internal val podsXcodeProjDir: Provider<File>
@@ -403,21 +400,21 @@ open class PodGenTask : CocoapodsWithSyntheticTask() {
 
 open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
 
-    @get:InputDirectory
-    internal lateinit var podsXcodeProjDir: Provider<File>
-
     @get:Input
     lateinit var frameworkName: Provider<String>
+
+    @get:Nested
+    lateinit var pod: Provider<CocoapodsDependency>
 
     @get:OutputFile
     internal val buildSettingsFile: Provider<File> = project.provider {
         project.cocoapodsBuildDirs
             .buildSettings
-            .resolve(kotlinNativeTarget.get().toBuildSettingsFileName)
+            .resolve(getBuildSettingFileName(pod.get(), kotlinNativeTarget.get()))
     }
 
-    @get:OutputDirectory
-    val buildSettingsDir = project.provider { project.cocoapodsBuildDirs.buildSettings }
+    @get:Internal
+    internal lateinit var podsXcodeProjDir: Provider<File>
 
     @TaskAction
     fun setupBuild() {
@@ -426,7 +423,7 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
         val buildSettingsReceivingCommand = listOf(
             "xcodebuild", "-showBuildSettings",
             "-project", podsXcodeProjDir.name,
-            "-scheme", frameworkName.get(),
+            "-scheme", pod.get().schemeName,
             "-sdk", kotlinNativeTarget.get().toValidSDK
         )
 
@@ -444,29 +441,20 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
         }
 
         val stdOut = buildSettingsProcess.inputStream
-
         val buildSettingsProperties = PodBuildSettingsProperties.readSettingsFromStream(stdOut)
         buildSettingsFile.get().let {
-            buildSettingsProperties.writeSettings(
-                it,
-                pods.get(),
-                podsXcodeProjDir.parentFile.resolve("Target Support Files")
-            )
+            buildSettingsProperties.writeSettings(it)
         }
     }
 }
+
+private fun getBuildSettingFileName(pod: CocoapodsDependency, target: KotlinNativeTarget): String =
+    "build-settings-${target.disambiguationClassifier}-${pod.schemeName}.properties"
 
 /**
  * The task compiles external cocoa pods sources.
  */
 open class PodBuildTask : DefaultTask() {
-
-    @get:InputFiles
-    internal val generatedPodFiles = project.provider {
-        project.fileTree(podsXcodeProjDir.get()) {
-            it.include("**/${pod.get().schemeName}.xcscheme")
-        }
-    }
 
     @get:InputFile
     internal lateinit var buildSettingsFile: Provider<File>
@@ -533,16 +521,14 @@ open class PodBuildTask : DefaultTask() {
 internal data class PodBuildSettingsProperties(
     internal val buildDir: String,
     internal val configuration: String,
+    internal val configurationBuildDir: String,
     internal val cflags: String? = null,
     internal val headerPaths: String? = null,
-    internal val frameworkPaths: String? = null,
-    internal val configurationBuildDir: String? = null
+    internal val frameworkPaths: String? = null
 ) {
 
     fun writeSettings(
-        buildSettingsFile: File,
-        pods: MutableList<CocoapodsDependency>,
-        xcconfigDir: File
+        buildSettingsFile: File
     ) {
         buildSettingsFile.parentFile.mkdirs()
         buildSettingsFile.delete()
@@ -553,64 +539,39 @@ internal data class PodBuildSettingsProperties(
         with(buildSettingsFile) {
             appendText("$BUILD_DIR=$buildDir\n")
             appendText("$CONFIGURATION=$configuration\n")
+            appendText("$CONFIGURATION_BUILD_DIR=$configurationBuildDir\n")
             cflags?.let { appendText("$OTHER_CFLAGS=$it\n") }
-            headerPaths?.let { appendText("$HEADER_SEARCH_PATHS=$it") }
-        }
-
-        if (frameworkPaths != null && configurationBuildDir != null) {
-            val pathToFrameworksDir = configurationBuildDir
-            val podsSchemeNames = mutableSetOf<String>()
-            for (pod in pods) {
-                val schemeName = pod.schemeName
-                if (schemeName in podsSchemeNames) {
-                    continue
-                }
-                podsSchemeNames.add(schemeName)
-
-                val xcconfig =
-                    xcconfigDir.resolve(schemeName).resolve("$schemeName.${configuration.toLowerCase()}.xcconfig").readText()
-
-                val frameworks = xcconfig
-                    .lines()
-                    .find { it.startsWith(FRAMEWORK_SEARCH_PATHS) }
-                    ?.let { Regex("\".*\"").findAll(it) }
-                    ?.map { it.groupValues[0].substringAfterLast("/") }
-                    ?.toMutableList() ?: mutableListOf()
-                frameworks += schemeName
-                val podFrameworkPaths = frameworks
-                    .map { "$pathToFrameworksDir/$it" }
-                    .joinToString(separator = " ", prefix = "\"", postfix = "\"")
-
-                val buildSettingsName = buildSettingsFile.nameWithoutExtension
-                val podSettings = buildSettingsFile.resolveSibling("$buildSettingsName-$schemeName.properties")
-                podSettings.delete()
-                podSettings.createNewFile()
-
-                podSettings.appendText("$FRAMEWORK_SEARCH_PATHS=$podFrameworkPaths")
-            }
+            headerPaths?.let { appendText("$HEADER_SEARCH_PATHS=$it\n") }
+            frameworkPaths?.let { appendText("$FRAMEWORK_SEARCH_PATHS=$it") }
         }
     }
 
     companion object {
-        const val BUILD_DIR: String = "BUILD_DIR"
-        const val CONFIGURATION: String = "CONFIGURATION"
-        const val OTHER_CFLAGS: String = "OTHER_CFLAGS"
-        const val HEADER_SEARCH_PATHS: String = "HEADER_SEARCH_PATHS"
-        const val FRAMEWORK_SEARCH_PATHS: String = "FRAMEWORK_SEARCH_PATHS"
-        const val PODS_CONFIGURATION_BUILD_DIR = "PODS_CONFIGURATION_BUILD_DIR"
+        const val BUILD_DIR = "BUILD_DIR"
+        const val CONFIGURATION = "CONFIGURATION"
+        const val CONFIGURATION_BUILD_DIR = "CONFIGURATION_BUILD_DIR"
+        const val OTHER_CFLAGS = "OTHER_CFLAGS"
+        const val HEADER_SEARCH_PATHS = "HEADER_SEARCH_PATHS"
+        const val FRAMEWORK_SEARCH_PATHS = "FRAMEWORK_SEARCH_PATHS"
 
         fun readSettingsFromStream(inputStream: InputStream): PodBuildSettingsProperties {
             with(Properties()) {
                 load(inputStream)
                 return PodBuildSettingsProperties(
-                    getProperty(BUILD_DIR),
-                    getProperty(CONFIGURATION),
-                    getProperty(OTHER_CFLAGS),
-                    getProperty(HEADER_SEARCH_PATHS),
-                    getProperty(FRAMEWORK_SEARCH_PATHS),
-                    getProperty(PODS_CONFIGURATION_BUILD_DIR)
+                    readProperty(BUILD_DIR),
+                    readProperty(CONFIGURATION),
+                    readProperty(CONFIGURATION_BUILD_DIR),
+                    readNullableProperty(OTHER_CFLAGS),
+                    readNullableProperty(HEADER_SEARCH_PATHS),
+                    readNullableProperty(FRAMEWORK_SEARCH_PATHS)
                 )
             }
         }
+
+        private fun Properties.readProperty(propertyName: String) =
+            readNullableProperty(propertyName) ?: error("$propertyName property is absent")
+
+        private fun Properties.readNullableProperty(propertyName: String) =
+            getProperty(propertyName)
     }
 }
