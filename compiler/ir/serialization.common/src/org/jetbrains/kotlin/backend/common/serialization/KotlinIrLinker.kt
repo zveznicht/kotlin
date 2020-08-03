@@ -69,6 +69,7 @@ abstract class KotlinIrLinker(
 
     abstract val fakeOverrideBuilder: FakeOverrideBuilder
 
+    private val haveSeen = mutableSetOf<IrSymbol>()
     private val fakeOverrideClassQueue = mutableListOf<IrClass>()
 
     private lateinit var linkerExtensions: Collection<IrDeserializer.IrLinkerExtension>
@@ -361,7 +362,9 @@ abstract class KotlinIrLinker(
         private fun deserializeIrSymbolData(idSignature: IdSignature, symbolKind: BinarySymbolData.SymbolKind): IrSymbol {
             if (idSignature.isLocal) return deserializeIrLocalSymbolData(idSignature, symbolKind)
 
-            return findModuleDeserializer(idSignature).deserializeIrSymbol(idSignature, symbolKind)
+            return findModuleDeserializer(idSignature).deserializeIrSymbol(idSignature, symbolKind).also {
+                haveSeen.add(it)
+            }
         }
 
         override fun deserializeIrSymbolToDeclare(code: Long): Pair<IrSymbol, IdSignature> {
@@ -507,16 +510,16 @@ abstract class KotlinIrLinker(
     private fun findDeserializedDeclarationForSymbol(symbol: IrSymbol): DeclarationDescriptor? {
         assert(symbol.isPublicApi || symbol.descriptor.module === currentModule || platformSpecificSymbol(symbol))
 
-        if (symbol.isPublicApi) {
-            // suspected to be fake override
-            if (symbol is IrSimpleFunctionSymbol && symbol.descriptor is WrappedSimpleFunctionDescriptor) return null
-            if (symbol is IrPropertySymbol && symbol.descriptor is WrappedPropertyDescriptor) return null
+        if (haveSeen.contains(symbol)) {
+            return null
         }
+        haveSeen.add(symbol)
 
         val descriptor = symbol.descriptor
 
         val moduleDeserializer = resolveModuleDeserializer(descriptor.module)
 
+//        moduleDeserializer.deserializeIrSymbol(signature, symbol.kind())
         moduleDeserializer.declareIrSymbol(symbol)
 
         deserializeAllReachableTopLevels()
