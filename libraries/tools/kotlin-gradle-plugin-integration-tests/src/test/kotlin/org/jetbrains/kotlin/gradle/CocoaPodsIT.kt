@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.gradle.util.modify
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.junit.Assume.assumeTrue
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -119,10 +118,10 @@ class CocoaPodsIT : BaseGradleIT() {
     )
 
     @Test
-    fun testPodImportUseFrameworksSingle() = doTestImportSingle(ImportMode.FRAMEWORKS)
+    fun testPodImportSingle() = doTestImportSingle()
 
     @Test
-    fun testPodImportUseModularHeadersSingle() = doTestImportSingle(ImportMode.MODULAR_HEADERS)
+    fun testPodImportMultiple() = doTestImportMultiple()
 
     @Test
     fun testPodspecMultiple() = doTestPodspec(
@@ -172,12 +171,6 @@ class CocoaPodsIT : BaseGradleIT() {
         "ios-app",
         mapOf("kotlin-library" to "FirstMultiplatformLibrary", "second-library" to "SecondMultiplatformLibrary")
     )
-
-    @Test
-    fun testPodImportUseFrameworksMultiple() = doTestImportMultiple(ImportMode.FRAMEWORKS)
-
-    @Test
-    fun testPodImportUseModularHeadersMultiple() = doTestImportMultiple(ImportMode.MODULAR_HEADERS)
 
     @Test
     fun testSpecReposImport() {
@@ -271,19 +264,6 @@ class CocoaPodsIT : BaseGradleIT() {
             assertContains("Please use directory with podspec file, not podspec file itself")
         }
         project.test(":kotlin-library:podDownload")
-    }
-
-    @Ignore
-    @Test
-    fun testSubspecWithModuleName() {
-        with(project.gradleBuildScript()) {
-            addPod("AFNetworking/Reachability", "moduleName = \"CustomName\"")
-            addPod("AFNetworking/Security")
-        }
-        hooks.addHook {
-            assertTasksExecuted(defaultCinteropTaskName)
-        }
-        project.testImportWithAsserts()
     }
 
 
@@ -696,21 +676,21 @@ class CocoaPodsIT : BaseGradleIT() {
         }
     }
 
-    private fun doTestImportSingle(importMode: ImportMode) {
+    private fun doTestImportSingle() {
         val project = getProjectByName(cocoapodsSingleKtPod)
         val subprojects = listOf("kotlin-library")
-        doTestPodImport(project, subprojects, importMode)
+        doTestPodImport(project, subprojects)
     }
 
-    private fun doTestImportMultiple(importMode: ImportMode) {
+    private fun doTestImportMultiple() {
         val project = getProjectByName(cocoapodsMultipleKtPods)
         val subprojects = listOf("kotlin-library", "second-library")
-        doTestPodImport(project, subprojects, importMode)
+        doTestPodImport(project, subprojects)
     }
 
-    private fun doTestPodImport(project: BaseGradleIT.Project, subprojects: List<String>, importMode: ImportMode) {
+    private fun doTestPodImport(project: BaseGradleIT.Project, subprojects: List<String>) {
         with(project) {
-            preparePodfile("ios-app", importMode)
+            preparePodfile("ios-app", ImportMode.FRAMEWORKS)
         }
         project.testImportWithAsserts()
         subprojects.forEach {
