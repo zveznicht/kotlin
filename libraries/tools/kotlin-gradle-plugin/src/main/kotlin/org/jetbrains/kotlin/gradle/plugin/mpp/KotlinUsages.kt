@@ -8,9 +8,9 @@ package org.jetbrains.kotlin.gradle.plugin.mpp
 import org.gradle.api.Project
 import org.gradle.api.attributes.*
 import org.gradle.api.attributes.Usage.*
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.androidJvm
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.*
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.usageByName
 import org.jetbrains.kotlin.gradle.targets.metadata.isKotlinGranularMetadataEnabled
@@ -24,8 +24,11 @@ object KotlinUsages {
 
     private val jvmPlatformTypes: Set<KotlinPlatformType> = setOf(jvm, androidJvm)
 
-    internal fun consumerApiUsage(target: KotlinTarget) = target.project.usageByName(
+    internal fun consumerApiUsage(target: KotlinTarget, compilation: KotlinCompilation<*>? = null) = target.project.usageByName(
         when (target.platformType) {
+            // In MPP metadata targets, the legacy 'main' compilation should resolve deps to 'legacy' *.kotlin_metadata artifacts, not klibs
+            common -> if (target.project.isKotlinGranularMetadataEnabled && compilation?.name != KotlinCompilation.MAIN_COMPILATION_NAME)
+                KOTLIN_METADATA else KOTLIN_API
             in jvmPlatformTypes -> JAVA_API
             else -> KOTLIN_API
         }
