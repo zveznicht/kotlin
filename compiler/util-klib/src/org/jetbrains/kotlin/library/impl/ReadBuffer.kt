@@ -87,6 +87,6 @@ sealed class ReadBuffer {
             return tmpBuffer
         }
 
-        private var weakBuffer: SoftReference<ByteBuffer> = SoftReference(file.readBytes().buffer)
+        private var weakBuffer: SoftReference<ByteBuffer> = SoftReference(null)
     }
 }
