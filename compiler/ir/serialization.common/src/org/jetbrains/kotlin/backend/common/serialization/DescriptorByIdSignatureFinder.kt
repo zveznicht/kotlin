@@ -56,17 +56,17 @@ class DescriptorByIdSignatureFinder(
     private fun isConstructorName(n: Name) = n.isSpecial && n.asString() == "<init>"
 
     private fun MemberScope.loadDescriptors(name: String, isLeaf: Boolean): Collection<DeclarationDescriptor> {
-        val nname = Name.guessByFirstCharacter(name)
-        val classifier = getContributedClassifier(nname, NoLookupLocation.FROM_BACKEND)
+        val descriptorName = Name.guessByFirstCharacter(name)
+        val classifier = getContributedClassifier(descriptorName, NoLookupLocation.FROM_BACKEND)
         if (!isLeaf) {
-            return classifier?.let { listOf(it) } ?: emptyList()
+            return listOfNotNull(classifier)
         }
 
         val result = mutableListOf<DeclarationDescriptor>()
         classifier?.let { result.add(it) }
 
-        result.addAll(getContributedFunctions(nname, NoLookupLocation.FROM_BACKEND))
-        result.addAll(getContributedVariables(nname, NoLookupLocation.FROM_BACKEND))
+        result.addAll(getContributedFunctions(descriptorName, NoLookupLocation.FROM_BACKEND))
+        result.addAll(getContributedVariables(descriptorName, NoLookupLocation.FROM_BACKEND))
 
         return result
     }
@@ -96,6 +96,10 @@ class DescriptorByIdSignatureFinder(
 
         var acc = toplevelDescriptors
         val lastIndex = nameSegments.lastIndex
+
+        // The code bellow could look tricky because of it is bottle neck so here is put some attempt including
+        // 1. Minimize amount of descriptors is loaded on each step
+        // 2. Reduce memory pollution
         for (i in 1 until nameSegments.size) {
             val current = Name.guessByFirstCharacter(nameSegments[i])
             acc = acc.flatMap { container ->
