@@ -644,6 +644,13 @@ class CocoaPodsIT : BaseGradleIT() {
         project.testImportWithAsserts(listOf(repo))
     }
 
+    @Test
+    fun supportPodsWithDependencies() {
+        with(project.gradleBuildScript()) {
+            addPod("AlamofireImage")
+        }
+        project.testImportWithAsserts()
+    }
 
     // paths
 
