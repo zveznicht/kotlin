@@ -92,10 +92,11 @@ open class KotlinAndroidTarget(
     }
 
     private fun AbstractAndroidProjectHandler.doCreateComponents(): Set<KotlinTargetComponent> {
-        val publishableVariants = mutableListOf<BaseVariant>()
+        val (publishableVariants, nonPublishableVariants) = mutableListOf<BaseVariant>()
             .apply { project.forEachVariant { add(it) } }
             .toList() // Defensive copy against unlikely modification by the lambda that captures the list above in forEachVariant { }
-            .filter { getLibraryOutputTask(it) != null && publishLibraryVariants?.contains(getVariantName(it)) ?: true }
+            .filter { getLibraryOutputTask(it) != null }
+            .partition { publishLibraryVariants?.contains(getVariantName(it)) ?: true }
 
         val publishableVariantGroups = publishableVariants.groupBy { variant ->
             val flavorNames = getFlavorNames(variant)
@@ -110,40 +111,10 @@ open class KotlinAndroidTarget(
 
         return publishableVariantGroups.map { (flavorGroupNameParts, androidVariants) ->
             val nestedVariants = androidVariants.mapTo(mutableSetOf()) { androidVariant ->
-                val androidVariantName = getVariantName(androidVariant)
-                val compilation = compilations.getByName(androidVariantName)
-
-                val flavorNames = getFlavorNames(androidVariant)
-                val buildTypeName = getBuildTypeName(androidVariant)
-
-                val artifactClassifier = buildTypeName.takeIf { it != "release" && publishLibraryVariantsGroupedByFlavor }
-
-                val usageContexts = createAndroidUsageContexts(androidVariant, compilation, artifactClassifier)
-                createKotlinVariant(
-                    lowerCamelCaseName(compilation.target.name, *flavorGroupNameParts.toTypedArray()),
-                    compilation,
-                    usageContexts
-                ).apply {
-                    sourcesArtifacts = setOf(
-                        sourcesJarArtifact(
-                            compilation, compilation.disambiguateName(""),
-                            dashSeparatedName(
-                                compilation.target.name.toLowerCase(),
-                                *flavorNames.map { it.toLowerCase() }.toTypedArray(),
-                                buildTypeName.takeIf { it != "release" }?.toLowerCase()
-                            ),
-                            classifierPrefix = artifactClassifier
-                        )
-                    )
-
-                    if (!publishLibraryVariantsGroupedByFlavor) {
-                        defaultArtifactIdSuffix =
-                            dashSeparatedName(
-                                (getFlavorNames(androidVariant) + getBuildTypeName(androidVariant).takeIf { it != "release" })
-                                    .map { it?.toLowerCase() }
-                            ).takeIf { it.isNotEmpty() }
-                    }
-                }
+                createKotlinVariantForAndroidVariant(
+                    androidVariant,
+                    flavorGroupNameParts
+                )
             }
 
             if (publishLibraryVariantsGroupedByFlavor) {
@@ -156,7 +127,54 @@ open class KotlinAndroidTarget(
             } else {
                 nestedVariants.single()
             } as KotlinTargetComponent
-        }.toSet()
+        }.plus(
+            nonPublishableVariants.map {
+                createKotlinVariantForAndroidVariant(it, getFlavorNames(it) + getBuildTypeName(it)).apply {
+                    publishable = false
+                }
+            }
+        ).toSet()
+    }
+
+    private fun AbstractAndroidProjectHandler.createKotlinVariantForAndroidVariant(
+        androidVariant: BaseVariant,
+        flavorGroupNameParts: List<String>
+    ): KotlinVariant {
+        val androidVariantName = getVariantName(androidVariant)
+        val compilation = compilations.getByName(androidVariantName)
+
+        val flavorNames = getFlavorNames(androidVariant)
+        val buildTypeName = getBuildTypeName(androidVariant)
+
+        val artifactClassifier = buildTypeName.takeIf { it != "release" && publishLibraryVariantsGroupedByFlavor }
+
+        val usageContexts = createAndroidUsageContexts(androidVariant, compilation, artifactClassifier)
+
+        return createKotlinVariant(
+            lowerCamelCaseName(compilation.target.name, *flavorGroupNameParts.toTypedArray()),
+            compilation,
+            usageContexts
+        ).apply {
+            sourcesArtifacts = setOf(
+                sourcesJarArtifact(
+                    compilation, compilation.disambiguateName(""),
+                    dashSeparatedName(
+                        compilation.target.name.toLowerCase(),
+                        *flavorNames.map { it.toLowerCase() }.toTypedArray(),
+                        buildTypeName.takeIf { it != "release" }?.toLowerCase()
+                    ),
+                    classifierPrefix = artifactClassifier
+                )
+            )
+
+            if (!publishLibraryVariantsGroupedByFlavor) {
+                defaultArtifactIdSuffix =
+                    dashSeparatedName(
+                        (getFlavorNames(androidVariant) + getBuildTypeName(androidVariant).takeIf { it != "release" })
+                            .map { it?.toLowerCase() }
+                    ).takeIf { it.isNotEmpty() }
+            }
+        }
     }
 
     private fun AbstractAndroidProjectHandler.createAndroidUsageContexts(

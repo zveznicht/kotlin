@@ -69,8 +69,7 @@ open class KotlinVariant(
 
     override fun getName(): String = componentName ?: producingCompilation.target.targetName
 
-    override val publishable: Boolean
-        get() = target.publishable
+    override var publishable: Boolean = target.publishable
 
     override var sourcesArtifacts: Set<PublishArtifact> = emptySet()
         internal set
