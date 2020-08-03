@@ -12,7 +12,6 @@ import org.gradle.api.file.FileTree
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.Optional
-import org.jetbrains.kotlin.gradle.plugin.cocoapods.*
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.CocoapodsExtension.*
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.CocoapodsExtension.CocoapodsDependency.PodLocation.*
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.cocoapodsBuildDirs
@@ -447,11 +446,13 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
         val stdOut = buildSettingsProcess.inputStream
 
         val buildSettingsProperties = PodBuildSettingsProperties.readSettingsFromStream(stdOut)
-        buildSettingsFile.get().let { buildSettingsProperties.writeSettings(
-            it,
-            pods.get(),
-            podsXcodeProjDir.parentFile.resolve("Target Support Files")
-        ) }
+        buildSettingsFile.get().let {
+            buildSettingsProperties.writeSettings(
+                it,
+                pods.get(),
+                podsXcodeProjDir.parentFile.resolve("Target Support Files")
+            )
+        }
     }
 }
 
@@ -534,7 +535,8 @@ internal data class PodBuildSettingsProperties(
     internal val configuration: String,
     internal val cflags: String? = null,
     internal val headerPaths: String? = null,
-    internal val frameworkPaths: String? = null
+    internal val frameworkPaths: String? = null,
+    internal val configurationBuildDir: String? = null
 ) {
 
     fun writeSettings(
@@ -555,11 +557,8 @@ internal data class PodBuildSettingsProperties(
             headerPaths?.let { appendText("$HEADER_SEARCH_PATHS=$it") }
         }
 
-        if (frameworkPaths != null) {
-            val pathToFrameworksDir = frameworkPaths
-                .splitQuotedArgs()
-                .first()
-                .substringBeforeLast("/")
+        if (frameworkPaths != null && configurationBuildDir != null) {
+            val pathToFrameworksDir = configurationBuildDir
             val podsSchemeNames = mutableSetOf<String>()
             for (pod in pods) {
                 val schemeName = pod.schemeName
@@ -598,6 +597,7 @@ internal data class PodBuildSettingsProperties(
         const val OTHER_CFLAGS: String = "OTHER_CFLAGS"
         const val HEADER_SEARCH_PATHS: String = "HEADER_SEARCH_PATHS"
         const val FRAMEWORK_SEARCH_PATHS: String = "FRAMEWORK_SEARCH_PATHS"
+        const val PODS_CONFIGURATION_BUILD_DIR = "PODS_CONFIGURATION_BUILD_DIR"
 
         fun readSettingsFromStream(inputStream: InputStream): PodBuildSettingsProperties {
             with(Properties()) {
@@ -607,7 +607,8 @@ internal data class PodBuildSettingsProperties(
                     getProperty(CONFIGURATION),
                     getProperty(OTHER_CFLAGS),
                     getProperty(HEADER_SEARCH_PATHS),
-                    getProperty(FRAMEWORK_SEARCH_PATHS)
+                    getProperty(FRAMEWORK_SEARCH_PATHS),
+                    getProperty(PODS_CONFIGURATION_BUILD_DIR)
                 )
             }
         }
