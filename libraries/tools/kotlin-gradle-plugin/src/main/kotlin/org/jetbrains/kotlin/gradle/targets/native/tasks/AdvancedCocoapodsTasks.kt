@@ -59,7 +59,7 @@ val CocoapodsDependency.schemeName: String
  */
 open class PodInstallTask : DefaultTask() {
     init {
-        onlyIf { podfile.orNull != null }
+        onlyIf { podfile.isPresent }
     }
 
     @get:Optional
