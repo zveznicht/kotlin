@@ -447,7 +447,11 @@ open class PodSetupBuildTask : CocoapodsWithSyntheticTask() {
         val stdOut = buildSettingsProcess.inputStream
 
         val buildSettingsProperties = PodBuildSettingsProperties.readSettingsFromStream(stdOut)
-        buildSettingsFile.get().let { buildSettingsProperties.writeSettings(it, pods.get()) }
+        buildSettingsFile.get().let { buildSettingsProperties.writeSettings(
+            it,
+            pods.get(),
+            podsXcodeProjDir.parentFile.resolve("Target Support Files")
+        ) }
     }
 }
 
@@ -535,7 +539,8 @@ internal data class PodBuildSettingsProperties(
 
     fun writeSettings(
         buildSettingsFile: File,
-        pods: MutableList<CocoapodsDependency>
+        pods: MutableList<CocoapodsDependency>,
+        xcconfigDir: File
     ) {
         buildSettingsFile.parentFile.mkdirs()
         buildSettingsFile.delete()
@@ -551,21 +556,38 @@ internal data class PodBuildSettingsProperties(
         }
 
         if (frameworkPaths != null) {
-            val frameworkPathsCollection = frameworkPaths.splitQuotedArgs()
+            val pathToFrameworksDir = frameworkPaths
+                .splitQuotedArgs()
+                .first()
+                .substringBeforeLast("/")
             val podsSchemeNames = mutableSetOf<String>()
             for (pod in pods) {
-                if (pod.schemeName in podsSchemeNames) {
+                val schemeName = pod.schemeName
+                if (schemeName in podsSchemeNames) {
                     continue
                 }
-                podsSchemeNames.add(pod.schemeName)
+                podsSchemeNames.add(schemeName)
+
+                val xcconfig =
+                    xcconfigDir.resolve(schemeName).resolve("$schemeName.${configuration.toLowerCase()}.xcconfig").readText()
+
+                val frameworks = xcconfig
+                    .lines()
+                    .find { it.startsWith(FRAMEWORK_SEARCH_PATHS) }
+                    ?.let { Regex("\".*\"").findAll(it) }
+                    ?.map { it.groupValues[0].substringAfterLast("/") }
+                    ?.toMutableList() ?: mutableListOf()
+                frameworks += schemeName
+                val podFrameworkPaths = frameworks
+                    .map { "$pathToFrameworksDir/$it" }
+                    .joinToString(separator = " ", prefix = "\"", postfix = "\"")
 
                 val buildSettingsName = buildSettingsFile.nameWithoutExtension
-                val podSettings = buildSettingsFile.resolveSibling("$buildSettingsName-${pod.schemeName}.properties")
+                val podSettings = buildSettingsFile.resolveSibling("$buildSettingsName-$schemeName.properties")
                 podSettings.delete()
                 podSettings.createNewFile()
 
-                val frameworkPath = frameworkPathsCollection.find { it.substringAfterLast("/") == pod.schemeName }
-                frameworkPath?.let { podSettings.appendText("$FRAMEWORK_SEARCH_PATHS=$it") }
+                podSettings.appendText("$FRAMEWORK_SEARCH_PATHS=$podFrameworkPaths")
             }
         }
     }

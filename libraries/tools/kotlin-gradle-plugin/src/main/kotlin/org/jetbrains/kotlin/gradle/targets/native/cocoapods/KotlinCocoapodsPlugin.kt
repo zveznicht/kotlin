@@ -281,7 +281,7 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                             getBuildPodSettingsFile(project, pod, target).orNull?.inputStream()?.use {
                                 val propertyName = PodBuildSettingsProperties.FRAMEWORK_SEARCH_PATHS
                                 readPropertyFromStream(it, propertyName).let { property ->
-                                    interop.compilerOpts.add("-F$property")
+                                    interop.compilerOpts.addAll(property.splitQuotedArgs().map { "-F$it" })
                                 }
                             }
                         }
