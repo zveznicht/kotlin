@@ -29,11 +29,15 @@ kotlin {
     }
 
 
-    configure(listOf(macos, linux, windows)) {
+    configure(listOf(macos, linux, windows, targets["metadata"])) {
         compilations.all {
             kotlinOptions.verbose = true
-            enableEndorsedLibs = true
+            if (this is org.jetbrains.kotlin.gradle.plugin.mpp.AbstractKotlinNativeCompilation) {
+                enableEndorsedLibs = true
+            }
         }
+    }
+    configure(listOf(macos, linux, windows)) {
         binaries {
             executable()
         }

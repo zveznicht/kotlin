@@ -308,7 +308,7 @@ abstract class AbstractKotlinTargetConfigurator<KotlinTargetType : KotlinTarget>
                 usesPlatformOf(target)
                 isVisible = false
                 isCanBeConsumed = false
-                attributes.attribute(USAGE_ATTRIBUTE, KotlinUsages.consumerApiUsage(compilation.target))
+                attributes.attribute(USAGE_ATTRIBUTE, KotlinUsages.consumerApiUsage(compilation.target, compilation))
                 description = "Compile classpath for $compilation."
             }
 

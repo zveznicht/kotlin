@@ -47,3 +47,63 @@ kotlin {
         fromPreset(presets.mingwX86, 'mingw86')
     }
 }
+
+// Workaround for missing cinterops commonization, to ensure that the shared-native source set
+// gets a cinterop klib in the 'classpath', and the cinterop klib is published in the metadata
+// artifact and consumed:
+project.ext.registerInteropAsSourceSetOutput = { project, interopName, sourceSet ->
+    def whenEvaluated = { fn -> if (project.state.executed) fn() else project.afterEvaluate(fn) }
+    whenEvaluated {
+        def currentHostKotlinTarget = project.kotlin.targets.matching { it.platformType.name == "native" }.find {
+            it.konanTarget == new org.jetbrains.kotlin.konan.target.HostManager().Companion.getHost()
+        }
+
+        def interop = currentHostKotlinTarget.compilations.main.cinterops[interopName]
+        def cinteropTask = project.tasks.named(interop.interopProcessingTaskName)
+        def cinteropKlib = cinteropTask.map { it.outputFile }
+        def fakeCinteropCompilation = project.kotlin.targets["metadata"].compilations[sourceSet.name]
+        def destination = fakeCinteropCompilation.compileKotlinTask.destinationDir
+
+        def tempDir = "$buildDir/tmp/${sourceSet.name}UnpackedInteropKlib"
+
+        def prepareKlibTaskProvider = project.tasks.register("prepare${sourceSet.name.capitalize()}InteropKlib", Sync) {
+            from(files(zipTree(cinteropKlib).matching {
+                exclude("targets/**", "default/targets/**")
+            }).builtBy(cinteropTask))
+
+            into(tempDir)
+
+            doLast {
+                def manifest = file("$tempDir/default/manifest")
+
+                def lines = manifest.readLines()
+                def modifiedLines = lines.collect { line ->
+                    line.startsWith("depends=") ? "depends=stdlib ${'org.jetbrains.kotlin.native.platform.posix'}" :
+                        line.startsWith("native_targets=") ? "native_targets=" :
+                            line
+                }
+                manifest.text = modifiedLines.join("\n")
+            }
+        }
+
+        def copyCinteropTaskProvider = project.tasks.register("copy${sourceSet.name.capitalize()}CinteropKlib",  Zip) {
+            from(fileTree(tempDir).builtBy(prepareKlibTaskProvider))
+            destinationDirectory.set(destination)
+            archiveFileName.set("${project.name}_${fakeCinteropCompilation.name}.klib")
+            dependsOn cinteropTask
+        }
+
+        fakeCinteropCompilation.output.classesDirs.from(files().builtBy(copyCinteropTaskProvider))
+
+        project.kotlin.sourceSets.matching {
+            def visited = new HashSet()
+            def visit
+            visit = { s -> if (visited.add(s)) s.dependsOn.each { visit(it) } }
+            visit(it)
+            sourceSet in visited
+        }.all {
+            project.dependencies.add(implementationMetadataConfigurationName, files(cinteropKlib))
+        }
+    }
+}
+

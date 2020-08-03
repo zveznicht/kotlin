@@ -54,14 +54,14 @@ class WorkersIT : BaseGradleIT() {
             val traceLoading = "-Dorg.jetbrains.kotlin.compilerRunner.GradleKotlinCompilerWork.trace.loading=true"
             build("assemble", traceLoading, options = options) {
                 assertSuccessful()
-                val tasks = arrayOf(":compileKotlinMetadata", ":compileKotlinJvm", ":compileKotlinJs")
+                val tasks = arrayOf(":compileCommonMainKotlinMetadata", ":compileKotlinJvm", ":compileKotlinJs")
                 if (isParallel) {
                     assertTasksSubmittedWork(*tasks)
                 } else {
                     assertTasksDidNotSubmitWork(*tasks)
                 }
                 val expectedKotlinOutputFiles = listOf(
-                    kotlinClassesDir(sourceSet = "metadata/main") + "common/A.kotlin_metadata",
+                    kotlinClassesDir(sourceSet = "metadata/commonMain") + "default/linkdata/package_common/0_common.knm",
                     kotlinClassesDir(sourceSet = "jvm/main") + "common/A.class",
                     kotlinClassesDir(sourceSet = "js/main") +
                             if (jsCompilerType == KotlinJsCompilerType.IR) "default/manifest" else "new-mpp-parallel.js"

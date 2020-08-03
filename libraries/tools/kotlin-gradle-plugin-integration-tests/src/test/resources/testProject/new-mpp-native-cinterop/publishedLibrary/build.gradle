@@ -28,6 +28,9 @@ kotlin {
         linux64Test { dependsOn sourceSets.nativeTest }
         mingw64Test { dependsOn sourceSets.nativeTest }
         mingw86Test { dependsOn sourceSets.nativeTest }
+
+        stdioInterop {}
+        allNative.dependsOn(stdioInterop)
     }
 
     targets {
@@ -63,3 +66,9 @@ publishing {
         }
     }
 }
+
+// Workaround for missing cinterops commonization, to ensure that the shared-native source set
+// gets a cinterop klib in the 'classpath', and the cinterop klib is published in the metadata
+// artifact and consumed:
+registerInteropAsSourceSetOutput(project, "stdio", kotlin.sourceSets.stdioInterop)
+

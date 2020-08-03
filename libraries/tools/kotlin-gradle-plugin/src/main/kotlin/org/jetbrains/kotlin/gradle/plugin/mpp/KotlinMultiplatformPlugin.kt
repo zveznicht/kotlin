@@ -68,6 +68,8 @@ class KotlinMultiplatformPlugin(
         project.plugins.apply(JavaBasePlugin::class.java)
         SingleWarningPerBuild.show(project, "Kotlin Multiplatform Projects are an experimental feature.")
 
+        overrideLegacyProperties(project)
+
         val targetsContainer = project.container(KotlinTarget::class.java)
         val kotlinMultiplatformExtension = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
         val targetsFromPreset = TargetFromPresetExtension(kotlinMultiplatformExtension)
@@ -103,6 +105,32 @@ class KotlinMultiplatformPlugin(
 
         project.pluginManager.apply(ScriptingGradleSubplugin::class.java)
     }
+
+    private fun overrideLegacyProperties(project: Project) = with(project) {
+        // Set the property that indicates hierarchical project structure support – even though it should now be always enabled, some
+        // clients might still depend on this flag.
+        overrideLegacyProperty(project.rootProject, LEGACY_GRANULAR_METADATA_PROPERTY, "true")
+
+        // The IDE looks at this property during import; set it to false to indicate that the dependency propagation is now always disabled
+        // in favor of the commonizer:
+        overrideLegacyProperty(project, LEGACY_COMMONIZER_PROPERTY, "false")
+    }
+
+    private fun overrideLegacyProperty(project: Project, key: String, newValue: String) {
+        val keyOverriddenFlag = "$key.overridden"
+        if (project.findProperty(keyOverriddenFlag) != "true") {
+            project.findProperty(key)?.let { value ->
+                reportIgnoredPropertyIn140(project, key, value.toString())
+            }
+            project.extensions.extraProperties.set(LEGACY_COMMONIZER_PROPERTY, newValue)
+            project.extensions.extraProperties.set(keyOverriddenFlag, "true")
+        }
+    }
+
+    private fun reportIgnoredPropertyIn140(project: Project, key: String, value: String) = SingleWarningPerBuild.show(
+        project.rootProject,
+        "The property '$key' has no effect since Kotlin 1.4.0, the value '$value' is ignored."
+    )
 
     private fun setupAdditionalCompilerArguments(project: Project) {
         // common source sets use the compiler options from the metadata compilation:
@@ -291,6 +319,9 @@ class KotlinMultiplatformPlugin(
 
     companion object {
         const val METADATA_TARGET_NAME = "metadata"
+
+        const val LEGACY_GRANULAR_METADATA_PROPERTY = "kotlin.mpp.enableGranularSourceSetsMetadata"
+        const val LEGACY_COMMONIZER_PROPERTY = "kotlin.native.enableDependencyPropagation"
 
         internal fun sourceSetFreeCompilerArgsPropertyName(sourceSetName: String) =
             "kotlin.mpp.freeCompilerArgsForSourceSet.$sourceSetName"
