@@ -456,7 +456,7 @@ class DeclarationsConverter(
                     )
                     //parse primary constructor
                     val primaryConstructorWrapper = convertPrimaryConstructor(
-                        primaryConstructor, classWrapper, delegatedConstructorSource,
+                        primaryConstructor, selfType.source, classWrapper, delegatedConstructorSource,
                         delegationSpecifiers?.primaryConstructorBody
                     )
                     val firPrimaryConstructor = primaryConstructorWrapper?.firConstructor
@@ -563,7 +563,7 @@ class DeclarationsConverter(
                     superTypeCallEntry = superTypeCallEntry
                 )
                 //parse primary constructor
-                convertPrimaryConstructor(primaryConstructor, classWrapper, delegatedConstructorSource, primaryConstructorBody)
+                convertPrimaryConstructor(primaryConstructor, typeRef.source, classWrapper, delegatedConstructorSource, primaryConstructorBody)
                     ?.let { this.declarations += it.firConstructor }
 
                 //parse declarations
@@ -634,7 +634,7 @@ class DeclarationsConverter(
                         superTypeCallEntry = enumSuperTypeCallEntry
                     )
                     superTypeRefs += enumClassWrapper.delegatedSuperTypeRef
-                    convertPrimaryConstructor(null, enumClassWrapper, null)?.let { declarations += it.firConstructor }
+                    convertPrimaryConstructor(null, null, enumClassWrapper, null)?.let { declarations += it.firConstructor }
                     classBodyNode?.also { declarations += convertClassBody(it, enumClassWrapper) }
                 }
             }
@@ -682,6 +682,7 @@ class DeclarationsConverter(
      */
     private fun convertPrimaryConstructor(
         primaryConstructor: LighterASTNode?,
+        selfTypeSource: FirSourceElement?,
         classWrapper: ClassWrapper,
         delegatedConstructorSource: FirLightSourceElement?,
         body: FirBlock? = null
@@ -700,7 +701,7 @@ class DeclarationsConverter(
 
         val defaultVisibility = classWrapper.defaultConstructorVisibility()
         val firDelegatedCall = buildDelegatedConstructorCall {
-            source = delegatedConstructorSource
+            source = delegatedConstructorSource ?: selfTypeSource?.fakeElement(FirFakeSourceElementKind.DelegatingConstructorCall)
             constructedTypeRef = classWrapper.delegatedSuperTypeRef
             isThis = false
             extractArgumentsFrom(classWrapper.superTypeCallEntry, stubMode)
@@ -1331,7 +1332,11 @@ class DeclarationsConverter(
         val primaryConstructorBody: FirBlock?
     )
 
-    private fun convertDelegationSpecifiers(delegationSpecifiers: LighterASTNode, containerSymbol: AbstractFirBasedSymbol<*>, delegatedTypeRef: FirTypeRef): DelegationSpecifiers {
+    private fun convertDelegationSpecifiers(
+        delegationSpecifiers: LighterASTNode,
+        containerSymbol: AbstractFirBasedSymbol<*>,
+        delegatedTypeRef: FirTypeRef
+    ): DelegationSpecifiers {
         val superTypeRefs = mutableListOf<FirTypeRef>()
         val superTypeCallEntry = mutableListOf<FirExpression>()
         var delegatedSuperTypeRef: FirTypeRef? = null
@@ -1343,9 +1348,6 @@ class DeclarationsConverter(
             when (it.tokenType) {
                 SUPER_TYPE_ENTRY -> {
                     superTypeRefs += convertType(it)
-                    if (delegateConstructorSource == null) {
-                        delegateConstructorSource = it.toFirSourceElement()
-                    }
                 }
                 SUPER_TYPE_CALL_ENTRY -> convertConstructorInvocation(it).apply {
                     delegatedSuperTypeRef = first
@@ -1354,7 +1356,14 @@ class DeclarationsConverter(
                     delegateConstructorSource = it.toFirSourceElement()
                 }
                 DELEGATED_SUPER_TYPE_ENTRY -> {
-                    superTypeRefs += convertExplicitDelegation(it, delegateNumber, delegateFields, initializeDelegateStatements, containerSymbol, delegatedTypeRef)
+                    superTypeRefs += convertExplicitDelegation(
+                        it,
+                        delegateNumber,
+                        delegateFields,
+                        initializeDelegateStatements,
+                        containerSymbol,
+                        delegatedTypeRef
+                    )
                     delegateNumber++
                 }
             }
