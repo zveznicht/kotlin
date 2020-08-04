@@ -2145,7 +2145,7 @@ public abstract class StackValue {
         private final boolean coerceType;
 
         public ThisOuter(ExpressionCodegen codegen, ClassDescriptor descriptor, boolean isSuper, boolean coerceType) {
-            super(OBJECT_TYPE, false);
+            super(codegen.typeMapper.mapType(descriptor.getThisAsReceiverParameter()), descriptor.getThisAsReceiverParameter().getType(), false);
             this.codegen = codegen;
             this.descriptor = descriptor;
             this.isSuper = isSuper;

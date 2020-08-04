@@ -922,6 +922,11 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
                 runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/kt16446.kt");
             }
 
+            @TestMetadata("kt17303.kt")
+            public void testKt17303() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/kt17303.kt");
+            }
+
             @TestMetadata("kt18939.kt")
             public void testKt18939() throws Exception {
                 runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/kt18939.kt");
