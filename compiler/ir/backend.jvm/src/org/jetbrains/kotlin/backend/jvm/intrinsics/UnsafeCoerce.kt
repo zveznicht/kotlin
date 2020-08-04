@@ -29,9 +29,9 @@ object UnsafeCoerce : IntrinsicMethod() {
         val arg = expression.getValueArgument(0)!!
         val result = arg.accept(codegen, data)
         return object : PromisedValue(codegen, toType, to) {
-            override fun materializeAt(target: Type, irTarget: IrType, allowImplicitCasts: Boolean) {
+            override fun materializeAt(target: Type, irTarget: IrType, allowNoUpcast: Boolean) {
                 result.materializeAt(fromType, from)
-                super.materializeAt(target, irTarget, allowImplicitCasts)
+                super.materializeAt(target, irTarget, allowNoUpcast)
             }
 
             override fun discard() {
