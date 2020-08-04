@@ -1032,11 +1032,11 @@ class ExpressionCodegen(
         mv.mark(tryCatchBlockEnd)
         // TODO: generate a common `finally` for try & catch blocks here? Right now this breaks the inliner.
         return object : PromisedValue(this, tryAsmType, aTry.type) {
-            override fun materializeAt(target: Type, irTarget: IrType, allowImplicitCasts: Boolean) {
+            override fun materializeAt(target: Type, irTarget: IrType, allowNoUpcast: Boolean) {
                 if (savedValue != null) {
                     mv.load(savedValue, tryAsmType)
                     frameMap.leaveTemp(tryAsmType)
-                    super.materializeAt(target, irTarget, allowImplicitCasts)
+                    super.materializeAt(target, irTarget, allowNoUpcast)
                 } else {
                     unitValue.materializeAt(target, irTarget)
                 }
