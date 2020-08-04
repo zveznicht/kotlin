@@ -792,7 +792,7 @@ public class DescriptorAsmUtil {
                     @NotNull Type type,
                     @Nullable KotlinType kotlinType,
                     @NotNull InstructionAdapter v,
-                    boolean allowImplicitCast
+                    boolean allowNoUpcast
             ) {
                 Type innerType = stackValue.type;
                 KotlinType innerKotlinType = stackValue.kotlinType;

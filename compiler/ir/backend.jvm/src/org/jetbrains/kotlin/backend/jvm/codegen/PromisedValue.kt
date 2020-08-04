@@ -25,7 +25,7 @@ import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 abstract class PromisedValue(val codegen: ExpressionCodegen, val type: Type, val irType: IrType) {
     // If this value is immaterial, construct an object on the top of the stack. This
     // must always be done before generating other values or emitting raw bytecode.
-    open fun materializeAt(target: Type, irTarget: IrType, allowImplicitCasts: Boolean = false) {
+    open fun materializeAt(target: Type, irTarget: IrType, allowNoUpcast: Boolean = false) {
         val erasedSourceType = irType.eraseTypeParameters()
         val erasedTargetType = irTarget.eraseTypeParameters()
         val isFromTypeInlineClass = erasedSourceType.classOrNull!!.owner.isInline
@@ -56,7 +56,7 @@ abstract class PromisedValue(val codegen: ExpressionCodegen, val type: Type, val
         }
 
         if (type != target) {
-            if (allowImplicitCasts && type.sort == Type.OBJECT && target.sort == Type.OBJECT &&
+            if (allowNoUpcast && type.sort == Type.OBJECT && target.sort == Type.OBJECT &&
                 type != AsmTypes.VOID_WRAPPER_TYPE &&
                 type != AsmTypes.OBJECT_TYPE &&
                 //TODO: Missed type parameters in coroutines types
@@ -93,7 +93,7 @@ abstract class BooleanValue(codegen: ExpressionCodegen) :
     abstract fun jumpIfFalse(target: Label)
     abstract fun jumpIfTrue(target: Label)
 
-    override fun materializeAt(target: Type, irTarget: IrType, allowImplicitCasts: Boolean) {
+    override fun materializeAt(target: Type, irTarget: IrType, allowNoUpcast: Boolean) {
         val const0 = Label()
         val end = Label()
         jumpIfFalse(const0)
@@ -111,7 +111,7 @@ abstract class BooleanValue(codegen: ExpressionCodegen) :
 class BooleanConstant(codegen: ExpressionCodegen, val value: Boolean) : BooleanValue(codegen) {
     override fun jumpIfFalse(target: Label) = if (value) Unit else mv.goTo(target)
     override fun jumpIfTrue(target: Label) = if (value) mv.goTo(target) else Unit
-    override fun materializeAt(target: Type, irTarget: IrType, allowImplicitCasts: Boolean) {
+    override fun materializeAt(target: Type, irTarget: IrType, allowNoUpcast: Boolean) {
         mv.iconst(if (value) 1 else 0)
         if (Type.BOOLEAN_TYPE != target) {
             StackValue.coerce(Type.BOOLEAN_TYPE, target, mv)
@@ -173,7 +173,7 @@ val ExpressionCodegen.unitValue: PromisedValue
 
 val ExpressionCodegen.nullConstant: PromisedValue
     get() = object : PromisedValue(this, AsmTypes.OBJECT_TYPE, context.irBuiltIns.nothingNType) {
-        override fun materializeAt(target: Type, irTarget: IrType) {
+        override fun materializeAt(target: Type, irTarget: IrType, allowNoUpcast: Boolean) {
             mv.aconst(null)
         }
 
