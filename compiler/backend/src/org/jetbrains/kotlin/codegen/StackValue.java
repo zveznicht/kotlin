@@ -2165,7 +2165,7 @@ public abstract class StackValue {
             stackValue.put(
                     coerceType ? type : stackValue.type,
                     coerceType ? kotlinType : stackValue.kotlinType,
-                    v
+                    v, false, allowImplicitCast
             );
         }
     }
