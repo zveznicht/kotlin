@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.gradle.utils.lowerCamelCaseName
 import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 import java.io.File
+import java.io.FileInputStream
 import java.util.*
 
 /**
@@ -446,6 +447,13 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
                     it.pod = project.provider { pod }
                     it.podsXcodeProjDir = podSetupBuildTaskProvider.map { task -> task.podsXcodeProjDir.get() }
                     it.buildSettingsFile = podSetupBuildTaskProvider.map { task -> task.buildSettingsFile.get() }
+                    it.srcDir = podSetupBuildTaskProvider.map { task ->
+                        File(
+                            PodBuildSettingsProperties.readSettingsFromStream(
+                                FileInputStream(task.buildSettingsFile.get())
+                            ).podsTargetSrcRoot
+                        )
+                    }
                 }
             }
         }

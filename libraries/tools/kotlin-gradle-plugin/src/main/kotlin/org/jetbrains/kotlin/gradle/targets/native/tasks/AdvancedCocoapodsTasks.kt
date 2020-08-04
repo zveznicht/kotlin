@@ -460,7 +460,10 @@ open class PodBuildTask : DefaultTask() {
     internal lateinit var buildSettingsFile: Provider<File>
 
     @get:Nested
-    lateinit var pod: Provider<CocoapodsDependency>
+    internal lateinit var pod: Provider<CocoapodsDependency>
+
+    @get:InputDirectory
+    internal lateinit var srcDir: Provider<File>
 
     @get:Internal
     internal var buildDir: Provider<File> = project.provider {
@@ -522,6 +525,7 @@ internal data class PodBuildSettingsProperties(
     internal val buildDir: String,
     internal val configuration: String,
     internal val configurationBuildDir: String,
+    internal val podsTargetSrcRoot: String,
     internal val cflags: String? = null,
     internal val headerPaths: String? = null,
     internal val frameworkPaths: String? = null
@@ -540,6 +544,7 @@ internal data class PodBuildSettingsProperties(
             appendText("$BUILD_DIR=$buildDir\n")
             appendText("$CONFIGURATION=$configuration\n")
             appendText("$CONFIGURATION_BUILD_DIR=$configurationBuildDir\n")
+            appendText("$PODS_TARGET_SRCROOT=$podsTargetSrcRoot\n")
             cflags?.let { appendText("$OTHER_CFLAGS=$it\n") }
             headerPaths?.let { appendText("$HEADER_SEARCH_PATHS=$it\n") }
             frameworkPaths?.let { appendText("$FRAMEWORK_SEARCH_PATHS=$it") }
@@ -550,6 +555,7 @@ internal data class PodBuildSettingsProperties(
         const val BUILD_DIR = "BUILD_DIR"
         const val CONFIGURATION = "CONFIGURATION"
         const val CONFIGURATION_BUILD_DIR = "CONFIGURATION_BUILD_DIR"
+        const val PODS_TARGET_SRCROOT = "PODS_TARGET_SRCROOT"
         const val OTHER_CFLAGS = "OTHER_CFLAGS"
         const val HEADER_SEARCH_PATHS = "HEADER_SEARCH_PATHS"
         const val FRAMEWORK_SEARCH_PATHS = "FRAMEWORK_SEARCH_PATHS"
@@ -561,6 +567,7 @@ internal data class PodBuildSettingsProperties(
                     readProperty(BUILD_DIR),
                     readProperty(CONFIGURATION),
                     readProperty(CONFIGURATION_BUILD_DIR),
+                    readProperty(PODS_TARGET_SRCROOT),
                     readNullableProperty(OTHER_CFLAGS),
                     readNullableProperty(HEADER_SEARCH_PATHS),
                     readNullableProperty(FRAMEWORK_SEARCH_PATHS)
