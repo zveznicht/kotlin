@@ -458,7 +458,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
 
     @Override
     public StackValue visitSuperExpression(@NotNull KtSuperExpression expression, StackValue data) {
-        return StackValue.thisOrOuter(this, getSuperCallLabelTarget(context, expression), true, false);
+        return StackValue.thisOrOuter(this, getSuperCallLabelTarget(context, expression), true);
     }
 
     @NotNull
@@ -1343,7 +1343,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         ClassDescriptor suspendLambdaClassDescriptor = bindingContext.get(CodegenBinding.CLASS_FOR_CALLABLE, suspendFunction);
         assert suspendLambdaClassDescriptor != null : "Coroutine class descriptor should not be null";
 
-        return StackValue.thisOrOuter(this, suspendLambdaClassDescriptor, false, false);
+        return StackValue.thisOrOuter(this, suspendLambdaClassDescriptor, false);
     }
 
     @NotNull
@@ -1831,14 +1831,13 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         }
 
         assert descriptor != null : "Couldn't find descriptor for '" + expression.getText() + "'";
-        descriptor = descriptor.getOriginal();
 
         boolean isSyntheticField = descriptor instanceof SyntheticFieldDescriptor;
         if (isSyntheticField) {
             descriptor = ((SyntheticFieldDescriptor) descriptor).getPropertyDescriptor();
         }
 
-        StackValue intrinsicResult = applyIntrinsic(descriptor, IntrinsicPropertyGetter.class, resolvedCall, receiver);
+        StackValue intrinsicResult = applyIntrinsic(descriptor.getOriginal(), IntrinsicPropertyGetter.class, resolvedCall, receiver);
         if (intrinsicResult != null) return intrinsicResult;
 
         return generateNonIntrinsicSimpleNameExpression(expression, receiver, descriptor, resolvedCall, isSyntheticField);
@@ -2928,7 +2927,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             return generateScriptReceiver((ScriptDescriptor) receiverDescriptor);
         }
         else {
-            return StackValue.thisOrOuter(this, receiverDescriptor, isSuper, castReceiver);
+            return StackValue.thisOrOuter(this, receiverDescriptor, isSuper);
         }
     }
 
@@ -3074,7 +3073,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
 
         if (thisOrOuterClass.equals(context.getThisDescriptor()) &&
             !CodegenUtilKt.isJvmStaticInObjectOrClassOrInterface(context.getFunctionDescriptor())) {
-            return StackValue.local(0, typeMapper.mapType(thisOrOuterClass));
+            return StackValue.local(0, typeMapper.mapType(thisOrOuterClass), thisOrOuterClass.getThisAsReceiverParameter().getType());
         }
         else if (shouldGenerateSingletonAsThisOrOuterFromContext(thisOrOuterClass)) {
             return generateThisOrOuterFromContext(thisOrOuterClass, isSuper, forceOuter);

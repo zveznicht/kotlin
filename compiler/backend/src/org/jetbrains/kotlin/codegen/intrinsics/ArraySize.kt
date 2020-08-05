@@ -24,7 +24,7 @@ import org.jetbrains.org.objectweb.asm.Type
 class ArraySize : IntrinsicPropertyGetter() {
     override fun generate(resolvedCall: ResolvedCall<*>?, codegen: ExpressionCodegen, returnType: Type, receiver: StackValue) =
         StackValue.operation(returnType) { iv ->
-            receiver.put(iv)
+            receiver.put(receiver.type, receiver.kotlinType, iv, false, true)
             iv.arraylength()
         }
 }

@@ -414,7 +414,7 @@ class KotlinTypeMapper @JvmOverloads constructor(
 
         val functionParent = descriptor.original.containingDeclaration
 
-        var functionDescriptor = findSuperDeclaration(descriptor.original, superCall, jvmDefaultMode)
+        var functionDescriptor = findSuperDeclaration(descriptor, superCall, jvmDefaultMode)
 
         val signature: JvmMethodSignature
         val returnKotlinType: KotlinType?
@@ -447,13 +447,13 @@ class KotlinTypeMapper @JvmOverloads constructor(
 
             if (isInterface && (superCall || descriptor.visibility == Visibilities.PRIVATE || isAccessor(descriptor))) {
                 thisClass = mapClass(functionParent)
-                dispatchReceiverKotlinType = functionParent.defaultType
+                dispatchReceiverKotlinType = descriptor.dispatchReceiverParameter?.type
                 if (declarationOwner is JavaClassDescriptor ||
                     (declarationFunctionDescriptor.isCompiledToJvmDefault(jvmDefaultMode) && !isAccessor(descriptor))
                 ) {
                     invokeOpcode = INVOKESPECIAL
-                    signature = mapSignatureSkipGeneric(functionDescriptor)
-                    returnKotlinType = functionDescriptor.returnType
+                    signature = mapSignatureSkipGeneric(functionDescriptor.original)
+                    returnKotlinType = functionDescriptor.original.returnType
                     owner = thisClass
                     isInterfaceMember = true
                 } else {
@@ -519,15 +519,15 @@ class KotlinTypeMapper @JvmOverloads constructor(
                     functionParent
                 owner = mapClass(receiver)
                 thisClass = owner
-                dispatchReceiverKotlinType = receiver.defaultType
+                dispatchReceiverKotlinType = descriptor.dispatchReceiverParameter?.type
             }
         } else {
             val originalDescriptor = functionDescriptor.original
             signature = mapSignatureSkipGeneric(originalDescriptor)
             returnKotlinType = getReturnValueType(originalDescriptor)
-            owner = mapOwner(functionDescriptor)
+            owner = mapOwner(originalDescriptor)
             ownerForDefaultImpl = owner
-            baseMethodDescriptor = functionDescriptor
+            baseMethodDescriptor = functionDescriptor.original
             when {
                 functionParent is PackageFragmentDescriptor -> {
                     invokeOpcode = INVOKESTATIC
@@ -543,7 +543,7 @@ class KotlinTypeMapper @JvmOverloads constructor(
                     invokeOpcode = INVOKEVIRTUAL
                     thisClass = owner
                     val ownerDescriptor = functionDescriptor.containingDeclaration
-                    dispatchReceiverKotlinType = (ownerDescriptor as? ClassDescriptor)?.defaultType
+                    dispatchReceiverKotlinType = functionDescriptor.dispatchReceiverParameter?.type
                 }
             }
         }

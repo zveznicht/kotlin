@@ -818,13 +818,9 @@ public abstract class StackValue {
     public static StackValue thisOrOuter(
             @NotNull ExpressionCodegen codegen,
             @NotNull ClassDescriptor descriptor,
-            boolean isSuper,
-            boolean castReceiver
+            boolean isSuper
     ) {
-        // Coerce 'this' for the case when it is smart cast.
-        // Do not coerce for other cases due to the 'protected' access issues (JVMS 7, 4.9.2 Structural Constraints).
-        boolean coerceType = descriptor.getKind() == ClassKind.INTERFACE || descriptor.isInline() || (castReceiver && !isSuper);
-        return new ThisOuter(codegen, descriptor, isSuper, coerceType);
+        return new ThisOuter(codegen, descriptor, isSuper);
     }
 
     public static StackValue postIncrement(int index, int increment) {
@@ -962,7 +958,7 @@ public abstract class StackValue {
                 Boolean isRecursive = bindingContext.get(RECURSIVE_SUSPEND_CALLABLE_REFERENCE, thisDescriptor);
                 if (isRecursive != null && isRecursive) {
                     assert classDescriptor != null : "No CLASS_FOR_CALLABLE" + callee;
-                    return thisOrOuter(codegen, classDescriptor, false, false);
+                    return thisOrOuter(codegen, classDescriptor, false);
                 }
                 // Otherwise, just call constructor of the closure
                 return codegen.findCapturedValue(callee);
@@ -2142,14 +2138,12 @@ public abstract class StackValue {
         private final ExpressionCodegen codegen;
         private final ClassDescriptor descriptor;
         private final boolean isSuper;
-        private final boolean coerceType;
 
-        public ThisOuter(ExpressionCodegen codegen, ClassDescriptor descriptor, boolean isSuper, boolean coerceType) {
+        public ThisOuter(ExpressionCodegen codegen, ClassDescriptor descriptor, boolean isSuper) {
             super(codegen.typeMapper.mapType(descriptor.getThisAsReceiverParameter()), descriptor.getThisAsReceiverParameter().getType(), false);
             this.codegen = codegen;
             this.descriptor = descriptor;
             this.isSuper = isSuper;
-            this.coerceType = coerceType;
         }
 
         @Override
@@ -2160,11 +2154,7 @@ public abstract class StackValue {
                 boolean allowNoUpcast
         ) {
             StackValue stackValue = codegen.generateThisOrOuter(descriptor, isSuper);
-            stackValue.put(
-                    coerceType ? type : stackValue.type,
-                    coerceType ? kotlinType : stackValue.kotlinType,
-                    v, false, allowNoUpcast
-            );
+            stackValue.put(type, kotlinType, v, false, allowNoUpcast);
         }
     }
 
@@ -2281,7 +2271,7 @@ public abstract class StackValue {
                 receiver.put(
                         hasReceiver ? receiver.type : Type.VOID_TYPE,
                         hasReceiver ? receiver.kotlinType : null,
-                        v
+                        v, false, true
                 );
             }
         }

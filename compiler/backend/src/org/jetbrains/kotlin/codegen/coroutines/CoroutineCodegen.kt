@@ -371,7 +371,7 @@ class CoroutineCodegenForLambda private constructor(
         val classDescriptor = closureContext.contextDescriptor
         val owner = typeMapper.mapClass(classDescriptor)
 
-        val thisInstance = StackValue.thisOrOuter(codegen, classDescriptor, false, false)
+        val thisInstance = StackValue.thisOrOuter(codegen, classDescriptor, false)
         val isBigArity = JvmCodegenUtil.isDeclarationOfBigArityCreateCoroutineMethod(createCoroutineDescriptor)
 
         with(codegen.v) {

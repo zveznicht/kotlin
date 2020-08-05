@@ -24,7 +24,7 @@ import org.jetbrains.kotlin.codegen.binding.MutableClosure;
 import org.jetbrains.kotlin.codegen.state.KotlinTypeMapper;
 import org.jetbrains.kotlin.descriptors.ClassDescriptor;
 import org.jetbrains.kotlin.descriptors.ConstructorDescriptor;
-import org.jetbrains.kotlin.resolve.jvm.AsmTypes;
+import org.jetbrains.kotlin.types.KotlinType;
 import org.jetbrains.kotlin.types.SimpleType;
 import org.jetbrains.org.objectweb.asm.Type;
 
@@ -54,7 +54,8 @@ public class ConstructorContext extends MethodContext {
                 stackValue = StackValue.local(1, outerClassType, outerClassKotlinType);
             }
             else {
-                stackValue = StackValue.local(1, AsmTypes.OBJECT_TYPE);
+                KotlinType outerType = capturedOuterClassDescriptor.getThisAsReceiverParameter().getType();
+                stackValue = StackValue.local(1, kotlinTypeMapper.mapType(outerType), outerType);
             }
         }
         else {
