@@ -656,7 +656,12 @@ internal fun IrFunction.suspendFunctionOriginal(): IrFunction =
     else this
 
 private fun IrSimpleFunction.isOrOverridesDefaultParameterStub(): Boolean =
-    resolveFakeOverride()?.origin == IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER
+    // Cannot use resolveFakeOverride here because of KT-36188.
+    DFS.ifAny(
+        listOf(this),
+        { it.overriddenSymbols.map { it.owner } },
+        { it.origin == IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER }
+    )
 
 val defaultImplsOrigins = setOf(
     IrDeclarationOrigin.FUNCTION_FOR_DEFAULT_PARAMETER,
