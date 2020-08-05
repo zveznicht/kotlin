@@ -62,7 +62,7 @@ fun case_1(value_1: Any?) {
     println(value_1?.toByte())
     if (funWithReturnsTrue(value_1 is Number)) {
         println(value_1.toByte())
-        if (funWithReturnsNotNull(value_1 is Int) != null) <!AMBIGUITY!>println<!>(value_1.inv())
+        if (funWithReturnsNotNull(value_1 is Int) != null) println(value_1.inv())
     }
 }
 
