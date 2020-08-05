@@ -8,16 +8,21 @@ package org.jetbrains.kotlin.codegen.intrinsics
 import org.jetbrains.kotlin.codegen.AsmUtil
 import org.jetbrains.kotlin.codegen.Callable
 import org.jetbrains.kotlin.codegen.CallableMethod
+import org.jetbrains.kotlin.resolve.calls.model.DelegatingResolvedCall
+import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.org.objectweb.asm.Type
 import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 
 open class IntrinsicCallable(
-        override val returnType: Type,
-        override val valueParameterTypes: List<Type>,
-        override val dispatchReceiverType: Type?,
-        override val extensionReceiverType: Type?,
-        private val invoke: IntrinsicCallable.(v: InstructionAdapter) -> Unit = { throw UnsupportedOperationException() }
+    override val returnType: Type,
+    override val valueParameterTypes: List<Type>,
+    override val dispatchReceiverType: Type?,
+    override val extensionReceiverType: Type?,
+    override val dispatchReceiverKotlinType: KotlinType? = null,
+    override val extensionReceiverKotlinType: KotlinType? = null,
+    override val returnKotlinType: KotlinType? = null,
+    private val invoke: IntrinsicCallable.(v: InstructionAdapter) -> Unit = { throw UnsupportedOperationException() }
 ) : Callable {
 
     constructor(
@@ -28,7 +33,7 @@ open class IntrinsicCallable(
             callable.valueParameterTypes,
             callable.dispatchReceiverType,
             callable.extensionReceiverType,
-            invoke
+            invoke = invoke
     )
 
     override fun genInvokeInstruction(v: InstructionAdapter) {
@@ -41,15 +46,6 @@ open class IntrinsicCallable(
 
     override val parameterTypes: Array<Type>
         get() = throw UnsupportedOperationException()
-
-    override val dispatchReceiverKotlinType: KotlinType?
-        get() = null
-
-    override val extensionReceiverKotlinType: KotlinType?
-        get() = null
-
-    override val returnKotlinType: KotlinType?
-        get() = null
 
     override fun isStaticCall() = false
 
@@ -84,6 +80,7 @@ fun createUnaryIntrinsicCallable(
         newReturnType: Type? = null,
         needPrimitiveCheck: Boolean = false,
         newThisType: Type? = null,
+        resolvedCall: ResolvedCall<*>? = null,
         invoke: IntrinsicCallable.(v: InstructionAdapter) -> Unit
 ): IntrinsicCallable {
     val intrinsic = IntrinsicCallable(
@@ -91,6 +88,9 @@ fun createUnaryIntrinsicCallable(
             callable.valueParameterTypes,
             newThisType ?: callable.dispatchReceiverType,
             callable.extensionReceiverType,
+            resolvedCall?.resultingDescriptor?.dispatchReceiverParameter?.type,
+            resolvedCall?.resultingDescriptor?.extensionReceiverParameter?.type,
+            resolvedCall?.resultingDescriptor?.returnType,
             invoke
     )
     assert(intrinsic.valueParameterTypes.isEmpty()) { "Unary operation should not have any parameters" }

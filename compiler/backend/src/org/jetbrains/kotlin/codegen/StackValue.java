@@ -2160,11 +2160,7 @@ public abstract class StackValue {
                 boolean allowNoUpcast
         ) {
             StackValue stackValue = codegen.generateThisOrOuter(descriptor, isSuper);
-            stackValue.put(
-                    coerceType ? type : stackValue.type,
-                    coerceType ? kotlinType : stackValue.kotlinType,
-                    v, false, allowNoUpcast
-            );
+            stackValue.put(type, kotlinType, v, false, allowNoUpcast);
         }
     }
 
@@ -2281,7 +2277,7 @@ public abstract class StackValue {
                 receiver.put(
                         hasReceiver ? receiver.type : Type.VOID_TYPE,
                         hasReceiver ? receiver.kotlinType : null,
-                        v
+                        v, false, true
                 );
             }
         }

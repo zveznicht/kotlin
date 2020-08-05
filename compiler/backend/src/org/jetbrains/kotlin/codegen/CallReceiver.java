@@ -165,7 +165,7 @@ public class CallReceiver extends StackValue {
                 secondReceiverKotlinType, hasExtensionReceiver, dispatchReceiver.kotlinType, kotlinType
         );
 
-        dispatchReceiver.put(dispatchReceiverType, dispatchReceiverKotlinType, v);
+        dispatchReceiver.put(dispatchReceiverType, dispatchReceiverKotlinType, v, false, allowNoUpcast);
 
         currentExtensionReceiver
                 .moveToTopOfStack(
