@@ -294,3 +294,4 @@ fun FirClass<*>.findNonInterfaceSupertype(context: CheckerContext): FirTypeRef? 
 
     return null
 }
+
