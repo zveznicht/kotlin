@@ -691,7 +691,18 @@ class MethodInliner(
             .flatMap { findMeaningfulSuccs(it).asSequence() }
             .filter { it is MethodInsnNode }
 
+
         val toReplace = hashSetOf<AbstractInsnNode>()
+
+        fun addAload0Sources(indices: Set<Int>) {
+            for (sourceIndex in indices) {
+                val src = processingNode.instructions[sourceIndex]
+                if (src in aload0s) {
+                    toReplace.add(src)
+                }
+            }
+        }
+
         for (suspensionPoint in suspensionPoints) {
             assert(suspensionPoint is MethodInsnNode) {
                 "suspensionPoint shall be MethodInsnNode, but instead $suspensionPoint"
@@ -726,14 +737,20 @@ class MethodInliner(
 
             for ((index, param) in paramTypes.reversed().withIndex()) {
                 if (param != languageVersionSettings.continuationAsmType() && param != OBJECT_TYPE) continue
-                val sourceIndices = (frame.getStack(frame.stackSize - index - 1) as? Aload0BasicValue)?.indices ?: continue
-                for (sourceIndex in sourceIndices) {
-                    val src = processingNode.instructions[sourceIndex]
-                    if (src in aload0s) {
-                        toReplace.add(src)
-                    }
-                }
+                val sourceIndices = (frame.peek(index) as? Aload0BasicValue)?.indices ?: continue
+                addAload0Sources(sourceIndices)
             }
+        }
+
+        // Expected pattern here:
+        //      ALOAD 0
+        //      CHECKCAST Continuation
+        for (checkcast in processingNode.instructions.asSequence().filter { it.opcode == Opcodes.CHECKCAST }) {
+            checkcast as TypeInsnNode
+            if (checkcast.desc != languageVersionSettings.continuationAsmType().internalName) continue
+            val frame = sources[processingNode.instructions.indexOf(checkcast)]!!
+            val sourceIndices = (frame.top() as? Aload0BasicValue)?.indices ?: continue
+            addAload0Sources(sourceIndices)
         }
 
         // Expected pattern here:
