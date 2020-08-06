@@ -917,7 +917,7 @@ public inline fun CharArray.find(predicate: (Char) -> Boolean): Char? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun <T> Array<out T>.findLast(predicate: (T) -> Boolean): T? {
@@ -927,7 +927,7 @@ public inline fun <T> Array<out T>.findLast(predicate: (T) -> Boolean): T? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun ByteArray.findLast(predicate: (Byte) -> Boolean): Byte? {
@@ -937,7 +937,7 @@ public inline fun ByteArray.findLast(predicate: (Byte) -> Boolean): Byte? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun ShortArray.findLast(predicate: (Short) -> Boolean): Short? {
@@ -947,7 +947,7 @@ public inline fun ShortArray.findLast(predicate: (Short) -> Boolean): Short? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun IntArray.findLast(predicate: (Int) -> Boolean): Int? {
@@ -957,7 +957,7 @@ public inline fun IntArray.findLast(predicate: (Int) -> Boolean): Int? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun LongArray.findLast(predicate: (Long) -> Boolean): Long? {
@@ -967,7 +967,7 @@ public inline fun LongArray.findLast(predicate: (Long) -> Boolean): Long? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun FloatArray.findLast(predicate: (Float) -> Boolean): Float? {
@@ -977,7 +977,7 @@ public inline fun FloatArray.findLast(predicate: (Float) -> Boolean): Float? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun DoubleArray.findLast(predicate: (Double) -> Boolean): Double? {
@@ -987,7 +987,7 @@ public inline fun DoubleArray.findLast(predicate: (Double) -> Boolean): Double? 
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun BooleanArray.findLast(predicate: (Boolean) -> Boolean): Boolean? {
@@ -997,7 +997,7 @@ public inline fun BooleanArray.findLast(predicate: (Boolean) -> Boolean): Boolea
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun CharArray.findLast(predicate: (Char) -> Boolean): Char? {

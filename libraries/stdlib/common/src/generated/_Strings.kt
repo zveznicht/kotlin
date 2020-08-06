@@ -55,7 +55,7 @@ public inline fun CharSequence.find(predicate: (Char) -> Boolean): Char? {
 /**
  * Returns the last character matching the given [predicate], or `null` if no such character was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun CharSequence.findLast(predicate: (Char) -> Boolean): Char? {

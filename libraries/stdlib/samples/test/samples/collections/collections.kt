@@ -781,23 +781,23 @@ class Collections {
 
         @Sample
         fun find() {
-            val list = listOf(1, 2, 3, 1, 2, 3)
-            assertPrints(list.find { it == 1 }, "0")
-            assertPrints(list.find { it == 4 }, "null")
-        }
+            val numbers = listOf(1, 2, 3, 4, 5, 6, 7)
+            val firstOdd = numbers.find { it % 2 != 0 }
+            val lastEven = numbers.findLast { it % 2 == 0 }
 
-        @Sample
-        fun findLast() {
-            val list = listOf(1, 2, 3, 1, 2, 3)
-            assertPrints(list.findLast { it == 1 }, "3")
-            assertPrints(list.findLast { it == 4 }, "null")
+            assertPrints(firstOdd, "1")
+            assertPrints(lastEven, "6")
         }
 
         @Sample
         fun getOrNull() {
-            val array = arrayOf(1, 2, 3)
-            assertPrints(array.getOrNull(1), "2")
-            assertPrints(array.getOrNull(4), "null")
+            val list = listOf(1, 2, 3)
+            assertPrints(list.getOrNull(0), "1")
+            assertPrints(list.getOrNull(2), "3")
+            assertPrints(list.getOrNull(3), "null")
+
+            val emptyList = emptyList<Int>()
+            assertPrints(emptyList.getOrNull(0), "null")
         }
     }
 

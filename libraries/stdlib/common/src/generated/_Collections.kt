@@ -170,7 +170,7 @@ public inline fun <T> Iterable<T>.find(predicate: (T) -> Boolean): T? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun <T> Iterable<T>.findLast(predicate: (T) -> Boolean): T? {
@@ -180,7 +180,7 @@ public inline fun <T> Iterable<T>.findLast(predicate: (T) -> Boolean): T? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun <T> List<T>.findLast(predicate: (T) -> Boolean): T? {

@@ -92,7 +92,7 @@ public inline fun <T> Sequence<T>.find(predicate: (T) -> Boolean): T? {
  *
  * The operation is _terminal_.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @kotlin.internal.InlineOnly
 public inline fun <T> Sequence<T>.findLast(predicate: (T) -> Boolean): T? {

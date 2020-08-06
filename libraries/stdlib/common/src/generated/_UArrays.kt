@@ -461,7 +461,7 @@ public inline fun UShortArray.find(predicate: (UShort) -> Boolean): UShort? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
@@ -473,7 +473,7 @@ public inline fun UIntArray.findLast(predicate: (UInt) -> Boolean): UInt? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
@@ -485,7 +485,7 @@ public inline fun ULongArray.findLast(predicate: (ULong) -> Boolean): ULong? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
@@ -497,7 +497,7 @@ public inline fun UByteArray.findLast(predicate: (UByte) -> Boolean): UByte? {
 /**
  * Returns the last element matching the given [predicate], or `null` if no such element was found.
  * 
- * @sample samples.collections.Collections.Elements.findLast
+ * @sample samples.collections.Collections.Elements.find
  */
 @SinceKotlin("1.3")
 @ExperimentalUnsignedTypes
