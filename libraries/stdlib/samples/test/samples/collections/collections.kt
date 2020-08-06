@@ -533,6 +533,14 @@ class Collections {
         }
 
         @Sample
+        fun mapNotNull() {
+            val strings = listOf("12a", "45", "", "3")
+            val ints = strings.mapNotNull { it.toIntOrNull() }
+
+            assertPrints(ints, "[45, 3]")
+        }
+
+        @Sample
         fun flatMap() {
             val list = listOf("123", "45")
             assertPrints(list.flatMap { it.toList() }, "[1, 2, 3, 4, 5]")

@@ -327,16 +327,10 @@ class Maps {
 
         @Sample
         fun mapNotNull() {
-            val map1 = mapOf("foo" to 1, "bar" to 2, "baz" to 3)
-            val map2 = map1.mapNotNull {
-                if (it.component1().equals("bar")) {
-                    null
-                } else {
-                    it
-                }
-            }
+            val map = mapOf("Alice" to 20, "Tom" to 13, "Bob" to 18)
+            val adults = map.mapNotNull { (name, age) -> name.takeIf { age >= 18 } }
 
-            assertPrints(map2, "[foo=1, baz=3]")
+            assertPrints(adults, "[Alice, Bob]")
         }
 
         @Sample

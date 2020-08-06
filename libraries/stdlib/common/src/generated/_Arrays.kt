@@ -11441,6 +11441,8 @@ public inline fun <R, C : MutableCollection<in R>> CharArray.mapIndexedTo(destin
 /**
  * Returns a list containing only the non-null results of applying the given [transform] function
  * to each element in the original array.
+ * 
+ * @sample samples.collections.Collections.Transformations.mapNotNull
  */
 public inline fun <T, R : Any> Array<out T>.mapNotNull(transform: (T) -> R?): List<R> {
     return mapNotNullTo(ArrayList<R>(), transform)

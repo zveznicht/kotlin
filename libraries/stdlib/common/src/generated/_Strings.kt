@@ -966,6 +966,8 @@ public inline fun <R, C : MutableCollection<in R>> CharSequence.mapIndexedTo(des
 /**
  * Returns a list containing only the non-null results of applying the given [transform] function
  * to each character in the original char sequence.
+ * 
+ * @sample samples.collections.Collections.Transformations.mapNotNull
  */
 public inline fun <R : Any> CharSequence.mapNotNull(transform: (Char) -> R?): List<R> {
     return mapNotNullTo(ArrayList<R>(), transform)

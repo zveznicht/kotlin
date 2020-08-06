@@ -1050,6 +1050,8 @@ public inline fun <T, R, C : MutableCollection<in R>> Sequence<T>.mapIndexedTo(d
  * to each element in the original sequence.
  *
  * The operation is _intermediate_ and _stateless_.
+ * 
+ * @sample samples.collections.Collections.Transformations.mapNotNull
  */
 public fun <T, R : Any> Sequence<T>.mapNotNull(transform: (T) -> R?): Sequence<R> {
     return TransformingSequence(this, transform).filterNotNull()

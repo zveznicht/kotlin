@@ -1530,6 +1530,8 @@ public inline fun <T, R, C : MutableCollection<in R>> Iterable<T>.mapIndexedTo(d
 /**
  * Returns a list containing only the non-null results of applying the given [transform] function
  * to each element in the original collection.
+ * 
+ * @sample samples.collections.Collections.Transformations.mapNotNull
  */
 public inline fun <T, R : Any> Iterable<T>.mapNotNull(transform: (T) -> R?): List<R> {
     return mapNotNullTo(ArrayList<R>(), transform)
