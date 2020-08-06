@@ -246,8 +246,8 @@ class Sequences {
         @Sample
         fun flattenSequenceOfSequences() {
             val sequence = generateSequence(1) { it + 1 }
-            val sequenceOfSequences = sequence.map { num ->
-                generateSequence { num }.take(num)
+            val sequenceOfSequences = sequence.map { number ->
+                generateSequence { number }.take(number)
             }
 
             assertPrints(sequenceOfSequences.flatten().take(10).toList(), "[1, 2, 2, 3, 3, 3, 4, 4, 4, 4]")
@@ -255,20 +255,18 @@ class Sequences {
 
         @Sample
         fun flattenSequenceOfLists() {
-            val sequence = generateSequence(1) { it + 1 }
-            val sequenceOfLists = sequence.map { num ->
-                generateSequence { num }.take(num).toList()
-            }
+            val sequence = sequenceOf("123", "45")
+            val sequenceOfLists = sequence.map { it.toList() }
 
-            assertPrints(sequenceOfLists.flatten().take(10).toList(), "[1, 2, 2, 3, 3, 3, 4, 4, 4, 4]")
+            assertPrints(sequenceOfLists.flatten().toList(), "[1, 2, 3, 4, 5]")
         }
 
         @Sample
         fun unzip() {
-            val result = generateSequence(1 to 1) { it.first + 1 to it.second * 2 }.take(10).unzip()
+            val result = generateSequence(0 to 1) { it.first + 1 to it.second * 2 }.take(8).unzip()
 
-            assertPrints(result.first.toList(), "[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]")
-            assertPrints(result.second.toList(), "[1, 2, 4, 8, 16, 32, 64, 128, 256, 512]")
+            assertPrints(result.first.toList(), "[0, 1, 2, 3, 4, 5, 6, 7]")
+            assertPrints(result.second.toList(), "[1, 2, 4, 8, 16, 32, 64, 128]")
         }
     }
 
