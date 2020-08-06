@@ -17,7 +17,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import javax.annotation.concurrent.ThreadSafe
+import org.jetbrains.kotlin.idea.fir.low.level.api.annotations.ThreadSafe
 import kotlin.concurrent.withLock
 
 /**
