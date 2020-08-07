@@ -31,24 +31,37 @@ abstract class KotlinUAnnotationBase<T : KtCallElement>(
     givenParent: UElement?
 ) : KotlinAbstractUElement(givenParent), UAnnotationEx, UAnchorOwner, UMultiResolvable {
 
+    val p = sourcePsi.text.contains("NON_EXISTING_TEST_COLUMN")
+
+    init {
+
+        if(p){
+            Exception(this.toString() + " " + sourcePsi.text).printStackTrace(System.out)
+        }
+    }
+
     abstract override val javaPsi: PsiAnnotation?
 
     final override val psi: PsiElement = sourcePsi
 
     protected abstract fun annotationUseSiteTarget(): AnnotationUseSiteTarget?
 
-    private val resolvedCall: ResolvedCall<*>? get () = sourcePsi.getResolvedCall(sourcePsi.analyze())
+    private val resolvedCall: ResolvedCall<*>? get () = sourcePsi.getResolvedCall(sourcePsi.analyze()).also {
+        if(p) println("resolved call: $it")
+    }
 
     override val qualifiedName: String? by lz {
         computeClassDescriptor().takeUnless(ErrorUtils::isError)
             ?.fqNameUnsafe
             ?.takeIf(FqNameUnsafe::isSafe)
             ?.toSafe()
-            ?.toString()
+            ?.toString().also {
+                if(p) println("qualifiedName: $it")
+            }
     }
 
     override val attributeValues: List<UNamedExpression> by lz {
-        resolvedCall?.valueArguments?.entries?.mapNotNull {
+        (resolvedCall?.valueArguments?.entries?.mapNotNull {
             val arguments = it.value.arguments
             val name = it.key.name.asString()
             when {
@@ -58,7 +71,9 @@ abstract class KotlinUAnnotationBase<T : KtCallElement>(
                     KotlinUNamedExpression.create(name, arguments, this)
                 else -> null
             }
-        } ?: emptyList()
+        } ?: emptyList()).also {
+            if(p) println("attributeValues: $it")
+        }
     }
 
     protected abstract fun computeClassDescriptor(): ClassDescriptor?
@@ -75,6 +90,8 @@ abstract class KotlinUAnnotationBase<T : KtCallElement>(
         return (mapping as? ArgumentMatch)?.let { match ->
             val namedExpression = attributeValues.find { it.name == match.valueParameter.name.asString() }
             namedExpression?.expression as? KotlinUVarargExpression ?: namedExpression
+        }.also {
+            if(p) println("findAttributeValueExpression($arg): $it, mapping = $mapping")
         }
     }
 
