@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
+import org.jetbrains.kotlin.ir.interpreter.exceptions.throwAsUserException
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
@@ -229,4 +230,12 @@ fun IrClass.internalName(): String {
             }
         }
     return internalName.toString()
+}
+
+inline fun withExceptionHandler(block: () -> Any?): Any? {
+    try {
+        return block()
+    } catch (e: Throwable) {
+        e.throwAsUserException()
+    }
 }
