@@ -534,10 +534,11 @@ class Collections {
 
         @Sample
         fun mapNotNull() {
-            val strings = listOf("12a", "45", "", "3")
-            val ints = strings.mapNotNull { it.toIntOrNull() }
+            val strings: List<String> = listOf("12a", "45", "", "3")
+            val ints: List<Int> = strings.mapNotNull { it.toIntOrNull() }
 
             assertPrints(ints, "[45, 3]")
+            assertPrints(ints.sum(), "48")
         }
 
         @Sample
