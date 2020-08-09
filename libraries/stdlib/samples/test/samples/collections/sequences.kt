@@ -245,8 +245,8 @@ class Sequences {
 
         @Sample
         fun flattenSequenceOfSequences() {
-            val sequence = generateSequence(1) { it + 1 }
-            val sequenceOfSequences = sequence.map { number ->
+            val sequence: Sequence<Int> = generateSequence(1) { it + 1 }
+            val sequenceOfSequences: Sequence<Sequence<Int>> = sequence.map { number ->
                 generateSequence { number }.take(number)
             }
 
@@ -255,8 +255,8 @@ class Sequences {
 
         @Sample
         fun flattenSequenceOfLists() {
-            val sequence = sequenceOf("123", "45")
-            val sequenceOfLists = sequence.map { it.toList() }
+            val sequence: Sequence<String> = sequenceOf("123", "45")
+            val sequenceOfLists: Sequence<List<Char>> = sequence.map { it.toList() }
 
             assertPrints(sequenceOfLists.flatten().toList(), "[1, 2, 3, 4, 5]")
         }
