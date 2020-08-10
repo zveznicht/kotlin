@@ -125,6 +125,8 @@ object FirErrors {
 
     // Control flow diagnostics
     val UNINITIALIZED_VARIABLE by error1<FirSourceElement, PsiElement, FirPropertySymbol>()
+    val WRONG_CALLED_ON_VALUE by error0<FirSourceElement, PsiElement>()
+    val WRONG_INVOCATION_VALUE by error2<FirSourceElement, PsiElement, AbstractFirBasedSymbol<*>, AbstractFirBasedSymbol<*>>()
 
     // Extended checkers group
     val REDUNDANT_VISIBILITY_MODIFIER by warning0<FirSourceElement, PsiElement>()

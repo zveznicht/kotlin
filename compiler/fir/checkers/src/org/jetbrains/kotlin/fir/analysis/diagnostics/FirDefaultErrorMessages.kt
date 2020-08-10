@@ -83,6 +83,8 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.UNRESOLVED_REFERE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.UPPER_BOUND_VIOLATED
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.VARIABLE_EXPECTED
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.VAR_ANNOTATION_PARAMETER
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.WRONG_CALLED_ON_VALUE
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.WRONG_INVOCATION_VALUE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 
 @Suppress("unused")
@@ -200,6 +202,8 @@ class FirDefaultErrorMessages : DefaultErrorMessages.Extension {
 
             // Control flow diagnostics
             map.put(UNINITIALIZED_VARIABLE, "{0} must be initialized before access", PROPERTY_NAME)
+            map.put(WRONG_CALLED_ON_VALUE, "Wrong required value. Other possible values were found.")
+            map.put(WRONG_INVOCATION_VALUE, "{0} must be invoked on {1}", SYMBOL, SYMBOL)
 
             // Extended checkers group
 //            map.put(REDUNDANT_VISIBILITY_MODIFIER, ...) // &
