@@ -28,7 +28,7 @@ open class KaptWithoutKotlincTask @Inject constructor(private val workerExecutor
     @get:InputFiles
     @get:Classpath
     @Suppress("unused")
-    val kaptJars: Collection<File> by project.provider {
+    val kaptJars: Collection<File> by lazy {
         project.configurations.getByName(KAPT_WORKER_DEPENDENCIES_CONFIGURATION_NAME).resolve()
     }
 
@@ -49,6 +49,9 @@ open class KaptWithoutKotlincTask @Inject constructor(private val workerExecutor
 
     @get:Input
     internal val kotlinAndroidPluginWrapperPluginDoesNotExist = project.plugins.none { it is KotlinAndroidPluginWrapper }
+
+    @get:Input
+    internal val kotlinStdlibClasspath = findKotlinStdlibClasspath(project)
 
     @get:Internal
     internal val projectDir = project.projectDir
@@ -116,7 +119,7 @@ open class KaptWithoutKotlincTask @Inject constructor(private val workerExecutor
         if (annotationProcessorFqNames.isEmpty() && kaptClasspath.isEmpty())
             return
 
-        val kaptClasspath = kaptJars + findKotlinStdlibClasspath(project)
+        val kaptClasspath = kaptJars + kotlinStdlibClasspath
 
         workerExecutor.submit(KaptExecution::class.java) { config ->
             //TODO for gradle < 6.5
