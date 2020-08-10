@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin
 import org.jetbrains.kotlin.backend.jvm.codegen.isJvmInterface
 import org.jetbrains.kotlin.backend.jvm.ir.copyCorrespondingPropertyFrom
 import org.jetbrains.kotlin.backend.jvm.ir.eraseTypeParameters
+import org.jetbrains.kotlin.backend.jvm.ir.erasedUpperBound
 import org.jetbrains.kotlin.backend.jvm.ir.isFromJava
 import org.jetbrains.kotlin.backend.jvm.ir.isJvmAbstract
 import org.jetbrains.kotlin.backend.jvm.lower.inlineclasses.unboxInlineClass
@@ -32,7 +33,10 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
+import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.name.Name
@@ -442,7 +446,8 @@ internal class BridgeLowering(val context: JvmBackendContext) : FileLoweringPass
             modality = if (specialBridge.isFinal) Modality.FINAL else Modality.OPEN
             origin = if (specialBridge.isSynthetic) IrDeclarationOrigin.BRIDGE else IrDeclarationOrigin.BRIDGE_SPECIAL
             name = Name.identifier(specialBridge.signature.name)
-            returnType = specialBridge.substitutedReturnType ?: specialBridge.overridden.returnType.eraseTypeParameters()
+            returnType = specialBridge.substitutedReturnType?.eraseToScope(target.parentAsClass)
+                ?: specialBridge.overridden.returnType.eraseTypeParameters()
         }.apply {
             context.functionsWithSpecialBridges.add(target)
 
@@ -531,26 +536,30 @@ internal class BridgeLowering(val context: JvmBackendContext) : FileLoweringPass
         from: IrSimpleFunction,
         substitutedParameterTypes: List<IrType>? = null
     ) {
+        val visibleTypeParameters = collectVisibleTypeParameters(this)
         // This is a workaround for a bug affecting fake overrides. Sometimes we encounter fake overrides
         // with dispatch receivers pointing at a superclass instead of the current class.
         dispatchReceiverParameter = irClass.thisReceiver?.copyTo(this, type = irClass.defaultType)
-        extensionReceiverParameter = from.extensionReceiverParameter?.copyWithTypeErasure(this)
+        extensionReceiverParameter = from.extensionReceiverParameter?.copyWithTypeErasure(this, visibleTypeParameters)
         valueParameters = if (substitutedParameterTypes != null) {
             from.valueParameters.zip(substitutedParameterTypes).map { (param, type) ->
-                param.copyWithTypeErasure(this, type)
+                param.copyWithTypeErasure(this, visibleTypeParameters, type)
             }
         } else {
-            from.valueParameters.map { it.copyWithTypeErasure(this) }
+            from.valueParameters.map { it.copyWithTypeErasure(this, visibleTypeParameters) }
         }
     }
 
-    private fun IrValueParameter.copyWithTypeErasure(target: IrSimpleFunction, substitutedType: IrType? = null): IrValueParameter =
-        copyTo(
-            target, IrDeclarationOrigin.BRIDGE,
-            type = (substitutedType ?: type.eraseTypeParameters()),
-            // Currently there are no special bridge methods with vararg parameters, so we don't track substituted vararg element types.
-            varargElementType = varargElementType?.eraseTypeParameters()
-        )
+    private fun IrValueParameter.copyWithTypeErasure(
+        target: IrSimpleFunction,
+        visibleTypeParameters: Set<IrTypeParameter>,
+        substitutedType: IrType? = null
+    ): IrValueParameter = copyTo(
+        target, IrDeclarationOrigin.BRIDGE,
+        type = (substitutedType?.eraseToScope(visibleTypeParameters) ?: type.eraseTypeParameters()),
+        // Currently there are no special bridge methods with vararg parameters, so we don't track substituted vararg element types.
+        varargElementType = varargElementType?.eraseToScope(visibleTypeParameters)
+    )
 
     private fun IrBuilderWithScope.delegatingCall(
         bridge: IrSimpleFunction,
@@ -559,10 +568,10 @@ internal class BridgeLowering(val context: JvmBackendContext) : FileLoweringPass
     ) = irCastIfNeeded(irCall(target, origin = IrStatementOrigin.BRIDGE_DELEGATION, superQualifierSymbol = superQualifierSymbol).apply {
         for ((param, targetParam) in bridge.explicitParameters.zip(target.explicitParameters)) {
             putArgument(targetParam, irGet(param).let { argument ->
-                if (param == bridge.dispatchReceiverParameter) argument else irCastIfNeeded(argument, targetParam.type)
+                if (param == bridge.dispatchReceiverParameter) argument else irCastIfNeeded(argument, targetParam.type.upperBound)
             })
         }
-    }, bridge.returnType)
+    }, bridge.returnType.upperBound)
 
     private fun IrBuilderWithScope.irCastIfNeeded(expression: IrExpression, to: IrType): IrExpression =
         if (expression.type == to || to.isAny() || to.isNullableAny()) expression else irImplicitCast(expression, to)
@@ -644,6 +653,34 @@ internal class BridgeLowering(val context: JvmBackendContext) : FileLoweringPass
         }
     }
 }
+
+private val IrType.upperBound: IrType
+    get() = erasedUpperBound.symbol.starProjectedType
+
+private fun IrType.eraseToScope(scopeOwner: IrTypeParametersContainer): IrType = eraseToScope(collectVisibleTypeParameters(scopeOwner))
+
+private fun IrType.eraseToScope(visibleTypeParameters: Set<IrTypeParameter>): IrType {
+    require(this is IrSimpleType) { error("Unexpected IrType kind: ${render()}") }
+    return when (classifier) {
+        is IrClassSymbol -> IrSimpleTypeImpl(classifier, hasQuestionMark, arguments.map { it.eraseToScope(visibleTypeParameters) }, annotations)
+        is IrTypeParameterSymbol -> if (classifier.owner in visibleTypeParameters) this else upperBound
+        else -> error("unknown IrType classifier kind: ${classifier.owner.render()}")
+    }
+}
+
+private fun IrTypeArgument.eraseToScope(visibleTypeParameters: Set<IrTypeParameter>): IrTypeArgument = when (this) {
+    is IrStarProjection -> this
+    is IrTypeProjection -> makeTypeProjection(type.eraseToScope(visibleTypeParameters), variance)
+    else -> error("unknown type projection kind: ${render()}")
+}
+
+private fun collectVisibleTypeParameters(scopeOwner: IrTypeParametersContainer): Set<IrTypeParameter> =
+    generateSequence(scopeOwner) { current ->
+        val parent = current.parent as? IrTypeParametersContainer
+        parent.takeUnless { parent is IrClass && current is IrClass && !current.isInner }
+    }
+        .flatMap { it.typeParameters }
+        .toSet()
 
 // Check whether a fake override will resolve to an implementation in class, not an interface.
 private fun IrSimpleFunction.resolvesToClass(): Boolean {
