@@ -26,8 +26,6 @@ class WasmSymbols(
 
     override val throwNullPointerException
         get() = TODO()
-    override val throwNoWhenBranchMatchedException
-        get() = TODO()
     override val throwTypeCastException
         get() = TODO()
     override val throwUninitializedPropertyAccessException

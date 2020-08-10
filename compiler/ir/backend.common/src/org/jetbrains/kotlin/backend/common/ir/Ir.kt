@@ -275,11 +275,8 @@ open class BuiltinSymbolsBase(protected val irBuiltIns: IrBuiltIns, protected va
 abstract class Symbols<out T : CommonBackendContext>(val context: T, irBuiltIns: IrBuiltIns, symbolTable: SymbolTable) :
     BuiltinSymbolsBase(irBuiltIns, context.builtIns, symbolTable) {
     abstract val throwNullPointerException: IrSimpleFunctionSymbol
-    abstract val throwNoWhenBranchMatchedException: IrSimpleFunctionSymbol
     abstract val throwTypeCastException: IrSimpleFunctionSymbol
-
     abstract val throwUninitializedPropertyAccessException: IrSimpleFunctionSymbol
-
     abstract val throwKotlinNothingValueException: IrSimpleFunctionSymbol
 
     abstract val stringBuilder: IrClassSymbol
