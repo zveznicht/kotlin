@@ -406,10 +406,16 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         kotlinExtension: KotlinMultiplatformExtension,
         cocoapodsExtension: CocoapodsExtension
     ) {
+        val sdks = mutableSetOf<String>()
 
         kotlinExtension.supportedTargets().all { target ->
 
             val sdk = target.toValidSDK
+            if (sdk in sdks) {
+                return@all
+            }
+            sdks += sdk
+
             val podGenTaskProvider = project.tasks.named(target.konanTarget.family.toPodGenTaskName, PodGenTask::class.java)
 
             project.tasks.register(sdk.toSetupBuildTaskName, PodSetupBuildTask::class.java) {
@@ -428,10 +434,15 @@ open class KotlinCocoapodsPlugin : Plugin<Project> {
         kotlinExtension: KotlinMultiplatformExtension,
         cocoapodsExtension: CocoapodsExtension
     ) {
+        val sdks = mutableSetOf<String>()
 
         kotlinExtension.supportedTargets().all { target ->
 
             val sdk = target.toValidSDK
+            if (sdk in sdks) {
+                return@all
+            }
+            sdks += sdk
 
             val podSetupBuildTaskProvider = project.tasks.named(sdk.toSetupBuildTaskName, PodSetupBuildTask::class.java)
 
