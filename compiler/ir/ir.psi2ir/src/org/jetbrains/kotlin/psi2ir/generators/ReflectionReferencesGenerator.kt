@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrConstructorSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrVariableSymbol
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.Name
@@ -206,7 +207,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
             else
                 IrCallImpl(
                     startOffset, endOffset, irType,
-                    adapteeSymbol,
+                    adapteeSymbol as IrSimpleFunctionSymbol,
                     origin = null, superQualifierSymbol = null
                 )
 

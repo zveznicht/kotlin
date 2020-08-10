@@ -17,7 +17,9 @@
 package org.jetbrains.kotlin.ir.expressions
 
 import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 
 interface IrCall : IrFunctionAccessExpression {
+    override val symbol: IrSimpleFunctionSymbol
     val superQualifierSymbol: IrClassSymbol?
 }
