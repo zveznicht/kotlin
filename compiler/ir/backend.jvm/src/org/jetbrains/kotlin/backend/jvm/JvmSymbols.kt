@@ -138,6 +138,9 @@ class JvmSymbols(
     override val throwNullPointerException: IrSimpleFunctionSymbol =
         intrinsicsClass.functions.single { it.owner.name.asString() == "throwNullPointerException" }
 
+    override val throwNoWhenBranchMatchedException: IrSimpleFunctionSymbol
+        get() = error("Unused in JVM IR")
+
     override val throwTypeCastException: IrSimpleFunctionSymbol =
         intrinsicsClass.functions.single { it.owner.name.asString() == "throwTypeCastException" }
 
