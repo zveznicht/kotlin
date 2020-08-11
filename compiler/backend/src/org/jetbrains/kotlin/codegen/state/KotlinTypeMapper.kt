@@ -383,7 +383,7 @@ class KotlinTypeMapper @JvmOverloads constructor(
         }
 
         // Force boxing for Result type, otherwise, the coroutines machinery will break
-        if (originalReturnType.constructor.declarationDescriptor?.fqNameSafe == FqName("kotlin.Result")) {
+        if (originalReturnType.constructor.declarationDescriptor?.fqNameSafe == RESULT_FQ_NAME) {
             return functionDescriptor.builtIns.nullableAnyType
         }
 
