@@ -917,6 +917,7 @@ signing {
     useGpgCmd()
 }
 
+val zipTestDataWithSignature by secureZipTask(zipTestData)
 val zipCompilerWithSignature by secureZipTask(zipCompiler)
 val zipPluginWithSignature by secureZipTask(zipPlugin)
 
