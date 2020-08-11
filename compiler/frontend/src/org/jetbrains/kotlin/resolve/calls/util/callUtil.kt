@@ -192,7 +192,15 @@ fun Call?.getResolvedCall(context: BindingContext): ResolvedCall<out CallableDes
 }
 
 fun KtElement?.getResolvedCall(context: BindingContext): ResolvedCall<out CallableDescriptor>? {
-    return this?.getCall(context)?.getResolvedCall(context)
+    if (this == null) return null
+    val call = this.getCall(context)
+    if (call == null) {
+        println("getCall returns null for ${this}[${this.text}]")
+        return null
+    }
+    return call.getResolvedCall(context).also {
+        if (it == null) println("getResolvedCall returns null for ${this}[${this.text}]")
+    }
 }
 
 fun KtElement?.getParentResolvedCall(context: BindingContext, strict: Boolean = true): ResolvedCall<out CallableDescriptor>? {
