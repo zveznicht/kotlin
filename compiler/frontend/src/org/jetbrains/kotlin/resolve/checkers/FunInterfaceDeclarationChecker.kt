@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.resolve.checkers
 
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.config.AnalysisFlags
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
@@ -60,7 +61,8 @@ class FunInterfaceDeclarationChecker : DeclarationChecker {
     ) {
         val ktFunction = abstractMember.source.getPsi() as? KtNamedFunction
 
-        if (abstractMember.isSuspend) {
+        // suspend functions as SAM in fun interfaces are supported only in JVM/IR backend
+        if (abstractMember.isSuspend && !context.languageVersionSettings.getFlag(AnalysisFlags.isJvmIrBackend)) {
             val reportOn = ktFunction?.modifierList?.getModifier(KtTokens.SUSPEND_KEYWORD) ?: funInterfaceKeyword
             context.trace.report(Errors.FUN_INTERFACE_WITH_SUSPEND_FUNCTION.on(reportOn))
             return

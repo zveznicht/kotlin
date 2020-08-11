@@ -695,6 +695,16 @@ public class CliTestGenerated extends AbstractCliTest {
             runTest("compiler/testData/cli/jvm/suppressAllWarningsJvm.args");
         }
 
+        @TestMetadata("suspendFunctionAsSAMInFunInterfaceIrBackend.args")
+        public void testSuspendFunctionAsSAMInFunInterfaceIrBackend() throws Exception {
+            runTest("compiler/testData/cli/jvm/suspendFunctionAsSAMInFunInterfaceIrBackend.args");
+        }
+
+        @TestMetadata("suspendFunctionAsSAMInFunInterfaceOldBackend.args")
+        public void testSuspendFunctionAsSAMInFunInterfaceOldBackend() throws Exception {
+            runTest("compiler/testData/cli/jvm/suspendFunctionAsSAMInFunInterfaceOldBackend.args");
+        }
+
         @TestMetadata("suspensionPointInMonitor.args")
         public void testSuspensionPointInMonitor() throws Exception {
             runTest("compiler/testData/cli/jvm/suspensionPointInMonitor.args");

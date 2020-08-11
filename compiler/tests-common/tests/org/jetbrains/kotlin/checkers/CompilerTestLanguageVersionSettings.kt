@@ -25,6 +25,7 @@ const val ALLOW_RESULT_RETURN_TYPE = "ALLOW_RESULT_RETURN_TYPE"
 const val INHERIT_MULTIFILE_PARTS = "INHERIT_MULTIFILE_PARTS"
 const val SANITIZE_PARENTHESES = "SANITIZE_PARENTHESES"
 const val CONSTRAINT_SYSTEM_FOR_OVERLOAD_RESOLUTION = "CONSTRAINT_SYSTEM_FOR_OVERLOAD_RESOLUTION"
+const val JVM_IR_BACKEND = "JVM_IR_BACKEND"
 
 data class CompilerTestLanguageVersionSettings(
         private val initialLanguageFeatures: Map<LanguageFeature, LanguageFeature.State>,
@@ -70,7 +71,8 @@ fun parseLanguageVersionSettings(directives: Directives): CompilerTestLanguageVe
         analysisFlag(AnalysisFlags.constraintSystemForOverloadResolution, directives[CONSTRAINT_SYSTEM_FOR_OVERLOAD_RESOLUTION]?.let {
             ConstraintSystemForOverloadResolutionMode.valueOf(it)
         }),
-        analysisFlag(AnalysisFlags.explicitApiVersion, if (apiVersionString != null) true else null)
+        analysisFlag(AnalysisFlags.explicitApiVersion, if (apiVersionString != null) true else null),
+        analysisFlag(AnalysisFlags.isJvmIrBackend, if (JVM_IR_BACKEND in directives) true else null)
     )
 
     if (apiVersionString == null && languageFeaturesString == null && analysisFlags.isEmpty()) {

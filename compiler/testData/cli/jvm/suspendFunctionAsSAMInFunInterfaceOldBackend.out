@@ -1,0 +1,4 @@
+compiler/testData/cli/jvm/suspendFunctionAsSAMInFunInterface.kt:2:5: error: 'suspend' function as a single abstract member is not supported, please use JVM/IR backend (-Xuse-ir) to enable this functionality
+    suspend fun invoke()
+    ^
+COMPILATION_ERROR
