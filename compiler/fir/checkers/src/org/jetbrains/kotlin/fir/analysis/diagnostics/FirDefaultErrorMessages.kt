@@ -108,6 +108,7 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.UPPER_BOUND_VIOLA
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.VARIABLE_EXPECTED
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.VAR_ANNOTATION_PARAMETER
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.WRONG_INVOCATION_KIND
+import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.VAR_TYPE_MISMATCH_ON_OVERRIDE
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.WRONG_NUMBER_OF_TYPE_ARGUMENTS
 
 @Suppress("unused")
@@ -256,8 +257,24 @@ class FirDefaultErrorMessages : DefaultErrorMessages.Extension {
             map.put(TYPE_PARAMETERS_IN_OBJECT, "Type parameters are not allowed for objects")
 //            map.put(ILLEGAL_PROJECTION_USAGE, ...) // &
             map.put(TYPE_PARAMETERS_IN_ENUM, "Enum class cannot have type parameters")
-            map.put(RETURN_TYPE_MISMATCH_ON_OVERRIDE, "Return type of ''{0}'' is not a subtype of the return type of the overridden member ''{1}''", TO_STRING, DECLARATION_NAME) // #
-            map.put(PROPERTY_TYPE_MISMATCH_ON_OVERRIDE, "Type of ''{0}'' is not a subtype of the overridden property ''{1}''", TO_STRING, DECLARATION_NAME) // #
+            map.put(
+                RETURN_TYPE_MISMATCH_ON_OVERRIDE,
+                "Return type of ''{0}'' is not a subtype of the return type of the overridden member ''{1}''",
+                TO_STRING,
+                DECLARATION_NAME
+            ) // #
+            map.put(
+                PROPERTY_TYPE_MISMATCH_ON_OVERRIDE,
+                "Type of ''{0}'' is not a subtype of the overridden property ''{1}''",
+                TO_STRING,
+                DECLARATION_NAME
+            ) // #
+            map.put(
+                VAR_TYPE_MISMATCH_ON_OVERRIDE,
+                "Type of ''{0}'' doesn''t match the type of the overridden var-property ''{1}''",
+                TO_STRING,
+                DECLARATION_NAME
+            ) // #
 
             // Redeclarations
             map.put(MANY_COMPANION_OBJECTS, "Only one companion object is allowed per class")
