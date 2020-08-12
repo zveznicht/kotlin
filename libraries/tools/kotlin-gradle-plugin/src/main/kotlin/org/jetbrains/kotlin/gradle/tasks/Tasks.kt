@@ -480,9 +480,13 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
     }
 
     @get:Internal
-    internal val compilerArgumentsContributor: CompilerArgumentsContributor<K2JVMCompilerArguments> by lazy {
-        KotlinJvmCompilerArgumentsContributor(KotlinJvmCompilerArgumentsProvider(this))
-    }
+    internal var _compilerArgumentsContributor: CompilerArgumentsContributor<K2JVMCompilerArguments>? = null
+
+    @get:Internal
+    internal val compilerArgumentsContributor: CompilerArgumentsContributor<K2JVMCompilerArguments>
+        get() = _compilerArgumentsContributor ?: KotlinJvmCompilerArgumentsContributor(KotlinJvmCompilerArgumentsProvider(this)).apply {
+            _compilerArgumentsContributor = this
+        }
 
     @Internal
     override fun getSourceRoots() = SourceRoots.ForJvm.create(getSource(), sourceRootsContainer, sourceFilesExtensions)
