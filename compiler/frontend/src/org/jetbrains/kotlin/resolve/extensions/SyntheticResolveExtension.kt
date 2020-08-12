@@ -145,6 +145,7 @@ interface SyntheticResolveExtension {
 
     fun getSyntheticFunctionNames(thisDescriptor: ClassDescriptor): List<Name> = emptyList()
 
+    @JvmDefault
     fun getSyntheticPropertiesNames(thisDescriptor: ClassDescriptor): List<Name> = emptyList()
 
     fun getSyntheticNestedClassNames(thisDescriptor: ClassDescriptor): List<Name> = emptyList()
