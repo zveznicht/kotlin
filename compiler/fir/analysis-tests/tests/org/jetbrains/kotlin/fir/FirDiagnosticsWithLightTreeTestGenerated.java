@@ -926,6 +926,11 @@ public class FirDiagnosticsWithLightTreeTestGenerated extends AbstractFirDiagnos
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/conflictingOverloads.kt");
         }
 
+        @TestMetadata("conflictingProjection.kt")
+        public void testConflictingProjection() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/conflictingProjection.kt");
+        }
+
         @TestMetadata("constructorInInterface.kt")
         public void testConstructorInInterface() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/diagnostics/constructorInInterface.kt");
