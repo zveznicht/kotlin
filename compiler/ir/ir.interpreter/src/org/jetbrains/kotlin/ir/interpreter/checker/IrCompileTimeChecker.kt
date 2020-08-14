@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.types.classifierOrNull
+import org.jetbrains.kotlin.ir.types.isAny
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
 import org.jetbrains.kotlin.name.FqName
@@ -17,7 +18,7 @@ import org.jetbrains.kotlin.name.FqName
 class IrCompileTimeChecker(
     containingDeclaration: IrElement? = null, private val mode: EvaluationMode = EvaluationMode.WITH_ANNOTATIONS
 ) : IrElementVisitor<Boolean, Nothing?> {
-    private val visitedStack = mutableListOf<IrElement?>().apply { if (containingDeclaration != null) add(containingDeclaration) }
+    private val visitedStack = mutableListOf<IrElement>().apply { if (containingDeclaration != null) add(containingDeclaration) }
 
     private fun IrElement.asVisited(block: () -> Boolean): Boolean {
         visitedStack += this
@@ -36,7 +37,7 @@ class IrCompileTimeChecker(
     private fun visitConstructor(expression: IrFunctionAccessExpression): Boolean {
         return when {
             !visitValueParameters(expression, null) -> false
-            else -> mode.canEvaluateFunction(expression.symbol.owner)
+            else -> if (mode.canEvaluateBody(expression.symbol.owner)) expression.symbol.owner.body?.accept(this, null) != false else true
         }
     }
 
@@ -85,7 +86,7 @@ class IrCompileTimeChecker(
     }
 
     override fun visitComposite(expression: IrComposite, data: Nothing?): Boolean {
-        if (expression.origin == IrStatementOrigin.DESTRUCTURING_DECLARATION) {
+        if (expression.origin == IrStatementOrigin.DESTRUCTURING_DECLARATION || expression.origin == null) {
             return visitStatements(expression.statements, data)
         }
         return false
@@ -115,7 +116,8 @@ class IrCompileTimeChecker(
     }
 
     override fun visitGetField(expression: IrGetField, data: Nothing?): Boolean {
-        if (expression.receiver == null) return expression.symbol.owner.correspondingPropertySymbol?.owner?.isConst == true
+        if (expression.receiver == null)
+            return expression.symbol.owner.correspondingPropertySymbol?.owner?.let { it.isConst || it.backingField?.initializer?.expression is IrConst<*> } == true
 
         val property = expression.symbol.owner.correspondingPropertySymbol?.owner
         val owner = expression.symbol.owner
@@ -123,7 +125,7 @@ class IrCompileTimeChecker(
         val getter = parent.declarations.filterIsInstance<IrProperty>().single { it == property }.getter
         val isJavaPrimitiveStatic = owner.origin == IrDeclarationOrigin.IR_EXTERNAL_JAVA_DECLARATION_STUB && owner.isStatic &&
                 owner.parentAsClass.fqNameWhenAvailable.isJavaPrimitive()
-        return visitedStack.contains(getter) || isJavaPrimitiveStatic
+        return getter?.let { visitedStack.contains(it) } == true || isJavaPrimitiveStatic
     }
 
     // TODO find similar method in utils
@@ -136,6 +138,9 @@ class IrCompileTimeChecker(
     }
 
     override fun visitSetField(expression: IrSetField, data: Nothing?): Boolean {
+        if (expression.receiver.let { it == null || (it.type.classifierOrNull?.owner as? IrClass)?.isObject == true }) {
+            return false
+        }
         //todo check receiver?
         val property = expression.symbol.owner.correspondingPropertySymbol?.owner
         val parent = expression.symbol.owner.parent as IrDeclarationContainer
@@ -147,8 +152,26 @@ class IrCompileTimeChecker(
         return visitConstructor(expression)
     }
 
+    override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall, data: Nothing?): Boolean {
+        if (expression.symbol.owner.returnType.isAny()) return true
+        return visitConstructor(expression)
+    }
+
     override fun visitEnumConstructorCall(expression: IrEnumConstructorCall, data: Nothing?): Boolean {
         return visitConstructor(expression)
+    }
+
+    override fun visitInstanceInitializerCall(expression: IrInstanceInitializerCall, data: Nothing?): Boolean {
+        val irClass = expression.classSymbol.owner
+        val classProperties = irClass.declarations.filterIsInstance<IrProperty>()
+        val anonymousInitializer = irClass.declarations.filterIsInstance<IrAnonymousInitializer>().filter { !it.isStatic }
+
+
+        return anonymousInitializer.all { init -> init.body.accept(this, data) } && classProperties.all {
+            val propertyInitializer = it.backingField?.initializer?.expression
+            if ((propertyInitializer as? IrGetValue)?.origin == IrStatementOrigin.INITIALIZE_PROPERTY_FROM_PARAMETER) return@all true
+            return@all (propertyInitializer?.accept(this, data) != false)
+        }
     }
 
     override fun visitFunctionReference(expression: IrFunctionReference, data: Nothing?): Boolean {
