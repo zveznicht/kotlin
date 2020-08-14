@@ -172,7 +172,13 @@ interface IrTypeSystemContext : TypeSystemContext, TypeSystemCommonSuperTypesCon
 
         val typeParameters = extractTypeParameters(classifier.owner)
 
-        require(typeArguments.size == typeParameters.size)
+        /**
+         * val <T : Any> KClass<T>.primaryConstructor0: KFunction<T>
+         *   get() = object : KFunction<T> {}
+         *
+         * If type is `object` there is no type arguments
+         */
+        if (typeArguments.size != typeParameters.size) return null
 
         if (typeArguments.all { it is IrTypeProjection && it.variance == Variance.INVARIANT }) return type
 
