@@ -50,15 +50,32 @@ dependencies {
 val shortenTempRootName = System.getProperty("os.name")!!.contains("Windows")
 
 // additional configuration in tasks.withType<Test> below
-projectTest("test", shortenTempRootName = shortenTempRootName) {}
+projectTest("test", shortenTempRootName = shortenTempRootName) {
+    filter.excludeTestsMatching("org.jetbrains.kotlin.gradle.native.*")
+    dependsOn("testNative")
+}
 
 projectTest("testAdvanceGradleVersion", shortenTempRootName = shortenTempRootName) {
     val gradleVersionForTests = "6.3"
     systemProperty("kotlin.gradle.version.for.tests", gradleVersionForTests)
+    filter.excludeTestsMatching("org.jetbrains.kotlin.gradle.native.*")
+    dependsOn("testNativeAdvanceGradleVersion")
+}
+
+projectTest("testNative", shortenTempRootName = shortenTempRootName) {
+    filter.includeTestsMatching("org.jetbrains.kotlin.gradle.native.*")
+}
+
+projectTest("testNativeAdvanceGradleVersion", shortenTempRootName = shortenTempRootName) {
+    filter.includeTestsMatching("org.jetbrains.kotlin.gradle.native.*")
 }
 
 tasks.named<Task>("check") {
-    dependsOn("testAdvanceGradleVersion")
+    dependsOn(
+        "testAdvanceGradleVersion",
+        "testNative",
+        "testNativeAdvanceGradleVersion"
+    )
 }
 
 gradle.taskGraph.whenReady {
