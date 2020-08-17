@@ -584,7 +584,7 @@ public abstract class StackValue {
             toType.getSort() == Type.OBJECT &&
             !fromType.equals(OBJECT_TYPE) && //TODO: investigate a bunch of failed coroutines tests
             !KotlinBuiltIns.isNothingOrNullableNothing(fromKotlinType)) {
-            if (KotlinTypeChecker.DEFAULT.isSubtypeOf(fromKotlinType, toKotlinType)) return; //use implicit cast
+            if (KotlinTypeChecker.DEFAULT.isSubtypeOf(fromKotlinType, TypeUtils.makeNullable(toKotlinType))) return; //use implicit cast
         }
         coerce(fromType, toType, v);
     }
