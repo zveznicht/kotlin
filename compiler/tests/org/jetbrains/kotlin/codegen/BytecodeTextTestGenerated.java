@@ -942,6 +942,16 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
                 runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/lambdaAsParameter.kt");
             }
 
+            @TestMetadata("listAndMutableList.kt")
+            public void testListAndMutableList() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/listAndMutableList.kt");
+            }
+
+            @TestMetadata("nullable.kt")
+            public void testNullable() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/nullable.kt");
+            }
+
             @TestMetadata("return.kt")
             public void testReturn() throws Exception {
                 runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/return.kt");
