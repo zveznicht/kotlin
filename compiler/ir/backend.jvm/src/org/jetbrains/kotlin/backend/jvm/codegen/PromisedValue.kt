@@ -61,7 +61,7 @@ abstract class PromisedValue(val codegen: ExpressionCodegen, val type: Type, val
                 type != AsmTypes.OBJECT_TYPE &&
                 //TODO: Missed type parameters in coroutines types
                 irType.classifierOrNull?.let { (it.owner as? IrClass)?.origin == JvmLoweredDeclarationOrigin.SUSPEND_LAMBDA } != true &&
-                irType.isSubtypeOf(irTarget, codegen.context.irBuiltIns)
+                irType.isSubtypeOf(irTarget.makeNullable(), codegen.context.irBuiltIns)
             ) {
                 return
             }
