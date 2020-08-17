@@ -3053,6 +3053,11 @@ public class NewJavaToKotlinConverterSingleFileTestGenerated extends AbstractNew
             runTest("nj2k/testData/newJ2k/issues/kt-20421.java");
         }
 
+        @TestMetadata("kt-20421_interface.java")
+        public void testKt_20421_interface() throws Exception {
+            runTest("nj2k/testData/newJ2k/issues/kt-20421_interface.java");
+        }
+
         @TestMetadata("kt-21189.java")
         public void testKt_21189() throws Exception {
             runTest("nj2k/testData/newJ2k/issues/kt-21189.java");
