@@ -20,12 +20,8 @@ class IrTypeSubstitutor(
     private val irBuiltIns: IrBuiltIns
 ): TypeSubstitutorMarker {
     init {
-        assert(typeParameters.size == typeArguments.size) {
-            "Unexpected number of type arguments: ${typeArguments.size}\n" +
-                    "Type parameters are:\n" +
-                    typeParameters.joinToString(separator = "\n") { it.owner.render() } +
-                    "Type arguments are:\n" +
-                    typeArguments.joinToString(separator = "\n") { it.render() }
+        assert(typeParameters.size <= typeArguments.size) {
+            "Number of arguments should not be less then number of parameters, but: parameters=${typeParameters.size}, args=${typeArguments.size}"
         }
     }
 
