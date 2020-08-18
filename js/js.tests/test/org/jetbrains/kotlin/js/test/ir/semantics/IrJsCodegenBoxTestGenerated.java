@@ -2798,6 +2798,11 @@ public class IrJsCodegenBoxTestGenerated extends AbstractIrJsCodegenBoxTest {
             runTest("compiler/testData/codegen/box/checkcastOptimization/genericProperty.kt");
         }
 
+        @TestMetadata("intersection.kt")
+        public void testIntersection() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/intersection.kt");
+        }
+
         @TestMetadata("kt19128.kt")
         public void testKt19128() throws Exception {
             runTest("compiler/testData/codegen/box/checkcastOptimization/kt19128.kt");
