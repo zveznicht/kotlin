@@ -403,7 +403,22 @@ class ExpressionCodegen(
 
         expression.dispatchReceiver?.let { receiver ->
             val type = if (expression.superQualifierSymbol != null) receiver.asmType else callable.owner
-            // Type mapper could use more specific type for invoke instruction and it  will cause inconsistency between irType and asmType below (see kt10822.kt)
+            // Checkcast is required because type mapper could use more specific type for invoke instruction and
+            // it  will cause inconsistency between irType and asmType below (see kt10822.kt):
+            //        interface A {
+            //            fun foo() {  }
+            //        }
+            //
+            //        class Z {
+            //            fun<T : A> test(init: Z.() -> T): T = init()
+            //        }
+            //
+            //        fun test(){
+            //            Z().test {
+            //                object : A {}
+            //            }.foo() //INVOKEVIRTUAL Kt10822Kt$box$1$1.foo ()V
+            //        }
+            // TODO: conform logic
             callGenerator.genValueAndPut(callee.dispatchReceiverParameter!!, receiver, type, this, data, false)
         }
 
