@@ -40,6 +40,7 @@ import org.jetbrains.kotlin.resolve.jvm.AsmTypes;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterKind;
 import org.jetbrains.kotlin.resolve.jvm.jvmSignature.JvmMethodParameterSignature;
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue;
+import org.jetbrains.kotlin.types.IntersectionTypeConstructor;
 import org.jetbrains.kotlin.types.KotlinType;
 import org.jetbrains.kotlin.types.SimpleType;
 import org.jetbrains.kotlin.types.TypeUtils;
@@ -584,7 +585,9 @@ public abstract class StackValue {
             fromType.getSort() == Type.OBJECT &&
             toType.getSort() == Type.OBJECT &&
             !fromType.equals(OBJECT_TYPE) && //TODO: investigate a bunch of failed coroutines tests
-            !KotlinBuiltIns.isNothingOrNullableNothing(fromKotlinType)) {
+            !KotlinBuiltIns.isNothingOrNullableNothing(fromKotlinType) &&
+            /*TODO: use same approximation as type mapper*/
+            !(fromKotlinType.getConstructor() instanceof IntersectionTypeConstructor)) {
             if (KotlinTypeChecker.DEFAULT.isSubtypeOf(fromKotlinType, TypeUtils.makeNullable(toKotlinType))) return; //use implicit cast
         }
         coerce(fromType, toType, v);
