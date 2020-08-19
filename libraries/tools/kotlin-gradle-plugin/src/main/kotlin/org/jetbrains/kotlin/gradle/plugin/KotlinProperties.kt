@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.gradle.dsl.NativeCacheKind
 import org.jetbrains.kotlin.gradle.internal.testing.TCServiceMessageOutputStreamHandler.Companion.IGNORE_TCSM_OVERFLOW
 import org.jetbrains.kotlin.gradle.plugin.Kotlin2JsPlugin.Companion.NOWARN_2JS_FLAG
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType.Companion.jsCompilerProperty
+import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMultiplatformPlugin
 import org.jetbrains.kotlin.gradle.targets.native.DisabledNativeTargetsReporter
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
@@ -18,6 +19,7 @@ import org.jetbrains.kotlin.gradle.tasks.CacheBuilder
 import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jetbrains.kotlin.gradle.utils.SingleWarningPerBuild
+import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import java.io.File
 import java.util.*
 
@@ -218,7 +220,10 @@ internal class PropertiesProvider private constructor(private val project: Proje
      * Use Kotlin/JS backend compiler type
      */
     val jsGenerateExecutableDefault: Boolean
-        get() = booleanProperty("kotlin.js.generate.executable.default") ?: true
+        get() = (booleanProperty("kotlin.js.generate.executable.default") ?: true).also {
+            KotlinBuildStatsService.getInstance()
+                ?.report(BooleanMetrics.JS_GENERATE_EXECUTABLE_DEFAULT, it)
+        }
 
     val noWarn2JsPlugin: Boolean
         get() = booleanProperty(NOWARN_2JS_FLAG) ?: false

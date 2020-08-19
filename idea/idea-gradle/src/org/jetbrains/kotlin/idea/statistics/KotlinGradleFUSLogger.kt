@@ -105,7 +105,8 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
                 BooleanMetrics.ENABLED_HMPP,
                 StringMetrics.JS_COMPILER_MODE,
                 BooleanMetrics.JS_GENERATE_EXTERNALS,
-                StringMetrics.JS_TARGET_MODE
+                StringMetrics.JS_TARGET_MODE,
+                BooleanMetrics.JS_GENERATE_EXECUTABLE_DEFAULT
             )
 
             container.log(
