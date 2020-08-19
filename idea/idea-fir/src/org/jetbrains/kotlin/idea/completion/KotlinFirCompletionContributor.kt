@@ -88,14 +88,14 @@ private object KotlinAvailableScopesCompletionContributor {
 
                 val extensionNonMembers = implicitScopes
                     .getCallableSymbols()
-                    .filter { it.isExtension && it.canBeCalledWith(listOf(typeOfPossibleReceiver)) }
+                    .filter { it.isExtension && resolveAndCheckReceivers(it, originalFile, nameExpression, possibleReceiver) }
 
                 nonExtensionMembers.forEach(::addToCompletion)
                 extensionNonMembers.forEach(::addToCompletion)
             } else if (possibleReceiver == null) {
                 val extensionNonMembers = implicitScopes
                     .getCallableSymbols()
-                    .filter { !it.isExtension || it.canBeCalledWith(implicitReceivers) }
+                    .filter { !it.isExtension || resolveAndCheckReceivers(it, originalFile, nameExpression, possibleReceiver) }
 
                 extensionNonMembers.forEach(::addToCompletion)
 
