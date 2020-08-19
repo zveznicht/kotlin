@@ -5,10 +5,12 @@
 
 package org.jetbrains.kotlin.gradle.targets.js.dukat
 
+import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmDependency
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmDependency.Scope.NORMAL
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmDependency.Scope.OPTIONAL
 import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject
+import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import java.io.File
 
 class DtsResolver(val npmProject: NpmProject) {
@@ -31,6 +33,10 @@ class DtsResolver(val npmProject: NpmProject) {
             }
             .sortedBy { it.inputKey }
             .toList()
+            .also {
+                KotlinBuildStatsService.getInstance()
+                    ?.report(BooleanMetrics.JS_GENERATE_EXTERNALS, it.isNotEmpty())
+            }
     }
 
     private fun getDtsFromDependency(
