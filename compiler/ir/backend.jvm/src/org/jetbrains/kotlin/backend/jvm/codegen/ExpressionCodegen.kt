@@ -835,7 +835,9 @@ class ExpressionCodegen(
             returnType = unboxedInlineClass.asmType
         }
         val afterReturnLabel = Label()
-        expression.value.accept(this, data).materializeAt(returnType, returnIrType, true)
+        // Checkcast on return expression withing inline function is required also for compatibility with old compiler
+        // TODO: support checkcast on callsite and pass `allowNoUpcast = true` in 1.5/1.6
+        expression.value.accept(this, data).materializeAt(returnType, returnIrType, (returnTarget as? IrFunction)?.isInline != true)
         generateFinallyBlocksIfNeeded(returnType, afterReturnLabel, data)
         expression.markLineNumber(startOffset = true)
         if (isNonLocalReturn) {
