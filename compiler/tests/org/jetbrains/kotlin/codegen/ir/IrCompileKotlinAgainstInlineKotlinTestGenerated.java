@@ -2717,6 +2717,11 @@ public class IrCompileKotlinAgainstInlineKotlinTestGenerated extends AbstractIrC
         public void testKt20844() throws Exception {
             runTest("compiler/testData/codegen/boxInline/optimizations/kt20844.kt");
         }
+
+        @TestMetadata("typeParameters.kt")
+        public void testTypeParameters() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/optimizations/typeParameters.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/boxInline/private")
