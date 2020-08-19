@@ -251,6 +251,7 @@ private fun prepareSubstitutingScopeForTypeAliasConstructors(
                         buildValueParameter {
                             source = valueParameter.source
                             this.session = session
+                            resolvePhase = valueParameter.resolvePhase
                             origin = FirDeclarationOrigin.FakeOverride
                             returnTypeRef = valueParameter.returnTypeRef.withReplacedConeType(newParameterType)
                             name = valueParameter.name
