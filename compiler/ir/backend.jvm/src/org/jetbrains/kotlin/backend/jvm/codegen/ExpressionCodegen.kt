@@ -853,7 +853,9 @@ class ExpressionCodegen(
             returnType = unboxedInlineClass.asmType
         }
         val afterReturnLabel = Label()
-        expression.value.accept(this, data).materializeAt(returnType, returnIrType, true)
+        // Checkcast on return expression withing inline function is required also for compatibility with old compiler
+        // TODO: support checkcast on callsite and pass `allowNoUpcast = true` in 1.5/1.6
+        expression.value.accept(this, data).materializeAt(returnType, returnIrType, (returnTarget as? IrFunction)?.isInline != true)
         // In case of non-local return from suspend lambda 'materializeAt' does not box return value, box it manually.
         if (isNonLocalReturn && owner.isInvokeSuspendOfLambda() && expression.value.type.isKotlinResult()) {
             StackValue.boxInlineClass(expression.value.type.toIrBasedKotlinType(), mv)
