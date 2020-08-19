@@ -104,6 +104,7 @@ class KotlinGradleFUSLogger : StartupActivity, DumbAware, Runnable {
                 StringMetrics.MPP_PLATFORMS,
                 BooleanMetrics.ENABLED_HMPP,
                 StringMetrics.JS_COMPILER_MODE,
+                BooleanMetrics.JS_GENERATE_EXTERNALS,
                 StringMetrics.JS_TARGET_MODE
             )
 
