@@ -139,9 +139,12 @@ object AndroidTargetConfigurator : TargetConfigurator,
     SimpleTargetConfigurator,
     AndroidModuleConfigurator,
     SingleCoexistenceTargetConfigurator,
-    ModuleConfiguratorSettings() {
+    ModuleConfiguratorSettings(),
+    ModuleConfiguratorWithTests {
     override val moduleSubType = ModuleSubType.android
     override val moduleType = ModuleType.android
+
+    override fun defaultTestFramework(): KotlinTestFramework = KotlinTestFramework.JUNIT4
 
     override val text = KotlinNewProjectWizardBundle.message("module.configurator.android")
 
@@ -152,7 +155,8 @@ object AndroidTargetConfigurator : TargetConfigurator,
         inContextOfModuleConfigurator(module) { androidPlugin.reference.settingValue }
 
     override fun getConfiguratorSettings() = buildList<ModuleConfiguratorSetting<*, *>> {
-        +super.getConfiguratorSettings()
+        +super<AndroidModuleConfigurator>.getConfiguratorSettings()
+        +super<ModuleConfiguratorWithTests>.getConfiguratorSettings()
         +androidPlugin
     }
 
@@ -183,6 +187,7 @@ object AndroidTargetConfigurator : TargetConfigurator,
 
     override fun createModuleIRs(reader: Reader, configurationData: ModulesToIrConversionData, module: Module): List<BuildSystemIR> =
         buildList {
+            +super<ModuleConfiguratorWithTests>.createModuleIRs(reader, configurationData, module)
             +super<AndroidModuleConfigurator>.createModuleIRs(reader, configurationData, module)
             +ArtifactBasedLibraryDependencyIR(
                 MavenArtifact(DefaultRepository.MAVEN_CENTRAL, "junit", "junit"),
