@@ -5,12 +5,13 @@
 
 package org.jetbrains.kotlin.compilerRunner
 
-import org.jetbrains.kotlin.cli.common.ExitCode
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import java.io.BufferedReader
-import java.io.ByteArrayOutputStream
-import java.io.StringReader
+import com.intellij.openapi.util.io.FileUtil
+import com.intellij.util.text.StringFactory
+import org.jetbrains.kotlin.cli.config.common.ExitCode
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.messages.MessageCollector
+import java.io.*
+import java.nio.charset.StandardCharsets
 
 fun reportInternalCompilerError(messageCollector: MessageCollector) {
     messageCollector.report(CompilerMessageSeverity.ERROR, "Compiler terminated with internal error")
@@ -35,5 +36,17 @@ fun processCompilerOutput(
 
     if (ExitCode.INTERNAL_ERROR == exitCode) {
         reportInternalCompilerError(messageCollector)
+    }
+}
+
+@Throws(IOException::class)
+fun loadTextAndClose(stream: InputStream): String {
+    return loadTextAndClose((InputStreamReader(stream, StandardCharsets.UTF_8) as Reader))
+}
+
+@Throws(IOException::class)
+fun loadTextAndClose(reader: Reader): String {
+    return reader.use { reader ->
+        StringFactory.createShared(FileUtil.adaptiveLoadText(reader))
     }
 }

@@ -9,8 +9,7 @@ import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.AndroidSourceSet
 import com.android.build.gradle.api.BaseVariant
 import com.android.build.gradle.api.SourceKind
-import com.intellij.openapi.util.SystemInfo
-import com.intellij.util.lang.JavaVersion
+import org.gradle.api.JavaVersion
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -477,12 +476,12 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
             kaptExtension.getJavacOptions().toMutableMap().also { result ->
                 if (javaCompile != null && "-source" !in result && "--source" !in result && "--release" !in result) {
                     val atLeast12Java =
-                        if (isConfigurationCacheAvailable(project.gradle)) {
-                            val currentJavaVersion = JavaVersion.parse(project.providers.systemProperty("java.version").forUseAtConfigurationTime().get())
-                            currentJavaVersion.feature >= 12
-                        } else {
-                            SystemInfo.isJavaVersionAtLeast(12, 0, 0)
-                        }
+//                        if (isConfigurationCacheAvailable(project.gradle)) {
+//                            val currentJavaVersion = JavaVersion.parse(project.providers.systemProperty("java.version").forUseAtConfigurationTime().get())
+//                            currentJavaVersion.feature >= 12
+//                        } else {
+                            isBelowJava12
+//                        }
                     val sourceOptionKey = if (atLeast12Java) {
                         "--source"
                     } else {
@@ -597,6 +596,9 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
 
     override fun getPluginArtifact(): SubpluginArtifact =
         JetBrainsSubpluginArtifact(artifactId = KAPT_ARTIFACT_NAME)
+
+    private val isBelowJava12: Boolean
+        get() = JavaVersion.current() < JavaVersion.VERSION_12
 }
 
 private val artifactType = Attribute.of("artifactType", String::class.java)

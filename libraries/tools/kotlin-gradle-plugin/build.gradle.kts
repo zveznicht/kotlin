@@ -33,12 +33,27 @@ pill {
     variant = PillExtension.Variant.FULL
 }
 
+
+val modulesToInclude =
+    listOf(
+        ":core:util.runtime",
+        ":compiler:cli-messages",
+        ":compiler:cli-config-base",
+        ":kotlin-compiler-runner"
+    )
+
 dependencies {
+
+    modulesToInclude.forEach {
+        jarContents(compileOnly(project(it)) { isTransitive = false })
+    }
+
     compile(project(":kotlin-gradle-plugin-api"))
     compile(project(":kotlin-gradle-plugin-model"))
     compileOnly(project(":compiler"))
     compileOnly(project(":compiler:incremental-compilation-impl"))
     compileOnly(project(":daemon-common"))
+    compileOnly(project(":kotlin-daemon-client"))
 
     compile(kotlinStdlib())
     compile(project(":kotlin-util-klib"))
@@ -64,7 +79,7 @@ dependencies {
     compileOnly("org.codehaus.groovy:groovy-all:2.4.12")
     compileOnly(gradleApi())
 
-    compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+//    compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
 
     runtimeOnly(projectRuntimeJar(":kotlin-compiler-embeddable"))
     runtimeOnly(projectRuntimeJar(":kotlin-annotation-processing-gradle"))
@@ -89,6 +104,7 @@ dependencies {
     testCompile(intellijDep()) { includeJars("junit", "serviceMessages", rootProject = rootProject) }
 
     testCompileOnly(project(":compiler"))
+
     testCompile(projectTests(":kotlin-build-common"))
     testCompile(project(":kotlin-android-extensions"))
     testCompile(project(":kotlin-compiler-runner"))
