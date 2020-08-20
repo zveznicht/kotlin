@@ -3,13 +3,20 @@
 // RUN_PLAIN_BOX_FUNCTION
 // EXPECTED_REACHABLE_NODES: 1316
 
+// MODULE: lib0
+// FILE: lib0.kt
+
+class Dep {
+    fun bee() = "beedep"
+}
+
 // MODULE: lib1
 // FILE: lib1.kt
 
 @JsExport
 fun O(): String = "O"
 
-// MODULE: lib2(lib1)
+// MODULE: lib2(lib1, lib0)
 // FILE: file.kt
 @file:JsExport
 
@@ -33,6 +40,9 @@ fun doCCC() = CCC()
 @JsExport
 val prop: String
     get() = "kek"
+
+@JsExport
+fun dep() = Dep()
 
 // MODULE: main(lib1, lib2)
 // FILE: main.kt
@@ -61,6 +71,8 @@ function box() {
     if (cc.bux() != 64) return "fail new CCC()";
 
     if (kotlin_lib2.prop != "kek") return "fail prop";
+
+    if (kotlin_lib2.dep().bee() != "beedep") return "fail beedep";
 
     if (main.test() != "OK") return "fail 1";
 
