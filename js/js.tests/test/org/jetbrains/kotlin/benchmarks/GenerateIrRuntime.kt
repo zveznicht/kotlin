@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.descriptors.konan.kotlinLibrary
-import org.jetbrains.kotlin.incremental.ChangedFiles
+import org.jetbrains.kotlin.gradle.incremental.ChangedFiles
 import org.jetbrains.kotlin.incremental.EmptyICReporter
 import org.jetbrains.kotlin.incremental.IncrementalJsCompilerRunner
 import org.jetbrains.kotlin.incremental.components.LookupTracker
