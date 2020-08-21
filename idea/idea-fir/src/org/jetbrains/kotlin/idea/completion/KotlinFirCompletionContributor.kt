@@ -71,7 +71,7 @@ private object KotlinAvailableScopesCompletionContributor {
         val possibleReceiver = nameExpression.getQualifiedExpressionForSelector()?.receiverExpression
 
         with(getAnalysisSessionFor(originalFile).createContextDependentCopy()) {
-            val (implicitScopes, implicitReceivers) = originalFile.getScopeContextForPosition(parameters.originalPosition, nameExpression)
+            val (implicitScopes, _) = originalFile.getScopeContextForPosition(parameters.originalPosition, nameExpression)
 
             val typeOfPossibleReceiver = possibleReceiver?.getKtType()
             val possibleReceiverScope = typeOfPossibleReceiver?.getTypeScope()
@@ -88,14 +88,28 @@ private object KotlinAvailableScopesCompletionContributor {
 
                 val extensionNonMembers = implicitScopes
                     .getCallableSymbols()
-                    .filter { it.isExtension && resolveAndCheckReceivers(it, originalFile, nameExpression, possibleReceiver) }
+                    .filter {
+                        it.isExtension && it.checkExtensionIsSuitable(
+                            originalFile,
+                            parameters.originalPosition,
+                            nameExpression,
+                            possibleReceiver
+                        )
+                    }
 
                 nonExtensionMembers.forEach(::addToCompletion)
                 extensionNonMembers.forEach(::addToCompletion)
             } else if (possibleReceiver == null) {
                 val extensionNonMembers = implicitScopes
                     .getCallableSymbols()
-                    .filter { !it.isExtension || resolveAndCheckReceivers(it, originalFile, nameExpression, possibleReceiver) }
+                    .filter {
+                        !it.isExtension || it.checkExtensionIsSuitable(
+                            originalFile,
+                            parameters.originalPosition,
+                            nameExpression,
+                            possibleReceiver
+                        )
+                    }
 
                 extensionNonMembers.forEach(::addToCompletion)
 
@@ -104,11 +118,4 @@ private object KotlinAvailableScopesCompletionContributor {
             }
         }
     }
-}
-
-private fun KtCallableSymbol.canBeCalledWith(implicitReceivers: List<KtType>): Boolean {
-    val requiredReceiverType = (this as? KtPossibleExtensionSymbol)?.receiverType
-        ?: error("Extension receiver type should be present on $this")
-
-    return implicitReceivers.any { it.isSubTypeOf(requiredReceiverType) }
 }
