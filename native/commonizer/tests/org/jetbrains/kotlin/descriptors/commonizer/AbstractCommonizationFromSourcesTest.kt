@@ -314,11 +314,11 @@ private class CommonizedCommonDependenciesContainer(
 
     override val moduleInfos: List<ModuleInfo> get() = listOf(commonModuleInfo)
 
-    override fun moduleDescriptorForModuleInfo(moduleInfo: ModuleInfo): ModuleDescriptor {
+    override fun moduleDescriptorForModuleInfo(moduleInfo: ModuleInfo): ModuleDescriptorImpl {
         if (moduleInfo !== commonModuleInfo)
             error("Unknown module info $moduleInfo")
 
-        return commonModule
+        return commonModule as ModuleDescriptorImpl
     }
 
     override fun registerDependencyForAllModules(moduleInfo: ModuleInfo, descriptorForModule: ModuleDescriptorImpl) = Unit
