@@ -23,13 +23,13 @@ data class ClasspathArgumentCacheId(override val argumentId: ClasspathArgumentCa
 interface IArgumentsCache<K, T : ArgumentCacheId<K>> : Serializable {
     fun cacheArgument(compilerArgument: String): K
     fun selectArgument(compilerArgumentId: K): String
-    fun selectAllArguments(): List<String>
+    fun selectAllArguments(): Array<String>
     fun clear()
 
-    fun cacheAllArguments(compilerArguments: Iterable<String>): List<K> =
+    fun cacheAllArguments(compilerArguments: Array<String>): List<K> =
         compilerArguments.map { cacheArgument(it) }
 
-    fun selectCompilerArguments(compilerArgumentIds: Iterable<K>): List<String> =
+    fun selectCompilerArguments(compilerArgumentIds: Array<K>): List<String> =
         compilerArgumentIds.map { selectArgument(it) }
 
     fun <S : IArgumentsCache<K, T>> mergeArgumentsFromCache(otherCache: S) {
@@ -52,28 +52,28 @@ class CompilerArgumentsCache : IArgumentsCache<CompilerArgumentCacheIdType, Comp
 
     override fun selectArgument(compilerArgumentId: Int): String = compilerArgumentCache[compilerArgumentId]!!
 
-    override fun selectAllArguments(): List<String> = compilerArgumentCache.values.toList()
+    override fun selectAllArguments(): Array<String> = compilerArgumentCache.values.toTypedArray()
 }
 
 typealias ClasspathPartType = String
-typealias ClasspathArgumentCacheIdType = ArrayList<Int>
+typealias ClasspathArgumentCacheIdType = Array<Int>
 
 class ClasspathArgumentsCache : IArgumentsCache<ClasspathArgumentCacheIdType, ClasspathArgumentCacheId> {
     private val classpathPartsCache = mutableMapOf<CompilerArgumentCacheIdType, CompilerArgumentType>()
 
     override fun cacheArgument(compilerArgument: String): ClasspathArgumentCacheIdType {
-        val classpathSeparatedParts = Paths.get(compilerArgument).toAbsolutePath().toString().split(File.separator)
-        return classpathSeparatedParts.map {
-            val hash = it.hashCode()
-            classpathPartsCache += hash to it
+        return compilerArgument.split(File.pathSeparator).map {
+            val absolutePath = Paths.get(it).toAbsolutePath().toString()
+            val hash = absolutePath.hashCode()
+            classpathPartsCache += hash to absolutePath
             hash
-        }.toCollection(ClasspathArgumentCacheIdType())
+        }.toTypedArray()
     }
 
     override fun selectArgument(compilerArgumentId: ClasspathArgumentCacheIdType): String =
-        compilerArgumentId.joinToString(separator = File.separator) { classpathPartsCache[it]!! }
+        compilerArgumentId.joinToString(separator = File.pathSeparator) { classpathPartsCache[it]!! }
 
-    override fun selectAllArguments(): List<String> = classpathPartsCache.values.toList()
+    override fun selectAllArguments(): Array<String> = classpathPartsCache.values.toTypedArray()
 
     override fun clear() {
         classpathPartsCache.clear()

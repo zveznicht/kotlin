@@ -1024,11 +1024,11 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
                     }
                     it.useExperimental = languageSettings.experimentalAnnotationsInUse.toTypedArray()
                     it.pluginOptions =
-                        compilerArgumentsCache.selectCompilerArguments(languageSettings.compilerPluginArguments.asIterable()).toTypedArray()
+                        compilerArgumentsCache.selectCompilerArguments(languageSettings.compilerPluginArguments).toTypedArray()
                     it.pluginClasspaths =
-                        classpathArgumentsCache.selectCompilerArguments(languageSettings.compilerPluginClasspath.asIterable())
+                        classpathArgumentsCache.selectCompilerArguments(languageSettings.compilerPluginClasspath)
                             .toTypedArray()
-                    it.freeArgs = compilerArgumentsCache.selectCompilerArguments(languageSettings.freeCompilerArgs.asIterable())
+                    it.freeArgs = compilerArgumentsCache.selectCompilerArguments(languageSettings.freeCompilerArgs)
                 }
             }
         }
@@ -1064,16 +1064,16 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
 
                 sourceSetInfo.compilerArguments =
                     createCompilerArguments(
-                        compilerArgumentsCache.selectCompilerArguments(compilation.arguments.currentArguments.asIterable()),
+                        compilerArgumentsCache.selectCompilerArguments(compilation.arguments.currentArguments),
                         compilation.platform
                     ).also {
                         it.multiPlatform = true
                     }
                 sourceSetInfo.dependencyClasspath =
-                    classpathArgumentsCache.selectCompilerArguments(compilation.dependencyClasspath.asIterable())
+                    classpathArgumentsCache.selectCompilerArguments(compilation.dependencyClasspath)
                 sourceSetInfo.defaultCompilerArguments =
                     createCompilerArguments(
-                        compilerArgumentsCache.selectCompilerArguments(compilation.arguments.defaultArguments.asIterable()),
+                        compilerArgumentsCache.selectCompilerArguments(compilation.arguments.defaultArguments),
                         compilation.platform
                     )
                 sourceSetInfo.addSourceSets(compilation.sourceSets, compilation.fullName(), gradleModule, resolverCtx)

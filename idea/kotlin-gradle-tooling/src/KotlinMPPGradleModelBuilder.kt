@@ -265,15 +265,15 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         val getFreeCompilerArgs = languageSettingsClass.getMethodOrNull("getFreeCompilerArgs")
 
         val cachedCompilerPluginArguments = (getCompilerPluginArguments?.invoke(gradleLanguageSettings) as? List<String>)
-            ?.let { compilerArgumentsCache.cacheAllArguments(it) }.orEmpty()
+            ?.let { compilerArgumentsCache.cacheAllArguments(it.toTypedArray()) }.orEmpty()
 
         val cachedFreeCompilerArgs = (getFreeCompilerArgs?.invoke(gradleLanguageSettings) as? List<String>)
-            ?.let { compilerArgumentsCache.cacheAllArguments(it) }.orEmpty()
+            ?.let { compilerArgumentsCache.cacheAllArguments(it.toTypedArray()) }.orEmpty()
 
         val cachedCompilerPluginClasspaths = (getCompilerPluginClasspath?.invoke(gradleLanguageSettings) as? FileCollection)?.files
             ?.map { it.absolutePath }
             ?.distinct()
-            ?.let { classpathArgumentsCache.cacheAllArguments(it) }.orEmpty()
+            ?.let { classpathArgumentsCache.cacheAllArguments(it.toTypedArray()) }.orEmpty()
 
 
         @Suppress("UNCHECKED_CAST")
@@ -626,7 +626,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         }
         val nativeExtensions = konanTarget?.let(::KotlinNativeCompilationExtensionsImpl)
 
-        val cachedDependencyClasspathList = argumentCachesContainer.classpathArgumentsCache.cacheAllArguments(dependencyClasspath)
+        val cachedDependencyClasspathList =
+            argumentCachesContainer.classpathArgumentsCache.cacheAllArguments(dependencyClasspath.toTypedArray())
 
         return KotlinCompilationImpl(
             gradleCompilation.name,
@@ -796,10 +797,10 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         val currentArguments = safelyGetArguments(compileKotlinTask, getCurrentArguments)
 
         val compilerArgumentsCache = argumentCachesContainer.compilerArgumentsCache
-        val cachedCurrentArguments = compilerArgumentsCache.cacheAllArguments(currentArguments)
+        val cachedCurrentArguments = compilerArgumentsCache.cacheAllArguments(currentArguments.toTypedArray())
 
         val defaultArguments = safelyGetArguments(compileKotlinTask, getDefaultArguments)
-        val cachedDefaultArguments = compilerArgumentsCache.cacheAllArguments(defaultArguments)
+        val cachedDefaultArguments = compilerArgumentsCache.cacheAllArguments(defaultArguments.toTypedArray())
         return KotlinCompilationArgumentsImpl(
             cachedDefaultArguments.toTypedArray(),
             cachedCurrentArguments.toTypedArray()
