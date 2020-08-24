@@ -1,3 +1,4 @@
+// ENABLE_FIR_TEST
 fun File(p: Int): String = ""
 fun File(p: String): String = ""
 

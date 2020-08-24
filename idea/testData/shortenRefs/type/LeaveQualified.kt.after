@@ -1,3 +1,4 @@
+// ENABLE_FIR_TEST
 import java.util.Date
 
 class A : dependency.Date

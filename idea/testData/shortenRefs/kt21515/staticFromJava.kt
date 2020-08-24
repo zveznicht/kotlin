@@ -1,3 +1,4 @@
+// ENABLE_FIR_TEST
 open class Base {
     companion object : Java()
 }

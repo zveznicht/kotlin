@@ -1,3 +1,4 @@
+// ENABLE_FIR_TEST
 object X{ }
 
 <selection>class Y {

@@ -1,3 +1,4 @@
+// ENABLE_FIR_TEST
 fun Random(): Int = 1
 
 class A {

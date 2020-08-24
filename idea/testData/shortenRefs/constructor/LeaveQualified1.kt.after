@@ -1,3 +1,4 @@
+// ENABLE_FIR_TEST
 fun File(): String = ""
 
 class A {
