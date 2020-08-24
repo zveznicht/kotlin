@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.idea.fir.low.level.api
 
 import com.intellij.openapi.module.impl.scopes.ModuleWithDependentsScope
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.analyzer.ModuleInfo
+import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.registerCheckersComponent
 import org.jetbrains.kotlin.fir.extensions.BunchOfRegisteredExtensions
@@ -29,14 +29,14 @@ import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.ModuleFileCacheI
 import org.jetbrains.kotlin.idea.fir.low.level.api.providers.FirIdeProvider
 import org.jetbrains.kotlin.idea.fir.low.level.api.providers.firIdeProvider
 import org.jetbrains.kotlin.idea.fir.low.level.api.sessions.FirIdeModuleLibraryDependenciesSession
+import org.jetbrains.kotlin.idea.fir.low.level.api.sessions.FirIdeSession
 import org.jetbrains.kotlin.idea.fir.low.level.api.util.collectTransitiveDependenciesWithSelf
 
 
 internal class FirIdeJavaModuleBasedSession private constructor(
-    moduleInfo: ModuleInfo,
-    sessionProvider: FirSessionProvider,
+    override val scope: GlobalSearchScope,
     val firFileBuilder: FirFileBuilder,
-) : FirModuleBasedSession(moduleInfo, sessionProvider) {
+) : FirIdeSession() {
     val cache get() = firIdeProvider.cache
 
     companion object {
@@ -52,11 +52,11 @@ internal class FirIdeJavaModuleBasedSession private constructor(
         ): FirIdeJavaModuleBasedSession {
             val scopeProvider = KotlinScopeProvider(::wrapScopeWithJvmMapped)
             val firBuilder = FirFileBuilder(sessionProvider as FirIdeSessionProvider, scopeProvider, firPhaseRunner)
-            return FirIdeJavaModuleBasedSession(moduleInfo, sessionProvider, firBuilder).apply {
+            val dependentModules = moduleInfo.collectTransitiveDependenciesWithSelf().filterIsInstance<ModuleSourceInfo>()
+            val searchScope = ModuleWithDependentsScope(project, dependentModules.map { it.module })
+            return FirIdeJavaModuleBasedSession(searchScope, firBuilder).apply {
                 val cache = ModuleFileCacheImpl(this)
                 val phasedFirFileResolver = IdePhasedFirFileResolver(firBuilder, cache)
-                val dependentModules = moduleInfo.collectTransitiveDependenciesWithSelf().filterIsInstance<ModuleSourceInfo>()
-                val searchScope = ModuleWithDependentsScope(project, dependentModules.map { it.module })
 
                 registerCommonComponents()
                 registerResolveComponents()

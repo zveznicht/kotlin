@@ -90,7 +90,7 @@ internal class KtFirScopeProvider(
                     packageSymbol.fqName,
                     firResolveState.firIdeSourcesSession/*TODO use correct session here*/
                 ).also(firScopeStorage::register)
-            KtFirPackageScope(firPackageScope, builder, token)
+            KtFirPackageScope(firPackageScope, project, builder, token)
         }
     }
 
@@ -147,7 +147,7 @@ internal class KtFirScopeProvider(
         return when (firScope) {
             is FirAbstractSimpleImportingScope -> KtFirNonStarImportingScope(firScope, builder, token)
             is FirAbstractStarImportingScope -> KtFirStarImportingScope(firScope, builder, project, token)
-            is FirPackageMemberScope -> KtFirPackageScope(firScope, builder, token)
+            is FirPackageMemberScope -> KtFirPackageScope(firScope, project, builder, token)
             is FirContainingNamesAwareScope -> KtFirDelegatingScope(firScope, firScope, builder, token)
             is FirDelegatingScope -> {
                 val scopeForNames = firScope.delegate.unrollTillFirContainingNamesAwareScope()
