@@ -157,6 +157,7 @@ import org.jetbrains.kotlin.samWithReceiver.AbstractSamWithReceiverScriptTest
 import org.jetbrains.kotlin.samWithReceiver.AbstractSamWithReceiverTest
 import org.jetbrains.kotlin.search.AbstractAnnotatedMembersSearchTest
 import org.jetbrains.kotlin.search.AbstractInheritorsSearchTest
+import org.jetbrains.kotlin.shortenRefs.AbstractFirShortenRefsTest
 import org.jetbrains.kotlin.shortenRefs.AbstractShortenRefsTest
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlinx.serialization.AbstractSerializationPluginBytecodeListingTest
@@ -248,6 +249,10 @@ fun main(args: Array<String>) {
                 model("checker/duplicateJvmSignature")
                 model("checker/infos", testMethod = "doTestWithInfos")
                 model("checker/diagnosticsMessage")
+            }
+
+            testClass<AbstractFirShortenRefsTest>() {
+                model("shortenRefs", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doTestWithMuting")
             }
 
             testClass<AbstractJavaAgainstKotlinSourceCheckerTest> {
