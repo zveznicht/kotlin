@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.fir.extensions.extensionService
 import org.jetbrains.kotlin.fir.extensions.registerExtensions
 import org.jetbrains.kotlin.fir.java.JavaSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.calls.jvm.registerJvmCallConflictResolverFactory
-import org.jetbrains.kotlin.fir.resolve.firProvider
 import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.FirProvider
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
@@ -34,9 +33,10 @@ import org.jetbrains.kotlin.idea.fir.low.level.api.util.collectTransitiveDepende
 
 
 internal class FirIdeJavaModuleBasedSession private constructor(
+    sessionProvider: FirIdeSessionProvider,
     override val scope: GlobalSearchScope,
     val firFileBuilder: FirFileBuilder,
-) : FirIdeSession() {
+) : FirIdeSession(sessionProvider) {
     val cache get() = firIdeProvider.cache
 
     companion object {
@@ -54,7 +54,7 @@ internal class FirIdeJavaModuleBasedSession private constructor(
             val firBuilder = FirFileBuilder(sessionProvider as FirIdeSessionProvider, scopeProvider, firPhaseRunner)
             val dependentModules = moduleInfo.collectTransitiveDependenciesWithSelf().filterIsInstance<ModuleSourceInfo>()
             val searchScope = ModuleWithDependentsScope(project, dependentModules.map { it.module })
-            return FirIdeJavaModuleBasedSession(searchScope, firBuilder).apply {
+            return FirIdeJavaModuleBasedSession(sessionProvider, searchScope, firBuilder).apply {
                 val cache = ModuleFileCacheImpl(this)
                 val phasedFirFileResolver = IdePhasedFirFileResolver(firBuilder, cache)
 

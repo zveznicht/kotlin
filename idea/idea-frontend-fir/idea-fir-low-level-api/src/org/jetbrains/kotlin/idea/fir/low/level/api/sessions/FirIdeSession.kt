@@ -7,7 +7,8 @@ package org.jetbrains.kotlin.idea.fir.low.level.api.sessions
 
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.fir.FirSession
+import org.jetbrains.kotlin.idea.fir.low.level.api.FirIdeSessionProvider
 
-abstract class FirIdeSession : FirSession(sessionProvider = null) {
+internal abstract class FirIdeSession(sessionProvider: FirIdeSessionProvider) : FirSession(sessionProvider) {
     abstract val scope: GlobalSearchScope
 }
