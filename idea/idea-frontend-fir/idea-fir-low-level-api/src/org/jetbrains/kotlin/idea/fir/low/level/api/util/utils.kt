@@ -6,9 +6,16 @@
 package org.jetbrains.kotlin.idea.fir.low.level.api.util
 
 import com.intellij.openapi.progress.ProcessCanceledException
+import com.intellij.openapi.progress.ProgressManager
 import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.declarations.FirFile
+import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.diagnostics.FirDiagnosticHolder
+import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.idea.caches.project.IdeaModuleInfo
+import org.jetbrains.kotlin.idea.fir.low.level.api.FirPhaseRunner
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
 
 
 internal inline fun <T> executeOrReturnDefaultValueOnPCE(defaultValue: T, action: () -> T): T =
@@ -17,6 +24,34 @@ internal inline fun <T> executeOrReturnDefaultValueOnPCE(defaultValue: T, action
     } catch (e: ProcessCanceledException) {
         defaultValue
     }
+
+internal inline fun <T : Any> executeWithoutPCE(crossinline action: () -> T): T {
+    var result: T? = null
+    ProgressManager.getInstance().executeNonCancelableSection { result = action() }
+    return result!!
+}
+
+internal inline fun <T : Any> runWithPCECheck(lock: ReentrantLock, lockingIntervalMs: Long, action: () -> T): T {
+    var needToRun = true
+    var result: T? = null
+    while (needToRun) {
+        checkCanceled()
+        if (lock.tryLock(lockingIntervalMs, TimeUnit.MILLISECONDS)) {
+            try {
+                needToRun = false
+                result = action()
+            } finally {
+                lock.unlock()
+            }
+        }
+    }
+    return result!!
+}
+
+@Suppress("NOTHING_TO_INLINE")
+internal inline fun checkCanceled() {
+    ProgressManager.checkCanceled()
+}
 
 internal val FirElement.isErrorElement
     get() = this is FirDiagnosticHolder
