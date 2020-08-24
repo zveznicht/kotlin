@@ -6,10 +6,8 @@
 package org.jetbrains.kotlin.daemon.client.experimental
 
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.kotlin.cli.common.repl.*
 import org.jetbrains.kotlin.daemon.client.RemoteReplCompilerStateHistory
 import org.jetbrains.kotlin.daemon.common.ReplStateFacadeAsync
-import org.jetbrains.kotlin.daemon.common.experimental.ReplStateFacadeClientSide
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import org.jetbrains.kotlin.daemon.client.RemoteReplCompilerState

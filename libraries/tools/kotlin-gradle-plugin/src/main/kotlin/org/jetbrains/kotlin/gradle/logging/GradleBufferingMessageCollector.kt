@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.gradle.logging
 
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import java.util.*
 

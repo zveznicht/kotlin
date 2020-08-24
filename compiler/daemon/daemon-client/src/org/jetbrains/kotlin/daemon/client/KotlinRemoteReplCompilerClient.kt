@@ -17,7 +17,6 @@
 package org.jetbrains.kotlin.daemon.client
 
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.common.repl.*
 import org.jetbrains.kotlin.daemon.common.*
 import java.io.File
 import java.util.concurrent.locks.ReentrantReadWriteLock

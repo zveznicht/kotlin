@@ -16,6 +16,9 @@
 
 package org.jetbrains.kotlin.script.util
 
+import CompilerMessageSeverity
+import MessageCollectorUtil
+import OutputMessageUtil
 import com.intellij.openapi.util.Disposer
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys

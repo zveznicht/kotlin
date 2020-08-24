@@ -16,7 +16,6 @@
 
 package org.jetbrains.kotlin.gradle.internal
 
-import org.jetbrains.kotlin.cli.common.arguments.*
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 

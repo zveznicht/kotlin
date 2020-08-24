@@ -15,7 +15,7 @@ var K2JVMCompilerArguments.destinationAsFile: File
     }
 
 var K2JVMCompilerArguments.classpathAsList: List<File>
-    get() = classpath.orEmpty().split(File.pathSeparator).map(java.io::File)
+    get() = classpath.orEmpty().split(File.pathSeparator).map(::File)
     set(value) {
         classpath = value.joinToString(separator = File.pathSeparator, transform = { it.path })
     }

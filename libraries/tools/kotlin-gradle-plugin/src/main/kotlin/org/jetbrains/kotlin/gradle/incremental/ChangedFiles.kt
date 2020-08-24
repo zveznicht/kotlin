@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.gradle.incremental
 
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
-import org.jetbrains.kotlin.incremental.gradle.ChangedFiles
 import java.io.File
 import java.io.Serializable
 import java.util.*
