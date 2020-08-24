@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassifierSymbol
 import org.jetbrains.kotlin.name.Name
 
-class FirOnlyClassifiersScope(val delegate: FirScope) : FirScope() {
+class FirOnlyClassifiersScope(override val delegate: FirScope) : FirScope(), FirDelegatingScope {
     override fun processClassifiersByNameWithSubstitution(name: Name, processor: (FirClassifierSymbol<*>, ConeSubstitutor) -> Unit) {
         return delegate.processClassifiersByNameWithSubstitution(name, processor)
     }

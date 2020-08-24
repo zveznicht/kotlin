@@ -10,7 +10,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.name.Name
 
-class FirOnlyCallablesScope(val delegate: FirScope) : FirScope() {
+class FirOnlyCallablesScope(override val delegate: FirScope) : FirScope(), FirDelegatingScope {
     override fun processFunctionsByName(name: Name, processor: (FirFunctionSymbol<*>) -> Unit) {
         return delegate.processFunctionsByName(name, processor)
     }
