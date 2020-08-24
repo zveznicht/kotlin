@@ -5,54 +5,36 @@
 
 package org.jetbrains.kotlin.idea.frontend.api.scopes
 
+import org.jetbrains.kotlin.idea.frontend.api.ValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.ValidityTokenOwner
 import org.jetbrains.kotlin.idea.frontend.api.symbols.*
 import org.jetbrains.kotlin.idea.frontend.api.withValidityAssertion
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
 
-interface KtScope : ValidityTokenOwner {
-    // TODO check that names are accessible
-    // maybe return some kind of lazy set
-    fun getAllNames(): Set<Name> = withValidityAssertion { getCallableNames() + getClassLikeSymbolNames() }
-
-    fun getCallableNames(): Set<Name>
-    fun getClassLikeSymbolNames(): Set<Name>
-
-
-    fun getAllSymbols(): Sequence<KtSymbol> = withValidityAssertion {
+abstract class KtScope : ValidityTokenOwner {
+    open fun getAllSymbols(): Sequence<KtSymbol> = withValidityAssertion {
         sequence {
             yieldAll(getCallableSymbols())
             yieldAll(getClassClassLikeSymbols())
         }
     }
 
-    fun getCallableSymbols(): Sequence<KtCallableSymbol>
-    fun getClassClassLikeSymbols(): Sequence<KtClassLikeSymbol>
-
-    fun containsName(name: Name): Boolean = withValidityAssertion {
-        name in getCallableNames() || name in getClassLikeSymbolNames()
-    }
+    abstract fun getCallableSymbols(): Sequence<KtCallableSymbol>
+    abstract fun getClassClassLikeSymbols(): Sequence<KtClassLikeSymbol>
 }
 
-interface KtCompositeScope : KtScope {
-    val subScopes: List<KtScope>
+abstract class KtCompositeScope : KtScope() {
+    abstract val subScopes: List<KtScope>
 }
 
-interface KtMemberScope : KtScope {
-    val owner: KtClassOrObjectSymbol
+abstract class KtMemberScope : KtScope() {
+    abstract val owner: KtClassOrObjectSymbol
 }
 
-interface KtDeclaredMemberScope : KtScope {
-    val owner: KtClassOrObjectSymbol
+abstract class KtDeclaredMemberScope : KtScope() {
+    abstract val owner: KtClassOrObjectSymbol
 }
 
-interface KtPackageScope : KtScope, KtSubstitutedScope<KtPackageScope> {
-    val fqName: FqName
+abstract class KtPackageScope : KtScope() {
+    abstract val fqName: FqName
 }
-
-interface KtUnsubstitutedScope<S : KtScope> : KtScope {
-    fun substitute(/*substitution*/): KtSubstitutedScope<S> = TODO()
-}
-
-interface KtSubstitutedScope<S> : KtScope

@@ -6,58 +6,14 @@
 package org.jetbrains.kotlin.idea.frontend.api.fir.scopes
 
 import org.jetbrains.kotlin.fir.declarations.FirClassLikeDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirDeclarationOrigin
 import org.jetbrains.kotlin.fir.declarations.FirSimpleFunction
-import org.jetbrains.kotlin.fir.scopes.FirContainingNamesAwareScope
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.processClassifiersByName
-import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
-import org.jetbrains.kotlin.fir.symbols.PossiblyFirFakeOverrideSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
-import org.jetbrains.kotlin.idea.frontend.api.ValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.fir.KtSymbolByFirBuilder
-import org.jetbrains.kotlin.idea.frontend.api.fir.utils.cached
-import org.jetbrains.kotlin.idea.frontend.api.scopes.KtScope
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtCallableSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassLikeSymbol
-import org.jetbrains.kotlin.idea.frontend.api.withValidityAssertion
 import org.jetbrains.kotlin.name.Name
-
-internal abstract class KtFirDelegatingScope<S>(
-    private val builder: KtSymbolByFirBuilder,
-    final override val token: ValidityToken
-) : KtScope where S : FirContainingNamesAwareScope, S : FirScope {
-
-    abstract val firScope: S
-
-    private val allNamesCached by cached {
-        getCallableNames() + getClassLikeSymbolNames()
-    }
-
-    override fun getAllNames(): Set<Name> = allNamesCached
-
-    override fun getCallableNames(): Set<Name> = withValidityAssertion {
-        firScope.getCallableNames()
-    }
-
-    override fun getClassLikeSymbolNames(): Set<Name> = withValidityAssertion {
-        firScope.getClassifierNames()
-    }
-
-    override fun getCallableSymbols(): Sequence<KtCallableSymbol> = withValidityAssertion {
-        firScope.getCallableSymbols(getCallableNames(), builder)
-    }
-
-    override fun getClassClassLikeSymbols(): Sequence<KtClassLikeSymbol> = withValidityAssertion {
-        firScope.getClassLikeSymbols(getClassLikeSymbolNames(), builder)
-    }
-
-    override fun containsName(name: Name): Boolean = withValidityAssertion {
-        name in getAllNames()
-    }
-
-}
 
 internal fun FirScope.getCallableSymbols(callableNames: Collection<Name>, builder: KtSymbolByFirBuilder) = sequence {
     callableNames.forEach { name ->

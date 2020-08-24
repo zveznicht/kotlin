@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.idea.frontend.api.fir.scopes
 
+import org.jetbrains.kotlin.fir.resolve.firProvider
 import org.jetbrains.kotlin.fir.scopes.impl.FirPackageMemberScope
 import org.jetbrains.kotlin.idea.frontend.api.ValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.ValidityTokenOwner
@@ -21,16 +22,16 @@ internal class KtFirPackageScope(
     firScope: FirPackageMemberScope,
     private val builder: KtSymbolByFirBuilder,
     override val token: ValidityToken,
-) : KtPackageScope, ValidityTokenOwner {
+) : KtPackageScope() {
     private val firScope by weakRef(firScope)
     override val fqName: FqName get() = firScope.fqName
 
-    override fun getCallableNames(): Set<Name> = withValidityAssertion {
+    private fun getCallableNames(): Set<Name> = withValidityAssertion {
         // TODO: KT-41048
         emptySet()
     }
 
-    override fun getClassLikeSymbolNames(): Set<Name> = withValidityAssertion {
+    private fun getClassLikeSymbolNames(): Set<Name> = withValidityAssertion {
         // TODO: KT-41048
         emptySet()
     }

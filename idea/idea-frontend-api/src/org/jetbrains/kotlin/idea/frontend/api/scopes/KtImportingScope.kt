@@ -9,17 +9,17 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
-interface KtImportingScope : KtScope {
-    val imports: List<Import>
-    val isDefaultImportingScope: Boolean
+sealed class KtImportingScope : KtScope() {
+    abstract val imports: List<Import>
+    abstract val isDefaultImportingScope: Boolean
 }
 
-interface KtStarImportingScope : KtImportingScope {
-    override val imports: List<StarImport>
+abstract class KtStarImportingScope : KtImportingScope() {
+    abstract override val imports: List<StarImport>
 }
 
-interface KtNonStarImportingScope : KtImportingScope {
-    override val imports: List<NonStarImport>
+abstract class KtNonStarImportingScope : KtImportingScope() {
+    abstract override val imports: List<NonStarImport>
 }
 
 sealed class Import {

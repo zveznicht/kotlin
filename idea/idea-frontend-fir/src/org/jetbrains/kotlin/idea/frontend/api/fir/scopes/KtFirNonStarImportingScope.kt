@@ -23,7 +23,7 @@ internal class KtFirNonStarImportingScope(
     firScope: FirAbstractSimpleImportingScope,
     private val builder: KtSymbolByFirBuilder,
     override val token: ValidityToken
-) : KtNonStarImportingScope, ValidityTokenOwner {
+) : KtNonStarImportingScope() {
     private val firScope: FirAbstractSimpleImportingScope by weakRef(firScope)
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -51,11 +51,11 @@ internal class KtFirNonStarImportingScope(
     }
 
 
-    override fun getCallableNames(): Set<Name> = withValidityAssertion {
+    private fun getCallableNames(): Set<Name> = withValidityAssertion {
         imports.mapNotNullTo(hashSetOf()) { it.callableName }
     }
 
-    override fun getClassLikeSymbolNames(): Set<Name> = withValidityAssertion {
+    private fun getClassLikeSymbolNames(): Set<Name> = withValidityAssertion {
         imports.mapNotNullTo((hashSetOf())) { it.relativeClassName?.shortName() }
     }
 

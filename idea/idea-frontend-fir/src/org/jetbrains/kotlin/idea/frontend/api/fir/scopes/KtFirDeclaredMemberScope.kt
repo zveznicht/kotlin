@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.idea.frontend.api.fir.scopes
 
+import org.jetbrains.kotlin.fir.scopes.FirContainingNamesAwareScope
 import org.jetbrains.kotlin.fir.scopes.impl.FirClassDeclaredMemberScope
 import org.jetbrains.kotlin.idea.frontend.api.ValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.ValidityTokenOwner
@@ -12,17 +13,25 @@ import org.jetbrains.kotlin.idea.frontend.api.fir.KtSymbolByFirBuilder
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirClassOrObjectSymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
 import org.jetbrains.kotlin.idea.frontend.api.scopes.KtDeclaredMemberScope
-import org.jetbrains.kotlin.idea.frontend.api.scopes.KtUnsubstitutedScope
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtCallableSymbol
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassLikeSymbol
+import org.jetbrains.kotlin.idea.frontend.api.withValidityAssertion
 
 internal class KtFirDeclaredMemberScope(
     override val owner: KtFirClassOrObjectSymbol,
     firScope: FirClassDeclaredMemberScope,
-    token: ValidityToken,
-    builder: KtSymbolByFirBuilder
-) : KtFirDelegatingScope<FirClassDeclaredMemberScope>(builder, token),
-    KtDeclaredMemberScope,
-    KtUnsubstitutedScope<KtFirDeclaredMemberScope>,
-    ValidityTokenOwner {
-    override val firScope: FirClassDeclaredMemberScope by weakRef(firScope)
+    builder: KtSymbolByFirBuilder,
+    override val token: ValidityToken,
+) : KtDeclaredMemberScope() {
+    private val firScope by weakRef(firScope)
+    private val builder by weakRef(builder)
+
+    override fun getCallableSymbols(): Sequence<KtCallableSymbol> = withValidityAssertion {
+        firScope.getCallableSymbols(firScope.getCallableNames(), builder)
+    }
+
+    override fun getClassClassLikeSymbols(): Sequence<KtClassLikeSymbol> = withValidityAssertion {
+        firScope.getClassLikeSymbols(firScope.getCallableNames(), builder)
+    }
 }
 

@@ -36,7 +36,7 @@ internal class KtFirStarImportingScope(
     private val builder: KtSymbolByFirBuilder,
     project: Project,
     override val token: ValidityToken,
-) : KtStarImportingScope, ValidityTokenOwner {
+) : KtStarImportingScope() {
     private val firScope: FirAbstractStarImportingScope by weakRef(firScope)
     override val isDefaultImportingScope: Boolean = withValidityAssertion { firScope is FirDefaultStarImportingScope }
     private val packageHelper = PackageIndexHelper(project)
@@ -61,7 +61,7 @@ internal class KtFirStarImportingScope(
 
     // todo cache?
     @OptIn(ExperimentalStdlibApi::class)
-    override fun getCallableNames(): Set<Name> = withValidityAssertion {
+    private fun getCallableNames(): Set<Name> = withValidityAssertion {
         imports.flatMapTo(hashSetOf()) { import: Import ->
             if (import.relativeClassName == null) { // top level callable
                 packageHelper.getPackageTopLevelCallables(import.packageFqName)
@@ -72,7 +72,7 @@ internal class KtFirStarImportingScope(
         }
     }
 
-    override fun getClassLikeSymbolNames(): Set<Name> = withValidityAssertion {
+    private fun getClassLikeSymbolNames(): Set<Name> = withValidityAssertion {
         imports.flatMapTo(hashSetOf()) { import ->
             if (import.relativeClassName == null) {
                 packageHelper.getPackageTopLevelClassifiers(import.packageFqName)
