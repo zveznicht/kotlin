@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.platform.compat.toIdePlatform
 import org.jetbrains.kotlin.platform.isCommon
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.utils.DescriptionAware
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
 

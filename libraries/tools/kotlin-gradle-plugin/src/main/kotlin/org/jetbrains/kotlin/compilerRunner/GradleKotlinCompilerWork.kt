@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.compilerRunner
 
-import org.gradle.api.Project
 import org.gradle.api.logging.Logger
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector

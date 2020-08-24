@@ -17,9 +17,9 @@
 package org.jetbrains.kotlin.compilerRunner
 
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import org.jetbrains.kotlin.cli.common.messages.OutputMessageUtil
+import OutputMessageUtil
 
 class MessageCollectorToOutputItemsCollectorAdapter(
         private val delegate: MessageCollector,

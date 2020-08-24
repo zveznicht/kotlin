@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.scripting.repl.js
 
-import org.jetbrains.kotlin.cli.common.repl.*
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.ScriptDescriptor
 import org.jetbrains.kotlin.ir.backend.js.utils.NameTables

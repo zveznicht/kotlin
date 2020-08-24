@@ -6,6 +6,8 @@
 
 package org.jetbrains.kotlin.scripting.compiler.test
 
+import MessageCollectorUtil
+import OutputMessageUtil
 import com.intellij.openapi.util.Disposer
 import junit.framework.TestCase
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys

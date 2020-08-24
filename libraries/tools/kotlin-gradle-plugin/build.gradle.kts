@@ -31,7 +31,21 @@ pill {
     variant = PillExtension.Variant.FULL
 }
 
+
+val modulesToInclude =
+    listOf(
+        ":core:util.runtime",
+//        ":compiler:cli-messages",
+        ":compiler:cli-config-base",
+        ":kotlin-compiler-runner"
+    )
+
 dependencies {
+
+    modulesToInclude.forEach {
+        jarContents(compileOnly(project(it)) { isTransitive = false })
+    }
+
     compile(project(":kotlin-gradle-plugin-api"))
     compile(project(":kotlin-gradle-plugin-model"))
     compileOnly(project(":compiler"))
@@ -83,7 +97,8 @@ dependencies {
 
     testCompile(intellijDep()) { includeJars( "junit", "serviceMessages", rootProject = rootProject) }
 
-    testCompileOnly(project(":compiler"))
+//    testCompileOnly(project(":compiler"))
+
     testCompile(projectTests(":kotlin-build-common"))
     testCompile(project(":kotlin-android-extensions"))
     testCompile(project(":kotlin-compiler-runner"))

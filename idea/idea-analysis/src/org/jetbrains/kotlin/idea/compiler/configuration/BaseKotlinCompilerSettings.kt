@@ -17,7 +17,6 @@ import com.intellij.util.xmlb.SerializationFilterBase
 import com.intellij.util.xmlb.XmlSerializer
 import gnu.trove.THashMap
 import org.jdom.Element
-import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.idea.syncPublisherWithDisposeCheck
 import kotlin.reflect.KClass
 

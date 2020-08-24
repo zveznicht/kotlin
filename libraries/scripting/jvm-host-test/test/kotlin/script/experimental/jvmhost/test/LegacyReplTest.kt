@@ -7,7 +7,6 @@ package kotlin.script.experimental.jvmhost.test
 
 import com.intellij.openapi.application.ApplicationManager
 import junit.framework.TestCase
-import org.jetbrains.kotlin.cli.common.repl.*
 import org.jetbrains.kotlin.test.testFramework.resetApplicationToNull
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicInteger
