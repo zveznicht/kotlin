@@ -9,8 +9,6 @@ import com.intellij.lang.LighterASTNode
 import com.intellij.openapi.util.Ref
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.descriptors.Visibilities
-import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.declarations.*
@@ -21,6 +19,7 @@ import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.resolve.transformers.firClassLike
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
+import org.jetbrains.kotlin.fir.scopes.processOverriddenFunctions
 import org.jetbrains.kotlin.fir.scopes.unsubstitutedScope
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirFunctionSymbol
@@ -32,7 +31,6 @@ import org.jetbrains.kotlin.fir.types.FirTypeRef
 import org.jetbrains.kotlin.lexer.KtModifierKeywordToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtModifierList
-import org.jetbrains.kotlin.psi.psiUtil.toVisibility
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -224,17 +222,17 @@ fun FirSimpleFunction.overriddenFunctions(
 /**
  * Returns the visibility by given KtModifierList
  */
-fun KtModifierList?.getVisibility() = this?.visibilityModifierType()?.toVisibility()
+fun KtModifierList?.getVisibility() = this?.visibilityModifierType()?.toVisibilityOrNull()
 
 /**
  * Returns Visibility by token or null
  */
 fun KtModifierKeywordToken.toVisibilityOrNull(): Visibility? {
     return when (this) {
-        KtTokens.PUBLIC_KEYWORD -> Visibilities.PUBLIC
-        KtTokens.PRIVATE_KEYWORD -> Visibilities.PRIVATE
-        KtTokens.PROTECTED_KEYWORD -> Visibilities.PROTECTED
-        KtTokens.INTERNAL_KEYWORD -> Visibilities.INTERNAL
+        KtTokens.PUBLIC_KEYWORD -> Visibilities.Public
+        KtTokens.PRIVATE_KEYWORD -> Visibilities.Private
+        KtTokens.PROTECTED_KEYWORD -> Visibilities.Protected
+        KtTokens.INTERNAL_KEYWORD -> Visibilities.Internal
         else -> null
     }
 }
@@ -329,4 +327,14 @@ fun FirSourceElement.eqOperatorSource(): FirSourceElement? {
         }
         else -> null
     }
+}
+
+/**
+ * Returns KtModifierToken by Modality
+ */
+fun Modality.toToken(): KtModifierKeywordToken = when (this) {
+    Modality.FINAL -> KtTokens.FINAL_KEYWORD
+    Modality.SEALED -> KtTokens.SEALED_KEYWORD
+    Modality.OPEN -> KtTokens.OPEN_KEYWORD
+    Modality.ABSTRACT -> KtTokens.ABSTRACT_KEYWORD
 }
