@@ -49,16 +49,44 @@ dependencies {
 // Aapt2 from Android Gradle Plugin 3.2 and below does not handle long paths on Windows.
 val shortenTempRootName = System.getProperty("os.name")!!.contains("Windows")
 
-// additional configuration in tasks.withType<Test> below
-projectTest("test", shortenTempRootName = shortenTempRootName) {}
 
-projectTest("testAdvanceGradleVersion", shortenTempRootName = shortenTempRootName) {
+fun Test.includeMppAndAndroid(include: Boolean) {
+    val mppAndAndroidTestPatterns = listOf("*Multiplatform*", "*Mpp*", "*Android*")
+    val filter = if (include)
+        filter.includePatterns
+    else
+        filter.excludePatterns
+    filter.addAll(mppAndAndroidTestPatterns)
+}
+
+fun Test.advanceGradleVersion() {
     val gradleVersionForTests = "6.3"
     systemProperty("kotlin.gradle.version.for.tests", gradleVersionForTests)
 }
 
+// additional configuration in tasks.withType<Test> below
+projectTest("test", shortenTempRootName = shortenTempRootName) {
+    includeMppAndAndroid(false)
+}
+
+projectTest("testMppAndAndroid", shortenTempRootName = shortenTempRootName) {
+    includeMppAndAndroid(false)
+}
+
+projectTest("testAdvanceGradleVersion", shortenTempRootName = shortenTempRootName) {
+    advanceGradleVersion()
+    includeMppAndAndroid(false)
+}
+
+projectTest("testAdvanceGradleVersionMppAndAndroid", shortenTempRootName = shortenTempRootName) {
+    advanceGradleVersion()
+    includeMppAndAndroid(true)
+}
+
 tasks.named<Task>("check") {
     dependsOn("testAdvanceGradleVersion")
+    dependsOn("testAdvanceGradleVersionMppAndAndroid")
+    dependsOn("testMppAndAndroid")
 }
 
 gradle.taskGraph.whenReady {
