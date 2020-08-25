@@ -52,7 +52,7 @@ class LocalPropertyCollector private constructor() : ControlFlowGraphVisitorVoid
     }
 }
 
-class DataCollector(private val localProperties: Set<FirPropertySymbol>) :
+class PropertyInitializationInfoCollector(private val localProperties: Set<FirPropertySymbol>) :
     ControlFlowGraphVisitor<PropertyInitializationInfo, Collection<PropertyInitializationInfo>>() {
     override fun visitNode(node: CFGNode<*>, data: Collection<PropertyInitializationInfo>): PropertyInitializationInfo {
         if (data.isEmpty()) return PropertyInitializationInfo.EMPTY
@@ -86,7 +86,11 @@ class DataCollector(private val localProperties: Set<FirPropertySymbol>) :
     }
 
     fun getData(graph: ControlFlowGraph) =
-        graph.collectDataForNode(TraverseDirection.Forward, PropertyInitializationInfo.EMPTY, DataCollector(localProperties))
+        graph.collectDataForNode(
+            TraverseDirection.Forward,
+            PropertyInitializationInfo.EMPTY,
+            this
+        )
 
     private fun processVariableWithAssignment(
         dataForNode: PropertyInitializationInfo,

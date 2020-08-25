@@ -49,7 +49,7 @@ class FirControlFlowAnalyzer(session: FirSession) {
     private fun runAssignmentCfaCheckers(graph: ControlFlowGraph, reporter: DiagnosticReporter) {
         val properties = LocalPropertyCollector.collect(graph)
         if (properties.isEmpty()) return
-        val data = DataCollector(properties).getData(graph)
+        val data = PropertyInitializationInfoCollector(properties).getData(graph)
         variableAssignmentCheckers.forEach { it.analyze(graph, reporter, data, properties) }
     }
 }
