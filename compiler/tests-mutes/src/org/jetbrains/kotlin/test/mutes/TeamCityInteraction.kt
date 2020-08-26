@@ -15,8 +15,12 @@ private val authUser = object : Authorization {
 
 
 internal fun getMutedTestsOnTeamcityForRootProject(rootScopeId: String): List<MuteTestJson> {
-
-    val jsonResponses = traverseAllPagesOfMutedTestsOnTeamcityForRootProject(rootScopeId)
+    val requestHref = "/app/rest/mutes"
+    val requestParams = mapOf(
+        "locator" to "project:(id:$rootScopeId)",
+        "fields" to "mute(id,assignment(text),scope(project(id),buildTypes(buildType(id))),target(tests(test(name))),resolution),nextHref"
+    )
+    val jsonResponses = traverseAll(requestHref, requestParams)
 
     val alreadyMutedTestsOnTeamCity = jsonResponses.flatMap {
         it.get("mute").filter { jn -> jn.get("assignment").get("text").textValue().startsWith(TAG) }
@@ -25,7 +29,7 @@ internal fun getMutedTestsOnTeamcityForRootProject(rootScopeId: String): List<Mu
     return alreadyMutedTestsOnTeamCity.mapNotNull { jsonObjectMapper.treeToValue<MuteTestJson>(it) }
 }
 
-private fun traverseAllPagesOfMutedTestsOnTeamcityForRootProject(rootScopeId: String): List<JsonNode> {
+private fun traverseAll(requestHref: String, requestParams: Map<String, String>): List<JsonNode> {
     val jsonResponses = mutableListOf<JsonNode>()
 
     var nextHref = ""
@@ -35,11 +39,8 @@ private fun traverseAllPagesOfMutedTestsOnTeamcityForRootProject(rootScopeId: St
         val url: String
         val params: Map<String, String>
         if (jsonResponses.isEmpty()) {
-            url = "$buildServerUrl/app/rest/mutes"
-            params = mapOf(
-                "locator" to "project:(id:$rootScopeId)",
-                "fields" to "mute(id,assignment(text),scope(project(id),buildTypes(buildType(id))),target(tests(test(name))),resolution),nextHref"
-            )
+            url = "$buildServerUrl$requestHref"
+            params = requestParams
         } else {
             url = "$buildServerUrl$nextHref"
             params = emptyMap()
