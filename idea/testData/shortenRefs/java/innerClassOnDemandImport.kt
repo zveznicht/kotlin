@@ -1,3 +1,4 @@
+// ENABLE_FIR_TEST
 import A.*
 
 fun bar(s: String) {

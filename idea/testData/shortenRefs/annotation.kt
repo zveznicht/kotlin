@@ -1,3 +1,4 @@
+// ENABLE_FIR_TEST
 package some
 
 annotation class SomeAnnotation

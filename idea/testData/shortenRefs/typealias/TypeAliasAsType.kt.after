@@ -1,3 +1,4 @@
+// ENABLE_FIR_TEST
 package test
 
 typealias Str = String
