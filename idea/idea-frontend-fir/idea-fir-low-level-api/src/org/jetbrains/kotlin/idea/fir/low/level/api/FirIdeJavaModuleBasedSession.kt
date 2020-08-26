@@ -16,13 +16,12 @@ import org.jetbrains.kotlin.fir.extensions.registerExtensions
 import org.jetbrains.kotlin.fir.java.JavaSymbolProvider
 import org.jetbrains.kotlin.fir.java.registerJavaVisibilityChecker
 import org.jetbrains.kotlin.fir.resolve.calls.jvm.registerJvmCallConflictResolverFactory
-import org.jetbrains.kotlin.fir.resolve.firProvider
 import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.FirProvider
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.impl.FirCompositeSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.scopes.wrapScopeWithJvmMapped
-import org.jetbrains.kotlin.fir.resolve.transformers.PhasedFirFileResolver
+import org.jetbrains.kotlin.fir.resolve.transformers.FirPhaseManager
 import org.jetbrains.kotlin.fir.scopes.KotlinScopeProvider
 import org.jetbrains.kotlin.idea.caches.project.ModuleSourceInfo
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.FirFileBuilder
@@ -55,7 +54,7 @@ internal class FirIdeJavaModuleBasedSession private constructor(
             val firBuilder = FirFileBuilder(sessionProvider as FirIdeSessionProvider, scopeProvider, firPhaseRunner)
             return FirIdeJavaModuleBasedSession(moduleInfo, sessionProvider, firBuilder).apply {
                 val cache = ModuleFileCacheImpl(this)
-                val phasedFirFileResolver = IdePhasedFirFileResolver(firBuilder, cache)
+                val phasedFirFileResolver = IdeFirPhaseManager(firBuilder, cache)
                 val dependentModules = moduleInfo.collectTransitiveDependenciesWithSelf().filterIsInstance<ModuleSourceInfo>()
                 val searchScope = ModuleWithDependentsScope(project, dependentModules.map { it.module })
 
@@ -76,7 +75,7 @@ internal class FirIdeJavaModuleBasedSession private constructor(
                 register(FirProvider::class, provider)
                 register(FirIdeProvider::class, provider)
 
-                register(PhasedFirFileResolver::class, phasedFirFileResolver)
+                register(FirPhaseManager::class, phasedFirFileResolver)
 
                 register(
                     FirSymbolProvider::class,
