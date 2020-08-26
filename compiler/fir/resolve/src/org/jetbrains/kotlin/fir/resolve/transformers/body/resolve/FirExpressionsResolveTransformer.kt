@@ -25,7 +25,6 @@ import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.*
 import org.jetbrains.kotlin.fir.resolve.diagnostics.*
 import org.jetbrains.kotlin.fir.resolve.inference.FirStubInferenceSession
-import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.resolve.transformers.InvocationKindTransformer
 import org.jetbrains.kotlin.fir.resolve.transformers.StoreReceiver
 import org.jetbrains.kotlin.fir.resolve.transformers.firClassLike
@@ -161,7 +160,7 @@ open class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransform
                 val actualSuperType = (superReference.superTypeRef.coneType as? ConeClassLikeType)
                     ?.fullyExpandedType(session)?.let { superType ->
                         val classId = superType.lookupTag.classId
-                        val superTypeRefs = implicitReceiver?.boundSymbol?.phasedFir?.superTypeRefs
+                        val superTypeRefs = implicitReceiver?.boundSymbol?.fir?.superTypeRefs
                         val correspondingDeclaredSuperType = superTypeRefs?.firstOrNull {
                             it.coneType.fullyExpandedType(session).classId == classId
                         }?.coneTypeSafe<ConeClassLikeType>()?.fullyExpandedType(session) ?: return@let superType
@@ -191,7 +190,7 @@ open class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransform
                 superReferenceContainer.resultType = actualSuperTypeRef
             }
             else -> {
-                val superTypeRefs = implicitReceiver?.boundSymbol?.phasedFir?.superTypeRefs
+                val superTypeRefs = implicitReceiver?.boundSymbol?.fir?.superTypeRefs
                 val resultType = when {
                     superTypeRefs?.isNotEmpty() != true || containingCall == null -> {
                         buildErrorTypeRef {
@@ -659,7 +658,7 @@ open class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransform
                         lhs.typeArguments.map { it.toConeTypeProjection() }.toTypedArray()
                     } else {
                         // Otherwise, prepare the star projections as many as the size of type parameters.
-                        Array((symbol?.phasedFir as? FirTypeParameterRefsOwner)?.typeParameters?.size ?: 0) {
+                        Array((symbol?.fir as? FirTypeParameterRefsOwner)?.typeParameters?.size ?: 0) {
                             ConeStarProjection
                         }
                     }
