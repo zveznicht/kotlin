@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext
+import org.jetbrains.kotlin.utils.addToStdlib.min
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 object FirTypeMismatchOnOverrideChecker : FirMemberDeclarationChecker() {
@@ -117,8 +118,12 @@ object FirTypeMismatchOnOverrideChecker : FirMemberDeclarationChecker() {
             ?: return this
 
         val map = mutableMapOf<FirTypeParameterSymbol, ConeKotlinType>()
+        val size = min(overrideDeclaration.typeParameters.size, parametersOwner.typeParameters.size)
 
-        overrideDeclaration.typeParameters.zip(parametersOwner.typeParameters).forEach { (to, from) ->
+        for (it in 0 until size) {
+            val to = overrideDeclaration.typeParameters[it]
+            val from = parametersOwner.typeParameters[it]
+
             map[from.symbol] = to.toConeType()
         }
 
