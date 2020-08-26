@@ -1,5 +1,6 @@
 package org.jetbrains.kotlin.test.mutes
 
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import khttp.DEFAULT_TIMEOUT
 import khttp.responses.Response
@@ -14,18 +15,46 @@ private val authUser = object : Authorization {
 
 
 internal fun getMutedTestsOnTeamcityForRootProject(rootScopeId: String): List<MuteTestJson> {
-    val params = mapOf(
-        "locator" to "project:(id:$rootScopeId)",
-        "fields" to "mute(id,assignment(text),scope(project(id),buildTypes(buildType(id))),target(tests(test(name))),resolution)"
-    )
 
-    val response = khttp.get("$buildServerUrl/app/rest/mutes", headers, params, auth = authUser)
-    checkResponseAndLog(response)
+    val jsonResponses = traverseAllPagesOfMutedTestsOnTeamcityForRootProject(rootScopeId)
 
-    val alreadyMutedTestsOnTeamCity = jsonObjectMapper.readTree(response.text).get("mute")
-        .filter { jn -> jn.get("assignment").get("text").textValue().startsWith(TAG) }
+    val alreadyMutedTestsOnTeamCity = jsonResponses.flatMap {
+        it.get("mute").filter { jn -> jn.get("assignment").get("text").textValue().startsWith(TAG) }
+    }
 
     return alreadyMutedTestsOnTeamCity.mapNotNull { jsonObjectMapper.treeToValue<MuteTestJson>(it) }
+}
+
+private fun traverseAllPagesOfMutedTestsOnTeamcityForRootProject(rootScopeId: String): List<JsonNode> {
+    val jsonResponses = mutableListOf<JsonNode>()
+
+    var nextHref = ""
+    do {
+        val currentResponse: Response
+
+        val url: String
+        val params: Map<String, String>
+        if (jsonResponses.isEmpty()) {
+            url = "$buildServerUrl/app/rest/mutes"
+            params = mapOf(
+                "locator" to "project:(id:$rootScopeId)",
+                "fields" to "mute(id,assignment(text),scope(project(id),buildTypes(buildType(id))),target(tests(test(name))),resolution),nextHref"
+            )
+        } else {
+            url = "$buildServerUrl$nextHref"
+            params = emptyMap()
+        }
+
+        currentResponse = khttp.get(url, headers, params, auth = authUser)
+        checkResponseAndLog(currentResponse)
+
+        val currentJsonResponse = jsonObjectMapper.readTree(currentResponse.text)
+        jsonResponses.add(currentJsonResponse)
+        nextHref = currentJsonResponse.get("nextHref")?.textValue() ?: ""
+
+    } while (!nextHref.isBlank())
+
+    return jsonResponses
 }
 
 internal fun uploadMutedTests(uploadMap: Map<String, MuteTestJson>) {
