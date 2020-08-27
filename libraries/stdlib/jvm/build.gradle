@@ -9,7 +9,7 @@ configurePublishing(project)
 
 configurations {
     distSources
-    withJvmBuiltins
+    withJvmBuiltins.extendsFrom(configurations.compile)
 }
 
 sourceSets {
