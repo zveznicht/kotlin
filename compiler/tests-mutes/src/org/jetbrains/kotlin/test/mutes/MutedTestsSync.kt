@@ -40,6 +40,7 @@ private fun syncMutedTests(
     val uploadList = locallyMutedTests - remotelyMutedTests.keys
     deleteMutedTests(deleteList)
     uploadMutedTests(uploadList)
+
 }
 
 internal fun getMandatoryProperty(propertyName: String) = (System.getProperty(propertyName)
