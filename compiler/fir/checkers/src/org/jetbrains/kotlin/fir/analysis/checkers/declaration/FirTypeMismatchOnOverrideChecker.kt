@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.resolve.substitution.substitutorByMap
 import org.jetbrains.kotlin.fir.resolve.toSymbol
+import org.jetbrains.kotlin.fir.resolve.transformers.ensureResolved
 import org.jetbrains.kotlin.fir.scopes.*
 import org.jetbrains.kotlin.fir.scopes.impl.toConeType
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
@@ -137,7 +138,7 @@ object FirTypeMismatchOnOverrideChecker : FirMemberDeclarationChecker() {
         val returnType = returnTypeRef.safeAs<FirResolvedTypeRef>()?.type
             ?: return null
 
-        val bounds = overriddenSymbols.map { it.fir.returnTypeRef.coneType.upperBoundIfFlexible() }
+        val bounds = overriddenSymbols.map { context.returnTypeCalculator.tryCalculateReturnType(it.fir).coneType.upperBoundIfFlexible() }
         val supertypesParameterSubstitutor = regularClass.substituteAllSupertypeParameters(context)
 
         for (it in bounds.indices) {
