@@ -117,6 +117,8 @@ artifacts {
     withJvmBuiltins withJvmBuiltinsJar
 }
 
+configurations.withJvmBuiltins.extendsFrom(configurations.compile)
+
 javadocJar()
 
 DexMethodCountKt.dexMethodCount(project) { task ->

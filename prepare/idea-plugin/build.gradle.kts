@@ -153,8 +153,6 @@ dependencies {
     embedded(kotlinBuiltins(forJvm = true))
 
     libraries(project(":kotlin-stdlib", "withJvmBuiltins"))
-    libraries(project(":kotlin-stdlib-common"))
-    libraries(commonDep("org.jetbrains:annotations:13.0"))
 
     libraries(commonDep("org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:${property("versions.kotlinx-collections-immutable")}")) {
         exclude("org.jetbrains.kotlin", "kotlin-stdlib")
