@@ -78,6 +78,7 @@ object FirTypeMismatchOnOverrideChecker : FirMemberDeclarationChecker() {
         val remapper = mutableMapOf<ConeKotlinType, ConeKotlinType>()
 
         fun FirRegularClass.collectSupertypes() {
+            symbol.ensureResolved(FirResolvePhase.STATUS, session)
             for (it in superTypeRefs) {
                 val fir = it.coneType.safeAs<ConeClassLikeType>()?.lookupTag?.toSymbol(context.session)
                     ?.fir.safeAs<FirRegularClass>()
