@@ -114,12 +114,23 @@ interface FirDeclarationPresenter {
     fun StringBuilder.appendRepresentation(it: FirTypeParameter) {
         append(it.name.asString())
         append(':')
-        append(
-            it.bounds
-                .map { buildString { appendRepresentation(it) } }
-                .sorted()
-                .joinToString()
-        )
+        when (it.bounds.size) {
+            0 -> {
+            }
+            1 -> {
+                appendRepresentation(it.bounds[0])
+            }
+            else -> {
+                val set = sortedSetOf<String>()
+                it.bounds.forEach { that ->
+                    set.add(buildString { appendRepresentation(that) })
+                }
+                set.forEach { that ->
+                    append(that)
+                    append(',')
+                }
+            }
+        }
     }
 
     fun StringBuilder.appendRepresentation(it: FirValueParameter) {
