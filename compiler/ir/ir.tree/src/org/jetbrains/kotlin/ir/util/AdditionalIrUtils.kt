@@ -31,7 +31,7 @@ val IrDeclarationParent.fqNameForIrSerialization: FqName
     }
 
 /**
- * Skips synthetic FILE_CLASS to make top-level functions be look as in kotlin source
+ * Skips synthetic FILE_CLASS to make top-level functions look as in kotlin source
  */
 val IrDeclarationParent.kotlinFqName: FqName
     get() = when (this) {
