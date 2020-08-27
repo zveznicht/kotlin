@@ -6,7 +6,7 @@ plugins {
 jvmTarget = "1.8"
 
 dependencies {
-    compile(kotlinStdlib())
+    compileOnly(kotlinStdlib())
     compile(project(":compiler:cli-config-base"))
     compileOnly(intellijDep()) { includeJars("asm-all", rootProject = rootProject) }
     compileOnly(commonDep("org.fusesource.jansi", "jansi"))
@@ -19,10 +19,10 @@ sourceSets {
     "test" { }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>> {
-    kotlinOptions {
-        languageVersion = "1.2"
-        apiVersion = "1.2"
-        freeCompilerArgs += "-Xskip-metadata-version-check"
-    }
-}
+//tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>> {
+//    kotlinOptions {
+//        languageVersion = "1.2"
+//        apiVersion = "1.2"
+//        freeCompilerArgs += "-Xskip-metadata-version-check"
+//    }
+//}

@@ -60,6 +60,10 @@ gradleEnterprise {
 
 BuildCacheKt.setupBuildCache(settings)
 
+include ":compiler:cli-common",
+        ":compiler:cli-config-base",
+        ":compiler:cli-messages"
+
 // modules
 include ":benchmarks",
         ":compiler",
@@ -90,9 +94,6 @@ include ":benchmarks",
         ":compiler:frontend.common",
         ":compiler:frontend.java",
         ":kotlin-compiler-runner",
-        ":compiler:cli-common",
-//        ":compiler:cli-messages",
-        ":compiler:cli-config-base",
         ":compiler:ir.tree",
         ":compiler:ir.tree.impl",
         ":compiler:ir.tree.persistent",
@@ -438,6 +439,8 @@ project(':kotlin-compiler-client-embeddable').projectDir = "$rootDir/prepare/com
 project(':kotlin-preloader').projectDir = "$rootDir/compiler/preloader" as File
 project(':kotlin-build-common').projectDir = "$rootDir/build-common" as File
 project(':compiler:cli-common').projectDir = "$rootDir/compiler/cli/cli-common" as File
+project(':compiler:cli-config-base').projectDir = "$rootDir/compiler/cli/cli-config-base" as File
+project(':compiler:cli-messages').projectDir = "$rootDir/compiler/cli/cli-messages" as File
 project(':compiler:cli-js').projectDir = "$rootDir/compiler/cli/cli-js" as File
 project(':compiler:cli-js-klib').projectDir = "$rootDir/compiler/cli/cli-js-klib" as File
 project(':kotlin-runner').projectDir = "$rootDir/compiler/cli/cli-runner" as File
