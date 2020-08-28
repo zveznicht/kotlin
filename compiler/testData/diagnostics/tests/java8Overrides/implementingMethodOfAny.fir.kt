@@ -1,9 +1,9 @@
 interface IA {
-    <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>override fun toString(): String = "IA"<!>
+    override fun <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>toString<!>(): String = "IA"
 
-    <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>override fun equals(other: Any?): Boolean = super.equals(other)<!>
+    override fun <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>equals<!>(other: Any?): Boolean = super.equals(other)
 
-    <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>override fun hashCode(): Int {
+    override fun <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>hashCode<!>(): Int {
         return 42;
-    }<!>
+    }
 }

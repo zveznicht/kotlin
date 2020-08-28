@@ -10,11 +10,13 @@ import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
+import org.jetbrains.kotlin.fir.analysis.getChild
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.ConeTypeParameterType
 import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.types.isNullable
+import org.jetbrains.kotlin.lexer.KtTokens
 
 object FirInapplicableLateinitChecker : FirMemberDeclarationChecker() {
     var primitives: Set<ConeKotlinType>? = null
@@ -40,28 +42,28 @@ object FirInapplicableLateinitChecker : FirMemberDeclarationChecker() {
 
         when {
             declaration.isVal ->
-                reporter.report(declaration.source, "is allowed only on mutable properties")
+                reporter.report(declaration, "is allowed only on mutable properties")
 
             declaration.initializer != null -> if (declaration.isLocal) {
-                reporter.report(declaration.source, "is not allowed on local variables with initializer")
+                reporter.report(declaration, "is not allowed on local variables with initializer")
             } else {
-                reporter.report(declaration.source, "is not allowed on properties with initializer")
+                reporter.report(declaration, "is not allowed on properties with initializer")
             }
 
             declaration.delegate != null ->
-                reporter.report(declaration.source, "is not allowed on delegated properties")
+                reporter.report(declaration, "is not allowed on delegated properties")
 
             declaration.isNullable() ->
-                reporter.report(declaration.source, "is not allowed on properties of a type with nullable upper bound")
+                reporter.report(declaration, "is not allowed on properties of a type with nullable upper bound")
 
             declaration.returnTypeRef.coneType in getPrimitiveTypes(context) -> if (declaration.isLocal) {
-                reporter.report(declaration.source, "is not allowed on local variables of primitive types")
+                reporter.report(declaration, "is not allowed on local variables of primitive types")
             } else {
-                reporter.report(declaration.source, "is not allowed on properties of primitive types")
+                reporter.report(declaration, "is not allowed on properties of primitive types")
             }
 
             declaration.hasGetter() || declaration.hasSetter() ->
-                reporter.report(declaration.source, "is not allowed on properties with a custom getter or setter")
+                reporter.report(declaration, "is not allowed on properties with a custom getter or setter")
         }
     }
 
@@ -73,7 +75,9 @@ object FirInapplicableLateinitChecker : FirMemberDeclarationChecker() {
     private fun FirProperty.hasGetter() = getter != null && getter?.source != null && getter?.source?.kind !is FirFakeSourceElementKind
     private fun FirProperty.hasSetter() = setter != null && setter?.source != null && setter?.source?.kind !is FirFakeSourceElementKind
 
-    private fun DiagnosticReporter.report(source: FirSourceElement?, target: String) {
-        source?.let { report(FirErrors.INAPPLICABLE_LATEINIT_MODIFIER.on(it, target)) }
+    private fun DiagnosticReporter.report(declaration: FirMemberDeclaration, target: String) {
+        declaration.source?.getChild(KtTokens.LATEINIT_KEYWORD)?.let {
+            report(FirErrors.INAPPLICABLE_LATEINIT_MODIFIER.on(it, target))
+        }
     }
 }

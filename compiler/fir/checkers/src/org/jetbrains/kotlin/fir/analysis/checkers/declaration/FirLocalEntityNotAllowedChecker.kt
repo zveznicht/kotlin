@@ -11,10 +11,12 @@ import org.jetbrains.kotlin.fir.Visibilities
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
+import org.jetbrains.kotlin.fir.analysis.getChild
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.declarations.isCompanion
 import org.jetbrains.kotlin.fir.declarations.visibility
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.Name
 
 object FirLocalEntityNotAllowedChecker : FirBasicDeclarationChecker() {
@@ -24,8 +26,15 @@ object FirLocalEntityNotAllowedChecker : FirBasicDeclarationChecker() {
         }
 
         when {
-            declaration.classKind == ClassKind.OBJECT && !declaration.isCompanion -> reporter.reportLocalObjectNotAllowed(declaration.source, declaration.name)
-            declaration.classKind == ClassKind.INTERFACE -> reporter.reportLocalInterfaceNotAllowed(declaration.source, declaration.name)
+            declaration.classKind == ClassKind.OBJECT && !declaration.isCompanion -> {
+                // it seems, this covers `object Identifier` without
+                // the body which may be inconsistent a bit,
+                // but still well enough.
+                reporter.reportLocalObjectNotAllowed(declaration.source, declaration.name)
+            }
+            declaration.classKind == ClassKind.INTERFACE -> {
+                reporter.reportLocalInterfaceNotAllowed(declaration.source?.getChild(KtTokens.INTERFACE_KEYWORD), declaration.name)
+            }
             else -> {
             }
         }

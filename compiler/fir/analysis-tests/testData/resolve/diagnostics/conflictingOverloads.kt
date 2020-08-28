@@ -1,40 +1,40 @@
-<!CONFLICTING_OVERLOADS!>fun test(x: Int) {}<!>
+fun <!CONFLICTING_OVERLOADS!>test<!>(x: Int) {}
 
-<!CONFLICTING_OVERLOADS!>fun test(y: Int) {}<!>
+fun <!CONFLICTING_OVERLOADS!>test<!>(y: Int) {}
 
 fun test() {}
 
 fun test(z: Int, c: Char) {}
 
-<!REDECLARATION!>open class A {
+open class <!REDECLARATION!>A<!> {
     open fun rest(s: String) {}
 
     open val u = 20
-}<!>
+}
 
-<!REDECLARATION!>class A {
+class <!REDECLARATION!>A<!> {
 
-}<!>
+}
 
-<!REDECLARATION!>class B : A {
-    <!CONFLICTING_OVERLOADS!>override fun rest(s: String) {}<!>
+class <!REDECLARATION!>B<!> : A {
+    override fun <!CONFLICTING_OVERLOADS!>rest<!>(s: String) {}
 
-    <!CONFLICTING_OVERLOADS!>fun rest(s: String) {}<!>
+    fun <!CONFLICTING_OVERLOADS!>rest<!>(s: String) {}
 
     fun rest(l: Long) {}
 
     override val u = 310
-}<!>
+}
 
-<!REDECLARATION!>interface B<!>
+interface <!REDECLARATION!>B<!>
 
-<!REDECLARATION!>enum class B<!>
+enum class <!REDECLARATION!>B<!>
 
-<!REDECLARATION!>val u = 10<!>
-<!REDECLARATION!>val u = 20<!>
+val <!REDECLARATION!>u<!> = 10
+val <!REDECLARATION!>u<!> = 20
 
-<!REDECLARATION!>typealias TA = A<!>
-<!REDECLARATION!>typealias TA = B<!>
+typealias <!REDECLARATION!>TA<!> = A
+typealias <!REDECLARATION!>TA<!> = B
 
 typealias BA = A
 
@@ -45,12 +45,12 @@ fun <T : Int> kek(t: T) {}
 fun lol(a: Array<Int>) {}
 fun lol(a: Array<Boolean>) {}
 
-<!CONFLICTING_OVERLOADS!>fun <T> mem(t: T) where T : () -> Boolean, T : String {}<!>
-<!CONFLICTING_OVERLOADS!>fun <T> mem(t: T) where T : String, T : () -> Boolean {}<!>
+fun <T> <!CONFLICTING_OVERLOADS!>mem<!>(t: T) where T : () -> Boolean, T : String {}
+fun <T> <!CONFLICTING_OVERLOADS!>mem<!>(t: T) where T : String, T : () -> Boolean {}
 
 class M {
     companion <!REDECLARATION!>object<!> {}
-    <!REDECLARATION!>val Companion = object : Any {}<!>
+    val <!REDECLARATION!>Companion<!> = object : Any {}
 }
 
 fun B.foo() {}

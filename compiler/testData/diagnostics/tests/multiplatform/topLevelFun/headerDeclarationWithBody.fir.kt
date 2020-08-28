@@ -2,8 +2,8 @@
 // MODULE: m1-common
 // FILE: common.kt
 
-<!CONFLICTING_OVERLOADS!>expect fun foo()<!>
+expect fun <!CONFLICTING_OVERLOADS!>foo<!>()
 
-<!CONFLICTING_OVERLOADS!>expect fun foo() {}<!>
+expect fun <!CONFLICTING_OVERLOADS!>foo<!>() {}
 
 expect fun bar() {}

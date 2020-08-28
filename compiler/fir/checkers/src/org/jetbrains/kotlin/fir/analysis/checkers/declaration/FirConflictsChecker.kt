@@ -5,14 +5,18 @@
 
 package org.jetbrains.kotlin.fir.analysis.checkers.declaration
 
+import org.jetbrains.kotlin.fir.FirFakeSourceElementKind
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.analysis.checkers.FirDeclarationInspector
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
-import org.jetbrains.kotlin.fir.declarations.FirDeclaration
-import org.jetbrains.kotlin.fir.declarations.FirFile
-import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.analysis.getChild
+import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.expressions.FirComparisonExpression
+import org.jetbrains.kotlin.fir.resolve.dfa.cfg.isLocalClassOrAnonymousObject
+import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.name.SpecialNames.DEFAULT_NAME_FOR_COMPANION_OBJECT
 
 object FirConflictsChecker : FirBasicDeclarationChecker() {
     override fun check(declaration: FirDeclaration, context: CheckerContext, reporter: DiagnosticReporter) {
@@ -25,11 +29,20 @@ object FirConflictsChecker : FirBasicDeclarationChecker() {
         }
 
         inspector.functionDeclarations.forEachNonSingle { it, hint ->
-            reporter.reportConflictingOverloads(it.source, hint)
+            // we'd better highlight the whole `name([param, ...])` thing
+            reporter.reportConflictingOverloads(it.source?.getChild(KtTokens.IDENTIFIER), hint)
         }
 
         inspector.otherDeclarations.forEachNonSingle { it, hint ->
-            reporter.reportConflictingDeclarations(it.source, hint)
+            if (it is FirRegularClass && it.isCompanion) {
+                if (it.name == DEFAULT_NAME_FOR_COMPANION_OBJECT) {
+                    reporter.reportConflictingDeclarations(it.source?.getChild(KtTokens.OBJECT_KEYWORD), hint)
+                } else {
+                    reporter.reportConflictingDeclarations(it.source?.getChild(KtTokens.IDENTIFIER), hint)
+                }
+            } else {
+                reporter.reportConflictingDeclarations(it.source?.getChild(KtTokens.IDENTIFIER), hint)
+            }
         }
     }
 

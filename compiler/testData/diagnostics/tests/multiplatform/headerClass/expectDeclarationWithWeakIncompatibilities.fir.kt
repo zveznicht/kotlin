@@ -23,6 +23,6 @@ actual var s: String = "value"
 
 fun foo2(): Int = 0
 
-<!REDECLARATION!>actual class Foo3<!>
+actual class <!REDECLARATION!>Foo3<!>
 
-<!REDECLARATION!>class Foo3<!>
+class <!REDECLARATION!>Foo3<!>

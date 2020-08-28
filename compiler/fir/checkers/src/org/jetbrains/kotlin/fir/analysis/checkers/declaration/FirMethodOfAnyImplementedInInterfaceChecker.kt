@@ -12,8 +12,10 @@ import org.jetbrains.kotlin.fir.analysis.checkers.FirDeclarationPresenter
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
+import org.jetbrains.kotlin.fir.analysis.getChild
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 object FirMethodOfAnyImplementedInInterfaceChecker : FirMemberDeclarationChecker(), FirDeclarationPresenter {
@@ -52,7 +54,7 @@ object FirMethodOfAnyImplementedInInterfaceChecker : FirMemberDeclarationChecker
             val inspector = getInspector(context)
 
             if (it is FirSimpleFunction && inspector.contains(it) && it.body != null && it.isOverride) {
-                reporter.report(it.source)
+                reporter.report(it.source?.getChild(KtTokens.IDENTIFIER))
             }
         }
     }

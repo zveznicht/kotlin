@@ -1,17 +1,17 @@
 // !DIAGNOSTICS: -UNUSED_VARIABLE -UNUSED_PARAMETER -TOPLEVEL_TYPEALIASES_ONLY
 // FILE: file1.kt
-<!REDECLARATION!>class SomeClass<!>
+class <!REDECLARATION!>SomeClass<!>
 
-<!REDECLARATION!>typealias SomeClass = Any<!>
-<!REDECLARATION!>typealias SomeClass = Any<!>
-<!REDECLARATION!>typealias SomeClass = Any<!>
+typealias <!REDECLARATION!>SomeClass<!> = Any
+typealias <!REDECLARATION!>SomeClass<!> = Any
+typealias <!REDECLARATION!>SomeClass<!> = Any
 
 class Outer {
-    <!REDECLARATION!>class Nested<!>
+    class <!REDECLARATION!>Nested<!>
 
-    <!REDECLARATION!>typealias Nested = Any<!>
-    <!REDECLARATION!>typealias Nested = Any<!>
-    <!REDECLARATION!>typealias Nested = Any<!>
+    typealias <!REDECLARATION!>Nested<!> = Any
+    typealias <!REDECLARATION!>Nested<!> = Any
+    typealias <!REDECLARATION!>Nested<!> = Any
 }
 
 // FILE: file2.kt

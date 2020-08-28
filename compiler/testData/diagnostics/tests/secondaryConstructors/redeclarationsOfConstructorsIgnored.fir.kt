@@ -1,7 +1,7 @@
-<!REDECLARATION!>class A<!>
-<!REDECLARATION!>class A {
+class <!REDECLARATION!>A<!>
+class <!REDECLARATION!>A<!> {
     constructor()
-}<!>
+}
 
 class B
 class Outer {

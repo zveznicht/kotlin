@@ -1,9 +1,9 @@
 interface A {
-    <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>override fun toString() = "Hello"<!>
-    <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>override fun equals(other: Any?) = true<!>
-    <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>override fun hashCode(): Int {
+    override fun <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>toString<!>() = "Hello"
+    override fun <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>equals<!>(other: Any?) = true
+    override fun <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>hashCode<!>(): Int {
         return 42;
-    }<!>
+    }
 }
 
 interface B {
@@ -13,9 +13,9 @@ interface B {
 }
 
 interface C {
-    <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>override operator fun toString(): String = "Rest"<!>
-    <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>override operator fun equals(other: Any?): Boolean = false<!>
-    <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>override operator fun hashCode(): Int = 2<!>
+    override operator fun <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>toString<!>(): String = "Rest"
+    override operator fun <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>equals<!>(other: Any?): Boolean = false
+    override operator fun <!ANY_METHOD_IMPLEMENTED_IN_INTERFACE!>hashCode<!>(): Int = 2
 }
 
 interface D {

@@ -1,6 +1,6 @@
 sealed class A
 
-<!REDECLARATION!>class B : A()<!>
+class <!REDECLARATION!>B<!> : A()
 
 interface C : <!INTERFACE_WITH_SUPERCLASS!>A<!>
 
@@ -28,7 +28,7 @@ sealed class P {
 
 class K : P()
 
-<!REDECLARATION!>object B<!> {
+object <!REDECLARATION!>B<!> {
     class I : <!SEALED_SUPERTYPE!>P<!>()
 }
 

@@ -10,10 +10,10 @@ fun func() {}
 class C
 
 <!SYNTAX!>@file:<!>
-interface T
+interface <!REDECLARATION!>T<!>
 
 @file:[<!SYNTAX!><!>]
-interface T
+interface <!REDECLARATION!>T<!>
 
 annotation class foo
 annotation class bar

@@ -17,11 +17,13 @@ import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
+import org.jetbrains.kotlin.fir.analysis.getChild
 import org.jetbrains.kotlin.fir.declarations.FirConstructor
 import org.jetbrains.kotlin.fir.declarations.FirMemberDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirRegularClass
 import org.jetbrains.kotlin.fir.lightNode
 import org.jetbrains.kotlin.fir.psi
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtSuperTypeCallEntry
 
 object FirSupertypeInitializedWithoutPrimaryConstructor : FirMemberDeclarationChecker() {
@@ -34,7 +36,7 @@ object FirSupertypeInitializedWithoutPrimaryConstructor : FirMemberDeclarationCh
         val hasPrimaryConstructor = declaration.declarations.any { it is FirConstructor && it.isPrimary }
 
         if (hasSupertypeWithConstructor && !hasPrimaryConstructor) {
-            reporter.report(declaration.source)
+            reporter.report(declaration.source?.getChild(KtTokens.IDENTIFIER))
         }
     }
 

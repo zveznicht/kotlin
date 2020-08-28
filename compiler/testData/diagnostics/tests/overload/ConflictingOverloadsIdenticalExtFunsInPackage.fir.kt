@@ -1,5 +1,5 @@
 package extensionFunctions
 
-<!CONFLICTING_OVERLOADS!>fun Int.qwe(a: Float) = 1<!>
+fun Int.<!CONFLICTING_OVERLOADS!>qwe<!>(a: Float) = 1
 
-<!CONFLICTING_OVERLOADS!>fun Int.qwe(a: Float) = 2<!>
+fun Int.<!CONFLICTING_OVERLOADS!>qwe<!>(a: Float) = 2

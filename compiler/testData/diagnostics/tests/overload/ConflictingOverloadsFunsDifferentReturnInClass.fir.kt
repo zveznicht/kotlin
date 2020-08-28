@@ -1,6 +1,6 @@
 class A {
-    <!CONFLICTING_OVERLOADS!>fun a(a: Int): Int = 0<!>
+    fun <!CONFLICTING_OVERLOADS!>a<!>(a: Int): Int = 0
 
-    <!CONFLICTING_OVERLOADS!>fun a(a: Int) {
-    }<!>
+    fun <!CONFLICTING_OVERLOADS!>a<!>(a: Int) {
+    }
 }

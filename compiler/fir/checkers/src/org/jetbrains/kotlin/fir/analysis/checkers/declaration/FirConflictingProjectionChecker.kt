@@ -6,12 +6,16 @@
 package org.jetbrains.kotlin.fir.analysis.checkers.declaration
 
 import org.jetbrains.kotlin.fir.FirSourceElement
+import org.jetbrains.kotlin.fir.analysis.ElementFinderByType
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
+import org.jetbrains.kotlin.fir.analysis.getChild
+import org.jetbrains.kotlin.fir.analysis.getElementFinderByType
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.types.*
+import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
@@ -49,29 +53,49 @@ object FirConflictingProjectionChecker : FirBasicDeclarationChecker() {
     }
 
     private fun checkTypeRef(typeRef: FirTypeRef, context: CheckerContext, reporter: DiagnosticReporter) {
-        val declaration = typeRef.safeAs<FirResolvedTypeRef>()
+        val provider = typeRef.source
+            ?.getElementFinderByType(setOf(KtTokens.IN_KEYWORD, KtTokens.OUT_KEYWORD))
+            ?: return
+
+        typeRef.safeAs<FirResolvedTypeRef>()
             ?.coneTypeSafe<ConeClassLikeType>()
+            ?.let {
+                checkType(it, context, reporter, provider)
+            }
+    }
+
+    private fun checkType(
+        type: ConeKotlinType,
+        context: CheckerContext,
+        reporter: DiagnosticReporter,
+        provider: ElementFinderByType<FirSourceElement>
+    ) {
+        val declaration = type.safeAs<ConeClassLikeType>()
             ?.lookupTag
             ?.toSymbol(context.session)
             ?.fir.safeAs<FirRegularClass>()
             ?: return
 
-        declaration.typeParameters.zip(typeRef.coneType.typeArguments).forEach { (proto, actual) ->
+        declaration.typeParameters.zip(type.typeArguments).forEach { (proto, actual) ->
             val protoVariance = proto.safeAs<FirTypeParameterRef>()
                 ?.symbol?.fir
                 ?.variance
                 ?: return@forEach
 
-            if (protoVariance == Variance.INVARIANT) {
-                return@forEach
-            }
-
-            if (
-                actual is ConeKotlinTypeProjectionIn && protoVariance == Variance.OUT_VARIANCE ||
-                actual is ConeKotlinTypeProjectionOut && protoVariance == Variance.IN_VARIANCE
-            ) {
-                reporter.reportConflictingProjections(typeRef.source, typeRef.coneType.toString())
-                return
+            when {
+                protoVariance == Variance.INVARIANT -> {
+                    if (actual is ConeKotlinType) {
+                        checkType(actual, context, reporter, provider)
+                    }
+                }
+                actual is ConeKotlinTypeProjectionIn && protoVariance == Variance.OUT_VARIANCE -> {
+                    reporter.reportConflictingProjections(provider.find(), type.toString())
+                    checkType(actual.type, context, reporter, provider)
+                }
+                actual is ConeKotlinTypeProjectionOut && protoVariance == Variance.IN_VARIANCE -> {
+                    reporter.reportConflictingProjections(provider.find(), type.toString())
+                    checkType(actual.type, context, reporter, provider)
+                }
             }
         }
     }

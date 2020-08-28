@@ -1,7 +1,7 @@
 package qwertyuiop
 
-<!CONFLICTING_OVERLOADS!>fun c(s: String) {
-}<!>
+fun <!CONFLICTING_OVERLOADS!>c<!>(s: String) {
+}
 
-<!CONFLICTING_OVERLOADS!>fun c(s: String) {
-}<!>
+fun <!CONFLICTING_OVERLOADS!>c<!>(s: String) {
+}

@@ -156,3 +156,24 @@ FILE: conflictingProjection.kt
     public final fun test18(): R|InOuter.OutIntermediate.InInner<out kotlin/Char, in kotlin/String, kotlin/Int>| {
         ^test18 R|/InOuter.InOuter|<R|kotlin/Int|>().R|/InOuter.OutIntermediate.OutIntermediate|<R|kotlin/String|>().R|/InOuter.OutIntermediate.InInner.InInner|<R|kotlin/Any?|>()
     }
+    public final fun test19(): R|None<InOuter.OutIntermediate.InInner<out kotlin/Char, in kotlin/String, kotlin/Int>>?| {
+        ^test19 Null(null)
+    }
+    public final class Two<T, in K> : R|kotlin/Any| {
+        public constructor<T, in K>(): R|Two<T, K>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final fun test20(): R|Two<InOuter.OutIntermediate.InInner<out kotlin/Char, in kotlin/String, kotlin/Int>, out kotlin/Char>?| {
+        ^test20 Null(null)
+    }
+    public final class Three<in T, K, out G> : R|kotlin/Any| {
+        public constructor<in T, K, out G>(): R|Three<T, K, G>| {
+            super<R|kotlin/Any|>()
+        }
+
+    }
+    public final fun test21(): R|Three<out In<out kotlin/Int>, None<Out<in kotlin/String>>, in kotlin/Char>?| {
+        ^test21 Null(null)
+    }
