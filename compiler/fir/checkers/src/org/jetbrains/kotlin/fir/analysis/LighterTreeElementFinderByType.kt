@@ -9,31 +9,36 @@ import com.intellij.lang.LighterASTNode
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.tree.IElementType
 import com.intellij.util.diff.FlyweightCapableTreeStructure
+import java.util.*
 
 class LighterTreeElementFinderByType(
     private val tree: FlyweightCapableTreeStructure<LighterASTNode>,
+    private val root: LighterASTNode?,
     private var types: Collection<IElementType>,
     private var index: Int,
     private val depth: Int
-) {
-    fun find(node: LighterASTNode?): LighterASTNode? {
-        if (node == null) return null
-        return visitNode(node, 0)
+) : ElementFinderByType<LighterASTNode> {
+    // <node, currentDepth>
+    private val queue = LinkedList<Pair<LighterASTNode, Int>>().apply {
+        root?.let { add(it to 0) }
     }
 
-    fun visitNode(node: LighterASTNode, currentDepth: Int): LighterASTNode? {
-        if (node.tokenType in types) {
-            if (index == 0) {
-                return node
+    override fun find(): LighterASTNode? {
+        while (queue.isNotEmpty()) {
+            val (node, currentDepth) = queue.poll()
+
+            if (node.tokenType in types) {
+                if (index == 0) {
+                    return node
+                }
+                index--
             }
-            index--
-        }
 
-        if (currentDepth == depth) return null
+            if (currentDepth == depth) continue
 
-        for (child in node.getChildren()) {
-            val result = visitNode(child, currentDepth + 1)
-            if (result != null) return result
+            for (child in node.getChildren()) {
+                queue.add(child to currentDepth + 1)
+            }
         }
 
         return null

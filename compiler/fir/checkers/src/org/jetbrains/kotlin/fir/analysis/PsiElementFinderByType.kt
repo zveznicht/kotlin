@@ -8,29 +8,35 @@ package org.jetbrains.kotlin.fir.analysis
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import org.jetbrains.kotlin.psi.psiUtil.allChildren
+import java.util.*
 
 class PsiElementFinderByType(
+    private val root: PsiElement,
     private val types: Collection<IElementType>,
     private var index: Int,
     private val depth: Int
-) {
-    fun find(root: PsiElement): PsiElement? {
-        return visitElement(root, 0)
+) : ElementFinderByType<PsiElement> {
+    // <element, currentDepth>
+    private val queue = LinkedList<Pair<PsiElement, Int>>().apply {
+        add(root to 0)
     }
 
-    fun visitElement(element: PsiElement, currentDepth: Int): PsiElement? {
-        if (element.node.elementType in types) {
-            if (index == 0) {
-                return element
+    override fun find(): PsiElement? {
+        while (queue.isNotEmpty()) {
+            val (element, currentDepth) = queue.poll()
+
+            if (element.node.elementType in types) {
+                if (index == 0) {
+                    return element
+                }
+                index--
             }
-            index--
-        }
 
-        if (currentDepth == depth) return null
+            if (currentDepth == depth) continue
 
-        for (children in element.allChildren) {
-            val result = visitElement(children, currentDepth + 1)
-            if (result != null) return result
+            for (child in element.allChildren) {
+                queue.add(child to currentDepth + 1)
+            }
         }
 
         return null
