@@ -9,22 +9,29 @@ import org.jetbrains.kotlin.ir.declarations.IrClass
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
+import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.interpreter.*
 import org.jetbrains.kotlin.ir.interpreter.builtins.evaluateIntrinsicAnnotation
+import org.jetbrains.kotlin.ir.interpreter.stack.Variable
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.fqNameForIrSerialization
 import org.jetbrains.kotlin.ir.util.fqNameWhenAvailable
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
 
-internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex(irClass, mutableListOf()) {
+internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex {
+    override val fields: MutableList<Variable> = mutableListOf()
 
-    private val typeFqName = irClass.fqNameForIrSerialization.toUnsafe()
+    override var superWrapperClass: Wrapper? = null
+    override val typeArguments: MutableList<Variable> = mutableListOf()
+    override var outerClass: Variable? = null
+
     private val receiverClass = irClass.defaultType.getClass(true)
+
+    override fun getIrFunctionByIrCall(expression: IrCall): IrFunction? = null
 
     fun getMethod(irFunction: IrFunction): MethodHandle? {
         if (irFunction.getEvaluateIntrinsicValue()?.isEmpty() == true) return null // this method will handle IntrinsicEvaluator
@@ -48,6 +55,10 @@ internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex(
             "kotlin.collections.MutableList.removeAt" -> "remove"
             else -> null
         }
+    }
+
+    override fun toString(): String {
+        return value.toString()
     }
 
     companion object {
@@ -182,9 +193,5 @@ internal class Wrapper(val value: Any, override val irClass: IrClass) : Complex(
             }
             return true
         }
-    }
-
-    override fun toString(): String {
-        return "Wrapper(obj='$typeFqName', value=$value)"
     }
 }
