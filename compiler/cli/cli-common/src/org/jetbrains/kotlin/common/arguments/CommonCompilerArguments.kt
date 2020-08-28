@@ -6,8 +6,10 @@
 package org.jetbrains.kotlin.cli.common.arguments
 
 import com.intellij.util.xmlb.annotations.Transient
-import CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.messages.MessageCollector
+import org.jetbrains.kotlin.common.arguments.Argument
+import org.jetbrains.kotlin.common.arguments.ManualLanguageFeatureSetting
 import org.jetbrains.kotlin.config.*
 import java.util.*
 
