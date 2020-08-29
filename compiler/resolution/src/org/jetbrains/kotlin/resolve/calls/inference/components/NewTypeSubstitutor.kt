@@ -205,6 +205,23 @@ class FreshVariableNewTypeSubstitutor(val freshVariables: List<TypeVariableFromC
     }
 }
 
+class KnownTypeParametersNewTypeSubstitutorAdapter(
+    private val freshVariableSubstitutor: FreshVariableNewTypeSubstitutor,
+    private val knownTypeParameterSubstitutor: TypeSubstitutor
+) : NewTypeSubstitutor {
+    private val freshVariableMap: Map<TypeConstructor, UnwrappedType> =
+        freshVariableSubstitutor.freshVariables.map { typeVariable ->
+            val substitutedTypeIfKnown = knownTypeParameterSubstitutor.substitute(typeVariable.originalTypeParameter.defaultType)
+            typeVariable.defaultType.constructor to substitutedTypeIfKnown
+        }.toMap()
+
+    override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? =
+        freshVariableMap[constructor]
+
+    override val isEmpty: Boolean =
+        freshVariableSubstitutor.isEmpty || knownTypeParameterSubstitutor.isEmpty
+}
+
 fun createCompositeSubstitutor(appliedFirst: NewTypeSubstitutor, appliedLast: TypeSubstitutor): NewTypeSubstitutor {
     if (appliedLast.isEmpty) return appliedFirst
 
@@ -225,4 +242,26 @@ fun createCompositeSubstitutor(appliedFirst: NewTypeSubstitutor, appliedLast: Ty
     }
 }
 
+fun createCompositeSubstitutor(appliedFirst: TypeSubstitutor, appliedLast: NewTypeSubstitutor): NewTypeSubstitutor {
+    if (appliedFirst.isEmpty) return appliedLast
+
+    return object : NewTypeSubstitutor {
+        override fun substituteNotNullTypeWithConstructor(constructor: TypeConstructor): UnwrappedType? {
+            val substitutedOnce = constructor.declarationDescriptor?.defaultType?.let {
+                appliedFirst.substitute(it)
+            }
+
+            return if (substitutedOnce == null) {
+                appliedLast.substituteNotNullTypeWithConstructor(constructor)
+            } else {
+                appliedLast.safeSubstitute(substitutedOnce)
+            }
+        }
+
+        override val isEmpty: Boolean
+            get() = appliedFirst.isEmpty && appliedLast.isEmpty
+    }
+}
+
 fun NewTypeSubstitutor.composeWith(appliedAfter: TypeSubstitutor) = createCompositeSubstitutor(this, appliedAfter)
+fun TypeSubstitutor.composeWith(appliedAfter: NewTypeSubstitutor) = createCompositeSubstitutor(this, appliedAfter)

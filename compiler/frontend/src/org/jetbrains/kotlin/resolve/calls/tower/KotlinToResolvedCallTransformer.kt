@@ -809,10 +809,10 @@ class NewResolvedCallImpl<D : CallableDescriptor>(
         shouldApproximate: Boolean = true
     ): CallableDescriptor {
         val inferredTypeVariablesSubstitutor = substitutor ?: FreshVariableNewTypeSubstitutor.Empty
-        val compositeSubstitutor = inferredTypeVariablesSubstitutor.composeWith(resolvedCallAtom.knownParametersSubstitutor)
 
-        return substitute(resolvedCallAtom.freshVariablesSubstitutor)
-            .substituteAndApproximateTypes(compositeSubstitutor, if (shouldApproximate) typeApproximator else null)
+        // TODO: merge last two substitutors to avoid redundant descriptor substitutions
+        return substitute(resolvedCallAtom.freshVariablesSubstitutor).substitute(resolvedCallAtom.knownParametersSubstitutor)
+            .substituteAndApproximateTypes(inferredTypeVariablesSubstitutor, if (shouldApproximate) typeApproximator else null)
     }
 
     fun getArgumentTypeForConstantConvertedArgument(valueArgument: ValueArgument): IntegerValueTypeConstant? {
