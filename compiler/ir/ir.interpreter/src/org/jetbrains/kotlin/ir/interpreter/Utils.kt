@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstImpl
 import org.jetbrains.kotlin.ir.interpreter.exceptions.throwAsUserException
+import org.jetbrains.kotlin.ir.interpreter.proxy.Proxy
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
@@ -54,7 +55,7 @@ internal fun State.toIrExpression(expression: IrExpression): IrExpression {
 
 internal fun Any?.toState(irType: IrType): State {
     return when (this) {
-        is IrInterpreter.Proxy -> this.state
+        is Proxy -> this.state
         is State -> this
         is Boolean, is Char, is Byte, is Short, is Int, is Long, is String, is Float, is Double, is Array<*>, is ByteArray,
         is CharArray, is ShortArray, is IntArray, is LongArray, is FloatArray, is DoubleArray, is BooleanArray -> Primitive(this, irType)
@@ -188,6 +189,7 @@ internal fun IrType.isPrimitiveArray(): Boolean {
 }
 
 internal fun IrType.isFunction() = this.getClass()?.fqNameWhenAvailable?.asString()?.startsWith("kotlin.Function") ?: false
+internal fun IrType.isKFunction() = this.getClass()?.fqNameWhenAvailable?.asString()?.startsWith("kotlin.reflect.KFunction") ?: false
 
 internal fun IrType.isTypeParameter() = classifierOrNull is IrTypeParameterSymbol
 
