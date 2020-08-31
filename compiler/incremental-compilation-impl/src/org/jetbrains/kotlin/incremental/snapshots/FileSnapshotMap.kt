@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.incremental.snapshots
 
-import org.jetbrains.kotlin.gradle.incremental.ChangedFiles
+import org.jetbrains.kotlin.incremental.ChangedFiles
 import org.jetbrains.kotlin.incremental.storage.BasicStringMap
 import org.jetbrains.kotlin.incremental.storage.PathStringDescriptor
 import java.io.File

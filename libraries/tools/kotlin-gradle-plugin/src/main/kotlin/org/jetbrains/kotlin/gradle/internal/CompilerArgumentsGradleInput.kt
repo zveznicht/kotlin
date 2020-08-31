@@ -19,6 +19,13 @@ package org.jetbrains.kotlin.gradle.internal
 import kotlin.reflect.KProperty
 import kotlin.reflect.KProperty1
 
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2JSDceArguments
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments
+import org.jetbrains.kotlin.common.arguments.K2JSCompilerArguments
+import org.jetbrains.kotlin.common.arguments.Argument
+
 internal object CompilerArgumentsGradleInput {
     fun <T : CommonToolArguments> createInputsMap(args: T): Map<String, String> {
         @Suppress("UNCHECKED_CAST")

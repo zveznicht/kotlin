@@ -31,6 +31,8 @@ import javax.script.ScriptContext
 import javax.script.ScriptEngineFactory
 import javax.script.ScriptException
 import kotlin.reflect.KClass
+import org.jetbrains.kotlin.cli.common.repl.*
+import org.jetbrains.kotlin.common.repl.GenericReplCompilingEvaluator
 
 // TODO: need to manage resources here, i.e. call replCompiler.dispose when engine is collected
 

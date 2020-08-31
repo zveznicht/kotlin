@@ -80,7 +80,7 @@ abstract class KotlinBasePluginWrapper(
         }
 
         // TODO: consider only set if if daemon or parallel compilation are enabled, though this way it should be safe too
-        System.setProperty(org.jetbrains.kotlin.cli.common.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY, "true")
+        System.setProperty(org.jetbrains.kotlin.cli.config.common.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY, "true")
 
         val kotlinGradleBuildServices = KotlinGradleBuildServices.getInstance(project, listenerRegistryHolder)
 

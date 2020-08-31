@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.gradle.internal
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.*
-import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptionsImpl
 import org.jetbrains.kotlin.gradle.tasks.FilteringSourceRootsContainer
@@ -28,6 +27,7 @@ import org.jetbrains.kotlin.gradle.tasks.SourceRoots
 import org.jetbrains.kotlin.gradle.utils.getValue
 import org.jetbrains.kotlin.gradle.utils.isParentOf
 //move to cli module
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.utils.classpathAsList
 import org.jetbrains.kotlin.cli.common.arguments.utils.destinationAsFile
 import java.io.File

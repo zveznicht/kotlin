@@ -8,12 +8,12 @@ package org.jetbrains.kotlin.scripting.compiler.plugin
 import com.intellij.core.JavaCoreProjectEnvironment
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
-import org.jetbrains.kotlin.cli.common.ExitCode
+import org.jetbrains.kotlin.cli.config.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.extensions.ScriptEvaluationExtension
-import CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.messages.MessageCollector
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys
@@ -22,6 +22,7 @@ import java.io.File
 import java.io.PrintStream
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.host.StringScriptSource
+import kotlin.script.experimental.host.toScriptSource
 
 abstract class AbstractScriptEvaluationExtension : ScriptEvaluationExtension {
 

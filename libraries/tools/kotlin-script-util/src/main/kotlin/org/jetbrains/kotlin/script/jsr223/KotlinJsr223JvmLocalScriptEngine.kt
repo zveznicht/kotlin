@@ -33,6 +33,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.script.ScriptContext
 import javax.script.ScriptEngineFactory
 import kotlin.reflect.KClass
+import org.jetbrains.kotlin.common.repl.GenericReplCompilingEvaluator
+import org.jetbrains.kotlin.cli.common.repl.*
 
 class KotlinJsr223JvmLocalScriptEngine(
         factory: ScriptEngineFactory,

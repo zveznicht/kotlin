@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.util.SymbolTable
 import org.jetbrains.kotlin.scripting.compiler.plugin.repl.ReplCodeAnalyzerBase
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import org.jetbrains.kotlin.cli.common.repl.*
 
 // Used to compile REPL code lines
 class JsReplCompiler(private val environment: KotlinCoreEnvironment) : ReplCompiler {

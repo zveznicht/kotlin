@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.daemon.report.experimental
 
 import kotlinx.coroutines.*
-import org.jetbrains.kotlin.cli.common.ExitCode
+import org.jetbrains.kotlin.cli.config.common.ExitCode
 import org.jetbrains.kotlin.daemon.common.*
 import org.jetbrains.kotlin.daemon.report.RemoteICReporter
 import org.jetbrains.kotlin.incremental.ICReporterBase

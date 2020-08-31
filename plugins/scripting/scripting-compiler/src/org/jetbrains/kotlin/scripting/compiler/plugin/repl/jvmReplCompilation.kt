@@ -13,6 +13,8 @@ import org.jetbrains.kotlin.resolve.calls.tower.ImplicitsExtensionsResolutionFil
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.write
 import kotlin.script.experimental.api.*
+import org.jetbrains.kotlin.cli.common.repl.IReplStageState
+import org.jetbrains.kotlin.cli.common.repl.BasicReplStageHistory
 
 class JvmReplCompilerStageHistory<CompilationT : JvmReplCompilerState.Compilation>(private val state: JvmReplCompilerState<CompilationT>) :
     BasicReplStageHistory<ScriptDescriptor>(state.lock)
