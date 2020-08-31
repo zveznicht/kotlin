@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.common.arguments
 
-import org.jetbrains.kotlin.cli.common.arguments.InternalArgumentParser.Companion.INTERNAL_ARGUMENT_PREFIX
 import org.jetbrains.kotlin.config.LanguageFeature
 
 /**
@@ -35,7 +34,7 @@ interface InternalArgumentParser<A : InternalArgument> {
 }
 
 abstract class AbstractInternalArgumentParser<A : InternalArgument>(familyName: String) : InternalArgumentParser<A> {
-    private val wholePrefix: String = INTERNAL_ARGUMENT_PREFIX + familyName
+    private val wholePrefix: String = InternalArgumentParser.INTERNAL_ARGUMENT_PREFIX + familyName
 
     override fun canParse(arg: String): Boolean = arg.startsWith(wholePrefix)
 

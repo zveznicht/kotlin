@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.common.repl
 
+import org.jetbrains.kotlin.cli.common.repl.*
 import java.io.File
 import java.net.URLClassLoader
 import java.util.concurrent.locks.ReentrantReadWriteLock

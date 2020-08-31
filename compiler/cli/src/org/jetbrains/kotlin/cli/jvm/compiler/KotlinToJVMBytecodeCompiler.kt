@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.cli.jvm.compiler
 
-import CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity
 import com.intellij.openapi.extensions.Extensions
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.*
@@ -40,9 +40,9 @@ import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.checkKotlinPackageUsage
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport
-import CompilerMessageSeverity.*
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import OutputMessageUtil
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity.*
+import org.jetbrains.kotlin.cli.messages.MessageCollector
+import org.jetbrains.kotlin.cli.messages.OutputMessageUtil
 import org.jetbrains.kotlin.cli.common.output.writeAll
 import org.jetbrains.kotlin.cli.common.toLogger
 import org.jetbrains.kotlin.cli.jvm.config.*

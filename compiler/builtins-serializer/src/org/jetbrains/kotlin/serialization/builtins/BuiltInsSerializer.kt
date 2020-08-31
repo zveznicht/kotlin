@@ -5,8 +5,10 @@
 
 package org.jetbrains.kotlin.serialization.builtins
 
-import CompilerMessageSeverity
-import GroupingMessageCollector
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.messages.GroupingMessageCollector
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSourceLocation
+
 import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.jvm.JvmBuiltInClassDescriptorFactory

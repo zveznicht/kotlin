@@ -16,13 +16,13 @@
 
 package org.jetbrains.kotlin.compilerRunner
 
-import MessageCollectorUtil
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import CompilerMessageSeverity
-import CompilerMessageSeverity.*
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import MessageCollectorUtil.reportException
-import OutputMessageUtil
+import org.jetbrains.kotlin.cli.messages.MessageCollectorUtil
+import org.jetbrains.kotlin.cli.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity.*
+import org.jetbrains.kotlin.cli.messages.MessageCollector
+import org.jetbrains.kotlin.cli.messages.MessageCollectorUtil.reportException
+import org.jetbrains.kotlin.cli.messages.OutputMessageUtil
 import org.xml.sax.Attributes
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException

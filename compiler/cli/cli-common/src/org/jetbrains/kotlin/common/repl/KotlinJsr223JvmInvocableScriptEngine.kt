@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.cli.common.repl
 
+import org.jetbrains.kotlin.common.repl.GenericReplEvaluatorState
 import org.jetbrains.kotlin.utils.tryCreateCallableMapping
 import java.lang.reflect.Proxy
 import javax.script.Invocable

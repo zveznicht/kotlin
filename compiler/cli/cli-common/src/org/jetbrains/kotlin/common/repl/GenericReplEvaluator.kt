@@ -16,6 +16,8 @@
 
 package org.jetbrains.kotlin.cli.common.repl
 
+import org.jetbrains.kotlin.common.repl.GenericReplEvaluatorState
+import org.jetbrains.kotlin.common.repl.makeReplClassLoader
 import org.jetbrains.kotlin.resolve.jvm.JvmClassName
 import java.io.File
 import java.lang.reflect.InvocationTargetException

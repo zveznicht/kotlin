@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.cli.messages
 import org.jetbrains.kotlin.cli.messages.OutputMessageUtil.renderException
 
 object MessageCollectorUtil {
+    @JvmStatic
     fun reportException(messageCollector: MessageCollector, exception: Throwable) {
         messageCollector.report(CompilerMessageSeverity.EXCEPTION, renderException(exception), null)
     }
