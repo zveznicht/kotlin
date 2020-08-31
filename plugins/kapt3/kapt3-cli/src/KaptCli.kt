@@ -9,9 +9,9 @@ package org.jetbrains.kotlin.kapt.cli
 import com.intellij.util.PathUtil
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.cli.config.common.ExitCode
-import org.jetbrains.kotlin.common.arguments.ArgumentParseErrors
+import org.jetbrains.kotlin.cli.common.arguments.ArgumentParseErrors
 import org.jetbrains.kotlin.common.arguments.preprocessCommandLineArguments
-import org.jetbrains.kotlin.common.arguments.validateArguments
+import org.jetbrains.kotlin.cli.common.arguments.validateArguments
 import org.jetbrains.kotlin.cli.common.messages.*
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
 import org.jetbrains.kotlin.cli.jvm.modules.isAtLeastJava9

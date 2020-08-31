@@ -5,9 +5,9 @@
 
 package org.jetbrains.kotlin.cli.common.arguments
 
-import org.jetbrains.kotlin.common.arguments.K2JsArgumentConstants
-import org.jetbrains.kotlin.common.arguments.K2JsArgumentConstants.CALL
-import org.jetbrains.kotlin.common.arguments.K2JsArgumentConstants.NO_CALL
+import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants
+import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants.CALL
+import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants.NO_CALL
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.LanguageVersion
 

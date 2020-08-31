@@ -23,9 +23,9 @@ import kotlin.reflect.KClass;
 import kotlin.reflect.KProperty1;
 import kotlin.text.StringsKt;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.kotlin.common.arguments.Argument;
+import org.jetbrains.kotlin.cli.common.arguments.Argument;
 import org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments;
-import org.jetbrains.kotlin.common.arguments.ParseCommandLineArgumentsKt;
+import org.jetbrains.kotlin.cli.common.arguments.ParseCommandLineArgumentsKt;
 import org.jetbrains.kotlin.common.arguments.PreprocessCommandLineArgumentsKt;
 
 public class Usage {

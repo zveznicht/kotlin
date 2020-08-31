@@ -68,8 +68,8 @@ import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.common.arguments.K2JSCompilerArguments
 import org.jetbrains.kotlin.common.arguments.isIrBackendEnabled
-import org.jetbrains.kotlin.common.arguments.validateArguments
-import org.jetbrains.kotlin.common.arguments.parseCommandLineArguments
+import org.jetbrains.kotlin.cli.common.arguments.validateArguments
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 
 const val REMOTE_STREAM_BUFFER_SIZE = 4096
 

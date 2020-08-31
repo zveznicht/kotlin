@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.cli.common.arguments
 
 import org.jetbrains.kotlin.cli.common.arguments.DevModeOverwritingStrategies.ALL
 import org.jetbrains.kotlin.cli.common.arguments.DevModeOverwritingStrategies.OLDER
-import org.jetbrains.kotlin.common.arguments.Argument
+import org.jetbrains.kotlin.cli.common.arguments.Argument
 
 class K2JSDceArguments : CommonToolArguments() {
     companion object {

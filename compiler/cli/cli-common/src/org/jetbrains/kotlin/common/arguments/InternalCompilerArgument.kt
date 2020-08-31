@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.common.arguments
 
 import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.cli.common.arguments.ArgumentParseErrors
 
 /**
  * Arguments that can drastically change compiler behavior,

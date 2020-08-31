@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.cli.config.common.ExitCode.COMPILATION_ERROR
 import org.jetbrains.kotlin.cli.config.common.ExitCode.OK
 import org.jetbrains.kotlin.cli.config.common.ExitCode
 import org.jetbrains.kotlin.common.arguments.K2JSCompilerArguments
-import org.jetbrains.kotlin.common.arguments.K2JsArgumentConstants
+import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.extensions.ScriptEvaluationExtension
 import org.jetbrains.kotlin.cli.common.messages.AnalyzerWithCompilerReport

@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.scripting.compiler.plugin.impl
 
-import org.jetbrains.kotlin.common.arguments.Argument
+import org.jetbrains.kotlin.cli.common.arguments.Argument
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.messages.CompilerMessageSourceLocation
 import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity

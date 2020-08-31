@@ -11,6 +11,8 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.Reader
 
+import org.jetbrains.kotlin.cli.common.arguments.ArgumentParseErrors
+
 const val ARGFILE_ARGUMENT = "@"
 private const val EXPERIMENTAL_ARGFILE_ARGUMENT = "-Xargfile="
 

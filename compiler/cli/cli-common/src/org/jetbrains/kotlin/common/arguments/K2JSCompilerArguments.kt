@@ -5,11 +5,9 @@
 
 package org.jetbrains.kotlin.common.arguments
 
-import org.jetbrains.kotlin.common.arguments.K2JsArgumentConstants.CALL
-import org.jetbrains.kotlin.common.arguments.K2JsArgumentConstants.NO_CALL
-import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.DefaultValues
-import org.jetbrains.kotlin.cli.common.arguments.GradleOption
+import org.jetbrains.kotlin.cli.common.arguments.*
+import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants.CALL
+import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants.NO_CALL
 import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.messages.MessageCollector
 import org.jetbrains.kotlin.config.*

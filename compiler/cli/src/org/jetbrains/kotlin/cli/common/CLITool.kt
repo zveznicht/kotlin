@@ -23,8 +23,8 @@ import org.jetbrains.kotlin.cli.messages.MessageCollector
 import org.fusesource.jansi.AnsiConsole
 import org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments
 import org.jetbrains.kotlin.common.arguments.ManualLanguageFeatureSetting
-import org.jetbrains.kotlin.common.arguments.parseCommandLineArguments
-import org.jetbrains.kotlin.common.arguments.validateArguments
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
+import org.jetbrains.kotlin.cli.common.arguments.validateArguments
 import org.jetbrains.kotlin.cli.common.messages.*
 import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity.INFO
 import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity.STRONG_WARNING

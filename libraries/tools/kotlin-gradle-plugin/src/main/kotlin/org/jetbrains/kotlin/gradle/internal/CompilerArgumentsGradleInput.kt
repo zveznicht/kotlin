@@ -25,7 +25,7 @@ import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
 import org.jetbrains.kotlin.common.arguments.K2JSCompilerArguments
-import org.jetbrains.kotlin.common.arguments.Argument
+import org.jetbrains.kotlin.cli.common.arguments.Argument
 
 internal object CompilerArgumentsGradleInput {
     fun <T : CommonToolArguments> createInputsMap(args: T): Map<String, String> {
