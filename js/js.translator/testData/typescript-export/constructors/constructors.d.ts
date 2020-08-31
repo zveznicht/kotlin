@@ -30,4 +30,8 @@ declare namespace JS_TESTS {
         static delegateToPrimary(y: string): DerivedClassWithSecondaryCtor;
         static delegateToCreateFromInts(y: number, z: number): DerivedClassWithSecondaryCtor;
     }
+    class KotlinGreeter {
+        constructor(greeting: string);
+        static KotlinGreeter_init_$Create$(greeting: Nullable<string>, $mask0: number, $marker: Nullable<typeof kotlin.js.DefaultConstructorMarker>): KotlinGreeter;
+    }
 }

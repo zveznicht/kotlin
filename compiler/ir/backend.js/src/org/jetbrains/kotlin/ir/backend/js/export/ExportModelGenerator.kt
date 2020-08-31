@@ -379,7 +379,10 @@ private fun getExportCandidate(declaration: IrDeclaration): IrDeclarationWithNam
 }
 
 private fun shouldDeclarationBeExported(declaration: IrDeclarationWithName, context: JsIrBackendContext): Boolean {
-    if (declaration.fqNameWhenAvailable in context.additionalExportedDeclarations)
+    if (declaration.fqNameWhenAvailable in context.additionalExportedDeclarationNames)
+        return true
+
+    if (declaration in context.additionalExportedDeclarations)
         return true
 
     if (declaration.isJsExport())
