@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.name.FqName
 
 class JsonIntrinsics(val context: JsIrBackendContext) : CallsTransformer {
 
-    override fun transformFunctionAccess(call: IrFunctionAccessExpression, skip: Boolean): IrExpression {
+    override fun transformFunctionAccess(call: IrFunctionAccessExpression, doNotIntrinsify: Boolean): IrExpression {
 
         fun generateMemberAccess(): IrExpression {
             val obj = call.dispatchReceiver!!

@@ -57,5 +57,5 @@ class CallsLowering(val context: JsIrBackendContext) : BodyLoweringPass {
 }
 
 interface CallsTransformer {
-    fun transformFunctionAccess(call: IrFunctionAccessExpression, skip: Boolean): IrExpression
+    fun transformFunctionAccess(call: IrFunctionAccessExpression, doNotIntrinsify: Boolean): IrExpression
 }
