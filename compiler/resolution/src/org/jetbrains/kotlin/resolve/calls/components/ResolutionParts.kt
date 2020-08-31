@@ -196,7 +196,8 @@ internal object CreateFreshVariablesSubstitutor : ResolutionPart() {
                 val typeParameterType = typeVariable.originalTypeParameter.defaultType
                 val substitutedKnownTypeParameter = knownTypeParametersSubstitutor.substitute(typeParameterType)
 
-                map[typeVariable.defaultType.constructor] = substitutedKnownTypeParameter
+                if (substitutedKnownTypeParameter !== typeParameterType)
+                    map[typeVariable.defaultType.constructor] = substitutedKnownTypeParameter
             }
             map
         }
