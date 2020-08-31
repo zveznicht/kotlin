@@ -24,9 +24,7 @@ class TowerResolveManager private constructor(private val shouldStopAtTheLevel: 
 
     private suspend fun suspendResolverTask(group: TowerGroup) =
         suspendCoroutineUninterceptedOrReturn<Unit> {
-            val nextTask = queue.poll()
             queue += SuspendedResolverTask(it, group)
-            if (nextTask != null) resumeTask(nextTask)
             COROUTINE_SUSPENDED
         }
 
