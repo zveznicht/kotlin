@@ -21,6 +21,8 @@ import java.io.Serializable
 import java.rmi.Remote
 import java.rmi.RemoteException
 
+import org.jetbrains.kotlin.cli.common.repl.*
+
 interface CompileService : Remote {
 
     enum class OutputFormat : Serializable {

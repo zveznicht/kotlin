@@ -16,7 +16,7 @@
 
 package org.jetbrains.kotlin.cli.common.repl
 
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
+import org.jetbrains.kotlin.cli.messages.CompilerMessageLocation
 import java.io.File
 import java.io.Serializable
 import java.util.*

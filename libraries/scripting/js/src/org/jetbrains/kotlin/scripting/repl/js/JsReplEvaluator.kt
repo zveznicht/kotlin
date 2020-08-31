@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.scripting.repl.js
 
 import org.jetbrains.kotlin.js.engine.ScriptEngineNashorn
 import java.util.concurrent.locks.ReentrantReadWriteLock
+import org.jetbrains.kotlin.cli.common.repl.*
 
 class JsReplEvaluator : ReplEvaluator {
     //TODO: support println()

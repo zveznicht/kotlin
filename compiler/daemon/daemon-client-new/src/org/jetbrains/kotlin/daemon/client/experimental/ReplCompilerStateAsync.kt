@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.daemon.client.experimental
 
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.kotlin.cli.common.repl.*
 import org.jetbrains.kotlin.daemon.client.RemoteReplCompilerStateHistory
 import org.jetbrains.kotlin.daemon.common.ReplStateFacadeAsync
 import java.util.concurrent.atomic.AtomicInteger

@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.common.arguments
 
 import com.intellij.util.text.VersionComparatorUtil
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1

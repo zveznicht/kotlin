@@ -5,8 +5,9 @@
 
 package org.jetbrains.kotlin.cli.common.arguments
 
-import CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.messages.MessageCollector
+import org.jetbrains.kotlin.common.arguments.Argument
 import org.jetbrains.kotlin.config.*
 
 class K2JVMCompilerArguments : CommonCompilerArguments() {

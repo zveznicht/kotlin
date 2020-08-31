@@ -14,6 +14,9 @@ dependencies {
     compileOnly(project(":daemon-common-new"))
     compile(projectRuntimeJar(":kotlin-daemon-client"))
     compile(commonDep("org.jetbrains.kotlinx", "kotlinx-coroutines-core")) { isTransitive = false }
+    //TODO
+    compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+
 }
 
 sourceSets {

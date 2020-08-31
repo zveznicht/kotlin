@@ -16,10 +16,10 @@
 
 package org.jetbrains.kotlin.compilerRunner
 
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSourceLocation
-import CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
-import OutputMessageUtil
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSourceLocation
+import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.messages.MessageCollector
+import org.jetbrains.kotlin.cli.messages.OutputMessageUtil
 
 class MessageCollectorToOutputItemsCollectorAdapter(
         private val delegate: MessageCollector,

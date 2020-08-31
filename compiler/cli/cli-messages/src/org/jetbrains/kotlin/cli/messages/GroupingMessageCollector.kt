@@ -9,7 +9,7 @@ import com.google.common.collect.Multimap
 import java.util.Comparator
 import kotlin.jvm.javaClass
 
-class GroupingMessageCollector(private val delegate: MessageCollector, private val treatWarningsAsErrors: Boolean) : MessageCollector {
+open class GroupingMessageCollector(private val delegate: MessageCollector, private val treatWarningsAsErrors: Boolean) : MessageCollector {
     // Note that the key in this map can be null
     private val groupedMessages: Multimap<CompilerMessageSourceLocation, Message> = LinkedHashMultimap.create()
     override fun clear() {

@@ -20,8 +20,8 @@ import com.intellij.openapi.util.io.StreamUtil;
 import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector;
-import org.jetbrains.kotlin.cli.common.messages.MessageCollectorUtil;
+import org.jetbrains.kotlin.cli.messages.MessageCollector;
+import org.jetbrains.kotlin.cli.messages.MessageCollectorUtil;
 import org.jetbrains.kotlin.cli.common.modules.ModuleBuilder;
 import org.jetbrains.kotlin.modules.JavaRootPath;
 import org.jetbrains.kotlin.modules.Module;
@@ -35,7 +35,7 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
 import java.util.List;
 
-import static org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.ERROR;
+import static org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity.ERROR;
 
 public class ModuleXmlParser {
 
