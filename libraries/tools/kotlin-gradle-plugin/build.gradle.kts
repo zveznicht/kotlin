@@ -51,6 +51,7 @@ dependencies {
     compileOnly(project(":compiler"))
     compileOnly(project(":compiler:incremental-compilation-impl"))
     compileOnly(project(":daemon-common"))
+    compile(project(":kotlin-daemon-client"))
 
     compile(kotlinStdlib())
     compile(project(":kotlin-util-klib"))

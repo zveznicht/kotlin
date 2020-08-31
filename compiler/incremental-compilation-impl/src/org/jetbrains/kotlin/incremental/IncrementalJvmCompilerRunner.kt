@@ -46,7 +46,8 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import java.io.File
-import org.jetbrains.kotlin.incremental.ICReporterBase
+import org.jetbrains.kotlin.cli.common.incremental.destinationAsFile
+import org.jetbrains.kotlin.cli.common.incremental.classpathAsList
 
 fun makeIncrementally(
     cachesDir: File,

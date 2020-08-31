@@ -136,7 +136,7 @@ internal abstract class KotlinJsOptionsBase : org.jetbrains.kotlin.gradle.dsl.Ko
     }
 }
 
-internal fun org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments.fillDefaultValues() {
+internal fun org.jetbrains.kotlin.common.arguments.K2JSCompilerArguments.fillDefaultValues() {
     allWarningsAsErrors = false
     suppressWarnings = false
     verbose = false

@@ -14,6 +14,10 @@ import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompileArgumentsProvider
 import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompilerArgumentsProvider
 import org.jetbrains.kotlin.gradle.utils.toSortedPathsArray
+import org.jetbrains.kotlin.gradle.dsl.fillDefaultValues
+import org.jetbrains.kotlin.cli.common.incremental.classpathAsList
+import org.jetbrains.kotlin.cli.common.incremental.destinationAsFile
+
 //move to cli module
 
 internal interface CompilerArgumentsContributor<in T : CommonToolArguments> {

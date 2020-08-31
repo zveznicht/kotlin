@@ -35,6 +35,7 @@ import org.jetbrains.kotlin.gradle.utils.getValue
 import org.jetbrains.kotlin.gradle.plugin.sources.getSourceSetHierarchy
 import org.jetbrains.kotlin.gradle.incremental.ChangedFiles
 import java.io.File
+import org.jetbrains.kotlin.gradle.dsl.fillDefaultValues
 
 @CacheableTask
 open class KotlinCompileCommon : AbstractKotlinCompile<K2MetadataCompilerArguments>(), KotlinCommonCompile {

@@ -28,8 +28,8 @@ import org.jetbrains.kotlin.gradle.utils.getValue
 import org.jetbrains.kotlin.gradle.utils.isParentOf
 //move to cli module
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.utils.classpathAsList
-import org.jetbrains.kotlin.cli.common.arguments.utils.destinationAsFile
+import org.jetbrains.kotlin.cli.common.incremental.classpathAsList
+import org.jetbrains.kotlin.cli.common.incremental.destinationAsFile
 import java.io.File
 
 @CacheableTask
