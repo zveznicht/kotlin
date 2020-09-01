@@ -133,22 +133,22 @@ internal class KtFirScopeProvider(
 
         @OptIn(ExperimentalStdlibApi::class)
         val allKtScopes = buildList {
-            implicitReceiverScopes.mapTo(this, ::convertToKtScope)
-            nonLocalScopes.mapTo(this, ::convertToKtScope)
-            firLocalScopes.mapTo(this, ::convertToKtScope)
+            implicitReceiverScopes.mapNotNullTo(this, ::convertToKtScope)
+            nonLocalScopes.mapNotNullTo(this, ::convertToKtScope)
+            firLocalScopes.mapNotNullTo(this, ::convertToKtScope)
         }
 
         KtScopeContext(getCompositeScope(allKtScopes), implicitReceiversTypes)
     }
 
-    private fun convertToKtScope(firScope: FirScope): KtScope {
+    private fun convertToKtScope(firScope: FirScope): KtScope? {
         firScopeStorage.register(firScope)
         return when (firScope) {
             is FirAbstractSimpleImportingScope -> KtFirNonStarImportingScope(firScope, builder, token)
             is FirAbstractStarImportingScope -> KtFirStarImportingScope(firScope, builder, project, token)
             is FirPackageMemberScope -> KtFirPackageScope(firScope, builder, token)
             is FirContainingNamesAwareScope -> KtFirDelegatingScopeImpl(firScope, builder, token)
-            is FirMemberTypeParameterScope -> KtFirMemberTypeParameterStubbingScope(firScope, token)
+            is FirMemberTypeParameterScope -> null
             else -> TODO(firScope::class.toString())
         }
     }
