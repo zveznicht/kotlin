@@ -34,6 +34,15 @@ import org.jetbrains.kotlin.platform.impl.JvmIdePlatformKind
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.NotNullableUserDataProperty
 import kotlin.reflect.KProperty1
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.common.arguments.copyBeanTo
+import org.jetbrains.kotlin.common.arguments.copyFieldsSatisfying
+import org.jetbrains.kotlin.common.arguments.K2JSCompilerArguments
+import org.jetbrains.kotlin.common.arguments.mergeBeans
+import org.jetbrains.kotlin.common.arguments.copyBean
+import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 
 var Module.hasExternalSdkConfiguration: Boolean
         by NotNullableUserDataProperty(Key.create<Boolean>("HAS_EXTERNAL_SDK_CONFIGURATION"), false)

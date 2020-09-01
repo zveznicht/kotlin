@@ -11,6 +11,9 @@ import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants.NO_CALL
 import org.jetbrains.kotlin.cli.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.messages.MessageCollector
 import org.jetbrains.kotlin.config.*
+import org.jetbrains.kotlin.common.arguments.K2JSCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 
 class K2JSCompilerArguments : CommonCompilerArguments() {
     companion object {

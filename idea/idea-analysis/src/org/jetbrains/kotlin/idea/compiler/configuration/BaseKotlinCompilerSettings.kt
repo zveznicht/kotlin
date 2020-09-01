@@ -19,6 +19,12 @@ import gnu.trove.THashMap
 import org.jdom.Element
 import org.jetbrains.kotlin.idea.syncPublisherWithDisposeCheck
 import kotlin.reflect.KClass
+import org.jetbrains.kotlin.common.arguments.K2JSCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants
+import org.jetbrains.kotlin.cli.common.arguments.Freezable
+//import org.jetbrains.kotlin.cli.common.arguments.Freezable.*
+import org.jetbrains.kotlin.common.arguments.collectProperties
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 
 abstract class BaseKotlinCompilerSettings<T : Freezable> protected constructor(private val project: Project) :
     PersistentStateComponent<Element>, Cloneable {

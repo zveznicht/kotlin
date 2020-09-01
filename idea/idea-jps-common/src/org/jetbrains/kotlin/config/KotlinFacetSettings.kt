@@ -10,8 +10,8 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.cli.common.arguments.Argument
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.copyBean
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
+import org.jetbrains.kotlin.common.arguments.copyBean
 import org.jetbrains.kotlin.platform.IdePlatformKind
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.TargetPlatformVersion
@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.utils.DescriptionAware
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 @Deprecated("Use IdePlatformKind instead.", level = DeprecationLevel.ERROR)
 sealed class TargetPlatformKind<out Version : TargetPlatformVersion>(

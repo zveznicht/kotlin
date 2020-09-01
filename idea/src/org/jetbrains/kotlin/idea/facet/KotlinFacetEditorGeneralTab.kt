@@ -26,6 +26,16 @@ import java.awt.BorderLayout
 import java.awt.Component
 import javax.swing.*
 import javax.swing.border.EmptyBorder
+import org.jetbrains.kotlin.cli.common.arguments.Argument
+import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
+import org.jetbrains.kotlin.cli.common.arguments.validateArguments
+import org.jetbrains.kotlin.common.arguments.collectProperties
+import org.jetbrains.kotlin.common.arguments.K2JSCompilerArguments
+import org.jetbrains.kotlin.common.arguments.mergeBeans
+import org.jetbrains.kotlin.common.arguments.copyInheritedFields
+import kotlin.reflect.full.findAnnotation
 
 class KotlinFacetEditorGeneralTab(
     private val configuration: KotlinFacetConfiguration,
