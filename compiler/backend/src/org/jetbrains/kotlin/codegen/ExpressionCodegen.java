@@ -2742,6 +2742,15 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             addInlineMarker(v, false);
         }
 
+        // If a suspend function returns unboxed inline class, we should check for COROUTINE_SUSPENDED and only then box the inline class.
+        if (insideCallableReference() && resolvedCall.getResultingDescriptor() instanceof FunctionDescriptor) {
+            KotlinType unboxedInlineClass = CoroutineCodegenUtilKt.originalReturnTypeOfSuspendFunctionReturningUnboxedInlineClass(
+                    (FunctionDescriptor) resolvedCall.getResultingDescriptor(), typeMapper);
+            if (unboxedInlineClass != null) {
+                CoroutineCodegenUtilKt.generateCoroutineSuspendedCheck(v, state.getLanguageVersionSettings());
+            }
+        }
+
         KotlinType returnType = resolvedCall.getResultingDescriptor().getReturnType();
         if (returnType != null && KotlinBuiltIns.isNothing(returnType)) {
             if (state.getUseKotlinNothingValueException()) {
