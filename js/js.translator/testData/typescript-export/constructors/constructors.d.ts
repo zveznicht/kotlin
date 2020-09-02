@@ -32,6 +32,6 @@ declare namespace JS_TESTS {
     }
     class KotlinGreeter {
         constructor(greeting: string);
-        static KotlinGreeter_init_$Create$(greeting: Nullable<string>, $mask0: number, $marker: Nullable<typeof kotlin.js.DefaultConstructorMarker>): KotlinGreeter;
+        readonly greeting: string;
     }
 }

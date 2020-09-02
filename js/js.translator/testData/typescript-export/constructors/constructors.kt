@@ -61,4 +61,4 @@ class DerivedClassWithSecondaryCtor : OpenClassWithMixedConstructors {
 // FILE: f2.kt
 
 @JsExport
-class KotlinGreeter(greeting: String = "helau")
+class KotlinGreeter(val greeting: String = "helau")
