@@ -355,7 +355,10 @@ public class TypeSubstitutor implements TypeSubstitutorMarker {
 
     @NotNull
     public static Variance combine(@NotNull Variance typeParameterVariance, @NotNull TypeProjection typeProjection) {
-        if (typeProjection.isStarProjection()) return Variance.OUT_VARIANCE;
+        if (typeProjection.isStarProjection()) {
+            if (typeParameterVariance == Variance.IN_VARIANCE) return Variance.IN_VARIANCE;
+            return Variance.OUT_VARIANCE;
+        }
 
         return combine(typeParameterVariance, typeProjection.getProjectionKind());
     }
