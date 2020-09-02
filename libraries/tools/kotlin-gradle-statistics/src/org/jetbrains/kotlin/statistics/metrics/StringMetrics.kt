@@ -22,6 +22,7 @@ enum class StringMetrics(val type: StringOverridePolicy, val anonymization: Stri
     // Build script
     MPP_PLATFORMS(CONCAT, SAFE),
     JS_COMPILER_MODE(CONCAT, SAFE),
+    JS_TARGET_MODE(CONCAT, SAFE),
 
     // Component versions
     LIBRARY_SPRING_VERSION(OVERRIDE_VERSION_IF_NOT_SET, COMPONENT_VERSION),
