@@ -185,7 +185,7 @@ val IrClass.functions: Sequence<IrSimpleFunction>
 val IrClassSymbol.functions: Sequence<IrSimpleFunctionSymbol>
     get() = owner.functions.map { it.symbol }
 
-val IrClass.constructors: Sequence<IrConstructor>
+val IrDeclarationContainer.constructors: Sequence<IrConstructor>
     get() = declarations.asSequence().filterIsInstance<IrConstructor>()
 
 val IrClassSymbol.constructors: Sequence<IrConstructorSymbol>

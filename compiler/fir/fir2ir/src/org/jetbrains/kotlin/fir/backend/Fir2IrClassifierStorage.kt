@@ -300,7 +300,7 @@ class Fir2IrClassifierStorage(
         return result
     }
 
-    private fun getIrAnonymousObjectForEnumEntry(anonymousObject: FirAnonymousObject, name: Name, irParent: IrClass?): IrClass {
+    private fun getIrAnonymousObjectForEnumEntry(anonymousObject: FirAnonymousObject, name: Name, irParent: IrDeclarationParent?): IrClass {
         localStorage.getLocalClass(anonymousObject)?.let { return it }
         return createIrAnonymousObject(anonymousObject, Visibilities.Private, name, irParent)
     }
@@ -391,7 +391,7 @@ class Fir2IrClassifierStorage(
 
     fun createIrEnumEntry(
         enumEntry: FirEnumEntry,
-        irParent: IrClass?,
+        irParent: IrDeclarationParent?,
         origin: IrDeclarationOrigin = IrDeclarationOrigin.DEFINED
     ): IrEnumEntry {
         return enumEntry.convertWithOffsets { startOffset, endOffset ->
@@ -414,7 +414,7 @@ class Fir2IrClassifierStorage(
                         }
                         // Otherwise, this is a default-ish enum entry whose initializer would be a delegating constructor call,
                         // which will be translated via visitor later.
-                    } else if (irParent != null && origin == IrDeclarationOrigin.DEFINED) {
+                    } else if (irParent != null && irParent is IrDeclarationContainer && origin == IrDeclarationOrigin.DEFINED) {
                         val constructor = irParent.constructors.first()
                         this.initializerExpression = factory.createExpressionBody(
                             IrEnumConstructorCallImpl(

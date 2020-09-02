@@ -51,30 +51,36 @@ class Fir2IrConverter(
         processClassMembers(regularClass, irClass)
     }
 
-    fun registerFileAndClasses(file: FirFile): IrFile {
+    fun registerFileAndClassesAndScripts(file: FirFile): IrFile {
         val irFile = IrFileImpl(
             sourceManager.getOrCreateFileEntry(file.psi as KtFile),
             moduleDescriptor.getPackage(file.packageFqName).fragments.first()
         )
         declarationStorage.registerFile(file, irFile)
         file.declarations.forEach {
-            if (it is FirRegularClass) {
-                registerClassAndNestedClasses(it, irFile)
+            when (it) {
+                is FirScript -> {
+                    registerScriptAndNestedClasses(it, irFile)
+                }
+                is FirRegularClass -> {
+                    registerClassAndNestedClasses(it, irFile)
+                }
             }
         }
         return irFile
     }
 
-    fun processClassHeaders(file: FirFile) {
+    fun processClassAndScriptHeaders(file: FirFile) {
         file.declarations.forEach {
             when (it) {
                 is FirRegularClass -> processClassAndNestedClassHeaders(it)
+                is FirScript -> processScriptAndNestedClassHeaders(it)
                 is FirTypeAlias -> classifierStorage.registerTypeAlias(it, declarationStorage.getIrFile(file))
             }
         }
     }
 
-    fun processFileAndClassMembers(file: FirFile) {
+    fun processFileAndClassAndScriptMembers(file: FirFile) {
         val irFile = declarationStorage.getIrFile(file)
         for (declaration in file.declarations) {
             val irDeclaration = processMemberDeclaration(declaration, null, irFile) ?: continue
@@ -156,6 +162,27 @@ class Fir2IrConverter(
         return irClass
     }
 
+    private fun processScriptMembers(
+        script: FirScript,
+        irScript: IrScript = declarationStorage.getIrScript(script)!!
+    ): IrScript {
+        loop@ for (scriptStatement in script.body!!.statements) {
+            when (scriptStatement) {
+                is FirAnonymousInitializer -> {
+                    error("Unexpected script member: ${scriptStatement::class}")
+                }
+                is FirDeclaration -> {
+                    val irDeclaration = processMemberDeclaration(scriptStatement, null, irScript) ?: continue@loop
+                    irScript.statements += irDeclaration
+                }
+                else -> {
+                    error("Unexpected script member: ${scriptStatement::class}")
+                }
+            }
+        }
+        return irScript
+    }
+
     private fun delegatedMembers(irClass: IrClass): List<FirDeclaration> {
         return irClass.declarations.filter {
             it.origin == IrDeclarationOrigin.DELEGATED_MEMBER
@@ -181,9 +208,28 @@ class Fir2IrConverter(
         return irClass
     }
 
+    private fun registerScriptAndNestedClasses(script: FirScript, parent: IrDeclarationParent): IrScript {
+        val irScript = declarationStorage.registerIrScript(script, parent)
+        script.body?.statements?.forEach {
+            if (it is FirRegularClass) {
+                registerClassAndNestedClasses(it, irScript)
+            }
+        }
+        return irScript
+    }
+
     private fun processClassAndNestedClassHeaders(regularClass: FirRegularClass) {
         classifierStorage.processClassHeader(regularClass)
         regularClass.declarations.forEach {
+            if (it is FirRegularClass) {
+                processClassAndNestedClassHeaders(it)
+            }
+        }
+    }
+
+    private fun processScriptAndNestedClassHeaders(script: FirScript) {
+        declarationStorage.processScriptHeader(script)
+        script.body?.statements?.forEach {
             if (it is FirRegularClass) {
                 processClassAndNestedClassHeaders(it)
             }
@@ -200,6 +246,9 @@ class Fir2IrConverter(
         return when (declaration) {
             is FirRegularClass -> {
                 processClassMembers(declaration)
+            }
+            is FirScript -> {
+                processScriptMembers(declaration)
             }
             is FirSimpleFunction -> {
                 declarationStorage.getOrCreateIrFunction(
@@ -226,7 +275,7 @@ class Fir2IrConverter(
                 null
             }
             is FirEnumEntry -> {
-                classifierStorage.createIrEnumEntry(declaration, parent as IrClass)
+                classifierStorage.createIrEnumEntry(declaration, parent)
             }
             is FirAnonymousInitializer -> {
                 declarationStorage.createIrAnonymousInitializer(declaration, parent as IrClass)
@@ -283,7 +332,7 @@ class Fir2IrConverter(
             val irFiles = mutableListOf<IrFile>()
 
             for (firFile in firFiles) {
-                irFiles += converter.registerFileAndClasses(firFile)
+                irFiles += converter.registerFileAndClassesAndScripts(firFile)
             }
             val irModuleFragment = IrModuleFragmentImpl(moduleDescriptor, irBuiltIns, irFiles)
             val irProviders =
@@ -304,10 +353,10 @@ class Fir2IrConverter(
             components.callGenerator = callGenerator
             declarationStorage.annotationGenerator = AnnotationGenerator(components)
             for (firFile in firFiles) {
-                converter.processClassHeaders(firFile)
+                converter.processClassAndScriptHeaders(firFile)
             }
             for (firFile in firFiles) {
-                converter.processFileAndClassMembers(firFile)
+                converter.processFileAndClassAndScriptMembers(firFile)
             }
 
             for (firFile in firFiles) {
