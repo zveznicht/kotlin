@@ -55,12 +55,16 @@ abstract class LightClassGenerationSupport {
         ConstantExpressionEvaluator(moduleDescriptor, languageVersionSettings, expression.project)
     }
 
+    abstract val useUltraLightClasses: Boolean
+
     fun createUltraLightClassForFacade(
         manager: PsiManager,
         facadeClassFqName: FqName,
         lightClassDataCache: CachedValue<LightClassDataHolder.ForFacade>,
         files: Collection<KtFile>,
     ): KtUltraLightClassForFacade? {
+
+        if (!useUltraLightClasses) return null
 
         if (files.any { it.isScript() }) return null
 
@@ -78,6 +82,9 @@ abstract class LightClassGenerationSupport {
     }
 
     fun createUltraLightClass(element: KtClassOrObject): KtUltraLightClass? {
+
+        if (!useUltraLightClasses) return null
+
         if (element.shouldNotBeVisibleAsLightClass()) {
             return null
         }
@@ -99,7 +106,7 @@ abstract class LightClassGenerationSupport {
     }
 
     fun createUltraLightClassForScript(script: KtScript): KtUltraLightClassForScript? =
-        KtUltraLightClassForScript(script, support = getUltraLightClassSupport(script))
+        if (useUltraLightClasses) KtUltraLightClassForScript(script, support = getUltraLightClassSupport(script)) else null
 
     companion object {
         @JvmStatic
