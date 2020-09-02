@@ -18,7 +18,6 @@ import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.resultType
 import org.jetbrains.kotlin.fir.resolve.typeForQualifier
 import org.jetbrains.kotlin.fir.scopes.FirScope
-import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.scopes.impl.FirAbstractImportingScope
 import org.jetbrains.kotlin.fir.scopes.processClassifiersByName
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
@@ -29,6 +28,15 @@ import org.jetbrains.kotlin.fir.types.classId
 import org.jetbrains.kotlin.fir.types.withNullability
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.util.OperatorNameConventions
+
+enum class ProcessResult {
+    FOUND, SCOPE_EMPTY;
+
+    operator fun plus(other: ProcessResult): ProcessResult {
+        if (this == FOUND || other == FOUND) return FOUND
+        return this
+    }
+}
 
 interface TowerScopeLevel {
 
@@ -42,7 +50,7 @@ interface TowerScopeLevel {
         token: Token<T>,
         name: Name,
         processor: TowerScopeLevelProcessor<T>
-    ): ProcessorAction
+    ): ProcessResult
 
     interface TowerScopeLevelProcessor<T : AbstractFirBasedSymbol<*>> {
         fun consumeCandidate(
@@ -76,12 +84,13 @@ class MemberScopeTowerLevel(
     private val implicitExtensionInvokeMode: Boolean = false,
     private val scopeSession: ScopeSession
 ) : SessionBasedTowerLevel(session) {
+
     private fun <T : AbstractFirBasedSymbol<*>> processMembers(
         output: TowerScopeLevel.TowerScopeLevelProcessor<T>,
         processScopeMembers: FirScope.(processor: (T) -> Unit) -> Unit
-    ): ProcessorAction {
+    ): ProcessResult {
         var empty = true
-        val scope = dispatchReceiver.scope(session, scopeSession) ?: return ProcessorAction.NONE
+        val scope = dispatchReceiver.scope(session, scopeSession) ?: return ProcessResult.SCOPE_EMPTY
         scope.processScopeMembers { candidate ->
             empty = false
             if (candidate is FirCallableSymbol<*> &&
@@ -117,17 +126,17 @@ class MemberScopeTowerLevel(
                 output.consumeCandidate(symbol, NotNullableReceiverValue(dispatchReceiver), null)
             }
         }
-        return if (empty) ProcessorAction.NONE else ProcessorAction.NEXT
+        return if (empty) ProcessResult.SCOPE_EMPTY else ProcessResult.FOUND
     }
 
     override fun <T : AbstractFirBasedSymbol<*>> processElementsByName(
         token: TowerScopeLevel.Token<T>,
         name: Name,
         processor: TowerScopeLevel.TowerScopeLevelProcessor<T>
-    ): ProcessorAction {
+    ): ProcessResult {
         val isInvoke = name == OperatorNameConventions.INVOKE && token == TowerScopeLevel.Token.Functions
         if (implicitExtensionInvokeMode && !isInvoke) {
-            return ProcessorAction.NEXT
+            return ProcessResult.FOUND
         }
         return when (token) {
             is TowerScopeLevel.Token.Properties -> processMembers(processor) { consumer ->
@@ -162,6 +171,10 @@ class MemberScopeTowerLevel(
         return MemberScopeTowerLevel(
             session, bodyResolveComponents, receiverValue, extensionReceiver, implicitExtensionInvokeMode, scopeSession
         )
+    }
+
+    override fun toString(): String {
+        return "MemberScopeTowerLevel(dispatchReceiver=$dispatchReceiver, extensionReceiver=$extensionReceiver, implicitExtensionInvokeMode=$implicitExtensionInvokeMode)"
     }
 }
 
@@ -237,7 +250,7 @@ class ScopeTowerLevel(
         token: TowerScopeLevel.Token<T>,
         name: Name,
         processor: TowerScopeLevel.TowerScopeLevelProcessor<T>
-    ): ProcessorAction {
+    ): ProcessResult {
         var empty = true
         @Suppress("UNCHECKED_CAST")
         when (token) {
@@ -262,7 +275,11 @@ class ScopeTowerLevel(
                 )
             }
         }
-        return if (empty) ProcessorAction.NONE else ProcessorAction.NEXT
+        return if (empty) ProcessResult.SCOPE_EMPTY else ProcessResult.FOUND
+    }
+
+    override fun toString(): String {
+        return "ScopeTowerLevel(scope=$scope, extensionReceiver=$extensionReceiver, extensionsOnly=$extensionsOnly, includeInnerConstructors=$includeInnerConstructors)"
     }
 }
 

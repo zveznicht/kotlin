@@ -31,7 +31,7 @@ internal class CandidateFactoriesAndCollectors(
 internal class TowerLevelHandler {
 
     // Try to avoid adding additional state here
-    private var processResult = ProcessorAction.NONE
+    private var processResult = ProcessResult.SCOPE_EMPTY
 
     fun handleLevel(
         collector: CandidateCollector,
@@ -41,8 +41,8 @@ internal class TowerLevelHandler {
         explicitReceiverKind: ExplicitReceiverKind,
         group: TowerGroup,
         towerLevel: SessionBasedTowerLevel
-    ): ProcessorAction {
-        processResult = ProcessorAction.NONE
+    ): ProcessResult {
+        processResult = ProcessResult.SCOPE_EMPTY
         val processor =
             TowerScopeLevelProcessor(
                 info.explicitReceiver,
@@ -119,7 +119,10 @@ internal class TowerLevelHandler {
         name: Name, processor: TowerScopeLevel.TowerScopeLevelProcessor<AbstractFirBasedSymbol<*>>
     ) {
         // Skipping objects when extension receiver is bound to the level
-        if (this is ScopeTowerLevel && this.extensionReceiver != null) return
+        if (this is ScopeTowerLevel && this.extensionReceiver != null) {
+            processResult += ProcessResult.FOUND
+            return
+        }
 
         processElementsByNameAndStoreResult(TowerScopeLevel.Token.Objects, name, processor)
     }
@@ -128,7 +131,7 @@ internal class TowerLevelHandler {
         token: TowerScopeLevel.Token<T>,
         name: Name,
         processor: TowerScopeLevel.TowerScopeLevelProcessor<T>
-    ): ProcessorAction {
+    ): ProcessResult {
         return processElementsByName(token, name, processor).also {
             processResult += it
         }

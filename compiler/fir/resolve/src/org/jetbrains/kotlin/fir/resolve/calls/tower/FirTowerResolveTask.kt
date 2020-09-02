@@ -47,6 +47,9 @@ internal class TowerDataElementsForName(
             towerDataElement.implicitReceiver?.let { receiver -> IndexedValue(index, receiver) }
         }
     }
+
+    val emptyScopes = mutableSetOf<FirScope>()
+    val implicitReceiverValuesWithEmptyScopes = mutableSetOf<ImplicitReceiverValue<*>>()
 }
 
 internal abstract class FirBaseTowerResolveTask(
@@ -139,7 +142,7 @@ internal abstract class FirBaseTowerResolveTask(
             towerLevel
         )
         if (collector.isSuccess()) onSuccessfulLevel(finalGroup)
-        return result == ProcessorAction.NONE
+        return result == ProcessResult.SCOPE_EMPTY
 
     }
 }
@@ -261,19 +264,16 @@ internal open class FirTowerResolveTask(
     ) {
         processExtensionsThatHideMembers(info, explicitReceiverValue = null)
 
-        val emptyScopes = mutableSetOf<FirScope>()
-        val implicitReceiverValuesWithEmptyScopes = mutableSetOf<ImplicitReceiverValue<*>>()
-
         enumerateTowerLevels(
             onScope = l@{ scope, group ->
                 // NB: this check does not work for variables
                 // because we do not search for objects if we have extension receiver
-                if (info.callKind != CallKind.VariableAccess && scope in emptyScopes) return@l
+                if (scope in towerDataElementsForName.emptyScopes) return@l
 
                 processLevel(
                     scope.toScopeTowerLevel(), info, group,
                     onEmptyLevel = {
-                        emptyScopes += scope
+                        towerDataElementsForName.emptyScopes += scope
                     }
                 )
             },
@@ -282,8 +282,8 @@ internal open class FirTowerResolveTask(
                     receiver,
                     info,
                     group,
-                    implicitReceiverValuesWithEmptyScopes,
-                    emptyScopes
+                    towerDataElementsForName.implicitReceiverValuesWithEmptyScopes,
+                    towerDataElementsForName.emptyScopes
                 )
             }
         )
@@ -338,9 +338,13 @@ internal open class FirTowerResolveTask(
         info: CallInfo,
         towerGroup: TowerGroup,
     ) {
+        if (scope in towerDataElementsForName.emptyScopes) return
         processLevel(
             scope.toScopeTowerLevel(extensionReceiver = explicitReceiverValue),
-            info, towerGroup, ExplicitReceiverKind.EXTENSION_RECEIVER
+            info, towerGroup, ExplicitReceiverKind.EXTENSION_RECEIVER,
+            onEmptyLevel = {
+                towerDataElementsForName.emptyScopes += scope
+            }
         )
 
     }
@@ -351,10 +355,14 @@ internal open class FirTowerResolveTask(
         info: CallInfo,
         parentGroup: TowerGroup
     ) {
+        if (implicitReceiverValue in towerDataElementsForName.implicitReceiverValuesWithEmptyScopes) return
         // Member extensions
         processLevel(
             implicitReceiverValue.toMemberScopeTowerLevel(extensionReceiver = explicitReceiverValue),
-            info, parentGroup.Member, ExplicitReceiverKind.EXTENSION_RECEIVER
+            info, parentGroup.Member, ExplicitReceiverKind.EXTENSION_RECEIVER,
+            onEmptyLevel = {
+                towerDataElementsForName.implicitReceiverValuesWithEmptyScopes += implicitReceiverValue
+            }
         )
     }
 
@@ -390,7 +398,9 @@ internal open class FirTowerResolveTask(
                 processLevel(
                     implicitReceiverValue.toMemberScopeTowerLevel(extensionReceiver = receiver),
                     info, group
-                )
+                ) {
+                    implicitReceiverValuesWithEmptyScopes += implicitReceiverValue
+                }
             }
         )
 
