@@ -1,8 +1,13 @@
+import org.jetbrains.kotlin.pill.PillExtension
 import TaskUtils.useAndroidEmulator
 
 plugins {
     kotlin("jvm")
     id("jps-compatible")
+}
+
+pill {
+    variant = PillExtension.Variant.IDE
 }
 
 dependencies {

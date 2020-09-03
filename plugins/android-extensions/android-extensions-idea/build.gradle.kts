@@ -1,9 +1,14 @@
+import org.jetbrains.kotlin.pill.PillExtension
 
 description = "Kotlin Android Extensions IDEA"
 
 plugins {
     kotlin("jvm")
     id("jps-compatible")
+}
+
+pill {
+    variant = PillExtension.Variant.IDE
 }
 
 dependencies {

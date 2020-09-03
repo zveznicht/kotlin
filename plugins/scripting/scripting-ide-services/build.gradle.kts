@@ -1,9 +1,14 @@
+import org.jetbrains.kotlin.pill.PillExtension
 
 description = "Kotlin Scripting Compiler extension providing code completion and static analysis"
 
 plugins {
     kotlin("jvm")
     id("jps-compatible")
+}
+
+pill {
+    variant = PillExtension.Variant.IDE
 }
 
 jvmTarget = "1.8"

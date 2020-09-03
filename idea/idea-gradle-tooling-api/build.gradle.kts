@@ -1,7 +1,14 @@
+import org.jetbrains.kotlin.pill.PillExtension
+
 plugins {
     kotlin("jvm")
     id("jps-compatible")
 }
+
+pill {
+    variant = PillExtension.Variant.IDE
+}
+
 jvmTarget = "1.6"
 
 // FIX ME WHEN BUNCH 193 REMOVED: this module is no longer needed since IDEA 2020.1

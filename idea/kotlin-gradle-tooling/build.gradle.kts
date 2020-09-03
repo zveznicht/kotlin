@@ -1,8 +1,14 @@
+import org.jetbrains.kotlin.pill.PillExtension
+
 description = "Kotlin Gradle Tooling support"
 
 plugins {
     kotlin("jvm")
     id("jps-compatible")
+}
+
+pill {
+    variant = PillExtension.Variant.IDE
 }
 
 jvmTarget = "1.6"

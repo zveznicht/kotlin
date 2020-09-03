@@ -1,6 +1,12 @@
+import org.jetbrains.kotlin.pill.PillExtension
+
 plugins {
     kotlin("jvm")
     id("jps-compatible")
+}
+
+pill {
+    variant = PillExtension.Variant.IDE
 }
 
 val compilerModules: Array<String> by rootProject.extra

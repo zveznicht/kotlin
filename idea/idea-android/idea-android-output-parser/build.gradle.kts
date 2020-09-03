@@ -1,8 +1,13 @@
+import org.jetbrains.kotlin.pill.PillExtension
+
 plugins {
     kotlin("jvm")
+    id("jps-compatible")
 }
 
-apply { plugin("jps-compatible") }
+pill {
+    variant = PillExtension.Variant.IDE
+}
 
 dependencies {
     compile(project(":compiler:util"))

@@ -1,8 +1,13 @@
+import org.jetbrains.kotlin.pill.PillExtension
 import org.apache.tools.ant.filters.ReplaceTokens
 
 plugins {
     kotlin("jvm")
     id("jps-compatible")
+}
+
+pill {
+    variant = PillExtension.Variant.IDE
 }
 
 val kotlinVersion: String by rootProject.extra
