@@ -120,7 +120,6 @@ internal class TowerLevelHandler {
     ) {
         // Skipping objects when extension receiver is bound to the level
         if (this is ScopeTowerLevel && this.extensionReceiver != null) {
-            processResult += ProcessResult.FOUND
             return
         }
 

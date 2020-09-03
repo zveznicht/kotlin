@@ -268,7 +268,7 @@ internal open class FirTowerResolveTask(
             onScope = l@{ scope, group ->
                 // NB: this check does not work for variables
                 // because we do not search for objects if we have extension receiver
-                if (scope in towerDataElementsForName.emptyScopes) return@l
+                if (info.callKind != CallKind.VariableAccess && scope in towerDataElementsForName.emptyScopes) return@l
 
                 processLevel(
                     scope.toScopeTowerLevel(), info, group,
