@@ -6,64 +6,21 @@
 package org.jetbrains.kotlin.pill
 
 import org.gradle.api.Project
-import org.gradle.api.plugins.BasePluginConvention
-import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.tasks.SourceSet
 import org.gradle.kotlin.dsl.extra
 import org.jetbrains.kotlin.pill.artifact.ArtifactDependencyMapper
 import org.jetbrains.kotlin.pill.artifact.ArtifactGenerator
-import org.jetbrains.kotlin.pill.model.PDependency
-import org.jetbrains.kotlin.pill.model.PLibrary
-import org.jetbrains.kotlin.pill.model.POrderRoot
-import org.jetbrains.kotlin.pill.model.PProject
+import org.jetbrains.kotlin.pill.model.*
+import org.jetbrains.kotlin.pill.mapper.*
 import shadow.org.jdom2.input.SAXBuilder
 import shadow.org.jdom2.*
 import shadow.org.jdom2.output.Format
 import shadow.org.jdom2.output.XMLOutputter
 import java.io.File
 import java.util.*
-import kotlin.collections.HashMap
 
 const val EMBEDDED_CONFIGURATION_NAME = "embedded"
 
 class JpsCompatiblePluginTasks(private val rootProject: Project, private val platformDir: File, private val resourcesDir: File) {
-    companion object {
-        private val DIST_LIBRARIES = listOf(
-            ":kotlin-annotations-jvm",
-            ":kotlin-stdlib",
-            ":kotlin-stdlib-jdk7",
-            ":kotlin-stdlib-jdk8",
-            ":kotlin-reflect",
-            ":kotlin-test:kotlin-test-jvm",
-            ":kotlin-test:kotlin-test-junit",
-            ":kotlin-script-runtime",
-            ":kotlin-coroutines-experimental-compat"
-        )
-
-        private val IGNORED_LIBRARIES = listOf(
-            // Libraries
-            ":kotlin-stdlib-common",
-            ":kotlin-reflect-api",
-            ":kotlin-serialization",
-            ":kotlin-test:kotlin-test-common",
-            ":kotlin-test:kotlin-test-annotations-common",
-            // Other
-            ":kotlin-compiler",
-            ":kotlin-daemon-embeddable",
-            ":kotlin-compiler-embeddable",
-            ":kotlin-android-extensions",
-            ":kotlin-scripting-compiler-embeddable",
-            ":kotlin-scripting-compiler-impl-embeddable",
-            ":kotlin-scripting-jvm-host"
-        )
-
-        private val MAPPED_LIBRARIES = mapOf(
-            ":kotlin-reflect-api/java9" to ":kotlin-reflect/main"
-        )
-
-        private val LIB_DIRECTORIES = listOf("dependencies", "dist")
-    }
-
     private lateinit var projectDir: File
     private lateinit var platformVersion: String
     private lateinit var platformBaseNumber: String
@@ -95,12 +52,17 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
         val modulePrefix = System.getProperty("pill.module.prefix", "")
         val modelParser = ModelParser(variant, modulePrefix)
 
-        val dependencyPatcher = DependencyPatcher(rootProject)
-        val dependencyMappers = listOf(dependencyPatcher, ::attachPlatformSources, ::attachAsmSources)
+        val libraryDependencyPatcher = LibraryDependencyMapper(rootProject)
+
+        val dependencyMappers = listOf(
+            libraryDependencyPatcher,
+            PlatformSourcesAttachingMapper(platformDir, platformBaseNumber),
+            AsmSourcesAttachingMapper(platformDir, platformBaseNumber)
+        )
 
         val jpsProject = modelParser.parse(rootProject)
             .mapDependencies(dependencyMappers)
-            .copy(libraries = dependencyPatcher.libraries)
+            .copy(libraries = libraryDependencyPatcher.libraries)
 
         val files = render(jpsProject)
 
@@ -296,120 +258,7 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
         workspaceFile.writeText(postProcessedXml)
     }
 
-    private class DependencyPatcher(private val rootProject: Project) : Function2<PProject, PDependency, List<PDependency>> {
-        private val mappings: Map<String, Optional<PLibrary>> = run {
-            val distLibDir = File(rootProject.extra["distLibDir"].toString())
-            val result = HashMap<String, Optional<PLibrary>>()
-
-            fun List<File>.filterExisting() = filter { it.exists() }
-
-            for (path in DIST_LIBRARIES) {
-                val project = rootProject.findProject(path) ?: error("Project not found")
-                val archiveName = project.convention.findPlugin(BasePluginConvention::class.java)!!.archivesBaseName
-                val classesJars = listOf(File(distLibDir, "$archiveName.jar")).filterExisting()
-                val sourcesJars = listOf(File(distLibDir, "$archiveName-sources.jar")).filterExisting()
-                val sourceSets = project.convention.findPlugin(JavaPluginConvention::class.java)!!.sourceSets
-
-                val applicableSourceSets = listOfNotNull(
-                    sourceSets.findByName(SourceSet.MAIN_SOURCE_SET_NAME),
-                    sourceSets.findByName("java9")
-                )
-
-                val optLibrary = Optional.of(PLibrary(archiveName, classesJars, sourcesJars, originalName = path))
-                applicableSourceSets.forEach { ss -> result["$path/${ss.name}"] = optLibrary }
-            }
-
-            for (path in IGNORED_LIBRARIES) {
-                result["$path/main"] = Optional.empty<PLibrary>()
-            }
-
-            for ((old, new) in MAPPED_LIBRARIES) {
-                result[old] = result[new] ?: error("Mapped library $old -> $new not found")
-            }
-
-            return@run result
-        }
-
-        val libraries: List<PLibrary> = mappings.values.filter { it.isPresent }.map { it.get() }
-
-        override fun invoke(project: PProject, dependency: PDependency): List<PDependency> {
-            if (dependency !is PDependency.ModuleLibrary) {
-                return listOf(dependency)
-            }
-
-            val root = dependency.library.classes.singleOrNull() ?: return listOf(dependency)
-            val paths = project.artifacts[root.absolutePath]
-
-            if (paths == null) {
-                val projectDir = rootProject.projectDir
-                if (projectDir.isParent(root) && LIB_DIRECTORIES.none { File(projectDir, it).isParent(root) }) {
-                    rootProject.logger.warn("Paths not found for root: ${root.absolutePath}")
-                    return emptyList()
-                }
-                return listOf(dependency)
-            }
-
-            val result = mutableListOf<PDependency>()
-            for (path in paths) {
-                val module = project.modules.find { it.path == path }
-                if (module != null) {
-                    result += PDependency.Module(module.name)
-                    continue
-                }
-
-                val maybeLibrary = mappings[path]
-                if (maybeLibrary == null) {
-                    rootProject.logger.warn("Library not found for root: ${root.absolutePath} ($path)")
-                    continue
-                }
-
-                if (maybeLibrary.isPresent) {
-                    result += PDependency.Library(maybeLibrary.get().name)
-                }
-            }
-
-            return result
-        }
-
-        private fun File.isParent(child: File): Boolean {
-            var parent = child.parentFile ?: return false
-            while (true) {
-                if (parent == this) {
-                    return true
-                }
-                parent = parent.parentFile ?: return false
-            }
-        }
-    }
-
-    private fun attachPlatformSources(@Suppress("UNUSED_PARAMETER") project: PProject, dependency: PDependency): List<PDependency> {
-        if (dependency is PDependency.ModuleLibrary) {
-            val library = dependency.library
-            val platformSourcesJar = File(platformDir, "../../../sources/intellij-$platformVersion-sources.jar")
-
-            if (library.classes.any { it.startsWith(platformDir) || it.startsWith(intellijCoreDir) }) {
-                return listOf(dependency.copy(library = library.attachSource(platformSourcesJar)))
-            }
-        }
-
-        return listOf(dependency)
-    }
-
-    private fun attachAsmSources(@Suppress("UNUSED_PARAMETER") project: PProject, dependency: PDependency): List<PDependency> {
-        if (dependency is PDependency.ModuleLibrary) {
-            val library = dependency.library
-            val asmSourcesJar = File(platformDir, "../asm-shaded-sources/asm-src-$platformBaseNumber.jar")
-            val asmAllJar = File(platformDir, "lib/asm-all.jar")
-
-            if (library.classes.any { it == asmAllJar }) {
-                return listOf(dependency.copy(library = library.attachSource(asmSourcesJar)))
-            }
-        }
-
-        return listOf(dependency)
-    }
-
-    private fun PProject.mapDependencies(mappers: List<(PProject, PDependency) -> List<PDependency>>): PProject {
+    private fun PProject.mapDependencies(mappers: List<DependencyMapper>): PProject {
         fun mapRoot(root: POrderRoot): List<POrderRoot> {
             val dependencies = mapDependency(root.dependency, mappers)
             return dependencies.map { root.copy(dependency = it) }
@@ -423,15 +272,12 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
         return this.copy(modules = modules)
     }
 
-    private fun PProject.mapDependency(
-        dependency: PDependency,
-        mappers: List<(PProject, PDependency) -> List<PDependency>>
-    ): List<PDependency> {
+    private fun PProject.mapDependency(dependency: PDependency, mappers: List<DependencyMapper>): List<PDependency> {
         var dependencies = listOf(dependency)
         for (mapper in mappers) {
             val newDependencies = mutableListOf<PDependency>()
             for (dep in dependencies) {
-                newDependencies += mapper(this, dep)
+                newDependencies += mapper.map(this, dep)
             }
             dependencies = newDependencies
         }
