@@ -122,7 +122,7 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
 
         generateKotlinPluginArtifactFile(rootProject, artifactDependencyMapper).write()
 
-        copyRunConfigurations()
+        copyRunConfigurations(variant)
         setOptionsForDefaultJunitRunConfiguration(rootProject)
 
         files.forEach { it.write() }
@@ -155,8 +155,7 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
             .forEach { it.delete() }
     }
 
-    private fun copyRunConfigurations() {
-        val runConfigurationsDir = File(resourcesDir, "runConfigurations")
+    private fun copyRunConfigurations(variant: PillExtensionMirror.Variant) {
         val targetDir = File(projectDir, ".idea/runConfigurations")
         val platformDirProjectRelative = "\$PROJECT_DIR\$/" + platformDir.toRelativeString(projectDir)
         val additionalIdeaArgs = if (isAndroidStudioPlatform) "-Didea.platform.prefix=AndroidStudio" else ""
@@ -169,10 +168,13 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
                 .replace("\$ADDITIONAL_IDEA_ARGS\$", additionalIdeaArgs)
         }
 
-        (runConfigurationsDir.listFiles() ?: emptyArray())
-            .filter { it.extension == "xml" }
-            .map { it.name to substitute(it.readText()) }
-            .forEach { File(targetDir, it.first).writeText(it.second) }
+        for (variantToCopy in variant.includes) {
+            val runConfigurationsDir = resourcesDir.resolve("runConfigurations").resolve(variantToCopy.name)
+            (runConfigurationsDir.listFiles() ?: emptyArray())
+                .filter { it.extension == "xml" }
+                .map { it.name to substitute(it.readText()) }
+                .forEach { File(targetDir, it.first).writeText(it.second) }
+        }
     }
 
     /*
