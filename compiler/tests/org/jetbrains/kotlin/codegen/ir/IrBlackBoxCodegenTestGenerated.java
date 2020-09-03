@@ -7513,9 +7513,19 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
                     runTest("compiler/testData/codegen/box/coroutines/inlineClasses/direct/covariantOverrideSuspendFun.kt");
                 }
 
+                @TestMetadata("covariantOverrideSuspendFunSameJvmType.kt")
+                public void testCovariantOverrideSuspendFunSameJvmType() throws Exception {
+                    runTest("compiler/testData/codegen/box/coroutines/inlineClasses/direct/covariantOverrideSuspendFunSameJvmType.kt");
+                }
+
                 @TestMetadata("covariantOverrideSuspendFunWithNullableInlineClass.kt")
                 public void testCovariantOverrideSuspendFunWithNullableInlineClass() throws Exception {
                     runTest("compiler/testData/codegen/box/coroutines/inlineClasses/direct/covariantOverrideSuspendFunWithNullableInlineClass.kt");
+                }
+
+                @TestMetadata("covariantOverrideSuspendFunWithNullableInlineClassSameJvmType.kt")
+                public void testCovariantOverrideSuspendFunWithNullableInlineClassSameJvmType() throws Exception {
+                    runTest("compiler/testData/codegen/box/coroutines/inlineClasses/direct/covariantOverrideSuspendFunWithNullableInlineClassSameJvmType.kt");
                 }
 
                 @TestMetadata("covariantOverrideSuspendFunWithNullableInlineClass_Any.kt")
@@ -7720,9 +7730,19 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
                     runTest("compiler/testData/codegen/box/coroutines/inlineClasses/resume/covariantOverrideSuspendFun.kt");
                 }
 
+                @TestMetadata("covariantOverrideSuspendFunSameJvmType.kt")
+                public void testCovariantOverrideSuspendFunSameJvmType() throws Exception {
+                    runTest("compiler/testData/codegen/box/coroutines/inlineClasses/resume/covariantOverrideSuspendFunSameJvmType.kt");
+                }
+
                 @TestMetadata("covariantOverrideSuspendFunWithNullableInlineClass.kt")
                 public void testCovariantOverrideSuspendFunWithNullableInlineClass() throws Exception {
                     runTest("compiler/testData/codegen/box/coroutines/inlineClasses/resume/covariantOverrideSuspendFunWithNullableInlineClass.kt");
+                }
+
+                @TestMetadata("covariantOverrideSuspendFunWithNullableInlineClassSameJvmType.kt")
+                public void testCovariantOverrideSuspendFunWithNullableInlineClassSameJvmType() throws Exception {
+                    runTest("compiler/testData/codegen/box/coroutines/inlineClasses/resume/covariantOverrideSuspendFunWithNullableInlineClassSameJvmType.kt");
                 }
 
                 @TestMetadata("covariantOverrideSuspendFunWithNullableInlineClass_Any.kt")
@@ -7927,9 +7947,19 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
                     runTest("compiler/testData/codegen/box/coroutines/inlineClasses/resumeWithException/covariantOverrideSuspendFun.kt");
                 }
 
+                @TestMetadata("covariantOverrideSuspendFunSameJvmType.kt")
+                public void testCovariantOverrideSuspendFunSameJvmType() throws Exception {
+                    runTest("compiler/testData/codegen/box/coroutines/inlineClasses/resumeWithException/covariantOverrideSuspendFunSameJvmType.kt");
+                }
+
                 @TestMetadata("covariantOverrideSuspendFunWithNullableInlineClass.kt")
                 public void testCovariantOverrideSuspendFunWithNullableInlineClass() throws Exception {
                     runTest("compiler/testData/codegen/box/coroutines/inlineClasses/resumeWithException/covariantOverrideSuspendFunWithNullableInlineClass.kt");
+                }
+
+                @TestMetadata("covariantOverrideSuspendFunWithNullableInlineClassSameJvmType.kt")
+                public void testCovariantOverrideSuspendFunWithNullableInlineClassSameJvmType() throws Exception {
+                    runTest("compiler/testData/codegen/box/coroutines/inlineClasses/resumeWithException/covariantOverrideSuspendFunWithNullableInlineClassSameJvmType.kt");
                 }
 
                 @TestMetadata("covariantOverrideSuspendFunWithNullableInlineClass_Any.kt")
