@@ -15,7 +15,8 @@ open class PillExtension {
      * `./gradlew pill -Dpill.variant=<NAME>`
      */
     enum class Variant {
-        BASE, // Includes compiler and IDE (default)
+        BASE, // Includes compiler only (default)
+        IDE, // Includes compiler and IDE
         FULL, // Includes compiler, IDE and Gradle plugin
     }
 
