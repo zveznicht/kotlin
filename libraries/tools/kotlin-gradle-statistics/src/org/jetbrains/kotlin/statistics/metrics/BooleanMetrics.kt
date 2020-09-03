@@ -39,7 +39,6 @@ enum class BooleanMetrics(val type: BooleanOverridePolicy, val anonymization: Bo
     JVM_COMPILER_IR_MODE(OR, SAFE),
 
     JS_GENERATE_EXTERNALS(OR, SAFE),
-
     JS_GENERATE_EXECUTABLE_DEFAULT(OVERRIDE, SAFE),
 
     // User scenarios
