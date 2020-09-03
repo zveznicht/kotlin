@@ -2765,8 +2765,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
     }
 
     private boolean insideCallableReference() {
-        return (parentCodegen instanceof ClosureCodegen) &&
-               ((ClosureCodegen) parentCodegen).superClassAsmType.equals(FUNCTION_REFERENCE_IMPL);
+        return (parentCodegen instanceof ClosureCodegen) && ((ClosureCodegen) parentCodegen).isCallableReference();
     }
 
     private void putReceiverAndInlineMarkerIfNeeded(
