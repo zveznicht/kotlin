@@ -48,7 +48,7 @@ fun setupGenerateAllTestsRunConfiguration() {
         """
         |<component name="ProjectRunConfigurationManager">
         | <configuration default="false" name="[JPS] Generate All Tests" type="Application" factoryName="Application">
-        |    <option name="MAIN_CLASS_NAME" value="org.jetbrains.kotlin.pill.generateAllTests.Main" />
+        |    <option name="MAIN_CLASS_NAME" value="org.jetbrains.kotlin.pill.generateAllTests.GenerateAllTests" />
         |    <module name="kotlin.pill.generate-all-tests.test" />
         |    <option name="VM_PARAMETERS" value="&quot;-Dline.separator=&#xA;&quot;" />
         |    <shortenClasspath name="CLASSPATH_FILE" />

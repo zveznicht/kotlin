@@ -1,17 +1,14 @@
-import org.jetbrains.kotlin.pill.PillExtension
 
 plugins {
     kotlin("jvm")
     id("jps-compatible")
 }
 
-pill {
-    variant = PillExtension.Variant.IDE
-}
-
 val depenencyProjects = arrayOf(
-    ":generators",
-    ":pill:generate-compiler-tests"
+    ":compiler",
+    ":js:js.tests",
+    ":compiler:tests-java8",
+    ":core:descriptors.runtime"
 )
 
 dependencies {
