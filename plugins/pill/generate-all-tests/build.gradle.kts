@@ -10,7 +10,7 @@ pill {
 }
 
 val depenencyProjects = arrayOf(
-    ":generators",
+    ":generators:ide-test-generator",
     ":pill:generate-compiler-tests"
 )
 
