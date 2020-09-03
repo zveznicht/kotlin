@@ -6,32 +6,31 @@
 package org.jetbrains.kotlin.pill.mapper
 
 import org.gradle.api.Project
-import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
-import org.gradle.kotlin.dsl.extra
 import org.jetbrains.kotlin.pill.model.PDependency
 import org.jetbrains.kotlin.pill.model.PLibrary
 import org.jetbrains.kotlin.pill.model.PProject
 import java.io.File
 import java.util.*
-import kotlin.collections.HashMap
 
-class LibraryDependencyMapper(private val rootProject: Project) : DependencyMapper {
-    private companion object {
-        private val DIST_LIBRARIES = listOf(
-            ":kotlin-annotations-jvm",
-            ":kotlin-stdlib",
-            ":kotlin-stdlib-jdk7",
-            ":kotlin-stdlib-jdk8",
-            ":kotlin-reflect",
-            ":kotlin-test:kotlin-test-jvm",
-            ":kotlin-test:kotlin-test-junit",
-            ":kotlin-script-runtime",
-            ":kotlin-coroutines-experimental-compat"
+abstract class LibraryDependencyMapper(private val rootProject: Project) : DependencyMapper {
+    protected class MappedLibrary(val path: String, val intellijLibraryName: String)
+
+    protected companion object {
+        private val MAPPED_KOTLIN_LIBRARIES: List<MappedLibrary> = listOf(
+            MappedLibrary(":kotlin-annotations-jvm", intellijLibraryName = "kotlinc.kotlin-annotations-jvm"),
+            MappedLibrary(":kotlin-stdlib", intellijLibraryName = "kotlinc.kotlin-stdlib-jdk8"),
+            MappedLibrary(":kotlin-stdlib-jdk7", intellijLibraryName = "kotlinc.kotlin-stdlib-jdk8"),
+            MappedLibrary(":kotlin-stdlib-jdk8", intellijLibraryName = "kotlinc.kotlin-stdlib-jdk8"),
+            MappedLibrary(":kotlin-reflect", intellijLibraryName = "kotlinc.kotlin-reflect"),
+            MappedLibrary(":kotlin-test:kotlin-test-jvm", intellijLibraryName = "kotlin-test"),
+            MappedLibrary(":kotlin-test:kotlin-test-junit", intellijLibraryName = "kotlin-test-junit"),
+            MappedLibrary(":kotlin-script-runtime", intellijLibraryName = "kotlinc.kotlin-script-runtime"),
+            MappedLibrary(":kotlin-coroutines-experimental-compat", "kotlinc.kotlin-coroutines-experimental-compat")
         )
 
-        private val IGNORED_LIBRARIES = listOf(
+        private val IGNORED_KOTLIN_LIBRARIES: List<String> = listOf(
             // Libraries
             ":kotlin-stdlib-common",
             ":kotlin-reflect-api",
@@ -48,47 +47,40 @@ class LibraryDependencyMapper(private val rootProject: Project) : DependencyMapp
             ":kotlin-scripting-jvm-host"
         )
 
-        private val MAPPED_LIBRARIES = mapOf(
-            ":kotlin-reflect-api/java9" to ":kotlin-reflect/main"
-        )
+        fun generateMappings(rootProject: Project, mapper: (MappedLibrary) -> Optional<PLibrary>): Map<String, Optional<PLibrary>> {
+            val result = HashMap<String, Optional<PLibrary>>()
 
-        private val LIB_DIRECTORIES = listOf("dependencies", "dist")
+            fun getApplicableSourceSets(path: String): List<String> {
+                val project = rootProject.findProject(path) ?: error("Project not found")
+                val sourceSets = project.convention.findPlugin(JavaPluginConvention::class.java)?.sourceSets ?: return emptyList()
+                return listOf(SourceSet.MAIN_SOURCE_SET_NAME, "java9").filter { sourceSets.findByName(it) != null }
+            }
+
+            fun storeMapping(path: String, optLibrary: Optional<PLibrary>) {
+                for (sourceSet in getApplicableSourceSets(path)) {
+                    result["$path/${sourceSet}"] = optLibrary
+                }
+            }
+
+            for (mappedLibrary in MAPPED_KOTLIN_LIBRARIES) {
+                storeMapping(mappedLibrary.path, mapper(mappedLibrary))
+            }
+
+            for (path in IGNORED_KOTLIN_LIBRARIES) {
+                storeMapping(path, Optional.empty<PLibrary>())
+            }
+
+            return result
+        }
     }
 
-    private val mappings: Map<String, Optional<PLibrary>> = run {
-        val distLibDir = File(rootProject.extra["distLibDir"].toString())
-        val result = HashMap<String, Optional<PLibrary>>()
+    protected abstract val mappings: Map<String, Optional<PLibrary>>
 
-        fun List<File>.filterExisting() = filter { it.exists() }
+    protected abstract fun isAllowedLocalLibrary(library: File): Boolean
 
-        for (path in DIST_LIBRARIES) {
-            val project = rootProject.findProject(path) ?: error("Project not found")
-            val archiveName = project.convention.findPlugin(BasePluginConvention::class.java)!!.archivesBaseName
-            val classesJars = listOf(File(distLibDir, "$archiveName.jar")).filterExisting()
-            val sourcesJars = listOf(File(distLibDir, "$archiveName-sources.jar")).filterExisting()
-            val sourceSets = project.convention.findPlugin(JavaPluginConvention::class.java)!!.sourceSets
-
-            val applicableSourceSets = listOfNotNull(
-                sourceSets.findByName(SourceSet.MAIN_SOURCE_SET_NAME),
-                sourceSets.findByName("java9")
-            )
-
-            val optLibrary = Optional.of(PLibrary(archiveName, classesJars, sourcesJars, originalName = path))
-            applicableSourceSets.forEach { ss -> result["$path/${ss.name}"] = optLibrary }
-        }
-
-        for (path in IGNORED_LIBRARIES) {
-            result["$path/main"] = Optional.empty<PLibrary>()
-        }
-
-        for ((old, new) in MAPPED_LIBRARIES) {
-            result[old] = result[new] ?: error("Mapped library $old -> $new not found")
-        }
-
-        return@run result
+    val libraries: List<PLibrary> by lazy {
+        mappings.values.filter { it.isPresent }.map { it.get() }
     }
-
-    val libraries: List<PLibrary> = mappings.values.filter { it.isPresent }.map { it.get() }
 
     override fun map(project: PProject, dependency: PDependency): List<PDependency> {
         if (dependency !is PDependency.ModuleLibrary) {
@@ -100,7 +92,7 @@ class LibraryDependencyMapper(private val rootProject: Project) : DependencyMapp
 
         if (paths == null) {
             val projectDir = rootProject.projectDir
-            if (projectDir.isParent(root) && LIB_DIRECTORIES.none { File(projectDir, it).isParent(root) }) {
+            if (projectDir.isParent(root) && !isAllowedLocalLibrary(root)) {
                 rootProject.logger.warn("Paths not found for root: ${root.absolutePath}")
                 return emptyList()
             }
@@ -129,7 +121,7 @@ class LibraryDependencyMapper(private val rootProject: Project) : DependencyMapp
         return result
     }
 
-    private fun File.isParent(child: File): Boolean {
+    protected fun File.isParent(child: File): Boolean {
         var parent = child.parentFile ?: return false
         while (true) {
             if (parent == this) {

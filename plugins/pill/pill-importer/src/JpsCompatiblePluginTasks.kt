@@ -52,7 +52,7 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
         val modulePrefix = System.getProperty("pill.module.prefix", "")
         val modelParser = ModelParser(variant, modulePrefix)
 
-        val libraryDependencyPatcher = LibraryDependencyMapper(rootProject)
+        val libraryDependencyPatcher = DistLibraryDependencyMapper(rootProject)
 
         val dependencyMappers = listOf(
             libraryDependencyPatcher,
