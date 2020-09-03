@@ -592,10 +592,11 @@ class CoroutineTransformerMethodVisitor(
     }
 
     private fun dropUnboxInlineClassMarkers(methodNode: MethodNode, suspensionPoints: List<SuspensionPoint>) {
-        for (marker in methodNode.instructions.asSequence()
-            .filter { isBeforeUnboxInlineClassMarker(it) || isAfterUnboxInlineClassMarker(it) }.toList()
-        ) {
+        for (marker in methodNode.instructions.asSequence().filter { isBeforeUnboxInlineClassMarker(it) }.toList()) {
             methodNode.instructions.removeAll(listOf(marker.previous, marker))
+        }
+        for (marker in methodNode.instructions.asSequence().filter { isAfterUnboxInlineClassMarker(it) }.toList()) {
+            methodNode.instructions.removeAll(listOf(marker.previous.previous, marker.previous, marker))
         }
         for (suspension in suspensionPoints) {
             methodNode.instructions.removeAll(suspension.unboxInlineClassInstructions)
@@ -1132,7 +1133,7 @@ internal class SuspensionPoint(
         if (!isBeforeUnboxInlineClassMarker(beforeMarker)) return emptyList()
         val afterMarker = beforeMarker.findNextOrNull { isAfterUnboxInlineClassMarker(it) }
             ?: error("Before unbox inline class marker without after unbox inline class marker")
-        return InsnSequence(beforeMarker.next, afterMarker.previous).toList()
+        return InsnSequence(beforeMarker.next, afterMarker.previous.previous).toList()
     }
 
     operator fun contains(insn: AbstractInsnNode): Boolean {
