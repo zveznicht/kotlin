@@ -40,6 +40,8 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
     fun pill() {
         initEnvironment(rootProject)
 
+        val isKombo = System.getProperty("pill.is.kombo", "false") == "true"
+
         val variantOptionValue = System.getProperty("pill.variant", "base").toUpperCase()
         val variant = PillExtensionMirror.Variant.values().firstOrNull { it.name == variantOptionValue }
             ?: run {
@@ -52,7 +54,7 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
         val modulePrefix = System.getProperty("pill.module.prefix", "")
         val modelParser = ModelParser(variant, modulePrefix)
 
-        val libraryDependencyPatcher = DistLibraryDependencyMapper(rootProject)
+        val libraryDependencyPatcher = if (isKombo) KomboDependencyMapper(rootProject) else DistLibraryDependencyMapper(rootProject)
 
         val dependencyMappers = listOf(
             libraryDependencyPatcher,
@@ -62,14 +64,14 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
 
         val jpsProject = modelParser.parse(rootProject)
             .mapDependencies(dependencyMappers)
-            .copy(libraries = libraryDependencyPatcher.libraries)
+            .copy(libraries = libraryDependencyPatcher.projectLibraries)
 
         val files = render(jpsProject)
 
         removeExistingIdeaLibrariesAndModules()
         removeJpsAndPillRunConfigurations()
 
-        if (System.getProperty("pill.skip.artifacts", "false") != "true") {
+        if (!isKombo) {
             removeAllArtifactConfigurations()
 
             if (variant.includes.contains(PillExtensionMirror.Variant.IDE)) {

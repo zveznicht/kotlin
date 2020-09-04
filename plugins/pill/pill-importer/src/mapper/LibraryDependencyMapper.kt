@@ -47,8 +47,8 @@ abstract class LibraryDependencyMapper(private val rootProject: Project) : Depen
             ":kotlin-scripting-jvm-host"
         )
 
-        fun generateMappings(rootProject: Project, mapper: (MappedLibrary) -> Optional<PLibrary>): Map<String, Optional<PLibrary>> {
-            val result = HashMap<String, Optional<PLibrary>>()
+        fun generateMappings(rootProject: Project, mapper: (MappedLibrary) -> Optional<PDependency>): Map<String, Optional<PDependency>> {
+            val result = HashMap<String, Optional<PDependency>>()
 
             fun getApplicableSourceSets(path: String): List<String> {
                 val project = rootProject.findProject(path) ?: error("Project not found")
@@ -56,7 +56,7 @@ abstract class LibraryDependencyMapper(private val rootProject: Project) : Depen
                 return listOf(SourceSet.MAIN_SOURCE_SET_NAME, "java9").filter { sourceSets.findByName(it) != null }
             }
 
-            fun storeMapping(path: String, optLibrary: Optional<PLibrary>) {
+            fun storeMapping(path: String, optLibrary: Optional<PDependency>) {
                 for (sourceSet in getApplicableSourceSets(path)) {
                     result["$path/${sourceSet}"] = optLibrary
                 }
@@ -67,20 +67,18 @@ abstract class LibraryDependencyMapper(private val rootProject: Project) : Depen
             }
 
             for (path in IGNORED_KOTLIN_LIBRARIES) {
-                storeMapping(path, Optional.empty<PLibrary>())
+                storeMapping(path, Optional.empty<PDependency>())
             }
 
             return result
         }
     }
 
-    protected abstract val mappings: Map<String, Optional<PLibrary>>
+    abstract val projectLibraries: List<PLibrary>
+
+    protected abstract val mappings: Map<String, Optional<PDependency>>
 
     protected abstract fun isAllowedLocalLibrary(library: File): Boolean
-
-    val libraries: List<PLibrary> by lazy {
-        mappings.values.filter { it.isPresent }.map { it.get() }
-    }
 
     override fun map(project: PProject, dependency: PDependency): List<PDependency> {
         if (dependency !is PDependency.ModuleLibrary) {

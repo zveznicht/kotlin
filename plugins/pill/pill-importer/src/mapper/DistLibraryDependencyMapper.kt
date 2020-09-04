@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.pill.mapper
 import org.gradle.api.Project
 import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.kotlin.dsl.extra
+import org.jetbrains.kotlin.pill.model.PDependency
 import org.jetbrains.kotlin.pill.model.PLibrary
 import java.io.File
 import java.util.*
@@ -19,19 +20,29 @@ class DistLibraryDependencyMapper(rootProject: Project) : LibraryDependencyMappe
 
     private val rootProjectDir = rootProject.projectDir
 
-    override val mappings: Map<String, Optional<PLibrary>> = run {
+    override val mappings: Map<String, Optional<PDependency>>
+    override val projectLibraries: List<PLibrary>
+
+    init {
         val distLibDir = File(rootProject.extra["distLibDir"].toString())
 
         fun List<File>.filterExisting() = filter { it.exists() }
 
-        generateMappings(rootProject) { mappedLibrary ->
+        val projectLibraries = mutableListOf<PLibrary>()
+
+        val mappings = generateMappings(rootProject) { mappedLibrary ->
             val path = mappedLibrary.path
             val project = rootProject.findProject(path) ?: error("Project not found")
             val archiveName = project.convention.findPlugin(BasePluginConvention::class.java)!!.archivesBaseName
             val classesJars = listOf(File(distLibDir, "$archiveName.jar")).filterExisting()
             val sourcesJars = listOf(File(distLibDir, "$archiveName-sources.jar")).filterExisting()
-            Optional.of(PLibrary(archiveName, classesJars, sourcesJars, originalName = path))
+            val library = PLibrary(archiveName, classesJars, sourcesJars, originalName = path)
+            projectLibraries += library
+            Optional.of(PDependency.Library(library.name))
         }
+
+        this.mappings = mappings
+        this.projectLibraries = projectLibraries
     }
 
     override fun isAllowedLocalLibrary(library: File): Boolean {
