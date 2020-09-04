@@ -11,10 +11,7 @@ data class PLibrary(
     val name: String,
     val classes: List<File>,
     val javadoc: List<File> = emptyList(),
-    val sources: List<File> = emptyList(),
-    val annotations: List<File> = emptyList(),
-    val dependencies: List<PLibrary> = emptyList(),
-    val originalName: String = name
+    val sources: List<File> = emptyList()
 ) {
     fun attachSource(file: File): PLibrary {
         return this.copy(sources = this.sources + listOf(file))
