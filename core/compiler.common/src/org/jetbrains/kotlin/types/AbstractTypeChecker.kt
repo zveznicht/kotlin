@@ -235,7 +235,10 @@ object AbstractTypeChecker {
         return isSubtypeOfForSingleClassifierType(subType.lowerBoundIfFlexible(), superType.upperBoundIfFlexible())
     }
 
-    private fun AbstractTypeCheckerContext.checkSubtypeForIntegerLiteralType(subType: SimpleTypeMarker, superType: SimpleTypeMarker): Boolean? {
+    private fun AbstractTypeCheckerContext.checkSubtypeForIntegerLiteralType(
+        subType: SimpleTypeMarker,
+        superType: SimpleTypeMarker
+    ): Boolean? {
         if (!subType.isIntegerLiteralType() && !superType.isIntegerLiteralType()) return null
 
         fun typeInIntegerLiteralType(integerLiteralType: SimpleTypeMarker, type: SimpleTypeMarker, checkSupertypes: Boolean): Boolean =
@@ -255,6 +258,12 @@ object AbstractTypeChecker {
             }
 
             superType.isIntegerLiteralType() -> {
+                val subTypeConstructor = subType.typeConstructor()
+                if (subTypeConstructor is IntersectionTypeConstructorMarker
+                    && subTypeConstructor.supertypes().any { it.asSimpleType()?.isIntegerLiteralType() == true }
+                ) {
+                    return true
+                }
                 // Here we also have to check supertypes for intersection types: { Int & String } <: IntegerLiteralTypes
                 if (typeInIntegerLiteralType(superType, subType, checkSupertypes = true)) {
                     return true
