@@ -36,23 +36,42 @@ fun prepareArgumentTypeRegardingCaptureTypes(argumentType: UnwrappedType): Unwra
 
 fun captureFromExpression(type: UnwrappedType): UnwrappedType? {
     val typeConstructor = type.constructor
-    if (typeConstructor is IntersectionTypeConstructor) {
-        var changed = false
-        val capturedSupertypes = typeConstructor.supertypes.map { supertype ->
-            val unwrapped = supertype.unwrap()
-            captureFromExpression(unwrapped)?.apply { changed = true } ?: unwrapped
-        }
 
-        if (!changed) return null
-
-        return intersectTypes(capturedSupertypes).makeNullableAsSpecified(type.isMarkedNullable)
+    if (typeConstructor !is IntersectionTypeConstructor) {
+        return captureFromArguments(type, CaptureStatus.FROM_EXPRESSION)
     }
-    return captureFromArguments(type, CaptureStatus.FROM_EXPRESSION)
+
+    val capturedArgumentsByComponents = captureArgumentsForIntersectionType(typeConstructor) ?: return null
+
+    fun getTypesToIntersect(type: UnwrappedType) = type.constructor.supertypes.mapIndexed { i, componentType ->
+        capturedArgumentsByComponents[i]?.let { componentType.unwrap().replaceArguments(it) } ?: componentType.asSimpleType()
+    }
+
+    val lowerIntersectedType = intersectTypes(getTypesToIntersect(type))
+
+    return if (type is FlexibleType) {
+        val upperIntersectedType = intersectTypes(getTypesToIntersect(type.upperBound))
+
+        KotlinTypeFactory.flexibleType(lowerIntersectedType, upperIntersectedType)
+    } else {
+        lowerIntersectedType.makeNullableAsSpecified(type.isMarkedNullable)
+    }
 }
 
 // this function suppose that input type is simple classifier type
 internal fun captureFromArguments(type: SimpleType, status: CaptureStatus) =
     captureArguments(type, status)?.let { type.replaceArguments(it) }
+
+private fun captureArgumentsForIntersectionType(typeConstructor: TypeConstructor): List<List<TypeProjection>?>? {
+    var changed = false
+    val capturedArgumentsByComponents = typeConstructor.supertypes.map { supertype ->
+        captureArguments(supertype.unwrap(), CaptureStatus.FROM_EXPRESSION)?.apply { changed = true }
+    }
+
+    if (!changed) return null
+
+    return capturedArgumentsByComponents
+}
 
 private fun captureFromArguments(type: UnwrappedType, status: CaptureStatus): UnwrappedType? {
     val capturedArguments = captureArguments(type, status) ?: return null
