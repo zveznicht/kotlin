@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.backend.common.descriptors.synthesizedString
 import org.jetbrains.kotlin.backend.common.ir.*
 import org.jetbrains.kotlin.backend.common.runOnFilePostfix
 import org.jetbrains.kotlin.descriptors.Modality
-import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.ir.*
@@ -253,11 +252,11 @@ class LocalDeclarationsLowering(
                     val typeRemapper = TypeParameterAdjustmentTypeRemapper(it.capturedTypeParameterToTypeParameter)
 
                     this.body = original.body
-                    this.body?.adjustTypes(typeRemapper)
+                    this.body?.remapTypes(typeRemapper)
 
                     original.valueParameters.filter { v -> v.defaultValue != null }.forEach { argument ->
                         val body = argument.defaultValue!!
-                        body.adjustTypes(typeRemapper)
+                        body.remapTypes(typeRemapper)
                         oldParameterToNew[argument]!!.defaultValue = body
                     }
                     acceptChildren(SetDeclarationsParentVisitor, this)
@@ -944,7 +943,7 @@ class TypeParameterAdjustmentTypeRemapper(val typeParameterMap: Map<IrTypeParame
                 type.annotations,
                 type.abbreviation?.remap()
             ).apply {
-                annotations.forEach { it.adjustTypes(this@TypeParameterAdjustmentTypeRemapper) }
+                annotations.forEach { it.remapTypes(this@TypeParameterAdjustmentTypeRemapper) }
             }
 
     private fun IrClassifierSymbol.remap() =
@@ -964,7 +963,7 @@ class TypeParameterAdjustmentTypeRemapper(val typeParameterMap: Map<IrTypeParame
             arguments.map { it.remap() },
             annotations
         ).apply {
-            annotations.forEach { it.adjustTypes(this@TypeParameterAdjustmentTypeRemapper) }
+            annotations.forEach { it.remapTypes(this@TypeParameterAdjustmentTypeRemapper) }
         }
 }
 

@@ -13,11 +13,12 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.acceptVoid
 
-fun IrElement.adjustTypes(typeRemapper: TypeRemapper) {
-    acceptVoid(AdjustTypes(typeRemapper))
+// Modify IrElement in place, applying typeRemapper to all the IrType fields.
+fun IrElement.remapTypes(typeRemapper: TypeRemapper) {
+    acceptVoid(RemapTypes(typeRemapper))
 }
 
-class AdjustTypes(private val typeRemapper: TypeRemapper) : IrElementVisitorVoid {
+private class RemapTypes(private val typeRemapper: TypeRemapper) : IrElementVisitorVoid {
 
     override fun visitElement(element: IrElement) {
         element.acceptChildrenVoid(this)
