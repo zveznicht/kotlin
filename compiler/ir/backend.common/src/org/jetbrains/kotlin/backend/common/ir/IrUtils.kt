@@ -616,6 +616,12 @@ private fun IrSimpleFunction.copyAndRenameConflictingTypeParametersFrom(
         })
     }
 
+    val zipped = contextParameters.zip(newParameters)
+    val parameterMap = zipped.toMap()
+    for ((oldParameter, newParameter) in zipped) {
+        newParameter.copySuperTypesFrom(oldParameter, parameterMap)
+    }
+
     typeParameters = typeParameters + newParameters
 
     return newParameters
