@@ -41,20 +41,34 @@ fun captureFromExpression(type: UnwrappedType): UnwrappedType? {
         return captureFromArguments(type, CaptureStatus.FROM_EXPRESSION)
     }
 
+    /*
+     * We capture intersection types in two stages:
+     * capture type arguments for each component and replace it in the original type after that.
+     * This is to substitute captured types into flexible types properly:
+     * we should have the same captured types both for lower bound and for upper one.
+     *
+     * Example:
+     *  The original type: ({Comparable<*> & java.io.Serializable}..{Comparable<*>? & java.io.Serializable?})
+     *  Result of capturing arguments by components: [[CapturedType(*)], null]
+     *  The resulting type: ({Comparable<CapturedType(*)> & java.io.Serializable}..{Comparable<CapturedType(*)>? & java.io.Serializable?})
+     */
     val capturedArgumentsByComponents = captureArgumentsForIntersectionType(typeConstructor) ?: return null
 
-    fun getTypesToIntersect(type: UnwrappedType) = type.constructor.supertypes.mapIndexed { i, componentType ->
-        capturedArgumentsByComponents[i]?.let { componentType.unwrap().replaceArguments(it) } ?: componentType.asSimpleType()
-    }
-
-    val lowerIntersectedType = intersectTypes(getTypesToIntersect(type))
+    fun replaceArgumentsByComponents(typeToReplace: UnwrappedType) =
+        typeToReplace.constructor.supertypes.mapIndexed { i, componentType ->
+            val capturedArguments = capturedArgumentsByComponents[i] ?: return@mapIndexed componentType.asSimpleType()
+            componentType.unwrap().replaceArguments(capturedArguments)
+        }
 
     return if (type is FlexibleType) {
-        val upperIntersectedType = intersectTypes(getTypesToIntersect(type.upperBound))
+        val lowerIntersectedType =
+            intersectTypes(replaceArgumentsByComponents(type.lowerBound)).makeNullableAsSpecified(type.lowerBound.isMarkedNullable)
+        val upperIntersectedType =
+            intersectTypes(replaceArgumentsByComponents(type.upperBound)).makeNullableAsSpecified(type.upperBound.isMarkedNullable)
 
         KotlinTypeFactory.flexibleType(lowerIntersectedType, upperIntersectedType)
     } else {
-        lowerIntersectedType.makeNullableAsSpecified(type.isMarkedNullable)
+        intersectTypes(replaceArgumentsByComponents(type)).makeNullableAsSpecified(type.isMarkedNullable)
     }
 }
 
