@@ -400,7 +400,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments>() : AbstractKo
 
     internal fun setupPlugins(compilerArgs: T) {
         compilerArgs.pluginClasspaths = pluginClasspath.toSortedPathsArray()
-        compilerArgs.pluginOptions = pluginOptions.arguments.toTypedArray()
+        compilerArgs.pluginOptions = pluginOptions.arguments().toTypedArray()
     }
 
     protected fun hasFilesInTaskBuildDirectory(): Boolean {
@@ -495,7 +495,7 @@ open class KotlinCompile : AbstractKotlinCompile<K2JVMCompilerArguments>(), Kotl
     }
 
     @get:Internal
-    internal val compilerArgumentsContributor: CompilerArgumentsContributor<K2JVMCompilerArguments> by lazy {
+    internal open val compilerArgumentsContributor: CompilerArgumentsContributor<K2JVMCompilerArguments> by lazy {
         KotlinJvmCompilerArgumentsContributor(KotlinJvmCompilerArgumentsProvider(this))
     }
 

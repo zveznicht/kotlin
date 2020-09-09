@@ -22,8 +22,10 @@ import org.gradle.api.tasks.*
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptionsImpl
+import org.jetbrains.kotlin.gradle.internal.Kapt3GradleSubplugin.Companion.KAPT_SUBPLUGIN_ID
 import org.jetbrains.kotlin.gradle.tasks.FilteringSourceRootsContainer
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompilerArgumentsProvider
 import org.jetbrains.kotlin.gradle.tasks.SourceRoots
 import org.jetbrains.kotlin.gradle.utils.getValue
 import org.jetbrains.kotlin.gradle.utils.isParentOf
@@ -85,18 +87,16 @@ open class KaptGenerateStubsTask : KotlinCompile() {
                 !stubsDir.isParentOf(source) &&
                 !generatedSourcesDir.isParentOf(source)
 
-    private val compileKotlinArgumentsContributor by project.provider {
-        kotlinCompileTask.compilerArgumentsContributor
+    @get:Internal
+    override val compilerArgumentsContributor: CompilerArgumentsContributor<K2JVMCompilerArguments> by lazy {
+        KotlinJvmCompilerArgumentsContributor(KotlinJvmCompilerArgumentsProvider(this), setOf(KAPT_SUBPLUGIN_ID))
     }
 
     override fun setupCompilerArgs(args: K2JVMCompilerArguments, defaultsOnly: Boolean, ignoreClasspathResolutionErrors: Boolean) {
-        compileKotlinArgumentsContributor.contributeArguments(args, compilerArgumentsConfigurationFlags(
-            defaultsOnly,
-            ignoreClasspathResolutionErrors
-        ))
+        super.setupCompilerArgs(args, defaultsOnly, ignoreClasspathResolutionErrors)
 
         val pluginOptionsWithKapt = pluginOptions.withWrappedKaptOptions(withApClasspath = kaptClasspath)
-        args.pluginOptions = (pluginOptionsWithKapt.arguments + args.pluginOptions!!).toTypedArray()
+        args.pluginOptions = (pluginOptionsWithKapt.arguments() + args.pluginOptions!!).toTypedArray()
 
         args.verbose = verbose
         args.classpathAsList = this.compileClasspath.filter { it.exists() }.toList()

@@ -71,13 +71,13 @@ class Android25ProjectHandler(
 
         // Find the classpath entries that come from the tested variant and register them as the friend paths, lazily
         val originalArtifactCollection = variantData.getCompileClasspathArtifacts(preJavaClasspathKey)
-        val testedVariantDataIsNotNull = getTestedVariantData(variantData) != null
+        val testedVariantDataIsNull = getTestedVariantData(variantData) != null
         val projectPath = project.path
         compilation.testedVariantArtifacts.set(
             originalArtifactCollection.artifactFiles.filter(
                 AndroidTestedVariantArtifactsFilter(
                     originalArtifactCollection,
-                    testedVariantDataIsNotNull,
+                    testedVariantDataIsNull,
                     projectPath
                 )
             )
@@ -219,22 +219,22 @@ private fun MergeResources.computeResourceSetList0(): List<File>? {
 /** Filter for the AGP test variant classpath artifacts. */
 class AndroidTestedVariantArtifactsFilter(
     private val artifactCollection: ArtifactCollection,
-    private val testedVariantDataIsNotNull: Boolean,
+    private val testedVariantDataIsNull: Boolean,
     private val projectPath: String
 ) : Serializable, Spec<File> {
 
     /** Make transient as it should be derived from the [artifactCollection] property which may change in configuration cached runs. */
     @Transient
-    private var filteredFiles = initFilteredFiles()
+    private var filtered = initFiltered()
 
-    private fun initFilteredFiles(): Lazy<Set<File>> {
+    fun initFiltered(): Lazy<Set<File>> {
         return lazy {
             artifactCollection.filter {
                 it.id.componentIdentifier is TestedComponentIdentifier ||
                         // If tests depend on the main classes transitively, through a test dependency on another module which
                         // depends on this module, then there's no artifact with a TestedComponentIdentifier, so consider the artifact of the
                         // current module a friend path, too:
-                        testedVariantDataIsNotNull &&
+                        testedVariantDataIsNull &&
                         (it.id.componentIdentifier as? ProjectComponentIdentifier)?.projectPath == projectPath
             }
                 .mapTo(mutableSetOf()) { it.file }
@@ -247,10 +247,10 @@ class AndroidTestedVariantArtifactsFilter(
 
     private fun readObject(objectInputStream: ObjectInputStream) {
         objectInputStream.defaultReadObject()
-        filteredFiles = initFilteredFiles()
+        filtered = initFiltered()
     }
 
     override fun isSatisfiedBy(element: File): Boolean {
-        return element in filteredFiles.value
+        return element in filtered.value
     }
 }

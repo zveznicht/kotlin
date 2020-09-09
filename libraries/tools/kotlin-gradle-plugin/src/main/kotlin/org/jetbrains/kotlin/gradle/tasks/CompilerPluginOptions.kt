@@ -22,8 +22,8 @@ class CompilerPluginOptions {
     internal val subpluginOptionsByPluginId =
         mutableMapOf<String, MutableList<SubpluginOption>>()
 
-    val arguments: List<String>
-        get() = subpluginOptionsByPluginId.flatMap { (pluginId, subplubinOptions) ->
+    fun arguments(filteredPluginIds: Set<String> = emptySet()): List<String> =
+        subpluginOptionsByPluginId.filter { it.key !in filteredPluginIds }.flatMap { (pluginId, subplubinOptions) ->
             subplubinOptions.map { option ->
                 "plugin:$pluginId:${option.key}=${option.value}"
             }

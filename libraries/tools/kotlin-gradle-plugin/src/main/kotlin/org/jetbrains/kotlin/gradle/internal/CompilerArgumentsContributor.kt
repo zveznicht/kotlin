@@ -40,7 +40,8 @@ internal fun compilerArgumentsConfigurationFlags(defaultsOnly: Boolean, ignoreCl
  * but outside the tasks, so that this state & logic can be reused without referencing the task directly. */
 internal open class AbstractKotlinCompileArgumentsContributor<T : CommonCompilerArguments>(
     // Don't save this reference into a property! That would be hostile to Gradle instant execution
-    taskProvider: KotlinCompileArgumentsProvider<out AbstractKotlinCompile<T>>
+    taskProvider: KotlinCompileArgumentsProvider<out AbstractKotlinCompile<T>>,
+    private val pluginIdsToIgnore: Set<String> = emptySet()
 ) : CompilerArgumentsContributor<T> {
 
     private val coroutines = taskProvider.coroutines
@@ -73,14 +74,15 @@ internal open class AbstractKotlinCompileArgumentsContributor<T : CommonCompiler
 
     internal fun setupPlugins(compilerArgs: T) {
         compilerArgs.pluginClasspaths = pluginClasspath.toSortedPathsArray()
-        compilerArgs.pluginOptions = pluginOptions.arguments.toTypedArray()
+        compilerArgs.pluginOptions = pluginOptions.arguments(pluginIdsToIgnore).toTypedArray()
     }
 }
 
 internal open class KotlinJvmCompilerArgumentsContributor(
     // Don't save this reference into a property! That would be hostile to Gradle instant execution. Only map it to the task properties.
-    taskProvider: KotlinJvmCompilerArgumentsProvider
-) : AbstractKotlinCompileArgumentsContributor<K2JVMCompilerArguments>(taskProvider) {
+    taskProvider: KotlinJvmCompilerArgumentsProvider,
+    pluginIdsToIgnore: Set<String> = emptySet()
+) : AbstractKotlinCompileArgumentsContributor<K2JVMCompilerArguments>(taskProvider, pluginIdsToIgnore) {
 
     private val moduleName = taskProvider.moduleName
     private val friendPaths = taskProvider.friendPaths

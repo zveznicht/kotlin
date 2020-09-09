@@ -203,7 +203,7 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions, K : Abst
     val compilerPluginOptions = CompilerPluginOptions()
 
     val compilerPluginCommandLine
-        @Input get() = compilerPluginOptions.arguments
+        @Input get() = compilerPluginOptions.arguments()
 
     @Optional
     @InputFiles
@@ -230,7 +230,7 @@ abstract class AbstractKotlinNativeCompile<T : KotlinCommonToolOptions, K : Abst
             pluginClasspath.map { it.canonicalPath }.sorted().forEach { path ->
                 add("-Xplugin=$path")
             }
-            compilerPluginOptions.arguments.forEach {
+            compilerPluginOptions.arguments().forEach {
                 add("-P")
                 add(it)
             }

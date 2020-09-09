@@ -70,7 +70,7 @@ open class KaptWithKotlincTask : KaptTask(), CompilerArgumentAwareWithInput<K2JV
             processIncrementally = processIncrementally
         )
 
-        args.pluginOptions = (pluginOptionsWithKapt.arguments + args.pluginOptions!!).toTypedArray()
+        args.pluginOptions = (pluginOptionsWithKapt.arguments() + args.pluginOptions!!).toTypedArray()
 
         args.verbose = project.hasProperty("kapt.verbose") && project.property("kapt.verbose").toString().toBoolean() == true
     }

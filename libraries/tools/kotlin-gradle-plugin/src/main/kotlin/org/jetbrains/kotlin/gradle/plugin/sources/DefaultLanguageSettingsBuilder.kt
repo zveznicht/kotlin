@@ -79,7 +79,7 @@ internal class DefaultLanguageSettingsBuilder : LanguageSettingsBuilder {
                 is AbstractKotlinCompile<*> -> pluginOptionsTask.pluginOptions
                 is AbstractKotlinNativeCompile<*, *> -> pluginOptionsTask.compilerPluginOptions
                 else -> error("Unexpected task: $pluginOptionsTask")
-            }.arguments
+            }.arguments()
         }
 
     val compilerPluginClasspath: FileCollection?

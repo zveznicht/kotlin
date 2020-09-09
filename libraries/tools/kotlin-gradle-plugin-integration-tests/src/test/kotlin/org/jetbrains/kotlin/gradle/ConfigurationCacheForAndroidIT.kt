@@ -35,9 +35,14 @@ class ConfigurationCacheForAndroidIT : AbstractConfigurationCacheIT() {
     }
 
     @Test
-    fun testKotlinAndroidProjectTests() = with(Project("AndroidIncrementalMultiModule")) {
+    fun testKotlinAndroidProjectWithJetifier() = with(Project("AndroidIncrementalMultiModule")) {
         applyAndroid40Alpha4KotlinVersionWorkaround()
-        testConfigurationCacheOf(":app:compileDebugAndroidTestKotlin", ":app:compileDebugUnitTestKotlin")
+        this.projectDir.resolve("gradle.properties").appendText("""
+            
+            android.useAndroidX=true
+            android.enableJetifier=true
+        """.trimIndent())
+        testConfigurationCacheOf(":app:compileDebugAndroidTestJavaWithJavac")
     }
 
     /**
