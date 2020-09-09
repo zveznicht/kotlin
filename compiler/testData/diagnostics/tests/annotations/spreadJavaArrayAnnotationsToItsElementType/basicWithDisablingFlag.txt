@@ -1,0 +1,27 @@
+package
+
+public fun main(/*0*/ x: Derived): kotlin.Unit
+public fun take(/*0*/ x: kotlin.String): kotlin.Unit
+
+@Documented /* annotation class not found */ @Retention(value = RetentionPolicy.CLASS) /* annotation class not found */ @Target(value = {ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE, ElementType.TYPE_USE}) /* annotation class not found */ public final annotation class Anno : kotlin.Annotation {
+    public constructor Anno()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public open class Base {
+    public constructor Base()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open fun foo(): kotlin.Array<(out) kotlin.String!>!
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public open class Derived : Base {
+    public constructor Derived()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    @java.lang.Override public open override /*1*/ fun foo(): kotlin.Array<(out) kotlin.String!>!
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}

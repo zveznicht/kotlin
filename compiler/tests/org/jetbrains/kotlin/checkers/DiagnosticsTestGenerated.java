@@ -1522,6 +1522,44 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
                 }
             }
 
+            @TestMetadata("compiler/testData/diagnostics/tests/annotations/spreadJavaArrayAnnotationsToItsElementType")
+            @TestDataPath("$PROJECT_ROOT")
+            @RunWith(JUnit3RunnerWithInners.class)
+            public static class SpreadJavaArrayAnnotationsToItsElementType extends AbstractDiagnosticsTestWithFirValidation {
+                private void runTest(String testDataFilePath) throws Exception {
+                    KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
+                }
+
+                public void testAllFilesPresentInSpreadJavaArrayAnnotationsToItsElementType() throws Exception {
+                    KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/annotations/spreadJavaArrayAnnotationsToItsElementType"), Pattern.compile("^(.*)\\.kts?$"), Pattern.compile("^(.+)\\.fir\\.kts?$"), true);
+                }
+
+                @TestMetadata("arrayFirstDimensionAnnotated.kt")
+                public void testArrayFirstDimensionAnnotated() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/annotations/spreadJavaArrayAnnotationsToItsElementType/arrayFirstDimensionAnnotated.kt");
+                }
+
+                @TestMetadata("arraySecondDimensionAnnotated.kt")
+                public void testArraySecondDimensionAnnotated() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/annotations/spreadJavaArrayAnnotationsToItsElementType/arraySecondDimensionAnnotated.kt");
+                }
+
+                @TestMetadata("basic.kt")
+                public void testBasic() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/annotations/spreadJavaArrayAnnotationsToItsElementType/basic.kt");
+                }
+
+                @TestMetadata("basicWithDisablingFlag.kt")
+                public void testBasicWithDisablingFlag() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/annotations/spreadJavaArrayAnnotationsToItsElementType/basicWithDisablingFlag.kt");
+                }
+
+                @TestMetadata("withoutOverride.kt")
+                public void testWithoutOverride() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/annotations/spreadJavaArrayAnnotationsToItsElementType/withoutOverride.kt");
+                }
+            }
+
             @TestMetadata("compiler/testData/diagnostics/tests/annotations/withUseSiteTarget")
             @TestDataPath("$PROJECT_ROOT")
             @RunWith(JUnit3RunnerWithInners.class)

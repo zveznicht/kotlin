@@ -32,6 +32,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.Variance.*
 import org.jetbrains.kotlin.types.typeUtil.createProjection
+import org.jetbrains.kotlin.types.typeUtil.replaceAnnotations
 import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
 import org.jetbrains.kotlin.utils.sure
 
@@ -58,6 +59,24 @@ class JavaTypeResolver(
         }
     }
 
+    private fun KotlinType.takeAnnotationsFromArrayTypeIfNeeded(
+        topLevelArrayType: JavaArrayType,
+        arrayType: JavaArrayType,
+        attr: JavaTypeAttributes
+    ): KotlinType {
+        val needToTakeAnnotations = c.components.settings.spreadAnnotationsFromArrayTypeToItsElementTypeForOverrides
+
+        if (!needToTakeAnnotations)
+            return this
+
+        val componentType = arrayType.componentType
+
+        if (componentType !is JavaClassifierType)
+            return this
+
+        return if (attr.isReturnTypeOfOverrideMethod) replaceAnnotations(LazyJavaAnnotations(c, topLevelArrayType)) else this
+    }
+
     fun transformArrayType(arrayType: JavaArrayType, attr: JavaTypeAttributes, isVararg: Boolean = false): KotlinType {
         val javaComponentType = arrayType.componentType
         val primitiveType = (javaComponentType as? JavaPrimitiveType)?.type
@@ -69,9 +88,12 @@ class JavaTypeResolver(
         }
 
         val componentType = transformJavaType(
-            javaComponentType,
-            COMMON.toAttributes(attr.isForAnnotationParameter)
-        )
+            javaComponentType, COMMON.toAttributes(
+                isForAnnotationParameter = attr.isForAnnotationParameter,
+                isReturnTypeOfOverrideMethod = attr.isReturnTypeOfOverrideMethod,
+                parentArray = attr.parentArray ?: arrayType
+            )
+        ).takeAnnotationsFromArrayTypeIfNeeded(attr.parentArray ?: arrayType, arrayType, attr)
 
         if (attr.isForAnnotationParameter) {
             val projectionKind = if (isVararg) OUT_VARIANCE else INVARIANT
@@ -299,7 +321,9 @@ data class JavaTypeAttributes(
     val flexibility: JavaTypeFlexibility = INFLEXIBLE,
     val isForAnnotationParameter: Boolean = false,
     // Current type is upper bound of this type parameter
-    val upperBoundOfTypeParameter: TypeParameterDescriptor? = null
+    val upperBoundOfTypeParameter: TypeParameterDescriptor? = null,
+    val isReturnTypeOfOverrideMethod: Boolean = false,
+    val parentArray: JavaArrayType? = null,
 ) {
     fun withFlexibility(flexibility: JavaTypeFlexibility) = copy(flexibility = flexibility)
 }
@@ -312,11 +336,15 @@ enum class JavaTypeFlexibility {
 
 fun TypeUsage.toAttributes(
     isForAnnotationParameter: Boolean = false,
-    upperBoundForTypeParameter: TypeParameterDescriptor? = null
+    upperBoundForTypeParameter: TypeParameterDescriptor? = null,
+    isReturnTypeOfOverrideMethod: Boolean = false,
+    parentArray: JavaArrayType? = null,
 ) = JavaTypeAttributes(
     this,
     isForAnnotationParameter = isForAnnotationParameter,
-    upperBoundOfTypeParameter = upperBoundForTypeParameter
+    upperBoundOfTypeParameter = upperBoundForTypeParameter,
+    isReturnTypeOfOverrideMethod = isReturnTypeOfOverrideMethod,
+    parentArray = parentArray
 )
 
 // Definition:
