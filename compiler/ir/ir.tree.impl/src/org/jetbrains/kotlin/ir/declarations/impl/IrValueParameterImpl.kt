@@ -38,7 +38,8 @@ class IrValueParameterImpl(
     override val type: IrType,
     override val varargElementType: IrType?,
     override val isCrossinline: Boolean,
-    override val isNoinline: Boolean
+    override val isNoinline: Boolean,
+    override val isHidden: Boolean
 ) : IrValueParameter() {
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ParameterDescriptor
@@ -47,6 +48,19 @@ class IrValueParameterImpl(
     init {
         symbol.bind(this)
     }
+
+    constructor(
+        startOffset: Int,
+        endOffset: Int,
+        origin: IrDeclarationOrigin,
+        symbol: IrValueParameterSymbol,
+        name: Name,
+        index: Int,
+        type: IrType,
+        varargElementType: IrType?,
+        isCrossinline: Boolean,
+        isNoinline: Boolean
+    ) : this(startOffset, endOffset, origin, symbol, name, index, type, varargElementType, isCrossinline, isNoinline, false)
 
     override val factory: IrFactory
         get() = IrFactoryImpl

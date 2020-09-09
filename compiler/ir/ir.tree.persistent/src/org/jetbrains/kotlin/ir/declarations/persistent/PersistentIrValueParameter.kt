@@ -40,7 +40,8 @@ internal class PersistentIrValueParameter(
     override val type: IrType,
     override val varargElementType: IrType?,
     override val isCrossinline: Boolean,
-    override val isNoinline: Boolean
+    override val isNoinline: Boolean,
+    override val isHidden: Boolean
 ) : IrValueParameter(),
     PersistentIrDeclarationBase<ValueParameterCarrier>,
     ValueParameterCarrier {
@@ -52,6 +53,19 @@ internal class PersistentIrValueParameter(
     init {
         symbol.bind(this)
     }
+
+    constructor(
+        startOffset: Int,
+        endOffset: Int,
+        origin: IrDeclarationOrigin,
+        symbol: IrValueParameterSymbol,
+        name: Name,
+        index: Int,
+        type: IrType,
+        varargElementType: IrType?,
+        isCrossinline: Boolean,
+        isNoinline: Boolean
+    ) : this(startOffset, endOffset, origin, symbol, name, index, type, varargElementType, isCrossinline, isNoinline, false)
 
     override var lastModified: Int = stageController.currentStage
     override var loweredUpTo: Int = stageController.currentStage
