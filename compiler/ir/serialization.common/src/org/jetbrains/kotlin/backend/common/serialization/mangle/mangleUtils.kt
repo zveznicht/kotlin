@@ -7,19 +7,29 @@ package org.jetbrains.kotlin.backend.common.serialization.mangle
 
 import org.jetbrains.kotlin.name.FqName
 
-fun <T> Collection<T>.collectForMangler(builder: StringBuilder, params: MangleConstant, collect: StringBuilder.(T) -> Unit) {
+inline fun <T> Collection<T>.collectForMangler(
+    builder: StringBuilder,
+    params: MangleConstant,
+    crossinline collect: StringBuilder.(T) -> Unit
+) {
+    collectForManglerChecked(builder, params) { collect(it); true }
+}
+
+fun <T> Collection<T>.collectForManglerChecked(builder: StringBuilder, params: MangleConstant, collect: StringBuilder.(T) -> Boolean) {
     var first = true
 
     builder.append(params.prefix)
 
+    var addSeparator = true
+
     for (e in this) {
         if (first) {
             first = false
-        } else {
+        } else if (addSeparator) {
             builder.append(params.separator)
         }
 
-        builder.collect(e)
+        addSeparator = builder.collect(e)
     }
 
     builder.append(params.suffix)
