@@ -55,7 +55,7 @@ data class IrValidatorConfig(
     val checkTypes: Boolean = true,
     val checkDescriptors: Boolean = true,
     val checkProperties: Boolean = false,
-    val checkScopes: Boolean = true,
+    val checkScopes: Boolean = false,
 )
 
 class IrValidator(val context: CommonBackendContext, val config: IrValidatorConfig) : IrElementVisitorVoid {
