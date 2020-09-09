@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.psi2ir.generators
 
+import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.isBuiltinFunctionalType
 import org.jetbrains.kotlin.builtins.isFunctionTypeOrSubtype
 import org.jetbrains.kotlin.config.LanguageFeature
@@ -48,7 +49,6 @@ import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.ImportedFromObjectCallableDescriptor
 import org.jetbrains.kotlin.resolve.calls.callResolverUtil.getSuperCallExpression
 import org.jetbrains.kotlin.resolve.calls.callUtil.isSafeCall
-import org.jetbrains.kotlin.resolve.calls.components.isArrayOrArrayLiteral
 import org.jetbrains.kotlin.resolve.calls.components.isVararg
 import org.jetbrains.kotlin.resolve.calls.model.*
 import org.jetbrains.kotlin.resolve.calls.tower.NewResolvedCallImpl
@@ -568,6 +568,13 @@ private fun StatementGenerator.pregenerateValueArguments(call: CallBuilder, reso
     }
 
     generateSamConversionForValueArgumentsIfRequired(call, resolvedCall)
+}
+
+private fun KotlinCallArgument.isArrayOrArrayLiteral(): Boolean {
+    if (this is CollectionLiteralKotlinCallArgument) return true
+    if (this !is SimpleKotlinCallArgument) return false
+
+    return KotlinBuiltIns.isArrayOrPrimitiveArray(receiver.receiverValue.type)
 }
 
 fun StatementGenerator.generateSamConversionForValueArgumentsIfRequired(call: CallBuilder, resolvedCall: ResolvedCall<*>) {

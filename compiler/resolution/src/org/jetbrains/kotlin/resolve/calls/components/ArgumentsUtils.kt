@@ -151,9 +151,7 @@ private fun KotlinCallArgument.isArrayAssignedAsNamedArgumentInAnnotation(
 ): Boolean {
     if (!languageVersionSettings.supportsFeature(LanguageFeature.AssigningArraysToVarargsInNamedFormInAnnotations)) return false
 
-    if (this.argumentName == null || !parameter.isVararg) return false
-
-    return isParameterOfAnnotation(parameter) && this.isArrayOrArrayLiteral()
+    return this.argumentName != null && parameter.isVararg && isParameterOfAnnotation(parameter)
 }
 
 private fun KotlinCallArgument.isArrayAssignedAsNamedArgumentInFunction(
@@ -162,15 +160,5 @@ private fun KotlinCallArgument.isArrayAssignedAsNamedArgumentInFunction(
 ): Boolean {
     if (!languageVersionSettings.supportsFeature(LanguageFeature.AllowAssigningArrayElementsToVarargsInNamedFormForFunctions)) return false
 
-    if (this.argumentName == null || !parameter.isVararg) return false
-
-    return this.isArrayOrArrayLiteral()
-}
-
-fun KotlinCallArgument.isArrayOrArrayLiteral(): Boolean {
-    if (this is CollectionLiteralKotlinCallArgument) return true
-    if (this !is SimpleKotlinCallArgument) return false
-
-    val type = this.receiver.receiverValue.type
-    return KotlinBuiltIns.isArrayOrPrimitiveArray(type)
+    return this.argumentName != null && parameter.isVararg
 }

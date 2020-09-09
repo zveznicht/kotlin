@@ -215,8 +215,8 @@ fun getEffectiveExpectedTypeForSingleArgument(
     }
 
     if (
-        arrayAssignmentToVarargInNamedFormInAnnotation(parameterDescriptor, argument, languageVersionSettings, trace) ||
-        arrayAssignmentToVarargInNamedFormInFunction(parameterDescriptor, argument, languageVersionSettings, trace)
+        arrayAssignmentToVarargInNamedFormInAnnotation(parameterDescriptor, argument, languageVersionSettings) ||
+        arrayAssignmentToVarargInNamedFormInFunction(parameterDescriptor, argument, languageVersionSettings)
     ) {
         return parameterDescriptor.type
     }
@@ -232,24 +232,20 @@ private fun arrayAssignmentToVarargInNamedFormInAnnotation(
     parameterDescriptor: ValueParameterDescriptor,
     argument: ValueArgument,
     languageVersionSettings: LanguageVersionSettings,
-    trace: BindingTrace
 ): Boolean {
     if (!languageVersionSettings.supportsFeature(LanguageFeature.AssigningArraysToVarargsInNamedFormInAnnotations)) return false
 
-    if (!isParameterOfAnnotation(parameterDescriptor)) return false
-
-    return argument.isNamed() && parameterDescriptor.isVararg && isArrayOrArrayLiteral(argument, trace)
+    return isParameterOfAnnotation(parameterDescriptor) && argument.isNamed() && parameterDescriptor.isVararg
 }
 
 private fun arrayAssignmentToVarargInNamedFormInFunction(
     parameterDescriptor: ValueParameterDescriptor,
     argument: ValueArgument,
     languageVersionSettings: LanguageVersionSettings,
-    trace: BindingTrace
 ): Boolean {
     if (!languageVersionSettings.supportsFeature(LanguageFeature.AllowAssigningArrayElementsToVarargsInNamedFormForFunctions)) return false
 
-    return argument.isNamed() && parameterDescriptor.isVararg && isArrayOrArrayLiteral(argument, trace)
+    return argument.isNamed() && parameterDescriptor.isVararg
 }
 
 fun isArrayOrArrayLiteral(argument: ValueArgument, trace: BindingTrace): Boolean {
