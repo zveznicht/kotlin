@@ -640,7 +640,8 @@ class LocalDeclarationsLowering(
                 v.copyTo(
                     newDeclaration,
                     index = v.index + capturedValues.size,
-                    type = localFunctionContext.remapType(v.type)
+                    type = localFunctionContext.remapType(v.type),
+                    varargElementType = v.varargElementType?.let { localFunctionContext.remapType(it) }
                 ).also {
                     newParameterToOld.putAbsentOrSame(it, v)
                 }
