@@ -7,15 +7,7 @@ package org.jetbrains.kotlin.backend.common.serialization.mangle
 
 import org.jetbrains.kotlin.name.FqName
 
-inline fun <T> Collection<T>.collectForMangler(
-    builder: StringBuilder,
-    params: MangleConstant,
-    crossinline collect: StringBuilder.(T) -> Unit
-) {
-    collectForManglerChecked(builder, params) { collect(it); true }
-}
-
-fun <T> Collection<T>.collectForManglerChecked(builder: StringBuilder, params: MangleConstant, collect: StringBuilder.(T) -> Boolean) {
+fun <T> Collection<T>.collectForMangler(builder: StringBuilder, params: MangleConstant, collect: StringBuilder.(T) -> Unit) {
     var first = true
 
     builder.append(params.prefix)
@@ -29,7 +21,9 @@ fun <T> Collection<T>.collectForManglerChecked(builder: StringBuilder, params: M
             builder.append(params.separator)
         }
 
-        addSeparator = builder.collect(e)
+        val l = builder.length
+        builder.collect(e)
+        addSeparator = l < builder.length
     }
 
     builder.append(params.suffix)

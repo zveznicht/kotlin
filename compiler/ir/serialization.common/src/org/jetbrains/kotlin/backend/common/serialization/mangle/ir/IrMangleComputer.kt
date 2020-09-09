@@ -110,12 +110,11 @@ abstract class IrMangleComputer(protected val builder: StringBuilder, private va
             }
         }
 
-        valueParameters.collectForManglerChecked(builder, MangleConstant.VALUE_PARAMETERS) {
+        valueParameters.collectForMangler(builder, MangleConstant.VALUE_PARAMETERS) {
             if (!it.isHidden) {
                 appendSignature(specialValueParamPrefix(it))
                 mangleValueParameter(this, it)
-                true
-            } else false
+            }
         }
 
         typeParameters.collectForMangler(builder, MangleConstant.TYPE_PARAMETERS) { mangleTypeParameter(this, it) }
