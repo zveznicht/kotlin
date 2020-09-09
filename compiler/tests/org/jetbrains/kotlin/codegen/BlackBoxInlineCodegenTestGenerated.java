@@ -4630,6 +4630,237 @@ public class BlackBoxInlineCodegenTestGenerated extends AbstractBlackBoxInlineCo
         }
     }
 
+    @TestMetadata("compiler/testData/codegen/boxInline/tailrec")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Tailrec extends AbstractBlackBoxInlineCodegenTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInTailrec() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/boxInline/tailrec"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
+        }
+
+        @TestMetadata("callableReference.kt")
+        public void testCallableReference() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/callableReference.kt");
+        }
+
+        @TestMetadata("crossinline.kt")
+        public void testCrossinline() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/crossinline.kt");
+        }
+
+        @TestMetadata("crossinlineAsInline.kt")
+        public void testCrossinlineAsInline() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/crossinlineAsInline.kt");
+        }
+
+        @TestMetadata("crossinlineAsNoinline.kt")
+        public void testCrossinlineAsNoinline() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/crossinlineAsNoinline.kt");
+        }
+
+        @TestMetadata("crossinlineAsNoinlineNoInnerLambda.kt")
+        public void testCrossinlineAsNoinlineNoInnerLambda() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/crossinlineAsNoinlineNoInnerLambda.kt");
+        }
+
+        @TestMetadata("crossinlineCallableReference.kt")
+        public void testCrossinlineCallableReference() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/crossinlineCallableReference.kt");
+        }
+
+        @TestMetadata("inlineAsNoinline.kt")
+        public void testInlineAsNoinline() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/inlineAsNoinline.kt");
+        }
+
+        @TestMetadata("inlineLambda.kt")
+        public void testInlineLambda() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/inlineLambda.kt");
+        }
+
+        @TestMetadata("noinline.kt")
+        public void testNoinline() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/noinline.kt");
+        }
+
+        @TestMetadata("noinlineCallableReference.kt")
+        public void testNoinlineCallableReference() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/noinlineCallableReference.kt");
+        }
+
+        @TestMetadata("noinlineNoInnerLambda.kt")
+        public void testNoinlineNoInnerLambda() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/noinlineNoInnerLambda.kt");
+        }
+
+        @TestMetadata("nolambda.kt")
+        public void testNolambda() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/nolambda.kt");
+        }
+
+        @TestMetadata("nonLocalReturn.kt")
+        public void testNonLocalReturn() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/tailrec/nonLocalReturn.kt");
+        }
+
+        @TestMetadata("compiler/testData/codegen/boxInline/tailrec/suspend")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Suspend extends AbstractBlackBoxInlineCodegenTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInSuspend() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/boxInline/tailrec/suspend"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
+            }
+
+            @TestMetadata("callableReference.kt")
+            public void testCallableReference() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/callableReference.kt");
+            }
+
+            @TestMetadata("callableReferenceConversion.kt")
+            public void testCallableReferenceConversion() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/callableReferenceConversion.kt");
+            }
+
+            @TestMetadata("callableReferenceSuspend.kt")
+            public void testCallableReferenceSuspend() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/callableReferenceSuspend.kt");
+            }
+
+            @TestMetadata("crossinline.kt")
+            public void testCrossinline() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/crossinline.kt");
+            }
+
+            @TestMetadata("crossinlineAsInline.kt")
+            public void testCrossinlineAsInline() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/crossinlineAsInline.kt");
+            }
+
+            @TestMetadata("crossinlineAsNoinline.kt")
+            public void testCrossinlineAsNoinline() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/crossinlineAsNoinline.kt");
+            }
+
+            @TestMetadata("crossinlineAsNoinlineNoInnerLambda.kt")
+            public void testCrossinlineAsNoinlineNoInnerLambda() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/crossinlineAsNoinlineNoInnerLambda.kt");
+            }
+
+            @TestMetadata("crossinlineCallableReference.kt")
+            public void testCrossinlineCallableReference() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/crossinlineCallableReference.kt");
+            }
+
+            @TestMetadata("crossinlineSuspend.kt")
+            public void testCrossinlineSuspend() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/crossinlineSuspend.kt");
+            }
+
+            @TestMetadata("crossinlineSuspendAsInline.kt")
+            public void testCrossinlineSuspendAsInline() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/crossinlineSuspendAsInline.kt");
+            }
+
+            @TestMetadata("crossinlineSuspendAsNoinline.kt")
+            public void testCrossinlineSuspendAsNoinline() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/crossinlineSuspendAsNoinline.kt");
+            }
+
+            @TestMetadata("crossinlineSuspendAsNoinlineNoInnerLambda.kt")
+            public void testCrossinlineSuspendAsNoinlineNoInnerLambda() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/crossinlineSuspendAsNoinlineNoInnerLambda.kt");
+            }
+
+            @TestMetadata("crossinlineSuspendCallableReference.kt")
+            public void testCrossinlineSuspendCallableReference() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/crossinlineSuspendCallableReference.kt");
+            }
+
+            @TestMetadata("crossinlineSuspendCallableReferenceConversion.kt")
+            public void testCrossinlineSuspendCallableReferenceConversion() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/crossinlineSuspendCallableReferenceConversion.kt");
+            }
+
+            @TestMetadata("inlineAsNoinline.kt")
+            public void testInlineAsNoinline() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/inlineAsNoinline.kt");
+            }
+
+            @TestMetadata("inlineLambda.kt")
+            public void testInlineLambda() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/inlineLambda.kt");
+            }
+
+            @TestMetadata("inlineSuspendAsNoinline.kt")
+            public void testInlineSuspendAsNoinline() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/inlineSuspendAsNoinline.kt");
+            }
+
+            @TestMetadata("inlineSuspendLambda.kt")
+            public void testInlineSuspendLambda() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/inlineSuspendLambda.kt");
+            }
+
+            @TestMetadata("noinline.kt")
+            public void testNoinline() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/noinline.kt");
+            }
+
+            @TestMetadata("noinlineCallableReference.kt")
+            public void testNoinlineCallableReference() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/noinlineCallableReference.kt");
+            }
+
+            @TestMetadata("noinlineNoInnerLambda.kt")
+            public void testNoinlineNoInnerLambda() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/noinlineNoInnerLambda.kt");
+            }
+
+            @TestMetadata("noinlineSuspend.kt")
+            public void testNoinlineSuspend() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/noinlineSuspend.kt");
+            }
+
+            @TestMetadata("noinlineSuspendCallableReference.kt")
+            public void testNoinlineSuspendCallableReference() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/noinlineSuspendCallableReference.kt");
+            }
+
+            @TestMetadata("noinlineSuspendCallableReferenceConversion.kt")
+            public void testNoinlineSuspendCallableReferenceConversion() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/noinlineSuspendCallableReferenceConversion.kt");
+            }
+
+            @TestMetadata("noinlineSuspendNoInnerLambda.kt")
+            public void testNoinlineSuspendNoInnerLambda() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/noinlineSuspendNoInnerLambda.kt");
+            }
+
+            @TestMetadata("nolambda.kt")
+            public void testNolambda() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/nolambda.kt");
+            }
+
+            @TestMetadata("nonLocalReturn.kt")
+            public void testNonLocalReturn() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/nonLocalReturn.kt");
+            }
+
+            @TestMetadata("nonLocalReturnSuspendLambda.kt")
+            public void testNonLocalReturnSuspendLambda() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/tailrec/suspend/nonLocalReturnSuspendLambda.kt");
+            }
+        }
+    }
+
     @TestMetadata("compiler/testData/codegen/boxInline/trait")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)

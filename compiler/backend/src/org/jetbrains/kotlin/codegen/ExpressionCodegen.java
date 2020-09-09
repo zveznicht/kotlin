@@ -2667,14 +2667,8 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         CallGenerator callGenerator = getOrCreateCallGenerator(resolvedCall);
         CallableDescriptor descriptor = resolvedCall.getResultingDescriptor();
 
-        if (callGenerator != defaultCallGenerator) {
-            final boolean isTailCall = tailRecursionCodegen.isTailRecursion(resolvedCall);
-            if (isTailCall) {
-                callGenerator = defaultCallGenerator;
-            }
-            else if (context.getFunctionDescriptor().isTailrec()) {
-                assert false : "Non-tail-call can't be inlined: " + descriptor;
-            }
+        if (callGenerator != defaultCallGenerator && tailRecursionCodegen.isTailRecursion(resolvedCall)) {
+            callGenerator = defaultCallGenerator;
         }
 
         ArgumentGenerator argumentGenerator = new CallBasedArgumentGenerator(this, callGenerator, descriptor.getValueParameters(),
