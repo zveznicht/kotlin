@@ -199,7 +199,36 @@ interface IrFactory {
         varargElementType: IrType?,
         isCrossinline: Boolean,
         isNoinline: Boolean,
+        isHidden: Boolean
     ): IrValueParameter
+
+    fun createValueParameter(
+        startOffset: Int,
+        endOffset: Int,
+        origin: IrDeclarationOrigin,
+        symbol: IrValueParameterSymbol,
+        name: Name,
+        index: Int,
+        type: IrType,
+        varargElementType: IrType?,
+        isCrossinline: Boolean,
+        isNoinline: Boolean
+    ): IrValueParameter =
+        createValueParameter(startOffset, endOffset, origin, symbol, name, index, type, varargElementType, isCrossinline, isNoinline, false)
+
+    fun createHiddenValueParameter(
+        startOffset: Int,
+        endOffset: Int,
+        origin: IrDeclarationOrigin,
+        symbol: IrValueParameterSymbol,
+        name: Name,
+        index: Int,
+        type: IrType,
+        varargElementType: IrType?,
+        isCrossinline: Boolean,
+        isNoinline: Boolean
+    ): IrValueParameter =
+        createValueParameter(startOffset, endOffset, origin, symbol, name, index, type, varargElementType, isCrossinline, isNoinline, true)
 
     // Bodies
 
