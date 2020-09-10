@@ -4,7 +4,7 @@
 
 import org.jspecify.annotations.*;
 
-public class A<T extends @NotNull Object, E extends @Nullable Object, F extends @NullnessUnknown Object> {
+public class A<T extends Object, E extends @Nullable Object, F extends @NullnessUnknown Object> {
 }
 
 // FILE: B.java
@@ -13,11 +13,9 @@ import org.jspecify.annotations.*;
 
 public class B {
     public void superAsIs(A<? super CharSequence, ? super CharSequence, ? super CharSequence> a) {}
-    public void superNotNull(A<? super @NotNull CharSequence, ? super @NotNull CharSequence, ? super @NotNull CharSequence> a) {}
     public void superNullable(A<? super @Nullable CharSequence, ? super @Nullable CharSequence, ? super @Nullable CharSequence> a) {}
 
     public void extendsAsIs(A<? extends CharSequence, ? extends CharSequence, ? extends CharSequence> a) {}
-    public void extendsNotNull(A<? extends @NotNull CharSequence, ? extends @NotNull CharSequence, ? extends @NotNull CharSequence> a) {}
     public void extendsNullable(A<? extends @Nullable CharSequence, ? extends @Nullable CharSequence, ? extends @Nullable CharSequence> a) {}
 
     public void noBounds(A<?, ?, ?> a) {}
@@ -44,11 +42,6 @@ fun main(
     b.superAsIs(aAnyNotNullNullNotNull)
     b.superAsIs(aAnyNotNullNullNull)
 
-    b.superNotNull(aAnyNotNullNotNullNotNull)
-    b.superNotNull(aAnyNotNullNotNullNull)
-    b.superNotNull(aAnyNotNullNullNotNull)
-    b.superNotNull(aAnyNotNullNullNull)
-
     // TODO: Bound for the first argument in "superNullable" contradicts to declared nullability of the parameter
     // Do we need to ignore such arguments' nullability?
     b.superNullable(aAnyNotNullNotNullNotNull)
@@ -60,14 +53,6 @@ fun main(
     b.extendsAsIs(aNotNullNotNullNull)
     b.extendsAsIs(aNotNullNullNotNull)
     b.extendsAsIs(aNotNullNullNull)
-
-    b.extendsNotNull(aNotNullNotNullNotNull)
-    // TODO: NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS should be reported
-    b.extendsNotNull(aNotNullNotNullNull)
-    // TODO: NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS should be reported
-    b.extendsNotNull(aNotNullNullNotNull)
-    // TODO: NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS should be reported
-    b.extendsNotNull(aNotNullNullNull)
 
     b.extendsNullable(aNotNullNotNullNotNull)
     b.extendsNullable(aNotNullNotNullNull)
