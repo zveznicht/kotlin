@@ -7,7 +7,7 @@ public class Simple {
 
     // PSometimesNull(_), PNonNull(x), PUnknownNull(y)
     @Nullable
-    public String foo(String x, @NullnessUnknown CharSequence y) {
+    public String foo(String x, @NullnessUnspecified CharSequence y) {
         return "";
     }
 

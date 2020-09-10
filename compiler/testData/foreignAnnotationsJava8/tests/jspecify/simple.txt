@@ -6,7 +6,7 @@ public open class A {
     public constructor A()
     @org.jspecify.annotations.Nullable public final var field: @org.jspecify.annotations.Nullable kotlin.String?
     public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
-    @org.jspecify.annotations.Nullable public open fun foo(/*0*/ x: kotlin.String!, /*1*/ @org.jspecify.annotations.NullnessUnknown y: @org.jspecify.annotations.NullnessUnknown kotlin.CharSequence!): @org.jspecify.annotations.Nullable kotlin.String?
+    @org.jspecify.annotations.Nullable public open fun foo(/*0*/ x: kotlin.String!, /*1*/ @org.jspecify.annotations.NullnessUnspecified y: @org.jspecify.annotations.NullnessUnspecified kotlin.CharSequence!): @org.jspecify.annotations.Nullable kotlin.String?
     public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
     public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
 }
