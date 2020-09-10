@@ -14,6 +14,6 @@ import java.lang.annotation.ElementType;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE_USE)
-public @interface NullnessUnknown {
+public @interface NullnessUnspecified {
 
 }
