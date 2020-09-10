@@ -1,3 +1,5 @@
+// IGNORE_BACKEND: JS
+
 tailrec inline fun factorial(x: Int, y: Int = 1): Int {
     if (x == 0) return y
     return factorial(x - 1, x * y)

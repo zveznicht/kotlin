@@ -1,3 +1,5 @@
+// IGNORE_BACKEND: JS
+
 // FILE: lib.kt
 package lib
 

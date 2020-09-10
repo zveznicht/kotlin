@@ -1,5 +1,6 @@
 // WITH_RUNTIME
 // NO_CHECK_LAMBDA_INLINING
+// IGNORE_BACKEND: JS
 
 // FILE: lib.kt
 package lib
