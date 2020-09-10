@@ -26,6 +26,13 @@ fun <T> Collection<T>.collectForMangler(builder: StringBuilder, params: MangleCo
         addSeparator = l < builder.length
     }
 
+    if (!addSeparator) {
+        if (builder.last() == params.separator) {
+            // avoid signatures like foo(Int;)
+            builder.deleteCharAt(builder.lastIndex)
+        }
+    }
+
     builder.append(params.suffix)
 }
 
