@@ -112,9 +112,8 @@ class SignatureEnhancement(
         if (javaTypeEnhancementState.jspecifyReportLevel == ReportLevel.IGNORE) return null
         val isForWarningOnly = javaTypeEnhancementState.jspecifyReportLevel == ReportLevel.WARN
         return when (annotationFqName) {
-            JSPECIFY_NOT_NULL -> NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NOT_NULL, isForWarningOnly)
             JSPECIFY_NULLABLE -> NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NULLABLE, isForWarningOnly)
-            JSPECIFY_NULLNESS_UNKNOWN ->
+            JSPECIFY_NULLNESS_UNSPECIFIED ->
                 NullabilityQualifierWithMigrationStatus(NullabilityQualifier.FORCE_FLEXIBILITY, isForWarningOnly)
             else -> null
         }

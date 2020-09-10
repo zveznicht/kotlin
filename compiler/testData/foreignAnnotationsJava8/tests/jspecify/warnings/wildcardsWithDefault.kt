@@ -4,7 +4,7 @@
 
 import org.jspecify.annotations.*;
 
-public class A<T extends @NotNull Object, E extends @Nullable Object, F extends @NullnessUnknown Object> {
+public class A<T extends Object, E extends @Nullable Object, F extends @NullnessUnknown Object> {
 }
 
 // FILE: B.java
@@ -14,8 +14,6 @@ import org.jspecify.annotations.*;
 public class B {
     @DefaultNotNull
     public void noBoundsNotNull(A<?, ?, ?> a) {}
-    @DefaultNullable
-    public void noBoundsNullable(A<?, ?, ?> a) {}
 }
 
 // FILE: main.kt
@@ -34,9 +32,4 @@ fun main(
     b.noBoundsNotNull(aNotNullNullNotNull)
     // TODO: NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS should be reported
     b.noBoundsNotNull(aNotNullNullNull)
-
-    b.noBoundsNullable(aNotNullNotNullNotNull)
-    b.noBoundsNullable(aNotNullNotNullNull)
-    b.noBoundsNullable(aNotNullNullNotNull)
-    b.noBoundsNullable(aNotNullNullNull)
 }

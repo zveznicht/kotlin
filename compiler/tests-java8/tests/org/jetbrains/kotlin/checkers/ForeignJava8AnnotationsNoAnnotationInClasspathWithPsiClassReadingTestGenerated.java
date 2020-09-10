@@ -75,11 +75,6 @@ public class ForeignJava8AnnotationsNoAnnotationInClasspathWithPsiClassReadingTe
             runTest("compiler/testData/foreignAnnotationsJava8/tests/jspecify/nonPlatformTypeParameter.kt");
         }
 
-        @TestMetadata("selfType.kt")
-        public void testSelfType() throws Exception {
-            runTest("compiler/testData/foreignAnnotationsJava8/tests/jspecify/selfType.kt");
-        }
-
         @TestMetadata("simple.kt")
         public void testSimple() throws Exception {
             runTest("compiler/testData/foreignAnnotationsJava8/tests/jspecify/simple.kt");
@@ -156,6 +151,19 @@ public class ForeignJava8AnnotationsNoAnnotationInClasspathWithPsiClassReadingTe
             public void testWildcardsWithDefault() throws Exception {
                 runTest("compiler/testData/foreignAnnotationsJava8/tests/jspecify/warnings/wildcardsWithDefault.kt");
             }
+        }
+    }
+
+    @TestMetadata("compiler/testData/foreignAnnotationsJava8/tests/jspecify_tests")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Jspecify_tests extends AbstractForeignJava8AnnotationsNoAnnotationInClasspathWithPsiClassReadingTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInJspecify_tests() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/foreignAnnotationsJava8/tests/jspecify_tests"), Pattern.compile("^(.+)\\.kt$"), null, true);
         }
     }
 

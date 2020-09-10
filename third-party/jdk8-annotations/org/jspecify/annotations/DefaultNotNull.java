@@ -13,7 +13,7 @@ import java.lang.annotation.ElementType;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE_USE, ElementType.PARAMETER, ElementType.CONSTRUCTOR, ElementType.PACKAGE, ElementType.TYPE})
+@Target({ElementType.TYPE, ElementType.PACKAGE})
 public @interface DefaultNotNull {
 
 }

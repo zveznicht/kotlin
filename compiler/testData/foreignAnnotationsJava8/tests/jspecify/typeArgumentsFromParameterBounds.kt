@@ -3,16 +3,7 @@
 
 import org.jspecify.annotations.*;
 
-public class A<T extends @NotNull Object, E extends @Nullable Object, F extends @NullnessUnknown Object> {
-}
-
-// FILE: B.java
-
-import org.jspecify.annotations.*;
-
-@DefaultNullable
-public class B {
-    public void bar(A<String, String, String> a) {}
+public class A<T extends Object, E extends @Nullable Object, F extends @NullnessUnknown Object> {
 }
 
 // FILE: C.java
@@ -24,15 +15,6 @@ public class C {
     public void bar(A<String, String, String> a) {}
 }
 
-// FILE: D.java
-
-import org.jspecify.annotations.*;
-
-@DefaultUnknownNullness
-public class D {
-    public void bar(A<String, String, String> a) {}
-}
-
 // FILE: main.kt
 
 fun main(
@@ -40,20 +22,10 @@ fun main(
     aNotNullNotNullNull: A<String, String, String?>,
     aNotNullNullNotNull: A<String, String?, String>,
     aNotNullNullNull: A<String, String?, String?>,
-    b: B, c: C, d: D
+    c: C
 ) {
-    b.bar(<!TYPE_MISMATCH!>aNotNullNotNullNotNull<!>)
-    b.bar(<!TYPE_MISMATCH!>aNotNullNotNullNull<!>)
-    b.bar(<!TYPE_MISMATCH!>aNotNullNullNotNull<!>)
-    b.bar(aNotNullNullNull)
-
     c.bar(aNotNullNotNullNotNull)
     c.bar(<!TYPE_MISMATCH!>aNotNullNotNullNull<!>)
     c.bar(<!TYPE_MISMATCH!>aNotNullNullNotNull<!>)
     c.bar(<!TYPE_MISMATCH!>aNotNullNullNull<!>)
-
-    d.bar(<!TYPE_MISMATCH!>aNotNullNotNullNotNull<!>)
-    d.bar(<!TYPE_MISMATCH!>aNotNullNotNullNull<!>)
-    d.bar(aNotNullNullNotNull)
-    d.bar(aNotNullNullNull)
 }

@@ -8,7 +8,7 @@ import java.lang.annotation.ElementType;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD, ElementType.METHOD, ElementType.TYPE_USE, ElementType.PARAMETER})
+@Target(ElementType.TYPE_USE)
 public @interface Nullable {
 
 }

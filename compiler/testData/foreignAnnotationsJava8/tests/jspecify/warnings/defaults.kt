@@ -11,15 +11,6 @@ public class A {
 
     public String everythingNotNullable(String x) { return ""; }
 
-    @DefaultNullable
-    public String everythingNullable(String x) { return ""; }
-
-    @DefaultNullnessUnknown
-    public String everythingUnknown(String x) { return ""; }
-
-    @DefaultNullable
-    public String mixed(@NotNull String x) { return ""; }
-
     public String explicitlyNullnessUnknown(@NullnessUnknown String x) { return ""; }
 }
 
@@ -29,16 +20,6 @@ fun main(a: A) {
     a.everythingNotNullable(<!NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS!>null<!>)<!UNNECESSARY_SAFE_CALL!>?.<!>length
     a.everythingNotNullable(<!NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS!>null<!>).length
     a.everythingNotNullable("").length
-
-    <!RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS!>a.everythingNullable(null)<!>.length
-    a.everythingNullable(null)?.length
-
-    a.everythingUnknown(null).length
-    a.everythingUnknown(null)?.length
-
-    <!RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS!>a.mixed(<!NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS!>null<!>)<!>.length
-    a.mixed(<!NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS!>null<!>)?.length
-    a.mixed("")?.length
 
     a.explicitlyNullnessUnknown("").length
     a.explicitlyNullnessUnknown("")<!UNNECESSARY_SAFE_CALL!>?.<!>length
