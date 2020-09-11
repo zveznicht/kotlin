@@ -36,7 +36,6 @@ import org.jetbrains.kotlin.load.java.structure.JavaField
 import org.jetbrains.kotlin.load.java.structure.JavaMethod
 import org.jetbrains.kotlin.load.java.structure.JavaValueParameter
 import org.jetbrains.kotlin.load.kotlin.computeJvmDescriptor
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.*
 import org.jetbrains.kotlin.resolve.constants.StringValue
@@ -195,7 +194,7 @@ abstract class LazyJavaScope(
         val annotationMethod = method.containingClass.isAnnotationType
         val returnTypeAttrs = TypeUsage.COMMON.toAttributes(
             isForAnnotationParameter = annotationMethod,
-            isReturnTypeOfOverrideMethod = method.findAnnotation(FqName("java.lang.Override")) != null
+            hasAnnotationsOnMethod = method.annotations.isNotEmpty()
         )
         return c.typeResolver.transformJavaType(method.returnType, returnTypeAttrs)
     }

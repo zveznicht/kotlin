@@ -83,7 +83,7 @@ class JavaResolverComponents(
 interface JavaResolverSettings {
     val isReleaseCoroutines: Boolean
     val correctNullabilityForNotNullTypeParameter: Boolean
-    val spreadAnnotationsFromArrayTypeToItsElementTypeForOverrides: Boolean
+    val spreadAnnotationsFromArrayTypeToItsElementType: Boolean
 
     object Default : JavaResolverSettings {
         override val isReleaseCoroutines: Boolean
@@ -92,7 +92,7 @@ interface JavaResolverSettings {
         override val correctNullabilityForNotNullTypeParameter: Boolean
             get() = false
 
-        override val spreadAnnotationsFromArrayTypeToItsElementTypeForOverrides: Boolean
+        override val spreadAnnotationsFromArrayTypeToItsElementType: Boolean
             get() = false
     }
 
@@ -100,12 +100,12 @@ interface JavaResolverSettings {
         fun create(
             isReleaseCoroutines: Boolean,
             correctNullabilityForNotNullTypeParameter: Boolean,
-            spreadAnnotationsFromArrayTypeToItsElementTypeForOverrides: Boolean
+            spreadAnnotationsFromArrayTypeToItsElementType: Boolean
         ): JavaResolverSettings =
             object : JavaResolverSettings {
                 override val isReleaseCoroutines get() = isReleaseCoroutines
                 override val correctNullabilityForNotNullTypeParameter get() = correctNullabilityForNotNullTypeParameter
-                override val spreadAnnotationsFromArrayTypeToItsElementTypeForOverrides get() = spreadAnnotationsFromArrayTypeToItsElementTypeForOverrides
+                override val spreadAnnotationsFromArrayTypeToItsElementType get() = spreadAnnotationsFromArrayTypeToItsElementType
             }
     }
 }

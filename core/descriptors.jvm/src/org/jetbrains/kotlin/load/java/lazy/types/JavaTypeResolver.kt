@@ -64,7 +64,7 @@ class JavaTypeResolver(
         arrayType: JavaArrayType,
         attr: JavaTypeAttributes
     ): KotlinType {
-        val needToTakeAnnotations = c.components.settings.spreadAnnotationsFromArrayTypeToItsElementTypeForOverrides
+        val needToTakeAnnotations = c.components.settings.spreadAnnotationsFromArrayTypeToItsElementType
 
         if (!needToTakeAnnotations)
             return this
@@ -74,7 +74,7 @@ class JavaTypeResolver(
         if (componentType !is JavaClassifierType)
             return this
 
-        return if (attr.isReturnTypeOfOverrideMethod) replaceAnnotations(LazyJavaAnnotations(c, topLevelArrayType)) else this
+        return if (attr.hasAnnotationsOnMethod) replaceAnnotations(LazyJavaAnnotations(c, topLevelArrayType)) else this
     }
 
     fun transformArrayType(arrayType: JavaArrayType, attr: JavaTypeAttributes, isVararg: Boolean = false): KotlinType {
@@ -90,7 +90,7 @@ class JavaTypeResolver(
         val componentType = transformJavaType(
             javaComponentType, COMMON.toAttributes(
                 isForAnnotationParameter = attr.isForAnnotationParameter,
-                isReturnTypeOfOverrideMethod = attr.isReturnTypeOfOverrideMethod,
+                hasAnnotationsOnMethod = attr.hasAnnotationsOnMethod,
                 parentArray = attr.parentArray ?: arrayType
             )
         ).takeAnnotationsFromArrayTypeIfNeeded(attr.parentArray ?: arrayType, arrayType, attr)
@@ -322,7 +322,7 @@ data class JavaTypeAttributes(
     val isForAnnotationParameter: Boolean = false,
     // Current type is upper bound of this type parameter
     val upperBoundOfTypeParameter: TypeParameterDescriptor? = null,
-    val isReturnTypeOfOverrideMethod: Boolean = false,
+    val hasAnnotationsOnMethod: Boolean = false,
     val parentArray: JavaArrayType? = null,
 ) {
     fun withFlexibility(flexibility: JavaTypeFlexibility) = copy(flexibility = flexibility)
@@ -337,13 +337,13 @@ enum class JavaTypeFlexibility {
 fun TypeUsage.toAttributes(
     isForAnnotationParameter: Boolean = false,
     upperBoundForTypeParameter: TypeParameterDescriptor? = null,
-    isReturnTypeOfOverrideMethod: Boolean = false,
+    hasAnnotationsOnMethod: Boolean = false,
     parentArray: JavaArrayType? = null,
 ) = JavaTypeAttributes(
     this,
     isForAnnotationParameter = isForAnnotationParameter,
     upperBoundOfTypeParameter = upperBoundForTypeParameter,
-    isReturnTypeOfOverrideMethod = isReturnTypeOfOverrideMethod,
+    hasAnnotationsOnMethod = hasAnnotationsOnMethod,
     parentArray = parentArray
 )
 

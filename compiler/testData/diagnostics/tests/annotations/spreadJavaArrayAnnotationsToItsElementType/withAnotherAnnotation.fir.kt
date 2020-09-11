@@ -1,10 +1,4 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER
-// !LANGUAGE: +DontSpreadJavaAnnotationsFromArrayTypeToItsElementType
-
-// FILE: Base.java
-public class Base {
-    public String [] foo() { return new String[] {}; }
-}
 
 // FILE: Anno.java
 @Documented
@@ -12,21 +6,21 @@ public class Base {
 @Target({ElementType.METHOD, ElementType.FIELD, ElementType.PARAMETER, ElementType.LOCAL_VARIABLE, ElementType.TYPE_USE})
 public @interface Anno {}
 
-// FILE: Derived.java
+// FILE: Foo.java
 import org.jetbrains.annotations.NotNull;
 
-public class Derived extends Base {
-    @Override
-    public String @NotNull @Anno [] foo() { return new String[] {}; }
+public class Foo {
+    @Anno
+    public String @NotNull [] foo() { return new String[] {}; }
 }
 
 // FILE: main.kt
 fun take(x: String) {}
 
-fun main(x: Derived) {
+fun main(x: Foo) {
     var y: String? = null
     if (y == null) {
         y = x.foo()[0]
     }
-    take(y)
+    take(<!DEBUG_INFO_EXPRESSION_TYPE("kotlin.String & kotlin.String?")!>y<!>)
 }

@@ -134,7 +134,7 @@ fun StorageComponentContainer.configureJavaSpecificComponents(
         JavaResolverSettings.create(
             isReleaseCoroutines = languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines),
             correctNullabilityForNotNullTypeParameter = languageVersionSettings.supportsFeature(LanguageFeature.ProhibitUsingNullableTypeParameterAgainstNotNullAnnotated),
-            spreadAnnotationsFromArrayTypeToItsElementTypeForOverrides = !languageVersionSettings.supportsFeature(LanguageFeature.DontSpreadJavaAnnotationsFromArrayTypeToItsElementTypeForOverrides),
+            spreadAnnotationsFromArrayTypeToItsElementType = !languageVersionSettings.supportsFeature(LanguageFeature.DontSpreadJavaAnnotationsFromArrayTypeToItsElementType),
         )
     )
 

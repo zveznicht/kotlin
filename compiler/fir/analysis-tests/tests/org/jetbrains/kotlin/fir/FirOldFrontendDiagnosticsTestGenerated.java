@@ -1547,6 +1547,11 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirOldFronte
                 runTest("compiler/testData/diagnostics/tests/annotations/spreadJavaArrayAnnotationsToItsElementType/basicWithDisablingFlag.kt");
             }
 
+            @TestMetadata("withAnotherAnnotation.kt")
+            public void testWithAnotherAnnotation() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/annotations/spreadJavaArrayAnnotationsToItsElementType/withAnotherAnnotation.kt");
+            }
+
             @TestMetadata("withoutOverride.kt")
             public void testWithoutOverride() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/annotations/spreadJavaArrayAnnotationsToItsElementType/withoutOverride.kt");

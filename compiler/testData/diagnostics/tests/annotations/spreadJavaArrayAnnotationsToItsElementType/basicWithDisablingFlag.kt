@@ -1,5 +1,5 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER
-// !LANGUAGE: +DontSpreadJavaAnnotationsFromArrayTypeToItsElementTypeForOverrides
+// !LANGUAGE: +DontSpreadJavaAnnotationsFromArrayTypeToItsElementType
 
 // FILE: Base.java
 public class Base {
