@@ -334,7 +334,7 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
         return statusResolver.resolveStatus(
             this,
             containingClass as? FirRegularClass,
-            isLocal = containingDeclaration != null && containingClass == null
+            isLocal = containingDeclaration != null && containingDeclaration !is FirScript && containingClass == null
         )
     }
 

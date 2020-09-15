@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.impl.IrCompositeImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrGetValueImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrSetFieldImpl
+import org.jetbrains.kotlin.ir.util.defaultType
 import org.jetbrains.kotlin.ir.util.indexOrMinusOne
 import org.jetbrains.kotlin.ir.util.isCrossinline
 import org.jetbrains.kotlin.ir.util.isNoinline
@@ -33,6 +34,7 @@ import org.jetbrains.kotlin.psi2ir.intermediate.createTemporaryVariableInBlock
 import org.jetbrains.kotlin.psi2ir.intermediate.setExplicitReceiverValue
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.calls.util.isSingleUnderscore
+import org.jetbrains.kotlin.resolve.descriptorUtil.getSuperClassOrAny
 
 class ScriptGenerator(declarationGenerator: DeclarationGenerator) : DeclarationGeneratorExtension(declarationGenerator) {
     fun generateScriptDeclaration(ktScript: KtScript): IrDeclaration? {
@@ -114,6 +116,8 @@ class ScriptGenerator(declarationGenerator: DeclarationGenerator) : DeclarationG
                 }
 
             irScript.earlierScripts = existedScripts
+
+            irScript.baseClass = context.symbolTable.referenceClass(descriptor.getSuperClassOrAny()).owner.defaultType
 
             for (d in ktScript.declarations) {
                 when (d) {

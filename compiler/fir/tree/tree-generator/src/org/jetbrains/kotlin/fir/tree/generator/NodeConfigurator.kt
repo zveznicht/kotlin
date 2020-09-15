@@ -411,6 +411,7 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
             parentArg(function, "F", script)
             +symbol("FirScriptSymbol")
             +name
+            +field("baseClass", typeRef, nullable = true)
         }
 
         import.configure {

@@ -308,6 +308,16 @@ abstract class AbstractFirStatusResolveTransformer(
         data: FirResolvedDeclarationStatus?
     ): CompositeTransformResult<FirStatement>
 
+    override fun transformScript(script: FirScript, data: FirDeclarationStatus?): CompositeTransformResult<FirStatement> {
+        // TODO: check if this is a correct strategy. The potential problem is that we are transforming script inner classes twice with the FirStatusResolveTransformer
+        script.body?.statements?.forEach {
+            if (it is FirDeclaration) {
+                transformDeclaration(it, data)
+            }
+        }
+        return super.transformScript(script, data)
+    }
+
     override fun transformAnonymousObject(
         anonymousObject: FirAnonymousObject,
         data: FirResolvedDeclarationStatus?
