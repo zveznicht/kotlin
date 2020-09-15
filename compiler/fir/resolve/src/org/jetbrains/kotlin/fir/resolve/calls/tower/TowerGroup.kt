@@ -76,7 +76,7 @@ private constructor(
 
         private const val KIND_MASK = 0b1111
         private val KIND_SIZE_BITS: Int = Integer.bitCount(KIND_MASK)
-        private const val DEPTH_MASK = 0b1111111111
+        private const val DEPTH_MASK = 0xFFFF // 16bit
         private val DEPTH_SIZE_BITS: Int = Integer.bitCount(DEPTH_MASK)
         private const val USED_BITS_MASK: Long = 0b111111 // max size 64 bits
         private const val TOTAL_BITS = 64
@@ -126,7 +126,7 @@ private constructor(
                         "Depth overflow: requested: ${kind.depth}, allowed: $DEPTH_MASK"
                     }
                     require(depthUsedBits <= USABLE_BITS) {
-                        "BitGroup overflow: newUsedBits: $depthUsedBits, original: ${code.toULong().toString(2)}, usedBits: $usedBits"
+                        "BitGroup overflow: newUsedBits: $depthUsedBits, original: ${toBinaryString(code)}, usedBits: $usedBits"
                     }
 
                     (code or kind.index.toLong().shl(TOTAL_BITS - kindUsedBits)
@@ -134,10 +134,10 @@ private constructor(
                             or depthUsedBits.toLong())
                 }
                 else -> {
-                    val usesBits = usedBits + KIND_SIZE_BITS
+                    val newUsedBits = usedBits + KIND_SIZE_BITS
 
-                    require(usesBits <= USABLE_BITS)
-                    code or kind.index.toLong().shl(TOTAL_BITS - usesBits) or usesBits.toLong()
+                    require(newUsedBits <= USABLE_BITS)
+                    code or kind.index.toLong().shl(TOTAL_BITS - newUsedBits) or newUsedBits.toLong()
                 }
             }
         }
@@ -224,8 +224,7 @@ private constructor(
         other as TowerGroup
 
         if (code != other.code) return false
-        if (DEBUG && !this.debugKinds.contentEquals(other.debugKinds))
-            error("Equals fail: $this vs $other")
+        if (DEBUG) require(this.debugKinds.contentEquals(other.debugKinds)) { "Equals inconsistent: $this vs $other" }
         if (invokeResolvePriority != other.invokeResolvePriority) return false
 
         return true
