@@ -1,0 +1,30 @@
+package
+
+public fun main(/*0*/ b1: TypeParameterBoundsB<kotlin.Any?>, /*1*/ b2: TypeParameterBoundsB<TypeParameterBoundsB.Test>): kotlin.Unit
+
+@org.jspecify.annotations.DefaultNotNull public open class TypeParameterBoundsB</*0*/ T : kotlin.Any!> {
+    public constructor TypeParameterBoundsB</*0*/ T : kotlin.Any!>()
+    public open fun </*0*/ E : kotlin.Any!> bar(/*0*/ e: E!): kotlin.Unit
+    public open fun boo(/*0*/ e: TypeParameterBoundsB.Test!): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open fun foo(/*0*/ t: T!): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+
+    public open class Test {
+        public constructor Test()
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
+}
+
+public open class TypeParameterBoundsC {
+    public constructor TypeParameterBoundsC()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+
+    // Static members
+    public open fun main(/*0*/ b1: TypeParameterBoundsB<@Nullable /* annotation class not found */ kotlin.Any!>!, /*1*/ b2: TypeParameterBoundsB<TypeParameterBoundsB.Test!>!): kotlin.Unit
+}

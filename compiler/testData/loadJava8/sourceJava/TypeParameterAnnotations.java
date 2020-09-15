@@ -1,14 +1,10 @@
 package test;
 
-import java.lang.annotation.*;
-public class TypeParameterAnnotations {
-    @Target(ElementType.TYPE_PARAMETER)
-    @Retention(RetentionPolicy.RUNTIME)
-    @interface A {
-        String value() default "";
-    }
+import org.jetbrains.annotations.NotNull;
 
-    interface G<@A T> {
-        <@A("abc") R> void foo(R r);
+public class TypeParameterAnnotations {
+    class A<T> {
+        public T test() { return null; }
     }
+    public A<@NotNull String> implementMe() { return new A(); }
 }

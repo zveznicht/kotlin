@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.checkers.AbstractForeignJava8AnnotationsNoAnnotation
 import org.jetbrains.kotlin.checkers.AbstractForeignJava8AnnotationsTest
 import org.jetbrains.kotlin.checkers.javac.AbstractJavacForeignJava8AnnotationsTest
 import org.jetbrains.kotlin.generators.tests.generator.testGroupSuite
+import org.jetbrains.kotlin.jvm.compiler.AbstractJspecifyAnnotationsTest
 import org.jetbrains.kotlin.jvm.compiler.AbstractLoadJava8Test
 import org.jetbrains.kotlin.jvm.compiler.AbstractLoadJava8WithPsiClassReadingTest
 import org.jetbrains.kotlin.jvm.compiler.javac.AbstractLoadJava8UsingJavacTest
@@ -31,20 +32,24 @@ fun main(args: Array<String>) {
 
     testGroupSuite(args) {
         testGroup("compiler/tests-java8/tests", "compiler/testData") {
+            testClass<AbstractJspecifyAnnotationsTest>(suiteTestClassName = "JspecifyAnnotationsTestGenerated") {
+                model("foreignAnnotationsJava8/tests/jspecify/kotlin")
+            }
+
             testClass<AbstractForeignJava8AnnotationsTest> {
-                model("foreignAnnotationsJava8/tests")
+                model("foreignAnnotationsJava8/tests", excludeDirs = listOf("jspecify"))
             }
 
             testClass<AbstractJavacForeignJava8AnnotationsTest> {
-                model("foreignAnnotationsJava8/tests")
+                model("foreignAnnotationsJava8/tests", excludeDirs = listOf("jspecify"))
             }
 
             testClass<AbstractForeignJava8AnnotationsNoAnnotationInClasspathTest> {
-                model("foreignAnnotationsJava8/tests")
+                model("foreignAnnotationsJava8/tests", excludeDirs = listOf("jspecify"))
             }
 
             testClass<AbstractForeignJava8AnnotationsNoAnnotationInClasspathWithPsiClassReadingTest> {
-                model("foreignAnnotationsJava8/tests")
+                model("foreignAnnotationsJava8/tests", excludeDirs = listOf("jspecify"))
             }
 
             testClass<AbstractLoadJava8Test> {

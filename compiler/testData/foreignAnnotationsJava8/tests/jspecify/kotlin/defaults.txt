@@ -1,0 +1,32 @@
+package
+
+public fun main(/*0*/ a: DefaultsA): kotlin.Unit
+
+@org.jspecify.annotations.DefaultNotNull public open class DefaultsA {
+    public constructor DefaultsA()
+    public final var defaultField: DefaultsA.Test!
+    @org.jspecify.annotations.Nullable public final var field: @org.jspecify.annotations.Nullable DefaultsA.Test!
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open fun everythingNotNullable(/*0*/ x: DefaultsA.Test!): DefaultsA.Test!
+    public open fun explicitlyNullnessUnspecified(/*0*/ @org.jspecify.annotations.NullnessUnspecified x: @org.jspecify.annotations.NullnessUnspecified DefaultsA.Test!): DefaultsA.Test!
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+
+    public/*package*/ open class Test {
+        public/*package*/ constructor Test()
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open fun foo(): DefaultsA.Test!
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
+}
+
+public open class DefaultsB {
+    public constructor DefaultsB()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+
+    // Static members
+    public/*package*/ open fun main(/*0*/ a: DefaultsA!): kotlin.Unit
+}
