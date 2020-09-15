@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.backend.jvm.lower
 
 import org.jetbrains.kotlin.backend.common.ClassLoweringPass
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
-import org.jetbrains.kotlin.backend.common.lower.irThrow
 import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
 import org.jetbrains.kotlin.backend.jvm.JvmBackendContext
 import org.jetbrains.kotlin.backend.jvm.codegen.isJvmInterface
@@ -51,13 +50,23 @@ internal class CollectionStubMethodLowering(val context: JvmBackendContext) : Cl
         }.associateBy { it.toSignature() }
 
         for (member in methodStubsToGenerate) {
-            val existingMethod = existingMethodsBySignature[member.toSignature()]
+            val existingMethod = existingMethodsBySignature[member.toSignature()] // TODO KT-41915
             if (existingMethod != null) {
                 // In the case that we find a defined method that matches the stub signature, we add the overridden symbols to that
                 // defined method, so that bridge lowering can still generate correct bridge for that method
                 existingMethod.overriddenSymbols += member.overriddenSymbols
             } else {
-                irClass.declarations.add(member)
+                // Add generated stub, taking into account that 'remove' method is special, because
+                // 'kotlin.collections.MutableCollection<E>#remove' doesn't match 'java.util.Collection<E>#remove'
+                // (1st accepts 'E', 2nd accepts 'java.lang.Object').
+                // In order to generate it correctly, we should:
+                // - collect stub methods to be generated as usual;
+                // - ensure that non-abstract 'remove(E)' (with a specific substituted 'E') function doesn't exist in class
+                //   (we use our initially generated stub with 'remove(E)' signature for this check);
+                // and then (we are here now):
+                // - replace value parameter type with 'Any?'.
+                // TODO figure out if there's a nicer way to handle 'remove'
+                irClass.declarations.add(member.hackRemoveMethodIfRequired())
             }
         }
     }
@@ -92,17 +101,36 @@ internal class CollectionStubMethodLowering(val context: JvmBackendContext) : Cl
         }
     }
 
+    private fun IrSimpleFunction.hackRemoveMethodIfRequired(): IrSimpleFunction {
+        if (name.asString() == "remove") {
+            // Note that replacing value parameter types with 'Any?' handles both MutableCollection and MutableMap case:
+            // java.util.Collection<E>#remove has signature 'boolean remove(Object)', and
+            // java.util.Map<K, V>#remove has signature 'V remove(Object)'.
+            valueParameters = valueParameters.map {
+                it.copyWithCustomTypeSubstitution(this) { context.irBuiltIns.anyNType }
+            }
+        }
+        return this
+    }
+
     // Copy value parameter with type substitution
     private fun IrValueParameter.copyWithSubstitution(
-        target: IrSimpleFunction, substitutionMap: Map<IrTypeParameterSymbol, IrType>
+        target: IrSimpleFunction,
+        substitutionMap: Map<IrTypeParameterSymbol, IrType>
+    ): IrValueParameter =
+        copyWithCustomTypeSubstitution(target) { it.substitute(substitutionMap) }
+
+    private fun IrValueParameter.copyWithCustomTypeSubstitution(
+        target: IrSimpleFunction,
+        substituteType: (IrType) -> IrType
     ): IrValueParameter {
         val parameter = this
         return buildValueParameter(target) {
             origin = IrDeclarationOrigin.IR_BUILTINS_STUB
             name = parameter.name
             index = parameter.index
-            type = parameter.type.substitute(substitutionMap)
-            varargElementType = parameter.varargElementType?.substitute(substitutionMap)
+            type = substituteType(parameter.type)
+            varargElementType = parameter.varargElementType?.let { substituteType(it) }
             isCrossInline = parameter.isCrossinline
             isNoinline = parameter.isNoinline
         }
