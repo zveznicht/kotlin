@@ -17,6 +17,8 @@ import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.jvm.JvmBuiltIns
 import org.jetbrains.kotlin.context.ProjectContext
+import org.jetbrains.kotlin.idea.caches.project.KotlinReflectLibraryInfo
+import org.jetbrains.kotlin.idea.caches.project.KotlinStdlibInfo
 import org.jetbrains.kotlin.idea.caches.project.LibraryInfo
 import org.jetbrains.kotlin.idea.caches.project.SdkInfo
 import org.jetbrains.kotlin.idea.caches.resolve.BuiltInsCacheKey
@@ -43,18 +45,22 @@ class JvmPlatformKindResolution : IdePlatformKindResolution {
     override val libraryKind: PersistentLibraryKind<*>?
         get() = null
 
-    override fun createLibraryInfo(project: Project, library: Library): List<LibraryInfo> =
-        listOf(JvmLibraryInfo(project, library))
+    override fun createLibraryInfo(project: Project, library: Library): List<LibraryInfo> = when {
+        library.name?.contains("stdlib") == true -> listOf(KotlinStdlibInfo(project, library, JvmPlatforms.defaultJvmPlatform))
+        library.name?.contains("reflect") == true -> listOf(KotlinReflectLibraryInfo(project, library, JvmPlatforms.defaultJvmPlatform))
+        else -> listOf(JvmLibraryInfo(project, library))
+    }
 
     override val kind get() = JvmIdePlatformKind
 
     override fun getKeyForBuiltIns(moduleInfo: ModuleInfo, sdkInfo: SdkInfo?): BuiltInsCacheKey {
-        return if (sdkInfo != null) CacheKeyBySdk(sdkInfo.sdk) else BuiltInsCacheKey.DefaultBuiltInsKey
+        return if (sdkInfo != null && moduleInfo !is SdkInfo) CacheKeyBySdk(sdkInfo.sdk) else BuiltInsCacheKey.DefaultBuiltInsKey
     }
 
     override fun createBuiltIns(moduleInfo: ModuleInfo, projectContext: ProjectContext, sdkDependency: SdkInfo?): KotlinBuiltIns {
-        return if (sdkDependency != null)
-            JvmBuiltIns(projectContext.storageManager, JvmBuiltIns.Kind.FROM_CLASS_LOADER)
+        return if (sdkDependency != null && moduleInfo !is SdkInfo)
+            JvmBuiltIns(projectContext.storageManager, JvmBuiltIns.Kind.FROM_DEPENDENCIES)
+//            JvmBuiltIns(projectContext.storageManager, JvmBuiltIns.Kind.FROM_CLASS_LOADER)
         else
             DefaultBuiltIns.Instance
     }
