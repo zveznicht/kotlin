@@ -130,7 +130,7 @@ class IdeaResolverForProject(
 
         fun getOrCreateIfNeeded(module: IdeaModuleInfo): KotlinBuiltIns = projectContextFromSdkResolver.storageManager.compute {
             val sdk = resolverForSdk.sdkDependency(module)
-            val stdlib = module.dependencies().lazyClosure { it.dependencies() }.firstOrNull { it.isStdlib }
+            val stdlib = module.dependencies().lazyClosure { it.dependencies() }.firstOrNull { it is KotlinStdlibInfo }
 
             val key = module.platform.idePlatformKind.resolution.getKeyForBuiltIns(module, sdk)
             val cachedBuiltIns = cache[key]

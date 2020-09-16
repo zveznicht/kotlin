@@ -21,6 +21,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ProjectRootModificationTracker
+import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.ModificationTracker
 import com.intellij.psi.PsiCodeFragment
 import com.intellij.psi.PsiFile
@@ -191,7 +192,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
         val facadeForSdk = ProjectResolutionFacade(
             "facadeForSdk", "$resolverForSdkName with settings=$settings",
             project, sdkContext, settings,
-            moduleFilter = { it is SdkInfo || it.isKotlinCoreLibrary },
+            moduleFilter = { it is SdkInfo || it is KotlinCoreLibraryInfo },
             dependencies = listOf(
                 LibraryModificationTracker.getInstance(project),
                 ProjectRootModificationTracker.getInstance(project)
@@ -205,7 +206,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
             "facadeForLibraries", "$resolverForLibrariesName with settings=$settings",
             project, librariesContext, settings,
             reuseDataFrom = facadeForSdk,
-            moduleFilter = { it is LibraryInfo && !it.isKotlinCoreLibrary },
+            moduleFilter = { it is LibraryInfo && it !is KotlinCoreLibraryInfo },
             invalidateOnOOCB = false,
             dependencies = listOf(
                 LibraryModificationTracker.getInstance(project),
@@ -532,12 +533,11 @@ fun IdeaModuleInfo.supportsAdditionalBuiltInsMembers(project: Project): Boolean 
 
 val IdeaModuleInfo.sdk: Sdk? get() = dependencies().firstIsInstanceOrNull<SdkInfo>()?.sdk
 
-val IdeaModuleInfo.isStdlib: Boolean
-    get() = this is JvmLibraryInfo && library.name?.contains("org.jetbrains.kotlin:kotlin-stdlib") == true ||
-            this is CommonMetadataLibraryInfo && library.name?.contains("org.jetbrains.kotlin:kotlin-stdlib") == true
+val Library.isKotlinStdlib: Boolean
+    get() = name?.contains("stdlib") == true
 
-val IdeaModuleInfo.isReflect: Boolean
-    get() = this is JvmLibraryInfo && library.name?.contains("org.jetbrains.kotlin:kotlin-reflect") == true
+val Library.isKotlinReflect: Boolean
+    get() = name?.contains("reflect") == true
 
-val IdeaModuleInfo.isKotlinCoreLibrary: Boolean
-    get() = isStdlib || isReflect
+val Library.isKotlinCoreLibrary: Boolean
+    get() = isKotlinStdlib || isKotlinReflect

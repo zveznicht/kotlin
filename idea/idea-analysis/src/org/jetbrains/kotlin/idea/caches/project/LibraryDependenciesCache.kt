@@ -17,7 +17,6 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.util.containers.ContainerUtil
 import com.intellij.util.containers.MultiMap
-import org.jetbrains.kotlin.idea.caches.resolve.isKotlinCoreLibrary
 import org.jetbrains.kotlin.idea.core.util.CachedValue
 import org.jetbrains.kotlin.idea.core.util.getValue
 import org.jetbrains.kotlin.platform.TargetPlatform
@@ -76,9 +75,6 @@ class LibraryDependenciesCacheImpl(private val project: Project) : LibraryDepend
                     if (otherLibrary is LibraryEx && !otherLibrary.isDisposed) {
                         val otherLibraryInfos = createLibraryInfo(project, otherLibrary)
                         otherLibraryInfos.firstOrNull()?.let { otherLibraryInfo ->
-                            // core libraries can depend only on core libraries
-                            if (libraryInfo.isKotlinCoreLibrary && !otherLibraryInfo.isKotlinCoreLibrary) return
-
                             if (compatiblePlatforms(platform, otherLibraryInfo.platform)) {
                                 libraries.addAll(otherLibraryInfos)
                             }

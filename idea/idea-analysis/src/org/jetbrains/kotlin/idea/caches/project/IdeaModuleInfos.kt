@@ -34,8 +34,6 @@ import org.jetbrains.kotlin.config.SourceKotlinRootType
 import org.jetbrains.kotlin.config.TestSourceKotlinRootType
 import org.jetbrains.kotlin.descriptors.ModuleCapability
 import org.jetbrains.kotlin.idea.KotlinIdeaAnalysisBundle
-import org.jetbrains.kotlin.idea.caches.resolve.isReflect
-import org.jetbrains.kotlin.idea.caches.resolve.isStdlib
 import org.jetbrains.kotlin.idea.caches.resolve.util.enlargedSearchScope
 import org.jetbrains.kotlin.idea.caches.trackers.KotlinModuleOutOfCodeBlockModificationTracker
 import org.jetbrains.kotlin.idea.configuration.BuildSystemType
@@ -408,7 +406,7 @@ class KotlinStdlibInfo(project: Project, library: Library, platform: TargetPlatf
 class KotlinReflectLibraryInfo(project: Project, library: Library, platform: TargetPlatform) :
     KotlinCoreLibraryInfo(project, library, platform) {
     override fun filterIncorrectDependencies(approximateDependencies: List<IdeaModuleInfo>): List<IdeaModuleInfo> =
-        approximateDependencies.filter { it === this || it.isStdlib }
+        approximateDependencies.filter { it === this || it is KotlinStdlibInfo }
 }
 
 data class LibrarySourceInfo(override val project: Project, val library: Library, override val binariesModuleInfo: BinaryModuleInfo) :

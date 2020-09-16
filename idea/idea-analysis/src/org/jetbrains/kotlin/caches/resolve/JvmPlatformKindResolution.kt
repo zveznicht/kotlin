@@ -22,6 +22,8 @@ import org.jetbrains.kotlin.idea.caches.project.KotlinStdlibInfo
 import org.jetbrains.kotlin.idea.caches.project.LibraryInfo
 import org.jetbrains.kotlin.idea.caches.project.SdkInfo
 import org.jetbrains.kotlin.idea.caches.resolve.BuiltInsCacheKey
+import org.jetbrains.kotlin.idea.caches.resolve.isKotlinReflect
+import org.jetbrains.kotlin.idea.caches.resolve.isKotlinStdlib
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.impl.JvmIdePlatformKind
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
@@ -46,8 +48,8 @@ class JvmPlatformKindResolution : IdePlatformKindResolution {
         get() = null
 
     override fun createLibraryInfo(project: Project, library: Library): List<LibraryInfo> = when {
-        library.name?.contains("stdlib") == true -> listOf(KotlinStdlibInfo(project, library, JvmPlatforms.defaultJvmPlatform))
-        library.name?.contains("reflect") == true -> listOf(KotlinReflectLibraryInfo(project, library, JvmPlatforms.defaultJvmPlatform))
+        library.isKotlinStdlib -> listOf(KotlinStdlibInfo(project, library, JvmPlatforms.defaultJvmPlatform))
+        library.isKotlinReflect -> listOf(KotlinReflectLibraryInfo(project, library, JvmPlatforms.defaultJvmPlatform))
         else -> listOf(JvmLibraryInfo(project, library))
     }
 
