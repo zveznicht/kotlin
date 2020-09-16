@@ -18,9 +18,14 @@ import org.jetbrains.kotlin.ir.util.render
 import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
 import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 
+/* Make sure that all the variable references and type parameter references are within the scope of the corresponding variables and
+   type parameters.
+*/
 class ScopeValidator(
     private val reportError: ReportError
 ) : IrElementVisitorVoid {
+
+    
     private val accessibleValues = mutableSetOf<IrValueDeclaration>()
     private val valuesStack = mutableListOf<MutableSet<IrValueDeclaration>>()
 

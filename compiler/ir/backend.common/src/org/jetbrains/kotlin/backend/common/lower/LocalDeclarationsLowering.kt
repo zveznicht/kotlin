@@ -119,7 +119,7 @@ class LocalDeclarationsLowering(
 
     private abstract class LocalContext {
         val capturedTypeParameterToTypeParameter: MutableMap<IrTypeParameter, IrTypeParameter> = mutableMapOf()
-        val typeRemapper by lazy { IrTypeParameterRemapper(capturedTypeParameterToTypeParameter) }
+        lateinit var typeRemapper: IrTypeParameterRemapper
 
         /**
          * @return the expression to get the value for given declaration, or `null` if [IrGetValue] should be used.
@@ -188,7 +188,15 @@ class LocalDeclarationsLowering(
 
     }
 
-    private fun LocalContext.remapType(type: IrType): IrType = typeRemapper.remapType(type)
+    private fun LocalContext.remapType(type: IrType): IrType {
+        if (capturedTypeParameterToTypeParameter.isEmpty()) return type
+        return typeRemapper.remapType(type)
+    }
+
+    private fun LocalContext.remapTypes(body: IrBody) {
+        if (capturedTypeParameterToTypeParameter.isEmpty()) return
+        body.remapTypes(typeRemapper)
+    }
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
     private inner class LocalDeclarationsTransformer(
@@ -221,21 +229,21 @@ class LocalDeclarationsLowering(
         }
 
         private fun insertLoweredDeclarationForLocalFunctions() {
-            localFunctions.values.forEach {
-                it.transformedDeclaration.apply {
-                    val original = it.declaration
+            localFunctions.values.forEach { localContext ->
+                localContext.transformedDeclaration.apply {
+                    val original = localContext.declaration
 
                     this.body = original.body
-                    this.body?.remapTypes(it.typeRemapper)
+                    this.body?.let { localContext.remapTypes(it) }
 
                     original.valueParameters.filter { v -> v.defaultValue != null }.forEach { argument ->
                         val body = argument.defaultValue!!
-                        body.remapTypes(it.typeRemapper)
+                        localContext.remapTypes(body)
                         oldParameterToNew[argument]!!.defaultValue = body
                     }
                     acceptChildren(SetDeclarationsParentVisitor, this)
                 }
-                it.ownerForLoweredDeclaration.addChild(it.transformedDeclaration)
+                localContext.ownerForLoweredDeclaration.addChild(localContext.transformedDeclaration)
             }
         }
 
@@ -586,6 +594,8 @@ class LocalDeclarationsLowering(
             localFunctionContext.capturedTypeParameterToTypeParameter.putAll(
                 oldDeclaration.typeParameters.zip(newDeclaration.typeParameters.drop(newTypeParameters.size))
             )
+            localFunctionContext.typeRemapper = IrTypeParameterRemapper(localFunctionContext.capturedTypeParameterToTypeParameter)
+
             // Type parameters of oldDeclaration may depend on captured type parameters, so deal with that after copying.
             newDeclaration.typeParameters.drop(newTypeParameters.size).forEach { tp ->
                 tp.superTypes = tp.superTypes.map { localFunctionContext.remapType(it) }
