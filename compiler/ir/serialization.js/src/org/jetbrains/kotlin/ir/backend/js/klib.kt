@@ -314,20 +314,19 @@ fun GeneratorContext.generateModuleFragmentWithPlugins(
 
     val extensions = IrGenerationExtension.getInstances(project)
 
+    val pluginContext = IrPluginContextImpl(
+        moduleDescriptor,
+        bindingContext,
+        languageVersionSettings,
+        symbolTable,
+        typeTranslator,
+        irBuiltIns,
+        linker = irLinker
+    )
+
     for (extension in extensions) {
         psi2Ir.addPostprocessingStep { module ->
-            extension.generate(
-                module,
-                IrPluginContextImpl(
-                    moduleDescriptor,
-                    bindingContext,
-                    languageVersionSettings,
-                    symbolTable,
-                    typeTranslator,
-                    irBuiltIns,
-                    linker = irLinker
-                )
-            )
+            extension.generate(module, pluginContext)
         }
     }
 
