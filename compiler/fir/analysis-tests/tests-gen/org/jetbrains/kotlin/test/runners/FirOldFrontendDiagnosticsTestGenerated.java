@@ -9412,6 +9412,32 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirDiagnosti
             }
 
             @Nested
+            @TestMetadata("compiler/testData/diagnostics/tests/extensions/additionalReceiverObjects")
+            @TestDataPath("$PROJECT_ROOT")
+            public class AdditionalReceiverObjects extends AbstractFirDiagnosticTest {
+                @Test
+                public void testAllFilesPresentInAdditionalReceiverObjects() throws Exception {
+                    KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/extensions/additionalReceiverObjects"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.fir\\.kts?$"), true);
+                }
+
+                @Nested
+                @TestMetadata("compiler/testData/diagnostics/tests/extensions/additionalReceiverObjects/functions")
+                @TestDataPath("$PROJECT_ROOT")
+                public class Functions extends AbstractFirDiagnosticTest {
+                    @Test
+                    public void testAllFilesPresentInFunctions() throws Exception {
+                        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/extensions/additionalReceiverObjects/functions"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.fir\\.kts?$"), true);
+                    }
+
+                    @Test
+                    @TestMetadata("simple.kt")
+                    public void testSimple() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/extensions/additionalReceiverObjects/functions/simple.kt");
+                    }
+                }
+            }
+
+            @Nested
             @TestMetadata("compiler/testData/diagnostics/tests/extensions/additionalReceivers")
             @TestDataPath("$PROJECT_ROOT")
             public class AdditionalReceivers extends AbstractFirDiagnosticTest {

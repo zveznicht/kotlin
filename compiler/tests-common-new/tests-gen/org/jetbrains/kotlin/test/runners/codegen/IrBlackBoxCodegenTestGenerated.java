@@ -13357,6 +13357,28 @@ public class IrBlackBoxCodegenTestGenerated extends AbstractIrBlackBoxCodegenTes
         }
 
         @Nested
+        @TestMetadata("compiler/testData/codegen/box/extensionFunctions/additionalReceiverObjects")
+        @TestDataPath("$PROJECT_ROOT")
+        public class AdditionalReceiverObjects extends AbstractIrBlackBoxCodegenTest {
+            @Test
+            public void testAllFilesPresentInAdditionalReceiverObjects() throws Exception {
+                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/extensionFunctions/additionalReceiverObjects"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+            }
+
+            @Test
+            @TestMetadata("anyContext.kt")
+            public void testAnyContext() throws Exception {
+                runTest("compiler/testData/codegen/box/extensionFunctions/additionalReceiverObjects/anyContext.kt");
+            }
+
+            @Test
+            @TestMetadata("simple.kt")
+            public void testSimple() throws Exception {
+                runTest("compiler/testData/codegen/box/extensionFunctions/additionalReceiverObjects/simple.kt");
+            }
+        }
+
+        @Nested
         @TestMetadata("compiler/testData/codegen/box/extensionFunctions/additionalReceivers")
         @TestDataPath("$PROJECT_ROOT")
         public class AdditionalReceivers extends AbstractIrBlackBoxCodegenTest {
