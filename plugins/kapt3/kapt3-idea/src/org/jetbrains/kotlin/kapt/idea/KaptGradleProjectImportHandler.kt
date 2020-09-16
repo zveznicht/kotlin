@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.kapt.idea
 import com.intellij.openapi.externalSystem.model.DataNode
 import com.intellij.openapi.externalSystem.model.project.ModuleData
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.config.FacetCompilerArgumentsDataInstanceBased
 import org.jetbrains.kotlin.idea.configuration.GradleProjectImportHandler
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
@@ -27,17 +28,19 @@ class KaptGradleProjectImportHandler : GradleProjectImportHandler {
 
         // Can't reuse const in Kapt3CommandLineProcessor, we don't have Kapt in the IDEA plugin
         val compilerPluginId = "org.jetbrains.kotlin.kapt3"
-        val compilerArguments = facetSettings.compilerArguments ?: CommonCompilerArguments.DummyImpl()
 
-        val newPluginOptions = (compilerArguments.pluginOptions ?: emptyArray()).filter { !it.startsWith("plugin:$compilerPluginId:") }
-        val newPluginClasspath = (compilerArguments.pluginClasspaths ?: emptyArray()).filter { !isKaptCompilerPluginPath(it) }
+        val compilerArgumentsData =
+            facetSettings.compilerArgumentsData ?: FacetCompilerArgumentsDataInstanceBased(CommonCompilerArguments.DummyImpl())
+
+        val newPluginOptions = (compilerArgumentsData.pluginOptions ?: emptyArray()).filter { !it.startsWith("plugin:$compilerPluginId:") }
+        val newPluginClasspath = (compilerArgumentsData.pluginClasspaths ?: emptyArray()).filter { !isKaptCompilerPluginPath(it) }
 
         fun List<String>.toArrayIfNotEmpty() = takeIf { it.isNotEmpty() }?.toTypedArray()
 
-        compilerArguments.pluginOptions = newPluginOptions.toArrayIfNotEmpty()
-        compilerArguments.pluginClasspaths = newPluginClasspath.toArrayIfNotEmpty()
+        compilerArgumentsData.pluginOptions = newPluginOptions.toArrayIfNotEmpty()
+        compilerArgumentsData.pluginClasspaths = newPluginClasspath.toArrayIfNotEmpty()
 
-        facetSettings.compilerArguments = compilerArguments
+        if (facetSettings.compilerArgumentsData == null) facetSettings.compilerArgumentsData = compilerArgumentsData
     }
 
     private fun isKaptCompilerPluginPath(path: String): Boolean {

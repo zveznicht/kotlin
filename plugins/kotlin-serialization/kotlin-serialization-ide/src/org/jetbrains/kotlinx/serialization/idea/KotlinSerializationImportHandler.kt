@@ -17,6 +17,7 @@
 package org.jetbrains.kotlinx.serialization.idea
 
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.config.FacetCompilerArgumentsDataInstanceBased
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
@@ -33,10 +34,11 @@ internal object KotlinSerializationImportHandler {
 
     fun modifyCompilerArguments(facet: KotlinFacet, buildSystemPluginJar: String) {
         val facetSettings = facet.configuration.settings
-        val commonArguments = facetSettings.compilerArguments ?: CommonCompilerArguments.DummyImpl()
+        val commonArgumentsData =
+            facetSettings.compilerArgumentsData ?: FacetCompilerArgumentsDataInstanceBased(CommonCompilerArguments.DummyImpl())
 
         var pluginWasEnabled = false
-        val oldPluginClasspaths = (commonArguments.pluginClasspaths ?: emptyArray()).filterTo(mutableListOf()) {
+        val oldPluginClasspaths = (commonArgumentsData.pluginClasspaths ?: emptyArray()).filterTo(mutableListOf()) {
             val lastIndexOfFile = it.lastIndexOfAny(charArrayOf('/', File.separatorChar))
             if (lastIndexOfFile < 0) {
                 return@filterTo true
@@ -47,7 +49,8 @@ internal object KotlinSerializationImportHandler {
         }
 
         val newPluginClasspaths = if (pluginWasEnabled) oldPluginClasspaths + PLUGIN_JPS_JAR else oldPluginClasspaths
-        commonArguments.pluginClasspaths = newPluginClasspaths.toTypedArray()
-        facetSettings.compilerArguments = commonArguments
+        commonArgumentsData.pluginClasspaths = newPluginClasspaths.toTypedArray()
+        // TODO clean up if not required
+        if (facetSettings.compilerArgumentsData == null) facetSettings.compilerArgumentsData = commonArgumentsData
     }
 }

@@ -18,17 +18,15 @@ package org.jetbrains.kotlin.annotation.plugin.ide
 
 import com.intellij.openapi.module.Module
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.config.FacetCompilerArgumentsDataInstanceBased
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
-import org.jetbrains.kotlin.lexer.KtTokens
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtDeclaration
 import java.io.File
 
 fun Module.getSpecialAnnotations(prefix: String): List<String> {
     val kotlinFacet = org.jetbrains.kotlin.idea.facet.KotlinFacet.get(this) ?: return emptyList()
-    val commonArgs = kotlinFacet.configuration.settings.compilerArguments ?: return emptyList()
+    val commonArgsData = kotlinFacet.configuration.settings.compilerArgumentsData ?: return emptyList()
 
-    return commonArgs.pluginOptions
+    return commonArgsData.pluginOptions
         ?.filter { it.startsWith(prefix) }
         ?.map { it.substring(prefix.length) }
         ?: emptyList()
@@ -47,16 +45,17 @@ internal fun modifyCompilerArgumentsForPlugin(
     val facetSettings = facet.configuration.settings
 
     // investigate why copyBean() sometimes throws exceptions
-    val commonArguments = facetSettings.compilerArguments ?: CommonCompilerArguments.DummyImpl()
+    val commonArgumentsData =
+        facetSettings.compilerArgumentsData ?: FacetCompilerArgumentsDataInstanceBased(CommonCompilerArguments.DummyImpl())
 
     /** See [CommonCompilerArguments.PLUGIN_OPTION_FORMAT] **/
     val newOptionsForPlugin = setup?.options?.map { "plugin:$compilerPluginId:${it.key}=${it.value}" } ?: emptyList()
 
     val oldAllPluginOptions =
-        (commonArguments.pluginOptions ?: emptyArray()).filterTo(mutableListOf()) { !it.startsWith("plugin:$compilerPluginId:") }
+        (commonArgumentsData.pluginOptions ?: emptyArray()).filterTo(mutableListOf()) { !it.startsWith("plugin:$compilerPluginId:") }
     val newAllPluginOptions = oldAllPluginOptions + newOptionsForPlugin
 
-    val oldPluginClasspaths = (commonArguments.pluginClasspaths ?: emptyArray()).filterTo(mutableListOf()) {
+    val oldPluginClasspaths = (commonArgumentsData.pluginClasspaths ?: emptyArray()).filterTo(mutableListOf()) {
         val lastIndexOfFile = it.lastIndexOfAny(charArrayOf('/', File.separatorChar))
         if (lastIndexOfFile < 0) {
             return@filterTo true
@@ -66,8 +65,8 @@ internal fun modifyCompilerArgumentsForPlugin(
 
     val newPluginClasspaths = oldPluginClasspaths + (setup?.classpath ?: emptyList())
 
-    commonArguments.pluginOptions = newAllPluginOptions.toTypedArray()
-    commonArguments.pluginClasspaths = newPluginClasspaths.toTypedArray()
+    commonArgumentsData.pluginOptions = newAllPluginOptions.toTypedArray()
+    commonArgumentsData.pluginClasspaths = newPluginClasspaths.toTypedArray()
 
-    facetSettings.compilerArguments = commonArguments
+    if (facetSettings.compilerArgumentsData == null) facetSettings.compilerArgumentsData = commonArgumentsData
 }

@@ -10,12 +10,10 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.util.PathUtil
 import org.jetbrains.kotlin.cli.common.arguments.*
-import org.jetbrains.kotlin.platform.IdePlatformKind
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.TargetPlatformVersion
 import org.jetbrains.kotlin.platform.compat.toIdePlatform
 import org.jetbrains.kotlin.platform.isCommon
-import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.utils.DescriptionAware
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -180,14 +178,6 @@ data class ExternalSystemNativeMainRunTask(
     }
 }
 
-data class CompilerArgumentsFacetData(
-    val classpathElements: List<String>,
-    val languageVersion: String?,
-    val apiVersion: String?,
-    val platformIdentifier: String?,
-    val coroutinesStateIdentifier: String?,
-
-    )
 
 class KotlinFacetSettings {
     companion object {
@@ -199,8 +189,11 @@ class KotlinFacetSettings {
     var version = CURRENT_VERSION
     var useProjectSettings: Boolean = true
 
+    @Deprecated("Use compilerArgumentsData for reading and writing compiler arguments values", level = DeprecationLevel.ERROR)
     var mergedCompilerArguments: CommonCompilerArguments? = null
         private set
+
+    var compilerArgumentsData: FacetCompilerArgumentsData? = null
 
     // TODO: Workaround for unwanted facet settings modification on code analysis
     // To be replaced with proper API for settings update (see BaseKotlinCompilerSettings as an example)
@@ -213,10 +206,15 @@ class KotlinFacetSettings {
                 if (compilerSettings != null) {
                     parseCommandLineArguments(compilerSettings.additionalArgumentsAsList, this)
                 }
+                compilerArgumentsData?.also { mergeBeans(it.updatedCompilerArgumentsInstance(), this) }
             }
         } else null
     }
 
+    val compilerArgumentsDynamic: CommonCompilerArguments?
+        get() = compilerArgumentsData?.updatedCompilerArgumentsInstance()
+
+    @Deprecated("Use compilerArgumentsData for reading and writing compiler arguments values", level = DeprecationLevel.ERROR)
     var compilerArguments: CommonCompilerArguments? = null
         set(value) {
             field = value?.unfrozen() as CommonCompilerArguments?
@@ -244,32 +242,27 @@ class KotlinFacetSettings {
     }
 
     var languageLevel: LanguageVersion?
-        get() = compilerArguments?.languageVersion?.let { LanguageVersion.fromFullVersionString(it) }
+        get() = compilerArgumentsData?.languageVersion?.let { LanguageVersion.fromFullVersionString(it) }
         set(value) {
-            compilerArguments?.apply {
+            compilerArgumentsData?.apply {
                 languageVersion = value?.versionString
             }
         }
 
     var apiLevel: LanguageVersion?
-        get() = compilerArguments?.apiVersion?.let { LanguageVersion.fromFullVersionString(it) }
+        get() = compilerArgumentsData?.apiVersion?.let { LanguageVersion.fromFullVersionString(it) }
         set(value) {
-            compilerArguments?.apply {
+            compilerArgumentsData?.apply {
                 apiVersion = value?.versionString
             }
         }
 
-    var targetPlatform: TargetPlatform? = null
-        get() {
-            // This work-around is required in order to fix importing of the proper JVM target version and works only
-            // for fully actualized JVM target platform
-            //TODO(auskov): this hack should be removed after fixing equals in SimplePlatform
-            val args = compilerArguments
-            val singleSimplePlatform = field?.componentPlatforms?.singleOrNull()
-            if (singleSimplePlatform == JvmPlatforms.defaultJvmPlatform.singleOrNull() && args != null) {
-                return IdePlatformKind.platformByCompilerArguments(args)
+    var targetPlatform: TargetPlatform?
+        get() = compilerArgumentsData?.componentPlatforms?.deserializeTargetPlatformByComponentPlatforms()
+        set(value) {
+            compilerArgumentsData?.apply {
+                componentPlatforms = value?.serializeComponentPlatforms()
             }
-            return field
         }
 
     var externalSystemRunTasks: List<ExternalSystemRunTask> = emptyList()

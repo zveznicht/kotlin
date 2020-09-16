@@ -353,7 +353,6 @@ private fun getExplicitOutputPath(moduleNode: DataNode<ModuleData>, platformKind
 internal fun adjustClasspath(kotlinFacet: KotlinFacet, dependencyClasspath: List<String>) {
     if (dependencyClasspath.isEmpty()) return
     with(kotlinFacet.configuration.settings) {
-        if (compilerArguments !is K2JVMCompilerArguments) return
         val fullClasspath = classpathParts
         if (fullClasspath.isEmpty()) return
         classpathParts = fullClasspath - dependencyClasspath

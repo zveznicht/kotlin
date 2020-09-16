@@ -457,7 +457,7 @@ fun KotlinFacetSettings.serializeFacetSettings(element: Element) {
     }
 }
 
-private fun TargetPlatform.serializeComponentPlatforms(): String {
+internal fun TargetPlatform.serializeComponentPlatforms(): String {
     val componentPlatforms = componentPlatforms
     val componentPlatformNames = componentPlatforms.mapTo(ArrayList()) { it.serializeToString() }
 
@@ -468,7 +468,7 @@ private fun TargetPlatform.serializeComponentPlatforms(): String {
     return componentPlatformNames.sorted().joinToString("/")
 }
 
-private fun String?.deserializeTargetPlatformByComponentPlatforms(): TargetPlatform? {
+internal fun String?.deserializeTargetPlatformByComponentPlatforms(): TargetPlatform? {
     val componentPlatformNames = this?.split('/')?.toSet()
     if (componentPlatformNames == null || componentPlatformNames.isEmpty())
         return null
@@ -502,3 +502,14 @@ private fun String?.deserializeTargetPlatformByComponentPlatforms(): TargetPlatf
         }
     }
 }
+
+internal fun FacetCompilerArgumentsData.calculateCompilerArguments() =
+    componentPlatforms.deserializeTargetPlatformByComponentPlatforms()?.createArguments {
+        languageVersion = this@calculateCompilerArguments.languageVersion
+        apiVersion = this@calculateCompilerArguments.apiVersion
+        pluginOptions = this@calculateCompilerArguments.pluginOptions
+        autoAdvanceLanguageVersion = this@calculateCompilerArguments.autoAdvanceLanguageVersion
+        autoAdvanceApiVersion = this@calculateCompilerArguments.autoAdvanceApiVersion
+        pluginClasspaths = this@calculateCompilerArguments.pluginClasspaths
+        (this as? K2JVMCompilerArguments)?.jvmTarget = this@calculateCompilerArguments.jvmTarget
+    }

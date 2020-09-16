@@ -43,7 +43,9 @@ import org.jetbrains.kotlin.idea.facet.getLibraryLanguageLevel
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.platform.*
 import org.jetbrains.kotlin.platform.impl.isCommon
+import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
+import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.UserDataProperty
@@ -98,11 +100,11 @@ fun Module.getStableName(): Name {
     // Here we check ideal situation: we have a facet, and it has 'moduleName' argument.
     // This should be the case for the most environments
     val settingsProvider = KotlinFacetSettingsProvider.getInstance(project)
-    val arguments = settingsProvider?.getInitializedSettings(this)?.mergedCompilerArguments
-    val explicitNameFromArguments = when (arguments) {
-        is K2JVMCompilerArguments -> arguments.moduleName
-        is K2JSCompilerArguments -> arguments.outputFile?.let { FileUtil.getNameWithoutExtension(File(it)) }
-        is K2MetadataCompilerArguments -> arguments.moduleName
+    val argumentsData = settingsProvider?.getInitializedSettings(this)?.compilerArgumentsData
+    val explicitNameFromArguments = when {
+        argumentsData?.targetPlatform?.isJvm() == true -> argumentsData.moduleName
+        argumentsData?.targetPlatform?.isJs() == true -> argumentsData.outputFile?.let { FileUtil.getNameWithoutExtension(File(it)) }
+        argumentsData?.targetPlatform?.isCommon() == true -> argumentsData.moduleName
         else -> null // Actually, only 'null' possible here
     }
 
@@ -123,12 +125,13 @@ fun Project.getLanguageVersionSettings(
         KotlinFacetSettingsProvider.getInstance(this)?.getInitializedSettings(it)
     }
 
-    val arguments = kotlinFacetSettings?.compilerArguments ?: KotlinCommonCompilerArgumentsHolder.getInstance(this).settings
+    val argumentsData = kotlinFacetSettings?.compilerArgumentsData
+        ?: FacetCompilerArgumentsDataInstanceBased(KotlinCommonCompilerArgumentsHolder.getInstance(this).settings)
     val languageVersion =
-        kotlinFacetSettings?.languageLevel ?: LanguageVersion.fromVersionString(arguments.languageVersion)
+        kotlinFacetSettings?.languageLevel ?: LanguageVersion.fromVersionString(argumentsData.languageVersion)
         ?: contextModule?.getAndCacheLanguageLevelByDependencies()
         ?: VersionView.RELEASED_VERSION
-    val apiVersion = ApiVersion.createByLanguageVersion(LanguageVersion.fromVersionString(arguments.apiVersion) ?: languageVersion)
+    val apiVersion = ApiVersion.createByLanguageVersion(LanguageVersion.fromVersionString(argumentsData.apiVersion) ?: languageVersion)
     val compilerSettings = KotlinCompilerSettings.getInstance(this).settings
 
     val additionalArguments: CommonCompilerArguments = parseArguments(
@@ -153,6 +156,8 @@ fun Project.getLanguageVersionSettings(
         if (jsr305State != null) put(JvmAnalysisFlags.jsr305, jsr305State)
         initIDESpecificAnalysisSettings(this@getLanguageVersionSettings)
     }
+
+    val arguments = argumentsData.updatedCompilerArgumentsInstance()
 
     return LanguageVersionSettingsImpl(
         languageVersion, apiVersion,
@@ -227,13 +232,14 @@ private fun Module.computeLanguageVersionSettings(): LanguageVersionSettings {
         apiVersion = languageVersion
     }
 
-    val languageFeatures = facetSettings?.mergedCompilerArguments?.configureLanguageFeatures(MessageCollector.NONE)?.apply {
+    val compilerArguments = facetSettings?.compilerArgumentsDynamic
+
+    val languageFeatures = compilerArguments?.configureLanguageFeatures(MessageCollector.NONE)?.apply {
         configureCoroutinesSupport(facetSettings.coroutineSupport, languageVersion)
         configureMultiplatformSupport(facetSettings.targetPlatform?.idePlatformKind, this@computeLanguageVersionSettings)
     }.orEmpty()
 
-    val analysisFlags = facetSettings
-        ?.mergedCompilerArguments
+    val analysisFlags = compilerArguments
         ?.configureAnalysisFlags(MessageCollector.NONE)
         ?.apply { initIDESpecificAnalysisSettings(project) }
         .orEmpty()
