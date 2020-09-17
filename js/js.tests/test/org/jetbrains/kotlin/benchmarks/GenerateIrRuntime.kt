@@ -458,7 +458,7 @@ class GenerateIrRuntime {
 
         val irLinker = JsIrLinker(
             psi2IrContext.moduleDescriptor,
-            emptyLoggingContext,
+            MessageCollector.NONE,
             psi2IrContext.irBuiltIns,
             psi2IrContext.symbolTable,
             functionFactory,
@@ -476,6 +476,7 @@ class GenerateIrRuntime {
         serializeModuleIntoKlib(
             moduleName,
             configuration,
+            MessageCollector.NONE,
             bindingContext,
             files,
             tmpKlibDir.path,
@@ -498,7 +499,7 @@ class GenerateIrRuntime {
 
 
     private fun doSerializeIrModule(module: IrModuleFragment): SerializedIrModule {
-        val serializedIr = JsIrModuleSerializer(logger, module.irBuiltins, mutableMapOf(), true).serializedIrModule(module)
+        val serializedIr = JsIrModuleSerializer(MessageCollector.NONE, module.irBuiltins, mutableMapOf(), true).serializedIrModule(module)
         return serializedIr
     }
 
@@ -518,7 +519,7 @@ class GenerateIrRuntime {
         val functionFactory = IrFunctionFactory(irBuiltIns, symbolTable)
         irBuiltIns.functionFactory = functionFactory
 
-        val jsLinker = JsIrLinker(moduleDescriptor, logger, irBuiltIns, symbolTable, functionFactory, null)
+        val jsLinker = JsIrLinker(moduleDescriptor, MessageCollector.NONE, irBuiltIns, symbolTable, functionFactory, null)
 
         val moduleFragment = jsLinker.deserializeFullModule(moduleDescriptor, moduleDescriptor.kotlinLibrary)
         jsLinker.init(null, emptyList())
@@ -548,7 +549,7 @@ class GenerateIrRuntime {
         val functionFactory = IrFunctionFactory(irBuiltIns, symbolTable)
         irBuiltIns.functionFactory = functionFactory
 
-        val jsLinker = JsIrLinker(moduleDescriptor, logger, irBuiltIns, symbolTable, functionFactory, null)
+        val jsLinker = JsIrLinker(moduleDescriptor, MessageCollector.NONE, irBuiltIns, symbolTable, functionFactory, null)
 
         val moduleFragment = jsLinker.deserializeFullModule(moduleDescriptor, moduleDescriptor.kotlinLibrary)
         // Create stubs

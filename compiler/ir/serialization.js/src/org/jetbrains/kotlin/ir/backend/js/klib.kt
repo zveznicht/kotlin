@@ -23,6 +23,9 @@ import org.jetbrains.kotlin.backend.common.serialization.metadata.DynamicTypeDes
 import org.jetbrains.kotlin.backend.common.serialization.metadata.KlibMetadataVersion
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureDescriptor
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -81,12 +84,6 @@ val KotlinLibrary.isBuiltIns: Boolean
 fun loadKlib(klibPath: String) =
     resolveSingleFileKlib(KFile(KFile(klibPath).absolutePath))
 
-val emptyLoggingContext = object : LoggingContext {
-    override var inVerbosePhase = false
-
-    override fun log(message: () -> String) {}
-}
-
 private val CompilerConfiguration.metadataVersion
     get() = get(CommonConfigurationKeys.METADATA_VERSION) as? KlibMetadataVersion ?: KlibMetadataVersion.INSTANCE
 
@@ -108,6 +105,7 @@ fun generateKLib(
 ) {
     val incrementalDataProvider = configuration.get(JSConfigurationKeys.INCREMENTAL_DATA_PROVIDER)
     val errorPolicy = configuration.get(JSConfigurationKeys.ERROR_TOLERANCE_POLICY) ?: ErrorTolerancePolicy.DEFAULT
+    val messageCollector = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY) ?: MessageCollector.NONE
 
     val icData: List<KotlinFileSerializedData>
     val serializedIrFiles: List<SerializedIrFile>?
@@ -154,7 +152,7 @@ fun generateKLib(
     }
     val irLinker = JsIrLinker(
         psi2IrContext.moduleDescriptor,
-        emptyLoggingContext,
+        messageCollector,
         psi2IrContext.irBuiltIns,
         psi2IrContext.symbolTable,
         functionFactory,
@@ -184,6 +182,7 @@ fun generateKLib(
     serializeModuleIntoKlib(
         moduleName,
         configuration,
+        messageCollector,
         psi2IrContext.bindingContext,
         files,
         outputKlibPath,
@@ -225,6 +224,7 @@ fun loadIr(
     val depsDescriptors = ModulesStructure(project, mainModule, analyzer, configuration, allDependencies, friendDependencies)
     val deserializeFakeOverrides = configuration.getBoolean(CommonConfigurationKeys.DESERIALIZE_FAKE_OVERRIDES)
     val errorPolicy = configuration.get(JSConfigurationKeys.ERROR_TOLERANCE_POLICY) ?: ErrorTolerancePolicy.DEFAULT
+    val messageCollector = configuration.get(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY) ?: MessageCollector.NONE
 
     when (mainModule) {
         is MainModule.SourceFiles -> {
@@ -236,7 +236,7 @@ fun loadIr(
             val feContext = psi2IrContext.run {
                 JsIrLinker.JsFePluginContext(moduleDescriptor, bindingContext, symbolTable, typeTranslator, irBuiltIns)
             }
-            val irLinker = JsIrLinker(psi2IrContext.moduleDescriptor, emptyLoggingContext, irBuiltIns, symbolTable, functionFactory, feContext, null, deserializeFakeOverrides)
+            val irLinker = JsIrLinker(psi2IrContext.moduleDescriptor, messageCollector, irBuiltIns, symbolTable, functionFactory, feContext, null, deserializeFakeOverrides)
             val deserializedModuleFragments = sortDependencies(allDependencies.getFullList(), depsDescriptors.descriptors).map {
                 irLinker.deserializeIrModuleHeader(depsDescriptors.getModuleDescriptor(it), it)
             }
@@ -273,7 +273,7 @@ fun loadIr(
             val irBuiltIns = IrBuiltIns(moduleDescriptor.builtIns, typeTranslator, symbolTable)
             val functionFactory = IrFunctionFactory(irBuiltIns, symbolTable)
             val irLinker =
-                JsIrLinker(null, emptyLoggingContext, irBuiltIns, symbolTable, functionFactory, null, null, deserializeFakeOverrides)
+                JsIrLinker(null, messageCollector, irBuiltIns, symbolTable, functionFactory, null, null, deserializeFakeOverrides)
 
             val deserializedModuleFragments = sortDependencies(allDependencies.getFullList(), depsDescriptors.descriptors).map {
                 val strategy =
@@ -459,6 +459,7 @@ private fun getDescriptorForElement(
 fun serializeModuleIntoKlib(
     moduleName: String,
     configuration: CompilerConfiguration,
+    messageCollector: MessageCollector,
     bindingContext: BindingContext,
     files: List<KtFile>,
     klibPath: String,
@@ -473,7 +474,7 @@ fun serializeModuleIntoKlib(
 
     val serializedIr =
         JsIrModuleSerializer(
-            emptyLoggingContext,
+            messageCollector,
             moduleFragment.irBuiltins,
             expectDescriptorToSymbol = expectDescriptorToSymbol,
             skipExpects = !configuration.expectActualLinker

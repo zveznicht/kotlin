@@ -5,8 +5,6 @@
 
 package org.jetbrains.kotlin.backend.common.serialization
 
-import org.jetbrains.kotlin.backend.common.LoggingContext
-import org.jetbrains.kotlin.backend.common.ir.ir2string
 import org.jetbrains.kotlin.backend.common.lower.InnerClassesSupport
 import org.jetbrains.kotlin.backend.common.overrides.PlatformFakeOverrideClassFilter
 import org.jetbrains.kotlin.backend.common.peek
@@ -20,6 +18,7 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.IrOperation.Opera
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrStatement.StatementCase
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrType.KindCase.*
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrVarargElement.VarargElementCase
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
@@ -106,7 +105,7 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.MemberAccessCommo
 import org.jetbrains.kotlin.backend.common.serialization.proto.PublicIdSignature as ProtoPublicIdSignature
 
 abstract class IrFileDeserializer(
-    val logger: LoggingContext,
+    val messageCollector: MessageCollector,
     val builtIns: IrBuiltIns,
     val symbolTable: SymbolTable,
     protected var deserializeBodies: Boolean,
@@ -164,7 +163,6 @@ abstract class IrFileDeserializer(
     private fun deserializeSimpleType(proto: ProtoSimpleType): IrSimpleType {
         val symbol = deserializeIrSymbolAndRemap(proto.classifier) as? IrClassifierSymbol
             ?: error("could not convert sym to ClassifierSymbol")
-        logger.log { "deserializeSimpleType: symbol=$symbol" }
 
         val arguments = proto.argumentList.map { deserializeIrTypeArgument(it) }
         val annotations = deserializeAnnotations(proto.annotationList)
@@ -177,7 +175,6 @@ abstract class IrFileDeserializer(
             annotations,
             if (proto.hasAbbreviation()) deserializeTypeAbbreviation(proto.abbreviation) else null
         )
-        logger.log { "ir_type = $result; render = ${result.render()}" }
         return result
 
     }
@@ -315,8 +312,6 @@ abstract class IrFileDeserializer(
             else
             -> TODO("Statement deserialization not implemented: ${proto.statementCase}")
         }
-
-        logger.log { "### Deserialized statement: ${ir2string(element)}" }
 
         return element
     }
@@ -902,7 +897,6 @@ abstract class IrFileDeserializer(
         val operation = proto.operation
         val expression = deserializeOperation(operation, start, end, type)
 
-        logger.log { "### Deserialized expression: ${ir2string(expression)} ir_type=$type" }
         return expression
     }
 
@@ -1413,8 +1407,6 @@ abstract class IrFileDeserializer(
             IR_TYPE_ALIAS -> deserializeIrTypeAlias(proto.irTypeAlias)
             DECLARATOR_NOT_SET -> error("Declaration deserialization not implemented: ${proto.declaratorCase}")
         }
-
-        logger.log { "### Deserialized declaration: ${declaration.descriptor} -> ${ir2string(declaration)}" }
 
         return declaration
     }

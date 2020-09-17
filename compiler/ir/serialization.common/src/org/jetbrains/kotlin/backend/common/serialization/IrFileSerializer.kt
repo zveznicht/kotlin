@@ -5,10 +5,10 @@
 
 package org.jetbrains.kotlin.backend.common.serialization
 
-import org.jetbrains.kotlin.backend.common.LoggingContext
 import org.jetbrains.kotlin.backend.common.ir.ir2string
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideControl
 import org.jetbrains.kotlin.backend.common.serialization.encodings.*
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.SourceManager
@@ -102,7 +102,7 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.PublicIdSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.AccessorIdSignature as ProtoAccessorIdSignature
 
 open class IrFileSerializer(
-    val logger: LoggingContext,
+    val messageCollector: MessageCollector,
     private val declarationTable: DeclarationTable,
     private val expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>,
     private val bodiesOnlyForInlines: Boolean = false,
@@ -346,7 +346,6 @@ open class IrFileSerializer(
         .build()
 
     private fun serializeIrTypeData(type: IrType): ProtoType {
-        logger.log { "### serializing IrType: $type" }
         val proto = ProtoType.newBuilder()
         when (type) {
             is IrSimpleType ->
@@ -899,8 +898,6 @@ open class IrFileSerializer(
     }
 
     private fun serializeExpression(expression: IrExpression): ProtoExpression {
-        logger.log { "### serializing Expression: ${ir2string(expression)}" }
-
         val coordinates = serializeCoordinates(expression.startOffset, expression.endOffset)
         val proto = ProtoExpression.newBuilder()
             .setType(serializeIrType(expression.type))
@@ -953,7 +950,6 @@ open class IrFileSerializer(
     }
 
     private fun serializeStatement(statement: IrElement): ProtoStatement {
-        logger.log { "### serializing Statement: ${ir2string(statement)}" }
 
         val coordinates = serializeCoordinates(statement.startOffset, statement.endOffset)
         val proto = ProtoStatement.newBuilder()
@@ -961,22 +957,22 @@ open class IrFileSerializer(
 
         when (statement) {
             is IrDeclaration -> {
-                logger.log { " ###Declaration " }; proto.declaration = serializeDeclaration(statement)
+                proto.declaration = serializeDeclaration(statement)
             }
             is IrExpression -> {
-                logger.log { " ###Expression " }; proto.expression = serializeExpression(statement)
+                proto.expression = serializeExpression(statement)
             }
             is IrBlockBody -> {
-                logger.log { " ###BlockBody " }; proto.blockBody = serializeBlockBody(statement)
+                proto.blockBody = serializeBlockBody(statement)
             }
             is IrBranch -> {
-                logger.log { " ###Branch " }; proto.branch = serializeBranch(statement)
+                proto.branch = serializeBranch(statement)
             }
             is IrCatch -> {
-                logger.log { " ###Catch " }; proto.catch = serializeCatch(statement)
+                proto.catch = serializeCatch(statement)
             }
             is IrSyntheticBody -> {
-                logger.log { " ###SyntheticBody " }; proto.syntheticBody = serializeSyntheticBody(statement)
+                proto.syntheticBody = serializeSyntheticBody(statement)
             }
             else -> {
                 TODO("Statement not implemented yet: ${ir2string(statement)}")
@@ -1165,8 +1161,6 @@ open class IrFileSerializer(
     }
 
     private fun serializeDeclaration(declaration: IrDeclaration): ProtoDeclaration {
-        logger.log { "### serializing Declaration: ${ir2string(declaration)}" }
-
         val proto = ProtoDeclaration.newBuilder()
 
         when (declaration) {

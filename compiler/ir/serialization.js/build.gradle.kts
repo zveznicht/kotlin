@@ -5,6 +5,7 @@ plugins {
 
 // Please make sure this module doesn't depend on `backend.js` (neither directly, nor transitively)
 dependencies {
+    compile(project(":compiler:cli"))
     compile(project(":compiler:ir.psi2ir"))
     compile(project(":compiler:ir.serialization.common"))
     compile(project(":js:js.frontend"))

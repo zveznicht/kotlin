@@ -14,12 +14,12 @@ import org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen
 import org.jetbrains.kotlin.backend.jvm.codegen.DescriptorMetadataSerializer
 import org.jetbrains.kotlin.backend.jvm.lower.MultifileFacadeFileEntry
 import org.jetbrains.kotlin.backend.jvm.serialization.JvmIdSignatureDescriptor
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.descriptors.konan.DeserializedKlibModuleOrigin
 import org.jetbrains.kotlin.descriptors.konan.KlibModuleOrigin
 import org.jetbrains.kotlin.idea.MainFunctionDetector
-import org.jetbrains.kotlin.ir.backend.jvm.serialization.EmptyLoggingContext
 import org.jetbrains.kotlin.ir.backend.jvm.serialization.JvmIrLinker
 import org.jetbrains.kotlin.ir.backend.jvm.serialization.JvmManglerDesc
 import org.jetbrains.kotlin.ir.builders.TranslationPluginContext
@@ -46,6 +46,7 @@ object JvmBackendFacade {
         val psi2irContext = psi2ir.createGeneratorContext(state.module, state.bindingContext, symbolTable, extensions)
         val pluginExtensions = IrGenerationExtension.getInstances(state.project)
         val functionFactory = IrFunctionFactory(psi2irContext.irBuiltIns, symbolTable)
+        val messageCollector = MessageCollector.NONE // TODO: how to get real message collector?
         psi2irContext.irBuiltIns.functionFactory = functionFactory
 
         val stubGenerator = DeclarationStubGenerator(
@@ -65,7 +66,7 @@ object JvmBackendFacade {
         }
         val irLinker = JvmIrLinker(
             psi2irContext.moduleDescriptor,
-            EmptyLoggingContext,
+            messageCollector,
             psi2irContext.irBuiltIns,
             symbolTable,
             functionFactory,

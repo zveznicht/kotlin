@@ -5,9 +5,9 @@
 
 package org.jetbrains.kotlin.ir.backend.js.lower.serialization.ir
 
-import org.jetbrains.kotlin.backend.common.LoggingContext
 import org.jetbrains.kotlin.backend.common.serialization.IrFileSerializer
 import org.jetbrains.kotlin.backend.common.serialization.DeclarationTable
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
@@ -15,13 +15,13 @@ import org.jetbrains.kotlin.ir.util.hasAnnotation
 import org.jetbrains.kotlin.name.FqName
 
 class JsIrFileSerializer(
-    logger: LoggingContext,
+    messageCollector: MessageCollector,
     declarationTable: DeclarationTable,
     expectDescriptorToSymbol: MutableMap<DeclarationDescriptor, IrSymbol>,
     skipExpects: Boolean,
     bodiesOnlyForInlines: Boolean = false
 ) : IrFileSerializer(
-    logger,
+    messageCollector,
     declarationTable,
     expectDescriptorToSymbol,
     bodiesOnlyForInlines = bodiesOnlyForInlines,

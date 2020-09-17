@@ -5,11 +5,11 @@
 
 package org.jetbrains.kotlin.backend.common.serialization
 
-import org.jetbrains.kotlin.backend.common.LoggingContext
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideBuilder
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
 import org.jetbrains.kotlin.backend.common.serialization.exceptions.NoModuleFoundException
 import org.jetbrains.kotlin.backend.common.serialization.exceptions.NoModuleInDependencyFoundException
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -53,7 +53,7 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.IrType as ProtoTy
 
 abstract class KotlinIrLinker(
     private val currentModule: ModuleDescriptor?,
-    val logger: LoggingContext,
+    val messageCollector: MessageCollector,
     val builtIns: IrBuiltIns,
     val symbolTable: SymbolTable,
     private val exportedDependencies: List<ModuleDescriptor>,
@@ -235,7 +235,7 @@ abstract class KotlinIrLinker(
         inlineBodies: Boolean,
         deserializeFakeOverrides: Boolean,
         private val moduleDeserializer: IrModuleDeserializer
-    ) : IrFileDeserializer(logger, builtIns, symbolTable, !onlyHeaders, deserializeFakeOverrides, fakeOverrideClassQueue) {
+    ) : IrFileDeserializer(messageCollector, builtIns, symbolTable, !onlyHeaders, deserializeFakeOverrides, fakeOverrideClassQueue) {
 
         private var fileLoops = mutableMapOf<Int, IrLoop>()
 
