@@ -130,7 +130,7 @@ object JvmBackendFacade {
             symbolTable, phaseConfig, extensions.classNameOverride, serializerFactory
         )
         /* JvmBackendContext creates new unbound symbols, have to resolve them. */
-        ExternalDependenciesGenerator(symbolTable, irProviders, state.languageVersionSettings).generateUnboundSymbolsAsDependencies()
+        ExternalDependenciesGenerator(symbolTable, irProviders).generateUnboundSymbolsAsDependencies()
 
         state.mapInlineClass = { descriptor ->
             context.typeMapper.mapType(context.referenceClass(descriptor).defaultType)
