@@ -815,15 +815,16 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
 
         with(facetSettings) {
             Assert.assertEquals("1.1", languageLevel!!.versionString)
-            Assert.assertEquals("1.1", compilerArguments!!.languageVersion)
+            Assert.assertEquals("1.1", compilerArgumentsData!!.languageVersion)
             Assert.assertEquals("1.0", apiLevel!!.versionString)
-            Assert.assertEquals("1.0", compilerArguments!!.apiVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceLanguageVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceApiVersion)
-            Assert.assertEquals(true, compilerArguments!!.suppressWarnings)
+            Assert.assertEquals("1.0", compilerArgumentsData!!.apiVersion)
+            Assert.assertFalse(compilerArgumentsData!!.autoAdvanceLanguageVersion)
+            Assert.assertFalse(compilerArgumentsData!!.autoAdvanceApiVersion)
+            val mergedCompilerArguments = mergedCompilerArguments
+            Assert.assertEquals(true, mergedCompilerArguments!!.suppressWarnings)
             Assert.assertEquals(LanguageFeature.State.ENABLED, coroutineSupport)
             Assert.assertTrue(targetPlatform.isJs())
-            with(compilerArguments as K2JSCompilerArguments) {
+            with(mergedCompilerArguments as K2JSCompilerArguments) {
                 Assert.assertEquals(true, sourceMap)
                 Assert.assertEquals("commonjs", moduleKind)
             }

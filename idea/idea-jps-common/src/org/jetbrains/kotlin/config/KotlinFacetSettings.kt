@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.TargetPlatformVersion
 import org.jetbrains.kotlin.platform.compat.toIdePlatform
 import org.jetbrains.kotlin.platform.isCommon
+import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.utils.DescriptionAware
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
@@ -51,7 +52,10 @@ object CoroutineSupport {
     fun byCompilerArguments(arguments: CommonCompilerArguments?): LanguageFeature.State =
         byCompilerArgumentsOrNull(arguments) ?: LanguageFeature.Coroutines.defaultState
 
-    fun byCompilerArgumentsOrNull(arguments: CommonCompilerArguments?): LanguageFeature.State? = when (arguments?.coroutinesState) {
+    fun byCompilerArgumentsOrNull(arguments: CommonCompilerArguments?): LanguageFeature.State? =
+        byCoroutineState(arguments?.coroutinesState)
+
+    fun byCoroutineState(coroutineState: String?) = when (coroutineState) {
         CommonCompilerArguments.ENABLE -> LanguageFeature.State.ENABLED
         CommonCompilerArguments.WARN, CommonCompilerArguments.DEFAULT -> LanguageFeature.State.ENABLED_WITH_WARNING
         CommonCompilerArguments.ERROR -> LanguageFeature.State.ENABLED_WITH_ERROR
@@ -189,16 +193,22 @@ class KotlinFacetSettings {
     var version = CURRENT_VERSION
     var useProjectSettings: Boolean = true
 
-    @Deprecated("Use compilerArgumentsData for reading and writing compiler arguments values", level = DeprecationLevel.ERROR)
     var mergedCompilerArguments: CommonCompilerArguments? = null
+        get() {
+            updateMergedArguments()
+            return field
+        }
         private set
 
     var compilerArgumentsData: FacetCompilerArgumentsData? = null
 
+    private val compilerArgumentsFromData: CommonCompilerArguments?
+        get() = compilerArgumentsData?.updatedCompilerArgumentsInstance()
+
     // TODO: Workaround for unwanted facet settings modification on code analysis
     // To be replaced with proper API for settings update (see BaseKotlinCompilerSettings as an example)
     fun updateMergedArguments() {
-        val compilerArguments = compilerArguments
+        val compilerArguments = compilerArgumentsFromData
         val compilerSettings = compilerSettings
 
         mergedCompilerArguments = if (compilerArguments != null) {
@@ -206,25 +216,20 @@ class KotlinFacetSettings {
                 if (compilerSettings != null) {
                     parseCommandLineArguments(compilerSettings.additionalArgumentsAsList, this)
                 }
-                compilerArgumentsData?.also { mergeBeans(it.updatedCompilerArgumentsInstance(), this) }
             }
         } else null
     }
 
-    val compilerArgumentsDynamic: CommonCompilerArguments?
-        get() = compilerArgumentsData?.updatedCompilerArgumentsInstance()
 
     @Deprecated("Use compilerArgumentsData for reading and writing compiler arguments values", level = DeprecationLevel.ERROR)
     var compilerArguments: CommonCompilerArguments? = null
         set(value) {
             field = value?.unfrozen() as CommonCompilerArguments?
-            updateMergedArguments()
         }
 
     var compilerSettings: CompilerSettings? = null
         set(value) {
             field = value?.unfrozen() as CompilerSettings?
-            updateMergedArguments()
         }
 
     /*
@@ -232,7 +237,7 @@ class KotlinFacetSettings {
     but present in additional arguments instead, so we have to check both cases manually
      */
     inline fun <reified A : CommonCompilerArguments> isCompilerSettingPresent(settingReference: KProperty1<A, Boolean>): Boolean {
-        val isEnabledByCompilerArgument = compilerArguments?.safeAs<A>()?.let(settingReference::get)
+        val isEnabledByCompilerArgument = mergedCompilerArguments?.safeAs<A>()?.let(settingReference::get)
         if (isEnabledByCompilerArgument == true) return true
         val isEnabledByAdditionalSettings = run {
             val stringArgumentName = settingReference.findAnnotation<Argument>()?.value ?: return@run null
@@ -281,15 +286,10 @@ class KotlinFacetSettings {
         get() {
             val languageVersion = languageLevel ?: return LanguageFeature.Coroutines.defaultState
             if (languageVersion < LanguageFeature.Coroutines.sinceVersion!!) return LanguageFeature.State.DISABLED
-            return CoroutineSupport.byCompilerArgumentsOrNull(compilerArguments)
+            return compilerArgumentsData?.coroutinesState
         }
         set(value) {
-            compilerArguments?.coroutinesState = when (value) {
-                null -> CommonCompilerArguments.DEFAULT
-                LanguageFeature.State.ENABLED -> CommonCompilerArguments.ENABLE
-                LanguageFeature.State.ENABLED_WITH_WARNING -> CommonCompilerArguments.WARN
-                LanguageFeature.State.ENABLED_WITH_ERROR, LanguageFeature.State.DISABLED -> CommonCompilerArguments.ERROR
-            }
+            compilerArgumentsData?.coroutinesState = value
         }
 
     var implementedModuleNames: List<String> = emptyList() // used for first implementation of MPP, aka 'old' MPP
@@ -303,10 +303,6 @@ class KotlinFacetSettings {
     var classpathParts: List<String> = emptyList()
         set(value) {
             field = value.map { PathUtil.toSystemIndependentName(it) }
-            when (compilerArguments) {
-                is K2JVMCompilerArguments -> (compilerArguments as? K2JVMCompilerArguments)?.classpath = classpath
-                is K2MetadataCompilerArguments -> (compilerArguments as? K2MetadataCompilerArguments)?.classpath = classpath
-            }
         }
 
     val classpath: String?

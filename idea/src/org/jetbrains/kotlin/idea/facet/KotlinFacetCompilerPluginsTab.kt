@@ -28,7 +28,7 @@ class KotlinFacetCompilerPluginsTab(
 ) : FacetEditorTab() {
     companion object {
         fun parsePluginOptions(configuration: KotlinFacetConfiguration) =
-            configuration.settings.compilerArguments?.pluginOptions?.mapNotNull(::parsePluginOption) ?: emptyList()
+            configuration.settings.compilerArgumentsData?.pluginOptions?.mapNotNull(::parsePluginOption) ?: emptyList()
     }
 
     class PluginInfo(val id: String, var options: List<String>)
@@ -173,7 +173,7 @@ class KotlinFacetCompilerPluginsTab(
     }
 
     override fun apply() {
-        configuration.settings.compilerArguments!!.pluginOptions = optionsByTable.toTypedArray()
+        configuration.settings.compilerArgumentsData!!.pluginOptions = optionsByTable.toTypedArray()
     }
 
     override fun disposeUIResources() {

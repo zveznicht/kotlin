@@ -75,12 +75,12 @@ fun KotlinFacetSettings.initializeIfNeeded(
 
     val commonArguments = KotlinCommonCompilerArgumentsHolder.getInstance(module.project).settings
 
-    if (compilerArguments == null) {
+    if (compilerArgumentsData == null) {
         val targetPlatform = platform ?: getDefaultTargetPlatform(module, rootModel)
-        compilerArguments = targetPlatform.createArguments {
+        compilerArgumentsData = FacetCompilerArgumentsDataInstanceBased(targetPlatform.createArguments {
             targetPlatform.idePlatformKind.tooling.compilerArgumentsForProject(module.project)?.let { mergeBeans(it, this) }
             mergeBeans(commonArguments, this)
-        }
+        })
         this.targetPlatform = targetPlatform
     }
 
@@ -172,7 +172,7 @@ fun KotlinFacet.configureFacet(
 ) {
     val module = module
     with(configuration.settings) {
-        compilerArguments = null
+        compilerArgumentsData = null
         targetPlatform = null
         compilerSettings = null
         isHmppEnabled = hmppEnabled
@@ -219,7 +219,7 @@ fun KotlinFacet.configureFacet(
 
 
 fun KotlinFacet.noVersionAutoAdvance() {
-    configuration.settings.compilerArguments?.let {
+    configuration.settings.compilerArgumentsData?.let {
         it.autoAdvanceLanguageVersion = false
         it.autoAdvanceApiVersion = false
     }
@@ -324,7 +324,7 @@ fun parseCompilerArgumentsToFacet(
     kotlinFacet: KotlinFacet,
     modelsProvider: IdeModifiableModelsProvider?
 ) {
-    val compilerArgumentsClass = kotlinFacet.configuration.settings.compilerArguments?.javaClass ?: return
+    val compilerArgumentsClass = kotlinFacet.configuration.settings.mergedCompilerArguments?.javaClass ?: return
     val currentArgumentsBean = compilerArgumentsClass.newInstance()
     val defaultArgumentsBean = compilerArgumentsClass.newInstance()
     parseCommandLineArguments(defaultArguments, defaultArgumentsBean)
@@ -339,7 +339,7 @@ fun applyCompilerArgumentsToFacet(
     modelsProvider: IdeModifiableModelsProvider?
 ) {
     with(kotlinFacet.configuration.settings) {
-        val compilerArguments = this.compilerArguments ?: return
+        val compilerArgumentsData = this.compilerArguments ?: return
 
         val defaultCompilerArguments = defaultArguments?.let { copyBean(it) } ?: compilerArguments::class.java.newInstance()
         defaultCompilerArguments.convertPathsToSystemIndependent()

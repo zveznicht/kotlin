@@ -27,6 +27,8 @@ interface FacetCompilerArgumentsData {
     var targetPlatform: TargetPlatform?
     var moduleName: String?
     var outputFile: String?
+    var jsr305: Array<String>?
+    var supportCompatqualCheckerFrameworkAnnotations: String?
 
     val compilerArgumentsInstance: CommonCompilerArguments
 
@@ -46,11 +48,27 @@ interface FacetCompilerArgumentsData {
         (this as? K2JVMCompilerArguments)?.jvmTarget = this@FacetCompilerArgumentsData.jvmTarget
     }
 
-    companion object {
-
+    fun mergeDataFrom(from: FacetCompilerArgumentsData) {
+        languageVersion = from.languageVersion
+        apiVersion = from.apiVersion
+        pluginOptions = from.pluginOptions
+        autoAdvanceLanguageVersion = from.autoAdvanceLanguageVersion
+        autoAdvanceApiVersion = from.autoAdvanceApiVersion
+        coroutinesState = from.coroutinesState
+        pluginClasspaths = from.pluginClasspaths
+        jvmTarget = from.jvmTarget
+        componentPlatforms = from.componentPlatforms
+        targetPlatform = from.targetPlatform
+        moduleName = from.moduleName
+        outputFile = from.outputFile
+        jsr305 = from.jsr305
+        supportCompatqualCheckerFrameworkAnnotations = from.supportCompatqualCheckerFrameworkAnnotations
     }
 }
 
+/*
+    This class is used when facet is configuring from loaded facet which contains serialized compilerArguments
+ */
 class FacetCompilerArgumentsDataInstanceBased(var baseCompilerArguments: CommonCompilerArguments) : FacetCompilerArgumentsData {
     override var languageVersion: String? = baseCompilerArguments.languageVersion
     override var apiVersion: String? = baseCompilerArguments.apiVersion
@@ -62,6 +80,21 @@ class FacetCompilerArgumentsDataInstanceBased(var baseCompilerArguments: CommonC
     override var jvmTarget: String? = (baseCompilerArguments as? K2JVMCompilerArguments)?.jvmTarget
     override var componentPlatforms: String? =
         baseCompilerArguments.let { IdePlatformKind.platformByCompilerArguments(it) }?.serializeComponentPlatforms()
+    override var targetPlatform: TargetPlatform?
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var moduleName: String?
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var outputFile: String?
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var jsr305: Array<String>?
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var supportCompatqualCheckerFrameworkAnnotations: String?
+        get() = TODO("Not yet implemented")
+        set(value) {}
 
     override val compilerArgumentsInstance: CommonCompilerArguments
         get() = baseCompilerArguments
@@ -72,6 +105,9 @@ class FacetCompilerArgumentsDataInstanceBased(var baseCompilerArguments: CommonC
 
 }
 
+/*
+    This class is used when facet is configuring from caches obtained during project import
+ */
 class FacetCompilerArgumentsDataCacheBased(val cachedArgsInfo: CachedArgsInfo, val mapper: CompilerArgumentsMapper) :
     FacetCompilerArgumentsData {
 
@@ -79,6 +115,21 @@ class FacetCompilerArgumentsDataCacheBased(val cachedArgsInfo: CachedArgsInfo, v
     override var apiVersion: String? = obtainDividedOptionValueFromCache(API_VERSION)
     override var jvmTarget: String? = obtainDividedOptionValueFromCache(JVM_TARGET)
     override var componentPlatforms: String? = null
+    override var targetPlatform: TargetPlatform?
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var moduleName: String?
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var outputFile: String?
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var jsr305: Array<String>?
+        get() = TODO("Not yet implemented")
+        set(value) {}
+    override var supportCompatqualCheckerFrameworkAnnotations: String?
+        get() = TODO("Not yet implemented")
+        set(value) {}
     override val compilerArgumentsInstance: CommonCompilerArguments = run {
         val currentArguments = cachedArgsInfo.currentCachedCompilerArgumentsBucket.collectArgumentsList(mapper)
         val defaultArguments = cachedArgsInfo.defaultCachedCompilerArgumentsBucket.collectArgumentsList(mapper)

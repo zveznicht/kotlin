@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
 import org.jetbrains.kotlin.config.CompilerSettings
+import org.jetbrains.kotlin.config.FacetCompilerArgumentsDataInstanceBased
 import org.jetbrains.kotlin.config.KotlinFacetSettings
 import org.jetbrains.kotlin.config.KotlinModuleKind.COMPILATION_AND_SOURCE_SET_HOLDER
 import org.jetbrains.kotlin.config.KotlinModuleKind.SOURCE_SET_HOLDER
@@ -133,16 +134,16 @@ class ModulesTxtBuilder {
             val kotlinFacetSettings = result.kotlinFacetSettings
             if (kotlinFacetSettings != null) {
                 kotlinFacetSettings.implementedModuleNames =
-                        result.dependencies.asSequence()
-                            .filter { it.kind == EXPECTED_BY }
-                            .map { it.to.name }
-                            .toList()
+                    result.dependencies.asSequence()
+                        .filter { it.kind == EXPECTED_BY }
+                        .map { it.to.name }
+                        .toList()
 
                 kotlinFacetSettings.sourceSetNames =
-                        result.dependencies.asSequence()
-                            .filter { it.kind == INCLUDE }
-                            .map { it.to.name }
-                            .toList()
+                    result.dependencies.asSequence()
+                        .filter { it.kind == INCLUDE }
+                        .map { it.to.name }
+                        .toList()
             }
             return result
         }
@@ -257,14 +258,18 @@ class ModulesTxtBuilder {
             when (flag) {
                 "sourceSetHolder" -> settings.kind = SOURCE_SET_HOLDER
                 "compilationAndSourceSetHolder" -> settings.kind = COMPILATION_AND_SOURCE_SET_HOLDER
-                "common" -> settings.compilerArguments =
+                "common" -> settings.compilerArgumentsData = FacetCompilerArgumentsDataInstanceBased(
                     K2MetadataCompilerArguments().also { settings.targetPlatform = CommonPlatforms.defaultCommonPlatform }
-                "jvm" -> settings.compilerArguments =
+                )
+                "jvm" -> settings.compilerArgumentsData = FacetCompilerArgumentsDataInstanceBased(
                     K2JVMCompilerArguments().also { settings.targetPlatform = JvmPlatforms.defaultJvmPlatform }
-                "js" -> settings.compilerArguments =
+                )
+                "js" -> settings.compilerArgumentsData = FacetCompilerArgumentsDataInstanceBased(
                     K2JSCompilerArguments().also { settings.targetPlatform = JsPlatforms.defaultJsPlatform }
-                "native" -> settings.compilerArguments =
+                )
+                "native" -> settings.compilerArgumentsData = FacetCompilerArgumentsDataInstanceBased(
                     FakeK2NativeCompilerArguments().also { settings.targetPlatform = NativePlatforms.unspecifiedNativePlatform }
+                )
                 else -> {
                     val flagProperty = ModulesTxt.Module.flags[flag]
                     if (flagProperty != null) flagProperty.set(module, true)

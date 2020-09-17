@@ -14,6 +14,7 @@ import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.ThreeStateCheckBox
 import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.config.CompilerSettings
+import org.jetbrains.kotlin.config.FacetCompilerArgumentsDataInstanceBased
 import org.jetbrains.kotlin.config.createArguments
 import org.jetbrains.kotlin.config.splitArgumentString
 import org.jetbrains.kotlin.idea.KotlinBundle
@@ -86,10 +87,12 @@ class KotlinFacetEditorGeneralTab(
                 targetPlatformLabel.toolTipText =
                     KotlinBundle.message("facet.label.text.the.project.is.imported.from.external.build.system.and.could.not.be.edited")
                 this.addLabeledComponent(
-                    KotlinBundle.message("facet.label.text.selected.target.platforms"), targetPlatformLabel)
+                    KotlinBundle.message("facet.label.text.selected.target.platforms"), targetPlatformLabel
+                )
             } else {
                 this.addLabeledComponent(
-                    KotlinBundle.message("facet.label.text.target.platform"), targetPlatformSelectSingleCombobox)
+                    KotlinBundle.message("facet.label.text.target.platform"), targetPlatformSelectSingleCombobox
+                )
             }
         }
 
@@ -116,7 +119,7 @@ class KotlinFacetEditorGeneralTab(
                 editableJsArguments = K2JSCompilerArguments()
                 editableCompilerSettings = CompilerSettings()
             } else {
-                editableCommonArguments = configuration!!.settings.compilerArguments!!
+                editableCommonArguments = configuration!!.settings.mergedCompilerArguments!!
                 editableJvmArguments = editableCommonArguments as? K2JVMCompilerArguments
                     ?: Kotlin2JvmCompilerArgumentsHolder.getInstance(project).settings.unfrozen() as K2JVMCompilerArguments
                 editableJsArguments = editableCommonArguments as? K2JSCompilerArguments
@@ -135,7 +138,9 @@ class KotlinFacetEditorGeneralTab(
                 isMultiEditor
             )
 
-            useProjectSettingsCheckBox = ThreeStateCheckBox(KotlinBundle.message("facet.checkbox.text.use.project.settings")).apply { isThirdStateEnabled = isMultiEditor }
+            useProjectSettingsCheckBox = ThreeStateCheckBox(KotlinBundle.message("facet.checkbox.text.use.project.settings")).apply {
+                isThirdStateEnabled = isMultiEditor
+            }
             dependsOnLabel = JLabel()
 
             targetPlatformWrappers = CommonPlatforms.allDefaultTargetPlatforms.sortedBy { unifyJvmVersion(it.oldFashionedDescription) }
@@ -228,7 +233,8 @@ class KotlinFacetEditorGeneralTab(
     inner class ArgumentConsistencyValidator : FacetEditorValidator() {
         override fun check(): ValidationResult {
             val platform = editor.getChosenPlatform() ?: return ValidationResult(
-                KotlinBundle.message("facet.error.text.at.least.one.target.platform.should.be.selected"))
+                KotlinBundle.message("facet.error.text.at.least.one.target.platform.should.be.selected")
+            )
             val primaryArguments = platform.createArguments {
                 editor.compilerConfigurable.applyTo(
                     this,
@@ -276,7 +282,8 @@ class KotlinFacetEditorGeneralTab(
                             append("<br/>")
                         }
                         append(
-                            KotlinBundle.message("facet.text.following.arguments.are.redundant", redundantArguments.joinToString()))
+                            KotlinBundle.message("facet.text.following.arguments.are.redundant", redundantArguments.joinToString())
+                        )
                     }
                 }
                 return ValidationResult(message)
@@ -422,16 +429,16 @@ class KotlinFacetEditorGeneralTab(
                             it.isJs() -> editor.compilerConfigurable.k2jsCompilerArguments
                             else -> null
                         }
-                        compilerArguments = it.createArguments {
-                            if (platformArguments != null) {
-                                mergeBeans(platformArguments, this)
-                            }
-                            copyInheritedFields(compilerArguments!!, this)
-                        }
+                        compilerArgumentsData = FacetCompilerArgumentsDataInstanceBased(
+                            it.createArguments {
+                                if (platformArguments != null) {
+                                    mergeBeans(platformArguments, this)
+                                }
+                                copyInheritedFields(mergedCompilerArguments!!, this)
+                            })
                     }
                 }
                 configuration.settings.targetPlatform = editor.getChosenPlatform()
-                updateMergedArguments()
             }
         }
     }

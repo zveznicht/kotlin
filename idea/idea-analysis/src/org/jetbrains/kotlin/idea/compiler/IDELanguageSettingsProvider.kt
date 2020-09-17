@@ -75,11 +75,11 @@ object IDELanguageSettingsProvider : LanguageSettingsProvider {
         var result: Jsr305State? = null
         for (module in ModuleManager.getInstance(project).modules) {
             val settings = KotlinFacetSettingsProvider.getInstance(project)?.getSettings(module) ?: continue
-            val compilerArguments = settings.mergedCompilerArguments as? K2JVMCompilerArguments ?: continue
+            val compilerArgumentsData = settings.compilerArgumentsData ?: continue
 
             result = Jsr305Parser(MessageCollector.NONE).parse(
-                compilerArguments.jsr305,
-                compilerArguments.supportCompatqualCheckerFrameworkAnnotations
+                compilerArgumentsData.jsr305,
+                compilerArgumentsData.supportCompatqualCheckerFrameworkAnnotations
             )
 
         }

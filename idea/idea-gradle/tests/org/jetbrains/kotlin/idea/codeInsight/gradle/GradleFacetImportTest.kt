@@ -86,12 +86,13 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         importProject()
 
         with(facetSettings) {
+            val mergedCompilerArguments = mergedCompilerArguments
             Assert.assertEquals("1.3", languageLevel!!.versionString)
             Assert.assertEquals("1.3", apiLevel!!.versionString)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceLanguageVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceApiVersion)
+            Assert.assertFalse(mergedCompilerArguments!!.autoAdvanceLanguageVersion)
+            Assert.assertFalse(mergedCompilerArguments!!.autoAdvanceApiVersion)
             Assert.assertEquals(JvmPlatforms.jvm18, targetPlatform)
-            Assert.assertEquals("1.7", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
+            Assert.assertEquals("1.7", (mergedCompilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
                 "-Xallow-no-source-files -Xdump-declarations-to=tmp -Xsingle-module",
                 compilerSettings!!.additionalArguments
@@ -100,10 +101,10 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         with(testFacetSettings) {
             Assert.assertEquals("1.3", languageLevel!!.versionString)
             Assert.assertEquals("1.0", apiLevel!!.versionString)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceLanguageVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceApiVersion)
+            Assert.assertFalse(mergedCompilerArguments!!.autoAdvanceLanguageVersion)
+            Assert.assertFalse(mergedCompilerArguments!!.autoAdvanceApiVersion)
             Assert.assertEquals(JvmPlatforms.jvm16, targetPlatform)
-            Assert.assertEquals("1.6", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
+            Assert.assertEquals("1.6", (mergedCompilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
                 "-Xallow-no-source-files -Xdump-declarations-to=tmpTest",
                 compilerSettings!!.additionalArguments
@@ -147,7 +148,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertEquals("1.3", languageLevel!!.versionString)
             Assert.assertEquals("1.3", apiLevel!!.versionString)
             Assert.assertEquals(JvmPlatforms.jvm18, targetPlatform)
-            Assert.assertEquals("1.7", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
+            Assert.assertEquals("1.7", (mergedCompilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
                 "-Xallow-no-source-files -Xdump-declarations-to=tmp -Xsingle-module",
                 compilerSettings!!.additionalArguments
@@ -157,7 +158,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertEquals("1.3", languageLevel!!.versionString)
             Assert.assertEquals("1.0", apiLevel!!.versionString)
             Assert.assertEquals(JvmPlatforms.jvm16, targetPlatform)
-            Assert.assertEquals("1.6", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
+            Assert.assertEquals("1.6", (mergedCompilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
                 "-Xallow-no-source-files -Xdump-declarations-to=tmpTest",
                 compilerSettings!!.additionalArguments
@@ -210,12 +211,13 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         importProject()
 
         with(facetSettings) {
+            val mergedCompilerArguments = mergedCompilerArguments
             Assert.assertEquals("1.3", languageLevel!!.versionString)
             Assert.assertEquals("1.3", apiLevel!!.versionString)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceLanguageVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceApiVersion)
+            Assert.assertFalse(mergedCompilerArguments!!.autoAdvanceLanguageVersion)
+            Assert.assertFalse(mergedCompilerArguments.autoAdvanceApiVersion)
             Assert.assertTrue(targetPlatform.isJs())
-            with(compilerArguments as K2JSCompilerArguments) {
+            with(mergedCompilerArguments as K2JSCompilerArguments) {
                 Assert.assertEquals(true, sourceMap)
                 Assert.assertEquals("plain", moduleKind)
             }
@@ -226,12 +228,13 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         }
 
         with(testFacetSettings) {
+            val mergedCompilerArguments = mergedCompilerArguments
             Assert.assertEquals("1.3", languageLevel!!.versionString)
             Assert.assertEquals("1.0", apiLevel!!.versionString)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceLanguageVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceApiVersion)
+            Assert.assertFalse(mergedCompilerArguments!!.autoAdvanceLanguageVersion)
+            Assert.assertFalse(mergedCompilerArguments!!.autoAdvanceApiVersion)
             Assert.assertTrue(targetPlatform.isJs())
-            with(compilerArguments as K2JSCompilerArguments) {
+            with(mergedCompilerArguments as K2JSCompilerArguments) {
                 Assert.assertEquals(false, sourceMap)
                 Assert.assertEquals("umd", moduleKind)
             }
@@ -242,7 +245,8 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         }
 
         val rootManager = ModuleRootManager.getInstance(getModule("project_main"))
-        val stdlib = rootManager.orderEntries.filterIsInstance<LibraryOrderEntry>().single { it.libraryName?.contains("js") ?: false }.library
+        val stdlib =
+            rootManager.orderEntries.filterIsInstance<LibraryOrderEntry>().single { it.libraryName?.contains("js") ?: false }.library
         assertEquals(JSLibraryKind, (stdlib as LibraryEx).kind)
         assertTrue(stdlib.getFiles(OrderRootType.CLASSES).isNotEmpty())
 
@@ -311,7 +315,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertEquals("1.3", languageLevel!!.versionString)
             Assert.assertEquals("1.3", apiLevel!!.versionString)
             Assert.assertTrue(targetPlatform.isJs())
-            with(compilerArguments as K2JSCompilerArguments) {
+            with(mergedCompilerArguments as K2JSCompilerArguments) {
                 Assert.assertEquals(true, sourceMap)
                 Assert.assertEquals("plain", moduleKind)
             }
@@ -325,7 +329,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertEquals("1.3", languageLevel!!.versionString)
             Assert.assertEquals("1.0", apiLevel!!.versionString)
             Assert.assertTrue(targetPlatform.isJs())
-            with(compilerArguments as K2JSCompilerArguments) {
+            with(mergedCompilerArguments as K2JSCompilerArguments) {
                 Assert.assertEquals(false, sourceMap)
                 Assert.assertEquals("umd", moduleKind)
             }
@@ -546,7 +550,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
                     "plugin:org.jetbrains.kotlin.allopen:annotation=org.springframework.boot.test.context.SpringBootTest",
                     "plugin:org.jetbrains.kotlin.allopen:annotation=org.springframework.validation.annotation.Validated"
                 ),
-                compilerArguments!!.pluginOptions!!.toList()
+                compilerArgumentsData!!.pluginOptions!!.toList()
             )
         }
     }
@@ -566,7 +570,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
                     "plugin:org.jetbrains.kotlin.noarg:annotation=NoArg",
                     "plugin:org.jetbrains.kotlin.noarg:invokeInitializers=true"
                 ),
-                compilerArguments!!.pluginOptions!!.toList()
+                compilerArgumentsData!!.pluginOptions!!.toList()
             )
         }
     }
@@ -626,7 +630,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         importProject()
 
         with(facetSettings) {
-            Assert.assertEquals("tmp.jar", (compilerArguments as K2JVMCompilerArguments).classpath)
+            Assert.assertEquals("tmp.jar", (mergedCompilerArguments as K2JVMCompilerArguments).classpath)
         }
     }
 
@@ -636,7 +640,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         importProject()
 
         with(facetSettings) {
-            Assert.assertEquals(null, (compilerArguments as K2JVMCompilerArguments).classpath)
+            Assert.assertEquals(null, (mergedCompilerArguments as K2JVMCompilerArguments).classpath)
         }
     }
 
@@ -732,21 +736,23 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         with(facetSettings) {
             Assert.assertEquals("1.1", languageLevel!!.versionString)
             Assert.assertEquals("1.0", apiLevel!!.versionString)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceLanguageVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceApiVersion)
+            Assert.assertFalse(compilerArgumentsData!!.autoAdvanceLanguageVersion)
+            Assert.assertFalse(compilerArgumentsData!!.autoAdvanceApiVersion)
             Assert.assertTrue(targetPlatform.isCommon())
-            Assert.assertEquals("my/classpath", (compilerArguments as K2MetadataCompilerArguments).classpath)
-            Assert.assertEquals("my/destination", (compilerArguments as K2MetadataCompilerArguments).destination)
+            val mergedCompilerArguments = mergedCompilerArguments
+            Assert.assertEquals("my/classpath", (mergedCompilerArguments as K2MetadataCompilerArguments).classpath)
+            Assert.assertEquals("my/destination", (mergedCompilerArguments as K2MetadataCompilerArguments).destination)
         }
 
         with(facetSettings("project_test")) {
             Assert.assertEquals("1.1", languageLevel!!.versionString)
             Assert.assertEquals("1.0", apiLevel!!.versionString)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceLanguageVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceApiVersion)
+            Assert.assertFalse(compilerArgumentsData!!.autoAdvanceLanguageVersion)
+            Assert.assertFalse(compilerArgumentsData!!.autoAdvanceApiVersion)
             Assert.assertTrue(targetPlatform.isCommon())
-            Assert.assertEquals("my/test/classpath", (compilerArguments as K2MetadataCompilerArguments).classpath)
-            Assert.assertEquals("my/test/destination", (compilerArguments as K2MetadataCompilerArguments).destination)
+            val mergedCompilerArguments = mergedCompilerArguments
+            Assert.assertEquals("my/test/classpath", (mergedCompilerArguments as K2MetadataCompilerArguments).classpath)
+            Assert.assertEquals("my/test/destination", (mergedCompilerArguments as K2MetadataCompilerArguments).destination)
         }
 
         val rootManager = ModuleRootManager.getInstance(getModule("project_main"))

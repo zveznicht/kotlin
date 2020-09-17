@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.idea.inspections.UnusedSymbolInspection
 import org.jetbrains.kotlin.idea.test.CompilerTestDirectives.COMPILER_ARGUMENTS_DIRECTIVE
 import org.jetbrains.kotlin.idea.test.CompilerTestDirectives.JVM_TARGET_DIRECTIVE
 import org.jetbrains.kotlin.idea.test.CompilerTestDirectives.LANGUAGE_VERSION_DIRECTIVE
+import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
 import org.jetbrains.kotlin.test.KotlinTestUtils
@@ -275,9 +276,8 @@ private fun configureCompilerOptions(fileText: String, project: Project, module:
         val facetSettings = KotlinFacet.get(module)!!.configuration.settings
 
         if (jvmTarget != null) {
-            val compilerArguments = facetSettings.compilerArguments
-            require(compilerArguments is K2JVMCompilerArguments) { "Attempt to specify `$JVM_TARGET_DIRECTIVE` for non-JVM test" }
-            compilerArguments.jvmTarget = jvmTarget
+            require(facetSettings.targetPlatform?.isJvm() == true) { "Attempt to specify `$JVM_TARGET_DIRECTIVE` for non-JVM test" }
+            facetSettings.compilerArgumentsData!!.jvmTarget = jvmTarget
         }
 
         if (options != null) {
@@ -350,7 +350,7 @@ private fun rollbackCompilerOptions(project: Project, module: Module, removeFace
     configureLanguageAndApiVersion(project, module, LanguageVersion.LATEST_STABLE.versionString, ApiVersion.LATEST_STABLE.versionString)
 
     val facetSettings = KotlinFacet.get(module)!!.configuration.settings
-    (facetSettings.compilerArguments as? K2JVMCompilerArguments)?.jvmTarget = JvmTarget.DEFAULT.description
+    facetSettings.compilerArgumentsData?.jvmTarget = JvmTarget.DEFAULT.description
 
     val compilerSettings = facetSettings.compilerSettings ?: CompilerSettings().also {
         facetSettings.compilerSettings = it
@@ -396,9 +396,9 @@ private fun configureLanguageAndApiVersion(
         val modelsProvider = IdeModifiableModelsProviderImpl(project)
         val facet = module.getOrCreateFacet(modelsProvider, useProjectSettings = false)
 
-        val compilerArguments = facet.configuration.settings.compilerArguments
-        if (compilerArguments != null) {
-            compilerArguments.apiVersion = null
+        val compilerArgumentsData = facet.configuration.settings.compilerArgumentsData
+        if (compilerArgumentsData != null) {
+            compilerArgumentsData.apiVersion = null
         }
 
         facet.configureFacet(languageVersion, LanguageFeature.State.DISABLED, null, modelsProvider)
