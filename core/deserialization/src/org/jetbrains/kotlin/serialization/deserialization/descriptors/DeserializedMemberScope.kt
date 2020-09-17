@@ -37,23 +37,6 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.*
 
-private interface DeserializedMemberScopeHelper {
-    val functionNames: Set<Name>
-    val variableNames: Set<Name>
-    val typeAliasNames: Set<Name>
-
-    fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor>
-    fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor>
-    fun getTypeAliasByName(name: Name): TypeAliasDescriptor?
-
-    fun addFunctionsAndPropertiesTo(
-        result: MutableCollection<DeclarationDescriptor>,
-        kindFilter: DescriptorKindFilter,
-        nameFilter: (Name) -> Boolean,
-        location: LookupLocation
-    )
-}
-
 abstract class DeserializedMemberScope protected constructor(
     protected val c: DeserializationContext,
     functionList: Collection<ProtoBuf.Function>,
@@ -161,6 +144,23 @@ abstract class DeserializedMemberScope protected constructor(
 
         p.popIndent()
         p.println("}")
+    }
+
+    private interface DeserializedMemberScopeHelper {
+        val functionNames: Set<Name>
+        val variableNames: Set<Name>
+        val typeAliasNames: Set<Name>
+
+        fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor>
+        fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor>
+        fun getTypeAliasByName(name: Name): TypeAliasDescriptor?
+
+        fun addFunctionsAndPropertiesTo(
+            result: MutableCollection<DeclarationDescriptor>,
+            kindFilter: DescriptorKindFilter,
+            nameFilter: (Name) -> Boolean,
+            location: LookupLocation
+        )
     }
 
     private inner class OptimizedDeserializedMemberScopeHelper(
