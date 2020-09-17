@@ -97,7 +97,7 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : TypeCon
             // We also check if there are a loop with additional edges going from owner of companion to
             // the companion itself.
             // Note that we use already disconnected types to not report two diagnostics on cyclic supertypes
-            if (shouldReportScopesLoopError) {
+            if (shouldReportCyclicScopeWithCompanionWarning) {
                 supertypeLoopChecker.findLoopsInSupertypesAndDisconnect(
                     this, resultWithoutCycles,
                     { it.computeNeighbours(useCompanions = true) },
@@ -120,7 +120,7 @@ abstract class AbstractTypeConstructor(storageManager: StorageManager) : TypeCon
 
     // TODO: overload in AbstractTypeParameterDescriptor?
     protected open fun reportScopesLoopError(type: KotlinType) {}
-    protected open val shouldReportScopesLoopError: Boolean = false
+    protected open val shouldReportCyclicScopeWithCompanionWarning: Boolean = false
 
     protected open fun getAdditionalNeighboursInSupertypeGraph(useCompanions: Boolean): Collection<KotlinType> = emptyList()
     protected open fun defaultSupertypeIfEmpty(): KotlinType? = null
