@@ -653,7 +653,7 @@ public class LazyClassDescriptor extends ClassDescriptorBase implements ClassDes
         }
 
         @Override
-        protected boolean getShouldReportScopesLoopError() {
+        protected boolean getShouldReportCyclicScopeWithCompanionWarning() {
             return !c.getLanguageVersionSettings()
                     .supportsFeature(LanguageFeature.ProhibitVisibilityOfNestedClassifiersFromSupertypesOfCompanion);
         }
