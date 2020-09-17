@@ -393,8 +393,6 @@ fun applyCompilerArgumentsToFacet(
         if (languageLevel != null && apiLevel != null && apiLevel > languageLevel) {
             this.apiLevel = languageLevel
         }
-
-        updateMergedArguments()
     }
 }
 
