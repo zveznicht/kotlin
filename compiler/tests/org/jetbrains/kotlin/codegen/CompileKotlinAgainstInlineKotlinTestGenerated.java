@@ -4070,6 +4070,11 @@ public class CompileKotlinAgainstInlineKotlinTestGenerated extends AbstractCompi
                 runTest("compiler/testData/codegen/boxInline/suspend/callableReference/isAsReified.kt");
             }
 
+            @TestMetadata("isAsReified2.kt")
+            public void testIsAsReified2() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/suspend/callableReference/isAsReified2.kt");
+            }
+
             @TestMetadata("nonTailCall.kt")
             public void testNonTailCall() throws Exception {
                 runTest("compiler/testData/codegen/boxInline/suspend/callableReference/nonTailCall.kt");
