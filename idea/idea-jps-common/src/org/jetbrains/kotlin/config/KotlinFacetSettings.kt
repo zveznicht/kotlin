@@ -200,11 +200,15 @@ class KotlinFacetSettings {
     var useProjectSettings: Boolean = true
 
     var mergedCompilerArguments: CommonCompilerArguments? = null
+        get() {
+            updateMergedArguments()
+            return field
+        }
         private set
 
     // TODO: Workaround for unwanted facet settings modification on code analysis
     // To be replaced with proper API for settings update (see BaseKotlinCompilerSettings as an example)
-    fun updateMergedArguments() {
+    private fun updateMergedArguments() {
         val compilerArguments = compilerArguments
         val compilerSettings = compilerSettings
 
@@ -220,13 +224,11 @@ class KotlinFacetSettings {
     var compilerArguments: CommonCompilerArguments? = null
         set(value) {
             field = value?.unfrozen() as CommonCompilerArguments?
-            updateMergedArguments()
         }
 
     var compilerSettings: CompilerSettings? = null
         set(value) {
             field = value?.unfrozen() as CompilerSettings?
-            updateMergedArguments()
         }
 
     /*

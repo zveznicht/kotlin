@@ -287,7 +287,6 @@ private fun configureCompilerOptions(fileText: String, project: Project, module:
                 facetSettings.compilerSettings = it
             }
             compilerSettings.additionalArguments = options
-            facetSettings.updateMergedArguments()
 
             KotlinCompilerSettings.getInstance(project).update { this.additionalArguments = options }
         }
@@ -358,7 +357,6 @@ private fun rollbackCompilerOptions(project: Project, module: Module, removeFace
         facetSettings.compilerSettings = it
     }
     compilerSettings.additionalArguments = DEFAULT_ADDITIONAL_ARGUMENTS
-    facetSettings.updateMergedArguments()
 }
 
 fun withCustomLanguageAndApiVersion(
