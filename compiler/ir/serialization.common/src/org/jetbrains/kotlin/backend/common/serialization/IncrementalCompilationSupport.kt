@@ -126,6 +126,8 @@ class CurrentModuleWithICDeserializer(
         icDeserializer.init(delegate)
     }
 
+    override fun toString(): String = "Incremental Cache Klib"
+
     override val klib: IrLibrary
         get() = icDeserializer.klib
 

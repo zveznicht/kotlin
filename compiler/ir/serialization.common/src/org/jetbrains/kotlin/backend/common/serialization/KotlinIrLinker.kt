@@ -8,6 +8,8 @@ package org.jetbrains.kotlin.backend.common.serialization
 import org.jetbrains.kotlin.backend.common.LoggingContext
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideBuilder
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
+import org.jetbrains.kotlin.backend.common.serialization.exceptions.NoModuleFoundException
+import org.jetbrains.kotlin.backend.common.serialization.exceptions.NoModuleInDependencyFoundException
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -107,12 +109,14 @@ abstract class KotlinIrLinker(
                     filesWithPendingTopLevels.remove(pendingDeserializer)
                 }
             }
+
+            override fun toString(): String = klib.toString()
         }
 
         private val moduleDeserializationState = ModuleDeserializationState()
         private val moduleReversedFileIndex = mutableMapOf<IdSignature, IrDeserializerForFile>()
         override val moduleDependencies by lazy {
-            moduleDescriptor.allDependencyModules.filter { it != moduleDescriptor }.map { resolveModuleDeserializer(it) }
+            moduleDescriptor.allDependencyModules.filter { it != moduleDescriptor }.map { resolveModuleDeserializer(it, null) }
         }
 
         override fun init(delegate: IrModuleDeserializer) {
@@ -342,7 +346,11 @@ abstract class KotlinIrLinker(
 
             val topLevelSig = idSig.topLevelSignature()
             if (topLevelSig in moduleDeserializer) return moduleDeserializer
-            return moduleDeserializer.moduleDependencies.firstOrNull { topLevelSig in it } ?: handleNoModuleDeserializerFound(idSig)
+            return moduleDeserializer.moduleDependencies.firstOrNull { topLevelSig in it } ?: handleNoModuleDeserializerFound(
+                idSig,
+                moduleDeserializer.moduleDescriptor,
+                moduleDeserializer.moduleDependencies
+            )
         }
 
         private fun referenceIrSymbolData(symbol: IrSymbol, signature: IdSignature) {
@@ -447,12 +455,12 @@ abstract class KotlinIrLinker(
             return codedInputStream
         }
 
-    protected open fun handleNoModuleDeserializerFound(idSignature: IdSignature): IrModuleDeserializer {
-        error("Deserializer for declaration $idSignature is not found")
+    protected open fun handleNoModuleDeserializerFound(idSignature: IdSignature, currentModule: ModuleDescriptor, dependencies: Collection<IrModuleDeserializer>): IrModuleDeserializer {
+        throw NoModuleInDependencyFoundException(idSignature, currentModule, dependencies)
     }
 
-    protected open fun resolveModuleDeserializer(moduleDescriptor: ModuleDescriptor): IrModuleDeserializer {
-        return deserializersForModules[moduleDescriptor] ?: error("No module deserializer found for $moduleDescriptor")
+    protected open fun resolveModuleDeserializer(module: ModuleDescriptor, signature: IdSignature?): IrModuleDeserializer {
+        return deserializersForModules[module] ?: throw NoModuleFoundException(module, signature)
     }
 
     protected abstract fun createModuleDeserializer(
@@ -520,7 +528,7 @@ abstract class KotlinIrLinker(
 
         val descriptor = symbol.descriptor
 
-        val moduleDeserializer = resolveModuleDeserializer(descriptor.module)
+        val moduleDeserializer = resolveModuleDeserializer(descriptor.module, symbol.run { if (isPublicApi) signature else null} )
 
 //        moduleDeserializer.deserializeIrSymbol(signature, symbol.kind())
         moduleDeserializer.declareIrSymbol(symbol)
