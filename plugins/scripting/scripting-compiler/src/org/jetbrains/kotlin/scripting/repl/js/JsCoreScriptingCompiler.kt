@@ -59,7 +59,7 @@ class JsCoreScriptingCompiler(
         val files = listOf(snippetKtFile)
         val (bindingContext, module) = analysisResult
         val psi2ir = Psi2IrTranslator(environment.configuration.languageVersionSettings, Psi2IrConfiguration())
-        val psi2irContext = psi2ir.createGeneratorContext(module, bindingContext, symbolTable)
+        val psi2irContext = psi2ir.createGeneratorContext(module, bindingContext, symbolTable, messageCollector)
         val providers = generateTypicalIrProviderList(module, psi2irContext.irBuiltIns, psi2irContext.symbolTable)
         val irModuleFragment = psi2ir.generateModuleFragment(psi2irContext, files, providers, emptyList(), null) // TODO: deserializer
 
@@ -79,7 +79,8 @@ class JsCoreScriptingCompiler(
                 irModuleFragment.descriptor,
                 psi2irContext.irBuiltIns,
                 psi2irContext.symbolTable
-            )
+            ),
+            messageCollector
         ).generateUnboundSymbolsAsDependencies()
 
         environment.configuration.put(JSConfigurationKeys.MODULE_KIND, ModuleKind.PLAIN)

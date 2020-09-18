@@ -17,6 +17,7 @@
 package org.jetbrains.kotlin.backend.jvm
 
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.codegen.CodegenFactory
 import org.jetbrains.kotlin.codegen.MultifileClassCodegen
 import org.jetbrains.kotlin.codegen.PackageCodegen
@@ -51,7 +52,15 @@ class JvmIrCodegenFactory(private val phaseConfig: PhaseConfig) : CodegenFactory
         )
 
         JvmBackendFacade.doGenerateFilesInternal(
-            state, irModuleFragment, symbolTable, sourceManager, phaseConfig, irProviders, extensions, serializerFactory
+            state,
+            irModuleFragment,
+            symbolTable,
+            sourceManager,
+            phaseConfig,
+            irProviders,
+            extensions,
+            serializerFactory,
+            MessageCollector.NONE
         )
     }
 

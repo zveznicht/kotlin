@@ -43,10 +43,10 @@ object JvmBackendFacade {
         val mangler = JvmManglerDesc(MainFunctionDetector(state.bindingContext, state.languageVersionSettings))
         val psi2ir = Psi2IrTranslator(state.languageVersionSettings, Psi2IrConfiguration())
         val symbolTable = SymbolTable(JvmIdSignatureDescriptor(mangler), IrFactoryImpl, JvmNameProvider)
-        val psi2irContext = psi2ir.createGeneratorContext(state.module, state.bindingContext, symbolTable, extensions)
+        val messageCollector = MessageCollector.NONE // TODO: how to get real message collector?
+        val psi2irContext = psi2ir.createGeneratorContext(state.module, state.bindingContext, symbolTable, messageCollector, extensions)
         val pluginExtensions = IrGenerationExtension.getInstances(state.project)
         val functionFactory = IrFunctionFactory(psi2irContext.irBuiltIns, symbolTable)
-        val messageCollector = MessageCollector.NONE // TODO: how to get real message collector?
         psi2irContext.irBuiltIns.functionFactory = functionFactory
 
         val stubGenerator = DeclarationStubGenerator(
@@ -102,7 +102,13 @@ object JvmBackendFacade {
         }
         val irProviders = listOf(irLinker)
 
-        val irModuleFragment = psi2ir.generateModuleFragment(psi2irContext, files, irProviders, pluginExtensions, expectDescriptorToSymbol = null)
+        val irModuleFragment = psi2ir.generateModuleFragment(
+            psi2irContext,
+            files,
+            irProviders,
+            pluginExtensions,
+            expectDescriptorToSymbol = null
+        )
         irLinker.postProcess()
 
         stubGenerator.unboundSymbolGeneration = true
@@ -112,7 +118,7 @@ object JvmBackendFacade {
 
         doGenerateFilesInternal(
             state, irModuleFragment, psi2irContext.symbolTable, psi2irContext.sourceManager, phaseConfig,
-            irProviders, extensions, ::DescriptorMetadataSerializer
+            irProviders, extensions, ::DescriptorMetadataSerializer, messageCollector
         )
     }
 
@@ -125,13 +131,14 @@ object JvmBackendFacade {
         irProviders: List<IrProvider>,
         extensions: JvmGeneratorExtensions,
         serializerFactory: MetadataSerializerFactory,
+        messageCollector: MessageCollector
     ) {
         val context = JvmBackendContext(
             state, sourceManager, irModuleFragment.irBuiltins, irModuleFragment,
             symbolTable, phaseConfig, extensions.classNameOverride, serializerFactory
         )
         /* JvmBackendContext creates new unbound symbols, have to resolve them. */
-        ExternalDependenciesGenerator(symbolTable, irProviders).generateUnboundSymbolsAsDependencies()
+        ExternalDependenciesGenerator(symbolTable, irProviders, messageCollector).generateUnboundSymbolsAsDependencies()
 
         state.mapInlineClass = { descriptor ->
             context.typeMapper.mapType(context.referenceClass(descriptor).defaultType)

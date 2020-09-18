@@ -19,6 +19,7 @@ package org.jetbrains.kotlin.ir
 import org.jetbrains.kotlin.analyzer.AnalysisResult
 import org.jetbrains.kotlin.backend.common.serialization.signature.IdSignatureDescriptor
 import org.jetbrains.kotlin.backend.jvm.JvmGeneratorExtensions
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.codegen.CodegenTestCase
@@ -40,7 +41,6 @@ import org.jetbrains.kotlin.resolve.lazy.JvmResolveUtil
 import org.jetbrains.kotlin.test.ConfigurationKind
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
 import org.jetbrains.kotlin.test.KotlinTestUtils.getAnnotationsJar
-import org.jetbrains.kotlin.test.TargetBackend
 import java.io.File
 import java.util.*
 
@@ -144,6 +144,7 @@ abstract class AbstractIrGeneratorTestCase : CodegenTestCase() {
                 moduleDescriptor,
                 bindingContext,
                 SymbolTable(IdSignatureDescriptor(JsManglerDesc), IrFactoryImpl, NameProvider.DEFAULT),
+                MessageCollector.NONE,
                 generatorExtensions
             )
             val irProviders = generateTypicalIrProviderList(

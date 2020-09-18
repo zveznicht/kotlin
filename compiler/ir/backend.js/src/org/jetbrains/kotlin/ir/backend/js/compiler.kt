@@ -9,6 +9,8 @@ import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.analyzer.AbstractAnalyzerWithCompilerReport
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
 import org.jetbrains.kotlin.backend.common.phaser.invokeToplevel
+import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.ir.backend.js.lower.generateTests
 import org.jetbrains.kotlin.ir.backend.js.lower.moveBodilessDeclarationsToSeparatePlace
@@ -55,6 +57,7 @@ fun compile(
         loadIr(project, mainModule, analyzer, configuration, allDependencies, friendDependencies, PersistentIrFactory)
 
     val moduleDescriptor = moduleFragment.descriptor
+    val messageCollector = configuration[CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY] ?: MessageCollector.NONE
 
     val allModules = when (mainModule) {
         is MainModule.SourceFiles -> dependencyModules + listOf(moduleFragment)
@@ -65,7 +68,7 @@ fun compile(
 
     // Load declarations referenced during `context` initialization
     val irProviders = listOf(deserializer)
-    ExternalDependenciesGenerator(symbolTable, irProviders).generateUnboundSymbolsAsDependencies()
+    ExternalDependenciesGenerator(symbolTable, irProviders, messageCollector).generateUnboundSymbolsAsDependencies()
 
     deserializer.postProcess()
     symbolTable.noUnboundLeft("Unbound symbols at the end of linker")

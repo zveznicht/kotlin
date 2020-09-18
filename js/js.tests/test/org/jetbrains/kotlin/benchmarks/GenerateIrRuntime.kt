@@ -450,7 +450,7 @@ class GenerateIrRuntime {
     private fun doPsi2Ir(files: List<KtFile>, analysisResult: AnalysisResult): IrModuleFragment {
         val psi2Ir = Psi2IrTranslator(languageVersionSettings, Psi2IrConfiguration())
         val symbolTable = SymbolTable(IdSignatureDescriptor(JsManglerDesc), PersistentIrFactory)
-        val psi2IrContext = psi2Ir.createGeneratorContext(analysisResult.moduleDescriptor, analysisResult.bindingContext, symbolTable)
+        val psi2IrContext = psi2Ir.createGeneratorContext(analysisResult.moduleDescriptor, analysisResult.bindingContext, symbolTable, MessageCollector.NONE)
 
         val irBuiltIns = psi2IrContext.irBuiltIns
         val functionFactory = IrFunctionFactory(irBuiltIns, psi2IrContext.symbolTable)
@@ -524,7 +524,7 @@ class GenerateIrRuntime {
         val moduleFragment = jsLinker.deserializeFullModule(moduleDescriptor, moduleDescriptor.kotlinLibrary)
         jsLinker.init(null, emptyList())
         // Create stubs
-        ExternalDependenciesGenerator(symbolTable, listOf(jsLinker))
+        ExternalDependenciesGenerator(symbolTable, listOf(jsLinker), MessageCollector.NONE)
             .generateUnboundSymbolsAsDependencies()
 
         jsLinker.postProcess()
@@ -555,7 +555,7 @@ class GenerateIrRuntime {
         // Create stubs
         jsLinker.init(null, emptyList())
         // Create stubs
-        ExternalDependenciesGenerator(symbolTable, listOf(jsLinker))
+        ExternalDependenciesGenerator(symbolTable, listOf(jsLinker), MessageCollector.NONE)
             .generateUnboundSymbolsAsDependencies()
 
         jsLinker.postProcess()
@@ -569,7 +569,7 @@ class GenerateIrRuntime {
     private fun doBackEnd(module: IrModuleFragment, symbolTable: SymbolTable, irBuiltIns: IrBuiltIns, jsLinker: JsIrLinker): CompilerResult {
         val context = JsIrBackendContext(module.descriptor, irBuiltIns, symbolTable, module, emptySet(), configuration)
 
-        ExternalDependenciesGenerator(symbolTable, listOf(jsLinker)).generateUnboundSymbolsAsDependencies()
+        ExternalDependenciesGenerator(symbolTable, listOf(jsLinker), MessageCollector.NONE).generateUnboundSymbolsAsDependencies()
 
         jsPhases.invokeToplevel(phaseConfig, context, listOf(module))
 

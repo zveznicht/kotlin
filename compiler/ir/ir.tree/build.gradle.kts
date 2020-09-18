@@ -5,6 +5,7 @@ plugins {
 }
 
 dependencies {
+    compile(project(":compiler:cli-common"))
     compile(project(":compiler:util"))
     compile(project(":compiler:frontend"))
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }

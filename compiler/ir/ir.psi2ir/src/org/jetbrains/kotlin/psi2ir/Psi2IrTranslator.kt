@@ -16,6 +16,7 @@
 
 package org.jetbrains.kotlin.psi2ir
 
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -50,6 +51,7 @@ class Psi2IrTranslator(
         moduleDescriptor: ModuleDescriptor,
         bindingContext: BindingContext,
         symbolTable: SymbolTable,
+        messageCollector: MessageCollector,
         extensions: GeneratorExtensions = GeneratorExtensions()
     ): GeneratorContext {
         val typeTranslator = TypeTranslator(symbolTable, languageVersionSettings, moduleDescriptor.builtIns, extensions = extensions)
@@ -66,6 +68,7 @@ class Psi2IrTranslator(
             typeTranslator,
             constantValueGenerator,
             IrBuiltIns(moduleDescriptor.builtIns, typeTranslator, symbolTable),
+            messageCollector
         )
     }
 

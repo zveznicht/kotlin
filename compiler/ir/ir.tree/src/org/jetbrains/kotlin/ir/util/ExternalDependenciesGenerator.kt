@@ -16,6 +16,8 @@
 
 package org.jetbrains.kotlin.ir.util
 
+import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
@@ -26,7 +28,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 class ExternalDependenciesGenerator(
     val symbolTable: SymbolTable,
-    private val irProviders: List<IrProvider>
+    private val irProviders: List<IrProvider>,
+    private val messageCollector: MessageCollector
 ) {
     fun generateUnboundSymbolsAsDependencies() {
         // There should be at most one DeclarationStubGenerator (none in closed world?)
@@ -38,18 +41,23 @@ class ExternalDependenciesGenerator(
          */
         var unbound = setOf<IrSymbol>()
         lateinit var prevUnbound: Set<IrSymbol>
-        do {
-            prevUnbound = unbound
-            unbound = symbolTable.allUnbound
+        try {
+            do {
+                prevUnbound = unbound
+                unbound = symbolTable.allUnbound
 
-            for (symbol in unbound) {
-                // Symbol could get bound as a side effect of deserializing other symbols.
-                if (!symbol.isBound) {
-                    irProviders.getDeclaration(symbol)
+                for (symbol in unbound) {
+                    // Symbol could get bound as a side effect of deserializing other symbols.
+                    if (!symbol.isBound) {
+                        irProviders.getDeclaration(symbol)
+                    }
                 }
-            }
-        // We wait for the unbound to stabilize on fake overrides.
-        } while (unbound != prevUnbound)
+                // We wait for the unbound to stabilize on fake overrides.
+            } while (unbound != prevUnbound)
+        } catch (ex: Exception) {
+            messageCollector.report(CompilerMessageSeverity.EXCEPTION, ex.message ?: ex.toString())
+            throw Exception("Linkage error", ex)
+        }
     }
 }
 

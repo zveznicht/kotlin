@@ -10,7 +10,6 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.analyzer.AbstractAnalyzerWithCompilerReport
 import org.jetbrains.kotlin.analyzer.AnalysisResult
-import org.jetbrains.kotlin.backend.common.LoggingContext
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContextImpl
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideChecker
@@ -140,7 +139,7 @@ fun generateKLib(
     val depsDescriptors =
         ModulesStructure(project, MainModule.SourceFiles(files), analyzer, configuration, allDependencies, friendDependencies)
 
-    val psi2IrContext = runAnalysisAndPreparePsi2Ir(depsDescriptors, irFactory, errorPolicy)
+    val psi2IrContext = runAnalysisAndPreparePsi2Ir(depsDescriptors, irFactory, messageCollector, errorPolicy)
     val irBuiltIns = psi2IrContext.irBuiltIns
     val functionFactory = IrFunctionFactory(irBuiltIns, psi2IrContext.symbolTable)
     irBuiltIns.functionFactory = functionFactory
@@ -228,7 +227,7 @@ fun loadIr(
 
     when (mainModule) {
         is MainModule.SourceFiles -> {
-            val psi2IrContext: GeneratorContext = runAnalysisAndPreparePsi2Ir(depsDescriptors, irFactory, errorPolicy)
+            val psi2IrContext: GeneratorContext = runAnalysisAndPreparePsi2Ir(depsDescriptors, irFactory, messageCollector, errorPolicy)
             val irBuiltIns = psi2IrContext.irBuiltIns
             val symbolTable = psi2IrContext.symbolTable
             val functionFactory = IrFunctionFactory(irBuiltIns, symbolTable)
@@ -287,9 +286,8 @@ fun loadIr(
             irBuiltIns.functionFactory = functionFactory
 
             val moduleFragment = deserializedModuleFragments.last()
-
             irLinker.init(null, emptyList())
-            ExternalDependenciesGenerator(symbolTable, listOf(irLinker)).generateUnboundSymbolsAsDependencies()
+            ExternalDependenciesGenerator(symbolTable, listOf(irLinker), messageCollector).generateUnboundSymbolsAsDependencies()
             irLinker.postProcess()
 
             return IrModuleInfo(moduleFragment, deserializedModuleFragments, irBuiltIns, symbolTable, irLinker)
@@ -297,11 +295,11 @@ fun loadIr(
     }
 }
 
-private fun runAnalysisAndPreparePsi2Ir(depsDescriptors: ModulesStructure, irFactory: IrFactory, errorIgnorancePolicy: ErrorTolerancePolicy): GeneratorContext {
+private fun runAnalysisAndPreparePsi2Ir(depsDescriptors: ModulesStructure, irFactory: IrFactory, messageCollector: MessageCollector, errorIgnorancePolicy: ErrorTolerancePolicy): GeneratorContext {
     val (bindingContext, moduleDescriptor) = depsDescriptors.runAnalysis(errorIgnorancePolicy)
     val psi2Ir = Psi2IrTranslator(depsDescriptors.compilerConfiguration.languageVersionSettings, Psi2IrConfiguration(errorIgnorancePolicy.allowErrors))
     val symbolTable = SymbolTable(IdSignatureDescriptor(JsManglerDesc), irFactory)
-    return psi2Ir.createGeneratorContext(moduleDescriptor, bindingContext, symbolTable)
+    return psi2Ir.createGeneratorContext(moduleDescriptor, bindingContext, symbolTable, messageCollector)
 }
 
 fun GeneratorContext.generateModuleFragmentWithPlugins(

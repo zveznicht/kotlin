@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.scripting.repl.js
 
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
+import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.LanguageVersionSettingsImpl
@@ -34,6 +35,7 @@ class JsScriptDependencyCompiler(
     fun compile(dependencies: List<ModuleDescriptor>): String {
         val builtIns: KotlinBuiltIns = dependencies.single { it.allDependencyModules.isEmpty() }.builtIns
         val languageVersionSettings = LanguageVersionSettingsImpl.DEFAULT
+        val messageCollector = configuration[CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY] ?: MessageCollector.NONE
         val moduleName = Name.special("<script-dependencies>")
         val storageManager = LockBasedStorageManager.NO_LOCKS
         val moduleDescriptor = ModuleDescriptorImpl(moduleName, storageManager, builtIns, null).also {
@@ -56,7 +58,7 @@ class JsScriptDependencyCompiler(
 
         jsLinker.init(null, emptyList())
 
-        ExternalDependenciesGenerator(symbolTable, irProviders)
+        ExternalDependenciesGenerator(symbolTable, irProviders, messageCollector)
             .generateUnboundSymbolsAsDependencies()
         moduleFragment.patchDeclarationParents()
 
@@ -70,7 +72,7 @@ class JsScriptDependencyCompiler(
             true
         )
 
-        ExternalDependenciesGenerator(symbolTable, irProviders)
+        ExternalDependenciesGenerator(symbolTable, irProviders, messageCollector)
             .generateUnboundSymbolsAsDependencies()
         moduleFragment.patchDeclarationParents()
         jsLinker.postProcess()

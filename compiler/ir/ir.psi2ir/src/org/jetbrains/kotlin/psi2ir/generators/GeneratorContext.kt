@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.psi2ir.generators
 
 import org.jetbrains.kotlin.builtins.ReflectionTypes
+import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -30,7 +31,8 @@ class GeneratorContext(
     val extensions: GeneratorExtensions,
     val typeTranslator: TypeTranslator,
     val constantValueGenerator: ConstantValueGenerator,
-    override val irBuiltIns: IrBuiltIns
+    override val irBuiltIns: IrBuiltIns,
+    val messageCollector: MessageCollector
 ) : IrGeneratorContext {
     val callToSubstitutedDescriptorMap = mutableMapOf<IrDeclarationReference, CallableDescriptor>()
 
