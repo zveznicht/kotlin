@@ -36,6 +36,8 @@ interface IrPluginContext : IrGeneratorContext {
 
     val platform: TargetPlatform?
 
+    fun createDiagnosticReporter(pluginId: String): IrPluginDiagnosticReporter
+
     // The following API is experimental
     fun referenceClass(fqName: FqName): IrClassSymbol?
     fun referenceTypeAlias(fqName: FqName): IrTypeAliasSymbol?

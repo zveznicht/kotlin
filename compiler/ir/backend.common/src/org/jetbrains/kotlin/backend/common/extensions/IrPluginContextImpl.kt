@@ -33,6 +33,7 @@ open class IrPluginContextImpl constructor(
     override val typeTranslator: TypeTranslator,
     override val irBuiltIns: IrBuiltIns,
     val linker: IrDeserializer,
+    private val diagnosticReporter: IrPluginDiagnosticReporter,
     override val symbols: BuiltinSymbolsBase = BuiltinSymbolsBase(irBuiltIns, irBuiltIns.builtIns, st)
 ) : IrPluginContext {
 
@@ -66,6 +67,18 @@ open class IrPluginContextImpl constructor(
         linker.postProcess()
 
         return symbol
+    }
+
+    override fun createDiagnosticReporter(pluginId: String): IrPluginDiagnosticReporter {
+        return object : IrPluginDiagnosticReporter {
+            override fun report(
+                severity: IrPluginDiagnosticReporter.Severity,
+                message: String,
+                location: IrPluginDiagnosticReporter.Location?
+            ) {
+                diagnosticReporter.report(severity, "[$pluginId] $message", location)
+            }
+        }
     }
 
     private fun <S : IrSymbol> resolveSymbolCollection(fqName: FqName, referencer: (MemberScope) -> Collection<S>): Collection<S> {

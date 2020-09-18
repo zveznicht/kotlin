@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrPluginContextImpl
 import org.jetbrains.kotlin.backend.common.overrides.FakeOverrideChecker
 import org.jetbrains.kotlin.backend.common.serialization.DeserializationStrategy
 import org.jetbrains.kotlin.backend.common.serialization.KlibIrVersion
+import org.jetbrains.kotlin.backend.common.serialization.extensions.MessageCollectorReporter
 import org.jetbrains.kotlin.backend.common.serialization.knownBuiltins
 import org.jetbrains.kotlin.backend.common.serialization.mangle.ManglerChecker
 import org.jetbrains.kotlin.backend.common.serialization.mangle.descriptor.Ir2DescriptorManglerAdapter
@@ -311,6 +312,7 @@ fun GeneratorContext.generateModuleFragmentWithPlugins(
     val psi2Ir = Psi2IrTranslator(languageVersionSettings, configuration)
 
     val extensions = IrGenerationExtension.getInstances(project)
+    val diagnosticReporter = MessageCollectorReporter(messageCollector)
 
     if (extensions.isNotEmpty()) {
         // plugin context should be instantiated before postprocessing steps
@@ -321,9 +323,9 @@ fun GeneratorContext.generateModuleFragmentWithPlugins(
             symbolTable,
             typeTranslator,
             irBuiltIns,
-            linker = irLinker
+            linker = irLinker,
+            diagnosticReporter
         )
-
         for (extension in extensions) {
             psi2Ir.addPostprocessingStep { module ->
                 extension.generate(module, pluginContext)

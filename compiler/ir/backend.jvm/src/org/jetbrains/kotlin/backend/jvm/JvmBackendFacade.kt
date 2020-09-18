@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContextImpl
 import org.jetbrains.kotlin.backend.common.ir.BuiltinSymbolsBase
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
+import org.jetbrains.kotlin.backend.common.serialization.extensions.MessageCollectorReporter
 import org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen
 import org.jetbrains.kotlin.backend.jvm.codegen.DescriptorMetadataSerializer
 import org.jetbrains.kotlin.backend.jvm.lower.MultifileFacadeFileEntry
@@ -78,8 +79,17 @@ object JvmBackendFacade {
         val pluginContext by lazy {
             psi2irContext.run {
                 val symbols = BuiltinSymbolsBase(irBuiltIns, moduleDescriptor.builtIns, symbolTable.lazyWrapper)
+                val diagnosticReporter = MessageCollectorReporter(messageCollector)
                 IrPluginContextImpl(
-                    moduleDescriptor, bindingContext, languageVersionSettings, symbolTable, typeTranslator, irBuiltIns, irLinker, symbols
+                    moduleDescriptor,
+                    bindingContext,
+                    languageVersionSettings,
+                    symbolTable,
+                    typeTranslator,
+                    irBuiltIns,
+                    irLinker,
+                    diagnosticReporter,
+                    symbols
                 )
             }
         }
