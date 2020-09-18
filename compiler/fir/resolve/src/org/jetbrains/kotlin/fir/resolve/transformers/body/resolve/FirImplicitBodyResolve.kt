@@ -173,11 +173,6 @@ open class FirImplicitAwareBodyResolveTransformer(
 
         return result
     }
-
-    override fun transformScript(script: FirScript, data: ResolutionMode): CompositeTransformResult<FirStatement> {
-        script.body?.transformStatements(this, data)
-        return super.transformScript(script, data)
-    }
 }
 
 private class ReturnTypeCalculatorWithJump(
