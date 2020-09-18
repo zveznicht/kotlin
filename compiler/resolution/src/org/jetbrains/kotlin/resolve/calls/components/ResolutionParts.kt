@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.builtins.UnsignedTypes
 import org.jetbrains.kotlin.builtins.getReceiverTypeFromFunctionType
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor
+import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.calls.components.TypeArgumentsToParametersMapper.TypeArgumentsMapping.NoExplicitArguments
 import org.jetbrains.kotlin.resolve.calls.inference.ConstraintSystemOperation
 import org.jetbrains.kotlin.resolve.calls.inference.NewConstraintSystem
@@ -43,7 +44,21 @@ internal object CheckVisibility : ResolutionPart() {
 
         if (dispatchReceiverArgument is ExpressionKotlinCallArgument) {
             val smartCastReceiver = getReceiverValueWithSmartCast(receiverValue, dispatchReceiverArgument.receiver.stableType)
-            if (DescriptorVisibilities.findInvisibleMember(smartCastReceiver, candidateDescriptor, containingDescriptor) == null) {
+            val containingPackageOfSmartCastConstructor = DescriptorUtils.getParentOfType(
+                smartCastReceiver?.type?.constructor?.declarationDescriptor,
+                PackageFragmentDescriptor::class.java
+            )
+            val containingPackageOfCandidateConstructor = DescriptorUtils.getParentOfType(
+                candidateDescriptor.containingDeclaration,
+                PackageFragmentDescriptor::class.java
+            )
+            val areSmartCastAndCandidateDeclaredTypesInSamePackage =
+                containingPackageOfSmartCastConstructor == containingPackageOfCandidateConstructor
+            val isInvisibleMember =
+                DescriptorVisibilities.findInvisibleMember(smartCastReceiver, candidateDescriptor, containingDescriptor) != null
+
+            // We should prohibit access to protected members in another package (see JLS "6.6.2.2. Qualified Access to a protected Constructor")
+            if (!isInvisibleMember && areSmartCastAndCandidateDeclaredTypesInSamePackage) {
                 addDiagnostic(
                     SmartCastDiagnostic(
                         dispatchReceiverArgument,
