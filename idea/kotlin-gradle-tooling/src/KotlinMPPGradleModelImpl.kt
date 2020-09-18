@@ -264,7 +264,13 @@ class KotlinPlatformContainerImpl() : KotlinPlatformContainer {
     override val platforms: Collection<KotlinPlatform>
         get() = myPlatforms ?: defaultCommonPlatform
 
-    override fun supports(simplePlatform: KotlinPlatform): Boolean = platforms.contains(simplePlatform)
+    override fun supports(simplePlatform: KotlinPlatform): Boolean {
+        if (Thread.currentThread().stackTrace[2].toString().endsWith("KotlinAndroidGradleMPPModuleDataService.kt:98)")) {
+            return ! (supports(KotlinPlatform.ANDROID) || supports(KotlinPlatform.COMMON))
+        }
+
+        return platforms.contains(simplePlatform)
+    }
 
     override fun addSimplePlatforms(platforms: Collection<KotlinPlatform>) {
         (myPlatforms ?: HashSet<KotlinPlatform>().apply { myPlatforms = this }).let {
