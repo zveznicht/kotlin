@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.resolve.MemberComparator
 import org.jetbrains.kotlin.resolve.scopes.DescriptorKindFilter
 import org.jetbrains.kotlin.resolve.scopes.MemberScopeImpl
 import org.jetbrains.kotlin.serialization.deserialization.DeserializationContext
+import org.jetbrains.kotlin.serialization.deserialization.MemberDeserializer
 import org.jetbrains.kotlin.serialization.deserialization.getName
 import org.jetbrains.kotlin.storage.getValue
 import org.jetbrains.kotlin.utils.Printer
@@ -39,13 +40,13 @@ import java.util.*
 
 abstract class DeserializedMemberScope protected constructor(
     protected val c: DeserializationContext,
-    functionList: Collection<ProtoBuf.Function>,
-    propertyList: Collection<ProtoBuf.Property>,
-    typeAliasList: Collection<ProtoBuf.TypeAlias>,
+    functionList: List<ProtoBuf.Function>,
+    propertyList: List<ProtoBuf.Property>,
+    typeAliasList: List<ProtoBuf.TypeAlias>,
     classNames: () -> Collection<Name>
 ) : MemberScopeImpl() {
 
-    private val helper: DeserializedMemberScopeHelper = OptimizedDeserializedMemberScopeHelper(functionList, propertyList, typeAliasList)
+    private val helper: DeserializedMemberScopeHelper = createMemberScopeHelper(functionList, propertyList, typeAliasList)
 
     internal val classNames by c.storageManager.createLazyValue { classNames().toSet() }
 
@@ -146,6 +147,40 @@ abstract class DeserializedMemberScope protected constructor(
         p.println("}")
     }
 
+    /**
+     * This interface were introduces to fix KT-41346.
+     *
+     * The first implementation, [OptimizedDeserializedMemberScopeHelper], is more space-efficient and performant. It does not
+     * preserve the order of declarations in [addFunctionsAndPropertiesTo] though, and have to restore it manually. It is used
+     * in most situations when the [DeserializedMemberScope] is created.
+     *
+     * The second implementation, [NoReorderDeserializedMemberScopeHelper], is less efficient, but it keeps the descriptors
+     * in the same order as in serialized ProtoBuf objects in [addFunctionsAndPropertiesTo]. It should be used only when
+     * [org.jetbrains.kotlin.serialization.deserialization.DeserializationConfiguration.preserveDeclarationsOrdering] is
+     * set to `true`, which is done during decompilation from deserialized descriptors.
+     *
+     * The decompiled descriptors are used to build PSI, which is then compared with PSI built directly from classfiles and metadata.
+     *
+     * If the declarations in the first and the second PSI go in different order, PSI-Stub mismatch error is raised.
+     *
+     * PSI from classfiles and metadata uses the same order of the declarations as in the serialized ProtoBuf objects.
+     * This order is dictated by [MemberComparator].
+     *
+     * [OptimizedDeserializedMemberScopeHelper] uses [MemberComparator.NameAndTypeMemberComparator] to restore the same order
+     * of the declarations as it should be in serialized objects. However, this does not always work, for example when
+     * the Kotlin classes were obfuscated by ProGuard.
+     *
+     * ProGuard may rename some declarations in serialized objects, and then the comparator will reorder them based on their new names.
+     * This will lead to PSI-Stub mismatch error, since the declarations are now differently ordered.
+     *
+     * To avoid this, we have [NoReorderDeserializedMemberScopeHelper] implementation. It performs no reordering of the declarations at
+     * all. Since it is less space-efficient, it is used only the scope is going to be used during decompilation.
+
+     * [createMemberScopeHelper] is used to create the correct implementation of [DeserializedMemberScopeHelper].
+     *
+     * Both [OptimizedDeserializedMemberScopeHelper] and [NoReorderDeserializedMemberScopeHelper] are made inner classes to have
+     * access to protected `getNonDeclared*` functions.
+     */
     private interface DeserializedMemberScopeHelper {
         val functionNames: Set<Name>
         val variableNames: Set<Name>
@@ -162,6 +197,16 @@ abstract class DeserializedMemberScope protected constructor(
             location: LookupLocation
         )
     }
+
+    private fun createMemberScopeHelper(
+        functionList: List<ProtoBuf.Function>,
+        propertyList: List<ProtoBuf.Property>,
+        typeAliasList: List<ProtoBuf.TypeAlias>
+    ): DeserializedMemberScopeHelper =
+        if (c.components.configuration.preserveDeclarationsOrdering)
+            NoReorderDeserializedMemberScopeHelper(functionList, propertyList, typeAliasList)
+        else
+            OptimizedDeserializedMemberScopeHelper(functionList, propertyList, typeAliasList)
 
     private inner class OptimizedDeserializedMemberScopeHelper(
         functionList: Collection<ProtoBuf.Function>,
@@ -312,8 +357,120 @@ abstract class DeserializedMemberScope protected constructor(
                 }
             }
 
+            // We perform the sort just in case
             subResult.sortWith(MemberComparator.NameAndTypeMemberComparator.INSTANCE)
             result.addAll(subResult)
+        }
+    }
+
+    /**
+     * Take a note that [NoReorderDeserializedMemberScopeHelper] still adds non-declared members together with directly declared in class.
+     * This is not a problem for ordering, since during decompilation from descriptors those non-declared members are just ignored,
+     * and the declared members will be added to decompiled text in the proper (i.e. original) order.
+     */
+    private inner class NoReorderDeserializedMemberScopeHelper(
+        private val functionList: List<ProtoBuf.Function>,
+        private val propertyList: List<ProtoBuf.Property>,
+        typeAliasList: List<ProtoBuf.TypeAlias>
+    ) : DeserializedMemberScopeHelper {
+
+        private val typeAliasList = if (c.components.configuration.typeAliasesAllowed) typeAliasList else emptyList()
+
+        private val declaredFunctions: List<SimpleFunctionDescriptor>
+                by c.storageManager.createLazyValue { computeFunctions() }
+
+        private val declaredProperties: List<PropertyDescriptor>
+                by c.storageManager.createLazyValue { computeProperties() }
+
+        private val allTypeAliases: List<TypeAliasDescriptor>
+                by c.storageManager.createLazyValue { computeTypeAliases() }
+
+        private val nonDeclaredFunctions: List<SimpleFunctionDescriptor>
+                by c.storageManager.createLazyValue { computeNonDeclaredFunctions() }
+
+        private val nonDeclaredProperties: List<PropertyDescriptor>
+                by c.storageManager.createLazyValue { computeNonDeclaredProperties() }
+
+        private val allFunctions: List<SimpleFunctionDescriptor>
+                by c.storageManager.createLazyValue { declaredFunctions + nonDeclaredFunctions }
+
+        private val allProperties: List<PropertyDescriptor>
+                by c.storageManager.createLazyValue { declaredProperties + nonDeclaredProperties }
+
+        override val functionNames by c.storageManager.createLazyValue {
+            functionList.mapToNames { it.name } + getNonDeclaredFunctionNames()
+        }
+
+        override val variableNames by c.storageManager.createLazyValue {
+            propertyList.mapToNames { it.name } + getNonDeclaredVariableNames()
+        }
+
+        override val typeAliasNames: Set<Name>
+            get() = typeAliasList.mapToNames { it.name }
+
+        private fun computeFunctions(): List<SimpleFunctionDescriptor> =
+            functionList.mapWithDeserializer { loadFunction(it) }
+
+        private fun computeProperties(): List<PropertyDescriptor> =
+            propertyList.mapWithDeserializer { loadProperty(it) }
+
+        private fun computeTypeAliases(): List<TypeAliasDescriptor> =
+            typeAliasList.mapWithDeserializer { loadTypeAlias(it) }
+
+        @OptIn(ExperimentalStdlibApi::class)
+        private fun computeNonDeclaredFunctions(): List<SimpleFunctionDescriptor> =
+            buildList {
+                for (name in getNonDeclaredFunctionNames()) {
+                    computeNonDeclaredFunctions(name, this)
+                }
+            }
+
+        @OptIn(ExperimentalStdlibApi::class)
+        private fun computeNonDeclaredProperties(): List<PropertyDescriptor> =
+            buildList {
+                for (name in getNonDeclaredVariableNames()) {
+                    computeNonDeclaredProperties(name, this)
+                }
+            }
+
+        override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
+            if (name !in functionNames) return emptyList()
+            return allFunctions.filter { it.name == name }
+        }
+
+        override fun getTypeAliasByName(name: Name): TypeAliasDescriptor? {
+            return allTypeAliases.find { it.name == name }
+        }
+
+        override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
+            if (name !in variableNames) return emptyList()
+            return allProperties.filter { it.name == name }
+        }
+
+        override fun addFunctionsAndPropertiesTo(
+            result: MutableCollection<DeclarationDescriptor>,
+            kindFilter: DescriptorKindFilter,
+            nameFilter: (Name) -> Boolean,
+            location: LookupLocation
+        ) {
+            if (kindFilter.acceptsKinds(DescriptorKindFilter.VARIABLES_MASK)) {
+                allProperties.filterTo(result) { nameFilter(it.name) }
+            }
+
+            if (kindFilter.acceptsKinds(DescriptorKindFilter.FUNCTIONS_MASK)) {
+                allFunctions.filterTo(result) { nameFilter(it.name) }
+            }
+        }
+
+        private inline fun <T : MessageLite> List<T>.mapToNames(getNameIndex: (T) -> Int): Set<Name> {
+            // `mutableSetOf` returns `LinkedHashSet`, it is important to preserve the order of the declarations.
+            return mapTo(mutableSetOf()) { c.nameResolver.getName(getNameIndex(it)) }
+        }
+
+        private inline fun <T : MessageLite, K : MemberDescriptor> List<T>.mapWithDeserializer(
+            deserialize: MemberDeserializer.(T) -> K
+        ): List<K> {
+            return map { c.memberDeserializer.deserialize(it) }
         }
     }
 }
