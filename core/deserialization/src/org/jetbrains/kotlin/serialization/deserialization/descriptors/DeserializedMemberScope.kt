@@ -69,15 +69,19 @@ abstract class DeserializedMemberScope protected constructor(
      */
     protected open fun isDeclaredFunctionAvailable(function: SimpleFunctionDescriptor): Boolean = true
 
-    protected open fun computeNonDeclaredFunctions(name: Name, functions: MutableCollection<SimpleFunctionDescriptor>) {
-    }
+    protected open fun computeNonDeclaredFunctions(
+        name: Name,
+        functionsWithSameName: Collection<SimpleFunctionDescriptor>
+    ): Collection<SimpleFunctionDescriptor> = emptyList()
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
         return helper.getContributedFunctions(name, location)
     }
 
-    protected open fun computeNonDeclaredProperties(name: Name, descriptors: MutableCollection<PropertyDescriptor>) {
-    }
+    protected open fun computeNonDeclaredProperties(
+        name: Name,
+        propertiesWithSameName: Collection<PropertyDescriptor>
+    ): Collection<PropertyDescriptor> = emptyList()
 
     private fun getTypeAliasByName(name: Name): TypeAliasDescriptor? {
         return helper.getTypeAliasByName(name)
@@ -270,27 +274,18 @@ abstract class DeserializedMemberScope protected constructor(
             bytesByName: Map<Name, ByteArray>,
             parser: Parser<M>,
             factory: (M) -> D?,
-            computeNonDeclared: (MutableCollection<D>) -> Unit
-        ): Collection<D> =
-            computeDescriptors(
-                bytesByName[name]?.let {
-                    val inputStream = ByteArrayInputStream(it)
-                    generateSequence {
-                        parser.parseDelimitedFrom(inputStream, c.components.extensionRegistryLite)
-                    }.toList()
-                } ?: emptyList(),
-                factory,
-                computeNonDeclared
-            )
-
-        private inline fun <M : MessageLite, D : DeclarationDescriptor> computeDescriptors(
-            protos: Collection<M>,
-            factory: (M) -> D?,
-            computeNonDeclared: (MutableCollection<D>) -> Unit
+            computeNonDeclared: (Collection<D>) -> Collection<D>
         ): Collection<D> {
-            val descriptors = protos.mapNotNullTo(arrayListOf(), factory)
+            val protos: Collection<M> = bytesByName[name]?.let {
+                val inputStream = ByteArrayInputStream(it)
+                generateSequence {
+                    parser.parseDelimitedFrom(inputStream, c.components.extensionRegistryLite)
+                }.toList()
+            } ?: emptyList()
 
-            computeNonDeclared(descriptors)
+            val descriptors = protos.mapNotNullTo(arrayListOf(), factory)
+            descriptors += computeNonDeclared(descriptors)
+
             return descriptors.compact()
         }
 
@@ -390,17 +385,11 @@ abstract class DeserializedMemberScope protected constructor(
         private val allTypeAliases: List<TypeAliasDescriptor>
                 by c.storageManager.createLazyValue { computeTypeAliases() }
 
-        private val nonDeclaredFunctions: List<SimpleFunctionDescriptor>
-                by c.storageManager.createLazyValue { computeNonDeclaredFunctions() }
-
-        private val nonDeclaredProperties: List<PropertyDescriptor>
-                by c.storageManager.createLazyValue { computeNonDeclaredProperties() }
-
         private val allFunctions: List<SimpleFunctionDescriptor>
-                by c.storageManager.createLazyValue { declaredFunctions + nonDeclaredFunctions }
+                by c.storageManager.createLazyValue { declaredFunctions + computeNonDeclaredFunctions() }
 
         private val allProperties: List<PropertyDescriptor>
-                by c.storageManager.createLazyValue { declaredProperties + nonDeclaredProperties }
+                by c.storageManager.createLazyValue { declaredProperties + computeNonDeclaredProperties() }
 
         override val functionNames by c.storageManager.createLazyValue {
             functionList.mapToNames { it.name } + getNonDeclaredFunctionNames()
@@ -424,18 +413,15 @@ abstract class DeserializedMemberScope protected constructor(
 
         @OptIn(ExperimentalStdlibApi::class)
         private fun computeNonDeclaredFunctions(): List<SimpleFunctionDescriptor> =
-            buildList {
-                for (name in getNonDeclaredFunctionNames()) {
-                    computeNonDeclaredFunctions(name, this)
-                }
+            getNonDeclaredFunctionNames().flatMap { name ->
+                val declaredFunctionsWithSameName = declaredFunctions.filter { it.name == name }
+                computeNonDeclaredFunctions(name, declaredFunctionsWithSameName)
             }
 
-        @OptIn(ExperimentalStdlibApi::class)
         private fun computeNonDeclaredProperties(): List<PropertyDescriptor> =
-            buildList {
-                for (name in getNonDeclaredVariableNames()) {
-                    computeNonDeclaredProperties(name, this)
-                }
+            getNonDeclaredVariableNames().flatMap { name ->
+                val declaredPropertiesWithSameName = declaredProperties.filter { it.name == name }
+                computeNonDeclaredProperties(name, declaredPropertiesWithSameName)
             }
 
         override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
