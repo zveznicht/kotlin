@@ -158,6 +158,11 @@ public class MultiplatformAnalysisTestGenerated extends AbstractMultiplatformAna
         runTest("idea/testData/multiplatform/jvmDefaultNonMpp/");
     }
 
+    @TestMetadata("kt39728")
+    public void testKt39728() throws Exception {
+        runTest("idea/testData/multiplatform/kt39728/");
+    }
+
     @TestMetadata("kt41218")
     public void testKt41218() throws Exception {
         runTest("idea/testData/multiplatform/kt41218/");
@@ -176,6 +181,11 @@ public class MultiplatformAnalysisTestGenerated extends AbstractMultiplatformAna
     @TestMetadata("multilevelParents")
     public void testMultilevelParents() throws Exception {
         runTest("idea/testData/multiplatform/multilevelParents/");
+    }
+
+    @TestMetadata("overrideExpect")
+    public void testOverrideExpect() throws Exception {
+        runTest("idea/testData/multiplatform/overrideExpect/");
     }
 
     @TestMetadata("platformSpecificChecksInCommon")
