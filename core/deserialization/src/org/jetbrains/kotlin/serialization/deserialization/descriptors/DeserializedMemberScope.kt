@@ -64,6 +64,11 @@ abstract class DeserializedMemberScope protected constructor(
         return name !in helper.functionNames && name !in helper.variableNames && name !in classNames && name !in helper.typeAliasNames
     }
 
+    /**
+     * Can be overridden to filter specific declared functions. Not called on non-declared functions.
+     */
+    protected open fun isDeclaredFunctionAvailable(function: SimpleFunctionDescriptor): Boolean = true
+
     protected open fun computeNonDeclaredFunctions(name: Name, functions: MutableCollection<SimpleFunctionDescriptor>) {
     }
 
@@ -256,7 +261,7 @@ abstract class DeserializedMemberScope protected constructor(
                 name,
                 functionProtosBytes,
                 ProtoBuf.Function.PARSER,
-                { c.memberDeserializer.loadFunction(it) },
+                { c.memberDeserializer.loadFunction(it).takeIf(::isDeclaredFunctionAvailable) },
                 { computeNonDeclaredFunctions(name, it) }
             )
 
@@ -264,7 +269,7 @@ abstract class DeserializedMemberScope protected constructor(
             name: Name,
             bytesByName: Map<Name, ByteArray>,
             parser: Parser<M>,
-            factory: (M) -> D,
+            factory: (M) -> D?,
             computeNonDeclared: (MutableCollection<D>) -> Unit
         ): Collection<D> =
             computeDescriptors(
@@ -280,10 +285,10 @@ abstract class DeserializedMemberScope protected constructor(
 
         private inline fun <M : MessageLite, D : DeclarationDescriptor> computeDescriptors(
             protos: Collection<M>,
-            factory: (M) -> D,
+            factory: (M) -> D?,
             computeNonDeclared: (MutableCollection<D>) -> Unit
         ): Collection<D> {
-            val descriptors = protos.mapTo(arrayListOf(), factory)
+            val descriptors = protos.mapNotNullTo(arrayListOf(), factory)
 
             computeNonDeclared(descriptors)
             return descriptors.compact()
@@ -409,7 +414,7 @@ abstract class DeserializedMemberScope protected constructor(
             get() = typeAliasList.mapToNames { it.name }
 
         private fun computeFunctions(): List<SimpleFunctionDescriptor> =
-            functionList.mapWithDeserializer { loadFunction(it) }
+            functionList.mapWithDeserializer { loadFunction(it).takeIf(::isDeclaredFunctionAvailable) }
 
         private fun computeProperties(): List<PropertyDescriptor> =
             propertyList.mapWithDeserializer { loadProperty(it) }
@@ -468,9 +473,9 @@ abstract class DeserializedMemberScope protected constructor(
         }
 
         private inline fun <T : MessageLite, K : MemberDescriptor> List<T>.mapWithDeserializer(
-            deserialize: MemberDeserializer.(T) -> K
+            deserialize: MemberDeserializer.(T) -> K?
         ): List<K> {
-            return map { c.memberDeserializer.deserialize(it) }
+            return mapNotNull { c.memberDeserializer.deserialize(it) }
         }
     }
 }
