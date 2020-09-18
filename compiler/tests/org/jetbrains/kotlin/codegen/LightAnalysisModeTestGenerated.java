@@ -28465,6 +28465,29 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         }
     }
 
+    @TestMetadata("compiler/testData/codegen/box/resolution")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Resolution extends AbstractLightAnalysisModeTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInResolution() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/resolution"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
+        }
+
+        @TestMetadata("dontResolveToFieldOfBaseClassInAnotherPackage.kt")
+        public void testDontResolveToFieldOfBaseClassInAnotherPackage() throws Exception {
+            runTest("compiler/testData/codegen/box/resolution/dontResolveToFieldOfBaseClassInAnotherPackage.kt");
+        }
+
+        @TestMetadata("dontResolveToFieldOfBaseClassInSamePackage.kt")
+        public void testDontResolveToFieldOfBaseClassInSamePackage() throws Exception {
+            runTest("compiler/testData/codegen/box/resolution/dontResolveToFieldOfBaseClassInSamePackage.kt");
+        }
+    }
+
     @TestMetadata("compiler/testData/codegen/box/safeCall")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
