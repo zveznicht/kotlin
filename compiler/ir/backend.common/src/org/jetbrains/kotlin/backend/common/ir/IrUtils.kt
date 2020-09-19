@@ -222,7 +222,7 @@ private fun IrTypeParameter.copySuperTypesFrom(source: IrTypeParameter, srcToDst
     val target = this
     val sourceParent = source.parent as IrTypeParametersContainer
     val targetParent = target.parent as IrTypeParametersContainer
-    target.superTypes += source.superTypes.map {
+    target.superTypes = source.superTypes.map {
         it.remapTypeParameters(sourceParent, targetParent, srcToDstParameterMap)
     }
 }
