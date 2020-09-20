@@ -514,6 +514,11 @@ public class JvmInterpreterTestCaseGenerated extends AbstractJvmInterpreterTestC
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/interpreter/jvm"), Pattern.compile("^(.+)\\.kt(s)?$"), null, true);
         }
 
+        @TestMetadata("classReference.kt")
+        public void testClassReference() throws Exception {
+            runTest("compiler/testData/ir/interpreter/jvm/classReference.kt");
+        }
+
         @TestMetadata("javaStatic.kt")
         public void testJavaStatic() throws Exception {
             runTest("compiler/testData/ir/interpreter/jvm/javaStatic.kt");
