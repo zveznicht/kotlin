@@ -13,19 +13,18 @@ typealias ClasspathArgumentsType = Array<String>
 typealias RawCompilerArgumentsBucket = List<String>
 
 interface CompilerArgumentsBucket<T> : Serializable {
-    val generalArguments: Array<T>
-    val classpathParts: Array<T>
-    val pluginClasspaths: Array<T>
-    val friendPaths: Array<T>
+    val generalArguments: T
+    val classpathParts: T
+    val pluginClasspaths: T
+    val friendPaths: T
 }
-
 
 class CachedCompilerArgumentsBucket(
     override val generalArguments: Array<Int>,
     override val classpathParts: Array<Int>,
     override val pluginClasspaths: Array<Int>,
     override val friendPaths: Array<Int>
-) : CompilerArgumentsBucket<Int> {
+) : CompilerArgumentsBucket<Array<Int>> {
     constructor(otherBucket: CachedCompilerArgumentsBucket) : this(
         arrayOf(*otherBucket.generalArguments),
         arrayOf(*otherBucket.classpathParts),
@@ -39,38 +38,53 @@ class FlatCompilerArgumentsBucket(
     override val classpathParts: Array<String>,
     override val pluginClasspaths: Array<String>,
     override val friendPaths: Array<String>
-) : CompilerArgumentsBucket<String> {
-
+) : CompilerArgumentsBucket<Array<String>> {
+    constructor(otherBucket: FlatCompilerArgumentsBucket) : this(
+        arrayOf(*otherBucket.generalArguments),
+        arrayOf(*otherBucket.classpathParts),
+        arrayOf(*otherBucket.pluginClasspaths),
+        arrayOf(*otherBucket.friendPaths)
+    )
 }
 
-interface IArgsInfo<T : CompilerArgumentsBucket<*>, R> : Serializable {
-    val currentCachedCompilerArgumentsBucket: T
-    val defaultCachedCompilerArgumentsBucket: T
+interface IArgsInfo<R, T : CompilerArgumentsBucket<R>> : Serializable {
+    val currentCompilerArgumentsBucket: T
+    val defaultCompilerArgumentsBucket: T
     val dependencyClasspathCacheIds: R
 }
 
-interface FlatArgsInfo : IArgsInfo<FlatCompilerArgumentsBucket, ClasspathArgumentsType> {
-    override val currentCachedCompilerArgumentsBucket: FlatCompilerArgumentsBucket
-    override val defaultCachedCompilerArgumentsBucket: FlatCompilerArgumentsBucket
+interface FlatArgsInfo : IArgsInfo<ClasspathArgumentsType, FlatCompilerArgumentsBucket> {
+    override val currentCompilerArgumentsBucket: FlatCompilerArgumentsBucket
+    override val defaultCompilerArgumentsBucket: FlatCompilerArgumentsBucket
     override val dependencyClasspathCacheIds: ClasspathArgumentsType
 }
 
+class FlatArgsInfoImpl(
+    override val currentCompilerArgumentsBucket: FlatCompilerArgumentsBucket,
+    override val defaultCompilerArgumentsBucket: FlatCompilerArgumentsBucket,
+    override val dependencyClasspathCacheIds: ClasspathArgumentsType
+) : FlatArgsInfo {
+    constructor(flatArgsInfo: FlatArgsInfo) : this(
+        FlatCompilerArgumentsBucket(flatArgsInfo.currentCompilerArgumentsBucket),
+        FlatCompilerArgumentsBucket(flatArgsInfo.defaultCompilerArgumentsBucket),
+        arrayOf(*flatArgsInfo.dependencyClasspathCacheIds)
+    )
+}
 
-interface CachedArgsInfo : IArgsInfo<CachedCompilerArgumentsBucket, ClasspathArgumentCacheIdType> {
-    override val currentCachedCompilerArgumentsBucket: CachedCompilerArgumentsBucket
-    override val defaultCachedCompilerArgumentsBucket: CachedCompilerArgumentsBucket
+interface CachedArgsInfo : IArgsInfo<ClasspathArgumentCacheIdType, CachedCompilerArgumentsBucket> {
+    override val currentCompilerArgumentsBucket: CachedCompilerArgumentsBucket
+    override val defaultCompilerArgumentsBucket: CachedCompilerArgumentsBucket
     override val dependencyClasspathCacheIds: ClasspathArgumentCacheIdType
 }
 
-
 class CachedArgsInfoImpl(
-    override val currentCachedCompilerArgumentsBucket: CachedCompilerArgumentsBucket,
-    override val defaultCachedCompilerArgumentsBucket: CachedCompilerArgumentsBucket,
+    override val currentCompilerArgumentsBucket: CachedCompilerArgumentsBucket,
+    override val defaultCompilerArgumentsBucket: CachedCompilerArgumentsBucket,
     override val dependencyClasspathCacheIds: ClasspathArgumentCacheIdType
 ) : CachedArgsInfo {
     constructor(cachedArgsInfo: CachedArgsInfo) : this(
-        CachedCompilerArgumentsBucket(cachedArgsInfo.currentCachedCompilerArgumentsBucket),
-        CachedCompilerArgumentsBucket(cachedArgsInfo.defaultCachedCompilerArgumentsBucket),
+        CachedCompilerArgumentsBucket(cachedArgsInfo.currentCompilerArgumentsBucket),
+        CachedCompilerArgumentsBucket(cachedArgsInfo.defaultCompilerArgumentsBucket),
         arrayOf(*cachedArgsInfo.dependencyClasspathCacheIds)
     )
 }

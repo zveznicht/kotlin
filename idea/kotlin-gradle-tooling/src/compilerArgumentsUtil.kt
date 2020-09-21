@@ -32,7 +32,10 @@ class FlatToRawCompilerArgumentsBucketConverter :
     CompilerArgumentsBucketConverter<FlatCompilerArgumentsBucket, RawCompilerArgumentsBucket> {
     override fun convert(from: FlatCompilerArgumentsBucket): RawCompilerArgumentsBucket = mutableListOf<String>().apply {
         addAll(from.generalArguments.toList())
-        add("-classpath ${from.classpathParts.joinToString(File.pathSeparator)}")
+        if (from.classpathParts.isNotEmpty()) {
+            add(from.classpathParts.first())
+            add(from.classpathParts.toMutableList().apply { removeFirst() }.joinToString(File.pathSeparator))
+        }
         add("$PLUGIN_CLASSPATH_PREFIX${from.pluginClasspaths.joinToString(",")}")
         add("$FRIEND_PATH_PREFIX${from.friendPaths.joinToString(",")}")
     }

@@ -1052,7 +1052,7 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
                 }.distinct().toList()
 
                 val compilerArgumentsList = CachedToRawCompilerArgumentsBucketConverter(compilerArgumentsMapper)
-                    .convert(compilation.cachedArgsInfo.currentCachedCompilerArgumentsBucket)
+                    .convert(compilation.cachedArgsInfo.currentCompilerArgumentsBucket)
 
                 sourceSetInfo.compilerArguments =
                     createCompilerArguments(compilerArgumentsList, compilation.platform).also {
@@ -1060,7 +1060,7 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
                     }
 
                 val defaultCompilerArgumentsList = CachedToRawCompilerArgumentsBucketConverter(compilerArgumentsMapper)
-                    .convert(compilation.cachedArgsInfo.defaultCachedCompilerArgumentsBucket)
+                    .convert(compilation.cachedArgsInfo.defaultCompilerArgumentsBucket)
                 sourceSetInfo.defaultCompilerArguments =
                     createCompilerArguments(defaultCompilerArgumentsList, compilation.platform)
 
