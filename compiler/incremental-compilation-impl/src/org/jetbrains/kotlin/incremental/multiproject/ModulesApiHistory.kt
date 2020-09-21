@@ -140,7 +140,7 @@ class ModulesApiHistoryAndroid(modulesInfo: IncrementalModuleInfo) : ModulesApiH
 
     override fun getBuildHistoryFilesForJar(jar: File): Either<Set<File>> {
         // Module detection is expensive, so we don't don it for jars outside of project dir
-        if (!projectRootPath.isParentOf(jar)) return Either.Error("Non-project jar is modified $jar")
+//        if (!projectRootPath.isParentOf(jar)) return Either.Error("Non-project jar is modified $jar")
 
         val jarPath = Paths.get(jar.absolutePath)
         return getHistoryForModuleNames(jarPath, getPossibleModuleNamesFromJar(jarPath))
