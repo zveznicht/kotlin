@@ -188,7 +188,7 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
                 RawToCachedCompilerArgumentsBucket(modelDetachableMapper).convert(currentArguments)
             val defaultArguments = compileTask.getCompilerArguments("getDefaultSerializedCompilerArguments").orEmpty()
             val defaultCompilerArgumentsBucket =
-                RawToCachedCompilerArgumentsBucket(modelDetachableMapper).convert(currentArguments)
+                RawToCachedCompilerArgumentsBucket(modelDetachableMapper).convert(defaultArguments)
             val dependencyClasspath = compileTask.getDependencyClasspath()
             val dependencyClasspathCacheIds =
                 dependencyClasspath.map { modelDetachableMapper.cacheArgument(it) }.toTypedArray()
