@@ -38,10 +38,7 @@ import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.extensions.ProjectExtensionDescriptor
-import org.jetbrains.kotlin.gradle.ArgsInfo
-import org.jetbrains.kotlin.gradle.ArgsInfoImpl
-import org.jetbrains.kotlin.gradle.CachedArgsInfo
-import org.jetbrains.kotlin.gradle.CompilerArgumentsMapperWithMerge
+import org.jetbrains.kotlin.gradle.*
 import org.jetbrains.kotlin.ide.konan.NativeLibraryKind
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder
 import org.jetbrains.kotlin.idea.configuration.GradlePropertiesFileFacade.Companion.KOTLIN_CODE_STYLE_GRADLE_SETTING
@@ -318,9 +315,9 @@ private fun configureFacetByCachedCompilerArguments(
     kotlinFacet: KotlinFacet,
     modelsProvider: IdeModifiableModelsProvider
 ) {
-    val currentArguments = cachedArgsInfo.currentCachedCompilerArgumentsBucket.collectArgumentsList(mapper)
-    val defaultArguments = cachedArgsInfo.defaultCachedCompilerArgumentsBucket.collectArgumentsList(mapper)
-    val dependencyClasspath = cachedArgsInfo.dependencyClasspathCacheIds.map { mapper.getCommonArgument(it) }
+    val currentArguments = CachedToRawCompilerArgumentsBucketConverter(mapper).convert(cachedArgsInfo.currentCachedCompilerArgumentsBucket)
+    val defaultArguments = CachedToRawCompilerArgumentsBucketConverter(mapper).convert(cachedArgsInfo.defaultCachedCompilerArgumentsBucket)
+    val dependencyClasspath = cachedArgsInfo.dependencyClasspathCacheIds.map { mapper.getArgument(it) }
 
     val argsInfo = ArgsInfoImpl(currentArguments, defaultArguments, dependencyClasspath)
     configureFacetByCompilerArguments(kotlinFacet, argsInfo, modelsProvider)
@@ -345,7 +342,7 @@ private fun getExplicitOutputPath(moduleNode: DataNode<ModuleData>, platformKind
     val generalMapper = projectDataNode.projectCompilerArgumentMapperContainer.projectCompilerArgumentsMapper
 
     val k2jsArgumentList = moduleNode.cachedCompilerArgumentsBySourceSet?.get(sourceSet)
-        ?.currentCachedCompilerArgumentsBucket?.collectArgumentsList(generalMapper)
+        ?.currentCachedCompilerArgumentsBucket?.let { CachedToRawCompilerArgumentsBucketConverter(generalMapper).convert(it) }
         ?: return null
     return K2JSCompilerArguments().apply { parseCommandLineArguments(k2jsArgumentList, this) }.outputFile
 }

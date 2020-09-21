@@ -761,9 +761,9 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         val compilationArguments = buildCompilationArguments(compileKotlinTask) ?: return null
         val dependencyClasspath = buildDependencyClasspath(compileKotlinTask)
         return CachedArgsInfoImpl(
-            CachedCompilerArgumentsBucket.parseBucketFromArguments(compilationArguments.currentArguments.toList(), compilerArgumentsMapper),
-            CachedCompilerArgumentsBucket.parseBucketFromArguments(compilationArguments.defaultArguments.toList(), compilerArgumentsMapper),
-            dependencyClasspath.map { compilerArgumentsMapper.cacheCommonArgument(it) }.toTypedArray()
+            RawToCachedCompilerArgumentsBucket(compilerArgumentsMapper).convert(compilationArguments.currentArguments.toList()),
+            RawToCachedCompilerArgumentsBucket(compilerArgumentsMapper).convert(compilationArguments.defaultArguments.toList()),
+            dependencyClasspath.map { compilerArgumentsMapper.cacheArgument(it) }.toTypedArray()
         )
     }
 
