@@ -185,13 +185,13 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
                 ?: compileTask.getCompilerArguments("getSerializedCompilerArgumentsIgnoreClasspathIssues")
                 ?: emptyList()
             val currentCompilerArgumentsBucket =
-                CachedCompilerArgumentsBucket.parseBucketFromArguments(currentArguments, modelDetachableMapper)
+                RawToCachedCompilerArgumentsBucket(modelDetachableMapper).convert(currentArguments)
             val defaultArguments = compileTask.getCompilerArguments("getDefaultSerializedCompilerArguments").orEmpty()
             val defaultCompilerArgumentsBucket =
-                CachedCompilerArgumentsBucket.parseBucketFromArguments(defaultArguments, modelDetachableMapper)
+                RawToCachedCompilerArgumentsBucket(modelDetachableMapper).convert(currentArguments)
             val dependencyClasspath = compileTask.getDependencyClasspath()
             val dependencyClasspathCacheIds =
-                dependencyClasspath.map { modelDetachableMapper.cacheCommonArgument(it) }.toTypedArray()
+                dependencyClasspath.map { modelDetachableMapper.cacheArgument(it) }.toTypedArray()
             cachedArgumentsBySourceSet[sourceSetName] = CachedArgsInfoImpl(
                 currentCompilerArgumentsBucket,
                 defaultCompilerArgumentsBucket,

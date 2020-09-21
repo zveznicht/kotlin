@@ -5,75 +5,63 @@
 
 package org.jetbrains.kotlin.gradle
 
-import java.io.File
 import java.io.Serializable
 
 typealias CachedArgumentIdType = Int
 typealias ClasspathArgumentCacheIdType = Array<Int>
+typealias ClasspathArgumentsType = Array<String>
+typealias RawCompilerArgumentsBucket = List<String>
 
-interface CachedArgsInfo : Serializable {
-    val currentCachedCompilerArgumentsBucket: CachedCompilerArgumentsBucket
-    val defaultCachedCompilerArgumentsBucket: CachedCompilerArgumentsBucket
-    val dependencyClasspathCacheIds: ClasspathArgumentCacheIdType
+interface CompilerArgumentsBucket<T> : Serializable {
+    val generalArguments: Array<T>
+    val classpathParts: Array<T>
+    val pluginClasspaths: Array<T>
+    val friendPaths: Array<T>
 }
 
-class CachedCompilerArgumentsBucket private constructor(
-    val cachedGeneralArguments: Array<Int>,
-    val cachedClasspath: Array<Int>,
-    val cachedPluginClasspath: Array<Int>,
-    val cachedFriendPaths: Array<Int>
-) : Serializable {
+
+class CachedCompilerArgumentsBucket(
+    override val generalArguments: Array<Int>,
+    override val classpathParts: Array<Int>,
+    override val pluginClasspaths: Array<Int>,
+    override val friendPaths: Array<Int>
+) : CompilerArgumentsBucket<Int> {
     constructor(otherBucket: CachedCompilerArgumentsBucket) : this(
-        arrayOf(*otherBucket.cachedGeneralArguments),
-        arrayOf(*otherBucket.cachedClasspath),
-        arrayOf(*otherBucket.cachedPluginClasspath),
-        arrayOf(*otherBucket.cachedFriendPaths)
+        arrayOf(*otherBucket.generalArguments),
+        arrayOf(*otherBucket.classpathParts),
+        arrayOf(*otherBucket.pluginClasspaths),
+        arrayOf(*otherBucket.friendPaths)
     )
-
-    fun collectArgumentsList(mapper: ICompilerArgumentsMapper): List<String> {
-        val res = cachedGeneralArguments.map { mapper.getCommonArgument(it) } +
-                "$PLUGIN_CLASSPATH_PREFIX${mapper.getClasspathArgument(cachedPluginClasspath, ",")}" +
-                "$FRIEND_PATH_PREFIX${mapper.getClasspathArgument(cachedPluginClasspath, ",")}"
-        return res.toMutableList().apply {
-            mapper.getClasspathArgument(cachedClasspath, File.pathSeparator).takeIf { it.isNotEmpty() }?.let { listOf("-classpath", it) }
-                ?.also { addAll(it) }
-        }
-    }
-
-    companion object {
-        const val FRIEND_PATH_PREFIX = "-Xfriend-paths="
-        const val PLUGIN_CLASSPATH_PREFIX = "-Xplugin="
-        val classpathArgPointers = setOf("-classpath", "-cp")
-
-        fun parseBucketFromArguments(arguments: List<String>, mapper: ICompilerArgumentsMapper): CachedCompilerArgumentsBucket {
-
-            val pluginClasspathArgument = arguments.firstOrNull { it.startsWith(PLUGIN_CLASSPATH_PREFIX) }
-            val friendPathsArgument = arguments.firstOrNull { it.startsWith(FRIEND_PATH_PREFIX) }
-            val classpathArguments = arguments.flatMapIndexed { index, s ->
-                if (s in classpathArgPointers) listOf(s, arguments[index + 1]) else emptyList()
-            }
-
-            // TODO(ychernyshev) Does the order of arguments required here?
-            val cachedGeneralArguments =
-                (arguments - pluginClasspathArgument - friendPathsArgument - classpathArguments - classpathArgPointers)
-                    .filterNotNull()
-                    .map { mapper.cacheCommonArgument(it) }
-                    .toTypedArray()
-
-            val cachedClasspath = classpathArguments.lastOrNull()
-                ?.let { mapper.cacheClasspathArgument(it, File.pathSeparator) } ?: emptyArray()
-
-            val cachedPluginClasspath =
-                pluginClasspathArgument?.removePrefix(PLUGIN_CLASSPATH_PREFIX)?.let { mapper.cacheClasspathArgument(it, ",") }
-                    ?: emptyArray()
-            val cachedFriendPaths =
-                friendPathsArgument?.removePrefix(FRIEND_PATH_PREFIX)?.let { mapper.cacheClasspathArgument(it, ",") } ?: emptyArray()
-
-            return CachedCompilerArgumentsBucket(cachedGeneralArguments, cachedClasspath, cachedPluginClasspath, cachedFriendPaths)
-        }
-
-    }
 }
+
+class FlatCompilerArgumentsBucket(
+    override val generalArguments: Array<String>,
+    override val classpathParts: Array<String>,
+    override val pluginClasspaths: Array<String>,
+    override val friendPaths: Array<String>
+) : CompilerArgumentsBucket<String> {
+
+}
+
+interface IArgsInfo<T : CompilerArgumentsBucket<*>, R> : Serializable {
+    val currentCachedCompilerArgumentsBucket: T
+    val defaultCachedCompilerArgumentsBucket: T
+    val dependencyClasspathCacheIds: R
+}
+
+interface FlatArgsInfo : IArgsInfo<FlatCompilerArgumentsBucket, ClasspathArgumentsType> {
+    override val currentCachedCompilerArgumentsBucket: FlatCompilerArgumentsBucket
+    override val defaultCachedCompilerArgumentsBucket: FlatCompilerArgumentsBucket
+    override val dependencyClasspathCacheIds: ClasspathArgumentsType
+}
+
+
+interface CachedArgsInfo : IArgsInfo<CachedCompilerArgumentsBucket, ClasspathArgumentCacheIdType> {
+    override val currentCachedCompilerArgumentsBucket: CachedCompilerArgumentsBucket
+    override val defaultCachedCompilerArgumentsBucket: CachedCompilerArgumentsBucket
+    override val dependencyClasspathCacheIds: ClasspathArgumentCacheIdType
+}
+
 
 class CachedArgsInfoImpl(
     override val currentCachedCompilerArgumentsBucket: CachedCompilerArgumentsBucket,
@@ -100,10 +88,8 @@ fun CachedCompilerArgumentBySourceSet.deepCopy(): CachedCompilerArgumentBySource
 
 interface ICompilerArgumentsMapper : Serializable {
     fun getArgumentCache(argument: String): Int?
-    fun cacheCommonArgument(commonArgument: String): Int
-    fun getCommonArgument(id: Int): String
-    fun cacheClasspathArgument(classpathArgument: String, separator: String): Array<Int>
-    fun getClasspathArgument(ids: Array<Int>, separator: String): String
+    fun cacheArgument(commonArgument: String): Int
+    fun getArgument(id: Int): String
     fun clear()
     fun copyCache(): Map<Int, String>
 }
@@ -122,7 +108,7 @@ open class CompilerArgumentsMapper(val initialId: Int = 0) : ICompilerArgumentsM
 
     override fun getArgumentCache(argument: String): Int? = compilerArgumentToId[argument]
 
-    override fun cacheCommonArgument(commonArgument: String): Int = getArgumentCache(commonArgument)
+    override fun cacheArgument(commonArgument: String): Int = getArgumentCache(commonArgument)
         ?: run {
             val index = nextId++
             idToCompilerArguments[index] = commonArgument
@@ -130,13 +116,7 @@ open class CompilerArgumentsMapper(val initialId: Int = 0) : ICompilerArgumentsM
             index
         }
 
-    override fun getCommonArgument(id: Int): String = idToCompilerArguments[id]!!
-
-    override fun cacheClasspathArgument(classpathArgument: String, separator: String): Array<Int> =
-        classpathArgument.split(separator).map { cacheCommonArgument(it) }.toTypedArray()
-
-    override fun getClasspathArgument(ids: Array<Int>, separator: String): String =
-        ids.joinToString(separator) { getCommonArgument(it) }
+    override fun getArgument(id: Int): String = idToCompilerArguments[id]!!
 
     override fun clear() {
         idToCompilerArguments.clear()
@@ -154,8 +134,8 @@ interface IDetachableMapper : ICompilerArgumentsMapper {
 
 class DetachableCompilerArgumentsMapper(override val masterMapper: ICompilerArgumentsMapper) : CompilerArgumentsMapper(),
     IDetachableMapper {
-    override fun cacheCommonArgument(commonArgument: String): Int =
-        masterMapper.getArgumentCache(commonArgument) ?: masterMapper.cacheCommonArgument(commonArgument).also {
+    override fun cacheArgument(commonArgument: String): Int =
+        masterMapper.getArgumentCache(commonArgument) ?: masterMapper.cacheArgument(commonArgument).also {
             idToCompilerArguments[it] = commonArgument
             compilerArgumentToId[commonArgument] = it
         }
