@@ -408,6 +408,15 @@ abstract class DeserializedMemberScope protected constructor(
         private val allProperties: List<PropertyDescriptor>
                 by c.storageManager.createLazyValue { declaredProperties + computeAllNonDeclaredProperties() }
 
+        private val typeAliasesByName: Map<Name, TypeAliasDescriptor>
+                by c.storageManager.createLazyValue { allTypeAliases.associateBy { it.name } }
+
+        private val functionsByName: Map<Name, Collection<SimpleFunctionDescriptor>>
+                by c.storageManager.createLazyValue { allFunctions.groupBy { it.name } }
+
+        private val propertiesByName: Map<Name, Collection<PropertyDescriptor>>
+                by c.storageManager.createLazyValue { allProperties.groupBy { it.name } }
+
         override val functionNames by c.storageManager.createLazyValue {
             functionList.mapToNames { it.name } + getNonDeclaredFunctionNames()
         }
@@ -443,16 +452,16 @@ abstract class DeserializedMemberScope protected constructor(
 
         override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
             if (name !in functionNames) return emptyList()
-            return allFunctions.filter { it.name == name }
+            return functionsByName[name].orEmpty()
         }
 
         override fun getTypeAliasByName(name: Name): TypeAliasDescriptor? {
-            return allTypeAliases.find { it.name == name }
+            return typeAliasesByName[name]
         }
 
         override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
             if (name !in variableNames) return emptyList()
-            return allProperties.filter { it.name == name }
+            return propertiesByName[name].orEmpty()
         }
 
         override fun addFunctionsAndPropertiesTo(
