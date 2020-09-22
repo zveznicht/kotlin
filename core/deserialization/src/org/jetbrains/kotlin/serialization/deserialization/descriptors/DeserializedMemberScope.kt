@@ -46,22 +46,22 @@ abstract class DeserializedMemberScope protected constructor(
     classNames: () -> Collection<Name>
 ) : MemberScopeImpl() {
 
-    private val helper: DeserializedMemberScopeHelper = createMemberScopeHelper(functionList, propertyList, typeAliasList)
+    private val impl: Implementation = createImplementation(functionList, propertyList, typeAliasList)
 
     internal val classNames by c.storageManager.createLazyValue { classNames().toSet() }
 
 
     private val classifierNamesLazy by c.storageManager.createNullableLazyValue {
         val nonDeclaredNames = getNonDeclaredClassifierNames() ?: return@createNullableLazyValue null
-        this.classNames + helper.typeAliasNames + nonDeclaredNames
+        this.classNames + impl.typeAliasNames + nonDeclaredNames
     }
 
-    override fun getFunctionNames() = helper.functionNames
-    override fun getVariableNames() = helper.variableNames
+    override fun getFunctionNames() = impl.functionNames
+    override fun getVariableNames() = impl.variableNames
     override fun getClassifierNames(): Set<Name>? = classifierNamesLazy
 
     override fun definitelyDoesNotContainName(name: Name): Boolean {
-        return name !in helper.functionNames && name !in helper.variableNames && name !in classNames && name !in helper.typeAliasNames
+        return name !in impl.functionNames && name !in impl.variableNames && name !in classNames && name !in impl.typeAliasNames
     }
 
     /**
@@ -79,7 +79,7 @@ abstract class DeserializedMemberScope protected constructor(
     }
 
     override fun getContributedFunctions(name: Name, location: LookupLocation): Collection<SimpleFunctionDescriptor> {
-        return helper.getContributedFunctions(name, location)
+        return impl.getContributedFunctions(name, location)
     }
 
     /**
@@ -92,11 +92,11 @@ abstract class DeserializedMemberScope protected constructor(
     }
 
     private fun getTypeAliasByName(name: Name): TypeAliasDescriptor? {
-        return helper.getTypeAliasByName(name)
+        return impl.getTypeAliasByName(name)
     }
 
     override fun getContributedVariables(name: Name, location: LookupLocation): Collection<PropertyDescriptor> {
-        return helper.getContributedVariables(name, location)
+        return impl.getContributedVariables(name, location)
     }
 
     protected fun computeDescriptors(
@@ -112,7 +112,7 @@ abstract class DeserializedMemberScope protected constructor(
             addEnumEntryDescriptors(result, nameFilter)
         }
 
-        helper.addFunctionsAndPropertiesTo(result, kindFilter, nameFilter, location)
+        impl.addFunctionsAndPropertiesTo(result, kindFilter, nameFilter, location)
 
         if (kindFilter.acceptsKinds(DescriptorKindFilter.CLASSIFIERS_MASK)) {
             for (className in classNames) {
@@ -123,9 +123,9 @@ abstract class DeserializedMemberScope protected constructor(
         }
 
         if (kindFilter.acceptsKinds(DescriptorKindFilter.TYPE_ALIASES_MASK)) {
-            for (typeAliasName in helper.typeAliasNames) {
+            for (typeAliasName in impl.typeAliasNames) {
                 if (nameFilter(typeAliasName)) {
-                    result.addIfNotNull(helper.getTypeAliasByName(typeAliasName))
+                    result.addIfNotNull(impl.getTypeAliasByName(typeAliasName))
                 }
             }
         }
@@ -136,7 +136,7 @@ abstract class DeserializedMemberScope protected constructor(
     override fun getContributedClassifier(name: Name, location: LookupLocation): ClassifierDescriptor? =
         when {
             hasClass(name) -> deserializeClass(name)
-            name in helper.typeAliasNames -> getTypeAliasByName(name)
+            name in impl.typeAliasNames -> getTypeAliasByName(name)
             else -> null
         }
 
@@ -167,11 +167,11 @@ abstract class DeserializedMemberScope protected constructor(
     /**
      * This interface was introduces to fix KT-41346.
      *
-     * The first implementation, [OptimizedDeserializedMemberScopeHelper], is more space-efficient and performant. It does not
+     * The first implementation, [OptimizedImplementation], is more space-efficient and performant. It does not
      * preserve the order of declarations in [addFunctionsAndPropertiesTo] though, and have to restore it manually. It is used
      * in most situations when the [DeserializedMemberScope] is created.
      *
-     * The second implementation, [NoReorderDeserializedMemberScopeHelper], is less efficient, but it keeps the descriptors
+     * The second implementation, [NoReorderImplementation], is less efficient, but it keeps the descriptors
      * in the same order as in serialized ProtoBuf objects in [addFunctionsAndPropertiesTo]. It should be used only when
      * [org.jetbrains.kotlin.serialization.deserialization.DeserializationConfiguration.preserveDeclarationsOrdering] is
      * set to `true`, which is done during decompilation from deserialized descriptors.
@@ -183,22 +183,22 @@ abstract class DeserializedMemberScope protected constructor(
      * PSI from classfiles and metadata uses the same order of the declarations as in the serialized ProtoBuf objects.
      * This order is dictated by [MemberComparator].
      *
-     * [OptimizedDeserializedMemberScopeHelper] uses [MemberComparator.NameAndTypeMemberComparator] to restore the same order
+     * [OptimizedImplementation] uses [MemberComparator.NameAndTypeMemberComparator] to restore the same order
      * of the declarations as it should be in serialized objects. However, this does not always work, for example when
      * the Kotlin classes were obfuscated by ProGuard.
      *
      * ProGuard may rename some declarations in serialized objects, and then the comparator will reorder them based on their new names.
      * This will lead to PSI-Stub mismatch error, since the declarations are now differently ordered.
      *
-     * To avoid this, we have [NoReorderDeserializedMemberScopeHelper] implementation. It performs no reordering of the declarations at
+     * To avoid this, we have [NoReorderImplementation] implementation. It performs no reordering of the declarations at
      * all. Since it is less space-efficient, it is used only the scope is going to be used during decompilation.
 
-     * [createMemberScopeHelper] is used to create the correct implementation of [DeserializedMemberScopeHelper].
+     * [createImplementation] is used to create the correct implementation of [Implementation].
      *
-     * Both [OptimizedDeserializedMemberScopeHelper] and [NoReorderDeserializedMemberScopeHelper] are made inner classes to have
+     * Both [OptimizedImplementation] and [NoReorderImplementation] are made inner classes to have
      * access to protected `getNonDeclared*` functions.
      */
-    private interface DeserializedMemberScopeHelper {
+    private interface Implementation {
         val functionNames: Set<Name>
         val variableNames: Set<Name>
         val typeAliasNames: Set<Name>
@@ -215,21 +215,21 @@ abstract class DeserializedMemberScope protected constructor(
         )
     }
 
-    private fun createMemberScopeHelper(
+    private fun createImplementation(
         functionList: List<ProtoBuf.Function>,
         propertyList: List<ProtoBuf.Property>,
         typeAliasList: List<ProtoBuf.TypeAlias>
-    ): DeserializedMemberScopeHelper =
+    ): Implementation =
         if (c.components.configuration.preserveDeclarationsOrdering)
-            NoReorderDeserializedMemberScopeHelper(functionList, propertyList, typeAliasList)
+            NoReorderImplementation(functionList, propertyList, typeAliasList)
         else
-            OptimizedDeserializedMemberScopeHelper(functionList, propertyList, typeAliasList)
+            OptimizedImplementation(functionList, propertyList, typeAliasList)
 
-    private inner class OptimizedDeserializedMemberScopeHelper(
+    private inner class OptimizedImplementation(
         functionList: Collection<ProtoBuf.Function>,
         propertyList: Collection<ProtoBuf.Property>,
         typeAliasList: Collection<ProtoBuf.TypeAlias>
-    ) : DeserializedMemberScopeHelper {
+    ) : Implementation {
         private val functionProtosBytes = functionList.groupByName { it.name }.packToByteArray()
 
         private val propertyProtosBytes = propertyList.groupByName { it.name }.packToByteArray()
@@ -381,15 +381,15 @@ abstract class DeserializedMemberScope protected constructor(
     }
 
     /**
-     * Take a note that [NoReorderDeserializedMemberScopeHelper] still adds non-declared members together with directly declared in class.
+     * Take a note that [NoReorderImplementation] still adds non-declared members together with directly declared in class.
      * This is not a problem for ordering, since during decompilation from descriptors those non-declared members are just ignored,
      * and the declared members will be added to decompiled text in the proper (i.e. original) order.
      */
-    private inner class NoReorderDeserializedMemberScopeHelper(
+    private inner class NoReorderImplementation(
         private val functionList: List<ProtoBuf.Function>,
         private val propertyList: List<ProtoBuf.Property>,
         typeAliasList: List<ProtoBuf.TypeAlias>
-    ) : DeserializedMemberScopeHelper {
+    ) : Implementation {
 
         private val typeAliasList = if (c.components.configuration.typeAliasesAllowed) typeAliasList else emptyList()
 
