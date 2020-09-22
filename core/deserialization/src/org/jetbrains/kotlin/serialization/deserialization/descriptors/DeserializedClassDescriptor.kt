@@ -250,39 +250,30 @@ class DeserializedClassDescriptor(
             return c.components.platformDependentDeclarationFilter.isFunctionAvailable(this@DeserializedClassDescriptor, function)
         }
 
-        override fun computeNonDeclaredFunctions(
-            name: Name,
-            functionsWithSameName: Collection<SimpleFunctionDescriptor>
-        ): Collection<SimpleFunctionDescriptor> {
+        override fun computeNonDeclaredFunctions(name: Name, functions: MutableList<SimpleFunctionDescriptor>) {
             val fromSupertypes = ArrayList<SimpleFunctionDescriptor>()
             for (supertype in refinedSupertypes()) {
                 fromSupertypes.addAll(supertype.memberScope.getContributedFunctions(name, NoLookupLocation.FOR_ALREADY_TRACKED))
             }
 
-            val additionalFunctions = c.components.additionalClassPartsProvider.getFunctions(name, this@DeserializedClassDescriptor)
-            val fakeOverrides = generateFakeOverrides(name, fromSupertypes, functionsWithSameName + additionalFunctions)
-
-            return additionalFunctions + fakeOverrides
+            functions.addAll(c.components.additionalClassPartsProvider.getFunctions(name, this@DeserializedClassDescriptor))
+            generateFakeOverrides(name, fromSupertypes, functions)
         }
 
-        override fun computeNonDeclaredProperties(
-            name: Name,
-            propertiesWithSameName: Collection<PropertyDescriptor>
-        ): Collection<PropertyDescriptor> {
+        override fun computeNonDeclaredProperties(name: Name, descriptors: MutableList<PropertyDescriptor>) {
             val fromSupertypes = ArrayList<PropertyDescriptor>()
             for (supertype in refinedSupertypes()) {
                 fromSupertypes.addAll(supertype.memberScope.getContributedVariables(name, NoLookupLocation.FOR_ALREADY_TRACKED))
             }
-            return generateFakeOverrides(name, fromSupertypes, propertiesWithSameName)
+            generateFakeOverrides(name, fromSupertypes, descriptors)
         }
 
         private fun <D : CallableMemberDescriptor> generateFakeOverrides(
             name: Name,
             fromSupertypes: Collection<D>,
-            fromCurrent: Collection<D>
-        ): Collection<D> {
-            val result = mutableListOf<D>()
-
+            result: MutableList<D>
+        ) {
+            val fromCurrent = ArrayList<CallableMemberDescriptor>(result)
             c.components.kotlinTypeChecker.overridingUtil.generateOverridesInFunctionGroup(
                 name,
                 fromSupertypes,
@@ -303,8 +294,6 @@ class DeserializedClassDescriptor(
                         // TODO report conflicts
                     }
                 })
-
-            return result
         }
 
         override fun getNonDeclaredFunctionNames(): Set<Name> {
