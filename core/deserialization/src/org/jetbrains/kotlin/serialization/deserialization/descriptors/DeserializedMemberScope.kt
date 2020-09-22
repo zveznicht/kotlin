@@ -440,7 +440,6 @@ abstract class DeserializedMemberScope protected constructor(
         private fun computeAllNonDeclaredFunctions(): List<SimpleFunctionDescriptor> =
             getNonDeclaredFunctionNames().flatMap { computeNonDeclaredFunctionsForName(it) }
 
-        @OptIn(ExperimentalStdlibApi::class)
         private fun computeAllNonDeclaredProperties(): List<PropertyDescriptor> =
             getNonDeclaredVariableNames().flatMap { computeNonDeclaredPropertiesForName(it) }
 
