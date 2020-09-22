@@ -210,7 +210,8 @@ class Fir2IrDeclarationStorage(
             declaration is IrConstructor ||
             declaration is IrAnonymousInitializer ||
             declaration is IrProperty ||
-            declaration is IrEnumEntry
+            declaration is IrEnumEntry ||
+            declaration is IrScript
         ) {
             localStorage.enterCallable()
         }
@@ -221,7 +222,8 @@ class Fir2IrDeclarationStorage(
             declaration is IrConstructor ||
             declaration is IrAnonymousInitializer ||
             declaration is IrProperty ||
-            declaration is IrEnumEntry
+            declaration is IrEnumEntry ||
+            declaration is IrScript
         ) {
             localStorage.leaveCallable()
         }
