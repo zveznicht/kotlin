@@ -165,7 +165,7 @@ abstract class DeserializedMemberScope protected constructor(
     }
 
     /**
-     * This interface was introduces to fix KT-41346.
+     * This interface was introduced to fix KT-41346.
      *
      * The first implementation, [OptimizedImplementation], is more space-efficient and performant. It does not
      * preserve the order of declarations in [addFunctionsAndPropertiesTo] though, and have to restore it manually. It is used
@@ -178,17 +178,17 @@ abstract class DeserializedMemberScope protected constructor(
      *
      * The decompiled descriptors are used to build PSI, which is then compared with PSI built directly from classfiles and metadata.
      *
-     * If the declarations in the first and the second PSI go in different order, PSI-Stub mismatch error is raised.
+     * If the declarations in the first and the second PSI go in a different order, PSI-Stub mismatch error is raised.
      *
      * PSI from classfiles and metadata uses the same order of the declarations as in the serialized ProtoBuf objects.
      * This order is dictated by [MemberComparator].
      *
      * [OptimizedImplementation] uses [MemberComparator.NameAndTypeMemberComparator] to restore the same order
-     * of the declarations as it should be in serialized objects. However, this does not always work, for example when
-     * the Kotlin classes were obfuscated by ProGuard.
+     * of the declarations as it should be in serialized objects. However, this does not always work (for example, when
+     * the Kotlin classes were obfuscated by ProGuard).
      *
      * ProGuard may rename some declarations in serialized objects, and then the comparator will reorder them based on their new names.
-     * This will lead to PSI-Stub mismatch error, since the declarations are now differently ordered.
+     * This will lead to PSI-Stub mismatch error since the declarations are now differently ordered.
      *
      * To avoid this, we have [NoReorderImplementation] implementation. It performs no reordering of the declarations at
      * all. Since it is less space-efficient, it is used only the scope is going to be used during decompilation.
