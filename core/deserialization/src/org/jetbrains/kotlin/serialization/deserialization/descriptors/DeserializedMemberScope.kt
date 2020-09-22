@@ -165,7 +165,7 @@ abstract class DeserializedMemberScope protected constructor(
     }
 
     /**
-     * This interface were introduces to fix KT-41346.
+     * This interface was introduces to fix KT-41346.
      *
      * The first implementation, [OptimizedDeserializedMemberScopeHelper], is more space-efficient and performant. It does not
      * preserve the order of declarations in [addFunctionsAndPropertiesTo] though, and have to restore it manually. It is used
