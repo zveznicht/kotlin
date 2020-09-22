@@ -319,56 +319,57 @@ class JavaSymbolProvider(
         classIsAnnotation: Boolean,
         valueParametersForAnnotationConstructor: ValueParametersForAnnotationConstructor
     ): FirJavaMethod {
-        val methodName = javaMethod.name
-        val methodId = CallableId(classId.packageFqName, classId.relativeClassName, methodName)
-        val methodSymbol = FirNamedFunctionSymbol(methodId)
-        val returnType = javaMethod.returnType
-        val firJavaMethod = buildJavaMethod {
-            session = this@JavaSymbolProvider.session
-            source = (javaMethod as? JavaElementImpl<*>)?.psi?.toFirPsiSourceElement()
-            symbol = methodSymbol
-            name = methodName
-            visibility = javaMethod.visibility
-            modality = javaMethod.modality
-            returnTypeRef = returnType.toFirJavaTypeRef(this@JavaSymbolProvider.session, javaTypeParameterStack)
-            isStatic = javaMethod.isStatic
-            typeParameters += javaMethod.typeParameters.convertTypeParameters(javaTypeParameterStack)
-            addAnnotationsFrom(this@JavaSymbolProvider.session, javaMethod, javaTypeParameterStack)
-            for ((index, valueParameter) in javaMethod.valueParameters.withIndex()) {
-                valueParameters += valueParameter.toFirValueParameter(
-                    this@JavaSymbolProvider.session, index, javaTypeParameterStack,
-                )
-            }
-            status = FirResolvedDeclarationStatusImpl(
-                javaMethod.visibility,
-                javaMethod.modality
-            ).apply {
-                isStatic = javaMethod.isStatic
-                isExpect = false
-                isActual = false
-                isOverride = false
-                // Approximation: all Java methods with name that allows to use it in operator form are considered operators
-                // We need here more detailed checks (see modifierChecks.kt)
-                isOperator = name in ALL_JAVA_OPERATION_NAMES || OperatorNameConventions.COMPONENT_REGEX.matches(name.asString())
-                isInfix = false
-                isInline = false
-                isTailRec = false
-                isExternal = false
-                isSuspend = false
-            }
-        }
-        if (classIsAnnotation) {
-            val parameterForAnnotationConstructor = buildJavaValueParameter {
-                session = this@JavaSymbolProvider.session
-                returnTypeRef = firJavaMethod.returnTypeRef
-                name = firJavaMethod.name
-                if (javaMethod.hasAnnotationParameterDefaultValue) {
-                    defaultValue = buildExpressionStub()
-                }
-                isVararg = javaMethod.returnType is JavaArrayType
-            }
-            if (firJavaMethod.name == VALUE_METHOD_NAME) {
-                valueParametersForAnnotationConstructor.valueParameterForValue = parameterForAnnotationConstructor
+        if (javaMethod.isObjectMethodInInterface()) continue
+                        val methodName = javaMethod.name
+                        val methodId = CallableId(classId.packageFqName, classId.relativeClassName, methodName)
+                        val methodSymbol = FirNamedFunctionSymbol(methodId)
+                        val returnType = javaMethod.returnType
+                        val firJavaMethod = buildJavaMethod {
+                            session = this@JavaSymbolProvider.session
+                            source = (javaMethod as? JavaElementImpl<*>)?.psi?.toFirPsiSourceElement()
+                            symbol = methodSymbol
+                            name = methodName
+                            visibility = javaMethod.visibility
+                            modality = javaMethod.modality
+                            returnTypeRef = returnType.toFirJavaTypeRef(this@JavaSymbolProvider.session, javaTypeParameterStack)
+                            isStatic = javaMethod.isStatic
+                            typeParameters += javaMethod.typeParameters.convertTypeParameters(javaTypeParameterStack)
+                            addAnnotationsFrom(this@JavaSymbolProvider.session, javaMethod, javaTypeParameterStack)
+                            for ((index, valueParameter) in javaMethod.valueParameters.withIndex()) {
+                                valueParameters += valueParameter.toFirValueParameter(
+                                    this@JavaSymbolProvider.session, index, javaTypeParameterStack,
+                                )
+                            }
+                            status = FirResolvedDeclarationStatusImpl(
+                                javaMethod.visibility,
+                                javaMethod.modality
+                            ).apply {
+                                isStatic = javaMethod.isStatic
+                                isExpect = false
+                                isActual = false
+                                isOverride = false
+                                // Approximation: all Java methods with name that allows to use it in operator form are considered operators
+                                // We need here more detailed checks (see modifierChecks.kt)
+                                isOperator = name in ALL_JAVA_OPERATION_NAMES || OperatorNameConventions.COMPONENT_REGEX.matches(name.asString())
+                                isInfix = false
+                                isInline = false
+                                isTailRec = false
+                                isExternal = false
+                                isSuspend = false
+                            }
+                        }
+                        if (classIsAnnotation) {
+                            val parameterForAnnotationConstructor = buildJavaValueParameter {
+                                session = this@JavaSymbolProvider.session
+                                returnTypeRef = firJavaMethod.returnTypeRef
+                                name = firJavaMethod.name
+                                if (javaMethod.hasAnnotationParameterDefaultValue) {
+                                    defaultValue = buildExpressionStub()
+                                }
+                                isVararg = javaMethod.returnType is JavaArrayType
+                            }
+                            if (firJavaMethod.name == VALUE_METHOD_NAME) {
+                                valueParametersForAnnotationConstructor.valueParameterForValue = parameterForAnnotationConstructor
             } else {
                 valueParametersForAnnotationConstructor.valueParameters += parameterForAnnotationConstructor
             }
