@@ -66,7 +66,7 @@ fun Test.includeMppAndAndroid(include: Boolean) {
 }
 
 fun Test.advanceGradleVersion() {
-    val gradleVersionForTests = "6.3"
+    val gradleVersionForTests = "6.6.1"
     systemProperty("kotlin.gradle.version.for.tests", gradleVersionForTests)
 }
 
