@@ -106,8 +106,10 @@ abstract class AbstractKotlinGradleModelBuilder : ModelBuilderService {
 
 class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
     companion object {
-        private val modelBuilderMapper = CompilerArgumentsMapperWithCheckout()
+        private var cacheCounter = 0
     }
+
+    private val modelBuilderMapper = CompilerArgumentsMapperWithCheckout(cacheCounter)
 
     override fun getErrorMessageBuilder(project: Project, e: Exception): ErrorMessageBuilder {
         return ErrorMessageBuilder.create(project, e, "Gradle import errors")
@@ -204,6 +206,7 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
         val implementedProjects = getImplementedProjects(project)
 
         val detachedMapper = modelDetachableMapper.detach()
+        cacheCounter = modelBuilderMapper.nextId
 
         return KotlinGradleModelImpl(
             kotlinPluginId != null || platformPluginId != null,

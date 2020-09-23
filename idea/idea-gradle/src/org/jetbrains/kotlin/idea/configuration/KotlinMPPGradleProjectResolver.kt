@@ -281,8 +281,7 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
             if (mppModel == null || externalProject == null) return
             mainModuleNode.isMppDataInitialized = true
 
-            val mppProjectArgumentsMapper = projectDataNode.projectCompilerArgumentMapperContainer.projectMppCompilerArgumentsMapper
-            mppProjectArgumentsMapper.mergeMapper(mppModel.compilerArgumentsMapper)
+            projectDataNode.projectCompilerArgumentMapperContainer.mergeArgumentsFromMapper(mppModel.compilerArgumentsMapper, true)
 
             val jdkName = gradleModule.jdkNameIfAny
 
@@ -367,7 +366,7 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
                         compilation,
                         gradleModule,
                         resolverCtx,
-                        mppProjectArgumentsMapper
+                        projectDataNode.projectCompilerArgumentMapperContainer.projectMppCompilerArgumentsMapper
                     ) ?: continue
                     kotlinSourceSet.externalSystemRunTasks =
                         compilation.sourceSets.firstNotNullResult { sourceSetToRunTasks[it] } ?: emptyList()
