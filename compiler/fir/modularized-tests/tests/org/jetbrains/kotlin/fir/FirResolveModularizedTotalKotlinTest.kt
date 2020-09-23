@@ -77,22 +77,13 @@ private class PerfBenchListener(val helper: PerfStat) : BenchListener() {
     }
 }
 
-private interface CLibrary : Library {
-    fun getpid(): Int
-    fun gettid(): Int
-
-    companion object {
-        val INSTANCE = Native.load("c", CLibrary::class.java) as CLibrary
-    }
-}
-
-fun isolate() {
+fun isolate(stat: PerfStat?) {
     val isolatedList = System.getenv("DOCKER_ISOLATED_CPUSET")
     val othersList = System.getenv("DOCKER_CPUSET")
     println("Trying to isolate, SYS: '$othersList', ISO: '$isolatedList'")
-    if (isolatedList != null && othersList != null) {
-        val selfPid = CLibrary.INSTANCE.getpid()
-        val selfTid = CLibrary.INSTANCE.gettid()
+    if (isolatedList != null && othersList != null && stat != null) {
+        val selfPid = stat.getpid()
+        val selfTid = stat.gettid()
         println("Will isolate, my pid: $selfPid, my tid: $selfTid")
         ProcessBuilder().command("bash", "-c", "ps -ae -o pid= | xargs -n 1 taskset -cap $othersList ").inheritIO().start().waitFor()
         ProcessBuilder().command("taskset", "-cp", isolatedList, "$selfTid").inheritIO().start().waitFor()
@@ -351,7 +342,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
 
     fun testTotalKotlin() {
 
-        isolate()
+        isolate(perfHelper)
 
         perfHelper?.open()
 
