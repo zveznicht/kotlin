@@ -404,7 +404,12 @@ class FirClassSubstitutionScope(
             newReturnType: ConeKotlinType? = null
         ) {
             annotations += baseFunction.annotations
-            returnTypeRef = baseFunction.returnTypeRef.withReplacedConeType(newReturnType)
+            returnTypeRef =
+                if (baseFunction.returnTypeRef is FirResolvedTypeRef)
+                    baseFunction.returnTypeRef.withReplacedConeType(newReturnType)
+                else
+                    baseFunction.returnTypeRef
+
             if (this is FirSimpleFunctionBuilder) {
                 receiverTypeRef = baseFunction.receiverTypeRef?.withReplacedConeType(newReceiverType)
             }
