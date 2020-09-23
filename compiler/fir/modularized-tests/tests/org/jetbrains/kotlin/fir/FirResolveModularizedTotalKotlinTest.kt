@@ -90,9 +90,11 @@ fun isolate() {
     val othersList = System.getenv("DOCKER_CPUSET")
     println("Trying to isolate, SYS: '$othersList', ISO: '$isolatedList'")
     if (isolatedList != null && othersList != null) {
-        println("Will isolate, my pid: ${CLibrary.INSTANCE.getpid()}")
+        val selfPid = CLibrary.INSTANCE.getpid()
+        println("Will isolate, my pid: $selfPid")
         ProcessBuilder().command("bash", "-c", "ps -ae -o pid= | xargs -n 1 taskset -cap $othersList ").inheritIO().start().waitFor()
-        ProcessBuilder().command("taskset", "-cap", isolatedList, "${CLibrary.INSTANCE.getpid()}").inheritIO().start().waitFor()
+        ProcessBuilder().command("taskset", "-cap", isolatedList, "$selfPid").inheritIO().start().waitFor()
+        ProcessBuilder().command("ps -o psr= $selfPid").inheritIO().start().waitFor()
     }
 }
 
