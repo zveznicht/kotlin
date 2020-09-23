@@ -88,6 +88,7 @@ private interface CLibrary : Library {
 fun isolate() {
     val isolatedList = System.getenv("DOCKER_ISOLATED_CPUSET")
     val othersList = System.getenv("DOCKER_CPUSET")
+    println("Trying to isolate, SYS: '$othersList', ISO: '$isolatedList'")
     if (isolatedList != null && othersList != null) {
         Runtime.getRuntime().exec("bash -c \"ps -ae -o pid= | xargs -n 1 taskset -cp $othersList \"").waitFor()
         Runtime.getRuntime().exec("taskset -cp $isolatedList ${CLibrary.INSTANCE.getpid()}").waitFor()
