@@ -79,6 +79,7 @@ private class PerfBenchListener(val helper: PerfStat) : BenchListener() {
 
 private interface CLibrary : Library {
     fun getpid(): Int
+    fun gettid(): Int
 
     companion object {
         val INSTANCE = Native.load("c", CLibrary::class.java) as CLibrary
@@ -91,10 +92,11 @@ fun isolate() {
     println("Trying to isolate, SYS: '$othersList', ISO: '$isolatedList'")
     if (isolatedList != null && othersList != null) {
         val selfPid = CLibrary.INSTANCE.getpid()
-        println("Will isolate, my pid: $selfPid")
+        val selfTid = CLibrary.INSTANCE.gettid()
+        println("Will isolate, my pid: $selfPid, my tid: $selfTid")
         ProcessBuilder().command("bash", "-c", "ps -ae -o pid= | xargs -n 1 taskset -cap $othersList ").inheritIO().start().waitFor()
-        ProcessBuilder().command("taskset", "-cap", isolatedList, "$selfPid").inheritIO().start().waitFor()
-        ProcessBuilder().command("ps", "-o", "psr= $selfPid").inheritIO().start().waitFor()
+        ProcessBuilder().command("taskset", "-cp", isolatedList, "$selfTid").inheritIO().start().waitFor()
+        ProcessBuilder().command("ps", "-o", "psr $selfPid").inheritIO().start().waitFor()
     }
 }
 
