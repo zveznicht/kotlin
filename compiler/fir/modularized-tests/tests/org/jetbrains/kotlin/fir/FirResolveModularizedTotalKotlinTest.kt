@@ -10,6 +10,8 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.psi.PsiElementFinder
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
+import com.sun.jna.Library
+import com.sun.jna.Native
 import com.sun.management.HotSpotDiagnosticMXBean
 import org.jetbrains.kotlin.asJava.finder.JavaElementFinder
 import org.jetbrains.kotlin.cli.common.profiling.AsyncProfilerHelper
@@ -72,6 +74,23 @@ private class PerfBenchListener(val helper: PerfStat) : BenchListener() {
         helper.pause()
         statByStage.merge(stageClass, helper.retrieve()) { a, b -> a.plus(b) }
         helper.reset()
+    }
+}
+
+private interface CLibrary : Library {
+    fun getpid(): Int
+
+    companion object {
+        val INSTANCE = Native.load("c", CLibrary::class.java) as CLibrary
+    }
+}
+
+fun isolate() {
+    val isolatedList = System.getenv("DOCKER_ISOLATED_CPUSET")
+    val othersList = System.getenv("DOCKER_CPUSET")
+    if (isolatedList != null && othersList != null) {
+        Runtime.getRuntime().exec("bash -c \"ps -ae -o pid= | xargs -n 1 taskset -cp $othersList \"").waitFor()
+        Runtime.getRuntime().exec("taskset -cp $isolatedList ${CLibrary.INSTANCE.getpid()}").waitFor()
     }
 }
 
@@ -325,6 +344,8 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
     }
 
     fun testTotalKotlin() {
+
+        isolate()
 
         perfHelper?.open()
 
