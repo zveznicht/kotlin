@@ -255,7 +255,7 @@ class InlineClassLowering(val context: CommonBackendContext) {
         else -> Name.identifier(asString() + INLINE_CLASS_IMPL_SUFFIX)
     }
 
-    fun collectTypeParameters(declaration: IrTypeParametersContainer): List<IrTypeParameter> {
+    private fun collectTypeParameters(declaration: IrTypeParametersContainer): List<IrTypeParameter> {
         val result = mutableListOf<IrTypeParameter>()
 
         fun collectImpl(declaration: IrDeclaration) {
