@@ -11,11 +11,14 @@ import org.gradle.kotlin.dsl.extra
 import org.jetbrains.kotlin.pill.*
 import org.jetbrains.kotlin.pill.model.PDependency
 import org.jetbrains.kotlin.pill.model.PLibrary
+import org.jetbrains.kotlin.pill.model.PProject
 import org.jetbrains.kotlin.pill.util.ProjectContext
 import java.io.File
 
-class ArtifactGenerator(private val dependencyMapper: ArtifactDependencyMapper) {
-    fun generateKotlinPluginArtifact(rootProject: Project): PFile {
+class ArtifactGenerator(private val dependencyMapper: ArtifactDependencyMapper, private val rootProject: Project, jpsProject: PProject) {
+    private val rootModule = jpsProject.modules.first()
+
+    fun generateKotlinPluginArtifact(): PFile {
         val root = ArtifactElement.Root()
 
         fun Project.getProject(name: String) = findProject(name) ?: error("Cannot find project $name")
@@ -90,7 +93,7 @@ class ArtifactGenerator(private val dependencyMapper: ArtifactDependencyMapper) 
         val dependencies = mutableListOf<PDependency>()
         for (file in configuration.resolve()) {
             val library = PLibrary(file.name, listOf(file))
-            dependencies += dependencyMapper.map(PDependency.ModuleLibrary(library))
+            dependencies += dependencyMapper.map(rootModule, PDependency.ModuleLibrary(library))
         }
         return dependencies
     }

@@ -30,15 +30,14 @@ class DistLibraryDependencyMapper(rootProject: Project) : LibraryDependencyMappe
 
         val projectLibraries = mutableListOf<PLibrary>()
 
-        val mappings = generateMappings(rootProject) { mappedLibrary ->
-            val path = mappedLibrary.path
+        val mappings = generateMappings(rootProject) { path ->
             val project = rootProject.findProject(path) ?: error("Project not found")
             val archiveName = project.convention.findPlugin(BasePluginConvention::class.java)!!.archivesBaseName
             val classesJars = listOf(File(distLibDir, "$archiveName.jar")).filterExisting()
             val sourcesJars = listOf(File(distLibDir, "$archiveName-sources.jar")).filterExisting()
             val library = PLibrary(archiveName, classesJars, sourcesJars)
             projectLibraries += library
-            Optional.of(PDependency.Library(library.name))
+            PDependency.Library(library.name)
         }
 
         this.mappings = mappings

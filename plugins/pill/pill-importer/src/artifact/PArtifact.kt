@@ -14,7 +14,7 @@ class PArtifact(val artifactName: String, private val outputDir: File, private v
     fun render(context: PathContext) = xml("component", "name" to "ArtifactManager") {
         xml("artifact", "name" to artifactName) {
             xml("output-path") {
-                raw(context(outputDir))
+                raw(context.substituteWithVariables(outputDir))
             }
 
             add(contents.renderRecursively(context))

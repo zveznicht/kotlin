@@ -36,7 +36,7 @@ private fun renderModulesFile(project: PProject) = PFile(
                 val pathContext = ProjectContext(project)
 
                 for (module in project.modules) {
-                    val moduleFilePath = pathContext(module.moduleFile)
+                    val moduleFilePath = pathContext.substituteWithVariables(module.moduleFile)
                     xml("module", "fileurl" to "file://$moduleFilePath", "filepath" to moduleFilePath)
                 }
             }
@@ -74,7 +74,7 @@ private fun renderModule(project: PProject, module: PModule) = PFile(
                             )
                         }
                         xml("compilerArguments") {
-                            xml("option", "name" to "destination", "value" to pathContext(classesDirectory))
+                            xml("option", "name" to "destination", "value" to pathContext.substituteWithVariables(classesDirectory))
 
                             fun Any?.option(name: String) {
                                 if (this != null) xml("option", "name" to name, "value" to this.toString())
@@ -183,9 +183,25 @@ private fun renderLibrary(project: PProject, library: PLibrary): PFile {
 }
 
 private fun renderLibraryToXml(library: PLibrary, pathContext: PathContext, named: Boolean = true): XmlNode {
-    val args = if (named) arrayOf("name" to library.renderName()) else emptyArray()
+    val args = mutableListOf<Pair<String, String>>()
 
-    return xml("library", *args) {
+    if (named) {
+        args += Pair("name", library.renderName())
+    }
+
+    if (library.maven != null) {
+        args += Pair("type", "repository")
+    }
+
+    return xml("library", *(args.toTypedArray())) {
+        if (library.maven != null) {
+            xml(
+                "properties",
+                @Suppress("SpellCheckingInspection") "include-transitive-deps" to library.maven.includeTransitiveDeps,
+                "maven-id" to library.maven.id
+            )
+        }
+
         xml("CLASSES") {
             library.classes.forEach { xml("root", pathContext.url(it)) }
         }
@@ -201,3 +217,7 @@ private fun renderLibraryToXml(library: PLibrary, pathContext: PathContext, name
 }
 
 fun PLibrary.renderName() = name.takeIf { it != "unspecified" } ?: classes.first().nameWithoutExtension
+
+private fun PathContext.url(file: File): Pair<String, String> {
+    return Pair("url", getUrlWithVariables(file))
+}

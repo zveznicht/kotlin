@@ -54,7 +54,13 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
         val modulePrefix = System.getProperty("pill.module.prefix", "")
         val modelParser = ModelParser(variant, modulePrefix)
 
-        val libraryDependencyPatcher = if (isKombo) KomboDependencyMapper(rootProject) else DistLibraryDependencyMapper(rootProject)
+        val libraryDependencyPatcher = if (isKombo) {
+            val mappingsPath = System.getProperty("pill.kombo.mappings.dir", null) ?: error("Mappings dir not specified")
+            val intellijPath = System.getProperty("pill.kombo.intellij.dir", null) ?: error("IntelliJ dir not specified")
+            KomboDependencyMapper(rootProject, File(mappingsPath), File(intellijPath))
+        } else {
+            DistLibraryDependencyMapper(rootProject)
+        }
 
         val dependencyMappers = listOf(
             libraryDependencyPatcher,
@@ -76,16 +82,16 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
 
             if (variant.includes.contains(PillExtensionMirror.Variant.IDE)) {
                 val artifactDependencyMapper = object : ArtifactDependencyMapper {
-                    override fun map(dependency: PDependency): List<PDependency> {
+                    override fun map(module: PModule, dependency: PDependency): List<PDependency> {
                         val result = mutableListOf<PDependency>()
 
-                        for (mappedDependency in jpsProject.mapDependency(dependency, dependencyMappers)) {
+                        for (mappedDependency in mapDependency(jpsProject, module, dependency, dependencyMappers)) {
                             result += mappedDependency
 
                             if (mappedDependency is PDependency.Module) {
-                                val module = jpsProject.modules.find { it.name == mappedDependency.name }
-                                if (module != null) {
-                                    result += module.embeddedDependencies
+                                val mappedModule = jpsProject.modules.find { it.name == mappedDependency.name }
+                                if (mappedModule != null) {
+                                    result += mappedModule.embeddedDependencies
                                 }
                             }
                         }
@@ -94,7 +100,7 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
                     }
                 }
 
-                ArtifactGenerator(artifactDependencyMapper).generateKotlinPluginArtifact(rootProject).write()
+                ArtifactGenerator(artifactDependencyMapper, rootProject, jpsProject).generateKotlinPluginArtifact().write()
             }
         }
 
@@ -261,25 +267,30 @@ class JpsCompatiblePluginTasks(private val rootProject: Project, private val pla
     }
 
     private fun PProject.mapDependencies(mappers: List<DependencyMapper>): PProject {
-        fun mapRoot(root: POrderRoot): List<POrderRoot> {
-            val dependencies = mapDependency(root.dependency, mappers)
+        fun mapRoot(module: PModule, root: POrderRoot): List<POrderRoot> {
+            val dependencies = mapDependency(this, module, root.dependency, mappers)
             return dependencies.map { root.copy(dependency = it) }
         }
 
         val modules = this.modules.map { module ->
-            val newOrderRoots = module.orderRoots.flatMap(::mapRoot).distinct()
+            val newOrderRoots = module.orderRoots.flatMap { root -> mapRoot(module, root) }.distinct()
             module.copy(orderRoots = newOrderRoots)
         }
 
         return this.copy(modules = modules)
     }
 
-    private fun PProject.mapDependency(dependency: PDependency, mappers: List<DependencyMapper>): List<PDependency> {
+    private fun mapDependency(
+        project: PProject,
+        module: PModule,
+        dependency: PDependency,
+        mappers: List<DependencyMapper>
+    ): List<PDependency> {
         var dependencies = listOf(dependency)
         for (mapper in mappers) {
             val newDependencies = mutableListOf<PDependency>()
             for (dep in dependencies) {
-                newDependencies += mapper.map(this, dep)
+                newDependencies += mapper.map(project, module, dep)
             }
             dependencies = newDependencies
         }

@@ -6,8 +6,9 @@
 package org.jetbrains.kotlin.pill.mapper
 
 import org.jetbrains.kotlin.pill.model.PDependency
+import org.jetbrains.kotlin.pill.model.PModule
 import org.jetbrains.kotlin.pill.model.PProject
 
 interface DependencyMapper {
-    fun map(project: PProject, dependency: PDependency): List<PDependency>
+    fun map(project: PProject, module: PModule, dependency: PDependency): List<PDependency>
 }
