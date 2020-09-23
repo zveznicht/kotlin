@@ -394,7 +394,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
         stackValue = new StackValue(originalType, originalKotlinType) {
             @Override
             public void putSelector(
-                    @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v
+                    @NotNull Type type, @Nullable KotlinType kotlinType, @NotNull InstructionAdapter v, boolean allowNoUpcast
             ) {
                 if (((originalKotlinType != null && InlineClassesUtilsKt.isInlineClassType(originalKotlinType)) ||
                     (kotlinType != null && InlineClassesUtilsKt.isInlineClassType(kotlinType)))
@@ -406,7 +406,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
                     StackValue.coerce(originalType, originalKotlinType, type, kotlinType, v);
                 } else {
                     // No inline class -> usual coerce is enough
-                    stackValueToWrap.put(type, kotlinType, v);
+                    stackValueToWrap.put(type, kotlinType, v, allowNoUpcast);
                 }
             }
         };
