@@ -36,6 +36,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
     // This flag enables import of source sets which do not belong to any compilation
     private val DEFAULT_IMPORT_ORPHAN_SOURCE_SETS = true
     private val DEFAULT_BUILD_METADATA_DEPENDENCIES_FOR_ACTUALISED_SOURCE_SETS = true
+    private val modelBuilderMapper = CompilerArgumentsMapperWithCheckout(cacheCounter)
+
 
     override fun getErrorMessageBuilder(project: Project, e: Exception): ErrorMessageBuilder {
         return ErrorMessageBuilder
@@ -66,6 +68,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         val coroutinesState = getCoroutinesState(project)
         reportUnresolvedDependencies(targets)
         val kotlinNativeHome = KotlinNativeHomeEvaluator.getKotlinNativeHome(project) ?: NO_KOTLIN_NATIVE_HOME
+        cacheCounter = modelBuilderMapper.nextId
+
         return KotlinMPPGradleModelImpl(
             filterOrphanSourceSets(sourceSetMap, targets, project),
             targets,
@@ -1003,8 +1007,7 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
 
     companion object {
         private val logger = Logging.getLogger(KotlinMPPGradleModelBuilder::class.java)
-
-        private val modelBuilderMapper = CompilerArgumentsMapperWithCheckout()
+        private var cacheCounter = 0
 
         fun Project.getTargets(): Collection<Named>? {
             val kotlinExt = project.extensions.findByName("kotlin") ?: return null

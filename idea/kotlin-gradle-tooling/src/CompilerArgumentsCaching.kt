@@ -112,21 +112,19 @@ open class CompilerArgumentsMapper(val initialId: Int = 0) : ICompilerArgumentsM
 
     constructor(otherMapper: CompilerArgumentsMapper) : this(otherMapper.initialId) {
         idToCompilerArguments.putAll(otherMapper.idToCompilerArguments)
-        compilerArgumentToId.putAll(otherMapper.compilerArgumentToId)
         nextId = otherMapper.nextId
     }
 
-    protected var nextId = initialId
+    var nextId = initialId
     protected val idToCompilerArguments: MutableMap<Int, String> = mutableMapOf()
-    protected val compilerArgumentToId: MutableMap<String, Int> = mutableMapOf()
 
-    override fun getArgumentCache(argument: String): Int? = compilerArgumentToId[argument]
+    override fun getArgumentCache(argument: String): Int? =
+        idToCompilerArguments.filter { it.value == argument }.keys.firstOrNull()
 
     override fun cacheArgument(commonArgument: String): Int = getArgumentCache(commonArgument)
         ?: run {
             val index = nextId++
             idToCompilerArguments[index] = commonArgument
-            compilerArgumentToId[commonArgument] = index
             index
         }
 
@@ -134,7 +132,6 @@ open class CompilerArgumentsMapper(val initialId: Int = 0) : ICompilerArgumentsM
 
     override fun clear() {
         idToCompilerArguments.clear()
-        compilerArgumentToId.clear()
         nextId = initialId
     }
 
@@ -146,12 +143,12 @@ interface IDetachableMapper : ICompilerArgumentsMapper {
     fun detach(): ICompilerArgumentsMapper
 }
 
-class DetachableCompilerArgumentsMapper(override val masterMapper: ICompilerArgumentsMapper) : CompilerArgumentsMapper(),
+class DetachableCompilerArgumentsMapper(override val masterMapper: CompilerArgumentsMapper) : CompilerArgumentsMapper(),
     IDetachableMapper {
     override fun cacheArgument(commonArgument: String): Int =
         masterMapper.getArgumentCache(commonArgument) ?: masterMapper.cacheArgument(commonArgument).also {
             idToCompilerArguments[it] = commonArgument
-            compilerArgumentToId[commonArgument] = it
+            nextId = masterMapper.nextId
         }
 
     override fun detach(): ICompilerArgumentsMapper = CompilerArgumentsMapper(this)
@@ -161,7 +158,7 @@ interface IWithCheckoutMapper : ICompilerArgumentsMapper {
     fun checkoutMapper(): IDetachableMapper
 }
 
-class CompilerArgumentsMapperWithCheckout : CompilerArgumentsMapper(), IWithCheckoutMapper {
+class CompilerArgumentsMapperWithCheckout(initialId: Int = 0) : CompilerArgumentsMapper(initialId), IWithCheckoutMapper {
     override fun checkoutMapper(): IDetachableMapper = DetachableCompilerArgumentsMapper(this)
 }
 
@@ -174,7 +171,6 @@ class CompilerArgumentsMapperWithMerge : CompilerArgumentsMapper(), IWithMergeMa
     override fun mergeMapper(mapper: ICompilerArgumentsMapper) {
         mapper.copyCache().forEach { (id, arg) ->
             idToCompilerArguments[id] = arg
-            compilerArgumentToId[arg] = id
         }
     }
 }
