@@ -91,8 +91,8 @@ fun isolate() {
     println("Trying to isolate, SYS: '$othersList', ISO: '$isolatedList'")
     if (isolatedList != null && othersList != null) {
         println("Will isolate, my pid: ${CLibrary.INSTANCE.getpid()}")
-        ProcessBuilder().command("bash", "-c", "ps -ae -o pid= | xargs -n 1 taskset -cp $othersList ").inheritIO().start().waitFor()
-        ProcessBuilder().command("taskset", "-cp", isolatedList, "${CLibrary.INSTANCE.getpid()}").inheritIO().start().waitFor()
+        ProcessBuilder().command("bash", "-c", "ps -ae -o pid= | xargs -n 1 taskset -cap $othersList ").inheritIO().start().waitFor()
+        ProcessBuilder().command("taskset", "-cap", isolatedList, "${CLibrary.INSTANCE.getpid()}").inheritIO().start().waitFor()
     }
 }
 
