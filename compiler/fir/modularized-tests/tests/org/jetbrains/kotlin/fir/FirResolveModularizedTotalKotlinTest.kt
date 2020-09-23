@@ -94,7 +94,7 @@ fun isolate() {
         println("Will isolate, my pid: $selfPid")
         ProcessBuilder().command("bash", "-c", "ps -ae -o pid= | xargs -n 1 taskset -cap $othersList ").inheritIO().start().waitFor()
         ProcessBuilder().command("taskset", "-cap", isolatedList, "$selfPid").inheritIO().start().waitFor()
-        ProcessBuilder().command("ps -o psr= $selfPid").inheritIO().start().waitFor()
+        ProcessBuilder().command("ps", "-o", "psr= $selfPid").inheritIO().start().waitFor()
     }
 }
 
