@@ -25250,6 +25250,11 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
             public void testInvisibleSetterOfJavaClass() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/visibility/invisibleSetterOfJavaClass.kt");
             }
+
+            @TestMetadata("lackOfInvisibleSetterOfJavaClassInSamePackage.kt")
+            public void testLackOfInvisibleSetterOfJavaClassInSamePackage() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/visibility/lackOfInvisibleSetterOfJavaClassInSamePackage.kt");
+            }
         }
 
         @TestMetadata("compiler/testData/diagnostics/tests/when")
