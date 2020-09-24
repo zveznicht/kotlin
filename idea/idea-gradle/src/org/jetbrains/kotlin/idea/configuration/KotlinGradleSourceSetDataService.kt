@@ -34,7 +34,6 @@ import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.Key
 import com.intellij.util.PathUtil
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.extensions.ProjectExtensionDescriptor
@@ -59,6 +58,7 @@ import org.jetbrains.kotlin.platform.IdePlatformKind
 import org.jetbrains.kotlin.platform.impl.isCommon
 import org.jetbrains.kotlin.platform.impl.isJavaScript
 import org.jetbrains.kotlin.platform.impl.isJvm
+import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.UserDataProperty
 import org.jetbrains.plugins.gradle.model.data.BuildScriptClasspathData
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
@@ -315,12 +315,20 @@ private fun configureFacetByCachedCompilerArguments(
     kotlinFacet: KotlinFacet,
     modelsProvider: IdeModifiableModelsProvider
 ) {
-    val currentArguments = CachedToRawCompilerArgumentsBucketConverter(mapper).convert(cachedArgsInfo.currentCompilerArgumentsBucket)
-    val defaultArguments = CachedToRawCompilerArgumentsBucketConverter(mapper).convert(cachedArgsInfo.defaultCompilerArgumentsBucket)
-    val dependencyClasspath = cachedArgsInfo.dependencyClasspathCacheIds.map { mapper.getArgument(it) }
+    val (flatCurrentArguments, flatDefaultArguments) = with(CachedToFlatCompilerArgumentsBucketConverter(mapper)) {
+        convert(cachedArgsInfo.currentCompilerArgumentsBucket) to convert(cachedArgsInfo.defaultCompilerArgumentsBucket)
+    }
+    val dependencyClasspath = cachedArgsInfo.dependencyClasspath.map { mapper.getArgument(it) }.toTypedArray()
+    val flatArgsInfo = FlatArgsInfoImpl(flatCurrentArguments, flatDefaultArguments, dependencyClasspath)
+    configureFacetByFlatArgsInfo(kotlinFacet, flatArgsInfo, modelsProvider)
+}
 
-    val argsInfo = ArgsInfoImpl(currentArguments, defaultArguments, dependencyClasspath)
-    configureFacetByCompilerArguments(kotlinFacet, argsInfo, modelsProvider)
+fun configureFacetByFlatArgsInfo(kotlinFacet: KotlinFacet, flatArgsInfo: FlatArgsInfo, modelsProvider: IdeModifiableModelsProvider?) {
+    val currentCompilerArguments = FlatToRawCompilerArgumentsBucketConverter().convert(flatArgsInfo.currentCompilerArgumentsBucket)
+    val defaultCompilerArguments = FlatToRawCompilerArgumentsBucketConverter().convert(flatArgsInfo.defaultCompilerArgumentsBucket)
+    val dependencyClasspath = flatArgsInfo.dependencyClasspath.map { PathUtil.toSystemIndependentName(it) }
+    val argsInfoImpl = ArgsInfoImpl(currentCompilerArguments, defaultCompilerArguments, dependencyClasspath)
+    configureFacetByCompilerArguments(kotlinFacet, argsInfoImpl, modelsProvider)
 }
 
 fun configureFacetByCompilerArguments(kotlinFacet: KotlinFacet, argsInfo: ArgsInfo, modelsProvider: IdeModifiableModelsProvider?) {
@@ -350,9 +358,9 @@ private fun getExplicitOutputPath(moduleNode: DataNode<ModuleData>, platformKind
 internal fun adjustClasspath(kotlinFacet: KotlinFacet, dependencyClasspath: List<String>) {
     if (dependencyClasspath.isEmpty()) return
     with(kotlinFacet.configuration.settings) {
-        if (compilerArguments !is K2JVMCompilerArguments) return
-        val fullClasspath = classpathParts
-        if (fullClasspath.isEmpty()) return
+        if (targetPlatform?.isJvm() != true) return
+        val fullClasspath = classpathParts.toList()
+        if (fullClasspath.isNullOrEmpty()) return
         classpathParts = fullClasspath - dependencyClasspath
     }
 }

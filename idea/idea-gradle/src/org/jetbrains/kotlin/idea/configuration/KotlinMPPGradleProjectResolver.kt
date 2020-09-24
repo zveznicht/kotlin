@@ -1064,7 +1064,7 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
                     createCompilerArguments(defaultCompilerArgumentsList, compilation.platform)
 
                 sourceSetInfo.dependencyClasspath =
-                    compilation.cachedArgsInfo.dependencyClasspathCacheIds.map { compilerArgumentsMapper.getArgument(it) }
+                    compilation.cachedArgsInfo.dependencyClasspath.map { compilerArgumentsMapper.getArgument(it) }
                 sourceSetInfo.addSourceSets(compilation.sourceSets, compilation.fullName(), gradleModule, resolverCtx)
             }
         }

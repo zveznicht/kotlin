@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     compile(kotlinStdlib())
+    compileOnly(project(":idea:kotlin-gradle-tooling"))
     compileOnly(project(":kotlin-reflect-api"))
     compile(project(":compiler:util"))
     compile(project(":compiler:cli-common"))
