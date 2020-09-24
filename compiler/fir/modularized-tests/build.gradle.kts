@@ -90,6 +90,7 @@ projectTest {
             jvmArgs(paramRegex.findAll(argsExt).map { it.groupValues[1] }.toList())
         }
     }
+    jvmArgs("-XX:-TieredCompilation")
 }
 
 testsJar()
