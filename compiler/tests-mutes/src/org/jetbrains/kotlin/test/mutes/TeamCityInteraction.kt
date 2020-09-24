@@ -8,10 +8,10 @@ import khttp.structures.authorization.Authorization
 
 internal const val TAG = "[MUTED-BY-CSVFILE]"
 private val buildServerUrl = getMandatoryProperty("org.jetbrains.kotlin.test.mutes.teamcity.server.url")
-private val headers = mapOf("Content-type" to "application/json", "Accept" to "application/json")
 private val authUser = object : Authorization {
     override val header = "Authorization" to "Bearer ${getMandatoryProperty("org.jetbrains.kotlin.test.mutes.teamcity.server.token")}"
 }
+private val headers = mapOf("Content-type" to "application/json", "Accept" to "application/json")
 
 
 internal fun getMutedTestsOnTeamcityForRootProject(rootScopeId: String): List<MuteTestJson> {
