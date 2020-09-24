@@ -15,11 +15,11 @@ private val authUser = object : Authorization {
 
 
 internal fun getMutedTestsOnTeamcityForRootProject(rootScopeId: String): List<MuteTestJson> {
-    val requestHref = "/app/rest/mutes"
     val requestParams = mapOf(
         "locator" to "project:(id:$rootScopeId)",
         "fields" to "mute(id,assignment(text),scope(project(id),buildTypes(buildType(id))),target(tests(test(name))),resolution),nextHref"
     )
+    val requestHref = "/app/rest/mutes"
     val jsonResponses = traverseAll(requestHref, requestParams)
 
     val alreadyMutedTestsOnTeamCity = jsonResponses.flatMap {
