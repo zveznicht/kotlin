@@ -41,6 +41,8 @@ dependencies {
     }
 
     testRuntimeOnly(toolsJar())
+
+    testRuntimeOnly(project(":kotlin-gradle-statistics"))
     testRuntime(project(":kotlin-reflect"))
     testRuntime(project(":idea:idea-jvm"))
     testRuntime(project(":idea:idea-android"))
