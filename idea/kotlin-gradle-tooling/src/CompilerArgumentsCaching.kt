@@ -50,42 +50,42 @@ class FlatCompilerArgumentsBucket(
 interface IArgsInfo<R, T : CompilerArgumentsBucket<R>> : Serializable {
     val currentCompilerArgumentsBucket: T
     val defaultCompilerArgumentsBucket: T
-    val dependencyClasspathCacheIds: R
+    val dependencyClasspath: R
 }
 
 interface FlatArgsInfo : IArgsInfo<ClasspathArgumentsType, FlatCompilerArgumentsBucket> {
     override val currentCompilerArgumentsBucket: FlatCompilerArgumentsBucket
     override val defaultCompilerArgumentsBucket: FlatCompilerArgumentsBucket
-    override val dependencyClasspathCacheIds: ClasspathArgumentsType
+    override val dependencyClasspath: ClasspathArgumentsType
 }
 
 class FlatArgsInfoImpl(
     override val currentCompilerArgumentsBucket: FlatCompilerArgumentsBucket,
     override val defaultCompilerArgumentsBucket: FlatCompilerArgumentsBucket,
-    override val dependencyClasspathCacheIds: ClasspathArgumentsType
+    override val dependencyClasspath: ClasspathArgumentsType
 ) : FlatArgsInfo {
     constructor(flatArgsInfo: FlatArgsInfo) : this(
         FlatCompilerArgumentsBucket(flatArgsInfo.currentCompilerArgumentsBucket),
         FlatCompilerArgumentsBucket(flatArgsInfo.defaultCompilerArgumentsBucket),
-        arrayOf(*flatArgsInfo.dependencyClasspathCacheIds)
+        arrayOf(*flatArgsInfo.dependencyClasspath)
     )
 }
 
 interface CachedArgsInfo : IArgsInfo<ClasspathArgumentCacheIdType, CachedCompilerArgumentsBucket> {
     override val currentCompilerArgumentsBucket: CachedCompilerArgumentsBucket
     override val defaultCompilerArgumentsBucket: CachedCompilerArgumentsBucket
-    override val dependencyClasspathCacheIds: ClasspathArgumentCacheIdType
+    override val dependencyClasspath: ClasspathArgumentCacheIdType
 }
 
 class CachedArgsInfoImpl(
     override val currentCompilerArgumentsBucket: CachedCompilerArgumentsBucket,
     override val defaultCompilerArgumentsBucket: CachedCompilerArgumentsBucket,
-    override val dependencyClasspathCacheIds: ClasspathArgumentCacheIdType
+    override val dependencyClasspath: ClasspathArgumentCacheIdType
 ) : CachedArgsInfo {
     constructor(cachedArgsInfo: CachedArgsInfo) : this(
         CachedCompilerArgumentsBucket(cachedArgsInfo.currentCompilerArgumentsBucket),
         CachedCompilerArgumentsBucket(cachedArgsInfo.defaultCompilerArgumentsBucket),
-        arrayOf(*cachedArgsInfo.dependencyClasspathCacheIds)
+        arrayOf(*cachedArgsInfo.dependencyClasspath)
     )
 }
 
@@ -175,11 +175,10 @@ class CompilerArgumentsMapperWithMerge : CompilerArgumentsMapper(), IWithMergeMa
     }
 }
 
-data class CompilerArgumentMappersContainer @JvmOverloads constructor(
+data class CompilerArgumentMappersContainer(
     val projectCompilerArgumentsMapper: CompilerArgumentsMapperWithMerge = CompilerArgumentsMapperWithMerge(),
     val projectMppCompilerArgumentsMapper: CompilerArgumentsMapperWithMerge = CompilerArgumentsMapperWithMerge()
 ) {
-    @JvmOverloads
     fun mergeArgumentsFromMapper(mapper: ICompilerArgumentsMapper, isMpp: Boolean = false) {
         if (isMpp) projectMppCompilerArgumentsMapper.mergeMapper(mapper) else projectCompilerArgumentsMapper.mergeMapper(mapper)
     }
