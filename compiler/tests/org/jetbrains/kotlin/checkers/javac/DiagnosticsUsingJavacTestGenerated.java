@@ -25181,6 +25181,11 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                 runTest("compiler/testData/diagnostics/tests/visibility/invisibleSetterOfJavaClass.kt");
             }
 
+            @TestMetadata("invisibleSetterOfJavaClassWithDisabledFeature.kt")
+            public void testInvisibleSetterOfJavaClassWithDisabledFeature() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/visibility/invisibleSetterOfJavaClassWithDisabledFeature.kt");
+            }
+
             @TestMetadata("lackOfInvisibleSetterOfJavaClassInSamePackage.kt")
             public void testLackOfInvisibleSetterOfJavaClassInSamePackage() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/visibility/lackOfInvisibleSetterOfJavaClassInSamePackage.kt");

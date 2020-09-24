@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.resolve.calls.components
 
 import org.jetbrains.kotlin.builtins.UnsignedTypes
 import org.jetbrains.kotlin.builtins.getReceiverTypeFromFunctionType
+import org.jetbrains.kotlin.config.LanguageFeature
+import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.descriptors.impl.TypeAliasConstructorDescriptor
 import org.jetbrains.kotlin.resolve.DescriptorUtils
@@ -22,6 +24,7 @@ import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind.*
 import org.jetbrains.kotlin.resolve.calls.tower.InfixCallNoInfixModifier
 import org.jetbrains.kotlin.resolve.calls.tower.InvokeConventionCallNoOperatorModifier
 import org.jetbrains.kotlin.resolve.calls.tower.VisibilityError
+import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.types.model.TypeConstructorMarker
@@ -34,6 +37,26 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal object CheckVisibility : ResolutionPart() {
+    private fun checkSmartCastAndStableInSamePackageIfNeeded(
+        smartCastReceiver: ReceiverValue?,
+        candidateDescriptor: CallableDescriptor,
+        languageVersionSettings: LanguageVersionSettings
+    ): Boolean {
+        if (!languageVersionSettings.supportsFeature(LanguageFeature.ImproveReportingDiagnosticsOnProtectedMembersOfBaseClass))
+            return true
+
+        val containingPackageOfSmartCastConstructor = DescriptorUtils.getParentOfType(
+            smartCastReceiver?.type?.constructor?.declarationDescriptor,
+            PackageFragmentDescriptor::class.java
+        )
+        val containingPackageOfCandidateConstructor = DescriptorUtils.getParentOfType(
+            candidateDescriptor.containingDeclaration,
+            PackageFragmentDescriptor::class.java
+        )
+
+        return containingPackageOfSmartCastConstructor == containingPackageOfCandidateConstructor
+    }
+
     override fun KotlinResolutionCandidate.process(workIndex: Int) {
         val containingDescriptor = scopeTower.lexicalScope.ownerDescriptor
         val dispatchReceiverArgument = resolvedCall.dispatchReceiverArgument
@@ -44,21 +67,16 @@ internal object CheckVisibility : ResolutionPart() {
 
         if (dispatchReceiverArgument is ExpressionKotlinCallArgument) {
             val smartCastReceiver = getReceiverValueWithSmartCast(receiverValue, dispatchReceiverArgument.receiver.stableType)
-            val containingPackageOfSmartCastConstructor = DescriptorUtils.getParentOfType(
-                smartCastReceiver?.type?.constructor?.declarationDescriptor,
-                PackageFragmentDescriptor::class.java
-            )
-            val containingPackageOfCandidateConstructor = DescriptorUtils.getParentOfType(
-                candidateDescriptor.containingDeclaration,
-                PackageFragmentDescriptor::class.java
-            )
-            val areSmartCastAndCandidateDeclaredTypesInSamePackage =
-                containingPackageOfSmartCastConstructor == containingPackageOfCandidateConstructor
             val isInvisibleMember =
                 DescriptorVisibilities.findInvisibleMember(smartCastReceiver, candidateDescriptor, containingDescriptor) != null
 
+            val areSmartCastAndStableInSamePackageOrFeatureDisabled = checkSmartCastAndStableInSamePackageIfNeeded(
+                smartCastReceiver,
+                candidateDescriptor,
+                callComponents.languageVersionSettings
+            )
             // We should prohibit access to protected members in another package (see JLS "6.6.2.2. Qualified Access to a protected Constructor")
-            if (!isInvisibleMember && areSmartCastAndCandidateDeclaredTypesInSamePackage) {
+            if (!isInvisibleMember && areSmartCastAndStableInSamePackageOrFeatureDisabled) {
                 addDiagnostic(
                     SmartCastDiagnostic(
                         dispatchReceiverArgument,
