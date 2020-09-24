@@ -10,11 +10,13 @@ import org.jetbrains.kotlin.KtNodeTypes
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
-import org.jetbrains.kotlin.fir.*
+import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.synthetic.FirSyntheticProperty
 import org.jetbrains.kotlin.fir.expressions.FirConstExpression
 import org.jetbrains.kotlin.fir.expressions.FirConstKind
+import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.references.FirReference
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.references.FirThisReference
@@ -22,7 +24,6 @@ import org.jetbrains.kotlin.fir.references.impl.FirPropertyFromParameterResolved
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.SyntheticPropertySymbol
 import org.jetbrains.kotlin.fir.resolve.providers.FirProvider
-import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.scopes.processDirectlyOverriddenFunctions
 import org.jetbrains.kotlin.fir.scopes.processDirectlyOverriddenProperties
@@ -31,6 +32,7 @@ import org.jetbrains.kotlin.fir.symbols.AccessorSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
 import org.jetbrains.kotlin.ir.descriptors.WrappedReceiverParameterDescriptor
@@ -488,6 +490,31 @@ fun Fir2IrComponents.createTemporaryVariable(
     val variableSymbol = receiverVariable.symbol
 
     return Pair(receiverVariable, variableSymbol)
+}
+
+internal fun Sequence<IrStatement>.convertForLoops(): Sequence<IrStatement> = Sequence {
+    // see commit "FIR2IR: add two-statements block with iterator + while for 'for' loops"
+    object : Iterator<IrStatement> {
+        val iterator = this@convertForLoops.iterator()
+
+        override fun next(): IrStatement {
+            val statement = iterator.next()
+            if (statement is IrVariable && statement.origin == IrDeclarationOrigin.FOR_LOOP_ITERATOR) {
+                val nextStatement = iterator.next()
+                return IrBlockImpl(
+                    statement.startOffset, nextStatement.endOffset,
+                    (nextStatement as IrExpression).type, IrStatementOrigin.FOR_LOOP,
+                    listOf(statement, nextStatement)
+                )
+            } else {
+                return statement
+            }
+        }
+
+        override fun hasNext(): Boolean {
+            return iterator.hasNext()
+        }
+    }
 }
 
 fun Fir2IrComponents.createTemporaryVariableForSafeCallConstruction(
