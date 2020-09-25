@@ -1,3 +1,5 @@
+// !LANGUAGE: -ApproximateAnonymousReturnTypesInPrivateInlineFunctions
+
 private inline fun <!PRIVATE_INLINE_FUNCTIONS_RETURNING_ANONYMOUS_OBJECTS!>foo1<!>(crossinline f: () -> Int) = object {
     fun bar(): Int = f()
 }

@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Errors
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtNamedFunction
-import org.jetbrains.kotlin.psi.psiUtil.isPrivate
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 
@@ -19,7 +18,7 @@ object PrivateInlineFunctionsReturningAnonymousObjectsChecker : DeclarationCheck
         if (context.languageVersionSettings.supportsFeature(LanguageFeature.ApproximateAnonymousReturnTypesInPrivateInlineFunctions))
             return
 
-        if (descriptor !is SimpleFunctionDescriptor || !descriptor.isInline || !declaration.isPrivate() || declaration !is KtNamedFunction)
+        if (descriptor !is SimpleFunctionDescriptor || !descriptor.isInline || !DescriptorVisibilities.isPrivate(descriptor.visibility) || declaration !is KtNamedFunction)
             return
 
         val returnTypeConstructor = descriptor.returnType?.constructor ?: return
