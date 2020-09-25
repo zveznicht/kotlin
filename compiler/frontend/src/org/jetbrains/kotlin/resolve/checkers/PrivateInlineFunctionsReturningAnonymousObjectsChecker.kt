@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.types.typeUtil.isAnyOrNullableAny
 
 object PrivateInlineFunctionsReturningAnonymousObjectsChecker : DeclarationChecker {
     override fun check(declaration: KtDeclaration, descriptor: DeclarationDescriptor, context: DeclarationCheckerContext) {
-        if (context.languageVersionSettings.supportsFeature(LanguageFeature.ForbidAnonymousReturnTypesInPrivateInlineFunctions))
+        if (context.languageVersionSettings.supportsFeature(LanguageFeature.ApproximateAnonymousReturnTypesInPrivateInlineFunctions))
             return
 
         if (descriptor !is SimpleFunctionDescriptor || !descriptor.isInline || !declaration.isPrivate() || declaration !is KtNamedFunction)

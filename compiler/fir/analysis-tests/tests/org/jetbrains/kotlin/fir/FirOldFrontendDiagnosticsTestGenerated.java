@@ -12261,6 +12261,11 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirOldFronte
             runTest("compiler/testData/diagnostics/tests/inline/anonymousObjects.kt");
         }
 
+        @TestMetadata("approximateReturnedAnonymousObjects.kt")
+        public void testApproximateReturnedAnonymousObjects() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/inline/approximateReturnedAnonymousObjects.kt");
+        }
+
         @TestMetadata("assignment.kt")
         public void testAssignment() throws Exception {
             runTest("compiler/testData/diagnostics/tests/inline/assignment.kt");
