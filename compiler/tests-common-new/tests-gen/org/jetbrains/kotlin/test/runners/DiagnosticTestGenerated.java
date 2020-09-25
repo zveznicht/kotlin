@@ -14290,6 +14290,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
             }
 
             @Test
+            @TestMetadata("approximateReturnedAnonymousObjects.kt")
+            public void testApproximateReturnedAnonymousObjects() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/inline/approximateReturnedAnonymousObjects.kt");
+            }
+
+            @Test
             @TestMetadata("assignment.kt")
             public void testAssignment() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/inline/assignment.kt");
