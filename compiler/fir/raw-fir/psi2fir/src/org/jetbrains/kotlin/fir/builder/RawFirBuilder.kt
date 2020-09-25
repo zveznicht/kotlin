@@ -745,6 +745,15 @@ class RawFirBuilder(
                 context.firFunctionTargets.removeLast()
             }.build().also {
                 target.bind(it)
+                // TODO: other way to update the isStatic ?
+                it.body?.statements?.forEach { statement ->
+                    if (statement is FirMemberDeclaration) {
+                        val status = statement.status
+                        if (status is FirDeclarationStatusImpl) {
+                            status.isStatic = true
+                        }
+                    }
+                }
             }
         }
 
@@ -1134,6 +1143,7 @@ class RawFirBuilder(
                             multiDeclaration,
                             multiParameter,
                             tmpVariable = false,
+                            isTopLevel = false,
                             extractAnnotationsTo = { extractAnnotationsTo(it) },
                         ) { toFirOrImplicitType() }
                         multiParameter
@@ -1740,6 +1750,7 @@ class RawFirBuilder(
                                 multiDeclaration = multiDeclaration,
                                 container = firLoopParameter,
                                 tmpVariable = true,
+                                isTopLevel = false,
                                 extractAnnotationsTo = { extractAnnotationsTo(it) },
                             ) { toFirOrImplicitType() }
                             if (destructuringBlock is FirBlock) {
@@ -2090,6 +2101,7 @@ class RawFirBuilder(
                 multiDeclaration,
                 baseVariable,
                 tmpVariable = true,
+                isTopLevel = multiDeclaration.parent is KtBlockExpression && multiDeclaration.parent.parent is KtScript,
                 extractAnnotationsTo = { extractAnnotationsTo(it) },
             ) {
                 toFirOrImplicitType()

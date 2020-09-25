@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.declarations.FirDeclarationOrigin
 import org.jetbrains.kotlin.fir.declarations.FirVariable
 import org.jetbrains.kotlin.fir.declarations.builder.buildProperty
 import org.jetbrains.kotlin.fir.declarations.impl.FirDeclarationStatusImpl
+import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
 import org.jetbrains.kotlin.fir.expressions.*
@@ -86,6 +87,7 @@ internal fun generateDestructuringBlock(
     multiDeclaration: KtDestructuringDeclaration,
     container: FirVariable<*>,
     tmpVariable: Boolean,
+    isTopLevel: Boolean,
     extractAnnotationsTo: KtAnnotated.(FirAnnotationContainerBuilder) -> Unit,
     toFirOrImplicitTypeRef: KtTypeReference?.() -> FirTypeRef,
 ): FirExpression {
@@ -102,19 +104,31 @@ internal fun generateDestructuringBlock(
                 source = entrySource
                 this.session = session
                 origin = FirDeclarationOrigin.Source
-                returnTypeRef = entry.typeReference.toFirOrImplicitTypeRef()
+                val type = entry.typeReference.toFirOrImplicitTypeRef()
+                returnTypeRef = type
                 this.name = name
+                val componentCallSource = entrySource.fakeElement(FirFakeSourceElementKind.DesugaredComponentFunctionCall)
                 initializer = buildComponentCall {
-                    val componentCallSource = entrySource.fakeElement(FirFakeSourceElementKind.DesugaredComponentFunctionCall)
                     source = componentCallSource
                     explicitReceiver = generateResolvedAccessExpression(componentCallSource, container)
                     componentIndex = index + 1
                 }
                 this.isVar = isVar
-                isLocal = true
-                status = FirDeclarationStatusImpl(Visibilities.Local, Modality.FINAL)
+                isLocal = !isTopLevel
                 symbol = FirPropertySymbol(name)
                 entry.extractAnnotationsTo(this)
+                if (isTopLevel) {
+                    status = FirDeclarationStatusImpl(Visibilities.Public, Modality.FINAL)
+                    getter = FirDefaultPropertyGetter(
+                        componentCallSource,
+                        session,
+                        FirDeclarationOrigin.Source,
+                        type.copyWithNewSourceKind(FirFakeSourceElementKind.DefaultAccessor),
+                        Visibilities.Public
+                    )
+                } else {
+                    status = FirDeclarationStatusImpl(Visibilities.Local, Modality.FINAL)
+                }
             }
         }
     }
