@@ -8,7 +8,10 @@ package org.jetbrains.kotlin.fir.backend.generators
 import org.jetbrains.kotlin.fir.backend.Fir2IrComponents
 import org.jetbrains.kotlin.fir.backend.Fir2IrConversionScope
 import org.jetbrains.kotlin.fir.backend.Fir2IrVisitor
-import org.jetbrains.kotlin.fir.declarations.*
+import org.jetbrains.kotlin.fir.declarations.FirDeclaration
+import org.jetbrains.kotlin.fir.declarations.FirRegularClass
+import org.jetbrains.kotlin.fir.declarations.FirScript
+import org.jetbrains.kotlin.fir.declarations.FirTypeAlias
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrScript
 
@@ -38,7 +41,14 @@ internal class ScriptStatementGenerator(
                         classMemberGenerator.convertClassContent(irNestedClass, statement)
                     }
                 }
-                else -> statement.accept(visitor, null)
+                statement is FirDeclaration -> {
+                    statement.accept(visitor, null)
+                }
+                else -> {
+                    visitor.convertToIrStatement(statement)?.let {
+                        irScript.statements += it
+                    }
+                }
             }
             annotationGenerator.generate(irScript, script)
         }

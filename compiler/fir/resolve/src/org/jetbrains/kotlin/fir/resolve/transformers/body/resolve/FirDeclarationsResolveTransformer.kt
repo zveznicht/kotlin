@@ -633,9 +633,9 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
             return script.compose()
         }
         val returnTypeRef = script.returnTypeRef
-        if ((returnTypeRef !is FirImplicitTypeRef) && implicitTypeOnly) {
-            return script.compose()
-        }
+//        if ((returnTypeRef !is FirImplicitTypeRef) && implicitTypeOnly) {
+//            return script.compose()
+//        }
 
         script.baseClass?.firClassLike(session)?.let {
             if (it is FirRegularClass) {
