@@ -3,7 +3,7 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-package org.jetbrains.kotlin.gradle
+package org.jetbrains.kotlin.arguments
 
 import java.io.File
 
@@ -12,36 +12,38 @@ const val PLUGIN_CLASSPATH_PREFIX = "-Xplugin="
 
 val classpathArgPointers = setOf("-classpath", "-cp")
 
+private fun String.toSystemIndependentName() = replace('\\', '/')
 
 interface CompilerArgumentsBucketConverter<From, To> {
     fun convert(from: From): To
 }
 
-class CachedToFlatCompilerArgumentsBucketConverter(val mapper: ICompilerArgumentsMapper) :
+class CachedToFlatCompilerArgumentsBucketConverter(val mapper: CompilerArgumentsMapper) :
     CompilerArgumentsBucketConverter<CachedCompilerArgumentsBucket, FlatCompilerArgumentsBucket> {
     override fun convert(from: CachedCompilerArgumentsBucket): FlatCompilerArgumentsBucket {
-        val cachedGeneralArguments = from.generalArguments.map { mapper.getArgument(it) }.toTypedArray()
-        val cachedClasspath = from.classpathParts.map { mapper.getArgument(it) }.toTypedArray()
-        val cachedPluginClasspath = from.pluginClasspaths.map { mapper.getArgument(it) }.toTypedArray()
-        val cachedFriendPaths = from.friendPaths.map { mapper.getArgument(it) }.toTypedArray()
+        //TODO check if it breaks other arguments
+        val cachedGeneralArguments = ArrayList(from.generalArguments.map { mapper.getArgument(it).toSystemIndependentName() })
+        val cachedClasspath = from.classpathParts.map { mapper.getArgument(it).toSystemIndependentName() }.toTypedArray()
+        val cachedPluginClasspath = from.pluginClasspaths.map { mapper.getArgument(it).toSystemIndependentName() }.toTypedArray()
+        val cachedFriendPaths = from.friendPaths.map { mapper.getArgument(it).toSystemIndependentName() }.toTypedArray()
         return FlatCompilerArgumentsBucket(cachedGeneralArguments, cachedClasspath, cachedPluginClasspath, cachedFriendPaths)
     }
 }
 
 class FlatToRawCompilerArgumentsBucketConverter :
     CompilerArgumentsBucketConverter<FlatCompilerArgumentsBucket, RawCompilerArgumentsBucket> {
-    override fun convert(from: FlatCompilerArgumentsBucket): RawCompilerArgumentsBucket = mutableListOf<String>().apply {
-        addAll(from.generalArguments.toList())
+    override fun convert(from: FlatCompilerArgumentsBucket): RawCompilerArgumentsBucket = ArrayList<String>().apply {
+        addAll(from.generalArguments)
         if (from.classpathParts.isNotEmpty()) {
             add(from.classpathParts.first())
             add(from.classpathParts.toMutableList().apply { removeFirst() }.joinToString(File.pathSeparator))
         }
-        add("$PLUGIN_CLASSPATH_PREFIX${from.pluginClasspaths.joinToString(",")}")
-        add("$FRIEND_PATH_PREFIX${from.friendPaths.joinToString(",")}")
+        from.pluginClasspaths.takeIf { it.isNotEmpty() }?.also { add("$PLUGIN_CLASSPATH_PREFIX${it.joinToString(",")}") }
+        from.friendPaths.takeIf { it.isNotEmpty() }?.also { add("$FRIEND_PATH_PREFIX${it.joinToString(",")}") }
     }
 }
 
-class CachedToRawCompilerArgumentsBucketConverter(val mapper: ICompilerArgumentsMapper) :
+class CachedToRawCompilerArgumentsBucketConverter(val mapper: CompilerArgumentsMapper) :
     CompilerArgumentsBucketConverter<CachedCompilerArgumentsBucket, RawCompilerArgumentsBucket> {
     override fun convert(from: CachedCompilerArgumentsBucket): RawCompilerArgumentsBucket =
         CachedToFlatCompilerArgumentsBucketConverter(mapper).convert(from).let {
@@ -59,10 +61,13 @@ class RawToFlatCompilerArgumentsBucket :
         }
 
         // TODO(ychernyshev) Does the order of arguments required here?
-        val generalArguments = (from - pluginClasspathArgument - friendPathsArgument - classpathArgument).filterNotNull().toTypedArray()
-        val classpathArguments = if (classpathArgument.isNotEmpty())
-            mutableListOf(classpathArgument.first()).apply { addAll(classpathArgument.last().split(File.pathSeparator)) }.toTypedArray()
-        else emptyArray()
+        val generalArguments = ArrayList((from - pluginClasspathArgument - friendPathsArgument - classpathArgument).filterNotNull())
+        val classpathArguments = mutableListOf<String>().apply {
+            if (classpathArgument.isNotEmpty()) {
+                add(classpathArgument.first())
+                addAll(classpathArgument.last().split(File.pathSeparator))
+            }
+        }.toTypedArray()
 
         val pluginClasspaths =
             pluginClasspathArgument?.removePrefix(PLUGIN_CLASSPATH_PREFIX)?.split(",")?.toTypedArray() ?: emptyArray()
@@ -73,10 +78,10 @@ class RawToFlatCompilerArgumentsBucket :
     }
 }
 
-class FlatToCachedCompilerArgumentsBucket(val mapper: ICompilerArgumentsMapper) :
+class FlatToCachedCompilerArgumentsBucket(val mapper: CompilerArgumentsMapper) :
     CompilerArgumentsBucketConverter<FlatCompilerArgumentsBucket, CachedCompilerArgumentsBucket> {
     override fun convert(from: FlatCompilerArgumentsBucket): CachedCompilerArgumentsBucket {
-        val generalArguments = from.generalArguments.map { mapper.cacheArgument(it) }.toTypedArray()
+        val generalArguments = ArrayList(from.generalArguments.map { mapper.cacheArgument(it) })
         val classpathParts = from.classpathParts.map { mapper.cacheArgument(it) }.toTypedArray()
         val pluginClasspaths = from.pluginClasspaths.map { mapper.cacheArgument(it) }.toTypedArray()
         val friendPaths = from.friendPaths.map { mapper.cacheArgument(it) }.toTypedArray()
@@ -84,7 +89,7 @@ class FlatToCachedCompilerArgumentsBucket(val mapper: ICompilerArgumentsMapper) 
     }
 }
 
-class RawToCachedCompilerArgumentsBucket(val mapper: ICompilerArgumentsMapper) :
+class RawToCachedCompilerArgumentsBucket(val mapper: CompilerArgumentsMapper) :
     CompilerArgumentsBucketConverter<RawCompilerArgumentsBucket, CachedCompilerArgumentsBucket> {
     override fun convert(from: RawCompilerArgumentsBucket): CachedCompilerArgumentsBucket =
         RawToFlatCompilerArgumentsBucket().convert(from).let {

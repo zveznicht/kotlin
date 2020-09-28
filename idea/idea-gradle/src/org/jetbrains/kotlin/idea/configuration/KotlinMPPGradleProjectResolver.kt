@@ -1050,18 +1050,15 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
                     getGradleModuleQualifiedName(resolverCtx, gradleModule, it)
                 }.distinct().toList()
 
-                val compilerArgumentsList = CachedToRawCompilerArgumentsBucketConverter(compilerArgumentsMapper)
-                    .convert(compilation.cachedArgsInfo.currentCompilerArgumentsBucket)
-
-                sourceSetInfo.compilerArguments =
-                    createCompilerArguments(compilerArgumentsList, compilation.platform).also {
+                with(CachedToRawCompilerArgumentsBucketConverter(compilerArgumentsMapper)) {
+                    val compilerArgumentsList = convert(compilation.cachedArgsInfo.currentCompilerArgumentsBucket)
+                    sourceSetInfo.compilerArguments = createCompilerArguments(compilerArgumentsList, compilation.platform).also {
                         it.multiPlatform = true
                     }
 
-                val defaultCompilerArgumentsList = CachedToRawCompilerArgumentsBucketConverter(compilerArgumentsMapper)
-                    .convert(compilation.cachedArgsInfo.defaultCompilerArgumentsBucket)
-                sourceSetInfo.defaultCompilerArguments =
-                    createCompilerArguments(defaultCompilerArgumentsList, compilation.platform)
+                    val defaultCompilerArgumentsList = convert(compilation.cachedArgsInfo.defaultCompilerArgumentsBucket)
+                    sourceSetInfo.defaultCompilerArguments = createCompilerArguments(defaultCompilerArgumentsList, compilation.platform)
+                }
 
                 sourceSetInfo.dependencyClasspath =
                     compilation.cachedArgsInfo.dependencyClasspath.map { compilerArgumentsMapper.getArgument(it) }

@@ -198,6 +198,7 @@ class KotlinFacetSettings {
 
     var version = CURRENT_VERSION
     var useProjectSettings: Boolean = true
+    var serializedComponentPlatforms: String? = null
 
     var mergedCompilerArguments: CommonCompilerArguments? = null
         get() {
@@ -310,13 +311,6 @@ class KotlinFacetSettings {
     var kind: KotlinModuleKind = KotlinModuleKind.DEFAULT
     var sourceSetNames: List<String> = emptyList()
     var classpathParts: List<String> = emptyList()
-        set(value) {
-            field = value.map { PathUtil.toSystemIndependentName(it) }
-            when (compilerArguments) {
-                is K2JVMCompilerArguments -> (compilerArguments as? K2JVMCompilerArguments)?.classpath = classpath
-                is K2MetadataCompilerArguments -> (compilerArguments as? K2MetadataCompilerArguments)?.classpath = classpath
-            }
-        }
 
     val classpath: String?
         get() = classpathParts.ifNotEmpty { joinToString(File.pathSeparator) }
