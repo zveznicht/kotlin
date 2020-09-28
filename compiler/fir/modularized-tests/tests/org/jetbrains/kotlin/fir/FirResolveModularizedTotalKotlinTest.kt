@@ -127,9 +127,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
     private var bestStatistics: FirResolveBench.TotalStatistics? = null
     private var bestPass: Int = 0
 
-    private var passEventReporter = if (REPORT_PASS_EVENTS) {
-        PassEventReporter(PrintStream(FileOutputStream(reportDir().resolve("pass-events-$reportDateStr.log"), true)))
-    } else null
+    private var passEventReporter: PassEventReporter? = null
 
     private val perfHelper = if (USE_PERF_STAT) PerfStat().also {
         it.init(PERF_LIB_PATH)
@@ -347,6 +345,8 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         val bestStatistics = bestStatistics ?: return
         printStatistics(bestStatistics, "Best pass: $bestPass")
         printErrors(bestStatistics)
+
+        perfHelper?.close()
     }
 
     private fun saveReport(pass: Int, statistics: FirResolveBench.TotalStatistics) {
@@ -376,11 +376,20 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         }
     }
 
-    fun testTotalKotlin() {
-
+    private fun beforeAllPasses() {
         isolate(perfHelper)
 
         perfHelper?.open()
+
+        if (REPORT_PASS_EVENTS) {
+            passEventReporter =
+                PassEventReporter(PrintStream(FileOutputStream(reportDir().resolve("pass-events-$reportDateStr.log"), true)))
+        }
+    }
+
+    fun testTotalKotlin() {
+
+        beforeAllPasses()
 
         for (i in 0 until PASSES) {
             println("Pass $i")
@@ -389,8 +398,6 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
             runTestOnce(i)
         }
         afterAllPasses()
-
-        perfHelper?.close()
     }
 
     private fun createMemoryDump(moduleData: ModuleData) {
