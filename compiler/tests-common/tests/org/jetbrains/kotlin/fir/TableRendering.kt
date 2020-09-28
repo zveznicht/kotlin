@@ -39,6 +39,10 @@ class RTableContext {
             rowData += Cell(text.toString(), align)
         }
 
+        fun cell(long: Long, align: Boolean = RIGHT) {
+            cell(long.toString(), align)
+        }
+
         fun cells(texts: List<String>, align: Boolean = RIGHT) {
             rowData += texts.map { Cell(it, align) }
         }

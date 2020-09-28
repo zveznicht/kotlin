@@ -69,10 +69,7 @@ class FirResolveBench(val withProgress: Boolean, val listener: BenchListener? = 
         val totalMeasure = Measure().apply {
             with(timePerTransformer.values) {
                 time = sumByLong { it.time }
-                user = sumByLong { it.user }
-                cpu = sumByLong { it.cpu }
-                gcTime = sumByLong { it.gcTime }
-                gcCollections = sumBy { it.gcCollections }
+                vmCounters = fold(VMCounters()) { acc, element -> acc + element.vmCounters }
                 files = map { it.files }.average().toInt()
             }
         }
@@ -82,10 +79,7 @@ class FirResolveBench(val withProgress: Boolean, val listener: BenchListener? = 
 
     data class Measure(
         var time: Long = 0,
-        var user: Long = 0,
-        var cpu: Long = 0,
-        var gcTime: Long = 0,
-        var gcCollections: Int = 0,
+        var vmCounters: VMCounters = VMCounters(),
         var files: Int = 0
     )
 
@@ -158,10 +152,7 @@ class FirResolveBench(val withProgress: Boolean, val listener: BenchListener? = 
         timePerTransformer.computeIfAbsent(stageClass) { Measure() }.apply {
             this.time += time
             this.files += 1
-            this.user += diff.userTime
-            this.cpu += diff.cpuTime
-            this.gcCollections += diff.gcInfo.values.sumBy { it.collections.toInt() }
-            this.gcTime += diff.gcInfo.values.sumByLong { it.gcTime }
+            this.vmCounters += diff
         }
     }
 
@@ -420,7 +411,25 @@ fun FirResolveBench.TotalStatistics.reportTimings(stream: PrintStream) {
     printTable(stream) {
         row {
             cell("Stage", LEFT)
-            cells("Time", "Time per file", "Files: OK/E/T", "CPU", "User", "GC", "GC count", "L/S")
+            cells(
+                "Time",
+                "Time per file",
+                "Files: OK/E/T",
+                "CPU",
+                "User",
+                "GC",
+                "GC count",
+                "L/S",
+                "safePointTotalTime",
+                "safePointSyncTime",
+                "safePointCount",
+                "compilationTotalTime",
+                "compilationTotalCount",
+                "bailoutCompilationCount",
+                "invalidatedCompileCount",
+                "compiledMethodSizeDiff",
+                "compiledMethodCodeSizeDiff",
+            )
         }
         separator()
         timePerTransformer.forEach { (transformer, measure) ->
@@ -454,7 +463,11 @@ fun FirResolveBench.TotalStatistics.report(stream: PrintStream, header: String) 
     }
 }
 
-private fun RTableContext.printMeasureAsTable(measure: FirResolveBench.Measure, statistics: FirResolveBench.TotalStatistics, label: String) {
+private fun RTableContext.printMeasureAsTable(
+    measure: FirResolveBench.Measure,
+    statistics: FirResolveBench.TotalStatistics,
+    label: String
+) {
     val time = measure.time
     val counter = measure.files
     row {
@@ -462,15 +475,27 @@ private fun RTableContext.printMeasureAsTable(measure: FirResolveBench.Measure, 
         timeCell(time, fractionDigits = 0)
         timeCell(time / counter)
         cell("$counter/${statistics.fileCount - counter}/${statistics.fileCount}")
-        timeCell(measure.cpu, fractionDigits = 0)
-        timeCell(measure.user)
-        timeCell(measure.gcTime, inputUnit = TableTimeUnit.MS)
-        cell(measure.gcCollections.toString())
+        timeCell(measure.vmCounters.cpuTime, fractionDigits = 0)
+        timeCell(measure.vmCounters.userTime)
+        timeCell(measure.vmCounters.gcInfo.values.sumByLong { it.gcTime }, inputUnit = TableTimeUnit.MS)
+        cell(measure.vmCounters.gcInfo.values.sumByLong { it.collections }.toString())
 
         linePerSecondCell(statistics.totalLines, time, timeUnit = TableTimeUnit.NS)
+
+        cell(measure.vmCounters.safePointTotalTime)
+        cell(measure.vmCounters.safePointSyncTime)
+        cell(measure.vmCounters.safePointCount)
+
+        cell(measure.vmCounters.compilationTotalTime)
+
+        cell(measure.vmCounters.compilationTotalCount)
+        cell(measure.vmCounters.bailoutCompilationCount)
+        cell(measure.vmCounters.invalidatedCompileCount)
+
+        cell(measure.vmCounters.compiledMethodSize)
+        cell(measure.vmCounters.compiledMethodCodeSize)
     }
 }
-
 
 
 fun RTableContext.RTableRowContext.linePerSecondCell(linePerSec: Double) {
@@ -480,6 +505,7 @@ fun RTableContext.RTableRowContext.linePerSecondCell(linePerSec: Double) {
     }
     cell(df.format(linePerSec))
 }
+
 fun RTableContext.RTableRowContext.linePerSecondCell(lines: Int, time: Long, timeUnit: TableTimeUnit = TableTimeUnit.NS) {
     val linePerSec = lines / TableTimeUnit.S.convert(time, from = timeUnit)
     linePerSecondCell(linePerSec)
