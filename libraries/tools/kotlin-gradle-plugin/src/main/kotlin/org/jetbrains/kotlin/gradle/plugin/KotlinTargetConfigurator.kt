@@ -406,14 +406,20 @@ abstract class KotlinOnlyTargetConfigurator<KotlinCompilationType : KotlinCompil
                 jarArtifact.type = archiveType
 
                 val apiElementsConfiguration = project.configurations.getByName(target.apiElementsConfigurationName)
-                addJar(apiElementsConfiguration, jarArtifact)
+                // If the target adds its own artifact to this configuration until this happens, don't add another one:
+                if (apiElementsConfiguration.outgoing.artifacts.isEmpty()) {
+                    addJar(apiElementsConfiguration, jarArtifact)
+                }
 
                 if (mainCompilation is KotlinCompilationToRunnableFiles<*>) {
                     val runtimeConfiguration = project.configurations.getByName(mainCompilation.deprecatedRuntimeConfigurationName)
                     val runtimeElementsConfiguration = project.configurations.getByName(target.runtimeElementsConfigurationName)
-                    addJar(runtimeConfiguration, jarArtifact)
-                    addJar(runtimeElementsConfiguration, jarArtifact)
-                    // TODO Check Gradle's special split into variants for classes & resources -- do we need that too?
+                    if (runtimeConfiguration.outgoing.artifacts.isEmpty()) {
+                        addJar(runtimeConfiguration, jarArtifact)
+                    }
+                    if (runtimeElementsConfiguration.outgoing.artifacts.isEmpty()) {
+                        addJar(runtimeElementsConfiguration, jarArtifact)
+                    }
                 }
             }
         }
