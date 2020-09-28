@@ -93,6 +93,7 @@ projectTest {
     }
     jvmArgs("-XX:-TieredCompilation")
     jvmArgs("-XX:ReservedCodeCacheSize=512m")
+    jvmArgs("-Xbatch")
 }
 
 testsJar()
