@@ -37,7 +37,7 @@ class CodegenTestsOnAndroidRunner private constructor(private val pathManager: P
     private fun runTestsInEmulator(): TestSuite {
         val rootSuite = TestSuite("Root")
 
-        val emulatorType = if (isTeamcity) Emulator.ARM else Emulator.X86
+        val emulatorType = if (false &&  isTeamcity) Emulator.ARM else Emulator.X86
         println("Using $emulatorType emulator!")
         val emulator = Emulator(pathManager, emulatorType)
         emulator.createEmulator()
