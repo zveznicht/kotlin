@@ -304,8 +304,9 @@ private class ScriptToClassTransformer(
     override fun visitField(declaration: IrField): IrField {
         val type = declaration.type.remapType()
         val symbol = symbolRemapper.getDeclaredField(declaration.symbol)
+        val convertToMember = declaration.parent == irScript && declaration.isStatic
         val remappedDeclaration =
-            if (type == declaration.type && symbol == declaration.symbol) {
+            if (!convertToMember && type == declaration.type && symbol == declaration.symbol) {
                 declaration
             } else {
                 IrFieldImpl(
@@ -317,7 +318,7 @@ private class ScriptToClassTransformer(
                     declaration.visibility,
                     declaration.isFinal,
                     declaration.isExternal,
-                    declaration.isStatic
+                    if (convertToMember) false else declaration.isStatic
                 ).apply {
                     parent = declaration.parent
                     initializer = declaration.initializer
@@ -343,8 +344,25 @@ private class ScriptToClassTransformer(
     }
 
     override fun visitAnonymousInitializer(declaration: IrAnonymousInitializer): IrAnonymousInitializer = declaration.apply {
-        transformParent()
-        transformChildren(this@ScriptToClassTransformer, null)
+        val convertToMember = declaration.parent == irScript && declaration.isStatic
+        val remappedDeclaration =
+            if (!convertToMember) {
+                declaration
+            } else {
+                IrAnonymousInitializerImpl(
+                    declaration.startOffset, declaration.endOffset,
+                    declaration.origin,
+                    declaration.symbol,
+                    isStatic = false
+                ).apply {
+                    parent = declaration.parent
+                    body = declaration.body
+                }
+            }
+        return remappedDeclaration.apply {
+            transformParent()
+            transformChildren(this@ScriptToClassTransformer, null)
+        }
     }
 
     override fun visitVariable(declaration: IrVariable): IrVariable {

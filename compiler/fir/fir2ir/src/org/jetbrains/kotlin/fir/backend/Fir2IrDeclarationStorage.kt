@@ -631,9 +631,7 @@ class Fir2IrDeclarationStorage(
                 enterScope(this)
                 bindAndDeclareParameters(
                     propertyAccessor, irParent,
-                    thisReceiverOwner,
-                    isStatic = irParent !is IrClass && irParent !is IrScript,
-                    parentPropertyReceiverType = property.receiverTypeRef
+                    thisReceiverOwner, isStatic = irParent !is IrClass, parentPropertyReceiverType = property.receiverTypeRef
                 )
                 leaveScope(this)
                 if (irParent != null) {
@@ -667,7 +665,7 @@ class Fir2IrDeclarationStorage(
                 name, inferredType,
                 visibility, isFinal = isFinal,
                 isExternal = property.isExternal,
-                isStatic = parent !is IrScript && (property.isStatic || parent !is IrClass),
+                isStatic = property.isStatic || parent !is IrClass,
             ).also {
                 it.correspondingPropertySymbol = this@createBackingField.symbol
             }.apply {
