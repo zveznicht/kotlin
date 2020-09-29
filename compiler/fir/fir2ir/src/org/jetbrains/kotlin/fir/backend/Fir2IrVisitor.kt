@@ -590,7 +590,7 @@ class Fir2IrVisitor(
                 if (irStatements.isNotEmpty()) {
                     irStatements
                 } else {
-                    listOf(IrBlockImpl(startOffset, endOffset, irBuiltIns.unitType, null, emptyList()))
+                    emptyList()
                 }
             ).insertImplicitCasts()
         }
