@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.gradle.plugin.sources
 import groovy.lang.Closure
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.util.ConfigureUtil
 import org.jetbrains.kotlin.build.DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
@@ -133,7 +134,9 @@ class DefaultKotlinSourceSet(
         val allVisibleSourceSets: Set<String>,
         /** If empty, then this source set does not see any 'new' source sets of the dependency, compared to its dependsOn parents, but it
          * still does see all what the dependsOn parents see. */
-        val useFilesForSourceSets: Map<String, Iterable<File>>
+        val useFilesForSourceSets: Map<String, Iterable<File>>,
+        val includedBuildId: String?,
+        val includedBuildProjectPath: String?
     )
 
     @Suppress("unused") // Used in IDE import
@@ -170,7 +173,7 @@ class DefaultKotlinSourceSet(
                 is MetadataDependencyResolution.KeepOriginalDependency -> null
 
                 is MetadataDependencyResolution.ExcludeAsUnrequested ->
-                    MetadataDependencyTransformation(group, name, projectPath, null, emptySet(), emptyMap())
+                    MetadataDependencyTransformation(group, name, projectPath, null, emptySet(), emptyMap(), null, null)
 
                 is MetadataDependencyResolution.ChooseVisibleSourceSets -> {
                     val filesBySourceSet = resolution.getMetadataFilesBySourceSet(
@@ -178,11 +181,18 @@ class DefaultKotlinSourceSet(
                         doProcessFiles = true
                     )
 
+                    val (buildId, includedProjectPath) =
+                        (resolution.dependency.id as? ProjectComponentIdentifier)
+                            ?.takeIf { !it.build.isCurrentBuild }
+                            ?.run { build.name to this.projectPath }
+                            ?: null to null
+
                     MetadataDependencyTransformation(
                         group, name, projectPath,
                         resolution.projectStructureMetadata,
                         resolution.allVisibleSourceSetNames,
-                        filesBySourceSet
+                        filesBySourceSet,
+                        buildId, includedProjectPath
                     )
                 }
             }

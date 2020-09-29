@@ -21,3 +21,9 @@ fun Class<*>.getDeclaredMethodOrNull(name: String, vararg parameterTypes: Class<
 
 fun compilationFullName(simpleName: String, classifier: String?) =
     if (classifier != null) classifier + simpleName.capitalize() else simpleName
+
+fun syntheticConfigurationNameForGranularVisibility(sourceSetName: String, buildIdInComposite: String?): String =
+    if (buildIdInComposite == null)
+        sourceSetName
+    else
+        "$sourceSetName (build $buildIdInComposite)"

@@ -29,6 +29,7 @@ import com.intellij.util.text.VersionComparatorUtil
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.idea.IdeaContentRoot
 import org.gradle.tooling.model.idea.IdeaModule
+import org.gradle.tooling.model.idea.IdeaProject
 import org.jetbrains.annotations.NonNls
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
@@ -389,7 +390,14 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
                             it.kotlinSourceSet = kotlinSourceSet
                         }
                     if (existingSourceSetDataNode == null) {
-                        sourceSetMap[moduleId] = Pair(compilationDataNode, createExternalSourceSet(compilation, compilationData, mppModel))
+                        registerSourceSetInSourceSetMap(
+                            sourceSetMap,
+                            moduleId,
+                            gradleModule,
+                            resolverCtx,
+                            compilation,
+                            Pair(compilationDataNode, createExternalSourceSet(compilation, compilationData, mppModel))
+                        )
                     }
                 }
 
@@ -449,7 +457,8 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
                         it.kotlinSourceSet = kotlinSourceSet
                     }
                 if (existingSourceSetDataNode == null) {
-                    sourceSetMap[moduleId] = Pair(sourceSetDataNode, createExternalSourceSet(sourceSet, sourceSetData, mppModel))
+                    val sourceSetMapValue = Pair(sourceSetDataNode, createExternalSourceSet(sourceSet, sourceSetData, mppModel))
+                    registerSourceSetInSourceSetMap(sourceSetMap, moduleId, gradleModule, resolverCtx, sourceSet, sourceSetMapValue)
                 }
             }
 
@@ -464,6 +473,29 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
             mainModuleNode.coroutines = mppModel.extraFeatures.coroutinesState
             mainModuleNode.isHmpp = mppModel.extraFeatures.isHMPPEnabled
             //TODO improve passing version of used multiplatform
+        }
+
+        private fun registerSourceSetInSourceSetMap(
+            sourceSetMap: MutableMap<String, Pair<DataNode<GradleSourceSetData>, ExternalSourceSet>>,
+            simpleModuleId: String,
+            gradleModule: IdeaModule,
+            resolverCtx: ProjectResolverContext,
+            kotlinModule: KotlinModule,
+            sourceSetMapValue: Pair<DataNode<GradleSourceSetData>, ExternalSourceSet>
+        ) {
+            sourceSetMap[simpleModuleId] = sourceSetMapValue
+            val ideaProject = gradleModule.getProject()
+            // If in composite build, the IDE expects a different key in the sourceSetMap, register it, too:
+            val isCompositeBuild = ideaProject != resolverCtx.getModels().getModel(IdeaProject::class.java)
+            if (isCompositeBuild) {
+                val compositeBuildId = ideaProject.name
+                val compositeProofModuleId = getModuleId(DefaultExternalProjectDependency().apply {
+                    name = gradleModule.gradleProject.name
+                    projectPath = gradleModule.gradleProject.path
+                    this.configurationName = syntheticConfigurationNameForGranularVisibility(kotlinModule.fullName(), compositeBuildId)
+                })
+                sourceSetMap[compositeProofModuleId] = sourceSetMapValue
+            }
         }
 
         private fun calculateRunTasks(

@@ -640,6 +640,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
             val moduleName: String,
             val projectPath: String?,
             val allVisibleSourceSets: Set<String>,
+            val includedBuildId: String?,
+            val includedBuildProjectPath: String?,
             val useFilesForSourceSets: Map<String, Iterable<File>>
         ) {
             constructor(
@@ -648,12 +650,16 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
                 module: Method,
                 projectPath: Method,
                 visibleSourceSets: Method,
+                includedBuildId: Method?,
+                includedBuildProjectPath: Method?,
                 useFilesForSourceSets: Method
             ) : this(
                 group(transformation) as String?,
                 module(transformation) as String,
                 projectPath(transformation) as String?,
                 visibleSourceSets(transformation) as Set<String>,
+                includedBuildId?.invoke(transformation) as String?,
+                includedBuildProjectPath?.invoke(transformation) as String?,
                 useFilesForSourceSets(transformation) as Map<String, Iterable<File>>
             )
         }
@@ -669,6 +675,9 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
             val getAllVisibleSourceSets = transformationClass.getMethodOrNull("getAllVisibleSourceSets") ?: return emptyList()
             val getUseFilesForSourceSets = transformationClass.getMethodOrNull("getUseFilesForSourceSets") ?: return emptyList()
 
+            val getIncludedBuildId = transformationClass.getMethodOrNull("getIncludedBuildId")
+            val getIncludedBuildProjectPath = transformationClass.getMethodOrNull("getIncludedBuildProjectPath")
+
             return transformations.map { transformation ->
                 KotlinMetadataDependencyTransformation(
                     transformation,
@@ -676,6 +685,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
                     getModuleName,
                     getProjectPath,
                     getAllVisibleSourceSets,
+                    getIncludedBuildId,
+                    getIncludedBuildProjectPath,
                     getUseFilesForSourceSets
                 )
             }.filter { it.allVisibleSourceSets.isNotEmpty() }
@@ -805,7 +816,7 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         for (sourceSet in sourceSets.values) {
             if (!isHMPPEnabled) {
                 val name = sourceSet.name
-                if (name == KotlinSourceSet.COMMON_MAIN_SOURCE_SET_NAME) {
+                if (name == COMMON_MAIN_SOURCE_SET_NAME) {
                     sourceSet.isTestModule = false
                     continue
                 }
@@ -876,15 +887,25 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
                 .groupBy { (it.second.id.componentIdentifier as ProjectComponentIdentifier).projectPath }
         }
 
-        private fun wrapDependency(dependency: ExternalProjectDependency, newConfigurationName: String): ExternalProjectDependency {
+        private fun wrapDependency(
+            dependency: ExternalProjectDependency,
+            newConfigurationName: String,
+            compositeBuildId: String? = currentBuildId
+        ): ExternalProjectDependency {
             return DefaultExternalProjectDependency(dependency).apply {
-                this.configurationName = newConfigurationName
+                this.configurationName = syntheticConfigurationNameForGranularVisibility(newConfigurationName, compositeBuildId)
 
                 val nestedDependencies = this.dependencies.flatMap { adjustDependency(it) }
                 this.dependencies.clear()
                 this.dependencies.addAll(nestedDependencies)
             }
         }
+
+        private val currentBuildId: String? =
+            // if in composite build:
+            if (project.gradle.parent != null || project.gradle.includedBuilds.isNotEmpty())
+                project.rootProject.name
+            else null
 
         private val libraryDependencyTransformation =
             transformations.filter { it.projectPath == null }.associateBy { it.groupId to it.moduleName }
@@ -951,7 +972,18 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
                     else
                         project.rootProject.getChildProjectByPath(dependency.projectPath)
 
-                val targets = dependencyProject?.getTargets() ?: return@getOrPut listOf(dependency)
+                fun tryTransformExternalProjectAsLibrary(): List<ExternalProjectDependency>? {
+                    val coordinates = dependency.id.group.toString() to dependency.id.name
+                    val transformAsLibrary = libraryDependencyTransformation[coordinates]
+                    return if (transformAsLibrary != null) {
+                        val visibleSourceSets = transformAsLibrary.allVisibleSourceSets
+                        visibleSourceSets.map { sourceSetName ->
+                            wrapDependency(dependency, sourceSetName, transformAsLibrary.includedBuildId)
+                        }
+                    } else null
+                }
+
+                val targets = dependencyProject?.getTargets() ?: return tryTransformExternalProjectAsLibrary() ?: listOf(dependency)
                 val gradleTarget = targets.firstOrNull {
                     val getter = it.javaClass.getMethodOrNull(taskGetterName) ?: return@firstOrNull false
                     getter(it) == artifactConfiguration
@@ -962,10 +994,15 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
                     wrapDependency(dependency, compilationFullName(KotlinCompilation.MAIN_COMPILATION_NAME, classifier))
                 } else null
                 val commonDependencies = if (dependencyProject.path in projectDependencyTransformation) {
-                    val visibleSourceSets = projectDependencyTransformation.getValue(dependencyProject.path).allVisibleSourceSets
-                    visibleSourceSets.map { sourceSetName -> wrapDependency(dependency, sourceSetName) }
+                    val transformation = projectDependencyTransformation.getValue(dependencyProject.path)
+                    val visibleSourceSets = transformation.allVisibleSourceSets
+                    visibleSourceSets.map { sourceSetName -> wrapDependency(
+                        dependency,
+                        sourceSetName,
+                        transformation.includedBuildId ?: currentBuildId
+                    ) }
                 } else {
-                    listOf(wrapDependency(dependency, KotlinSourceSet.COMMON_MAIN_SOURCE_SET_NAME))
+                    tryTransformExternalProjectAsLibrary() ?: listOf(wrapDependency(dependency, COMMON_MAIN_SOURCE_SET_NAME))
                 }
                 return if (platformDependency != null) listOf(platformDependency) + commonDependencies else commonDependencies
             }
