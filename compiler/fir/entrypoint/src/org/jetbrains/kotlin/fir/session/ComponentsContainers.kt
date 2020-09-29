@@ -35,6 +35,7 @@ fun FirSession.registerCommonComponents() {
     register(FirPredicateBasedProvider::class, FirPredicateBasedProvider.create(this))
     register(GeneratedClassIndex::class, GeneratedClassIndex.create())
     register(InferenceComponents::class, InferenceComponents(this))
+    register(FirLanguageSettingsComponent::class, FirLanguageSettingsComponent(this))
 }
 
 // -------------------------- Resolve components --------------------------
