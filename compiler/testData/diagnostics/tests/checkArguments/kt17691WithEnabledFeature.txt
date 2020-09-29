@@ -1,0 +1,4 @@
+package
+
+public fun foo(/*0*/ vararg x: kotlin.Unit /*kotlin.Array<out kotlin.Unit>*/, /*1*/ y: kotlin.Any): kotlin.Unit
+public fun main(): kotlin.Unit
