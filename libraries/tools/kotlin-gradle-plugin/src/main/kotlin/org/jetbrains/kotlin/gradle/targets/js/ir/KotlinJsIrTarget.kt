@@ -99,6 +99,14 @@ constructor(
     private val commonLazy by lazy {
         compilations.all { compilation ->
             val npmProject = compilation.npmProject
+
+            compilation.kotlinOptions.outputFile = compilation
+                .compileKotlinTask
+                .outputFile
+                .parentFile
+                .resolve(npmProject.name)
+                .canonicalPath
+
             compilation.binaries
                 .withType(JsIrBinary::class.java)
                 .all { binary ->
