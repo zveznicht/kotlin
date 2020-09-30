@@ -5,11 +5,13 @@
 
 package org.jetbrains.kotlin.backend.common.lower.inline
 
+import org.jetbrains.kotlin.backend.common.ir.Symbols
 import org.jetbrains.kotlin.ir.util.DescriptorsToIrRemapper
 import org.jetbrains.kotlin.ir.util.WrappedDescriptorPatcher
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.declarations.IrTypeParametersContainer
+import org.jetbrains.kotlin.ir.expressions.IrCall
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
@@ -68,16 +70,23 @@ internal class DeepCopyIrTreeWithSymbolsForInliner(
 
         override fun leaveScope() {}
 
-        private fun remapTypeArguments(arguments: List<IrTypeArgument>) =
+        override fun remapType(type: IrType) = remapType(type, substituteNonReified = true)
+
+        fun remapTypeTillNonReified(type: IrType) = remapType(type, substituteNonReified = false)
+
+        private fun remapTypeArguments(arguments: List<IrTypeArgument>, substituteNonReified: Boolean) =
             arguments.map { argument ->
-                (argument as? IrTypeProjection)?.let { makeTypeProjection(remapType(it.type), it.variance) }
+                (argument as? IrTypeProjection)?.let { makeTypeProjection(remapType(it.type, substituteNonReified), it.variance) }
                     ?: argument
             }
 
-        override fun remapType(type: IrType): IrType {
+        private fun remapType(type: IrType, substituteNonReified: Boolean): IrType {
             if (type !is IrSimpleType) return type
 
-            val substitutedType = typeArguments?.get(type.classifier)
+            val substitutionAllowed = (type.classifier as? IrTypeParameterSymbol).let {
+                it == null || substituteNonReified || it.owner.isReified
+            }
+            val substitutedType = typeArguments.takeIf { substitutionAllowed }?.get(type.classifier)
 
             if (substitutedType is IrDynamicType) return substitutedType
 
@@ -90,8 +99,10 @@ internal class DeepCopyIrTreeWithSymbolsForInliner(
 
             return type.buildSimpleType {
                 kotlinType = null
-                classifier = symbolRemapper.getReferencedClassifier(type.classifier)
-                arguments = remapTypeArguments(type.arguments)
+                classifier = type.classifier.let {
+                    symbolRemapper.takeIf { substitutionAllowed }?.getReferencedClassifier(it) ?: it
+                }
+                arguments = remapTypeArguments(type.arguments, substituteNonReified)
                 annotations = type.annotations.map { it.transform(copier, null) as IrConstructorCall }
             }
         }
@@ -116,6 +127,14 @@ internal class DeepCopyIrTreeWithSymbolsForInliner(
     }
 
     private val symbolRemapper = SymbolRemapperImpl(DescriptorsToIrRemapper)
-    private val copier =
-        DeepCopyIrTreeWithSymbols(symbolRemapper, InlinerTypeRemapper(symbolRemapper, typeArguments), InlinerSymbolRenamer())
+    private val typeRemapper = InlinerTypeRemapper(symbolRemapper, typeArguments)
+    private val copier = object : DeepCopyIrTreeWithSymbols(symbolRemapper, typeRemapper, InlinerSymbolRenamer()) {
+        override fun visitCall(expression: IrCall): IrCall {
+            if (!Symbols.isTypeOfIntrinsic(expression.symbol))
+                return super.visitCall(expression)
+            return super.visitCall(expression).apply {
+                putTypeArgument(0, typeRemapper.remapTypeTillNonReified(expression.getTypeArgument(0)!!))
+            }
+        }
+    }
 }
