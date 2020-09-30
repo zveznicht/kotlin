@@ -207,7 +207,8 @@ internal fun KotlinProjectStructureMetadata.toJson(): String {
 private val NodeList.elements: Iterable<Element> get() = (0 until length).map { this@elements.item(it) }.filterIsInstance<Element>()
 
 internal fun parseKotlinSourceSetMetadataFromJson(string: String): KotlinProjectStructureMetadata? {
-    val json = JsonParser.parseString(string).asJsonObject
+    @Suppress("DEPRECATION") // The replacement doesn't compile against old dependencies such as AS 4.0
+    val json = JsonParser().parse(string).asJsonObject
     val nodeNamed: JsonObject.(String) -> JsonObject? = { name -> get(name)?.asJsonObject }
     val valueNamed: JsonObject.(String) -> String? = { name -> get(name)?.asString }
     val multiObjects: JsonObject.(String?) -> Iterable<JsonObject> = { name -> get(name).asJsonArray.map { it.asJsonObject } }
