@@ -140,11 +140,6 @@ public class IrJsCodegenBoxES6TestGenerated extends AbstractIrJsCodegenBoxES6Tes
             runTest("compiler/testData/codegen/box/argumentOrder/extensionInClass.kt");
         }
 
-        @TestMetadata("kt17691.kt")
-        public void testKt17691() throws Exception {
-            runTest("compiler/testData/codegen/box/argumentOrder/kt17691.kt");
-        }
-
         @TestMetadata("kt17691WithEnabledFeature.kt")
         public void testKt17691WithEnabledFeature() throws Exception {
             runTest("compiler/testData/codegen/box/argumentOrder/kt17691WithEnabledFeature.kt");
@@ -18241,11 +18236,6 @@ public class IrJsCodegenBoxES6TestGenerated extends AbstractIrJsCodegenBoxES6Tes
             @TestMetadata("openRange.kt")
             public void testOpenRange() throws Exception {
                 runTest("compiler/testData/codegen/box/ranges/expression/openRange.kt");
-            }
-
-            @TestMetadata("overflowZeroDownToMaxValue.kt")
-            public void testOverflowZeroDownToMaxValue() throws Exception {
-                runTest("compiler/testData/codegen/box/ranges/expression/overflowZeroDownToMaxValue.kt");
             }
 
             @TestMetadata("overflowZeroToMinValue.kt")

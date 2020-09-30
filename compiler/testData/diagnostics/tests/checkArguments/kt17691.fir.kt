@@ -6,15 +6,15 @@ fun foo(vararg x: Unit, y: Any) {}
 
 fun main() {
     foo({  }(), y = {  }())
-    foo(<!CHANGING_ARGUMENTS_EXECUTION_ORDER_FOR_NAMED_VARARGS!>x = *<!REDUNDANT_SPREAD_OPERATOR_IN_NAMED_FORM_IN_FUNCTION!>arrayOf({  }())<!><!>, y = {  }())
-    foo(<!CHANGING_ARGUMENTS_EXECUTION_ORDER_FOR_NAMED_VARARGS!>x = arrayOf({  }())<!>, y = {  }())
+    foo(x = *arrayOf({  }()), y = {  }())
+    foo(x = arrayOf({  }()), y = {  }())
     foo(*arrayOf({  }()), y = {  }())
 }
 
 fun foo2(vararg x: Unit, y: Any, z: Any) {}
 
 fun main2() {
-    foo2(y = {  }(), <!CHANGING_ARGUMENTS_EXECUTION_ORDER_FOR_NAMED_VARARGS!>x = arrayOf({  }())<!>, z = {  }())
+    foo2(y = {  }(), x = arrayOf({  }()), z = {  }())
 }
 
 fun foo3(vararg x: Unit, y: Any, z: Any = {  }()) {}
