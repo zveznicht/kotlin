@@ -31,9 +31,9 @@ object VarargWrongExecutionOrderChecker : CallChecker {
 
         if (varargIndex > nonVarargIndex) return
 
-        val varargValueArgument = valueArguments[varargIndex] as? KtValueArgument ?: return
+        val varargValueArgument = valueArguments[varargIndex]
 
-        if (!varargValueArgument.isNamed()) return
+        if (!varargValueArgument.isNamed() || varargValueArgument !is PsiElement) return
 
         // If named form for vararg is used then we can have only one real value argument on a call site
         context.trace.report(Errors.CHANGING_ARGUMENTS_EXECUTION_ORDER_FOR_NAMED_VARARGS.on(varargValueArgument))

@@ -628,7 +628,7 @@ public interface Errors {
 
     DiagnosticFactory1<KtParameter, KotlinType> FORBIDDEN_VARARG_PARAMETER_TYPE = DiagnosticFactory1.create(ERROR, PARAMETER_VARARG_MODIFIER);
 
-    DiagnosticFactory0<KtValueArgument> CHANGING_ARGUMENTS_EXECUTION_ORDER_FOR_NAMED_VARARGS = DiagnosticFactory0.create(WARNING);
+    DiagnosticFactory0<PsiElement> CHANGING_ARGUMENTS_EXECUTION_ORDER_FOR_NAMED_VARARGS = DiagnosticFactory0.create(WARNING);
 
     // Named parameters
 
