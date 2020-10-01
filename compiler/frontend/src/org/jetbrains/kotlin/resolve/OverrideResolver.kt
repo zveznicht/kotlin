@@ -203,8 +203,13 @@ class OverrideResolver(
             overriding: CallableMemberDescriptor,
             overridden: CallableMemberDescriptor
         ) {
+            val (diagnosticFactory, relevantDiagnosticFromInheritance) = if (overridden is PropertyDescriptor)
+                PROPERTY_TYPE_MISMATCH_BY_DELEGATION to PROPERTY_TYPE_MISMATCH_ON_INHERITANCE
+            else
+                RETURN_TYPE_MISMATCH_BY_DELEGATION to RETURN_TYPE_MISMATCH_ON_INHERITANCE
+
             reportDelegationProblemIfRequired(
-                RETURN_TYPE_MISMATCH_BY_DELEGATION, RETURN_TYPE_MISMATCH_ON_INHERITANCE, overriding, overridden
+                diagnosticFactory, relevantDiagnosticFromInheritance, overriding, overridden
             )
         }
 
