@@ -20,7 +20,10 @@ dependencies {
         jpsTest(project(it, configuration = "jpsTest"))
     }
 
-    testRuntimeOnly(files("${rootProject.projectDir}/dist/kotlinc/lib/kotlin-reflect.jar"))
+    // Workaround for IDEA Gradle importer
+    if (System.getProperty("idea.active") != null) {
+        testRuntimeOnly(files("${rootProject.projectDir}/dist/kotlinc/lib/kotlin-reflect.jar"))
+    }
 }
 
 sourceSets {
