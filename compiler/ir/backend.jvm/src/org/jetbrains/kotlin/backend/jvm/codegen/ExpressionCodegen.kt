@@ -513,8 +513,9 @@ class ExpressionCodegen(
             }
             unboxedInlineClassIrType != null && !irFunction.isInvokeSuspendOfContinuation() ->
                 object : PromisedValue(this, unboxedInlineClassIrType.asmType, unboxedInlineClassIrType) {
-                    override fun materializeAt(target: Type, irTarget: IrType) {
+                    override fun materializeAt(target: Type, irTarget: IrType, allowNoUpcast: Boolean) {
                         mv.checkcast(unboxedInlineClassIrType.asmType)
+                        /*TODO: upcasts*/
                         MaterialValue(this@ExpressionCodegen, unboxedInlineClassIrType.asmType, unboxedInlineClassIrType)
                             .materializeAt(target, irTarget)
                     }
