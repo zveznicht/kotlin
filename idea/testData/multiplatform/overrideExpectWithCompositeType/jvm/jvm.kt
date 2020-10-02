@@ -3,9 +3,9 @@ actual typealias Expect = String
 interface Derived : Base {
     override fun expectInReturnType(): Box<Expect>
 
-    <!NOTHING_TO_OVERRIDE!>override<!> fun expectInArgument(e: Box<Expect>)
+    override fun expectInArgument(e: Box<Expect>)
 
-    <!NOTHING_TO_OVERRIDE!>override<!> fun Box<Expect>.expectInReceiver()
+    override fun Box<Expect>.expectInReceiver()
 
     override val expectVal: Box<Expect>
 
