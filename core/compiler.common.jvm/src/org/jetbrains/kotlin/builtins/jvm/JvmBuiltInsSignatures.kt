@@ -45,13 +45,15 @@ object JvmBuiltInsSignatures {
                         "substring(I)Ljava/lang/String;", "toCharArray()[C", "toLowerCase()Ljava/lang/String;",
                         "toLowerCase(Ljava/util/Locale;)Ljava/lang/String;", "toUpperCase()Ljava/lang/String;",
                         "toUpperCase(Ljava/util/Locale;)Ljava/lang/String;", "trim()Ljava/lang/String;",
-                        "isBlank()Z", "lines()Ljava/util/stream/Stream;", "repeat(I)Ljava/lang/String;"
+                        "isBlank()Z", "lines()Ljava/util/stream/Stream;", "repeat(I)Ljava/lang/String;",
                     ) +
 
                     inJavaLang("Double", "isInfinite()Z", "isNaN()Z") +
                     inJavaLang("Float", "isInfinite()Z", "isNaN()Z") +
 
-                    inJavaLang("Enum", "getDeclaringClass()Ljava/lang/Class;", "finalize()V")
+                    inJavaLang("Enum", "getDeclaringClass()Ljava/lang/Class;", "finalize()V") +
+                    inJavaLang("CharSequence", "isEmpty()Z", "finalize()V")
+
         }
 
     private fun buildPrimitiveValueMethodsSet(): Set<String> =
