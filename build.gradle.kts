@@ -431,7 +431,7 @@ allprojects {
     }
 
     val jvmCompilerArgs = listOf(
-        "-Xjvm-default=compatibility",
+        "-Xjvm-default=all",
         "-Xno-optimized-callable-references",
         "-Xno-kotlin-nothing-value-exception",
         "-Xnormalize-constructor-calls=enable"
