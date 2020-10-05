@@ -25,7 +25,7 @@ val member = build {
 }
 
 val memberWithoutAnn = wrongBuild {
-    add(42)
+    <!INAPPLICABLE_CANDIDATE!>add<!>(42)
 }
 
 val extension = build {

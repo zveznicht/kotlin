@@ -14,17 +14,17 @@ fun <S> Builder<S>.extensionAdd(s: S) {}
 suspend fun <S> Builder<S>.safeExtensionAdd(s: S) {}
 
 val member = build {
-    add(42)
+    <!INAPPLICABLE_CANDIDATE!>add<!>(42)
 }
 
 val memberWithoutAnn = wrongBuild {
-    add(42)
+    <!INAPPLICABLE_CANDIDATE!>add<!>(42)
 }
 
 val extension = build {
-    extensionAdd("foo")
+    <!INAPPLICABLE_CANDIDATE!>extensionAdd<!>("foo")
 }
 
 val safeExtension = build {
-    safeExtensionAdd("foo")
+    <!INAPPLICABLE_CANDIDATE!>safeExtensionAdd<!>("foo")
 }

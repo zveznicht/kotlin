@@ -11,24 +11,24 @@ fun <S> generate(g: suspend Controller<S>.() -> Unit): S = TODO()
 
 val test1 = generate {
     apply {
-        yield(4)
+        <!INAPPLICABLE_CANDIDATE!>yield<!>(4)
     }
 }
 
 val test2 = generate {
-    yield(B)
+    <!INAPPLICABLE_CANDIDATE!>yield<!>(B)
     apply {
-        yield(C)
+        <!INAPPLICABLE_CANDIDATE!>yield<!>(C)
     }
 }
 
 val test3 = generate {
     this.let {
-        yield(B)
+        <!INAPPLICABLE_CANDIDATE!>yield<!>(B)
     }
 
     apply {
-        yield(C)
+        <!INAPPLICABLE_CANDIDATE!>yield<!>(C)
     }
 }
 
