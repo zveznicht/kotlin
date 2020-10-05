@@ -263,9 +263,14 @@ class ConstraintSystemCompleter(private val components: BodyResolveComponents) {
 
         // TODO: non-top-level variables?
         fun PostponedAtomWithRevisableExpectedType.collectNotFixedVariables() {
-            revisedExpectedType?.getArguments()?.map { it.getType().typeConstructor() }
-                ?.filterIsInstance<ConeTypeVariableTypeConstructor>().orEmpty()
-                .mapNotNullTo(result) { it.takeIf { it in notFixedTypeVariables } }
+            revisedExpectedType?.lowerBoundIfFlexible()?.asArgumentList()?.let { typeArgumentList ->
+                for (typeArgument in typeArgumentList) {
+                    val constructor = typeArgument.getType().typeConstructor()
+                    if (constructor in notFixedTypeVariables) {
+                        result.add(constructor)
+                    }
+                }
+            }
         }
 
         fun FirStatement.collectAllTypeVariables() {

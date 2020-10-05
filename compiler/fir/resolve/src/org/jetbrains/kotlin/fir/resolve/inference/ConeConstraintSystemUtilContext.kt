@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.resolve.inference.model.ConeFixVariableConstrain
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirImplicitTypeRef
 import org.jetbrains.kotlin.fir.types.coneType
+import org.jetbrains.kotlin.fir.types.coneTypeSafe
 import org.jetbrains.kotlin.resolve.calls.inference.components.ConstraintSystemUtilContext
 import org.jetbrains.kotlin.resolve.calls.inference.components.PostponedArgumentInputTypesResolver
 import org.jetbrains.kotlin.resolve.calls.inference.model.ArgumentConstraintPosition
@@ -77,11 +78,7 @@ object ConeConstraintSystemUtilContext : ConstraintSystemUtilContext {
     }
 
     private fun FirAnonymousFunction.collectDeclaredValueParameterTypes(): List<ConeKotlinType?> =
-        valueParameters.map {
-            if (it.returnTypeRef !is FirImplicitTypeRef)
-                it.returnTypeRef.coneType
-            else null
-        }
+        valueParameters.map { it.returnTypeRef.coneTypeSafe() }
 
     override fun PostponedAtomWithRevisableExpectedType.isAnonymousFunction(): Boolean {
         require(this is PostponedResolvedAtom)
