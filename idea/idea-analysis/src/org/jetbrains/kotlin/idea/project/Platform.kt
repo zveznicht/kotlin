@@ -33,6 +33,10 @@ import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.config.*
+import org.jetbrains.kotlin.config.data.CompilerArgumentsData
+import org.jetbrains.kotlin.config.data.configurator.CompilerArgumentsDataAnalysisFlagsConfigurator
+import org.jetbrains.kotlin.config.data.configurator.CompilerArgumentsDataLanguageFeaturesConfigurator
+import org.jetbrains.kotlin.config.data.configurator.DataFromCompilerArgumentsConfigurator
 import org.jetbrains.kotlin.idea.caches.project.getModuleInfo
 import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.idea.compiler.IDELanguageSettingsProvider
@@ -123,12 +127,17 @@ fun Project.getLanguageVersionSettings(
         KotlinFacetSettingsProvider.getInstance(this)?.getInitializedSettings(it)
     }
 
-    val arguments = kotlinFacetSettings?.compilerArguments ?: KotlinCommonCompilerArgumentsHolder.getInstance(this).settings
+    val argumentsData = kotlinFacetSettings?.compilerArgumentsData ?: KotlinCommonCompilerArgumentsHolder.getInstance(this).settings.let {
+        val compilerArgumentsData = CompilerArgumentsData.dummyImpl
+        DataFromCompilerArgumentsConfigurator(compilerArgumentsData).configure(it)
+        kotlinFacetSettings?.compilerArgumentsData = compilerArgumentsData
+        compilerArgumentsData
+    }
     val languageVersion =
-        kotlinFacetSettings?.languageLevel ?: LanguageVersion.fromVersionString(arguments.languageVersion)
+        kotlinFacetSettings?.languageLevel ?: LanguageVersion.fromVersionString(argumentsData.languageVersion)
         ?: contextModule?.getAndCacheLanguageLevelByDependencies()
         ?: VersionView.RELEASED_VERSION
-    val apiVersion = ApiVersion.createByLanguageVersion(LanguageVersion.fromVersionString(arguments.apiVersion) ?: languageVersion)
+    val apiVersion = ApiVersion.createByLanguageVersion(LanguageVersion.fromVersionString(argumentsData.apiVersion) ?: languageVersion)
     val compilerSettings = KotlinCompilerSettings.getInstance(this).settings
 
     val additionalArguments: CommonCompilerArguments = parseArguments(
@@ -153,11 +162,16 @@ fun Project.getLanguageVersionSettings(
         if (jsr305State != null) put(JvmAnalysisFlags.jsr305, jsr305State)
         initIDESpecificAnalysisSettings(this@getLanguageVersionSettings)
     }
+    val platform = kotlinFacetSettings?.targetPlatform
+        ?: kotlinFacetSettings?.serializedComponentPlatforms?.deserializeTargetPlatformByComponentPlatforms()
+        ?: DefaultIdeTargetPlatformKindProvider.defaultPlatform
+    val analysisFlagsConfigurator = CompilerArgumentsDataAnalysisFlagsConfigurator(argumentsData, platform, MessageCollector.NONE)
+    val languageFeaturesConfigurator = CompilerArgumentsDataLanguageFeaturesConfigurator(argumentsData, platform, MessageCollector.NONE)
 
     return LanguageVersionSettingsImpl(
         languageVersion, apiVersion,
-        arguments.configureAnalysisFlags(MessageCollector.NONE) + extraAnalysisFlags,
-        arguments.configureLanguageFeatures(MessageCollector.NONE) + extraLanguageFeatures
+        HashMap<AnalysisFlag<*>, Any>().apply { analysisFlagsConfigurator.configure(this) } + extraAnalysisFlags,
+        HashMap<LanguageFeature, LanguageFeature.State>().apply { languageFeaturesConfigurator.configure(this) } + extraLanguageFeatures
     )
 }
 

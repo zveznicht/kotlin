@@ -26,6 +26,9 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
 import org.gradle.api.artifacts.Dependency
 import org.gradle.tooling.model.idea.IdeaModule
+import org.jetbrains.kotlin.arguments.CachedCompilerArgumentBySourceSet
+import org.jetbrains.kotlin.arguments.CompilerArgumentMappersContainer
+import org.jetbrains.kotlin.arguments.deepCopy
 import org.jetbrains.kotlin.gradle.*
 import org.jetbrains.kotlin.idea.inspections.gradle.getDependencyModules
 import org.jetbrains.kotlin.idea.statistics.FUSEventGroups

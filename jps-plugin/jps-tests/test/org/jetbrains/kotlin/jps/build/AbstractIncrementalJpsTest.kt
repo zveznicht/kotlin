@@ -83,6 +83,7 @@ abstract class AbstractIncrementalJpsTest(
     protected lateinit var testDataDir: File
     protected lateinit var workDir: File
     protected lateinit var projectDescriptor: ProjectDescriptor
+
     // is used to compare lookup dumps in a human readable way (lookup symbols are hashed in an actual lookup storage)
     protected lateinit var lookupsDuringTest: MutableSet<LookupSymbol>
     private var isJvmICEnabledBackup: Boolean = false
@@ -380,7 +381,7 @@ abstract class AbstractIncrementalJpsTest(
     // null means one module
     private fun configureModules(): ModulesTxt? {
         JpsJavaExtensionService.getInstance().getOrCreateProjectExtension(myProject).outputUrl =
-                JpsPathUtil.pathToUrl(getAbsolutePath("out"))
+            JpsPathUtil.pathToUrl(getAbsolutePath("out"))
 
         val jdk = addJdk("my jdk")
         val modulesTxt = readModulesTxt()
@@ -434,6 +435,7 @@ abstract class AbstractIncrementalJpsTest(
                 } else if (compilerArguments is K2JVMCompilerArguments) {
                     compilerArguments.disableDefaultScriptingPlugin = true
                 }
+                kotlinFacetSettings.compilerArguments = compilerArguments
 
                 module.jpsModule.container.setChild(
                     JpsKotlinFacetModuleExtension.KIND,

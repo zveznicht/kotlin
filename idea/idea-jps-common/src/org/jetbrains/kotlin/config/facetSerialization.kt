@@ -12,7 +12,10 @@ import com.intellij.util.xmlb.XmlSerializer
 import org.jdom.DataConversionException
 import org.jdom.Element
 import org.jdom.Text
+import org.jetbrains.kotlin.arguments.FlatArgsInfoImpl
+import org.jetbrains.kotlin.arguments.FlatCompilerArgumentsBucket
 import org.jetbrains.kotlin.cli.common.arguments.*
+import org.jetbrains.kotlin.config.data.FlatArgsCompilerArgumentsDataFacade
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.platform.*
 import org.jetbrains.kotlin.platform.impl.FakeK2NativeCompilerArguments
@@ -127,8 +130,8 @@ fun Element.getFacetPlatformByConfigurationElement(): TargetPlatform {
 
 private fun readV4Config(element: Element): KotlinFacetSettings {
     return readV2AndLaterConfig(element).apply {
-        readElementsList(element, "classpathParts", "classpathPart")?.let {
-            classpathParts = it
+        element.deserializeFlatArgsCompilerArgumentsDataFacade()?.let {
+            compilerArgumentsData = it
         }
         readElementsList(element, "additionalArguments", "additionalArgument")?.let {
             compilerSettings?.additionalArguments = it.joinToString(" ")
@@ -440,10 +443,11 @@ private fun KotlinFacetSettings.writeV4Config(element: Element) {
         it.classpath = null
     }
     val additionalArguments = compilerSettings?.additionalArguments?.split(" ") ?: emptyList()
-    compilerSettings?.additionalArguments = ""
-    writeV2AndLaterConfig(element)
-    saveElementsList(element, classpathParts, "classpathParts", "classpathPart")
     saveElementsList(element, additionalArguments, "additionalArguments", "additionalArgument")
+    compilerSettings?.additionalArguments = ""
+    //TODO replace cast with robust OOP serializer
+    (compilerArgumentsData as? FlatArgsCompilerArgumentsDataFacade)?.serialize(element)
+    writeV2AndLaterConfig(element)
 }
 
 
@@ -457,7 +461,7 @@ fun KotlinFacetSettings.serializeFacetSettings(element: Element) {
     }
 }
 
-private fun TargetPlatform.serializeComponentPlatforms(): String {
+fun TargetPlatform.serializeComponentPlatforms(): String {
     val componentPlatforms = componentPlatforms
     val componentPlatformNames = componentPlatforms.mapTo(ArrayList()) { it.serializeToString() }
 
@@ -468,7 +472,7 @@ private fun TargetPlatform.serializeComponentPlatforms(): String {
     return componentPlatformNames.sorted().joinToString("/")
 }
 
-private fun String?.deserializeTargetPlatformByComponentPlatforms(): TargetPlatform? {
+fun String?.deserializeTargetPlatformByComponentPlatforms(): TargetPlatform? {
     val componentPlatformNames = this?.split('/')?.toSet()
     if (componentPlatformNames == null || componentPlatformNames.isEmpty())
         return null
@@ -501,4 +505,50 @@ private fun String?.deserializeTargetPlatformByComponentPlatforms(): TargetPlatf
             }
         }
     }
+}
+
+private fun FlatArgsCompilerArgumentsDataFacade.serialize(element: Element) {
+
+    fun FlatCompilerArgumentsBucket.serialize(element: Element) {
+        saveElementsList(element, generalArguments, "generalArguments", "generalArgument")
+        saveElementsList(element, classpathParts.toList(), "classpathParts", "classpathPart")
+        saveElementsList(element, pluginClasspaths.toList(), "pluginClasspaths", "pluginClasspath")
+        saveElementsList(element, friendPaths.toList(), "friendPaths", "friendPath")
+    }
+
+    with(flatArgsInfo) {
+        element.addContent(
+            Element("currentCompilerArgumentsBucket").apply {
+                currentCompilerArgumentsBucket.serialize(this)
+            }
+        )
+        element.addContent(
+            Element("defaultCompilerArgumentsBucket").apply {
+                defaultCompilerArgumentsBucket.serialize(this)
+            }
+        )
+        saveElementsList(element, dependencyClasspath.toList(), "dependencyClasspath", "dependency")
+    }
+}
+
+private fun Element.deserializeFlatArgsCompilerArgumentsDataFacade(): FlatArgsCompilerArgumentsDataFacade? {
+    fun Element.deserializeFlatCompilerArgumentsBucket(): FlatCompilerArgumentsBucket {
+        val generalArguments = ArrayList<String>()
+        readElementsList(this, "generalArguments", "generalArgument")?.apply { generalArguments.addAll(this) }
+        val classpathParts = readElementsList(this, "classpathParts", "classpathPart") ?: emptyList()
+        val pluginClasspaths = readElementsList(this, "pluginClasspaths", "pluginClasspath") ?: emptyList()
+        val friendPaths = readElementsList(this, "friendPaths", "friendPath") ?: emptyList()
+        return FlatCompilerArgumentsBucket(
+            generalArguments,
+            classpathParts.toTypedArray(),
+            pluginClasspaths.toTypedArray(),
+            friendPaths.toTypedArray()
+        )
+    }
+
+    val currentCompilerArgumentsBucket = getChild("currentCompilerArgumentsBucket")?.deserializeFlatCompilerArgumentsBucket() ?: return null
+    val defaultCompilerArgumentsBucket = getChild("defaultCompilerArgumentsBucket")?.deserializeFlatCompilerArgumentsBucket() ?: return null
+    val dependencyClasspath = readElementsList(this, "dependencyClasspath", "dependency") ?: emptyList()
+    val flatArgs = FlatArgsInfoImpl(currentCompilerArgumentsBucket, defaultCompilerArgumentsBucket, dependencyClasspath.toTypedArray())
+    return FlatArgsCompilerArgumentsDataFacade(flatArgs)
 }

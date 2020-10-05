@@ -29,7 +29,7 @@ class TestNoArgForLightClass : KotlinLightCodeInsightFixtureTestCase() {
         super.setUp()
 
         val facet = KotlinFacet.get(module) ?: error { "Facet not found" }
-        val configurationArguments = facet.configuration.settings.compilerArguments ?: error { "CompilerArguments not found" }
+        val configurationArguments = facet.configuration.settings.compilerArgumentsData ?: error { "CompilerArgumentsData not found" }
 
         configurationArguments.pluginClasspaths = arrayOf("SomeClasspath")
         configurationArguments.pluginOptions = arrayOf("$NO_ARG_ANNOTATION_OPTION_PREFIX$noArgAnnotationName")

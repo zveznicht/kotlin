@@ -20,6 +20,8 @@ import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.compilerRunner.ArgumentUtils
 import org.jetbrains.kotlin.config.*
+import org.jetbrains.kotlin.config.data.CompilerArgumentsData
+import org.jetbrains.kotlin.config.data.configurator.DataFromCompilerArgumentsConfigurator
 import org.jetbrains.kotlin.idea.compiler.configuration.Kotlin2JvmCompilerArgumentsHolder
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCompilerSettings
@@ -33,6 +35,7 @@ import org.jetbrains.kotlin.platform.*
 import org.jetbrains.kotlin.platform.compat.toNewPlatform
 import org.jetbrains.kotlin.platform.impl.JvmIdePlatformKind
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
+import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.NotNullableUserDataProperty
 import java.io.File
 import kotlin.reflect.KProperty1
@@ -73,15 +76,19 @@ fun KotlinFacetSettings.initializeIfNeeded(
         compilerSettings = KotlinCompilerSettings.getInstance(project).settings
     }
 
-    val commonArguments = KotlinCommonCompilerArgumentsHolder.getInstance(module.project).settings
+    val commonArguments = KotlinCommonCompilerArgumentsHolder.getInstance(project).settings
 
-    if (compilerArguments == null) {
+    if (compilerArgumentsData == null) {
         val targetPlatform = platform ?: getDefaultTargetPlatform(module, rootModel)
-        compilerArguments = targetPlatform.createArguments {
-            targetPlatform.idePlatformKind.tooling.compilerArgumentsForProject(module.project)?.let { mergeBeans(it, this) }
-            mergeBeans(commonArguments, this)
+        compilerArgumentsData = CompilerArgumentsData.dummyImpl.apply {
+            targetPlatform.createArguments {
+                targetPlatform.idePlatformKind.tooling.compilerArgumentsForProject(project)?.let { mergeBeans(it, this@createArguments) }
+                mergeBeans(commonArguments, this@createArguments)
+            }.also { DataFromCompilerArgumentsConfigurator(this).configure(it) }
         }
+
         this.targetPlatform = targetPlatform
+        this.serializedComponentPlatforms = targetPlatform.serializeComponentPlatforms()
     }
 
     if (shouldInferLanguageLevel) {
@@ -172,8 +179,9 @@ fun KotlinFacet.configureFacet(
 ) {
     val module = module
     with(configuration.settings) {
-        compilerArguments = null
+        compilerArgumentsData = null
         targetPlatform = null
+        serializedComponentPlatforms = null
         compilerSettings = null
         isHmppEnabled = hmppEnabled
         dependsOnModuleNames = dependsOnList
@@ -283,15 +291,15 @@ private val CommonCompilerArguments.ignoredFields: List<String>
         else -> emptyList()
     }
 
-private fun Module.configureSdkIfPossible(compilerArguments: CommonCompilerArguments, modelsProvider: IdeModifiableModelsProvider) {
+private fun Module.configureSdkIfPossible(settings: KotlinFacetSettings, modelsProvider: IdeModifiableModelsProvider) {
     // SDK for Android module is already configured by Android plugin at this point
-    if (isAndroidModule(modelsProvider) || hasNonOverriddenExternalSdkConfiguration(compilerArguments)) return
+    if (isAndroidModule(modelsProvider) || hasNonOverriddenExternalSdkConfiguration(settings)) return
 
     val projectSdk = ProjectRootManager.getInstance(project).projectSdk
     KotlinSdkType.setUpIfNeeded()
     val allSdks = getProjectJdkTableSafe().allJdks
-    val sdk = if (compilerArguments is K2JVMCompilerArguments) {
-        val jdkHome = compilerArguments.jdkHome
+    val sdk = if (settings.targetPlatform?.isJvm() == true) {
+        val jdkHome = settings.compilerArgumentsData?.jdkHome
         when {
             jdkHome != null -> allSdks.firstOrNull { it.sdkType is JavaSdk && FileUtil.comparePaths(it.homePath, jdkHome) == 0 }
             projectSdk != null && projectSdk.sdkType is JavaSdk -> projectSdk
@@ -315,8 +323,8 @@ private fun Module.configureSdkIfPossible(compilerArguments: CommonCompilerArgum
     }
 }
 
-private fun Module.hasNonOverriddenExternalSdkConfiguration(compilerArguments: CommonCompilerArguments): Boolean =
-    hasExternalSdkConfiguration && (compilerArguments !is K2JVMCompilerArguments || compilerArguments.jdkHome == null)
+private fun Module.hasNonOverriddenExternalSdkConfiguration(settings: KotlinFacetSettings): Boolean =
+    hasExternalSdkConfiguration && (settings.targetPlatform?.isJvm() != true || settings.compilerArgumentsData?.jdkHome == null)
 
 fun parseCompilerArgumentsToFacet(
     arguments: List<String>,
@@ -324,9 +332,9 @@ fun parseCompilerArgumentsToFacet(
     kotlinFacet: KotlinFacet,
     modelsProvider: IdeModifiableModelsProvider?
 ) {
-    val compilerArgumentsClass = kotlinFacet.configuration.settings.compilerArguments?.javaClass ?: return
-    val currentArgumentsBean = compilerArgumentsClass.newInstance()
-    val defaultArgumentsBean = compilerArgumentsClass.newInstance()
+    val platform = kotlinFacet.configuration.settings.targetPlatform ?: return
+    val currentArgumentsBean = platform.createArguments()
+    val defaultArgumentsBean = platform.createArguments()
     parseCommandLineArguments(defaultArguments, defaultArgumentsBean)
     parseCommandLineArguments(arguments, currentArgumentsBean)
     applyCompilerArgumentsToFacet(currentArgumentsBean, defaultArgumentsBean, kotlinFacet, modelsProvider)
@@ -357,15 +365,12 @@ fun applyCompilerArgumentsToFacet(
         compilerArguments.pluginOptions = joinPluginOptions(oldPluginOptions, arguments.pluginOptions)
 
         compilerArguments.convertPathsToSystemIndependent()
-        (compilerArguments as? K2JVMCompilerArguments)?.classpath?.let {
-            classpathParts = it.split(File.pathSeparator)
-        }
 
         // Retain only fields exposed (and not explicitly ignored) in facet configuration editor.
         // The rest is combined into string and stored in CompilerSettings.additionalArguments
 
         if (modelsProvider != null)
-            kotlinFacet.module.configureSdkIfPossible(compilerArguments, modelsProvider)
+            kotlinFacet.module.configureSdkIfPossible(this, modelsProvider)
 
         val primaryFields = compilerArguments.primaryFields
         val ignoredFields = compilerArguments.ignoredFields

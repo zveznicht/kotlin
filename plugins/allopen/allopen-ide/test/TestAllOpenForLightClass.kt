@@ -31,10 +31,10 @@ class TestAllOpenForLightClass : KotlinLightCodeInsightFixtureTestCase() {
         super.setUp()
 
         val facet = KotlinFacet.get(module) ?: error { "Facet not found" }
-        val configurationArguments = facet.configuration.settings.compilerArguments ?: error { "CompilerArguments not found" }
+        val configurationArgumentsData = facet.configuration.settings.configurationArgumentsData ?: error { "CompilerArguments not found" }
 
-        configurationArguments.pluginClasspaths = arrayOf("SomeClasspath")
-        configurationArguments.pluginOptions = arrayOf("$ALL_OPEN_ANNOTATION_OPTION_PREFIX$allOpenAnnotationName")
+        configurationArgumentsData.pluginClasspaths = arrayOf("SomeClasspath")
+        configurationArgumentsData.pluginOptions = arrayOf("$ALL_OPEN_ANNOTATION_OPTION_PREFIX$allOpenAnnotationName")
     }
 
     fun testAllOpenAnnotation() {

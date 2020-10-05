@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.cli.common.arguments.InternalArgument;
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments;
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments;
 import org.jetbrains.kotlin.config.*;
+import org.jetbrains.kotlin.config.data.CompilerArgumentsData;
 import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder;
 import org.jetbrains.kotlin.idea.facet.FacetUtilsKt;
 import org.jetbrains.kotlin.idea.facet.KotlinFacet;

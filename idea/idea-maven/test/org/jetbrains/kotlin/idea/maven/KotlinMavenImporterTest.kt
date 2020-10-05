@@ -618,13 +618,14 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
         assertImporterStatePresent()
 
         with(facetSettings) {
+            val compilerArguments = compilerArguments!!
             Assert.assertEquals("1.1", languageLevel!!.versionString)
-            Assert.assertEquals("1.1", compilerArguments!!.languageVersion)
+            Assert.assertEquals("1.1", compilerArguments.languageVersion)
             Assert.assertEquals("1.0", apiLevel!!.versionString)
-            Assert.assertEquals("1.0", compilerArguments!!.apiVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceLanguageVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceApiVersion)
-            Assert.assertEquals(true, compilerArguments!!.suppressWarnings)
+            Assert.assertEquals("1.0", compilerArguments.apiVersion)
+            Assert.assertFalse(compilerArguments.autoAdvanceLanguageVersion)
+            Assert.assertFalse(compilerArguments.autoAdvanceApiVersion)
+            Assert.assertEquals(true, compilerArguments.suppressWarnings)
             Assert.assertEquals(LanguageFeature.State.ENABLED, coroutineSupport)
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
             Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
@@ -743,10 +744,11 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
         assertImporterStatePresent()
 
         with(facetSettings) {
+            val compilerArguments = compilerArguments!!
             Assert.assertEquals("1.0", languageLevel!!.versionString)
-            Assert.assertEquals("1.0", compilerArguments!!.languageVersion)
+            Assert.assertEquals("1.0", compilerArguments.languageVersion)
             Assert.assertEquals("1.0", apiLevel!!.versionString)
-            Assert.assertEquals("1.0", compilerArguments!!.apiVersion)
+            Assert.assertEquals("1.0", compilerArguments.apiVersion)
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
             Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
         }
@@ -814,13 +816,14 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
         assertImporterStatePresent()
 
         with(facetSettings) {
+            val compilerArguments = compilerArguments!!
             Assert.assertEquals("1.1", languageLevel!!.versionString)
-            Assert.assertEquals("1.1", compilerArguments!!.languageVersion)
+            Assert.assertEquals("1.1", compilerArguments.languageVersion)
             Assert.assertEquals("1.0", apiLevel!!.versionString)
-            Assert.assertEquals("1.0", compilerArguments!!.apiVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceLanguageVersion)
-            Assert.assertFalse(compilerArguments!!.autoAdvanceApiVersion)
-            Assert.assertEquals(true, compilerArguments!!.suppressWarnings)
+            Assert.assertEquals("1.0", compilerArguments.apiVersion)
+            Assert.assertFalse(compilerArguments.autoAdvanceLanguageVersion)
+            Assert.assertFalse(compilerArguments.autoAdvanceApiVersion)
+            Assert.assertEquals(true, compilerArguments.suppressWarnings)
             Assert.assertEquals(LanguageFeature.State.ENABLED, coroutineSupport)
             Assert.assertTrue(targetPlatform.isJs())
             with(compilerArguments as K2JSCompilerArguments) {
@@ -971,15 +974,16 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
         assertImporterStatePresent()
 
         with(facetSettings) {
+            val compilerArguments = compilerArguments as K2JVMCompilerArguments
             Assert.assertEquals("1.1", languageLevel!!.versionString)
-            Assert.assertEquals("1.1", compilerArguments!!.languageVersion)
+            Assert.assertEquals("1.1", compilerArguments.languageVersion)
             Assert.assertEquals("1.0", apiLevel!!.versionString)
-            Assert.assertEquals("1.0", compilerArguments!!.apiVersion)
-            Assert.assertEquals(true, compilerArguments!!.suppressWarnings)
+            Assert.assertEquals("1.0", compilerArguments.apiVersion)
+            Assert.assertEquals(true, compilerArguments.suppressWarnings)
             Assert.assertEquals(LanguageFeature.State.ENABLED, coroutineSupport)
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
-            Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
-            Assert.assertEquals("foobar.jar", (compilerArguments as K2JVMCompilerArguments).classpath)
+            Assert.assertEquals("1.8", compilerArguments.jvmTarget)
+            Assert.assertEquals("foobar.jar", compilerArguments.classpath)
             Assert.assertEquals("-version", compilerSettings!!.additionalArguments)
         }
     }
@@ -1037,10 +1041,11 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
         assertImporterStatePresent()
 
         with(facetSettings) {
+            val compilerArguments = compilerArguments as K2JVMCompilerArguments
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
-            Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
+            Assert.assertEquals("1.8", compilerArguments.jvmTarget)
             Assert.assertEquals(LanguageFeature.State.ENABLED, coroutineSupport)
-            Assert.assertEquals("c:/program files/jdk1.8", (compilerArguments as K2JVMCompilerArguments).classpath)
+            Assert.assertEquals("c:/program files/jdk1.8", compilerArguments.classpath)
         }
     }
 
@@ -1093,10 +1098,11 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
         assertImporterStatePresent()
 
         with(facetSettings) {
+            val compilerArguments = compilerArguments as K2JVMCompilerArguments
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
-            Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
+            Assert.assertEquals("1.8", compilerArguments.jvmTarget)
             Assert.assertEquals(LanguageFeature.State.ENABLED, coroutineSupport)
-            Assert.assertEquals("c:/program files/jdk1.8", (compilerArguments as K2JVMCompilerArguments).classpath)
+            Assert.assertEquals("c:/program files/jdk1.8", compilerArguments.classpath)
         }
     }
 
@@ -1887,7 +1893,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
                     "plugin:org.jetbrains.kotlin.allopen:annotation=org.springframework.boot.test.context.SpringBootTest",
                     "plugin:org.jetbrains.kotlin.allopen:annotation=org.springframework.validation.annotation.Validated"
                 ),
-                compilerArguments!!.pluginOptions!!.toList()
+                compilerArgumentsData!!.pluginOptions!!.toList()
             )
         }
     }
@@ -1962,7 +1968,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
                     "plugin:org.jetbrains.kotlin.noarg:annotation=NoArg",
                     "plugin:org.jetbrains.kotlin.noarg:invokeInitializers=true"
                 ),
-                compilerArguments!!.pluginOptions!!.toList()
+                compilerArgumentsData!!.pluginOptions!!.toList()
             )
         }
     }
@@ -2027,6 +2033,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
             Assert.assertEquals(LanguageVersion.KOTLIN_1_1.description, languageLevel!!.description)
             Assert.assertEquals(LanguageVersion.KOTLIN_1_1.description, apiLevel!!.description)
+            Assert.assertEquals("1.8", compilerArgumentsData.jvmTarget)
             Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
         }
     }
@@ -2250,6 +2257,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
             Assert.assertEquals(LanguageVersion.KOTLIN_1_1, languageLevel!!)
             Assert.assertEquals(LanguageVersion.KOTLIN_1_0, apiLevel!!)
+            Assert.assertEquals("1.8", compilerArgumentsData.jvmTarget)
             Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
                 listOf("-Xdump-declarations-to=dumpDir2"),
@@ -2261,6 +2269,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
             Assert.assertEquals(LanguageVersion.KOTLIN_1_1, languageLevel!!)
             Assert.assertEquals(LanguageVersion.KOTLIN_1_0, apiLevel!!)
+            Assert.assertEquals("1.8", compilerArgumentsData.jvmTarget)
             Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
                 listOf("-Xdump-declarations-to=dumpDir", "-java-parameters", "-kotlin-home", "temp2"),
@@ -2272,6 +2281,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
             Assert.assertEquals(LanguageVersion.LATEST_STABLE, languageLevel)
             Assert.assertEquals(LanguageVersion.LATEST_STABLE, apiLevel)
+            Assert.assertEquals("1.8", compilerArgumentsData.jvmTarget)
             Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(
                 listOf("-kotlin-home", "temp2"),

@@ -133,16 +133,16 @@ class ModulesTxtBuilder {
             val kotlinFacetSettings = result.kotlinFacetSettings
             if (kotlinFacetSettings != null) {
                 kotlinFacetSettings.implementedModuleNames =
-                        result.dependencies.asSequence()
-                            .filter { it.kind == EXPECTED_BY }
-                            .map { it.to.name }
-                            .toList()
+                    result.dependencies.asSequence()
+                        .filter { it.kind == EXPECTED_BY }
+                        .map { it.to.name }
+                        .toList()
 
                 kotlinFacetSettings.sourceSetNames =
-                        result.dependencies.asSequence()
-                            .filter { it.kind == INCLUDE }
-                            .map { it.to.name }
-                            .toList()
+                    result.dependencies.asSequence()
+                        .filter { it.kind == INCLUDE }
+                        .map { it.to.name }
+                        .toList()
             }
             return result
         }

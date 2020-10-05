@@ -33,6 +33,7 @@ import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.roots.libraries.Library
 import com.intellij.openapi.util.Key
 import com.intellij.util.PathUtil
+import org.jetbrains.kotlin.arguments.*
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
 import org.jetbrains.kotlin.config.*
@@ -311,7 +312,7 @@ fun configureFacetByGradleModule(
 
 private fun configureFacetByCachedCompilerArguments(
     cachedArgsInfo: CachedArgsInfo,
-    mapper: CompilerArgumentsMapperWithMerge,
+    mapper: CompilerArgumentsMapper,
     kotlinFacet: KotlinFacet,
     modelsProvider: IdeModifiableModelsProvider
 ) {
@@ -324,11 +325,16 @@ private fun configureFacetByCachedCompilerArguments(
 }
 
 fun configureFacetByFlatArgsInfo(kotlinFacet: KotlinFacet, flatArgsInfo: FlatArgsInfo, modelsProvider: IdeModifiableModelsProvider?) {
-    val currentCompilerArguments = FlatToRawCompilerArgumentsBucketConverter().convert(flatArgsInfo.currentCompilerArgumentsBucket)
-    val defaultCompilerArguments = FlatToRawCompilerArgumentsBucketConverter().convert(flatArgsInfo.defaultCompilerArgumentsBucket)
-    val dependencyClasspath = flatArgsInfo.dependencyClasspath.map { PathUtil.toSystemIndependentName(it) }
-    val argsInfoImpl = ArgsInfoImpl(currentCompilerArguments, defaultCompilerArguments, dependencyClasspath)
-    configureFacetByCompilerArguments(kotlinFacet, argsInfoImpl, modelsProvider)
+//    val currentCompilerArguments = FlatToRawCompilerArgumentsBucketConverter().convert(flatArgsInfo.currentCompilerArgumentsBucket)
+//    val defaultCompilerArguments = FlatToRawCompilerArgumentsBucketConverter().convert(flatArgsInfo.defaultCompilerArgumentsBucket)
+//    val dependencyClasspath = flatArgsInfo.dependencyClasspath.map { PathUtil.toSystemIndependentName(it) }
+//    val argsInfoImpl = ArgsInfoImpl(currentCompilerArguments, defaultCompilerArguments, dependencyClasspath)
+//    configureFacetByCompilerArguments(kotlinFacet, argsInfoImpl, modelsProvider)
+    val settings = kotlinFacet.configuration.settings
+    settings.flatArgsInfo = flatArgsInfo
+
+
+
 }
 
 fun configureFacetByCompilerArguments(kotlinFacet: KotlinFacet, argsInfo: ArgsInfo, modelsProvider: IdeModifiableModelsProvider?) {
@@ -359,9 +365,9 @@ internal fun adjustClasspath(kotlinFacet: KotlinFacet, dependencyClasspath: List
     if (dependencyClasspath.isEmpty()) return
     with(kotlinFacet.configuration.settings) {
         if (targetPlatform?.isJvm() != true) return
-        val fullClasspath = classpathParts.toList()
+        val fullClasspath = compilerArgumentsData?.classpathParts?.toList()
         if (fullClasspath.isNullOrEmpty()) return
-        classpathParts = fullClasspath - dependencyClasspath
+        compilerArgumentsData!!.classpathParts = (fullClasspath - dependencyClasspath).toTypedArray()
     }
 }
 

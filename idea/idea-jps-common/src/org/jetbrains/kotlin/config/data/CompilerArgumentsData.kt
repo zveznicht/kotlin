@@ -5,13 +5,9 @@
 
 package org.jetbrains.kotlin.config.data
 
-import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
-import java.io.File
-
-interface CompilerArgumentsProducible {
-    val compilerArguments: CommonCompilerArguments
-}
+import org.jetbrains.kotlin.arguments.FlatArgsInfoImpl
+import org.jetbrains.kotlin.arguments.FlatCompilerArgumentsBucket
+import org.jetbrains.kotlin.konan.file.File
 
 interface CompilerArgumentsData {
     var languageVersion: String?
@@ -19,27 +15,32 @@ interface CompilerArgumentsData {
     var pluginOptions: Array<String>?
     var pluginClasspaths: Array<String>?
     var classpathParts: Array<String>?
+    var classpath: String?
+        get() = classpathParts?.joinToString(File.pathSeparator)
+        set(value) {
+            classpathParts = value?.split(File.pathSeparator)?.toTypedArray()
+        }
     var jvmTarget: String?
     var coroutinesState: String?
+    var jdkHome: String?
     var autoAdvanceLanguageVersion: Boolean
     var autoAdvanceApiVersion: Boolean
-}
 
-interface CompilerArgumentsDataConfigurator<T> {
-    fun configureBy(compilerArgumentsData: CompilerArgumentsData, configuration: T)
-}
+    fun getArbitrarySingleArgument(argumentId: String): String?
+    fun setArbitrarySingleArgument(argumentId: String, newValue: String?)
+    fun getArbitraryFlag(argumentId: String): Boolean
+    fun setArbitraryFlag(argumentId: String, newValue: Boolean)
+    fun getArbitraryMultipleArguments(argumentId: String): Array<String>?
+    fun setArbitraryMultipleArguments(argumentId: String, newValue: Array<String>?)
 
-class DataFromCompilerArgumentsConfigurator<T : CommonCompilerArguments> : CompilerArgumentsDataConfigurator<T> {
-    override fun configureBy(compilerArgumentsData: CompilerArgumentsData, configuration: T) =
-        with(compilerArgumentsData) {
-            languageVersion = configuration.languageVersion
-            apiVersion = configuration.apiVersion
-            pluginOptions = configuration.pluginOptions
-            pluginClasspaths = configuration.pluginClasspaths
-            classpathParts = (configuration as? K2JVMCompilerArguments)?.classpath?.split(File.pathSeparator)?.toTypedArray()
-            jvmTarget = (configuration as? K2JVMCompilerArguments)?.jvmTarget
-            coroutinesState = configuration.coroutinesState
-            autoAdvanceLanguageVersion = configuration.autoAdvanceLanguageVersion
-            autoAdvanceApiVersion = configuration.autoAdvanceApiVersion
-        }
+    companion object {
+        val dummyImpl: CompilerArgumentsData
+            get() = FlatArgsCompilerArgumentsDataFacade(
+                FlatArgsInfoImpl(
+                    FlatCompilerArgumentsBucket(ArrayList(), arrayOf(), arrayOf(), arrayOf()),
+                    FlatCompilerArgumentsBucket(ArrayList(), arrayOf(), arrayOf(), arrayOf()),
+                    arrayOf()
+                )
+            )
+    }
 }

@@ -5,69 +5,61 @@
 
 package org.jetbrains.kotlin.config.data
 
-import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.kotlin.arguments.FlatArgsInfo
+import org.jetbrains.kotlin.arguments.FlatArgsInfoImpl
+import org.jetbrains.kotlin.arguments.FlatCompilerArgumentsBucket
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
-import org.jetbrains.kotlin.config.createArguments
-import org.jetbrains.kotlin.gradle.FlatArgsInfo
-import org.jetbrains.kotlin.gradle.FlatToRawCompilerArgumentsBucketConverter
-import org.jetbrains.kotlin.konan.file.File
-import org.jetbrains.kotlin.platform.TargetPlatform
-import java.io.Serializable
-import kotlin.reflect.KProperty
 
 class FlatArgsCompilerArgumentsDataFacade(val flatArgsInfo: FlatArgsInfo) : CompilerArgumentsData {
     private val changeSingleStrategy = ChangeSingleFlatArgumentStrategy(flatArgsInfo.currentCompilerArgumentsBucket)
+    private val changeFlagStrategy = ChangeBooleanFlatArgumentStrategy(flatArgsInfo.currentCompilerArgumentsBucket)
+    private val changeMultipleStrategy = ChangeMultipleFlatArgumentStrategyImpl(flatArgsInfo.currentCompilerArgumentsBucket)
     private val changePluginOptionStrategy = ChangeFlatPluginOptionsStrategy(flatArgsInfo.currentCompilerArgumentsBucket)
     private val changePluginClasspathsStrategy = ChangeFlatPluginClasspathsStrategy(flatArgsInfo.currentCompilerArgumentsBucket)
     private val changeClasspathPartsStrategy = ChangeFlatClasspathPartsStrategy(flatArgsInfo.currentCompilerArgumentsBucket)
+
+    private val singleArgumentsMap = mutableMapOf<String, String?>().apply {
+        val generalArguments = flatArgsInfo.currentCompilerArgumentsBucket.generalArguments
+    }
+    private val flagArgumentsMap = mutableMapOf<String, Boolean>().apply {
+        val generalArguments = flatArgsInfo.currentCompilerArgumentsBucket.generalArguments
+    }
+    private val multipleArgumentsMap = mutableMapOf<String, Array<String>?>().apply {
+        val generalArguments = flatArgsInfo.currentCompilerArgumentsBucket.generalArguments
+    }
 
     override var languageVersion: String? by ChangingBySingeFlatArgumentStrategy(LANGUAGE_VERSION, changeSingleStrategy)
     override var apiVersion: String? by ChangingBySingeFlatArgumentStrategy(API_VERSION, changeSingleStrategy)
     override var jvmTarget: String? by ChangingBySingeFlatArgumentStrategy(JVM_TARGET, changeSingleStrategy)
     override var coroutinesState: String? by ChangingBySingeFlatArgumentStrategy(COROUTINES_STATE, changeSingleStrategy)
-    override var pluginOptions: Array<String>? by ChangingByFlatArgumentsArrayStrategy(changePluginOptionStrategy)
+    override var pluginOptions: Array<String>? by ChangingByFlatPluginOptionsStrategy(changePluginOptionStrategy)
     override var pluginClasspaths: Array<String>? by ChangingByFlatArgumentsArrayStrategy(changePluginClasspathsStrategy)
     override var classpathParts: Array<String>? by ChangingByFlatArgumentsArrayStrategy(changeClasspathPartsStrategy)
+    override var jdkHome: String? by ChangingBySingeFlatArgumentStrategy(JDK_HOME, changeSingleStrategy)
 
 
     override var autoAdvanceLanguageVersion: Boolean = false
     override var autoAdvanceApiVersion: Boolean = false
+    override fun getArbitrarySingleArgument(argumentId: String): String? = changeSingleStrategy.getArgumentStrategy(argumentId)
+
+    override fun setArbitrarySingleArgument(argumentId: String, newValue: String?) =
+        changeSingleStrategy.setArgumentStrategy(argumentId, newValue)
+
+    override fun getArbitraryFlag(argumentId: String): Boolean = changeFlagStrategy.getArgumentStrategy(argumentId)
+
+    override fun setArbitraryFlag(argumentId: String, newValue: Boolean) = changeFlagStrategy.setArgumentStrategy(argumentId, newValue)
+
+    override fun getArbitraryMultipleArguments(argumentId: String): Array<String>? =
+        changeMultipleStrategy.getArgumentStrategy(argumentId)
+
+    override fun setArbitraryMultipleArguments(argumentId: String, newValue: Array<String>?) =
+        changeMultipleStrategy.setArgumentStrategy(argumentId, newValue)
 
     companion object {
         private const val LANGUAGE_VERSION = "-language-version"
         private const val API_VERSION = "-language-version"
         private const val JVM_TARGET = "-jvm-target"
         private const val COROUTINES_STATE = "-Xcoroutines"
-        private const val IGNORED = ""
-
-
-        private interface ChangingByStrategy<T, R : ChangeFlatArgumentStrategy<T>> : Serializable {
-            val argumentsId: String
-            var value: T
-            val strategy: R
-
-            operator fun getValue(thisRef: Any, property: KProperty<*>) = value
-            operator fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
-                this.value = value
-                strategy.execute(argumentsId, value)
-            }
-        }
-
-        private class ChangingBySingeFlatArgumentStrategy(
-            override val argumentsId: String,
-            override val strategy: ChangeSingleFlatArgumentStrategy
-        ) : ChangingByStrategy<String?, ChangeSingleFlatArgumentStrategy> {
-            override var value: String? = null
-        }
-
-        private class ChangingByFlatArgumentsArrayStrategy(
-            override val strategy: ChangeMultipleFlatArgumentStrategy
-        ) : ChangingByStrategy<Array<String>?, ChangeMultipleFlatArgumentStrategy> {
-            override var value: Array<String>? = null
-            override val argumentsId: String = IGNORED
-        }
+        private const val JDK_HOME = "-jdk-home"
     }
-
 }

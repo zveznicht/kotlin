@@ -9,6 +9,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ProjectDependency
+import org.jetbrains.kotlin.arguments.*
 import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder
 import org.jetbrains.plugins.gradle.tooling.ModelBuilderService
 import java.io.File
@@ -55,7 +56,7 @@ interface KotlinGradleModel : Serializable {
     val kotlinTarget: String?
     val kotlinTaskProperties: KotlinTaskPropertiesBySourceSet
     val gradleUserHome: String
-    val compilerArgumentsMapper: ICompilerArgumentsMapper
+    val compilerArgumentsMapper: CompilerArgumentsMapper
 }
 
 data class KotlinGradleModelImpl(
@@ -67,7 +68,7 @@ data class KotlinGradleModelImpl(
     override val kotlinTarget: String? = null,
     override val kotlinTaskProperties: KotlinTaskPropertiesBySourceSet,
     override val gradleUserHome: String,
-    override val compilerArgumentsMapper: ICompilerArgumentsMapper
+    override val compilerArgumentsMapper: CompilerArgumentsMapper
 ) : KotlinGradleModel
 
 abstract class AbstractKotlinGradleModelBuilder : ModelBuilderService {
@@ -187,10 +188,10 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
                 ?: compileTask.getCompilerArguments("getSerializedCompilerArgumentsIgnoreClasspathIssues")
                 ?: emptyList()
             val currentCompilerArgumentsBucket =
-                RawToCachedCompilerArgumentsBucket(modelDetachableMapper).convert(currentArguments)
+                RawToCachedCompilerArgumentsBucket(modelDetachableMapper).convert(ArrayList(currentArguments))
             val defaultArguments = compileTask.getCompilerArguments("getDefaultSerializedCompilerArguments").orEmpty()
             val defaultCompilerArgumentsBucket =
-                RawToCachedCompilerArgumentsBucket(modelDetachableMapper).convert(defaultArguments)
+                RawToCachedCompilerArgumentsBucket(modelDetachableMapper).convert(ArrayList(defaultArguments))
             val dependencyClasspath = compileTask.getDependencyClasspath()
             val dependencyClasspathCacheIds =
                 dependencyClasspath.map { modelDetachableMapper.cacheArgument(it) }.toTypedArray()

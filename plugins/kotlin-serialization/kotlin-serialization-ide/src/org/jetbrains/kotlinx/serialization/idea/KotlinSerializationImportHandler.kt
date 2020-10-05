@@ -16,7 +16,9 @@
 
 package org.jetbrains.kotlinx.serialization.idea
 
-import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
+import org.jetbrains.kotlin.config.data.CompilerArgumentsData
+import org.jetbrains.kotlin.config.data.configurator.DataFromCompilerArgumentsConfigurator
+import org.jetbrains.kotlin.idea.compiler.configuration.KotlinCommonCompilerArgumentsHolder
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
@@ -33,12 +35,15 @@ internal object KotlinSerializationImportHandler {
 
     fun modifyCompilerArguments(facet: KotlinFacet, buildSystemPluginJar: String) {
         val facetSettings = facet.configuration.settings
-        val commonArguments = facetSettings.compilerArguments ?: CommonCompilerArguments.DummyImpl().also {
-            facetSettings.compilerArguments = it
+        //TODO replace `return` with DataFromDummyImpl
+        val compilerArgumentsData = facetSettings.compilerArgumentsData ?: CompilerArgumentsData.dummyImpl.apply {
+            val commonArguments = KotlinCommonCompilerArgumentsHolder.getInstance(facet.module.project).settings
+            DataFromCompilerArgumentsConfigurator(this).configure(commonArguments)
+            facetSettings.compilerArgumentsData = this
         }
 
         var pluginWasEnabled = false
-        val oldPluginClasspaths = (commonArguments.pluginClasspaths ?: emptyArray()).filterTo(mutableListOf()) {
+        val oldPluginClasspaths = (compilerArgumentsData.pluginClasspaths ?: emptyArray()).filterTo(mutableListOf()) {
             val lastIndexOfFile = it.lastIndexOfAny(charArrayOf('/', File.separatorChar))
             if (lastIndexOfFile < 0) {
                 return@filterTo true
@@ -49,6 +54,6 @@ internal object KotlinSerializationImportHandler {
         }
 
         val newPluginClasspaths = if (pluginWasEnabled) oldPluginClasspaths + PLUGIN_JPS_JAR else oldPluginClasspaths
-        commonArguments.pluginClasspaths = newPluginClasspaths.toTypedArray()
+        compilerArgumentsData.pluginClasspaths = newPluginClasspaths.toTypedArray()
     }
 }

@@ -22,6 +22,8 @@ import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.config.LanguageVersion
+import org.jetbrains.kotlin.config.data.CompilerArgumentsData
+import org.jetbrains.kotlin.config.data.configurator.DataFromCompilerArgumentsConfigurator
 import org.jetbrains.kotlin.idea.caches.project.ModuleSourceInfo
 import org.jetbrains.kotlin.idea.caches.project.SdkInfo
 import org.jetbrains.kotlin.idea.caches.trackers.KotlinCodeBlockModificationListener
@@ -216,12 +218,12 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
 
     fun testSamWithReceiverExtension() {
         val module1 = module("m1").setupKotlinFacet {
-            settings.compilerArguments!!.pluginOptions =
+            settings.compilerArgumentsData!!.pluginOptions =
                 arrayOf("plugin:$PLUGIN_ID:${ANNOTATION_OPTION.optionName}=anno.A")
         }
 
         val module2 = module("m2").setupKotlinFacet {
-            settings.compilerArguments!!.pluginOptions =
+            settings.compilerArgumentsData!!.pluginOptions =
                 arrayOf("plugin:$PLUGIN_ID:${ANNOTATION_OPTION.optionName}=anno.B")
         }
 
@@ -306,7 +308,9 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
             val configuration = facet.configuration
 
             // this is actually needed so facet settings object is in a valid state
-            configuration.settings.compilerArguments = K2JVMCompilerArguments()
+            configuration.settings.compilerArgumentsData = CompilerArgumentsData.dummyImpl.apply {
+                DataFromCompilerArgumentsConfigurator(this).configure(K2JVMCompilerArguments())
+            }
             // make sure module-specific settings are used
             configuration.settings.useProjectSettings = false
 
@@ -316,7 +320,9 @@ open class MultiModuleHighlightingTest : AbstractMultiModuleHighlightingTest() {
 
     private fun Module.makeJsModule() {
         setupKotlinFacet {
-            settings.compilerArguments = K2JSCompilerArguments()
+            settings.compilerArgumentsData = CompilerArgumentsData.dummyImpl.apply {
+                DataFromCompilerArgumentsConfigurator(this).configure(K2JSCompilerArguments())
+            }
             settings.targetPlatform = JSLibraryKind.compilerPlatform
         }
     }
