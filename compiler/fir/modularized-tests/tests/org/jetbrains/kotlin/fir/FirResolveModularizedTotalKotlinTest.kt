@@ -36,6 +36,7 @@ import java.io.PrintStream
 import java.lang.management.ManagementFactory
 import java.text.DecimalFormat
 import kotlin.reflect.KClass
+import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.memberProperties
 
 
@@ -136,7 +137,8 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
             for (arg in args) {
                 val (name, valueStr) = arg.split('=')
                 val field = it::class.memberProperties.find { it.name == name } ?: error("PerfStat flag not found: $name")
-                field.call(it, valueStr.toBooleanLenient()!!)
+                @Suppress("UNCHECKED_CAST")
+                (field as KMutableProperty1<PerfStat, Boolean>).set(it, valueStr.toBooleanLenient()!!)
             }
         }
     } else null
