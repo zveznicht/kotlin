@@ -1,5 +1,7 @@
 // !USE_EXPERIMENTAL: kotlin.ExperimentalStdlibApi
 // !LANGUAGE: +NewInference
+// IGNORE_BACKEND: JS_IR
+// IGNORE_BACKEND: JS_IR_ES6
 // WITH_RUNTIME
 
 package test
