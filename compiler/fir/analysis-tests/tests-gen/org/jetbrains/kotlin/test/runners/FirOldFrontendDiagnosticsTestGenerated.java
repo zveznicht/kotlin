@@ -9484,6 +9484,12 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirDiagnosti
                     }
 
                     @Test
+                    @TestMetadata("manyReceivers.kt")
+                    public void testManyReceivers() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/functions/manyReceivers.kt");
+                    }
+
+                    @Test
                     @TestMetadata("noExplicitReceiver.kt")
                     public void testNoExplicitReceiver() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/functions/noExplicitReceiver.kt");
@@ -9493,6 +9499,12 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirDiagnosti
                     @TestMetadata("plusMatrix.kt")
                     public void testPlusMatrix() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/functions/plusMatrix.kt");
+                    }
+
+                    @Test
+                    @TestMetadata("resolutionFailure.kt")
+                    public void testResolutionFailure() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/functions/resolutionFailure.kt");
                     }
 
                     @Test
