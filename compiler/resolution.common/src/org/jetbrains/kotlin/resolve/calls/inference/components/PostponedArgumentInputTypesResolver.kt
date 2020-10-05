@@ -332,7 +332,7 @@ class PostponedArgumentInputTypesResolver(
         for (argument in postponedArguments) {
             if (argument !is LambdaWithTypeVariableAsExpectedTypeMarker) continue
             if (argument.parameterTypesFromDeclaration != null) continue
-            argument.updateParameterTypesFromDeclaration(extractParameterTypesFromDeclaration(argument))
+            argument.updateParameterTypesFromDeclaration(extractLambdaParameterTypesFromDeclaration(argument))
         }
 
         return postponedArguments.any { argument ->
