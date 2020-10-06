@@ -131,9 +131,9 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
         val bridgeFunction = createBridgeDeclaration(
             function,
             when {
-                // If the original function has value parameters which need mangling we still need to replace
+                // If the original function has signature which need mangling we still need to replace
                 // it with a mangled version.
-                !function.isFakeOverride && function.fullValueParameterList.any { it.type.requiresMangling } ->
+                !function.isFakeOverride && function.signatureRequiresMangling() ->
                     replacement.name
                 // Since we remove the corresponding property symbol from the bridge we need to resolve getter/setter
                 // names at this point.
@@ -159,6 +159,10 @@ private class JvmInlineClassLowering(private val context: JvmBackendContext) : F
 
         return listOf(replacement, bridgeFunction)
     }
+
+    private fun IrSimpleFunction.signatureRequiresMangling() =
+        fullValueParameterList.any { it.type.requiresMangling } ||
+                context.state.functionsWithInlineClassReturnTypesMangled && returnType.requiresMangling
 
     // We may need to add a bridge method for inline class methods with static replacements. Ideally, we'd do this in BridgeLowering,
     // but unfortunately this is a special case in the old backend. The bridge method is not marked as such and does not follow the normal
