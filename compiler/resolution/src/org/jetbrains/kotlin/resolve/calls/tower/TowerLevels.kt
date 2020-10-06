@@ -117,10 +117,10 @@ internal class MemberScopeTowerLevel(
 
         if (dispatchReceiver.hasTypesFromSmartCasts()) {
             if (unstableCandidates == null) {
-                result.retainAll(result.selectMostSpecificInEachOverridableGroup { descriptor.approximateCapturedTypes(typeApproximator) })
+                result.retainAll(result.selectMostSpecificInEachOverridableGroup { descriptor })
             } else {
                 result.addAll(
-                    unstableCandidates.selectMostSpecificInEachOverridableGroup { descriptor.approximateCapturedTypes(typeApproximator) }
+                    unstableCandidates.selectMostSpecificInEachOverridableGroup { descriptor }
                 )
             }
         }
@@ -132,32 +132,6 @@ internal class MemberScopeTowerLevel(
         }
 
         return result
-    }
-
-    /**
-     * this is bad hack for test like BlackBoxCodegenTestGenerated.Reflection.Properties#testGetPropertiesMutableVsReadonly (see last get call)
-     * Main reason for this hack: when we have List<*> we do capturing and transform receiver type to List<Capture(*)>.
-     * So method get has signature get(Int): Capture(*). If we also have smartcast to MutableList<String>, then there is also method get(Int): String.
-     * And we should chose get(Int): String.
-     */
-    private fun CallableDescriptor.approximateCapturedTypes(approximator: TypeApproximator): CallableDescriptor {
-        if (!isNewInferenceEnabled) return this
-
-        val wrappedSubstitution = object : TypeSubstitution() {
-            override fun get(key: KotlinType): TypeProjection? = null
-            override fun prepareTopLevelType(topLevelType: KotlinType, position: Variance) = when (position) {
-                Variance.INVARIANT -> null
-                Variance.OUT_VARIANCE -> approximator.approximateToSuperType(
-                    topLevelType.unwrap(),
-                    TypeApproximatorConfiguration.InternalTypesApproximation
-                )
-                Variance.IN_VARIANCE -> approximator.approximateToSubType(
-                    topLevelType.unwrap(),
-                    TypeApproximatorConfiguration.InternalTypesApproximation
-                )
-            } ?: topLevelType
-        }
-        return substitute(TypeSubstitutor.create(wrappedSubstitution))
     }
 
     private fun ReceiverValueWithSmartCastInfo.smartCastReceiver(targetType: KotlinType): ReceiverValueWithSmartCastInfo {
