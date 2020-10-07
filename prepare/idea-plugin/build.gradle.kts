@@ -174,7 +174,18 @@ dependencies {
     embedded(protobufFull())
     embedded(kotlinBuiltins(forJvm = true))
 
-    libraries(project(":kotlin-stdlib", "withJvmBuiltins"))
+    if (kotlinBuildProperties.useBootstrapStdlib) {
+        libraries(kotlinStdlib())
+        libraries(kotlinDep(listOfNotNull("stdlib", null).joinToString("-"), bootstrapKotlinVersion, null)) {
+            exclude("org.jetbrains.kotlin", "kotlin-stdlib")
+        }
+    } else {
+        libraries(project(":kotlin-stdlib", "withJvmBuiltins"))
+        libraries(project(":kotlin-stdlib-jdk8")) {
+            exclude("org.jetbrains.kotlin", "kotlin-stdlib")
+        }
+    }
+
     libraries(commonDep(kotlinxCollectionsImmutable())) {
         exclude("org.jetbrains.kotlin", "kotlin-stdlib")
     }
@@ -186,10 +197,6 @@ dependencies {
         exclude("org.jetbrains.kotlin", "kotlin-stdlib")
     }
     libraries(commonDep("io.javaslang", "javaslang"))
-
-    libraries(project(":kotlin-stdlib-jdk8")) {
-        exclude("org.jetbrains.kotlin", "kotlin-stdlib")
-    }
 
     Platform[193].orHigher {
         libraries(commonDep("org.jetbrains.intellij.deps.completion", "completion-ranking-kotlin"))
