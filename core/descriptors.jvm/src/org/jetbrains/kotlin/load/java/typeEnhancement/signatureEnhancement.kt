@@ -26,7 +26,6 @@ import org.jetbrains.kotlin.descriptors.annotations.composeAnnotations
 import org.jetbrains.kotlin.load.java.*
 import org.jetbrains.kotlin.load.java.descriptors.*
 import org.jetbrains.kotlin.load.java.lazy.LazyJavaResolverContext
-import org.jetbrains.kotlin.load.java.lazy.JavaDefaultQualifiers
 import org.jetbrains.kotlin.load.java.lazy.copyWithNewDefaultTypeQualifiers
 import org.jetbrains.kotlin.load.java.lazy.descriptors.isJavaField
 import org.jetbrains.kotlin.load.kotlin.SignatureBuildingComponents
@@ -237,7 +236,7 @@ class SignatureEnhancement(
         return bounds.map { bound ->
             SignatureParts(
                 typeParameter, bound, emptyList(), false, context,
-                AnnotationTypeQualifierResolver.QualifierApplicabilityType.TYPE_PARAMETER_BOUNDS,
+                AnnotationQualifierApplicabilityType.TYPE_PARAMETER_BOUNDS,
                 typeParameterBounds = true
             ).enhance().type
         }
@@ -259,7 +258,7 @@ class SignatureEnhancement(
         private val fromOverridden: Collection<KotlinType>,
         private val isCovariant: Boolean,
         private val containerContext: LazyJavaResolverContext,
-        private val containerApplicabilityType: AnnotationTypeQualifierResolver.QualifierApplicabilityType,
+        private val containerApplicabilityType: AnnotationQualifierApplicabilityType,
         private val typeParameterBounds: Boolean = false
     ) {
 
@@ -398,9 +397,9 @@ class SignatureEnhancement(
                         c.defaultTypeQualifiers
                             ?.get(
                                 if (typeParameterBounds)
-                                    AnnotationTypeQualifierResolver.QualifierApplicabilityType.TYPE_PARAMETER_BOUNDS
+                                    AnnotationQualifierApplicabilityType.TYPE_PARAMETER_BOUNDS
                                 else
-                                    AnnotationTypeQualifierResolver.QualifierApplicabilityType.TYPE_USE
+                                    AnnotationQualifierApplicabilityType.TYPE_USE
                             )
                     )
                 )

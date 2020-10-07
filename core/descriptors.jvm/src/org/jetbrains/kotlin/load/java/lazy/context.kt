@@ -41,6 +41,7 @@ import org.jetbrains.kotlin.resolve.sam.SamConversionResolver
 import org.jetbrains.kotlin.serialization.deserialization.ErrorReporter
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
+import java.util.*
 
 class JavaResolverComponents(
     val storageManager: StorageManager,
@@ -98,17 +99,6 @@ interface JavaResolverSettings {
                 override val isReleaseCoroutines get() = isReleaseCoroutines
                 override val correctNullabilityForNotNullTypeParameter get() = correctNullabilityForNotNullTypeParameter
             }
-    }
-}
-
-typealias QualifierByApplicabilityType =
-        EnumMap<AnnotationTypeQualifierResolver.QualifierApplicabilityType, JavaDefaultQualifiers?>
-
-class JavaTypeQualifiersByElementType(val defaultQualifiers: QualifierByApplicabilityType) {
-    operator fun get(
-        applicabilityType: AnnotationTypeQualifierResolver.QualifierApplicabilityType?
-    ): JavaDefaultQualifiers? {
-        return defaultQualifiers[applicabilityType]
     }
 }
 
@@ -188,11 +178,6 @@ private fun LazyJavaResolverContext.extractDefaultNullabilityQualifier(
 
     return JavaDefaultQualifiers(nullabilityQualifier, applicability)
 }
-
-data class JavaDefaultQualifiers(
-    val nullabilityQualifier: NullabilityQualifierWithMigrationStatus,
-    val qualifierApplicabilityTypes: Collection<AnnotationTypeQualifierResolver.QualifierApplicabilityType>
-)
 
 fun LazyJavaResolverContext.replaceComponents(
     components: JavaResolverComponents
