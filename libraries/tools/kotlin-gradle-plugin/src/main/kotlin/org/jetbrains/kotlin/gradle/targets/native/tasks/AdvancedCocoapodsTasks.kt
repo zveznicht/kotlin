@@ -37,9 +37,6 @@ private val Family.platformLiteral: String
         else -> throw IllegalArgumentException("Bad family ${this.name}")
     }
 
-val CocoapodsDependency.schemeName: String
-    get() = name.split("/")[0]
-
 /**
  * The task takes the path to the Podfile and calls `pod install`
  * to obtain sources or artifacts for the declared dependencies.
