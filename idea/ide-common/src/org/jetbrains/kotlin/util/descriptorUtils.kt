@@ -19,11 +19,6 @@ import org.jetbrains.kotlin.types.checker.KotlinTypeChecker
 import org.jetbrains.kotlin.types.checker.KotlinTypeCheckerImpl
 import org.jetbrains.kotlin.types.typeUtil.equalTypesOrNulls
 
-
-class Foo<T> {
-    fun foo(): T { TODO() }
-}
-
 fun descriptorsEqualWithSubstitution(
     descriptor1: DeclarationDescriptor?,
     descriptor2: DeclarationDescriptor?,
