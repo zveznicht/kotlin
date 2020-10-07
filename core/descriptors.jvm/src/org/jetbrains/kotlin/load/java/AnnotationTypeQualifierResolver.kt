@@ -19,8 +19,6 @@ package org.jetbrains.kotlin.load.java
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationDescriptor
-import org.jetbrains.kotlin.load.java.typeEnhancement.NullabilityQualifier
-import org.jetbrains.kotlin.load.java.typeEnhancement.NullabilityQualifierWithMigrationStatus
 import org.jetbrains.kotlin.resolve.constants.ArrayValue
 import org.jetbrains.kotlin.resolve.constants.ConstantValue
 import org.jetbrains.kotlin.resolve.constants.EnumValue
@@ -31,44 +29,6 @@ import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.utils.Jsr305State
 import org.jetbrains.kotlin.utils.ReportLevel
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
-
-val TYPE_QUALIFIER_NICKNAME_FQNAME = FqName("javax.annotation.meta.TypeQualifierNickname")
-val TYPE_QUALIFIER_FQNAME = FqName("javax.annotation.meta.TypeQualifier")
-val TYPE_QUALIFIER_DEFAULT_FQNAME = FqName("javax.annotation.meta.TypeQualifierDefault")
-
-val MIGRATION_ANNOTATION_FQNAME = FqName("kotlin.annotations.jvm.UnderMigration")
-
-val DEFAULT_JSPECIFY_APPLICABILITY = listOf(
-    AnnotationTypeQualifierResolver.QualifierApplicabilityType.FIELD,
-    AnnotationTypeQualifierResolver.QualifierApplicabilityType.METHOD_RETURN_TYPE,
-    AnnotationTypeQualifierResolver.QualifierApplicabilityType.VALUE_PARAMETER
-)
-
-val BUILT_IN_TYPE_QUALIFIER_DEFAULT_ANNOTATIONS = mapOf(
-    FqName("javax.annotation.ParametersAreNullableByDefault") to
-            NullabilityQualifierWithApplicability(
-                NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NULLABLE),
-                listOf(AnnotationTypeQualifierResolver.QualifierApplicabilityType.VALUE_PARAMETER)
-            ),
-    FqName("javax.annotation.ParametersAreNonnullByDefault") to
-            NullabilityQualifierWithApplicability(
-                NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NOT_NULL),
-                listOf(AnnotationTypeQualifierResolver.QualifierApplicabilityType.VALUE_PARAMETER)
-            ),
-
-    JSPECIFY_DEFAULT_NULLABLE to NullabilityQualifierWithApplicability(
-        NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NULLABLE),
-        DEFAULT_JSPECIFY_APPLICABILITY
-    ),
-    JSPECIFY_DEFAULT_NOT_NULL to NullabilityQualifierWithApplicability(
-        NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NOT_NULL),
-        DEFAULT_JSPECIFY_APPLICABILITY
-    ),
-    JSPECIFY_DEFAULT_NULLNESS_UNKNOWN to NullabilityQualifierWithApplicability(
-        NullabilityQualifierWithMigrationStatus(NullabilityQualifier.FORCE_FLEXIBILITY),
-        DEFAULT_JSPECIFY_APPLICABILITY
-    )
-)
 
 class AnnotationTypeQualifierResolver(storageManager: StorageManager, private val jsr305State: Jsr305State) {
     class TypeQualifierWithApplicability(
