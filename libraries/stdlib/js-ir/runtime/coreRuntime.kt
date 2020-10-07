@@ -133,7 +133,7 @@ internal fun errorCode(description: String): Nothing {
 }
 
 @Suppress("SENSELESS_COMPARISON")
-internal fun isUndefined(value: dynamic): Boolean = value == null && value !== null
+internal fun isUndefined(value: dynamic): Boolean = value === undefined
 
 internal fun <T, R> boxIntrinsic(@Suppress("UNUSED_PARAMETER") x: T): R = error("Should be lowered")
 internal fun <T, R> unboxIntrinsic(@Suppress("UNUSED_PARAMETER") x: T): R = error("Should be lowered")
