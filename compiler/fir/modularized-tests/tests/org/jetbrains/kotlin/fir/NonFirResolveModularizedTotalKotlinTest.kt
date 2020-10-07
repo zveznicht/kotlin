@@ -69,11 +69,13 @@ class NonFirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         val vmAfter = vmStateSnapshot()
         perfBenchListener?.after("Analyze")
 
-        files += environment.getSourceFiles().size
-        lines += environment.getSourceFiles().sumBy { StringUtil.countNewLines(it.text) }
+        val psiFiles = environment.getSourceFiles()
+        files += psiFiles.size
+        lines += psiFiles.sumBy { StringUtil.countNewLines(it.text) }
         totalTime += time
         measure.time += time
         measure.vmCounters += vmAfter - vmBefore
+        measure.files += psiFiles.size
 
         println("Time is ${time * 1e-6} ms")
     }
@@ -158,7 +160,7 @@ class NonFirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
             reportPerfStat(
                 it,
                 FirResolveBench.TotalStatistics(
-                    0, 0, 0, 0, 0, 0, files, lines, emptyMap(),
+                    0, 0, 0, 0, 0, 0, fileCount = files, totalLines = lines, emptyMap(),
                     timePerTransformer = mapOf("Analyze" to measure)
                 ),
                 pass
@@ -169,6 +171,9 @@ class NonFirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
     override fun beforePass(pass: Int) {
         measure = FirResolveBench.Measure()
         if (perfHelper != null) perfBenchListener = PerfBenchListener(perfHelper)
+        files = 0
+        lines = 0
+        totalTime = 0
     }
 
     fun testTotalKotlin() {
