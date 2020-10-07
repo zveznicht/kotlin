@@ -236,9 +236,6 @@ class JsIntrinsicTransformers(backendContext: JsIrBackendContext) {
                 jsAssignment(JsNameRef(Namer.SHARED_BOX_V, box), value)
             }
             add(intrinsics.jsUndefined) { call: IrCall, context: JsGenerationContext ->
-                assert(call.valueArgumentsCount == 0)
-                assert(call.typeArgumentsCount == 0)
-
                 JsPrefixOperation(JsUnaryOperator.VOID, JsIntLiteral(1))
             }
         }
