@@ -1,21 +1,32 @@
 import org.jspecify.annotations.*;
 
+@DefaultNonNull
 public class Simple {
-    public static class Base {}
-    public static class Derived extends Base {
-        void foo() {}
-    }
-
-    @Nullable public Simple.Derived field = null;
+    @Nullable public Derived field = null;
 
     @Nullable
-    public Simple.Derived foo(Derived x, @NullnessUnspecified Base y) {
+    public Derived foo(Derived x, @NullnessUnspecified Base y) {
         return null;
     }
 
-    static public void main(Simple a) {
-        a.foo(new Derived(), null).foo();
-        a.foo(null, new Derived()).foo();
+    public Derived bar() {
+        return null;
+    }
+}
+
+class Base {}
+class Derived extends Base {
+    void foo() {}
+}
+
+@DefaultNonNull
+class Use {
+    static public void main(Simple a, Derived x) {
+        a.foo(x, null).foo();
+        // jspecify_nullness_mismatch
+        a.foo(null, x).foo();
+
+        a.bar().foo();
 
         a.field.foo();
     }

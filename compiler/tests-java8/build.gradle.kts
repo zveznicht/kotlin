@@ -9,6 +9,7 @@ dependencies {
     testCompile(project(":kotlin-scripting-compiler"))
     testCompile(projectTests(":compiler:tests-common"))
     testCompileOnly(intellijCoreDep()) { includeJars("intellij-core") }
+    testCompileOnly(projectTests(":nj2k"))
     testCompile(projectTests(":generators:test-generator"))
     testRuntime(project(":kotlin-reflect"))
     testRuntimeOnly(toolsJar())

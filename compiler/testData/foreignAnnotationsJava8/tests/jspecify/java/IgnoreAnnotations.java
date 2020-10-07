@@ -1,11 +1,7 @@
 import org.jspecify.annotations.*;
 
+@DefaultNonNull
 public class IgnoreAnnotations {
-    public static class Base {
-        void foo() {}
-    }
-    public static class Derived extends Base { }
-
     @Nullable public Derived field = null;
 
     @Nullable
@@ -13,10 +9,31 @@ public class IgnoreAnnotations {
         return null;
     }
 
-    static void main(IgnoreAnnotations a) {
-        a.foo(new Derived(), null).foo();
-        a.foo(null, new Derived()).foo();
+    public Derived everythingNotNullable(Derived x) { return null; }
+
+    public @Nullable Derived everythingNullable(@Nullable Derived x) { return null; }
+
+    public @NullnessUnspecified Derived everythingUnknown(@NullnessUnspecified Derived x) { return null; }
+}
+
+class Base {
+    void foo() {}
+}
+
+class Derived extends Base { }
+
+class Use {
+    static void main(IgnoreAnnotations a, Derived x) {
+        a.foo(x, null).foo();
+        a.foo(null, x).foo();
 
         a.field.foo();
+
+        a.everythingNotNullable(null).foo();
+        a.everythingNotNullable(x).foo();
+
+        a.everythingNullable(null).foo();
+
+        a.everythingUnknown(null).foo();
     }
 }

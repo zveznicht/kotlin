@@ -14,6 +14,6 @@ import java.lang.annotation.ElementType;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.PACKAGE})
-public @interface DefaultNotNull {
+public @interface DefaultNonNull {
 
 }

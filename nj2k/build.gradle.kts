@@ -67,3 +67,5 @@ fun configureFreeCompilerArg(isEnabled: Boolean, compilerArgument: String) {
         }
     }
 }
+
+val generateKotlinUseSitesFromJspecifyTests by generator("org.jetbrains.kotlin.j2k.GenerateKotlinUseSitesFromJspecifyTestsKt")

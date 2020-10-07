@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.name.FqName
 val JSPECIFY_NULLABLE = FqName("org.jspecify.annotations.Nullable")
 val JSPECIFY_NULLNESS_UNSPECIFIED = FqName("org.jspecify.annotations.NullnessUnspecified")
 
-val JSPECIFY_DEFAULT_NOT_NULL = FqName("org.jspecify.annotations.DefaultNotNull")
+val JSPECIFY_DEFAULT_NON_NULL = FqName("org.jspecify.annotations.DefaultNonNull")
 
 val NULLABLE_ANNOTATIONS = listOf(
     JvmAnnotationNames.JETBRAINS_NULLABLE_ANNOTATION,
@@ -71,7 +71,7 @@ val NULLABILITY_ANNOTATIONS: Set<FqName> = mutableSetOf<FqName>() +
         ANDROIDX_RECENTLY_NON_NULL_ANNOTATION +
         JSPECIFY_NULLABLE +
         JSPECIFY_NULLNESS_UNSPECIFIED +
-        JSPECIFY_DEFAULT_NOT_NULL
+        JSPECIFY_DEFAULT_NON_NULL
 
 val READ_ONLY_ANNOTATIONS = listOf(
     JvmAnnotationNames.JETBRAINS_READONLY_ANNOTATION,

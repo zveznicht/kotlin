@@ -1,28 +1,34 @@
-public @interface Ann {
-    Inner[] value();
-    InnerParam[] test1() default @InnerParam(C.class);
+import org.jspecify.annotations.*;
+
+@DefaultNonNull
+public class WildcardsWithDefault {
+    public void noBoundsNotNull(A<?, ?, ?> a) {}
+    public void noBoundsNullable(A<@Nullable ?, @Nullable ?, @Nullable ?> a) {}
 }
 
-public @interface Inner {
+@DefaultNonNull
+class A <T extends Object, E extends @Nullable Object, F extends @NullnessUnspecified Object> {}
 
-}
+@DefaultNonNull
+class Use {
+    public static void main(
+            A<Object, Object, Object> aNotNullNotNullNotNull,
+            A<Object, Object, @Nullable Object> aNotNullNotNullNull,
+            A<Object, @Nullable Object, Object> aNotNullNullNotNull,
+            A<Object, @Nullable Object, @Nullable Object> aNotNullNullNull,
+            WildcardsWithDefault b
+    ) {
+        b.noBoundsNotNull(aNotNullNotNullNotNull);
+        // jspecify_nullness_mismatch
+        b.noBoundsNotNull(aNotNullNotNullNull);
+        // jspecify_nullness_mismatch
+        b.noBoundsNotNull(aNotNullNullNotNull);
+        // jspecify_nullness_mismatch
+        b.noBoundsNotNull(aNotNullNullNull);
 
-public @interface InnerParam {
-    Class<?> value();
-}
-
-@Ann(value = {@Inner, @Inner}, test1 = { @InnerParam(C.class) })
-public class C {
-}
-
-@Ann({@Inner, @Inner})
-public class D {
-}
-
-@Ann(value = @Inner)
-public class E {
-}
-
-@Ann(value = {@Inner}, test1 = { @InnerParam(value = C.class) })
-public class F {
+        b.noBoundsNullable(aNotNullNotNullNotNull);
+        b.noBoundsNullable(aNotNullNotNullNull);
+        b.noBoundsNullable(aNotNullNullNotNull);
+        b.noBoundsNullable(aNotNullNullNull);
+    }
 }

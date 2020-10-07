@@ -63,6 +63,12 @@ public class KotlinWithJdkAndRuntimeLightProjectDescriptor extends KotlinJdkAndL
     );
 
     @NotNull
+    public static final KotlinWithJdkAndRuntimeLightProjectDescriptor INSTANCE_WITH_JSPECIFY = new KotlinWithJdkAndRuntimeLightProjectDescriptor(
+            Arrays.asList(ForTestCompileRuntime.runtimeJarForTests(), ForTestCompileRuntime.jspecifyAnnotationsForTests(),
+                          PathUtil.getKotlinPathsForDistDirectory().getKotlinTestPath())
+    );
+
+    @NotNull
     public static final KotlinWithJdkAndRuntimeLightProjectDescriptor INSTANCE_WITH_SCRIPT_RUNTIME = new KotlinWithJdkAndRuntimeLightProjectDescriptor(
             Arrays.asList(ForTestCompileRuntime.runtimeJarForTests(),
                           PathUtil.getKotlinPathsForDistDirectory().getScriptRuntimePath())

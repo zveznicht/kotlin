@@ -1,0 +1,19 @@
+package
+
+public fun main(/*0*/ aNotNullNotNullNotNull: WildcardsWithDefault.A<kotlin.Any, kotlin.Any, kotlin.Any>, /*1*/ aNotNullNotNullNull: WildcardsWithDefault.A<kotlin.Any, kotlin.Any, kotlin.Any?>, /*2*/ aNotNullNullNotNull: WildcardsWithDefault.A<kotlin.Any, kotlin.Any?, kotlin.Any>, /*3*/ aNotNullNullNull: WildcardsWithDefault.A<kotlin.Any, kotlin.Any?, kotlin.Any?>, /*4*/ b: WildcardsWithDefault): kotlin.Unit
+
+@org.jspecify.annotations.DefaultNonNull public open class WildcardsWithDefault {
+    public constructor WildcardsWithDefault()
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open fun noBoundsNotNull(/*0*/ a: WildcardsWithDefault.A<*, *, *>!): kotlin.Unit
+    public open fun noBoundsNullable(/*0*/ a: WildcardsWithDefault.A<*, *, *>!): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+
+    public open inner class A</*0*/ T : kotlin.Any!, /*1*/ E : @org.jetbrains.annotations.Nullable kotlin.Any!, /*2*/ F : @org.jspecify.annotations.NullnessUnspecified kotlin.Any!> {
+        public constructor A</*0*/ T : kotlin.Any!, /*1*/ E : @org.jetbrains.annotations.Nullable kotlin.Any!, /*2*/ F : @org.jspecify.annotations.NullnessUnspecified kotlin.Any!>()
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+    }
+}

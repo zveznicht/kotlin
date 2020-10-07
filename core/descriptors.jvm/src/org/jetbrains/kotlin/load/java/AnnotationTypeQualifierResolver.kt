@@ -40,16 +40,10 @@ val TYPE_QUALIFIER_DEFAULT_FQNAME = FqName("javax.annotation.meta.TypeQualifierD
 
 val MIGRATION_ANNOTATION_FQNAME = FqName("kotlin.annotations.jvm.UnderMigration")
 
-val DEFAULT_JSPECIFY_APPLICABILITY = listOf(
-    AnnotationTypeQualifierResolver.QualifierApplicabilityType.FIELD,
-    AnnotationTypeQualifierResolver.QualifierApplicabilityType.METHOD_RETURN_TYPE,
-    AnnotationTypeQualifierResolver.QualifierApplicabilityType.VALUE_PARAMETER,
-    AnnotationTypeQualifierResolver.QualifierApplicabilityType.TYPE_PARAMETER_BOUNDS,
-    AnnotationTypeQualifierResolver.QualifierApplicabilityType.TYPE_USE
-)
+val DEFAULT_JSPECIFY_APPLICABILITY = listOf(AnnotationTypeQualifierResolver.QualifierApplicabilityType.TYPE_USE)
 
 val CODE_ANALYSIS_DEFAULT_ANNOTATIONS = mapOf(
-    JSPECIFY_DEFAULT_NOT_NULL to JavaDefaultQualifiers(
+    JSPECIFY_DEFAULT_NON_NULL to JavaDefaultQualifiers(
         NullabilityQualifierWithMigrationStatus(NullabilityQualifier.NOT_NULL),
         DEFAULT_JSPECIFY_APPLICABILITY,
         affectsTypeParameterBasedTypes = false

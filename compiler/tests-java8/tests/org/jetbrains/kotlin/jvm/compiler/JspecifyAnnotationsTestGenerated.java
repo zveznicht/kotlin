@@ -63,8 +63,8 @@ public class JspecifyAnnotationsTestGenerated extends AbstractJspecifyAnnotation
         runTest("compiler/testData/foreignAnnotationsJava8/tests/jspecify/kotlin/typeParameterBounds.kt");
     }
 
-    @TestMetadata("wildcardsWithDefault.kt")
+    @TestMetadata("WildcardsWithDefault.kt")
     public void testWildcardsWithDefault() throws Exception {
-        runTest("compiler/testData/foreignAnnotationsJava8/tests/jspecify/kotlin/wildcardsWithDefault.kt");
+        runTest("compiler/testData/foreignAnnotationsJava8/tests/jspecify/kotlin/WildcardsWithDefault.kt");
     }
 }

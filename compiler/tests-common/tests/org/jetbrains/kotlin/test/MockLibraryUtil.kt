@@ -87,7 +87,7 @@ object MockLibraryUtil {
 
         val srcFile = File(sourcesPath)
         val kotlinFiles = FileUtil.findFilesByMask(Pattern.compile(".*\\.kt"), srcFile)
-        if (srcFile.isFile || kotlinFiles.isNotEmpty()) {
+        if (kotlinFiles.isNotEmpty()) {
             Assert.assertTrue("Only java files are expected", allowKotlinSources)
             compileKotlin(sourcesPath, classesDir, extraOptions, *extraClasspath.toTypedArray())
         }

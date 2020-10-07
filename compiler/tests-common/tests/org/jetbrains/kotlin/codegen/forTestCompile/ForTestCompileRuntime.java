@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.codegen.forTestCompile;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.kotlin.test.MockLibraryUtil;
 import org.jetbrains.kotlin.utils.ExceptionUtilsKt;
 
 import java.io.File;
@@ -88,6 +89,12 @@ public class ForTestCompileRuntime {
     @NotNull
     public static File jetbrainsAnnotationsForTests() {
         return assertExists(new File("dist/kotlinc/lib/annotations-13.0.jar"));
+    }
+
+    @NotNull
+    public static File jspecifyAnnotationsForTests() {
+        File ff = MockLibraryUtil.compileJavaFilesLibraryToJar("/Users/victor.petukhov/IdeaProjects/kotlin-2/third-party/jdk8-annotations/org/jspecify/annotations/DefaultNonNull.java", "jspecify-annotations");
+        return assertExists(ff);
     }
 
     @NotNull
