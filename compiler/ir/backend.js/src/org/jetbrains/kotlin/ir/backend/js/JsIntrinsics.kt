@@ -407,7 +407,7 @@ class JsIntrinsics(private val irBuiltIns: IrBuiltIns, val context: JsIrBackendC
         return irFactory.addFunction(externalPackageFragment) {
             name = Name.identifier("\$undefined")
         }.apply {
-            returnType = context.dynamicType
+            returnType = context.irBuiltIns.nothingNType
         }
     }
 
