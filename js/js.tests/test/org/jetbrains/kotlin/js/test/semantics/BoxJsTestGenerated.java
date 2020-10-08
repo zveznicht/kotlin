@@ -2898,6 +2898,11 @@ public class BoxJsTestGenerated extends AbstractBoxJsTest {
                 runTest("js/js.translator/testData/box/expression/try/exceptionToString.kt");
             }
 
+            @TestMetadata("exceptionToString_legacy.kt")
+            public void testExceptionToString_legacy() throws Exception {
+                runTest("js/js.translator/testData/box/expression/try/exceptionToString_legacy.kt");
+            }
+
             @TestMetadata("kt22053.kt")
             public void testKt22053() throws Exception {
                 runTest("js/js.translator/testData/box/expression/try/kt22053.kt");
@@ -7699,6 +7704,11 @@ public class BoxJsTestGenerated extends AbstractBoxJsTest {
         @TestMetadata("stringPlus.kt")
         public void testStringPlus() throws Exception {
             runTest("js/js.translator/testData/box/standardClasses/stringPlus.kt");
+        }
+
+        @TestMetadata("throwableConsistancy.kt")
+        public void testThrowableConsistancy() throws Exception {
+            runTest("js/js.translator/testData/box/standardClasses/throwableConsistancy.kt");
         }
 
         @TestMetadata("throwableCtor.kt")
