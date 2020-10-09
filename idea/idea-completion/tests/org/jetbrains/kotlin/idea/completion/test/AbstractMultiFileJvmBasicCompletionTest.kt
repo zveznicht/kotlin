@@ -19,7 +19,7 @@ abstract class AbstractMultiFileJvmBasicCompletionTest : KotlinCompletionTestCas
                 setType(completionType)
                 complete(invocationCount)
                 myItems
-            }, CompletionType.BASIC, 0)
+            }, CompletionType.BASIC, 0, additionalValidDirectives = listOf("// FIR_COMPARISON"))
         })
     }
 
