@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirArgumentList
 import org.jetbrains.kotlin.fir.expressions.FirExpression
@@ -21,6 +22,10 @@ internal class FirArgumentListImpl(
 ) : FirArgumentList() {
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         arguments.forEach { it.accept(visitor, data) }
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.addAll(arguments)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirArgumentListImpl {

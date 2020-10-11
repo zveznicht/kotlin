@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirAssignmentOperatorStatement
@@ -28,6 +29,12 @@ internal class FirAssignmentOperatorStatementImpl(
         annotations.forEach { it.accept(visitor, data) }
         leftArgument.accept(visitor, data)
         rightArgument.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.addAll(annotations)
+        it.add(leftArgument)
+        it.add(rightArgument)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirAssignmentOperatorStatementImpl {

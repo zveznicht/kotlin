@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirFakeSourceElementKind
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
@@ -31,6 +32,12 @@ internal class FirStringConcatenationCallImpl(
         annotations.forEach { it.accept(visitor, data) }
         argumentList.accept(visitor, data)
         typeRef.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.addAll(annotations)
+        it.add(argumentList)
+        it.add(typeRef)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirStringConcatenationCallImpl {

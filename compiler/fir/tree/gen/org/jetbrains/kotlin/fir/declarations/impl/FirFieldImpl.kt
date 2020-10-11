@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.declarations.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirDeclarationAttributes
@@ -61,6 +62,13 @@ internal class FirFieldImpl(
         annotations.forEach { it.accept(visitor, data) }
         typeParameters.forEach { it.accept(visitor, data) }
         status.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.add(returnTypeRef)
+        it.addAll(annotations)
+        it.addAll(typeParameters)
+        it.add(status)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirFieldImpl {

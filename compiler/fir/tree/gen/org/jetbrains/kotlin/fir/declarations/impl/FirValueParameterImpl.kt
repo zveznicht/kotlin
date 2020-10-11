@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.declarations.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirImplementationDetail
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
@@ -62,6 +63,13 @@ open class FirValueParameterImpl @FirImplementationDetail constructor(
         annotations.forEach { it.accept(visitor, data) }
         controlFlowGraphReference?.accept(visitor, data)
         defaultValue?.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.add(returnTypeRef)
+        it.addAll(annotations)
+        if (controlFlowGraphReference != null) it.add(controlFlowGraphReference!!)
+        if (defaultValue != null) it.add(defaultValue!!)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirValueParameterImpl {

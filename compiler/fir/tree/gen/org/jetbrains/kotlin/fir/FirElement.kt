@@ -29,4 +29,6 @@ interface FirElement {
         accept(visitor, data) as CompositeTransformResult<E>
 
     fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement
+
+    val children: Iterable<FirElement> get() = emptyList()
 }

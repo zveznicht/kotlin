@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.declarations.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirAnonymousInitializer
@@ -39,6 +40,11 @@ internal class FirAnonymousInitializerImpl(
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         controlFlowGraphReference?.accept(visitor, data)
         body?.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        if (controlFlowGraphReference != null) it.add(controlFlowGraphReference!!)
+        if (body != null) it.add(body!!)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirAnonymousInitializerImpl {

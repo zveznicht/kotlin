@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.declarations.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirImport
 import org.jetbrains.kotlin.fir.declarations.FirResolvedImport
@@ -31,6 +32,9 @@ internal class FirResolvedImportImpl(
     override val importedName: Name? get() = importedFqName?.shortName()
 
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirResolvedImportImpl {

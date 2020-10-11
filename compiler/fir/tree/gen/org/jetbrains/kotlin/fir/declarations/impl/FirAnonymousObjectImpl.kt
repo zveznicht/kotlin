@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.declarations.impl
 
 import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirAnonymousObject
@@ -54,6 +55,15 @@ internal class FirAnonymousObjectImpl(
         annotations.forEach { it.accept(visitor, data) }
         controlFlowGraphReference?.accept(visitor, data)
         typeRef.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.addAll(typeParameters)
+        it.addAll(superTypeRefs)
+        it.addAll(declarations)
+        it.addAll(annotations)
+        if (controlFlowGraphReference != null) it.add(controlFlowGraphReference!!)
+        it.add(typeRef)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirAnonymousObjectImpl {

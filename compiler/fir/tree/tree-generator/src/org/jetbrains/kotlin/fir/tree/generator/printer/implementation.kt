@@ -116,69 +116,36 @@ fun SmartPrinter.printImplementation(implementation: Implementation) {
                     println()
                 }
 
-            fun Field.acceptString(): String = "${name}${call()}accept(visitor, data)"
+
             if (!isInterface && !isAbstract) {
                 print("override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {")
 
                 if (element.allFirFields.isNotEmpty()) {
                     println()
                     withIndent {
-                        for (field in allFields.filter { it.isFirType }) {
-                            if (field.withGetter || !field.needAcceptAndTransform) continue
-                            when (field.name) {
-                                "explicitReceiver" -> {
-                                    val explicitReceiver = implementation["explicitReceiver"]!!
-                                    val dispatchReceiver = implementation["dispatchReceiver"]!!
-                                    val extensionReceiver = implementation["extensionReceiver"]!!
-                                    println(
-                                        """
-                                    |${explicitReceiver.acceptString()}
-                                    |        if (dispatchReceiver !== explicitReceiver) {
-                                    |            ${dispatchReceiver.acceptString()}
-                                    |        }
-                                    |        if (extensionReceiver !== explicitReceiver && extensionReceiver !== dispatchReceiver) {
-                                    |            ${extensionReceiver.acceptString()}
-                                    |        }
-                                        """.trimMargin(),
-                                    )
-                                }
-
-                                "dispatchReceiver", "extensionReceiver", "subjectVariable", "companionObject" -> {
-                                }
-
-                                else -> {
-                                    if (type == "FirWhenExpressionImpl" && field.name == "subject") {
-                                        println(
-                                            """
-                                        |val subjectVariable_ = subjectVariable
-                                        |        if (subjectVariable_ != null) {
-                                        |            subjectVariable_.accept(visitor, data)
-                                        |        } else {
-                                        |            subject?.accept(visitor, data)
-                                        |        }
-                                            """.trimMargin(),
-                                        )
-                                    } else {
-                                        when (field.origin) {
-                                            is FirField -> {
-                                                println(field.acceptString())
-                                            }
-
-                                            is FieldList -> {
-                                                println("${field.name}.forEach { it.accept(visitor, data) }")
-                                            }
-
-                                            else -> throw IllegalStateException()
-                                        }
-                                    }
-                                }
-
-                            }
-                        }
+                        forAllChildren(
+                            implementation,
+                            { name, nullable -> "$name${if (nullable) "?" else ""}.accept(visitor, data)" },
+                            { name -> "${name}.forEach { it.accept(visitor, data) }" }
+                        )
                     }
                 }
                 println("}")
                 println()
+
+
+                if (element.allFirFields.isNotEmpty()) {
+                    println("override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {")
+                    withIndent {
+                        forAllChildren(
+                            implementation,
+                            { name, nullable -> if (nullable) "if (${name} != null) it.add(${name}!!)" else "it.add(${name})" },
+                            { name -> "it.addAll(${name})" }
+                        )
+                    }
+                    println("}")
+                    println()
+                }
             }
 
             abstract()
@@ -358,5 +325,66 @@ fun SmartPrinter.printImplementation(implementation: Implementation) {
             }
         }
         println("}")
+    }
+}
+
+private inline fun SmartPrinter.forAllChildren(
+    implementation: Implementation,
+    generateForSingle: (String, Boolean) -> String,
+    generateForList: (String) -> String)
+{
+    with(implementation) {
+        for (field in allFields.filter { it.isFirType }) {
+            if (field.withGetter || !field.needAcceptAndTransform) continue
+            when (field.name) {
+                "explicitReceiver" -> {
+                    val explicitReceiver = get("explicitReceiver")!!
+                    val dispatchReceiver = get("dispatchReceiver")!!
+                    val extensionReceiver = get("extensionReceiver")!!
+                    println(
+                        """
+                                                |${generateForSingle(explicitReceiver.name, explicitReceiver.nullable)}
+                                                |        if (dispatchReceiver !== explicitReceiver) {
+                                                |            ${generateForSingle(dispatchReceiver.name, dispatchReceiver.nullable)}
+                                                |        }
+                                                |        if (extensionReceiver !== explicitReceiver && extensionReceiver !== dispatchReceiver) {
+                                                |            ${generateForSingle(extensionReceiver.name, extensionReceiver.nullable)}
+                                                |        }
+                                                    """.trimMargin(),
+                    )
+                }
+
+                "dispatchReceiver", "extensionReceiver", "subjectVariable", "companionObject" -> {
+                }
+
+                else -> {
+                    if (type == "FirWhenExpressionImpl" && field.name == "subject") {
+                        println(
+                            """
+                                                    |val subjectVariable_ = subjectVariable
+                                                    |        if (subjectVariable_ != null) {
+                                                    |            ${generateForSingle("subjectVariable_", false)}
+                                                    |        } else {
+                                                    |            ${generateForSingle("subject", true)}
+                                                    |        }
+                                                        """.trimMargin(),
+                        )
+                    } else {
+                        when (field.origin) {
+                            is FirField -> {
+                                println(generateForSingle(field.name, field.nullable))
+                            }
+
+                            is FieldList -> {
+                                println(generateForList(field.name))
+                            }
+
+                            else -> throw IllegalStateException()
+                        }
+                    }
+                }
+
+            }
+        }
     }
 }

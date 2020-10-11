@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.declarations.impl
 
 import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
@@ -59,6 +60,15 @@ internal class FirRegularClassImpl(
         controlFlowGraphReference?.accept(visitor, data)
         declarations.forEach { it.accept(visitor, data) }
         superTypeRefs.forEach { it.accept(visitor, data) }
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.addAll(annotations)
+        it.addAll(typeParameters)
+        it.add(status)
+        if (controlFlowGraphReference != null) it.add(controlFlowGraphReference!!)
+        it.addAll(declarations)
+        it.addAll(superTypeRefs)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirRegularClassImpl {

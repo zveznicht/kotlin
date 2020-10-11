@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.contracts.builder
 
 import kotlin.contracts.*
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.builder.FirBuilderDsl
 import org.jetbrains.kotlin.fir.contracts.FirEffectDeclaration

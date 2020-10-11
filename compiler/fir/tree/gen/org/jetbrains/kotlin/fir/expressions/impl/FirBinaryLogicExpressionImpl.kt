@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirBinaryLogicExpression
@@ -33,6 +34,13 @@ internal class FirBinaryLogicExpressionImpl(
         annotations.forEach { it.accept(visitor, data) }
         leftOperand.accept(visitor, data)
         rightOperand.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.add(typeRef)
+        it.addAll(annotations)
+        it.add(leftOperand)
+        it.add(rightOperand)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirBinaryLogicExpressionImpl {

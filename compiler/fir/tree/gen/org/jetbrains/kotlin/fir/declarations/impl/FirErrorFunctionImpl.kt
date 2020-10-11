@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.declarations.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirDeclarationAttributes
@@ -54,6 +55,14 @@ internal class FirErrorFunctionImpl(
         controlFlowGraphReference?.accept(visitor, data)
         valueParameters.forEach { it.accept(visitor, data) }
         typeParameters.forEach { it.accept(visitor, data) }
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.addAll(annotations)
+        it.add(returnTypeRef)
+        if (controlFlowGraphReference != null) it.add(controlFlowGraphReference!!)
+        it.addAll(valueParameters)
+        it.addAll(typeParameters)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirErrorFunctionImpl {

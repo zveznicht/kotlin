@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.declarations.impl
 
 import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirImplementationDetail
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
@@ -64,6 +65,17 @@ open class FirPropertyAccessorImpl @FirImplementationDetail constructor(
         contractDescription.accept(visitor, data)
         annotations.forEach { it.accept(visitor, data) }
         typeParameters.forEach { it.accept(visitor, data) }
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.add(returnTypeRef)
+        if (controlFlowGraphReference != null) it.add(controlFlowGraphReference!!)
+        it.addAll(valueParameters)
+        if (body != null) it.add(body!!)
+        it.add(status)
+        it.add(contractDescription)
+        it.addAll(annotations)
+        it.addAll(typeParameters)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirPropertyAccessorImpl {

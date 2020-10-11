@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.references.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.references.FirSuperReference
 import org.jetbrains.kotlin.fir.types.FirTypeRef
@@ -22,6 +23,10 @@ internal class FirExplicitSuperReference(
 ) : FirSuperReference() {
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         superTypeRef.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.add(superTypeRef)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirExplicitSuperReference {

@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirBlock
@@ -24,6 +25,11 @@ internal class FirCatchImpl(
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         parameter.accept(visitor, data)
         block.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.add(parameter)
+        it.add(block)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirCatchImpl {

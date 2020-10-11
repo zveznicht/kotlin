@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.contracts.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.contracts.FirLegacyRawContractDescription
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
@@ -21,6 +22,10 @@ internal class FirLegacyRawContractDescriptionImpl(
 ) : FirLegacyRawContractDescription() {
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         contractCall.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.add(contractCall)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirLegacyRawContractDescriptionImpl {

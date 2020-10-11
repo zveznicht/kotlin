@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.declarations.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirConstructor
@@ -62,6 +63,18 @@ internal class FirConstructorImpl(
         annotations.forEach { it.accept(visitor, data) }
         delegatedConstructor?.accept(visitor, data)
         body?.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.add(returnTypeRef)
+        if (receiverTypeRef != null) it.add(receiverTypeRef!!)
+        it.addAll(typeParameters)
+        if (controlFlowGraphReference != null) it.add(controlFlowGraphReference!!)
+        it.addAll(valueParameters)
+        it.add(status)
+        it.addAll(annotations)
+        if (delegatedConstructor != null) it.add(delegatedConstructor!!)
+        if (body != null) it.add(body!!)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirConstructorImpl {

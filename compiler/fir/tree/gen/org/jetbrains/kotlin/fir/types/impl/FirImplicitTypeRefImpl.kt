@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.types.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.types.FirImplicitTypeRef
@@ -21,6 +22,9 @@ internal class FirImplicitTypeRefImpl(
     override val annotations: List<FirAnnotationCall> get() = emptyList()
 
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirImplicitTypeRefImpl {

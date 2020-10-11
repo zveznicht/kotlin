@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.declarations.impl
 
 import org.jetbrains.kotlin.contracts.description.EventOccurrencesRange
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirLabel
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
@@ -61,6 +62,18 @@ internal class FirAnonymousFunctionImpl(
         typeRef.accept(visitor, data)
         label?.accept(visitor, data)
         typeParameters.forEach { it.accept(visitor, data) }
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.addAll(annotations)
+        it.add(returnTypeRef)
+        if (receiverTypeRef != null) it.add(receiverTypeRef!!)
+        if (controlFlowGraphReference != null) it.add(controlFlowGraphReference!!)
+        it.addAll(valueParameters)
+        if (body != null) it.add(body!!)
+        it.add(typeRef)
+        if (label != null) it.add(label!!)
+        it.addAll(typeParameters)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirAnonymousFunctionImpl {

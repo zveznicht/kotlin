@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirVariable
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
@@ -41,6 +42,19 @@ internal class FirWhenExpressionImpl(
             subject?.accept(visitor, data)
         }
         branches.forEach { it.accept(visitor, data) }
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.add(typeRef)
+        it.addAll(annotations)
+        it.add(calleeReference)
+        val subjectVariable_ = subjectVariable
+        if (subjectVariable_ != null) {
+            it.add(subjectVariable_)
+        } else {
+            if (subject != null) it.add(subject!!)
+        }
+        it.addAll(branches)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirWhenExpressionImpl {

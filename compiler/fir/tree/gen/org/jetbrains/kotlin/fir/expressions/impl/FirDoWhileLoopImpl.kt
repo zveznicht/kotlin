@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirLabel
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
@@ -30,6 +31,13 @@ internal class FirDoWhileLoopImpl(
         block.accept(visitor, data)
         condition.accept(visitor, data)
         label?.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.addAll(annotations)
+        it.add(block)
+        it.add(condition)
+        if (label != null) it.add(label!!)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirDoWhileLoopImpl {

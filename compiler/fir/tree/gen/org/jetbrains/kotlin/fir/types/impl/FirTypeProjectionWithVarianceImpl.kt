@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.types.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.types.FirTypeProjectionWithVariance
 import org.jetbrains.kotlin.fir.types.FirTypeRef
@@ -23,6 +24,10 @@ internal class FirTypeProjectionWithVarianceImpl(
 ) : FirTypeProjectionWithVariance() {
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         typeRef.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.add(typeRef)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirTypeProjectionWithVarianceImpl {

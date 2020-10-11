@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.types.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirValueParameter
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
@@ -31,6 +32,13 @@ internal class FirFunctionTypeRefImpl(
         receiverTypeRef?.accept(visitor, data)
         valueParameters.forEach { it.accept(visitor, data) }
         returnTypeRef.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.addAll(annotations)
+        if (receiverTypeRef != null) it.add(receiverTypeRef!!)
+        it.addAll(valueParameters)
+        it.add(returnTypeRef)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirFunctionTypeRefImpl {

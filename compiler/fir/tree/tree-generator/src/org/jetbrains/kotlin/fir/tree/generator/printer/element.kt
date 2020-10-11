@@ -132,6 +132,8 @@ fun SmartPrinter.printElement(element: Element) {
                 }
                 println()
                 println("fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement")
+                println()
+                println("val children: Iterable<FirElement> get() = emptyList()")
             }
         }
         println("}")

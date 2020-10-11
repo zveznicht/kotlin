@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirBlock
@@ -29,6 +30,12 @@ internal class FirBlockImpl(
         annotations.forEach { it.accept(visitor, data) }
         statements.forEach { it.accept(visitor, data) }
         typeRef.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.addAll(annotations)
+        it.addAll(statements)
+        it.add(typeRef)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirBlockImpl {

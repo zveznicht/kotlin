@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.declarations.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirDeclarationAttributes
@@ -66,6 +67,18 @@ internal class FirDefaultSetterValueParameter(
         annotations.forEach { it.accept(visitor, data) }
         controlFlowGraphReference?.accept(visitor, data)
         defaultValue?.accept(visitor, data)
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.add(returnTypeRef)
+        if (receiverTypeRef != null) it.add(receiverTypeRef!!)
+        if (initializer != null) it.add(initializer!!)
+        if (delegate != null) it.add(delegate!!)
+        if (getter != null) it.add(getter!!)
+        if (setter != null) it.add(setter!!)
+        it.addAll(annotations)
+        if (controlFlowGraphReference != null) it.add(controlFlowGraphReference!!)
+        if (defaultValue != null) it.add(defaultValue!!)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirDefaultSetterValueParameter {

@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.contracts.impl
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.contracts.FirEffectDeclaration
 import org.jetbrains.kotlin.fir.contracts.FirResolvedContractDescription
@@ -24,6 +25,11 @@ internal class FirResolvedContractDescriptionImpl(
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         effects.forEach { it.accept(visitor, data) }
         unresolvedEffects.forEach { it.accept(visitor, data) }
+    }
+
+    override val children: Iterable<FirElement> get() = mutableListOf<FirElement>().also {
+        it.addAll(effects)
+        it.addAll(unresolvedEffects)
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirResolvedContractDescriptionImpl {

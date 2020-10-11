@@ -41,6 +41,7 @@ fun Implementation.collectImports(base: List<String> = emptyList(), kind: Import
                 + listOfNotNull(
             pureAbstractElementType.fullQualifiedName?.takeIf { needPureAbstractElement },
             firImplementationDetailType.fullQualifiedName?.takeIf { isPublic || requiresOptIn },
+            "org.jetbrains.kotlin.fir.FirElement".takeIf { element.allFirFields.isNotEmpty() }
         ),
         kind,
     )
