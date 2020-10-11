@@ -13,8 +13,8 @@
 // TESTCASE NUMBER: 1
 fun case_1() {
     val value_1: Int
-    funWithExactlyOnceCallsInPlace({ <!CAPTURED_VAL_INITIALIZATION!>value_1<!> = 10 })
-    <!UNINITIALIZED_VARIABLE!>value_1<!>.inc()
+    funWithExactlyOnceCallsInPlace({ value_1 = 10 })
+    value_1.inc()
 }
 
 // TESTCASE NUMBER: 2
