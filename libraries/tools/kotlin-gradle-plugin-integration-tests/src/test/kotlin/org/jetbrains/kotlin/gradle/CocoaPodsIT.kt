@@ -278,7 +278,10 @@ class CocoaPodsIT : BaseGradleIT() {
     fun warnIfDeprecatedPodspecPathIsUsed() {
         project = getProjectByName(cocoapodsSingleKtPod)
         hooks.addHook {
-            assertContains("Please use directory with podspec file, not podspec file itself")
+            assertContains(
+                listOf("Deprecated DSL found on ${project.projectDir.absolutePath}", "kotlin-library", "build.gradle.kts")
+                    .joinToString(separator = File.separator)
+            )
         }
         project.test(":kotlin-library:podDownload")
     }
