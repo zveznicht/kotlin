@@ -102,7 +102,7 @@ abstract class BaseDiagnosticsTest : KotlinMultiFileTestWithJava<TestModule, Tes
     }
 
     override fun doMultiFileTest(wholeFile: File, files: List<TestFile>) {
-        doMultiFileTest(wholeFile, files)
+        doMultiFileTest(wholeFile, files, null)
     }
 
     protected open fun shouldSkipTest(wholeFile: File, files: List<TestFile>): Boolean = false
