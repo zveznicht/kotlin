@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.idea.perf
 
 import com.intellij.codeInsight.completion.CompletionType
-import org.jetbrains.kotlin.idea.completion.FIR_COMPARISON
+import org.jetbrains.kotlin.FIR_COMPARISON
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
 
 abstract class AbstractHighLevelPerformanceCompletionHandlerTests(

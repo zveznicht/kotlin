@@ -11,6 +11,8 @@ import com.intellij.openapi.util.io.FileUtil
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
 import java.io.File
 
+const val FIR_COMPARISON = "// FIR_COMPARISON"
+
 fun <R> executeOnPooledThreadInReadAction(action: () -> R): R? {
     var exception: Exception? = null
     val result = ApplicationManager.getApplication().executeOnPooledThread<R> {
@@ -34,7 +36,7 @@ inline fun doTestWithFIRFlagsByPath(path: String, body: () -> Unit) =
 inline fun doTestWithFIRFlags(mainFileText: String, body: () -> Unit) {
 
     if (InTextDirectivesUtils.isDirectiveDefined(mainFileText, "FIR_IGNORE")) return
-    val isFirComparison = InTextDirectivesUtils.isDirectiveDefined(mainFileText, "FIR_COMPARISON")
+    val isFirComparison = InTextDirectivesUtils.isDirectiveDefined(mainFileText, FIR_COMPARISON)
 
     try {
         body()
@@ -43,6 +45,6 @@ inline fun doTestWithFIRFlags(mainFileText: String, body: () -> Unit) {
         return
     }
     if (!isFirComparison) {
-        throw AssertionError("Looks like test is passing, please add // FIR_COMPARISON at the beginning of the file")
+        throw AssertionError("Looks like test is passing, please add $FIR_COMPARISON at the beginning of the file")
     }
 }

@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.idea.completion
 
+import org.jetbrains.kotlin.FIR_COMPARISON
 import org.jetbrains.kotlin.idea.completion.test.AbstractJvmBasicCompletionTest
-import org.jetbrains.kotlin.test.InTextDirectivesUtils
 
 abstract class AbstractHighLevelJvmBasicCompletionTest : AbstractJvmBasicCompletionTest() {
     override val captureExceptions: Boolean = false

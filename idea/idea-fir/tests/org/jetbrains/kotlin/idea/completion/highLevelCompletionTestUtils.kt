@@ -8,8 +8,6 @@ package org.jetbrains.kotlin.idea.completion
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
 import java.io.File
 
-const val FIR_COMPARISON = "// FIR_COMPARISON"
-
 /**
  * Set this flag to `true` to insert directive automatically to all files
  * that pass tests but do not already have the directive.

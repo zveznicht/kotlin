@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.idea.completion.test
 
 import com.intellij.codeInsight.completion.CompletionType
+import org.jetbrains.kotlin.FIR_COMPARISON
 import org.jetbrains.kotlin.idea.test.AstAccessControl
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.KotlinTestUtils
@@ -19,7 +20,7 @@ abstract class AbstractMultiFileJvmBasicCompletionTest : KotlinCompletionTestCas
                 setType(completionType)
                 complete(invocationCount)
                 myItems
-            }, CompletionType.BASIC, 0, additionalValidDirectives = listOf("// FIR_COMPARISON"))
+            }, CompletionType.BASIC, 0, additionalValidDirectives = listOf(FIR_COMPARISON))
         })
     }
 

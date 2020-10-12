@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.idea.completion.test
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.openapi.util.io.FileUtil
+import org.jetbrains.kotlin.FIR_COMPARISON
 import org.jetbrains.kotlin.idea.caches.project.LibraryModificationTracker
 import org.jetbrains.kotlin.idea.test.CompilerTestDirectives
 import org.jetbrains.kotlin.idea.test.KotlinLightCodeInsightFixtureTestCase
@@ -43,7 +44,7 @@ abstract class KotlinFixtureCompletionBaseTestCase : KotlinLightCodeInsightFixtu
                         { completionType, count -> complete(completionType, count) },
                         defaultCompletionType(),
                         defaultInvocationCount(),
-                        additionalValidDirectives = CompilerTestDirectives.ALL_COMPILER_TEST_DIRECTIVES + "FIR_COMPARISON"
+                        additionalValidDirectives = CompilerTestDirectives.ALL_COMPILER_TEST_DIRECTIVES + FIR_COMPARISON
                     )
                 }
             }

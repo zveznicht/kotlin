@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.checkers
 
 import com.intellij.rt.execution.junit.FileComparisonFailure
+import org.jetbrains.kotlin.FIR_COMPARISON
 import org.jetbrains.kotlin.idea.test.withCustomCompilerOptions
 import org.jetbrains.kotlin.idea.withPossiblyDisabledDuplicatedFirSourceElementsException
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
@@ -33,7 +34,7 @@ abstract class AbstractFirPsiCheckerTest : AbstractPsiCheckerTest() {
         val file = file
         val fileText = file.text
         return withCustomCompilerOptions(fileText, project, module) {
-            val doComparison = InTextDirectivesUtils.isDirectiveDefined(myFixture.file.text, "FIR_COMPARISON")
+            val doComparison = InTextDirectivesUtils.isDirectiveDefined(myFixture.file.text, FIR_COMPARISON)
             try {
                 withPossiblyDisabledDuplicatedFirSourceElementsException(fileText) {
                     myFixture.checkHighlighting(checkWarnings, checkInfos, checkWeakWarnings)

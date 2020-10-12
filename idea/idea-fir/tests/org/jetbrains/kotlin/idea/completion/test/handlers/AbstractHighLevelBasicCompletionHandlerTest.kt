@@ -5,7 +5,7 @@
 
 package org.jetbrains.kotlin.idea.completion.test.handlers
 
-import org.jetbrains.kotlin.idea.completion.FIR_COMPARISON
+import org.jetbrains.kotlin.FIR_COMPARISON
 import org.jetbrains.kotlin.idea.completion.runTestWithCustomEnableDirective
 
 abstract class AbstractHighLevelBasicCompletionHandlerTest : AbstractBasicCompletionHandlerTest() {

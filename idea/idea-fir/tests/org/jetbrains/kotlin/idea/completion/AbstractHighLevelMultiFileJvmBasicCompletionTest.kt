@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.idea.completion
 
+import org.jetbrains.kotlin.FIR_COMPARISON
 import org.jetbrains.kotlin.idea.completion.test.AbstractMultiFileJvmBasicCompletionTest
 import java.io.File
 
