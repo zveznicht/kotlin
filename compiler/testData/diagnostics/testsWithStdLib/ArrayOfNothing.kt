@@ -1,56 +1,18 @@
-// !DIAGNOSTICS: -UNUSED_PARAMETER -UNUSED_VARIABLE -UNCHECKED_CAST -USELESS_CAST
-// !LANGUAGE: +ProhibitNonReifiedArraysAsReifiedTypeArguments
-// !WITH_NEW_INFERENCE
-class A<T>
+fun <K> id(x: K) = x
 
-fun test1(
-    a: <!UNSUPPORTED!>Array<Nothing><!>,
-    b: <!UNSUPPORTED!>Array<Nothing?><!>,
-    c: <!UNSUPPORTED!>Array<in Nothing><!>,
-    d: <!UNSUPPORTED!>Array<in Nothing?><!>,
-    e: <!UNSUPPORTED!>Array<out Nothing><!>,
-    f: <!UNSUPPORTED!>Array<out Nothing?><!>
-) {}
+class Inv<T>(x: T)
 
-fun test2(
-    a: <!UNSUPPORTED!>Array<Nothing><!>?,
-    b: <!UNSUPPORTED!>Array<Nothing?><!>?,
-    c: <!UNSUPPORTED!>Array<in Nothing><!>?,
-    d: <!UNSUPPORTED!>Array<in Nothing?><!>?,
-    e: <!UNSUPPORTED!>Array<out Nothing><!>?,
-    f: <!UNSUPPORTED!>Array<out Nothing?><!>?
-) {}
-
-fun test3(
-    a: A<<!UNSUPPORTED!>Array<Nothing><!>>,
-    b: A<<!UNSUPPORTED!>Array<Nothing?><!>>,
-    c: A<<!UNSUPPORTED!>Array<in Nothing><!>>,
-    d: A<<!UNSUPPORTED!>Array<in Nothing?><!>>,
-    e: A<<!UNSUPPORTED!>Array<out Nothing><!>>,
-    f: A<<!UNSUPPORTED!>Array<out Nothing?><!>>
-) {}
-
-fun test4(
-    a: Array<A<Nothing>>,
-    b: Array<A<Nothing?>>,
-    c: Array<A<in Nothing>>,
-    d: Array<A<in Nothing?>>,
-    e: Array<A<out Nothing>>,
-    f: Array<A<out Nothing?>>
-) {}
-
-fun test5() {
-    <!UNSUPPORTED!>arrayOf<!><<!REIFIED_TYPE_FORBIDDEN_SUBSTITUTION!>Nothing<!>>()
-    <!UNSUPPORTED!>Array<!><<!REIFIED_TYPE_FORBIDDEN_SUBSTITUTION!>Nothing<!>>(10) { throw Exception() }
+class A {
+    val x: Map<String, Inv<(String, String, String, String) -> Unit>> =
+        mapOf(
+            "" to Inv { a, b, c, d -> },
+            "" to Inv { a, b, c, d -> },
+            "" to Inv { a, b, c, d -> },
+            "" to Inv { a, b, c, d -> },
+            "" to Inv { a, b, c, d -> },
+            "" to Inv { a, b, c, d -> },
+            "" to Inv { a, b, c, d -> },
+            "" to Inv { a, b, c, d -> },
+            "" to Inv { a, b, c, d -> }
+        )
 }
-
-fun <T> foo(): Array<T> = (object {} as Any) as Array<T>
-
-fun test6() = <!UNSUPPORTED!>foo<!><Nothing>()
-
-
-class B<T>(val array: Array<T>)
-
-fun <T> bar() = B<Array<T>>(<!TYPE_PARAMETER_AS_REIFIED_ARRAY!>arrayOf<!>())
-
-fun test7() = <!UNSUPPORTED!>bar<!><Nothing>()

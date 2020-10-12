@@ -119,6 +119,10 @@ class NewConstraintSystemImpl(
         return storage.revisedVariablesForParameters[expectedType to index]
     }
 
+    override fun getBuiltFunctionalExpectedType(expectedType: TypeVariableMarker): KotlinTypeMarker? {
+        return storage.builtFunctionalExpectedTypes[expectedType]
+    }
+
     override fun getRevisedVariableForReturnType(expectedType: TypeVariableMarker): TypeVariableMarker? {
         return storage.revisedReturnTypes[expectedType]
     }
@@ -129,6 +133,10 @@ class NewConstraintSystemImpl(
 
     override fun putRevisedVariableForReturnType(expectedType: TypeVariableMarker, newVariable: TypeVariableMarker) {
         storage.revisedReturnTypes[expectedType] = newVariable
+    }
+
+    override fun putBuiltFunctionalExpectedType(expectedType: KotlinTypeMarker, newVariable: TypeVariableMarker) {
+        storage.builtFunctionalExpectedTypes[newVariable] = expectedType
     }
 
     override fun addSubtypeConstraint(lowerType: KotlinTypeMarker, upperType: KotlinTypeMarker, position: ConstraintPosition) =

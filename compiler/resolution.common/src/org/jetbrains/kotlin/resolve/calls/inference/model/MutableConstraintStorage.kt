@@ -203,5 +203,6 @@ internal class MutableConstraintStorage : ConstraintStorage {
     override val fixedTypeVariables: MutableMap<TypeConstructorMarker, KotlinTypeMarker> = LinkedHashMap()
     override val postponedTypeVariables: MutableList<TypeVariableMarker> = SmartList()
     override val revisedVariablesForParameters: MutableMap<Pair<TypeVariableMarker, Int>, TypeVariableMarker> = LinkedHashMap()
+    override val builtFunctionalExpectedTypes: MutableMap<TypeVariableMarker, KotlinTypeMarker> = LinkedHashMap()
     override val revisedReturnTypes: MutableMap<TypeVariableMarker, TypeVariableMarker> = LinkedHashMap()
 }

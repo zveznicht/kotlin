@@ -4,5 +4,5 @@
 fun f(p: (Int) -> (String) -> Unit) {}
 
 fun g(cond: Boolean) {
-    f(if (cond) { i -> { } } else { i -> { } })
+    f(if (cond) { i -> { } } else { i -> { x: Any -> } })
 }
