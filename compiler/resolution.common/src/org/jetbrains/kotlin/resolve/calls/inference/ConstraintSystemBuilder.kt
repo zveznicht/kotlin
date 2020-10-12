@@ -17,14 +17,11 @@ interface ConstraintSystemOperation {
     fun unmarkPostponedVariable(variable: TypeVariableMarker)
     fun removePostponedVariables()
 
-    fun getBuiltFunctionalExpectedType(expectedType: TypeVariableMarker): KotlinTypeMarker?
-
     fun getRevisedVariableForParameter(expectedType: TypeVariableMarker, index: Int): TypeVariableMarker?
     fun getRevisedVariableForReturnType(expectedType: TypeVariableMarker): TypeVariableMarker?
 
     fun putRevisedVariableForParameter(expectedType: TypeVariableMarker, index: Int, newVariable: TypeVariableMarker)
     fun putRevisedVariableForReturnType(expectedType: TypeVariableMarker, newVariable: TypeVariableMarker)
-    fun putBuiltFunctionalExpectedType(expectedType: KotlinTypeMarker, newVariable: TypeVariableMarker)
 
     fun addSubtypeConstraint(lowerType: KotlinTypeMarker, upperType: KotlinTypeMarker, position: ConstraintPosition)
     fun addEqualityConstraint(a: KotlinTypeMarker, b: KotlinTypeMarker, position: ConstraintPosition)
