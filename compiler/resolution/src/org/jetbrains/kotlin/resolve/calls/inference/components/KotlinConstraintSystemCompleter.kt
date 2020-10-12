@@ -58,6 +58,18 @@ class KotlinConstraintSystemCompleter(
         }
     }
 
+    private fun getA(topLevelType: KotlinType, variables: MutableSet<TypeVariableTypeConstructor>) {
+        for (a in topLevelType.arguments) {
+            val cons = a.type.constructor
+            if (cons is TypeVariableTypeConstructor) {
+                variables.add(cons)
+            }
+            if (a.type.arguments.isNotEmpty()) {
+                getA(a.type, variables)
+            }
+        }
+    }
+
     private fun ConstraintSystemCompletionContext.runCompletion(
         completionMode: ConstraintSystemCompletionMode,
         topLevelAtoms: List<ResolvedAtom>,
@@ -66,6 +78,9 @@ class KotlinConstraintSystemCompleter(
         collectVariablesFromContext: Boolean,
         analyze: (PostponedResolvedAtom) -> Unit
     ) {
+        val topLevelTypeVariables = mutableSetOf<TypeVariableTypeConstructor>()
+        getA(topLevelType, topLevelTypeVariables)
+
         completion@ while (true) {
             // TODO
             val postponedArguments = getOrderedNotAnalyzedPostponedArguments(topLevelAtoms)
@@ -89,7 +104,7 @@ class KotlinConstraintSystemCompleter(
 
             // Stage 2: collect parameter types for postponed arguments
             val wasBuiltNewExpectedTypeForSomeArgument = postponedArgumentInputTypesResolver.collectParameterTypesAndBuildNewExpectedTypes(
-                asConstraintSystemCompletionContext(), postponedArgumentsWithRevisableType, completionMode, dependencyProvider
+                asConstraintSystemCompletionContext(), postponedArgumentsWithRevisableType, completionMode, dependencyProvider, topLevelTypeVariables
             )
 
             if (wasBuiltNewExpectedTypeForSomeArgument)
