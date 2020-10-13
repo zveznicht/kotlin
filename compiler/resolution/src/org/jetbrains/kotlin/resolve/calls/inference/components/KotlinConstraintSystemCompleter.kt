@@ -60,6 +60,7 @@ class KotlinConstraintSystemCompleter(
 
     private fun getA(topLevelType: KotlinType, variables: MutableSet<TypeVariableTypeConstructor>) {
         for (a in topLevelType.arguments) {
+            if (a.isStarProjection) continue
             val cons = a.type.constructor
             if (cons is TypeVariableTypeConstructor) {
                 variables.add(cons)
