@@ -93,32 +93,32 @@ internal class FirDefaultSetterValueParameter(
     }
 
     override fun <D> transformReturnTypeRef(transformer: FirTransformer<D>, data: D): FirDefaultSetterValueParameter {
-        returnTypeRef = returnTypeRef.transformSingle(transformer, data)
+        returnTypeRef = returnTypeRef.transform<FirTypeRef, D>(transformer, data).single
         return this
     }
 
     override fun <D> transformReceiverTypeRef(transformer: FirTransformer<D>, data: D): FirDefaultSetterValueParameter {
-        receiverTypeRef = receiverTypeRef?.transformSingle(transformer, data)
+        receiverTypeRef = receiverTypeRef?.transform<FirTypeRef, D>(transformer, data)?.single
         return this
     }
 
     override fun <D> transformInitializer(transformer: FirTransformer<D>, data: D): FirDefaultSetterValueParameter {
-        initializer = initializer?.transformSingle(transformer, data)
+        initializer = initializer?.transform<FirExpression, D>(transformer, data)?.single
         return this
     }
 
     override fun <D> transformDelegate(transformer: FirTransformer<D>, data: D): FirDefaultSetterValueParameter {
-        delegate = delegate?.transformSingle(transformer, data)
+        delegate = delegate?.transform<FirExpression, D>(transformer, data)?.single
         return this
     }
 
     override fun <D> transformGetter(transformer: FirTransformer<D>, data: D): FirDefaultSetterValueParameter {
-        getter = getter?.transformSingle(transformer, data)
+        getter = getter?.transform<FirPropertyAccessor, D>(transformer, data)?.single
         return this
     }
 
     override fun <D> transformSetter(transformer: FirTransformer<D>, data: D): FirDefaultSetterValueParameter {
-        setter = setter?.transformSingle(transformer, data)
+        setter = setter?.transform<FirPropertyAccessor, D>(transformer, data)?.single
         return this
     }
 
@@ -129,8 +129,8 @@ internal class FirDefaultSetterValueParameter(
 
     override fun <D> transformOtherChildren(transformer: FirTransformer<D>, data: D): FirDefaultSetterValueParameter {
         transformAnnotations(transformer, data)
-        controlFlowGraphReference = controlFlowGraphReference?.transformSingle(transformer, data)
-        defaultValue = defaultValue?.transformSingle(transformer, data)
+        controlFlowGraphReference = controlFlowGraphReference?.transform<FirControlFlowGraphReference, D>(transformer, data)?.single
+        defaultValue = defaultValue?.transform<FirExpression, D>(transformer, data)?.single
         return this
     }
 

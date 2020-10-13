@@ -76,7 +76,7 @@ internal class FirErrorPropertyImpl(
     }
 
     override fun <D> transformReturnTypeRef(transformer: FirTransformer<D>, data: D): FirErrorPropertyImpl {
-        returnTypeRef = returnTypeRef.transformSingle(transformer, data)
+        returnTypeRef = returnTypeRef.transform<FirTypeRef, D>(transformer, data).single
         return this
     }
 

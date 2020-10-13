@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.expressions
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.references.FirNamedReference
 import org.jetbrains.kotlin.fir.references.FirReference
@@ -29,6 +30,10 @@ abstract class FirCallableReferenceAccess : FirQualifiedAccessExpression() {
     abstract val hasQuestionMarkAtLHS: Boolean
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitCallableReferenceAccess(this, data)
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <E: FirElement, D> transform(transformer: FirTransformer<D>, data: D): CompositeTransformResult<E> =
+        transformer.transformCallableReferenceAccess(this, data) as CompositeTransformResult<E>
 
     abstract override fun replaceTypeRef(newTypeRef: FirTypeRef)
 

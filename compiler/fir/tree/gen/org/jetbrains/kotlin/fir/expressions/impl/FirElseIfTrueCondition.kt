@@ -38,7 +38,7 @@ class FirElseIfTrueCondition @FirImplementationDetail constructor(
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElseIfTrueCondition {
-        typeRef = typeRef.transformSingle(transformer, data)
+        typeRef = typeRef.transform<FirTypeRef, D>(transformer, data).single
         transformAnnotations(transformer, data)
         return this
     }

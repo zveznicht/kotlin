@@ -355,7 +355,7 @@ open class FirBodyResolveTransformer(
     // --------------------------------------------------------------------------
 
     fun <D> FirElement.visitNoTransform(transformer: FirTransformer<D>, data: D) {
-        val result = this.transform<FirElement, D>(transformer, data)
+        val result = this.accept(transformer, data) as CompositeTransformResult<FirElement>
         require(result.single === this) { "become ${result.single}: `${result.single.render()}`, was ${this}: `${this.render()}`" }
     }
 }

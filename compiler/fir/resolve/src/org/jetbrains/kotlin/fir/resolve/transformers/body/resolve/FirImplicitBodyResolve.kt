@@ -54,7 +54,7 @@ class FirImplicitTypeBodyResolveTransformerAdapter(session: FirSession, scopeSes
     }
 
     override fun transformFile(file: FirFile, data: Nothing?): CompositeTransformResult<FirFile> {
-        return file.transform(transformer, ResolutionMode.ContextIndependent)
+        return file.accept(transformer, ResolutionMode.ContextIndependent) as CompositeTransformResult<FirFile>
     }
 }
 
@@ -95,7 +95,8 @@ fun <F : FirClass<F>> F.runContractAndBodiesResolutionForLocalClass(
     val members = localClassesNavigationInfo.allMembers
     graphBuilder.prepareForLocalClassMembers(members)
 
-    return this.transform<F, ResolutionMode>(transformer, resolutionMode).single.also {
+    @Suppress("UNCHECKED_CAST")
+    return (this.accept(transformer, resolutionMode) as CompositeTransformResult<F>).single.also {
         graphBuilder.cleanAfterForLocalClassMembers(members)
     }
 }
@@ -241,7 +242,7 @@ private class ReturnTypeCalculatorWithJump(
             outerBodyResolveContext
         )
 
-        designation.first().transform<FirElement, ResolutionMode>(transformer, ResolutionMode.ContextDependent)
+        designation.first().accept(transformer, ResolutionMode.ContextDependent) as CompositeTransformResult<FirElement>
 
         val transformedDeclaration = transformer.lastResult as? FirCallableMemberDeclaration<*>
             ?: error("Unexpected lastResult: ${transformer.lastResult?.render()}")
@@ -272,7 +273,7 @@ private class FirDesignatedBodyResolveTransformerForReturnTypeCalculator(
 
     override fun transformDeclarationContent(declaration: FirDeclaration, data: ResolutionMode): CompositeTransformResult<FirDeclaration> {
         if (designation.hasNext()) {
-            val result = designation.next().transform<FirDeclaration, ResolutionMode>(this, data).single
+            val result = (designation.next().accept(this, data) as CompositeTransformResult<FirDeclaration>).single
             if (!designation.hasNext() && lastResult == null) {
                 lastResult = result
             }

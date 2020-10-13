@@ -82,7 +82,7 @@ open class FirSimpleFunctionImpl @FirImplementationDetail constructor(
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirSimpleFunctionImpl {
         transformReturnTypeRef(transformer, data)
         transformReceiverTypeRef(transformer, data)
-        controlFlowGraphReference = controlFlowGraphReference?.transformSingle(transformer, data)
+        controlFlowGraphReference = controlFlowGraphReference?.transform<FirControlFlowGraphReference, D>(transformer, data)?.single
         transformValueParameters(transformer, data)
         transformBody(transformer, data)
         transformStatus(transformer, data)
@@ -93,12 +93,12 @@ open class FirSimpleFunctionImpl @FirImplementationDetail constructor(
     }
 
     override fun <D> transformReturnTypeRef(transformer: FirTransformer<D>, data: D): FirSimpleFunctionImpl {
-        returnTypeRef = returnTypeRef.transformSingle(transformer, data)
+        returnTypeRef = returnTypeRef.transform<FirTypeRef, D>(transformer, data).single
         return this
     }
 
     override fun <D> transformReceiverTypeRef(transformer: FirTransformer<D>, data: D): FirSimpleFunctionImpl {
-        receiverTypeRef = receiverTypeRef?.transformSingle(transformer, data)
+        receiverTypeRef = receiverTypeRef?.transform<FirTypeRef, D>(transformer, data)?.single
         return this
     }
 
@@ -108,17 +108,17 @@ open class FirSimpleFunctionImpl @FirImplementationDetail constructor(
     }
 
     override fun <D> transformBody(transformer: FirTransformer<D>, data: D): FirSimpleFunctionImpl {
-        body = body?.transformSingle(transformer, data)
+        body = body?.transform<FirBlock, D>(transformer, data)?.single
         return this
     }
 
     override fun <D> transformStatus(transformer: FirTransformer<D>, data: D): FirSimpleFunctionImpl {
-        status = status.transformSingle(transformer, data)
+        status = status.transform<FirDeclarationStatus, D>(transformer, data).single
         return this
     }
 
     override fun <D> transformContractDescription(transformer: FirTransformer<D>, data: D): FirSimpleFunctionImpl {
-        contractDescription = contractDescription.transformSingle(transformer, data)
+        contractDescription = contractDescription.transform<FirContractDescription, D>(transformer, data).single
         return this
     }
 

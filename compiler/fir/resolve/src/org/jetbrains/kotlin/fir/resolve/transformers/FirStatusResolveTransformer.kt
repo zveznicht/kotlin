@@ -28,7 +28,8 @@ class FirStatusResolveProcessor(session: FirSession, scopeSession: ScopeSession)
 fun <F : FirClass<F>> F.runStatusResolveForLocalClass(session: FirSession): F {
     val transformer = FirStatusResolveTransformer(session)
 
-    return this.transform<F, Nothing?>(transformer, null).single
+    @Suppress("UNCHECKED_CAST")
+    return (this.accept(transformer, null) as CompositeTransformResult<F>).single
 }
 
 class FirStatusResolveTransformer(

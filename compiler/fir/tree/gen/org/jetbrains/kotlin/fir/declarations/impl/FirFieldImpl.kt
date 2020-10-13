@@ -80,7 +80,7 @@ internal class FirFieldImpl(
     }
 
     override fun <D> transformReturnTypeRef(transformer: FirTransformer<D>, data: D): FirFieldImpl {
-        returnTypeRef = returnTypeRef.transformSingle(transformer, data)
+        returnTypeRef = returnTypeRef.transform<FirTypeRef, D>(transformer, data).single
         return this
     }
 
@@ -115,7 +115,7 @@ internal class FirFieldImpl(
     }
 
     override fun <D> transformStatus(transformer: FirTransformer<D>, data: D): FirFieldImpl {
-        status = status.transformSingle(transformer, data)
+        status = status.transform<FirDeclarationStatus, D>(transformer, data).single
         return this
     }
 

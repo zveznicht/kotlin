@@ -79,7 +79,7 @@ open class FirValueParameterImpl @FirImplementationDetail constructor(
     }
 
     override fun <D> transformReturnTypeRef(transformer: FirTransformer<D>, data: D): FirValueParameterImpl {
-        returnTypeRef = returnTypeRef.transformSingle(transformer, data)
+        returnTypeRef = returnTypeRef.transform<FirTypeRef, D>(transformer, data).single
         return this
     }
 
@@ -110,8 +110,8 @@ open class FirValueParameterImpl @FirImplementationDetail constructor(
 
     override fun <D> transformOtherChildren(transformer: FirTransformer<D>, data: D): FirValueParameterImpl {
         transformAnnotations(transformer, data)
-        controlFlowGraphReference = controlFlowGraphReference?.transformSingle(transformer, data)
-        defaultValue = defaultValue?.transformSingle(transformer, data)
+        controlFlowGraphReference = controlFlowGraphReference?.transform<FirControlFlowGraphReference, D>(transformer, data)?.single
+        defaultValue = defaultValue?.transform<FirExpression, D>(transformer, data)?.single
         return this
     }
 

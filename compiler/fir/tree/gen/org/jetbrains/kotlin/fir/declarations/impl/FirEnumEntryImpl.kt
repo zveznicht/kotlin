@@ -83,7 +83,7 @@ internal class FirEnumEntryImpl(
     }
 
     override fun <D> transformReturnTypeRef(transformer: FirTransformer<D>, data: D): FirEnumEntryImpl {
-        returnTypeRef = returnTypeRef.transformSingle(transformer, data)
+        returnTypeRef = returnTypeRef.transform<FirTypeRef, D>(transformer, data).single
         return this
     }
 
@@ -92,7 +92,7 @@ internal class FirEnumEntryImpl(
     }
 
     override fun <D> transformInitializer(transformer: FirTransformer<D>, data: D): FirEnumEntryImpl {
-        initializer = initializer?.transformSingle(transformer, data)
+        initializer = initializer?.transform<FirExpression, D>(transformer, data)?.single
         return this
     }
 
@@ -119,7 +119,7 @@ internal class FirEnumEntryImpl(
     }
 
     override fun <D> transformStatus(transformer: FirTransformer<D>, data: D): FirEnumEntryImpl {
-        status = status.transformSingle(transformer, data)
+        status = status.transform<FirDeclarationStatus, D>(transformer, data).single
         return this
     }
 

@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.declarations
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.FirSymbolOwner
@@ -30,6 +31,10 @@ interface FirCallableDeclaration<F : FirCallableDeclaration<F>> : FirTypedDeclar
     override val symbol: FirCallableSymbol<F>
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitCallableDeclaration(this, data)
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <E: FirElement, D> transform(transformer: FirTransformer<D>, data: D): CompositeTransformResult<E> =
+        transformer.transformCallableDeclaration(this, data) as CompositeTransformResult<E>
 
     override fun replaceResolvePhase(newResolvePhase: FirResolvePhase)
 

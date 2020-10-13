@@ -20,5 +20,9 @@ interface FirTypeParameterRefsOwner : FirElement {
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitTypeParameterRefsOwner(this, data)
 
+    @Suppress("UNCHECKED_CAST")
+    override fun <E: FirElement, D> transform(transformer: FirTransformer<D>, data: D): CompositeTransformResult<E> =
+        transformer.transformTypeParameterRefsOwner(this, data) as CompositeTransformResult<E>
+
     fun <D> transformTypeParameters(transformer: FirTransformer<D>, data: D): FirTypeParameterRefsOwner
 }

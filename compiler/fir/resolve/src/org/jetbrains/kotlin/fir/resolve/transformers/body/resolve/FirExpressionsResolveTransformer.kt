@@ -403,7 +403,7 @@ open class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransform
                             extensionReceiver = it.extensionReceiver
                         }
                     }
-                assignment.transform(transformer, ResolutionMode.ContextIndependent)
+                assignment.accept(transformer, ResolutionMode.ContextIndependent) as CompositeTransformResult<FirStatement>
             }
             else -> {
                 val operatorCallSymbol = operatorCallReference?.candidateSymbol

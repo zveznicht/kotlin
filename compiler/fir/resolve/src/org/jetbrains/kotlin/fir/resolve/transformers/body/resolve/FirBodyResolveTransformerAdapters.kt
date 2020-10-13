@@ -36,6 +36,6 @@ class FirBodyResolveTransformerAdapter(session: FirSession, scopeSession: ScopeS
     }
 
     override fun transformFile(file: FirFile, data: Nothing?): CompositeTransformResult<FirFile> {
-        return file.transform(transformer, ResolutionMode.ContextIndependent)
+        return file.accept(transformer, ResolutionMode.ContextIndependent) as CompositeTransformResult<FirFile>
     }
 }

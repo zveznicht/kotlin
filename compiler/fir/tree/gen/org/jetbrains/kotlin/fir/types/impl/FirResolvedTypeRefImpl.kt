@@ -37,7 +37,7 @@ class FirResolvedTypeRefImpl @FirImplementationDetail constructor(
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirResolvedTypeRefImpl {
         transformAnnotations(transformer, data)
-        delegatedTypeRef = delegatedTypeRef?.transformSingle(transformer, data)
+        delegatedTypeRef = delegatedTypeRef?.transform<FirTypeRef, D>(transformer, data)?.single
         return this
     }
 

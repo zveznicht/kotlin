@@ -56,7 +56,7 @@ internal class FirBlockImpl(
 
     override fun <D> transformOtherChildren(transformer: FirTransformer<D>, data: D): FirBlockImpl {
         transformAnnotations(transformer, data)
-        typeRef = typeRef.transformSingle(transformer, data)
+        typeRef = typeRef.transform<FirTypeRef, D>(transformer, data).single
         return this
     }
 

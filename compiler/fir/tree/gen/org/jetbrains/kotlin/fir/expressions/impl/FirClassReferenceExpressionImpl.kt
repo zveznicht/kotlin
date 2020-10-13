@@ -38,9 +38,9 @@ internal class FirClassReferenceExpressionImpl(
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirClassReferenceExpressionImpl {
-        typeRef = typeRef.transformSingle(transformer, data)
+        typeRef = typeRef.transform<FirTypeRef, D>(transformer, data).single
         transformAnnotations(transformer, data)
-        classTypeRef = classTypeRef.transformSingle(transformer, data)
+        classTypeRef = classTypeRef.transform<FirTypeRef, D>(transformer, data).single
         return this
     }
 

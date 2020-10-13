@@ -81,7 +81,7 @@ internal class FirConstructorImpl(
         transformReturnTypeRef(transformer, data)
         transformReceiverTypeRef(transformer, data)
         transformTypeParameters(transformer, data)
-        controlFlowGraphReference = controlFlowGraphReference?.transformSingle(transformer, data)
+        controlFlowGraphReference = controlFlowGraphReference?.transform<FirControlFlowGraphReference, D>(transformer, data)?.single
         transformValueParameters(transformer, data)
         transformStatus(transformer, data)
         transformAnnotations(transformer, data)
@@ -91,12 +91,12 @@ internal class FirConstructorImpl(
     }
 
     override fun <D> transformReturnTypeRef(transformer: FirTransformer<D>, data: D): FirConstructorImpl {
-        returnTypeRef = returnTypeRef.transformSingle(transformer, data)
+        returnTypeRef = returnTypeRef.transform<FirTypeRef, D>(transformer, data).single
         return this
     }
 
     override fun <D> transformReceiverTypeRef(transformer: FirTransformer<D>, data: D): FirConstructorImpl {
-        receiverTypeRef = receiverTypeRef?.transformSingle(transformer, data)
+        receiverTypeRef = receiverTypeRef?.transform<FirTypeRef, D>(transformer, data)?.single
         return this
     }
 
@@ -111,7 +111,7 @@ internal class FirConstructorImpl(
     }
 
     override fun <D> transformStatus(transformer: FirTransformer<D>, data: D): FirConstructorImpl {
-        status = status.transformSingle(transformer, data)
+        status = status.transform<FirDeclarationStatus, D>(transformer, data).single
         return this
     }
 
@@ -121,12 +121,12 @@ internal class FirConstructorImpl(
     }
 
     override fun <D> transformDelegatedConstructor(transformer: FirTransformer<D>, data: D): FirConstructorImpl {
-        delegatedConstructor = delegatedConstructor?.transformSingle(transformer, data)
+        delegatedConstructor = delegatedConstructor?.transform<FirDelegatedConstructorCall, D>(transformer, data)?.single
         return this
     }
 
     override fun <D> transformBody(transformer: FirTransformer<D>, data: D): FirConstructorImpl {
-        body = body?.transformSingle(transformer, data)
+        body = body?.transform<FirBlock, D>(transformer, data)?.single
         return this
     }
 

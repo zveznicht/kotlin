@@ -62,12 +62,12 @@ internal class FirTryExpressionImpl(
     }
 
     override fun <D> transformCalleeReference(transformer: FirTransformer<D>, data: D): FirTryExpressionImpl {
-        calleeReference = calleeReference.transformSingle(transformer, data)
+        calleeReference = calleeReference.transform<FirReference, D>(transformer, data).single
         return this
     }
 
     override fun <D> transformTryBlock(transformer: FirTransformer<D>, data: D): FirTryExpressionImpl {
-        tryBlock = tryBlock.transformSingle(transformer, data)
+        tryBlock = tryBlock.transform<FirBlock, D>(transformer, data).single
         return this
     }
 
@@ -77,12 +77,12 @@ internal class FirTryExpressionImpl(
     }
 
     override fun <D> transformFinallyBlock(transformer: FirTransformer<D>, data: D): FirTryExpressionImpl {
-        finallyBlock = finallyBlock?.transformSingle(transformer, data)
+        finallyBlock = finallyBlock?.transform<FirBlock, D>(transformer, data)?.single
         return this
     }
 
     override fun <D> transformOtherChildren(transformer: FirTransformer<D>, data: D): FirTryExpressionImpl {
-        typeRef = typeRef.transformSingle(transformer, data)
+        typeRef = typeRef.transform<FirTypeRef, D>(transformer, data).single
         transformAnnotations(transformer, data)
         return this
     }

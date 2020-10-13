@@ -39,6 +39,6 @@ class FirAnnotationArgumentsResolveTransformerAdapter(session: FirSession, scope
 
     override fun transformFile(file: FirFile, data: Nothing?): CompositeTransformResult<FirDeclaration> {
         if (!hasAnnotations || !predicateBasedProvider.fileHasPluginAnnotations(file)) return file.compose()
-        return file.transform(transformer, ResolutionMode.ContextIndependent)
+        return file.accept(transformer, ResolutionMode.ContextIndependent) as CompositeTransformResult<FirDeclaration>
     }
 }

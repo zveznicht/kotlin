@@ -19,4 +19,8 @@ interface FirDiagnosticHolder : FirElement {
     val diagnostic: ConeDiagnostic
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitDiagnosticHolder(this, data)
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <E: FirElement, D> transform(transformer: FirTransformer<D>, data: D): CompositeTransformResult<E> =
+        transformer.transformDiagnosticHolder(this, data) as CompositeTransformResult<E>
 }

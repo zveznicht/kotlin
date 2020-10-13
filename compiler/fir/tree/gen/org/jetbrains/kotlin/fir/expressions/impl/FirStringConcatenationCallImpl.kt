@@ -42,8 +42,8 @@ internal class FirStringConcatenationCallImpl(
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirStringConcatenationCallImpl {
         transformAnnotations(transformer, data)
-        argumentList = argumentList.transformSingle(transformer, data)
-        typeRef = typeRef.transformSingle(transformer, data)
+        argumentList = argumentList.transform<FirArgumentList, D>(transformer, data).single
+        typeRef = typeRef.transform<FirTypeRef, D>(transformer, data).single
         return this
     }
 

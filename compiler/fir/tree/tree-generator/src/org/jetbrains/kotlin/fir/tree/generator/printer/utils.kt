@@ -53,6 +53,8 @@ fun Element.collectImports(): List<String> {
     val isBaseFirElement = this == AbstractFirTreeBuilder.baseFirElement
     if (isBaseFirElement) {
         baseTypes += compositeTransformResultType.fullQualifiedName!!
+    } else {
+        baseTypes += AbstractFirTreeBuilder.baseFirElement.fullQualifiedName
     }
     if (needPureAbstractElement) {
         baseTypes += pureAbstractElementType.fullQualifiedName!!
@@ -114,6 +116,10 @@ val Field.mutableType: String
     }
 
 fun Field.call(): String = if (nullable) "?." else "."
+
+fun Field.questionMarkIfNeeded(): String = if (nullable) "?" else ""
+
+fun Field.ifNullIfNeeded(ifNotNull: String, ifNull: String) = if (nullable) "if ($name == null) $ifNull else $ifNotNull" else ifNotNull
 
 fun Element.multipleUpperBoundsList(): String {
     return typeArguments.filterIsInstance<TypeArgumentWithMultipleUpperBounds>().takeIf { it.isNotEmpty() }?.let { arguments ->

@@ -41,9 +41,9 @@ internal class FirThrowExpressionImpl(
     }
 
     override fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirThrowExpressionImpl {
-        typeRef = typeRef.transformSingle(transformer, data)
+        typeRef = typeRef.transform<FirTypeRef, D>(transformer, data).single
         transformAnnotations(transformer, data)
-        exception = exception.transformSingle(transformer, data)
+        exception = exception.transform<FirExpression, D>(transformer, data).single
         return this
     }
 

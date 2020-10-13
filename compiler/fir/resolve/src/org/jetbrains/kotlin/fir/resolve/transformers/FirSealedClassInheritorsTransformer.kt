@@ -39,7 +39,7 @@ class FirSealedClassInheritorsTransformer : FirTransformer<Nothing?>() {
         val sealedClassInheritorsMap = mutableMapOf<FirRegularClass, MutableList<ClassId>>()
         file.accept(InheritorsCollector, sealedClassInheritorsMap)
         if (sealedClassInheritorsMap.isEmpty()) return file.compose()
-        return file.transform(InheritorsTransformer(sealedClassInheritorsMap), null)
+        return file.accept(InheritorsTransformer(sealedClassInheritorsMap), null) as CompositeTransformResult<FirDeclaration>
     }
 
     private class InheritorsTransformer(private val inheritorsMap: MutableMap<FirRegularClass, MutableList<ClassId>>) : FirTransformer<Nothing?>() {

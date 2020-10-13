@@ -84,6 +84,15 @@ fun SmartPrinter.printElement(element: Element) {
             override()
             println("fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visit$name(this, data)")
 
+            println()
+
+            println("@Suppress(\"UNCHECKED_CAST\")")
+            override()
+            println("fun <E: FirElement, D> transform(transformer: FirTransformer<D>, data: D): CompositeTransformResult<E> =")
+            withIndent {
+                println("transformer.transform$name(this, data) as CompositeTransformResult<E>")
+            }
+
             fun Field.replaceDeclaration(override: Boolean, overridenType: Importable? = null, forceNullable: Boolean = false) {
                 println()
                 abstract()
@@ -124,12 +133,6 @@ fun SmartPrinter.printElement(element: Element) {
                 println("fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D)")
                 println()
                 println("fun acceptChildren(visitor: FirVisitorVoid) = acceptChildren(visitor, null)")
-                println()
-                println("@Suppress(\"UNCHECKED_CAST\")")
-                println("fun <E : FirElement, D> transform(visitor: FirTransformer<D>, data: D): CompositeTransformResult<E> =")
-                withIndent {
-                    println("accept(visitor, data) as CompositeTransformResult<E>")
-                }
                 println()
                 println("fun <D> transformChildren(transformer: FirTransformer<D>, data: D): FirElement")
                 println()

@@ -53,18 +53,18 @@ internal class FirWhileLoopImpl(
     }
 
     override fun <D> transformCondition(transformer: FirTransformer<D>, data: D): FirWhileLoopImpl {
-        condition = condition.transformSingle(transformer, data)
+        condition = condition.transform<FirExpression, D>(transformer, data).single
         return this
     }
 
     override fun <D> transformBlock(transformer: FirTransformer<D>, data: D): FirWhileLoopImpl {
-        block = block.transformSingle(transformer, data)
+        block = block.transform<FirBlock, D>(transformer, data).single
         return this
     }
 
     override fun <D> transformOtherChildren(transformer: FirTransformer<D>, data: D): FirWhileLoopImpl {
         transformAnnotations(transformer, data)
-        label = label?.transformSingle(transformer, data)
+        label = label?.transform<FirLabel, D>(transformer, data)?.single
         return this
     }
 }

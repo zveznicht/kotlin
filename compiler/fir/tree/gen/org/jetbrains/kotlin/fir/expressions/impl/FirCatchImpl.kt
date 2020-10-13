@@ -40,12 +40,12 @@ internal class FirCatchImpl(
     }
 
     override fun <D> transformParameter(transformer: FirTransformer<D>, data: D): FirCatchImpl {
-        parameter = parameter.transformSingle(transformer, data)
+        parameter = parameter.transform<FirValueParameter, D>(transformer, data).single
         return this
     }
 
     override fun <D> transformBlock(transformer: FirTransformer<D>, data: D): FirCatchImpl {
-        block = block.transformSingle(transformer, data)
+        block = block.transform<FirBlock, D>(transformer, data).single
         return this
     }
 

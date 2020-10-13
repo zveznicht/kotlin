@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.fir.references
 
+import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
@@ -24,4 +25,8 @@ abstract class FirResolvedCallableReference : FirResolvedNamedReference() {
     abstract val inferredTypeArguments: List<ConeKotlinType>
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitResolvedCallableReference(this, data)
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <E: FirElement, D> transform(transformer: FirTransformer<D>, data: D): CompositeTransformResult<E> =
+        transformer.transformResolvedCallableReference(this, data) as CompositeTransformResult<E>
 }
