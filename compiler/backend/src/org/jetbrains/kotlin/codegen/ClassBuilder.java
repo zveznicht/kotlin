@@ -20,11 +20,10 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.codegen.inline.SourceMapper;
-import org.jetbrains.kotlin.codegen.serialization.JvmSerializationBindings;
 import org.jetbrains.kotlin.resolve.jvm.diagnostics.JvmDeclarationOrigin;
 import org.jetbrains.org.objectweb.asm.*;
 
-public interface ClassBuilder {
+public interface ClassBuilder extends MethodBuilder {
     @NotNull
     FieldVisitor newField(
             @NotNull JvmDeclarationOrigin origin,
@@ -35,26 +34,12 @@ public interface ClassBuilder {
             @Nullable Object value
     );
 
-    @NotNull
-    MethodVisitor newMethod(
-            @NotNull JvmDeclarationOrigin origin,
-            int access,
-            @NotNull String name,
-            @NotNull String desc,
-            @Nullable String signature,
-            @Nullable String[] exceptions
-    );
-
     @NotNull RecordComponentVisitor newRecordComponent(
             @NotNull String name,
             @NotNull String desc,
             @Nullable String signature
     );
 
-    @NotNull
-    JvmSerializationBindings getSerializationBindings();
-
-    @NotNull
     AnnotationVisitor newAnnotation(@NotNull String desc, boolean visible);
 
     void done();
@@ -79,7 +64,4 @@ public interface ClassBuilder {
     void visitOuterClass(@NotNull String owner, @Nullable String name, @Nullable String desc);
 
     void visitInnerClass(@NotNull String name, @Nullable String outerName, @Nullable String innerName, int access);
-
-    @NotNull
-    String getThisName();
 }

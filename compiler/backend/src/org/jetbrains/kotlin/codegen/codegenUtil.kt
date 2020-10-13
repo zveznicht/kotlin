@@ -483,7 +483,7 @@ private val METHOD_DESCRIPTOR_FOR_MAIN = Type.getMethodDescriptor(Type.VOID_TYPE
 
 fun generateBridgeForMainFunctionIfNecessary(
     state: GenerationState,
-    packagePartClassBuilder: ClassBuilder,
+    packagePartMethodBuilder: MethodBuilder,
     functionDescriptor: FunctionDescriptor,
     signatureOfRealDeclaration: JvmMethodGenericSignature,
     origin: JvmDeclarationOrigin,
@@ -499,7 +499,7 @@ fun generateBridgeForMainFunctionIfNecessary(
     if (!functionDescriptor.isSuspend && !isParameterless) return
     if (!state.mainFunctionDetector.isMain(unwrappedFunctionDescriptor, checkJvmStaticAnnotation = false, checkReturnType = true)) return
 
-    val bridgeMethodVisitor = packagePartClassBuilder.newMethod(
+    val bridgeMethodVisitor = packagePartMethodBuilder.newMethod(
         Synthetic(originElement, functionDescriptor),
         ACC_PUBLIC or ACC_STATIC or ACC_SYNTHETIC,
         "main",
@@ -522,7 +522,7 @@ fun generateBridgeForMainFunctionIfNecessary(
             generateLambdaForRunSuspend(
                 state,
                 originElement,
-                packagePartClassBuilder.thisName,
+                packagePartMethodBuilder.thisName,
                 signatureOfRealDeclaration,
                 isParameterless
             )
@@ -556,7 +556,7 @@ fun generateBridgeForMainFunctionIfNecessary(
         } else {
             visitMethodInsn(
                 INVOKESTATIC,
-                packagePartClassBuilder.thisName, "main",
+                packagePartMethodBuilder.thisName, "main",
                 Type.getMethodDescriptor(
                     Type.VOID_TYPE
                 ),
