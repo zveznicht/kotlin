@@ -237,6 +237,9 @@ internal open class GradleCompilerRunner(protected val taskProvider: GradleCompi
                     if (compilation.isMain()) {
                         if (isMultiplatformProject) {
                             try {
+                                //It could cause task reconfiguration. TODO: fix it some day if need
+                                // But using project.locateTask(taskName).configure cause an Exception for call from ImmutableActionSet
+
                                 val archiveTask = project.tasks.getByName(target.artifactsTaskName) as AbstractArchiveTask
                                 jarToModule[archiveTask.archivePathCompatible.canonicalFile] = module
                             } catch (e: UnknownTaskException) {
