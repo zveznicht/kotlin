@@ -89,14 +89,14 @@ class DefaultParameterValueSubstitutor(val state: GenerationState) {
         functionDescriptor: FunctionDescriptor,
         delegateFunctionDescriptor: FunctionDescriptor,
         contextKind: OwnerKind,
-        classBuilder: ClassBuilder,
+        methodBuilder: MethodBuilder,
         memberCodegen: MemberCodegen<*>
     ): Boolean {
         if (functionDescriptor.findJvmOverloadsAnnotation() == null) return false
 
         for (i in 1..functionDescriptor.countDefaultParameters()) {
             generateOverloadWithSubstitutedParameters(
-                functionDescriptor, delegateFunctionDescriptor, classBuilder, memberCodegen, methodElement, contextKind, i
+                functionDescriptor, delegateFunctionDescriptor, methodBuilder, memberCodegen, methodElement, contextKind, i
             )
         }
 
@@ -120,7 +120,7 @@ class DefaultParameterValueSubstitutor(val state: GenerationState) {
     private fun generateOverloadWithSubstitutedParameters(
         functionDescriptor: FunctionDescriptor,
         delegateFunctionDescriptor: FunctionDescriptor,
-        classBuilder: ClassBuilder,
+        methodBuilder: MethodBuilder,
         memberCodegen: MemberCodegen<*>,
         methodElement: KtPureElement?,
         contextKind: OwnerKind,
@@ -142,7 +142,7 @@ class DefaultParameterValueSubstitutor(val state: GenerationState) {
                     (if (generateAsFinal && functionDescriptor !is ConstructorDescriptor) Opcodes.ACC_FINAL else 0) or
                     (if (remainingParameters.lastOrNull()?.varargElementType != null) Opcodes.ACC_VARARGS else 0)
         val signature = typeMapper.mapSignatureWithCustomParameters(functionDescriptor, contextKind, remainingParameters, false)
-        val mv = classBuilder.newMethod(
+        val mv = methodBuilder.newMethod(
             JvmDeclarationOrigin(
                 JvmDeclarationOriginKind.JVM_OVERLOADS, methodElement?.psiOrParent, functionDescriptor,
                 remainingParametersDeclarations

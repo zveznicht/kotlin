@@ -91,12 +91,12 @@ public class FunctionCodegen {
     private final KotlinTypeMapper typeMapper;
     private final BindingContext bindingContext;
     private final CodegenContext owner;
-    private final ClassBuilder v;
+    private final MethodBuilder v;
     private final MemberCodegen<?> memberCodegen;
 
     public FunctionCodegen(
             @NotNull CodegenContext owner,
-            @NotNull ClassBuilder v,
+            @NotNull MethodBuilder v,
             @NotNull GenerationState state,
             @NotNull MemberCodegen<?> memberCodegen
     ) {
