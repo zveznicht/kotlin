@@ -25,7 +25,7 @@ import org.jetbrains.org.objectweb.asm.commons.InstructionAdapter
 
 import org.jetbrains.kotlin.codegen.inline.LocalVarRemapper.RemapStatus.*
 
-class LocalVarRemapper(private val params: Parameters, private val additionalShift: Int) {
+open class LocalVarRemapper(private val params: Parameters, private val additionalShift: Int) {
     private val actualParamsSize: Int
     private val remapValues = arrayOfNulls<StackValue?>(params.argsSizeOnStack)
 
@@ -47,7 +47,7 @@ class LocalVarRemapper(private val params: Parameters, private val additionalShi
         actualParamsSize = realSize
     }
 
-    private fun doRemap(index: Int): RemapInfo {
+    protected open fun doRemap(index: Int): RemapInfo {
         val remappedIndex: Int
 
         if (index < params.argsSizeOnStack) {

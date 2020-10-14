@@ -1116,7 +1116,7 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             IndyLambdaContext closureContext = this.context.intoIndyClosure(descriptor, this, contextKind(), typeMapper);
             IndyLambdaCodegen codegen =
                     new IndyLambdaCodegen(state, declaration, samType, closureContext, functionReferenceCall, strategy, parentCodegen.v,
-                                          parentCodegen);
+                                          parentCodegen, this);
             return codegen.generate();
         }
     }

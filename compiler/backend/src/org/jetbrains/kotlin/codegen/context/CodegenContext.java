@@ -30,6 +30,7 @@ import java.util.*;
 import static org.jetbrains.kotlin.codegen.DescriptorAsmUtil.getVisibilityAccessFlag;
 import static org.jetbrains.kotlin.codegen.JvmCodegenUtil.isInSamePackage;
 import static org.jetbrains.kotlin.codegen.JvmCodegenUtil.isNonDefaultInterfaceMember;
+import static org.jetbrains.kotlin.codegen.binding.CodegenBinding.CLOSURE;
 import static org.jetbrains.kotlin.resolve.inline.InlineOnlyKt.isInlineOnlyPrivateInBytecode;
 import static org.jetbrains.kotlin.resolve.jvm.annotations.JvmAnnotationUtilKt.isCallableMemberCompiledToJvmDefault;
 import static org.jetbrains.org.objectweb.asm.Opcodes.ACC_PRIVATE;
@@ -342,7 +343,10 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
             @NotNull OwnerKind ownerKind,
             @NotNull KotlinTypeMapper typeMapper
     ) {
-        return new IndyLambdaContext(funDescriptor, ownerKind,  this, null, localLookup, typeMapper);
+        ClassDescriptor classDescriptor = ClosureContext.getClassForCallable(typeMapper, funDescriptor, null);
+        MutableClosure closure = typeMapper.getBindingContext().get(CLOSURE, classDescriptor);
+        assert closure != null : "Closure must be calculated for lambda/sam class: " + classDescriptor;
+        return new IndyLambdaContext(funDescriptor, ownerKind,  this, closure, localLookup, typeMapper, classDescriptor);
     }
 
     @NotNull

@@ -6,6 +6,10 @@
 package org.jetbrains.kotlin.codegen
 
 import org.jetbrains.kotlin.codegen.context.IndyLambdaContext
+import org.jetbrains.kotlin.codegen.inline.FieldRemapper
+import org.jetbrains.kotlin.codegen.inline.LocalVarRemapper
+import org.jetbrains.kotlin.codegen.inline.ParametersBuilder
+import org.jetbrains.kotlin.codegen.inline.RemapVisitor
 import org.jetbrains.kotlin.codegen.state.GenerationState
 import org.jetbrains.kotlin.descriptors.FunctionDescriptor
 import org.jetbrains.kotlin.psi.KtElement
@@ -28,9 +32,9 @@ class IndyLambdaCodegen(
     val functionReferenceCall: ResolvedCall<FunctionDescriptor>?,
     val strategy: FunctionGenerationStrategy,
     val classBuilder: ClassBuilder,
-    val memberCodegen: MemberCodegen<*>
+    val memberCodegen: MemberCodegen<*>,
+    val expressionCodegen: ExpressionCodegen
 ) {
-
     fun generate(): StackValue {
         lateinit var generatedNode: MethodNode;
         val builder = object : MethodBuilder by classBuilder {
@@ -51,24 +55,59 @@ class IndyLambdaCodegen(
         val invokeDescriptor = context.contextDescriptor
         functionCodegen.generateMethod(OtherOrigin(element, invokeDescriptor), invokeDescriptor, strategy)
 
-        val generatedMethodName = "lambda" + generatedNode.name
+        val capturedFields = ClosureCodegen.calculateConstructorParameters(
+            state.typeMapper,
+            state.languageVersionSettings,
+            context.closure!!,
+            AsmTypes.OBJECT_TYPE
+        )
+        val captured = ClosureCodegen.fieldListToTypeArray(capturedFields)
+
+        val frameMap = FrameMap()
+        captured.forEach {
+            frameMap.enterTemp(it)
+        }
+        val capturedSize = frameMap.currentSize
+        val params = ParametersBuilder.initializeBuilderFrom(AsmTypes.OBJECT_TYPE, generatedNode.desc).buildParameters()
+
+        val loweredMethodName = "lambda$" + generatedNode.name
+        val loweredMethodDesc = Type.getMethodDescriptor(Type.getReturnType(generatedNode.desc), *(captured + Type.getArgumentTypes(generatedNode.desc)))
         val actualMethod = classBuilder.newMethod(
             OtherOrigin(element, invokeDescriptor),
             generatedNode.access /*or Opcodes.ACC_SYNTHETIC*/,
-            generatedMethodName,
-            generatedNode.desc,
+            loweredMethodName,
+            loweredMethodDesc,
             generatedNode.signature,
             generatedNode.exceptions?.toTypedArray()
         )
-        generatedNode.accept(actualMethod)
+        actualMethod.visitCode()
 
+        generatedNode.accept(
+            RemapVisitor(
+                actualMethod,
+                object : LocalVarRemapper(
+                    params,
+                    capturedSize
+                ) {
+                    override fun doRemap(index: Int): RemapInfo {
+                        if (index >= 65000) {
+                            return RemapInfo(
+                                null,
+                                StackValue.local(index - 65000, AsmTypes.OBJECT_TYPE),
+                                RemapStatus.SHIFT
+                            )
+                        }
+                        return super.doRemap(index)
+                    }
+                },
+                FieldRemapper(null, null, params)
+            )
+        )
+        actualMethod.visitEnd()
 
-        val asmType = AsmTypes.OBJECT_TYPE
-        val (superType, superInterface) = ClosureCodegen.extractSuperTypes(samType, invokeDescriptor, context.classDescriptor)
+        val (_, superInterface) = ClosureCodegen.extractSuperTypes(samType, invokeDescriptor, context.classDescriptor)
         val owner = state.typeMapper.mapType(superInterface.single())
-        return StackValue.operation(
-            /*if (functionReferenceTarget != null) AsmTypes.K_FUNCTION else*/ owner
-        ) { v: InstructionAdapter ->
+        return StackValue.operation(owner) { v: InstructionAdapter ->
             val bootstrap = Handle(
                 Opcodes.H_INVOKESTATIC,
                 "java/lang/invoke/LambdaMetafactory",
@@ -76,22 +115,23 @@ class IndyLambdaCodegen(
                 "(Ljava/lang/invoke/MethodHandles\$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;",
                 false
             )
-            val captured = arrayListOf<Type>()
+
             val specializedMethod = state.typeMapper.mapAsmMethod(invokeDescriptor)
             val originalMethod = state.typeMapper.mapAsmMethod(ClosureCodegen.erasedInterfaceFunction(invokeDescriptor, samType))
 
             val implHandle = Handle(
                 Opcodes.H_INVOKESTATIC,
                 classBuilder.thisName,
-                generatedMethodName,
-                specializedMethod.descriptor,
+                loweredMethodName,
+                loweredMethodDesc,
                 false
             )
-
+            expressionCodegen.pushClosureOnStack(context.classDescriptor, true, CallGenerator.DefaultCallGenerator(expressionCodegen), null)
 
             v.invokedynamic(
                 originalMethod.name,
-                Type.getMethodDescriptor(owner, *captured.toTypedArray()),
+                //TODO: normal order
+                Type.getMethodDescriptor(owner, *captured),
                 bootstrap,
                 arrayOf(Type.getMethodType(originalMethod.descriptor), implHandle, Type.getMethodType(specializedMethod.descriptor))
             )
