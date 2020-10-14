@@ -74,7 +74,8 @@ sourceSets {
 
 projectTest {
 
-    executable = rootProject.getConfiguredJdks().first { it.majorVersion >= JdkMajorVersion.JDK_9 }.homeDir.resolve("bin/java").absolutePath
+
+    executable = JdkMajorVersion.values().filter { it >= JdkMajorVersion.JDK_9 }.map { extra[it.name] }.first { it != "JDK NOT FOUND" }.resolve("bin/java").absolutePath
 
     systemProperties(project.properties.filterKeys { it.startsWith("fir.") })
     workingDir = rootDir
