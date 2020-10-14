@@ -582,7 +582,7 @@ public class ClosureCodegen extends MemberCodegen<KtElement> {
         return args;
     }
 
-    private static Type[] fieldListToTypeArray(List<FieldInfo> args) {
+    static Type[] fieldListToTypeArray(List<FieldInfo> args) {
         Type[] argTypes = new Type[args.size()];
         for (int i = 0; i != argTypes.length; ++i) {
             argTypes[i] = args.get(i).getFieldType();
