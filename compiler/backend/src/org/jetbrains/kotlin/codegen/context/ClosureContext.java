@@ -45,7 +45,7 @@ public class ClosureContext extends ClassContext {
     }
 
     @NotNull
-    private static ClassDescriptor getClassForCallable(
+    static ClassDescriptor getClassForCallable(
             @NotNull KotlinTypeMapper typeMapper,
             @NotNull FunctionDescriptor functionDescriptor,
             @Nullable FunctionDescriptor originalSuspendLambdaDescriptor
