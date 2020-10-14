@@ -98,29 +98,9 @@ public class ClosureCodegen extends MemberCodegen<KtElement> {
         this.functionReferenceCall = functionReferenceCall;
         this.functionReferenceTarget = functionReferenceCall != null ? functionReferenceCall.getResultingDescriptor() : null;
         this.strategy = strategy;
-
-        if (samType == null) {
-            this.superInterfaceTypes = new ArrayList<>();
-
-            KotlinType superClassType = null;
-            for (KotlinType supertype : classDescriptor.getTypeConstructor().getSupertypes()) {
-                ClassifierDescriptor classifier = supertype.getConstructor().getDeclarationDescriptor();
-                if (DescriptorUtils.isInterface(classifier)) {
-                    superInterfaceTypes.add(supertype);
-                }
-                else {
-                    assert superClassType == null : "Closure class can't have more than one superclass: " + funDescriptor;
-                    superClassType = supertype;
-                }
-            }
-            assert superClassType != null : "Closure class should have a superclass: " + funDescriptor;
-
-            this.superClassType = superClassType;
-        }
-        else {
-            this.superInterfaceTypes = Collections.singletonList(samType.getType());
-            this.superClassType = DescriptorUtilsKt.getBuiltIns(funDescriptor).getAnyType();
-        }
+        Pair<KotlinType, List<KotlinType>> superTypes = extractSuperTypes(samType, funDescriptor, classDescriptor);
+        this.superClassType = superTypes.component1();
+        this.superInterfaceTypes = superTypes.component2();
 
         this.closure = bindingContext.get(CLOSURE, classDescriptor);
         assert closure != null : "Closure must be calculated for class: " + classDescriptor;
@@ -141,6 +121,30 @@ public class ClosureCodegen extends MemberCodegen<KtElement> {
         this.asmType = typeMapper.mapClass(classDescriptor);
 
         visibilityFlag = DescriptorAsmUtil.getVisibilityAccessFlagForClass(classDescriptor);
+    }
+
+    static Pair<KotlinType, List<KotlinType>> extractSuperTypes(@Nullable SamType samType, @NotNull FunctionDescriptor funDescriptor, @NotNull ClassDescriptor classDescriptor) {
+        if (samType == null) {
+            ArrayList<KotlinType> superInterfaceTypes = new ArrayList<>();
+
+            KotlinType superClassType = null;
+            for (KotlinType supertype : classDescriptor.getTypeConstructor().getSupertypes()) {
+                ClassifierDescriptor classifier = supertype.getConstructor().getDeclarationDescriptor();
+                if (DescriptorUtils.isInterface(classifier)) {
+                    superInterfaceTypes.add(supertype);
+                }
+                else {
+                    assert superClassType == null : "Closure class can't have more than one superclass: " + funDescriptor;
+                    superClassType = supertype;
+                }
+            }
+            assert superClassType != null : "Closure class should have a superclass: " + funDescriptor;
+
+            return new Pair<>(superClassType, superInterfaceTypes);
+        }
+        else {
+            return new Pair<>(DescriptorUtilsKt.getBuiltIns(funDescriptor).getAnyType(), Collections.singletonList(samType.getType()));
+        }
     }
 
     @Override
@@ -214,13 +218,7 @@ public class ClosureCodegen extends MemberCodegen<KtElement> {
     }
 
     protected void generateBridges() {
-        FunctionDescriptor erasedInterfaceFunction;
-        if (samType == null) {
-            erasedInterfaceFunction = getErasedInvokeFunction(funDescriptor);
-        }
-        else {
-            erasedInterfaceFunction = samType.getOriginalAbstractMethod();
-        }
+        FunctionDescriptor erasedInterfaceFunction = erasedInterfaceFunction(funDescriptor, samType);
 
         List<KotlinType> bridgeParameterKotlinTypes = CollectionsKt.map(erasedInterfaceFunction.getValueParameters(), ValueDescriptor::getType);
 
@@ -236,6 +234,16 @@ public class ClosureCodegen extends MemberCodegen<KtElement> {
         //TODO: rewrite cause ugly hack
         if (samType != null) {
             generateBridgesForSAM(erasedInterfaceFunction, funDescriptor, functionCodegen);
+        }
+    }
+
+    @NotNull
+    static FunctionDescriptor erasedInterfaceFunction(@NotNull FunctionDescriptor funDescriptor, @Nullable SamType samType) {
+        if (samType == null) {
+            return getErasedInvokeFunction(funDescriptor);
+        }
+        else {
+            return samType.getOriginalAbstractMethod();
         }
     }
 

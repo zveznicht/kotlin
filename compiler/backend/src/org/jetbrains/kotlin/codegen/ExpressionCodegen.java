@@ -44,6 +44,7 @@ import org.jetbrains.kotlin.codegen.when.SwitchCodegen;
 import org.jetbrains.kotlin.codegen.when.SwitchCodegenProvider;
 import org.jetbrains.kotlin.config.ApiVersion;
 import org.jetbrains.kotlin.config.JVMAssertionsMode;
+import org.jetbrains.kotlin.config.JvmTarget;
 import org.jetbrains.kotlin.config.LanguageFeature;
 import org.jetbrains.kotlin.descriptors.*;
 import org.jetbrains.kotlin.descriptors.impl.LocalVariableDescriptor;
@@ -1083,30 +1084,54 @@ public class ExpressionCodegen extends KtVisitor<StackValue, StackValue> impleme
             @Nullable ResolvedCall<FunctionDescriptor> functionReferenceCall,
             @Nullable StackValue functionReferenceReceiver
     ) {
-        ClassBuilder cv = state.getFactory().newVisitor(
-                JvmDeclarationOriginKt.OtherOrigin(declaration, descriptor),
-                asmTypeForAnonymousClass(bindingContext, descriptor),
-                declaration.getContainingFile()
-        );
+        if (state.getTarget().getBytecodeVersion() < JvmTarget.JVM_1_8.getBytecodeVersion() ||
+            descriptor.isSuspend() ||
+            CoroutineCodegenForLambda.isCoroutineCodegenForLambdaApplicable(descriptor, declaration) ||
+            isInsideInlineContext()
+        ) {
+            ClassBuilder cv = state.getFactory().newVisitor(
+                    JvmDeclarationOriginKt.OtherOrigin(declaration, descriptor),
+                    asmTypeForAnonymousClass(bindingContext, descriptor),
+                    declaration.getContainingFile()
+            );
 
-        ClosureCodegen coroutineCodegen = CoroutineCodegenForLambda.create(this, descriptor, declaration, cv);
-        ClosureContext closureContext =
-                descriptor.isSuspend()
-                ? this.context.intoCoroutineClosure(
-                        CoroutineCodegenUtilKt.getOrCreateJvmSuspendFunctionView(descriptor, state),
-                        descriptor, this, state.getTypeMapper()
-                )
-                : this.context.intoClosure(descriptor, this, typeMapper);
-        ClosureCodegen closureCodegen =
-                coroutineCodegen != null
-                ? coroutineCodegen
-                : new ClosureCodegen(
-                        state, declaration, samType, closureContext, functionReferenceCall, strategy, parentCodegen, cv
-                );
+            ClosureCodegen coroutineCodegen = CoroutineCodegenForLambda.create(this, descriptor, declaration, cv);
+            ClosureContext closureContext =
+                    descriptor.isSuspend()
+                    ? this.context.intoCoroutineClosure(
+                            CoroutineCodegenUtilKt.getOrCreateJvmSuspendFunctionView(descriptor, state),
+                            descriptor, this, state.getTypeMapper()
+                    )
+                    : this.context.intoClosure(descriptor, this, typeMapper);
+            ClosureCodegen closureCodegen =
+                    coroutineCodegen != null
+                    ? coroutineCodegen
+                    : new ClosureCodegen(
+                            state, declaration, samType, closureContext, functionReferenceCall, strategy, parentCodegen, cv
+                    );
 
-        closureCodegen.generate();
+            closureCodegen.generate();
 
-        return putClosureInstanceOnStack(closureCodegen, functionReferenceReceiver);
+            return putClosureInstanceOnStack(closureCodegen, functionReferenceReceiver);
+        }
+        else {
+            IndyLambdaContext closureContext = this.context.intoIndyClosure(descriptor, this, contextKind(), typeMapper);
+            IndyLambdaCodegen codegen =
+                    new IndyLambdaCodegen(state, declaration, samType, closureContext, functionReferenceCall, strategy, parentCodegen.v,
+                                          parentCodegen);
+            return codegen.generate();
+        }
+    }
+
+    private boolean isInsideInlineContext() {
+        CodegenContext current = context;
+        while (current != null) {
+            if (current instanceof MethodContext && current.isInlineMethodContext() || current instanceof InlineLambdaContext) {
+                return true;
+            }
+            current = current.getParentContext();
+        }
+        return false;
     }
 
     @NotNull

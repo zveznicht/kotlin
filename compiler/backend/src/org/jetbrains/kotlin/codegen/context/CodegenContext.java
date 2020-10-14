@@ -336,6 +336,16 @@ public abstract class CodegenContext<T extends DeclarationDescriptor> {
     }
 
     @NotNull
+    public IndyLambdaContext intoIndyClosure(
+            @NotNull FunctionDescriptor funDescriptor,
+            @NotNull LocalLookup localLookup,
+            @NotNull OwnerKind ownerKind,
+            @NotNull KotlinTypeMapper typeMapper
+    ) {
+        return new IndyLambdaContext(funDescriptor, ownerKind,  this, null, localLookup, typeMapper);
+    }
+
+    @NotNull
     public ClosureContext intoCoroutineClosure(
             // copy of lambda descriptor that has an additional value parameter Continuation<T>
             @NotNull FunctionDescriptor jvmViewOfSuspendLambda,

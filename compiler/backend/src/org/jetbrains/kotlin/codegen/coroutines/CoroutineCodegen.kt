@@ -554,13 +554,19 @@ class CoroutineCodegenForLambda private constructor(
 
     companion object {
         @JvmStatic
+        fun isCoroutineCodegenForLambdaApplicable(
+            originalSuspendLambdaDescriptor: FunctionDescriptor,
+            declaration: KtElement
+        ) = !(!originalSuspendLambdaDescriptor.isSuspendLambdaOrLocalFunction() || declaration is KtCallableReferenceExpression)
+
+        @JvmStatic
         fun create(
             expressionCodegen: ExpressionCodegen,
             originalSuspendLambdaDescriptor: FunctionDescriptor,
             declaration: KtElement,
             classBuilder: ClassBuilder
         ): ClosureCodegen? {
-            if (!originalSuspendLambdaDescriptor.isSuspendLambdaOrLocalFunction() || declaration is KtCallableReferenceExpression) return null
+            if (!isCoroutineCodegenForLambdaApplicable(originalSuspendLambdaDescriptor, declaration)) return null
 
             return CoroutineCodegenForLambda(
                 expressionCodegen,
