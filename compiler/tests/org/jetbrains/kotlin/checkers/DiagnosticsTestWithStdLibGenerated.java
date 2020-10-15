@@ -799,6 +799,11 @@ public class DiagnosticsTestWithStdLibGenerated extends AbstractDiagnosticsTestW
                 runTest("compiler/testData/diagnostics/testsWithStdLib/annotations/jvmStatic/mainInObject.kt");
             }
 
+            @TestMetadata("privateCompanionObject.kt")
+            public void testPrivateCompanionObject() throws Exception {
+                runTest("compiler/testData/diagnostics/testsWithStdLib/annotations/jvmStatic/privateCompanionObject.kt");
+            }
+
             @TestMetadata("property.kt")
             public void testProperty() throws Exception {
                 runTest("compiler/testData/diagnostics/testsWithStdLib/annotations/jvmStatic/property.kt");
