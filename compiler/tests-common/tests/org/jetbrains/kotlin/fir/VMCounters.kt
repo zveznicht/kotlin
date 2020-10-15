@@ -101,8 +101,8 @@ fun vmStateSnapshot(): VMCounters {
     Init
     val threadMXBean = ManagementFactoryHelper.getThreadMXBean()
     val hotspotRuntimeMBean = ManagementFactoryHelper.getHotspotRuntimeMBean()
-    val hotspotCompilationMBean = ManagementFactoryHelper.getHotspotCompilationMBean()
-    val compilationMXBean = ManagementFactoryHelper.getCompilationMXBean()
+//    val hotspotCompilationMBean = ManagementFactoryHelper.getHotspotCompilationMBean()
+//    val compilationMXBean = ManagementFactoryHelper.getCompilationMXBean()
 
     return VMCounters(
         threadMXBean.threadUserTime(), threadMXBean.threadCpuTime(),
@@ -110,11 +110,11 @@ fun vmStateSnapshot(): VMCounters {
         hotspotRuntimeMBean.totalSafepointTime,
         hotspotRuntimeMBean.safepointSyncTime,
         hotspotRuntimeMBean.safepointCount,
-        compilationMXBean.totalCompilationTime,
-        hotspotCompilationMBean.totalCompileCount,
-        hotspotCompilationMBean.bailoutCompileCount,
-        hotspotCompilationMBean.invalidatedCompileCount,
-        hotspotCompilationMBean.compiledMethodSize,
-        hotspotCompilationMBean.compiledMethodCodeSize
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
     )
 }
