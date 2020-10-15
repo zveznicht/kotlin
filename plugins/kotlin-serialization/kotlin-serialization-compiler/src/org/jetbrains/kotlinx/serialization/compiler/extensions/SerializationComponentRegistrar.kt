@@ -30,7 +30,8 @@ class SerializationComponentRegistrar : ComponentRegistrar {
     }
 
     companion object {
-        internal val serializationDescriptorSerializer = SerializationDescriptorPluginForKotlinxSerialization()
+        internal var serializationDescriptorSerializer: SerializationDescriptorSerializerPlugin? = null
+            private set
 
         fun registerExtensions(project: Project) {
             SyntheticResolveExtension.registerExtension(project, SerializationResolveExtension())
@@ -41,7 +42,11 @@ class SerializationComponentRegistrar : ComponentRegistrar {
 
             StorageComponentContainerContributor.registerExtension(project, SerializationPluginComponentContainerContributor())
 
-            DescriptorSerializerPlugin.registerExtension(project, serializationDescriptorSerializer)
+            // This method is never called in the IDE, therefore this extension is not available there.
+            // Since IDE does not perform any serialization of descriptors, metadata written to the 'serializationDescriptorSerializer'
+            // is never deleted, effectively causing memory leaks.
+            if (serializationDescriptorSerializer == null) serializationDescriptorSerializer = SerializationDescriptorSerializerPlugin()
+            DescriptorSerializerPlugin.registerExtension(project, serializationDescriptorSerializer!!)
             registerProtoExtensions()
         }
 

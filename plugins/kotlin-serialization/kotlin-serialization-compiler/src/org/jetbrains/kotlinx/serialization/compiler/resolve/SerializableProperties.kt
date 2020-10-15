@@ -90,7 +90,7 @@ internal fun bitMaskSlotAt(propertyIndex: Int) = propertyIndex / 32
 
 internal fun BindingContext.serializablePropertiesFor(classDescriptor: ClassDescriptor): SerializableProperties {
     val props = this.get(SERIALIZABLE_PROPERTIES, classDescriptor) ?: SerializableProperties(classDescriptor, this)
-    SerializationComponentRegistrar.serializationDescriptorSerializer.putIfNeeded(classDescriptor, props)
+    SerializationComponentRegistrar.serializationDescriptorSerializer?.putIfNeeded(classDescriptor, props)
     return props
 }
 
