@@ -144,7 +144,7 @@ class JsClassGenerator(private val irClass: IrClass, val context: JsGenerationCo
     }
 
     private fun IrClass.shouldCopyFrom(): Boolean {
-        return (kind == ClassKind.INTERFACE)
+        return isInterface && !isEffectivelyExternal()
     }
 
     private fun generateMemberFunction(declaration: IrSimpleFunction): Pair<JsNameRef, JsFunction?> {
@@ -166,7 +166,7 @@ class JsClassGenerator(private val irClass: IrClass, val context: JsGenerationCo
             declaration.realOverrideTarget.let {
                 val implClassDeclaration = it.parent as IrClass
 
-                if (implClassDeclaration.shouldCopyFrom() && !it.isEffectivelyExternal()) {
+                if (implClassDeclaration.shouldCopyFrom()) {
                     val implMethodName = context.getNameForMemberFunction(it)
                     val implClassName = context.getNameForClass(implClassDeclaration)
 
