@@ -1,5 +1,7 @@
 // EXPECTED_REACHABLE_NODES: 1251
 
+// KT-41227
+
 var result = ""
 
 open class A {
