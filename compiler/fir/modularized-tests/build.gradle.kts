@@ -95,7 +95,6 @@ projectTest {
             jvmArgs(paramRegex.findAll(argsExt).map { it.groupValues[1] }.toList())
         }
     }
-    jvmArgs("-XX:-TieredCompilation")
     jvmArgs("-XX:ReservedCodeCacheSize=512m")
 }
 
