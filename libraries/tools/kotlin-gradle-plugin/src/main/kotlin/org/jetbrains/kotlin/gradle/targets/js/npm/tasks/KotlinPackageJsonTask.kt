@@ -26,6 +26,10 @@ open class KotlinPackageJsonTask : DefaultTask() {
     @Transient
     private lateinit var compilation: KotlinJsCompilation
 
+    private val compilationName by lazy {
+        compilation.name
+    }
+
     @Input
     val projectPath = project.path
 
@@ -54,8 +58,8 @@ open class KotlinPackageJsonTask : DefaultTask() {
     @get:Input
     internal val toolsNpmDependencies: List<String> by lazy {
         nodeJs.taskRequirements
-            .getCompilationNpmRequirements(compilation)
-            .map { it.uniqueRepresentation() }
+            .getCompilationNpmRequirements(compilationName)
+            .map { it.toString() }
     }
 
     @get:Nested
