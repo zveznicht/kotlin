@@ -77,39 +77,39 @@ class IrFunctionReferenceImpl(
     companion object {
         @ObsoleteDescriptorBasedAPI
         fun fromSymbolDescriptor(
-                startOffset: Int,
-                endOffset: Int,
-                type: IrType,
-                symbol: IrFunctionSymbol,
-                typeArgumentsCount: Int,
-                reflectionTarget: IrFunctionSymbol?,
-                origin: IrStatementOrigin? = null
+            startOffset: Int,
+            endOffset: Int,
+            type: IrType,
+            symbol: IrFunctionSymbol,
+            typeArgumentsCount: Int,
+            reflectionTarget: IrFunctionSymbol?,
+            origin: IrStatementOrigin? = null
         ) = IrFunctionReferenceImpl(
-                startOffset, endOffset,
-                type,
-                symbol,
-                typeArgumentsCount,
-                symbol.descriptor.valueParameters.size,
-                reflectionTarget,
-                origin
+            startOffset, endOffset,
+            type,
+            symbol,
+            typeArgumentsCount,
+            symbol.descriptor.valueParameters.size,
+            reflectionTarget,
+            origin
         )
 
         fun fromSymbolOwner(
-                startOffset: Int,
-                endOffset: Int,
-                type: IrType,
-                symbol: IrFunctionSymbol,
-                typeArgumentsCount: Int,
-                reflectionTarget: IrFunctionSymbol?,
-                origin: IrStatementOrigin? = null
+            startOffset: Int,
+            endOffset: Int,
+            type: IrType,
+            symbol: IrFunctionSymbol,
+            typeArgumentsCount: Int,
+            reflectionTarget: IrFunctionSymbol?,
+            origin: IrStatementOrigin? = null
         ) = IrFunctionReferenceImpl(
-                startOffset, endOffset,
-                type,
-                symbol,
-                typeArgumentsCount,
-                symbol.owner.valueParameters.size,
-                reflectionTarget,
-                origin
+            startOffset, endOffset,
+            type,
+            symbol,
+            typeArgumentsCount,
+            symbol.owner.valueParameters.size,
+            reflectionTarget,
+            origin
         )
     }
 }

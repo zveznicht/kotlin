@@ -49,29 +49,29 @@ class IrCallImpl(
     companion object {
         @ObsoleteDescriptorBasedAPI
         fun fromSymbolDescriptor(
-                startOffset: Int,
-                endOffset: Int,
-                type: IrType,
-                symbol: IrSimpleFunctionSymbol,
-                typeArgumentsCount: Int = symbol.descriptor.typeParametersCount,
-                valueArgumentsCount: Int = symbol.descriptor.valueParameters.size,
-                origin: IrStatementOrigin? = null,
-                superQualifierSymbol: IrClassSymbol? = null,
+            startOffset: Int,
+            endOffset: Int,
+            type: IrType,
+            symbol: IrSimpleFunctionSymbol,
+            typeArgumentsCount: Int = symbol.descriptor.typeParametersCount,
+            valueArgumentsCount: Int = symbol.descriptor.valueParameters.size,
+            origin: IrStatementOrigin? = null,
+            superQualifierSymbol: IrClassSymbol? = null,
         ) = IrCallImpl(
-                startOffset, endOffset, type, symbol, typeArgumentsCount, valueArgumentsCount, origin, superQualifierSymbol
+            startOffset, endOffset, type, symbol, typeArgumentsCount, valueArgumentsCount, origin, superQualifierSymbol
         )
 
         fun fromSymbolOwner(
-                startOffset: Int,
-                endOffset: Int,
-                type: IrType,
-                symbol: IrSimpleFunctionSymbol,
-                typeArgumentsCount: Int = symbol.owner.typeParameters.size,
-                valueArgumentsCount: Int = symbol.owner.valueParameters.size,
-                origin: IrStatementOrigin? = null,
-                superQualifierSymbol: IrClassSymbol? = null,
+            startOffset: Int,
+            endOffset: Int,
+            type: IrType,
+            symbol: IrSimpleFunctionSymbol,
+            typeArgumentsCount: Int = symbol.owner.typeParameters.size,
+            valueArgumentsCount: Int = symbol.owner.valueParameters.size,
+            origin: IrStatementOrigin? = null,
+            superQualifierSymbol: IrClassSymbol? = null,
         ) = IrCallImpl(
-                startOffset, endOffset, type, symbol, typeArgumentsCount, valueArgumentsCount, origin, superQualifierSymbol
+            startOffset, endOffset, type, symbol, typeArgumentsCount, valueArgumentsCount, origin, superQualifierSymbol
         )
     }
 }

@@ -43,21 +43,21 @@ class IrDelegatingConstructorCallImpl(
     companion object {
         @ObsoleteDescriptorBasedAPI
         fun fromSymbolDescriptor(
-                startOffset: Int,
-                endOffset: Int,
-                type: IrType,
-                symbol: IrConstructorSymbol,
-                typeArgumentsCount: Int = symbol.descriptor.typeParametersCount,
-                valueArgumentsCount: Int = symbol.descriptor.valueParameters.size
+            startOffset: Int,
+            endOffset: Int,
+            type: IrType,
+            symbol: IrConstructorSymbol,
+            typeArgumentsCount: Int = symbol.descriptor.typeParametersCount,
+            valueArgumentsCount: Int = symbol.descriptor.valueParameters.size
         ) = IrDelegatingConstructorCallImpl(startOffset, endOffset, type, symbol, typeArgumentsCount, valueArgumentsCount)
 
         fun fromSymbolOwner(
-                startOffset: Int,
-                endOffset: Int,
-                type: IrType,
-                symbol: IrConstructorSymbol,
-                typeArgumentsCount: Int = symbol.owner.allTypeParameters.size,
-                valueArgumentsCount: Int = symbol.owner.valueParameters.size
+            startOffset: Int,
+            endOffset: Int,
+            type: IrType,
+            symbol: IrConstructorSymbol,
+            typeArgumentsCount: Int = symbol.owner.allTypeParameters.size,
+            valueArgumentsCount: Int = symbol.owner.valueParameters.size
         ) = IrDelegatingConstructorCallImpl(startOffset, endOffset, type, symbol, typeArgumentsCount, valueArgumentsCount)
     }
 }
