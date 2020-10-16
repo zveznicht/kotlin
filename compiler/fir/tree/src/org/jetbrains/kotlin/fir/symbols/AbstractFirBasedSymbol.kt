@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 
 abstract class AbstractFirBasedSymbol<E> : FirBasedSymbol<E> where E : FirSymbolOwner<E>, E : FirDeclaration {
 
+    @Volatile
     override lateinit var fir: E
 
     override fun bind(e: E) {
