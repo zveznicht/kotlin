@@ -78,7 +78,8 @@ class PolymorphicSignatureLowering(val context: JvmBackendContext) : IrElementTr
             }
         }
         return IrCallImpl.fromSymbolOwner(
-            startOffset, endOffset, fakeFunction.returnType, fakeFunction.symbol, origin, superQualifierSymbol
+            startOffset, endOffset, fakeFunction.returnType, fakeFunction.symbol,
+            origin = origin, superQualifierSymbol = superQualifierSymbol
         ).apply {
             copyTypeArgumentsFrom(this@transform)
             dispatchReceiver = this@transform.dispatchReceiver

@@ -73,18 +73,5 @@ class IrCallImpl(
         ) = IrCallImpl(
                 startOffset, endOffset, type, symbol, typeArgumentsCount, valueArgumentsCount, origin, superQualifierSymbol
         )
-
-        fun fromSymbolOwner(
-            startOffset: Int,
-            endOffset: Int,
-            type: IrType,
-            symbol: IrSimpleFunctionSymbol,
-            origin: IrStatementOrigin? = null,
-            superQualifierSymbol: IrClassSymbol? = null,
-        ) = IrCallImpl(
-            startOffset, endOffset, type, symbol,
-            symbol.owner.typeParameters.size, symbol.owner.valueParameters.size,
-            origin, superQualifierSymbol
-        )
     }
 }
