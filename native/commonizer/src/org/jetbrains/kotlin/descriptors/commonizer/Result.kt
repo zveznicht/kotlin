@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.descriptors.commonizer
 
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
+import org.jetbrains.kotlin.library.SerializedMetadata
 import java.io.File
 
 sealed class Result {
@@ -21,5 +22,10 @@ sealed class Result {
 
 sealed class ModuleResult {
     class Absent(val originalLocation: File) : ModuleResult()
-    class Commonized(val module: ModuleDescriptor) : ModuleResult()
+    class Commonized(val module: ModuleDescriptor, val metadata: LibraryMetadata) : ModuleResult()
 }
+
+class LibraryMetadata(
+    val libraryName: String,
+    val metadata: SerializedMetadata
+)

@@ -207,6 +207,7 @@ class NativeDistributionCommonizer(
                 targetsToSerialize.forEach { target ->
                     val moduleResults: Collection<ModuleResult> = result.modulesByTargets.getValue(target)
                     val newModules: Collection<ModuleDescriptor> = moduleResults.mapNotNull { (it as? ModuleResult.Commonized)?.module }
+                    val newLibraries: Collection<LibraryMetadata> = moduleResults.mapNotNull { (it as? ModuleResult.Commonized)?.metadata }
                     val absentModuleLocations: List<File> =
                         moduleResults.mapNotNull { (it as? ModuleResult.Absent)?.originalLocation }
 
@@ -224,7 +225,7 @@ class NativeDistributionCommonizer(
                     }
 
                     val targetName = leafTargetNames.joinToString { if (it == starredTarget) "$it(*)" else it }
-                    serializeTarget(target, targetName, newModules, absentModuleLocations, manifestProvider, serializer)
+                    serializeTarget(target, targetName, newModules, newLibraries, absentModuleLocations, manifestProvider, serializer)
                 }
             }
         }
@@ -269,6 +270,7 @@ class NativeDistributionCommonizer(
         target: Target,
         targetName: String,
         newModules: Collection<ModuleDescriptor>,
+        newLibraries: Collection<LibraryMetadata>,
         absentModuleLocations: List<File>,
         manifestProvider: NativeManifestDataProvider,
         serializer: KlibMetadataMonolithicSerializer
@@ -297,6 +299,15 @@ class NativeDistributionCommonizer(
         }
 
         logProgress("Written libraries for [$targetName]")
+
+        for (newLibrary in newLibraries) {
+            val manifestData = manifestProvider.getManifest(newLibrary.libraryName)
+            val libraryDestination = librariesDestination.resolve(newLibrary.libraryName + "-NEW")
+
+            writeLibrary(newLibrary.metadata, manifestData, libraryDestination)
+        }
+
+        logProgress("Written libraries (2) for [$targetName]")
     }
 
     private fun writeLibrary(

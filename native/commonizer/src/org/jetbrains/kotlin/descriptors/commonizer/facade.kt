@@ -10,7 +10,9 @@ import org.jetbrains.kotlin.descriptors.commonizer.builder.DeclarationsBuilderVi
 import org.jetbrains.kotlin.descriptors.commonizer.builder.createGlobalBuilderComponents
 import org.jetbrains.kotlin.descriptors.commonizer.core.CommonizationVisitor
 import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.*
+import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.CirNode.Companion.dimension
 import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.CirTreeMerger.CirTreeMergeResult
+import org.jetbrains.kotlin.descriptors.commonizer.metadata.MetadataBuilder
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.storage.StorageManager
 
@@ -24,6 +26,11 @@ fun runCommonization(parameters: Parameters): Result {
     val mergedTree = mergeResult.root
 
     // build resulting descriptors:
+    for (targetIndex in 0 until mergedTree.dimension) {
+        val (target, metadataModules) = MetadataBuilder.build(mergedTree, targetIndex)
+        parameters.progressLogger?.invoke("Metadata: Built modules for target [$target]")
+    }
+
     val components = mergedTree.createGlobalBuilderComponents(storageManager, parameters)
     mergedTree.accept(DeclarationsBuilderVisitor1(components), emptyList())
     mergedTree.accept(DeclarationsBuilderVisitor2(components), emptyList())
@@ -32,6 +39,25 @@ fun runCommonization(parameters: Parameters): Result {
     components.targetComponents.forEach { component ->
         val target = component.target
         check(target !in modulesByTargets)
+
+        //        val commonizedModules: List<ModuleResult.Commonized> = components.cache.getAllModules(component.index).mapNotNull { module ->
+        //            if (module.name == KlibResolvedModuleDescriptorsFactoryImpl.FORWARD_DECLARATIONS_MODULE_NAME)
+        //                return@mapNotNull null
+        //
+        //            val libraryName = module.name.asString().removePrefix("<").removeSuffix(">")
+        //            val serializedMetadata = modulesByTargets0.getValue(target).getValue(libraryName)
+        //
+        //            val libraryMetadata = LibraryMetadata(
+        //                libraryName,
+        //                SerializedMetadata(
+        //                    serializedMetadata.header,
+        //                    serializedMetadata.fragments,
+        //                    serializedMetadata.fragmentNames
+        //                )
+        //            )
+        //
+        //            ModuleResult.Commonized(module, libraryMetadata)
+        //        }
 
         val commonizedModules: List<ModuleResult.Commonized> = components.cache.getAllModules(component.index).map(ModuleResult::Commonized)
 
