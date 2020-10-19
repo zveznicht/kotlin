@@ -98,8 +98,6 @@ abstract class BasicWasmBoxTest(
                     "--experimental-wasm-gc",
                     outputJsFile
                 )
-
-            File("/Users/svyatoslav.kuzmich/tmp/passedWasm").appendText(filePath + "\n")
         }
     }
 
