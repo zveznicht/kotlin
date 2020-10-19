@@ -35,7 +35,7 @@ import org.jetbrains.kotlin.types.KotlinTypeFactory
 import org.jetbrains.kotlin.types.SimpleType
 import org.jetbrains.kotlin.types.StarProjectionImpl
 
-private class XmlSourceElement(override val psi: PsiElement) : PsiSourceElement
+private class XmlSourceElement(override val psiInternal: PsiElement) : PsiSourceElement<PsiElement>()
 
 internal fun genClearCacheFunction(packageFragmentDescriptor: PackageFragmentDescriptor, receiverType: KotlinType): SimpleFunctionDescriptor {
     val function = object : AndroidSyntheticFunction, SimpleFunctionDescriptorImpl(

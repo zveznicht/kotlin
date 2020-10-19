@@ -248,7 +248,7 @@ interface ParcelSerializer {
 
                 type.isParcelable() -> {
                     val clazz = type.constructor.declarationDescriptor as? ClassDescriptor
-                    if (clazz != null && clazz.modality == Modality.FINAL && clazz.source is PsiSourceElement) {
+                    if (clazz != null && clazz.modality == Modality.FINAL && clazz.source is PsiSourceElement<*>) {
 
                         fun MemberScope.findCreatorField() = getContributedVariables(
                                 Name.identifier("CREATOR"), NoLookupLocation.WHEN_GET_ALL_DESCRIPTORS).firstOrNull()

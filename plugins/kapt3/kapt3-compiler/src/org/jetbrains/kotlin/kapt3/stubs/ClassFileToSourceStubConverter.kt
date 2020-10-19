@@ -1096,7 +1096,7 @@ class ClassFileToSourceStubConverter(val kaptContext: KaptContextForStubGenerati
             if (stripMetadata && fqName == KOTLIN_METADATA_ANNOTATION) return null
         }
 
-        val ktAnnotation = (annotationDescriptor?.source as? PsiSourceElement)?.psi as? KtAnnotationEntry
+        val ktAnnotation = (annotationDescriptor?.source as? PsiSourceElement<*>)?.psi as? KtAnnotationEntry
         val argMapping = ktAnnotation?.calleeExpression
             ?.getResolvedCall(kaptContext.bindingContext)?.valueArguments
             ?.mapKeys { it.key.name.asString() }

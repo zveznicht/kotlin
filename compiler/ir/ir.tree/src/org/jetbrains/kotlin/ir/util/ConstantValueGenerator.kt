@@ -144,7 +144,7 @@ class ConstantValueGenerator(
             ?: throw AssertionError("No constructor for annotation class $annotationClassDescriptor")
         val primaryConstructorSymbol = symbolTable.referenceConstructor(primaryConstructorDescriptor)
 
-        val psi = annotationDescriptor.source.safeAs<PsiSourceElement>()?.psi
+        val psi = annotationDescriptor.source.safeAs<PsiSourceElement<*>>()?.psi
         val startOffset = psi?.takeUnless { it.containingFile.fileType.isBinary }?.startOffset ?: UNDEFINED_OFFSET
         val endOffset = psi?.takeUnless { it.containingFile.fileType.isBinary }?.endOffset ?: UNDEFINED_OFFSET
 

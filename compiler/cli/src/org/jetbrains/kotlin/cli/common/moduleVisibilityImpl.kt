@@ -34,10 +34,10 @@ class ModuleVisibilityHelperImpl : ModuleVisibilityHelper {
         // We should check accessibility of 'from' in current module (some set of source files, which are compiled together),
         // so we can assume that 'from' should have sources or is a LazyPackageDescriptor with some package files.
         val project: Project = if (fromSource is KotlinSourceElement) {
-            fromSource.psi.project
+            fromSource.psi?.project
         } else {
-            (from as? LazyPackageDescriptor)?.declarationProvider?.getPackageFiles()?.firstOrNull()?.project ?: return true
-        }
+            (from as? LazyPackageDescriptor)?.declarationProvider?.getPackageFiles()?.firstOrNull()?.project
+        } ?: return true
 
         val moduleVisibilityManager = ModuleVisibilityManager.SERVICE.getInstance(project)
         if (!moduleVisibilityManager.enabled) return true
@@ -67,7 +67,7 @@ class ModuleVisibilityHelperImpl : ModuleVisibilityHelper {
     private fun findModule(descriptor: DeclarationDescriptor, modules: Collection<Module>): Module? {
         val sourceElement = getSourceElement(descriptor)
         return if (sourceElement is KotlinSourceElement) {
-            modules.singleOrNull() ?: modules.firstOrNull { sourceElement.psi.containingKtFile.virtualFile.path in it.getSourceFiles() }
+            modules.singleOrNull() ?: modules.firstOrNull { sourceElement.psi?.containingKtFile?.virtualFile?.path in it.getSourceFiles() }
         } else {
             modules.firstOrNull { module ->
                 isContainedByCompiledPartOfOurModule(descriptor, File(module.getOutputDirectory())) ||

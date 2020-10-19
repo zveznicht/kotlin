@@ -21,8 +21,11 @@ import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.SourceFile
 
-interface PsiSourceElement : SourceElement {
-    val psi: PsiElement?
+abstract class PsiSourceElement<out T : PsiElement> : SourceElement {
+    val psi: T?
+        get() = psiInternal?.takeIf { it.isValid }
+
+    protected abstract val psiInternal: T?
 
     override fun getContainingFile(): SourceFile = psi?.containingFile?.let(::PsiSourceFile) ?: SourceFile.NO_SOURCE_FILE
 }

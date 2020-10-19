@@ -87,7 +87,7 @@ object ConstFixFactory : KotlinSingleIntentionActionFactory() {
     override fun createAction(diagnostic: Diagnostic): IntentionAction? {
         val expr = diagnostic.psiElement as? KtReferenceExpression ?: return null
         val targetDescriptor = expr.resolveToCall()?.resultingDescriptor as? VariableDescriptor ?: return null
-        val declaration = (targetDescriptor.source as? PsiSourceElement)?.psi as? KtProperty ?: return null
+        val declaration = (targetDescriptor.source as? PsiSourceElement<*>)?.psi as? KtProperty ?: return null
         if (ConstModifierChecker.canBeConst(declaration, declaration, targetDescriptor)) {
             return AddConstModifierFix(declaration)
         }

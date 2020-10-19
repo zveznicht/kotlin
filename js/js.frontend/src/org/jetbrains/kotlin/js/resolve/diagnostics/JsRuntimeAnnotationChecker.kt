@@ -33,7 +33,7 @@ object JsRuntimeAnnotationChecker : DeclarationChecker {
             val annotationClass = annotation.annotationClass ?: continue
             if (annotationClass.getAnnotationRetention() != KotlinRetention.RUNTIME) continue
 
-            val annotationPsi = (annotation.source as? PsiSourceElement)?.psi ?: declaration
+            val annotationPsi = (annotation.source as? PsiSourceElement<*>)?.psi ?: declaration
 
             if (descriptor is MemberDescriptor && descriptor.isEffectivelyExternal()) {
                 context.trace.report(ErrorsJs.RUNTIME_ANNOTATION_ON_EXTERNAL_DECLARATION.on(annotationPsi))

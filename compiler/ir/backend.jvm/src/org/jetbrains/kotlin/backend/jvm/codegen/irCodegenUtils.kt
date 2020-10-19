@@ -83,7 +83,7 @@ val IrDeclaration.fileParent: IrFile
     }
 
 internal val DeclarationDescriptorWithSource.psiElement: PsiElement?
-    get() = (source as? PsiSourceElement)?.psi
+    get() = (source as? PsiSourceElement<*>)?.psi
 
 fun JvmBackendContext.getSourceMapper(declaration: IrClass): SourceMapper {
     val sourceManager = this.psiSourceManager

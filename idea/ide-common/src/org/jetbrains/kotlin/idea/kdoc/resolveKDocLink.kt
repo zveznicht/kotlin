@@ -196,7 +196,7 @@ fun getKDocLinkResolutionScope(resolutionFacade: ResolutionFacade, contextDescri
 private fun getOuterScope(descriptor: DeclarationDescriptorWithSource, resolutionFacade: ResolutionFacade): LexicalScope {
     val parent = descriptor.containingDeclaration!!
     if (parent is PackageFragmentDescriptor) {
-        val containingFile = (descriptor.source as? PsiSourceElement)?.psi?.containingFile as? KtFile ?: return LexicalScope.Base(
+        val containingFile = (descriptor.source as? PsiSourceElement<*>)?.psi?.containingFile as? KtFile ?: return LexicalScope.Base(
             ImportingScope.Empty,
             parent
         )

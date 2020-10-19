@@ -119,7 +119,7 @@ private fun KotlinType.isCollectionLikeOf(classPsiElement: PsiNamedElement): Boo
     val klass = this.constructor.declarationDescriptor as? ClassDescriptor ?: return false
     if (KotlinBuiltIns.isArray(this) || DescriptorUtils.isSubclass(klass, klass.builtIns.collection)) {
         val typeArgument = this.arguments.singleOrNull()?.type ?: return false
-        val typePsiElement = ((typeArgument.constructor.declarationDescriptor as? ClassDescriptor)?.source as? PsiSourceElement)?.psi
+        val typePsiElement = ((typeArgument.constructor.declarationDescriptor as? ClassDescriptor)?.source as? PsiSourceElement<*>)?.psi
         return classPsiElement == typePsiElement || typeArgument.isCollectionLikeOf(classPsiElement)
     }
     return false

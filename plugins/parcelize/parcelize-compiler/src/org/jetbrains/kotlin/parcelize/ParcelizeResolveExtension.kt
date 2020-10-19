@@ -116,7 +116,7 @@ open class ParcelizeResolveExtension : SyntheticResolveExtension {
         result: MutableCollection<SimpleFunctionDescriptor>
     ) {
         fun isParcelizePluginEnabled(): Boolean {
-            val sourceElement = (thisDescriptor.source as? PsiSourceElement)?.psi ?: return false
+            val sourceElement = (thisDescriptor.source as? PsiSourceElement<*>)?.psi ?: return false
             return isAvailable(sourceElement)
         }
 

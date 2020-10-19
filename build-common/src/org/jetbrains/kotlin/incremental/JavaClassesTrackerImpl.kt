@@ -76,7 +76,7 @@ class JavaClassesTrackerImpl(
 }
 
 private val JavaClassDescriptor.javaSourceFile: File?
-    get() = source.safeAs<PsiSourceElement>()
+    get() = source.safeAs<PsiSourceElement<*>>()
             ?.psi?.containingFile?.takeIf { it is PsiJavaFile }
             ?.virtualFile?.path?.let(::File)
 
