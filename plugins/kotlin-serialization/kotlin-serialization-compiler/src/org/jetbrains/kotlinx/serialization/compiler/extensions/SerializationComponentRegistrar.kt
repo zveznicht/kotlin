@@ -30,24 +30,22 @@ class SerializationComponentRegistrar : ComponentRegistrar {
     }
 
     companion object {
-        internal var serializationDescriptorSerializer: SerializationDescriptorSerializerPlugin? = null
-            private set
-
         fun registerExtensions(project: Project) {
-            SyntheticResolveExtension.registerExtension(project, SerializationResolveExtension())
-
-            ExpressionCodegenExtension.registerExtension(project, SerializationCodegenExtension())
-            JsSyntheticTranslateExtension.registerExtension(project, SerializationJsExtension())
-            IrGenerationExtension.registerExtension(project, SerializationLoweringExtension())
-
-            StorageComponentContainerContributor.registerExtension(project, SerializationPluginComponentContainerContributor())
-
             // This method is never called in the IDE, therefore this extension is not available there.
             // Since IDE does not perform any serialization of descriptors, metadata written to the 'serializationDescriptorSerializer'
             // is never deleted, effectively causing memory leaks.
-            if (serializationDescriptorSerializer == null) serializationDescriptorSerializer = SerializationDescriptorSerializerPlugin()
-            DescriptorSerializerPlugin.registerExtension(project, serializationDescriptorSerializer!!)
+            // So we create SerializationDescriptorSerializerPlugin only outside of IDE.
+            val serializationDescriptorSerializer = SerializationDescriptorSerializerPlugin()
+            DescriptorSerializerPlugin.registerExtension(project, serializationDescriptorSerializer)
             registerProtoExtensions()
+
+            SyntheticResolveExtension.registerExtension(project, SerializationResolveExtension(serializationDescriptorSerializer))
+
+            ExpressionCodegenExtension.registerExtension(project, SerializationCodegenExtension(serializationDescriptorSerializer))
+            JsSyntheticTranslateExtension.registerExtension(project, SerializationJsExtension(serializationDescriptorSerializer))
+            IrGenerationExtension.registerExtension(project, SerializationLoweringExtension(serializationDescriptorSerializer))
+
+            StorageComponentContainerContributor.registerExtension(project, SerializationPluginComponentContainerContributor())
         }
 
 
