@@ -292,7 +292,8 @@ extra["compilerModules"] = arrayOf(
     ":compiler:fir:jvm",
     ":compiler:fir:checkers",
     ":compiler:fir:entrypoint",
-    ":compiler:fir:analysis-tests"
+    ":compiler:fir:analysis-tests",
+    ":wasm:ir"
 )
 
 extra["compilerModulesForJps"] = listOf(
