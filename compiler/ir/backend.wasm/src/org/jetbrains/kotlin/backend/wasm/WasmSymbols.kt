@@ -31,8 +31,8 @@ class WasmSymbols(
         context.module.getPackage(FqName("kotlin.wasm.internal"))
 
     override val throwNullPointerException = getInternalFunction("THROW_NPE")
-    override val ThrowIllegalStateException = getInternalFunction("THROW_ISE")
-    override val throwNoWhenBranchMatchedException = ThrowIllegalStateException
+    override val throwISE = getInternalFunction("THROW_ISE")
+    override val throwNoWhenBranchMatchedException = throwISE
     override val throwTypeCastException = getInternalFunction("THROW_CCE")
     override val throwUninitializedPropertyAccessException =
         getInternalFunction("throwUninitializedPropertyAccessException")

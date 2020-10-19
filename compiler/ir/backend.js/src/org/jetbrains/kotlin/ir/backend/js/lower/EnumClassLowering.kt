@@ -463,7 +463,7 @@ class EnumSyntheticFunctionsLowering(val context: JsCommonBackendContext): Decla
         return null
     }
 
-    private val throwISESymbol = context.ir.symbols.ThrowIllegalStateException
+    private val throwISESymbol = context.ir.symbols.throwISE
 
     private fun createEnumValueOfBody(valueOfFun: IrFunction, irClass: IrClass): IrBlockBody {
         val nameParameter = valueOfFun.valueParameters[0]

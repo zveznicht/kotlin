@@ -199,7 +199,7 @@ class JsIrBackendContext(
             override val defaultConstructorMarker =
                 symbolTable.referenceClass(context.getJsInternalClass("DefaultConstructorMarker"))
 
-            override val ThrowIllegalStateException: IrSimpleFunctionSymbol =
+            override val throwISE: IrSimpleFunctionSymbol =
                 symbolTable.referenceSimpleFunction(getFunctions(kotlinPackageFqn.child(Name.identifier("THROW_ISE"))).single())
 
             override val stringBuilder

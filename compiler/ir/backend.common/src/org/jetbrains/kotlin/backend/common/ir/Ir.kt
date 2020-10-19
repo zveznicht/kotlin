@@ -295,8 +295,8 @@ abstract class Symbols<out T : CommonBackendContext>(val context: T, irBuiltIns:
 
     abstract val throwKotlinNothingValueException: IrSimpleFunctionSymbol
 
-    open val ThrowIllegalStateException: IrSimpleFunctionSymbol
-        get() = TODO("Support ThrowIllegalStateException")
+    open val throwISE: IrSimpleFunctionSymbol
+        get() = error("throwISE is not implemented")
 
     abstract val stringBuilder: IrClassSymbol
 
