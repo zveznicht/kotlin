@@ -73,7 +73,7 @@ inline fun <R> withJsIC(fn: () -> R): R {
 }
 
 class IncrementalJsCompilerRunner(
-    private val workingDir: File,
+    workingDir: File,
     reporter: BuildReporter,
     buildHistoryFile: File,
     private val modulesApiHistory: ModulesApiHistory,
@@ -89,7 +89,7 @@ class IncrementalJsCompilerRunner(
 
     override fun createCacheManager(args: K2JSCompilerArguments, projectDir: File?): IncrementalJsCachesManager {
         val serializerProtocol = if (!args.isIrBackendEnabled()) JsSerializerProtocol else KlibMetadataSerializerProtocol
-        return IncrementalJsCachesManager(cacheDirectory, workingDir, reporter, serializerProtocol)
+        return IncrementalJsCachesManager(cacheDirectory, projectDir, reporter, serializerProtocol)
     }
 
     override fun destinationDir(args: K2JSCompilerArguments): File =
@@ -99,7 +99,8 @@ class IncrementalJsCompilerRunner(
         caches: IncrementalJsCachesManager,
         changedFiles: ChangedFiles.Known,
         args: K2JSCompilerArguments,
-        messageCollector: MessageCollector
+        messageCollector: MessageCollector,
+        jarSnapshots: Map<String, JarSnapshot> //Ignore for now
     ): CompilationMode {
         val lastBuildInfo = BuildInfo.read(lastBuildInfoFile)
             ?: return CompilationMode.Rebuild(BuildAttribute.NO_BUILD_HISTORY)
@@ -108,7 +109,9 @@ class IncrementalJsCompilerRunner(
         initDirtyFiles(dirtyFiles, changedFiles)
 
         val libs = (args.libraries ?: "").split(File.pathSeparator).map { File(it) }
-        val classpathChanges = getClasspathChanges(libs, changedFiles, lastBuildInfo, modulesApiHistory, reporter)
+        //TODO check for JS
+        val classpathChanges = getClasspathChanges(libs, changedFiles, lastBuildInfo, modulesApiHistory, reporter,
+                                                   mapOf(), false)
 
         @Suppress("UNUSED_VARIABLE") // for sealed when
         val unused = when (classpathChanges) {
