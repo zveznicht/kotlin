@@ -694,6 +694,8 @@ internal open class KotlinAndroidPlugin(
 
         customizeKotlinDependencies(project)
 
+        project.setupGeneralKotlinExtensionParameters()
+
         registry.register(KotlinModelBuilder(kotlinPluginVersion, androidTarget))
 
         project.whenEvaluated { project.components.addAll(androidTarget.components) }
