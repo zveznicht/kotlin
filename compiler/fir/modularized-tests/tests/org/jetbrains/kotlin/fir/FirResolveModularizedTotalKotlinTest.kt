@@ -329,7 +329,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         statistics.report(System.out, "Pass $pass")
         perfBenchListener?.let { reportPerfStat(it, statistics, pass) }
 
-        perfHelper?.reset()
+        if (MEASURE_PERF_STAT) perfHelper?.reset()
 
         saveReport(pass, statistics)
         if (statistics.totalTime < (bestStatistics?.totalTime ?: Long.MAX_VALUE)) {
