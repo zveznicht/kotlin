@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.idea.fir.low.level.api.lazy.resolve
 
+import com.intellij.psi.util.parentsOfType
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.render
@@ -18,10 +19,10 @@ import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.ModuleFileCache
 import org.jetbrains.kotlin.idea.fir.low.level.api.providers.firIdeProvider
 import org.jetbrains.kotlin.idea.fir.low.level.api.trasformers.FirDesignatedContractsResolveTransformerForIDE
 import org.jetbrains.kotlin.idea.fir.low.level.api.trasformers.FirDesignatedImplicitTypesTransformerForIDE
+import org.jetbrains.kotlin.idea.fir.low.level.api.util.*
 import org.jetbrains.kotlin.idea.fir.low.level.api.util.checkCanceled
 import org.jetbrains.kotlin.idea.fir.low.level.api.util.executeWithoutPCE
 import org.jetbrains.kotlin.idea.fir.low.level.api.util.findSourceNonLocalFirDeclaration
-import org.jetbrains.kotlin.idea.fir.low.level.api.util.getContainingFile
 import org.jetbrains.kotlin.psi.*
 
 internal class FirLazyDeclarationResolver(
@@ -129,20 +130,13 @@ internal class FirLazyDeclarationResolver(
         val nonLocalDeclarationToResolve = firDeclarationToResolve.getNonLocalDeclarationToResolve(provider, moduleFileCache)
 
         val designation = mutableListOf<FirDeclaration>(containerFirFile)
+
         if (nonLocalDeclarationToResolve !is FirFile) {
-            val id = when (nonLocalDeclarationToResolve) {
-                is FirCallableDeclaration<*> -> {
-                    nonLocalDeclarationToResolve.symbol.callableId.classId
-                }
-                is FirClassLikeDeclaration<*> -> {
-                    nonLocalDeclarationToResolve.symbol.classId
-                }
-                else -> error("Unsupported: ${nonLocalDeclarationToResolve.render()}")
-            }
-            val outerClasses = generateSequence(id) { classId ->
-                classId.outerClassId
-            }.mapTo(mutableListOf()) { provider.getFirClassifierByFqName(it)!! }
-            designation += outerClasses.asReversed()
+            val ktDeclaration = firDeclarationToResolve.ktDeclaration
+            designation += ktDeclaration.parentsOfType<KtClassOrObject>()
+                .map { it.findSourceNonLocalFirDeclaration(firFileBuilder, provider.symbolProvider, moduleFileCache) }
+                .toList()
+                .asReversed()
             if (nonLocalDeclarationToResolve is FirCallableDeclaration<*>) {
                 designation += nonLocalDeclarationToResolve
             }

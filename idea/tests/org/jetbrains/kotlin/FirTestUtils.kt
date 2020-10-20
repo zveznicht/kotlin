@@ -33,8 +33,8 @@ inline fun doTestWithFIRFlagsByPath(path: String, body: () -> Unit) =
 
 inline fun doTestWithFIRFlags(mainFileText: String, body: () -> Unit) {
 
-    if (InTextDirectivesUtils.isDirectiveDefined(mainFileText, "FIR_IGNORE")) return
-    val isFirComparison = InTextDirectivesUtils.isDirectiveDefined(mainFileText, "FIR_COMPARISON")
+//    if (InTextDirectivesUtils.isDirectiveDefined(mainFileText, "FIR_IGNORE")) return
+    val isFirComparison = true /*InTextDirectivesUtils.isDirectiveDefined(mainFileText, "FIR_COMPARISON")*/
 
     try {
         body()
