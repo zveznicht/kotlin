@@ -61,7 +61,10 @@ private val ASYNC_PROFILER_START_CMD = System.getProperty("fir.bench.use.async.p
 private val ASYNC_PROFILER_STOP_CMD = System.getProperty("fir.bench.use.async.profiler.cmd.stop")
 private val PROFILER_SNAPSHOT_DIR = System.getProperty("fir.bench.snapshot.dir") ?: "tmp/snapshots"
 
-val USE_PERF_STAT = System.getProperty("fir.bench.use.perf.stat", "true").toBooleanLenient()!!
+val USE_PERF_STAT = System.getProperty("fir.bench.use.perf.stat", "false")
+val MEASURE_PERF_STAT = USE_PERF_STAT.toBooleanLenient() ?: false
+val UTILS_PERF_STAT = USE_PERF_STAT == "utils"
+
 val USE_PERF_STAT_CONFIG = System.getProperty("fir.bench.use.perf.stat.flags")
 val PERF_LIB_PATH = System.getProperty("fir.bench.perf.lib")
 
@@ -382,7 +385,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
 
     private fun initPerfStat() {
 
-        if (USE_PERF_STAT) {
+        if (MEASURE_PERF_STAT || UTILS_PERF_STAT) {
 
             val flags = USE_PERF_STAT_CONFIG?.let { cfg ->
                 cfg.split(',').associate { arg ->
@@ -391,7 +394,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
                 }
             } ?: emptyMap()
 
-            val arguments = flags + mapOf("libPath" to PERF_LIB_PATH)
+            val arguments = flags + mapOf("libPath" to PERF_LIB_PATH, "utilsOnly" to UTILS_PERF_STAT)
 
             perfHelper = PerfStat(PerfStatUtils.createConfiguration(arguments))
         }
@@ -414,7 +417,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
 
         for (i in 0 until PASSES) {
             println("Pass $i")
-            perfBenchListener = perfHelper?.let { PerfBenchListener(it) }
+            perfBenchListener = perfHelper?.takeIf { MEASURE_PERF_STAT }?.let { PerfBenchListener(it) }
             bench = FirResolveBench(withProgress = false, perfBenchListener)
             runTestOnce(i)
         }
