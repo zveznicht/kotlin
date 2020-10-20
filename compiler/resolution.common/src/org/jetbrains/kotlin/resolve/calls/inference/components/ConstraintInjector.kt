@@ -47,7 +47,18 @@ class ConstraintInjector(
         addSubTypeConstraintAndIncorporateIt(c, lowerType, upperType, typeCheckerContext)
     }
 
-    fun addInitialEqualityConstraint(c: Context, a: KotlinTypeMarker, b: KotlinTypeMarker, position: ConstraintPosition) {
+    private fun Context.addInitialEqualityConstraintThroughSubtyping(
+        a: KotlinTypeMarker,
+        b: KotlinTypeMarker,
+        typeCheckerContext: TypeCheckerContext
+    ) {
+        updateAllowedTypeDepth(this, a)
+        updateAllowedTypeDepth(this, b)
+        addSubTypeConstraintAndIncorporateIt(this, a, b, typeCheckerContext)
+        addSubTypeConstraintAndIncorporateIt(this, b, a, typeCheckerContext)
+    }
+
+    fun addInitialEqualityConstraint(c: Context, a: KotlinTypeMarker, b: KotlinTypeMarker, position: ConstraintPosition) = with(c) {
         val (typeVariable, equalType) = when {
             a.typeConstructor(c) is TypeVariableTypeConstructorMarker -> a to b
             b.typeConstructor(c) is TypeVariableTypeConstructorMarker -> b to a
@@ -56,8 +67,13 @@ class ConstraintInjector(
         val initialConstraint = InitialConstraint(typeVariable, equalType, EQUALITY, position).also { c.addInitialConstraint(it) }
         val typeCheckerContext = TypeCheckerContext(c, IncorporationConstraintPosition(position, initialConstraint))
 
-        updateAllowedTypeDepth(c, equalType)
+        // We add constraints like `T? == Foo!` in the old way
+        if (!typeVariable.isSimpleType() || typeVariable.isMarkedNullable()) {
+            addInitialEqualityConstraintThroughSubtyping(typeVariable, equalType, typeCheckerContext)
+            return
+        }
 
+        updateAllowedTypeDepth(c, equalType)
         addEqualityConstraintAndIncorporateIt(c, typeVariable, equalType, typeCheckerContext)
     }
 
