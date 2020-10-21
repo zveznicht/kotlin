@@ -97,10 +97,10 @@ internal abstract class FirBaseTowerResolveTask(
         scopeSession = components.scopeSession
     )
 
-    protected inline fun enumerateTowerLevels(
+    protected suspend fun enumerateTowerLevels(
         parentGroup: TowerGroup = TowerGroup.EmptyRoot,
-        onScope: (FirScope, TowerGroup) -> Unit,
-        onImplicitReceiver: (ImplicitReceiverValue<*>, TowerGroup) -> Unit,
+        onScope: suspend (FirScope, TowerGroup) -> Unit,
+        onImplicitReceiver: suspend (ImplicitReceiverValue<*>, TowerGroup) -> Unit,
     ) {
         for ((index, localScope) in towerDataElementsForName.reversedFilteredLocalScopes) {
             onScope(localScope, parentGroup.Local(index))
