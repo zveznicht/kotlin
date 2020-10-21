@@ -358,7 +358,7 @@ private fun StatementGenerator.wrapInSuspendConversion(
             if (expression is IrGetValue && expression.symbol.owner.isImmutable)
                 expression.symbol.owner
             else
-                irTemporary(expression, typeHint = funType, irType = irFunType)
+                irTemporary(expression, irType = irFunType)
         +IrFunctionExpressionImpl(
             startOffset, endOffset, irSuspendFunType,
             createFunctionForSuspendConversion(startOffset, endOffset, irArgumentValue.symbol, funType, suspendFunType),
