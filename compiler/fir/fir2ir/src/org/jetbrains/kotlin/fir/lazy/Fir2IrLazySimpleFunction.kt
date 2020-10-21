@@ -54,15 +54,14 @@ class Fir2IrLazySimpleFunction(
     }
 
     override var valueParameters: List<IrValueParameter> by lazyVar {
-        declarationStorage.enterScope(this)
-        fir.valueParameters.mapIndexed { index, valueParameter ->
-            declarationStorage.createIrParameter(
-                valueParameter, index,
-            ).apply {
-                this.parent = this@Fir2IrLazySimpleFunction
+        declarationStorage.withScopeSynchronized(this) {
+            fir.valueParameters.mapIndexed { index, valueParameter ->
+                declarationStorage.createIrParameter(
+                    valueParameter, index,
+                ).apply {
+                    this.parent = this@Fir2IrLazySimpleFunction
+                }
             }
-        }.apply {
-            declarationStorage.leaveScope(this@Fir2IrLazySimpleFunction)
         }
     }
 

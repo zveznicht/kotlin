@@ -106,10 +106,9 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
             reportUnexpectedDescriptor(descriptor)
     }
 
-    private val composer by lazy { createSignatureBuilder() }
-
     override fun composeSignature(descriptor: DeclarationDescriptor): IdSignature? {
         if (descriptor is WrappedDeclarationDescriptor<*>) return null
+        val composer = createSignatureBuilder()
         return if (mangler.run { descriptor.isExported() }) {
             composer.buildSignature(descriptor)
         } else null
@@ -117,6 +116,7 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
 
     override fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature? {
         if (descriptor is WrappedDeclarationDescriptor<*>) return null
+        val composer = createSignatureBuilder()
         return if (mangler.run { descriptor.isExportEnumEntry() }) {
             composer.buildSignature(descriptor)
         } else null

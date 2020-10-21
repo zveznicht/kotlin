@@ -48,7 +48,9 @@ interface IrLazyDeclarationBase : IrDeclaration {
     }
 
     fun createLazyAnnotations(): ReadWriteProperty<Any?, List<IrConstructorCall>> = lazyVar {
-        descriptor.annotations.mapNotNull(typeTranslator.constantValueGenerator::generateAnnotationConstructorCall).toMutableList()
+        synchronized(typeTranslator) {
+            descriptor.annotations.mapNotNull(typeTranslator.constantValueGenerator::generateAnnotationConstructorCall).toMutableList()
+        }
     }
 
     fun createLazyParent(): ReadWriteProperty<Any?, IrDeclarationParent> = lazyVar {
