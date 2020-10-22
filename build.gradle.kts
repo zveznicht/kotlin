@@ -423,7 +423,8 @@ allprojects {
         "-Xjvm-default=compatibility",
         "-Xno-optimized-callable-references",
         "-Xno-kotlin-nothing-value-exception",
-        "-Xnormalize-constructor-calls=enable"
+        "-Xnormalize-constructor-calls=enable",
+        "-Xno-param-assertions"
     )
 
     tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinJvmCompile> {
