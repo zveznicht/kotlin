@@ -36,6 +36,7 @@ import org.jetbrains.kotlin.ir.util.isFileClass
 import org.jetbrains.kotlin.lexer.KtSingleValueToken
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.expressions.OperatorConventions
 import org.jetbrains.org.objectweb.asm.Opcodes.*
 import org.jetbrains.org.objectweb.asm.Type
@@ -100,6 +101,12 @@ class IrIntrinsicMethods(val irBuiltIns: IrBuiltIns, val symbols: JvmSymbols) {
                 Key(
                     StandardNames.BUILT_INS_PACKAGE_FQ_NAME,
                     StandardNames.FqNames.string.toSafe(),
+                    "plus",
+                    listOf(StandardNames.FqNames.any.toSafe())
+                ) to StringPlus,
+                Key(
+                    StandardNames.FqNames.string.toSafe(),
+                    null,
                     "plus",
                     listOf(StandardNames.FqNames.any.toSafe())
                 ) to StringPlus,
