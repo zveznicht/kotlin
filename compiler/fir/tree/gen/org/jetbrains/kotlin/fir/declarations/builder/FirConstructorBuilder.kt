@@ -101,13 +101,14 @@ inline fun buildConstructorCopy(original: FirConstructor, init: FirConstructorBu
     copyBuilder.session = original.session
     copyBuilder.resolvePhase = original.resolvePhase
     copyBuilder.origin = original.origin
-    copyBuilder.attributes = original.attributes
+    copyBuilder.attributes = original.attributes.copy()
     copyBuilder.returnTypeRef = original.returnTypeRef
     copyBuilder.receiverTypeRef = original.receiverTypeRef
     copyBuilder.typeParameters.addAll(original.typeParameters)
     copyBuilder.valueParameters.addAll(original.valueParameters)
     copyBuilder.status = original.status
     copyBuilder.containerSource = original.containerSource
+    copyBuilder.dispatchReceiverType = original.dispatchReceiverType
     copyBuilder.annotations.addAll(original.annotations)
     copyBuilder.symbol = original.symbol
     copyBuilder.delegatedConstructor = original.delegatedConstructor

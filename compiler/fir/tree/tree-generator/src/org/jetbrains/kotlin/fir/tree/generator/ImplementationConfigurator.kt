@@ -502,5 +502,12 @@ object ImplementationConfigurator : AbstractFirTreeImplementationConfigurator() 
             default(it, "FirImplicitTypeRefImpl(null)")
             useTypes(implicitTypeRefType)
         }
+
+//        configureFieldInAllImplementations(
+//            field = "attributes",
+//            fieldPredicate = { it.type == declarationAttributesType.type }
+//        ) {
+//            default(it, "${declarationAttributesType.type}()")
+//        }
     }
 }
