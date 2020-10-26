@@ -30,5 +30,4 @@ open class IncrementalFileToPathConverter(val rootProjectDir: File?) : FileToPat
         private const val PATH_PREFIX = "$PROJECT_DIR_PLACEHOLDER/"
 
     }
-
 }

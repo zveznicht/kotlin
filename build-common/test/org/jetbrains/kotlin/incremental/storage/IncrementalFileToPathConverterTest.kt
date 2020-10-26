@@ -6,16 +6,56 @@
 package org.jetbrains.kotlin.incremental.storage
 
 import org.jetbrains.kotlin.TestWithWorkingDir
+import org.junit.Test
+import java.io.File
 
 internal class IncrementalFileToPathConverterTest : TestWithWorkingDir() {
+
+    @Test
     fun testPathTransform() {
-        val testRoot = workingDir.resolve("testDir")
-        val pathConverter = IncrementalFileToPathConverter(testRoot)
         val relativeFilePath = "testFile.txt"
-        val testFile = testRoot.resolve(relativeFilePath)
-        val transformedPath = pathConverter.toPath(testFile)
+        val transformedPath = testPathTransformation(workingDir.resolve("testDir"), relativeFilePath)
+
         assertEquals("${'$'}PROJECT_DIR${'$'}/$relativeFilePath", transformedPath)
-        assertEquals(testFile.absolutePath, pathConverter.toFile(transformedPath).absolutePath)
     }
 
+    @Test
+    fun testComplicatedProjectRootPath() {
+        val relativeFilePath = "testFile.txt"
+        val transformedPath = testPathTransformation(workingDir.resolve("first/../testDir"), relativeFilePath)
+
+        assertEquals("${'$'}PROJECT_DIR${'$'}/$relativeFilePath", transformedPath)
+    }
+
+    @Test
+    fun testInccorectProjectRootPath() {
+        val relativeFilePath = "testFile.txt"
+        val transformedPath = testPathTransformation(workingDir.resolve("testDir/"), relativeFilePath)
+
+        assertEquals("${'$'}PROJECT_DIR${'$'}/$relativeFilePath", transformedPath)
+    }
+
+    @Test
+    fun testFileOutOfProject() {
+        val relativeFilePath = "../testFile.txt"
+        val transformedPath = testPathTransformation(workingDir.resolve("testDir"), relativeFilePath)
+
+        assertEquals("${workingDir.absolutePath}/testFile.txt", transformedPath)
+    }
+
+    @Test
+    fun testFileWithExtraSlash() {
+        val relativeFilePath = "testFile.txt/"
+        val transformedPath = testPathTransformation(workingDir.resolve("testDir"), relativeFilePath)
+
+        assertEquals("${'$'}PROJECT_DIR${'$'}/testFile.txt", transformedPath)
+    }
+
+    private fun testPathTransformation(projectRoot: File, relativeFilePath: String): String {
+        val pathConverter = IncrementalFileToPathConverter(projectRoot)
+        val testFile = projectRoot.resolve(relativeFilePath)
+        val transformedPath = pathConverter.toPath(testFile)
+        assertEquals(testFile.normalize().absolutePath, pathConverter.toFile(transformedPath).normalize().absolutePath)
+        return transformedPath
+    }
 }
