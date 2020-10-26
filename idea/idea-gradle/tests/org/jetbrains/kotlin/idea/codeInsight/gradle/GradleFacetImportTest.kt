@@ -80,6 +80,10 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         Assert.assertTrue(sdks.all { it === refSdk })
     }
 
+    override fun importProject() {
+        importProject(true)
+    }
+
     @Test
     fun testJvmImport() {
         configureByFiles()

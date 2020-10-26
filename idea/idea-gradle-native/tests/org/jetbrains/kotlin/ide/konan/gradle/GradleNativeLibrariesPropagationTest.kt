@@ -24,7 +24,7 @@ class GradleNativeLibrariesPropagationTest : TestCaseWithFakeKotlinNative() {
     @Test
     fun testCommonIOS() {
         configureProject()
-        importProject()
+        importProject(skipIndexing = true)
 
         checkProjectStructure(
             myProject,
@@ -65,7 +65,7 @@ class GradleNativeLibrariesPropagationTest : TestCaseWithFakeKotlinNative() {
     @Test
     fun testCommonIOSWithDisabledPropagation() {
         configureProject()
-        importProject()
+        importProject(skipIndexing = true)
 
         // No dependencies should be propagated.
         checkProjectStructure(
