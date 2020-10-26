@@ -32,7 +32,7 @@ class GradleNativeLibrariesInIDENamingTest : TestCaseWithFakeKotlinNative() {
     @Test
     fun testLibrariesNaming() {
         configureProject()
-        importProject()
+        importProject(skipIndexing = true)
 
         myProject.allModules().forEach { assertValidModule(it, projectPath) }
     }

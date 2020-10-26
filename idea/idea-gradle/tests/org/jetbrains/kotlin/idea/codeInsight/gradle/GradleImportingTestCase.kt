@@ -222,18 +222,37 @@ abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
     }
 
     override fun importProject() {
-        ExternalSystemApiUtil.subscribe(
-            myProject,
-            GradleConstants.SYSTEM_ID,
-            object : ExternalSystemSettingsListenerAdapter<ExternalProjectSettings>() {
-                override fun onProjectsLinked(settings: Collection<ExternalProjectSettings>) {
-                    val item = ContainerUtil.getFirstItem<Any>(settings)
-                    if (item is GradleProjectSettings) {
-                        item.gradleJvm = GRADLE_JDK_NAME
+        importProject(skipIndexing = null)
+    }
+
+    fun importProject(skipIndexing: Boolean? = null) {
+        val indexingPropertyName = "idea.skip.indices.initialization"
+        val previousIndexingState = System.getProperty(indexingPropertyName)
+        try {
+            if (skipIndexing != null) {
+                System.setProperty(indexingPropertyName, skipIndexing.toString())
+            }
+            ExternalSystemApiUtil.subscribe(
+                myProject,
+                GradleConstants.SYSTEM_ID,
+                object : ExternalSystemSettingsListenerAdapter<ExternalProjectSettings>() {
+                    override fun onProjectsLinked(settings: Collection<ExternalProjectSettings>) {
+                        val item = ContainerUtil.getFirstItem<Any>(settings)
+                        if (item is GradleProjectSettings) {
+                            item.gradleJvm = GRADLE_JDK_NAME
+                        }
                     }
+                })
+            super.importProject()
+        } finally {
+            if (skipIndexing != null && previousIndexingState != null) {
+                if (previousIndexingState == null) {
+                    System.clearProperty(indexingPropertyName)
+                } else {
+                    System.setProperty(indexingPropertyName, previousIndexingState)
                 }
-            })
-        super.importProject()
+            }
+        }
     }
 
     @Throws(IOException::class)
