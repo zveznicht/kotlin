@@ -1,4 +1,3 @@
-// FIR_COMPARISON
 fun f() {
     try {
 

@@ -1,4 +1,3 @@
-// FIR_COMPARISON
 // we disabled parameter name/type completion because not all types are acceptable and it's not very useful in such context anyway
 
 class FooBar

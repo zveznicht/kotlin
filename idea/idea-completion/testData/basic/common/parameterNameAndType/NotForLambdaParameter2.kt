@@ -1,4 +1,3 @@
-// FIR_COMPARISON
 class AAA
 
 fun foo(p: (Int, String) -> Unit) { }
