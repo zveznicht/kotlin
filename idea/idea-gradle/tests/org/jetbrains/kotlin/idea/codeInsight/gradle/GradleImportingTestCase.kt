@@ -245,7 +245,7 @@ abstract class GradleImportingTestCase : ExternalSystemImportingTestCase() {
                 })
             super.importProject()
         } finally {
-            if (skipIndexing != null && previousIndexingState != null) {
+            if (skipIndexing != null) {
                 if (previousIndexingState == null) {
                     System.clearProperty(indexingPropertyName)
                 } else {
