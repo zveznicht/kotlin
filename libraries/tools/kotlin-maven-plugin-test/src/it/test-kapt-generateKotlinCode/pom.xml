@@ -10,6 +10,7 @@
     <modules>
         <module>annotation-processor</module>
         <module>app</module>
+        <module>app-includeCompileClasspath</module>
     </modules>
     <packaging>pom</packaging>
 

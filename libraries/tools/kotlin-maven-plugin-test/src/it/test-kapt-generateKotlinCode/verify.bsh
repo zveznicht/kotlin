@@ -1,6 +1,11 @@
 import java.io.*;
 
-File file = new File(basedir, "app/target/app-1.0-SNAPSHOT.jar");
-if (!file.exists() || !file.isFile()) {
-    throw new FileNotFoundException("Could not find generated JAR: " + file);
+File appFile = new File(basedir, "app/target/app-1.0-SNAPSHOT.jar");
+if (!appFile.exists() || !appFile.isFile()) {
+    throw new FileNotFoundException("'app': Could not find generated JAR: " + appFile);
+}
+
+File app2File = new File(basedir, "app-includeCompileClasspath/target/app-includeCompileClasspath-1.0-SNAPSHOT.jar");
+if (!app2File.exists() || !app2File.isFile()) {
+    throw new FileNotFoundException("'app-includeCompilerClasspath': Could not find generated JAR: " + app2File);
 }

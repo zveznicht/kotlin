@@ -59,6 +59,9 @@ public class KaptJVMCompilerMojo extends K2JVMCompileMojo {
     private boolean mapDiagnosticLocations = false;
 
     @Parameter
+    private boolean includeCompileClasspath = false;
+
+    @Parameter
     private List<String> annotationProcessorArgs;
 
     @Parameter
@@ -98,6 +101,7 @@ public class KaptJVMCompilerMojo extends K2JVMCompileMojo {
         options.add(new KaptOption("useLightAnalysis", useLightAnalysis));
         options.add(new KaptOption("correctErrorTypes", correctErrorTypes));
         options.add(new KaptOption("mapDiagnosticLocations", mapDiagnosticLocations));
+        options.add(new KaptOption("includeCompileClasspath", includeCompileClasspath));
         options.add(new KaptOption("processors", annotationProcessors));
 
         if (arguments.getVerbose()) {
