@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.declarations.builder.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
+import org.jetbrains.kotlin.fir.diagnostics.FirDiagnosticHolder
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.references.FirReference
@@ -1143,6 +1144,16 @@ abstract class BaseFirBuilder<T>(val baseSession: FirSession, val context: Conte
             return action()
         } finally {
             context.forcedElementSourceKind = currentForced
+        }
+    }
+
+    protected fun wrapErrorExpressionToQualifiedAccessWithErrorInCalleReference(expression: FirElement): FirExpression {
+        if (expression !is FirDiagnosticHolder) return expression as FirExpression
+        return buildQualifiedAccessExpression {
+            source = expression.source
+            calleeReference = buildErrorNamedReference {
+                diagnostic = expression.diagnostic
+            }
         }
     }
 }

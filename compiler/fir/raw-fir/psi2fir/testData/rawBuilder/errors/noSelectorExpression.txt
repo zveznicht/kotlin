@@ -1,0 +1,4 @@
+FILE: noSelectorExpression.kt
+    public? final? fun foo(x: Int): R|kotlin/Unit| {
+        x#.<Qualified expression without selector>#
+    }

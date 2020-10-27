@@ -1,0 +1,4 @@
+FILE: noCallName.kt
+    public? final? fun foo(x: Int): R|kotlin/Unit| {
+        x#.<Empty parentheses>#
+    }

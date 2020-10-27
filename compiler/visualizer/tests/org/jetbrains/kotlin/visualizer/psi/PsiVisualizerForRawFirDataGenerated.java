@@ -225,6 +225,29 @@ public class PsiVisualizerForRawFirDataGenerated extends AbstractPsiVisualizer {
         }
     }
 
+    @TestMetadata("compiler/fir/raw-fir/psi2fir/testData/rawBuilder/errors")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Errors extends AbstractPsiVisualizer {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doFirBuilderDataTest, this, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInErrors() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/fir/raw-fir/psi2fir/testData/rawBuilder/errors"), Pattern.compile("^(.+)\\.kt$"), null, true);
+        }
+
+        @TestMetadata("noCallName.kt")
+        public void testNoCallName() throws Exception {
+            runTest("compiler/fir/raw-fir/psi2fir/testData/rawBuilder/errors/noCallName.kt");
+        }
+
+        @TestMetadata("noSelectorExpression.kt")
+        public void testNoSelectorExpression() throws Exception {
+            runTest("compiler/fir/raw-fir/psi2fir/testData/rawBuilder/errors/noSelectorExpression.kt");
+        }
+    }
+
     @TestMetadata("compiler/fir/raw-fir/psi2fir/testData/rawBuilder/expressions")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)

@@ -478,13 +478,17 @@ class ExpressionsConverter(
                     isSelector = true
                 }
                 else -> {
-                    if (isSelector && it.tokenType != TokenType.ERROR_ELEMENT)
-                        firSelector = getAsFirExpression(it, "Incorrect selector expression")
-                    else
-                        firReceiver = getAsFirExpression(it, "Incorrect receiver expression")
+                    if (it.tokenType != TokenType.ERROR_ELEMENT) {
+                        if (isSelector)
+                            firSelector = getAsFirExpression(it, "Incorrect selector expression")
+                        else
+                            firReceiver = getAsFirExpression(it, "Incorrect receiver expression")
+                    }
                 }
             }
         }
+
+        firSelector = wrapErrorExpressionToQualifiedAccessWithErrorInCalleReference(firSelector)
 
         (firSelector as? FirQualifiedAccess)?.let {
             if (isSafe) {

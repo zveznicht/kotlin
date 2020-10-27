@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertySetter
 import org.jetbrains.kotlin.fir.diagnostics.ConeSimpleDiagnostic
 import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
+import org.jetbrains.kotlin.fir.diagnostics.FirDiagnosticHolder
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.expressions.impl.FirSingleExpressionBlock
@@ -1958,11 +1959,15 @@ class RawFirBuilder(
         }
 
         override fun visitQualifiedExpression(expression: KtQualifiedExpression, data: Unit): FirElement {
-            val selector = expression.selectorExpression
-                ?: return buildErrorExpression(
-                    expression.toFirSourceElement(), ConeSimpleDiagnostic("Qualified expression without selector", DiagnosticKind.Syntax),
-                )
-            val firSelector = selector.toFirExpression("Incorrect selector expression")
+            val firSelector = run {
+                val selector = expression.selectorExpression?.toFirExpression("Incorrect selector expression")
+                    ?: buildErrorExpression(
+                        expression.toFirSourceElement(),
+                        ConeSimpleDiagnostic("Qualified expression without selector", DiagnosticKind.Syntax),
+                    )
+                wrapErrorExpressionToQualifiedAccessWithErrorInCalleReference(selector)
+            }
+
             if (firSelector is FirQualifiedAccess) {
                 val receiver = expression.receiverExpression.toFirExpression("Incorrect receiver expression")
 
