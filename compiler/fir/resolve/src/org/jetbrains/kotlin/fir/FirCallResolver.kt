@@ -163,7 +163,11 @@ class FirCallResolver(
     }
 
     fun <T : FirQualifiedAccess> resolveVariableAccessAndSelectCandidate(qualifiedAccess: T): FirStatement {
-        val callee = qualifiedAccess.calleeReference as? FirSimpleNamedReference ?: return qualifiedAccess
+        val callee = when (val calleeReference = qualifiedAccess.calleeReference) {
+            is FirSimpleNamedReference -> calleeReference
+            is FirErrorNamedReference -> calleeReference
+            else -> return qualifiedAccess
+        }
 
         qualifiedResolver.initProcessingQualifiedAccess(callee)
 
@@ -486,6 +490,8 @@ class FirCallResolver(
     ): FirNamedReference {
         val source = reference.source
         return when {
+            reference is FirErrorNamedReference -> reference
+
             candidates.isEmpty() -> buildErrorReference(
                 callInfo,
                 ConeUnresolvedNameError(name),
