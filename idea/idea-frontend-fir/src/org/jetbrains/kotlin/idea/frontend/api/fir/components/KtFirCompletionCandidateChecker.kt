@@ -23,14 +23,10 @@ import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirPropertySymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.KtFirSymbol
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.EnclosingDeclarationContext
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.buildCompletionContext
-import org.jetbrains.kotlin.idea.frontend.api.fir.utils.fakeEnclosingDeclaration
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtCallableSymbol
 import org.jetbrains.kotlin.idea.frontend.api.withValidityAssertion
-import org.jetbrains.kotlin.psi.KtCallableDeclaration
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtSimpleNameExpression
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 internal class KtFirCompletionCandidateChecker(
@@ -40,19 +36,19 @@ internal class KtFirCompletionCandidateChecker(
     override val analysisSession: KtFirAnalysisSession by weakRef(analysisSession)
 
     private val completionContextCache =
-        HashMap<Pair<FirFile, KtCallableDeclaration>, LowLevelFirApiFacadeForCompletion.FirCompletionContext>()
+        HashMap<Pair<FirFile, KtDeclaration>, LowLevelFirApiFacadeForCompletion.FirCompletionContext>()
 
     override fun checkExtensionFitsCandidate(
         firSymbolForCandidate: KtCallableSymbol,
         originalFile: KtFile,
-        nameExpression: KtSimpleNameExpression,
+        position: KtElement,
         possibleExplicitReceiver: KtExpression?,
     ): Boolean = withValidityAssertion {
         val functionFits = firSymbolForCandidate.withResolvedFirOfType<KtFirFunctionSymbol, FirSimpleFunction, Boolean> { firFunction ->
-            checkExtension(firFunction, originalFile, nameExpression, possibleExplicitReceiver)
+            checkExtension(firFunction, originalFile, position, possibleExplicitReceiver)
         }
         val propertyFits = firSymbolForCandidate.withResolvedFirOfType<KtFirPropertySymbol, FirProperty, Boolean> { firProperty ->
-            checkExtension(firProperty, originalFile, nameExpression, possibleExplicitReceiver)
+            checkExtension(firProperty, originalFile, position, possibleExplicitReceiver)
         }
 
         functionFits ?: propertyFits ?: false
@@ -65,13 +61,13 @@ internal class KtFirCompletionCandidateChecker(
     private fun checkExtension(
         candidateSymbol: FirCallableDeclaration<*>,
         originalFile: KtFile,
-        nameExpression: KtSimpleNameExpression,
+        position: KtElement,
         possibleExplicitReceiver: KtExpression?,
     ): Boolean {
         val file = LowLevelFirApiFacade.getFirFile(originalFile, firResolveState)
         val explicitReceiverExpression = possibleExplicitReceiver?.getOrBuildFirOfType<FirExpression>(firResolveState)
         val resolver = SingleCandidateResolver(firResolveState.rootModuleSession, file)
-        val implicitReceivers = getImplicitReceivers(originalFile, file, nameExpression)
+        val implicitReceivers = getImplicitReceivers(file, position)
         for (implicitReceiverValue in implicitReceivers) {
             val resolutionParameters = ResolutionParameters(
                 singleCandidateResolutionMode = SingleCandidateResolutionMode.CHECK_EXTENSION_FOR_COMPLETION,
@@ -88,17 +84,16 @@ internal class KtFirCompletionCandidateChecker(
     }
 
     private fun getImplicitReceivers(
-        originalFile: KtFile,
         firFile: FirFile,
-        fakeNameExpression: KtSimpleNameExpression
+        position: KtElement,
     ): Sequence<ImplicitReceiverValue<*>?> {
-        val enclosingContext = EnclosingDeclarationContext.detect(originalFile, fakeNameExpression)
+        val enclosingContext = EnclosingDeclarationContext.detect(position)
 
-        val completionContext = completionContextCache.getOrCreate(firFile to enclosingContext.fakeEnclosingDeclaration) {
+        val completionContext = completionContextCache.getOrCreate(firFile to enclosingContext.enclosingDeclaration) {
             enclosingContext.buildCompletionContext(firFile, firResolveState)
         }
 
-        val towerDataContext = completionContext.getTowerDataContext(fakeNameExpression)
+        val towerDataContext = completionContext.getTowerDataContext(position)
 
         return sequence {
             yield(null) // otherwise explicit receiver won't be checked when there are no implicit receivers in completion position

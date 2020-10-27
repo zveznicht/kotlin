@@ -8,10 +8,11 @@ package org.jetbrains.kotlin.idea.completion
 import com.intellij.codeInsight.completion.*
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.patterns.PsiJavaPatterns
+import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.util.ProcessingContext
-import org.jetbrains.kotlin.idea.frontend.api.InvalidWayOfUsingAnalysisSession
 import org.jetbrains.kotlin.idea.frontend.api.KtAnalysisSession
-import org.jetbrains.kotlin.idea.frontend.api.getAnalysisSessionFor
+import org.jetbrains.kotlin.idea.frontend.api.analyze
 import org.jetbrains.kotlin.idea.frontend.api.scopes.KtCompositeScope
 import org.jetbrains.kotlin.idea.frontend.api.scopes.KtScope
 import org.jetbrains.kotlin.idea.frontend.api.scopes.KtScopeNameFilter
@@ -19,10 +20,9 @@ import org.jetbrains.kotlin.idea.frontend.api.symbols.KtCallableSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtNamedSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.isExtension
-import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.psi.psiUtil.getReceiverExpression
+import org.jetbrains.kotlin.psi.psiUtil.prevLeafsWithSelf
 
 class KotlinFirCompletionContributor : CompletionContributor() {
     init {
@@ -71,28 +71,81 @@ private class KotlinAvailableScopesCompletionProvider(prefixMatcher: PrefixMatch
         lookupElementFactory.createLookupElement(symbol)?.let(::addElement)
     }
 
-    @OptIn(InvalidWayOfUsingAnalysisSession::class)
+    private fun getPosition(parameters: CompletionParameters, originalFile: KtFile): KtElement? {
+        val offset = parameters.position.textRange.startOffset
+        val elementAtOffset = originalFile.findElementAt(offset)
+        val elementAtOffsetParent = elementAtOffset?.parent
+        val elementAtOffsetPrevSibling = elementAtOffset?.prevSibling
+        return when {
+            elementAtOffset !is PsiWhiteSpace
+                    && elementAtOffsetParent is KtBlockExpression
+                    && elementAtOffsetPrevSibling is KtElement -> {
+                /*
+                 fun x() {
+                    someStatement()
+                    <caret>
+                 }
+                 */
+                elementAtOffsetPrevSibling
+            }
+            else -> elementAtOffset?.prevLeafsWithSelf?.firstOrNull { it !is PsiWhiteSpace && !(it is LeafPsiElement && it.elementType == KtTokens.LPAR) }?.parent
+        } as? KtElement?
+    }
+
     fun addCompletions(parameters: CompletionParameters, result: CompletionResultSet) {
         val originalFile = parameters.originalFile as? KtFile ?: return
 
-        val reference = (parameters.position.parent as? KtSimpleNameExpression)?.mainReference ?: return
-        val nameExpression = reference.expression.takeIf { it !is KtLabelReferenceExpression } ?: return
+        val position = getPosition(parameters, originalFile) ?: return
 
-        val explicitReceiver = nameExpression.getReceiverExpression()
+        val positionParent = position.parent
+        val positionGrandparent = positionParent?.parent
+        val explicitReceiver = when {
+            position is KtOperationReferenceExpression -> {
+                /*
+                 x infixCall <caret>
+                 */
+                (position.parent as? KtBinaryExpression)?.left
+            }
+            position is KtQualifiedExpression -> {
+                /*
+                 x.<caret>
+                 */
+                position.receiverExpression
+            }
+            positionParent is KtDotQualifiedExpression -> {
+                /*
+                 x.prefix<caret>
+                 */
+                positionParent.receiverExpression
+            }
+            positionParent is KtCallExpression && positionGrandparent is KtDotQualifiedExpression -> {
+                /*
+                 x.prefix<caret>()
+                 */
+                positionGrandparent.receiverExpression
+            }
+            else -> null
+        }
 
-        with(getAnalysisSessionFor(originalFile).createContextDependentCopy()) {
-            val (implicitScopes, _) = originalFile.getScopeContextForPosition(nameExpression)
+        analyze(originalFile) {
+            val (implicitScopes, _) = originalFile.getScopeContextForPosition(position)
 
             fun KtCallableSymbol.hasSuitableExtensionReceiver(): Boolean =
-                checkExtensionIsSuitable(originalFile, nameExpression, explicitReceiver)
+                checkExtensionIsSuitable(originalFile, position, explicitReceiver)
 
             when {
-                nameExpression.parent is KtUserType -> collectTypesCompletion(result, implicitScopes)
+                position.isOnlyTypeExpected() -> collectTypesCompletion(result, implicitScopes)
                 explicitReceiver != null ->
                     collectDotCompletion(result, implicitScopes, explicitReceiver, KtCallableSymbol::hasSuitableExtensionReceiver)
                 else -> collectDefaultCompletion(result, implicitScopes, KtCallableSymbol::hasSuitableExtensionReceiver)
             }
         }
+    }
+
+    private fun KtElement.isOnlyTypeExpected(): Boolean = when {
+        this is KtCallableDeclaration && colon != null -> true
+        this is KtTypeArgumentList -> true
+        else -> false
     }
 
     private fun collectTypesCompletion(result: CompletionResultSet, implicitScopes: KtScope) {

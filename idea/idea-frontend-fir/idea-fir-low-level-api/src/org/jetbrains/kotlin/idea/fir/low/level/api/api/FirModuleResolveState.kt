@@ -67,9 +67,6 @@ abstract class FirModuleResolveState {
     ): FirDeclaration
 
 
-    // todo temporary, used only in completion
-    internal abstract fun recordPsiToFirMappingsForCompletionFrom(fir: FirDeclaration, firFile: FirFile, ktFile: KtFile)
-
     internal abstract fun <D : FirDeclaration> resolvedFirToPhase(declaration: D, toPhase: FirResolvePhase): D
 
     // todo temporary, used only in completion
@@ -77,7 +74,6 @@ abstract class FirModuleResolveState {
         firFunction: FirDeclaration,
         containerFirFile: FirFile,
         firIdeProvider: FirProvider,
-        toPhase: FirResolvePhase,
         towerDataContextCollector: FirTowerDataContextCollector
     )
 

@@ -43,10 +43,6 @@ abstract class KtAnalysisSession(override val token: ValidityToken) : ValidityTo
     protected abstract val completionCandidateChecker: KtCompletionCandidateChecker
     protected abstract val symbolDeclarationOverridesProvider: KtSymbolDeclarationOverridesProvider
 
-    /// TODO: get rid of
-    @Deprecated("Used only in completion now, temporary")
-    abstract fun createContextDependentCopy(): KtAnalysisSession
-
     fun KtCallableSymbol.getOverriddenSymbols(containingDeclaration: KtClassOrObjectSymbol): List<KtCallableSymbol> =
         symbolDeclarationOverridesProvider.getOverriddenSymbols(this, containingDeclaration)
 
@@ -126,12 +122,12 @@ abstract class KtAnalysisSession(override val token: ValidityToken) : ValidityTo
 
     fun KtCallableSymbol.checkExtensionIsSuitable(
         originalPsiFile: KtFile,
-        psiFakeCompletionExpression: KtSimpleNameExpression,
+        position: KtElement,
         psiReceiverExpression: KtExpression?,
     ): Boolean = completionCandidateChecker.checkExtensionFitsCandidate(
         this,
         originalPsiFile,
-        psiFakeCompletionExpression,
+        position,
         psiReceiverExpression
     )
 }

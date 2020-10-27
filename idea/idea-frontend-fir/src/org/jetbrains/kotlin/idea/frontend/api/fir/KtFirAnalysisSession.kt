@@ -22,11 +22,10 @@ import org.jetbrains.kotlin.psi.KtElement
 
 internal class KtFirAnalysisSession
 private constructor(
-    private val element: KtElement,
+    element: KtElement,
     val firResolveState: FirModuleResolveState,
     internal val firSymbolBuilder: KtSymbolByFirBuilder,
     token: ValidityToken,
-    val isContextSession: Boolean,
 ) : KtAnalysisSession(token) {
     init {
         assertIsValid()
@@ -46,18 +45,6 @@ private constructor(
     override val symbolDeclarationOverridesProvider: KtSymbolDeclarationOverridesProvider
             by threadLocal { KtFirSymbolDeclarationOverridesProvider(this, token) }
 
-    override fun createContextDependentCopy(): KtAnalysisSession {
-        check(!isContextSession) { "Cannot create context-dependent copy of KtAnalysis session from a context dependent one" }
-        val contextResolveState = LowLevelFirApiFacadeForCompletion.getResolveStateForCompletion(element, firResolveState)
-        return KtFirAnalysisSession(
-            element,
-            contextResolveState,
-            firSymbolBuilder.createReadOnlyCopy(contextResolveState),
-            token,
-            isContextSession = true
-        )
-    }
-
     companion object {
         @Deprecated("Please use org.jetbrains.kotlin.idea.frontend.api.KtAnalysisSessionProviderKt.analyze")
         internal fun createForElement(element: KtElement): KtFirAnalysisSession {
@@ -74,7 +61,6 @@ private constructor(
                 firResolveState,
                 firSymbolBuilder,
                 token,
-                isContextSession = false
             )
         }
     }

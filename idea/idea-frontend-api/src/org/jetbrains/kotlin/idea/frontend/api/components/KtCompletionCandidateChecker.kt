@@ -5,17 +5,16 @@
 
 package org.jetbrains.kotlin.idea.frontend.api.components
 
-import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtCallableSymbol
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtSimpleNameExpression
 
 abstract class KtCompletionCandidateChecker : KtAnalysisSessionComponent() {
     abstract fun checkExtensionFitsCandidate(
         firSymbolForCandidate: KtCallableSymbol,
         originalFile: KtFile,
-        nameExpression: KtSimpleNameExpression,
+        position: KtElement,
         possibleExplicitReceiver: KtExpression?,
     ): Boolean
 }

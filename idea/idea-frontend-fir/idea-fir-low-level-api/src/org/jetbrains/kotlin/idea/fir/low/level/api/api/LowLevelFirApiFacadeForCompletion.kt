@@ -16,22 +16,17 @@ import org.jetbrains.kotlin.fir.declarations.builder.buildPropertyCopy
 import org.jetbrains.kotlin.fir.declarations.builder.buildSimpleFunctionCopy
 import org.jetbrains.kotlin.fir.resolve.FirTowerDataContext
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
-import org.jetbrains.kotlin.idea.fir.low.level.api.FirModuleResolveStateForCompletion
 import org.jetbrains.kotlin.idea.fir.low.level.api.FirModuleResolveStateImpl
 import org.jetbrains.kotlin.idea.fir.low.level.api.element.builder.FirTowerDataContextCollector
 import org.jetbrains.kotlin.idea.fir.low.level.api.providers.FirIdeProvider
 import org.jetbrains.kotlin.idea.fir.low.level.api.providers.firIdeProvider
+import org.jetbrains.kotlin.idea.fir.low.level.api.util.ktDeclaration
 import org.jetbrains.kotlin.idea.util.getElementTextInContext
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtNamedFunction
 import org.jetbrains.kotlin.psi.KtProperty
 
 object LowLevelFirApiFacadeForCompletion {
-    fun getResolveStateForCompletion(element: KtElement, originalState: FirModuleResolveState): FirModuleResolveState {
-        check(originalState is FirModuleResolveStateImpl)
-        return FirModuleResolveStateForCompletion(originalState)
-    }
-
     class FirCompletionContext internal constructor(
         val session: FirSession,
         private val towerDataContextCollector: FirTowerDataContextCollector,
@@ -49,61 +44,56 @@ object LowLevelFirApiFacadeForCompletion {
 
     fun buildCompletionContextForFunction(
         firFile: FirFile,
-        fakeElement: KtNamedFunction,
-        originalElement: KtNamedFunction,
+        ktFunction: KtNamedFunction,
         state: FirModuleResolveState,
     ): FirCompletionContext {
         val firIdeProvider = firFile.session.firIdeProvider
 
-        val originalFunction = state.getOrBuildFirFor(originalElement) as FirSimpleFunction
-        val copyFunction = buildFunctionCopyForCompletion(firIdeProvider, fakeElement, originalFunction, state)
+        val firFunction = state.getOrBuildFirFor(ktFunction) as FirSimpleFunction
+        val copyFunctionWithUnresolvedBody = buildFunctionCopyForCompletion(firIdeProvider, firFunction, state)
 
         val contextCollector = FirTowerDataContextCollector()
-        state.lazyResolveDeclarationForCompletion(copyFunction, firFile, firIdeProvider, FirResolvePhase.BODY_RESOLVE, contextCollector)
-        state.recordPsiToFirMappingsForCompletionFrom(copyFunction, firFile, fakeElement.containingKtFile)
+        state.lazyResolveDeclarationForCompletion(copyFunctionWithUnresolvedBody, firFile, firIdeProvider, contextCollector)
 
         return FirCompletionContext(
-            copyFunction.session,
+            copyFunctionWithUnresolvedBody.session,
             contextCollector
         )
     }
 
     fun buildCompletionContextForProperty(
         firFile: FirFile,
-        fakeElement: KtProperty,
-        originalElement: KtProperty,
+        ktProperty: KtProperty,
         state: FirModuleResolveState,
     ): FirCompletionContext {
         val firIdeProvider = firFile.session.firIdeProvider
 
-        val originalProperty = state.getOrBuildFirFor(originalElement) as FirProperty
-        val copyProperty = buildPropertyCopyForCompletion(firIdeProvider, fakeElement, originalProperty, state)
+        val firProperty = state.getOrBuildFirFor(ktProperty) as FirProperty
+        val copiedPropertyWithUnresolvedBody = buildPropertyCopyForCompletion(firIdeProvider, firProperty, state)
 
         val contextCollector = FirTowerDataContextCollector()
-        state.lazyResolveDeclarationForCompletion(copyProperty, firFile, firIdeProvider, FirResolvePhase.BODY_RESOLVE, contextCollector)
-        state.recordPsiToFirMappingsForCompletionFrom(copyProperty, firFile, fakeElement.containingKtFile)
+        state.lazyResolveDeclarationForCompletion(copiedPropertyWithUnresolvedBody, firFile, firIdeProvider, contextCollector)
 
         return FirCompletionContext(
-            copyProperty.session,
+            copiedPropertyWithUnresolvedBody.session,
             contextCollector
         )
     }
 
     private fun buildFunctionCopyForCompletion(
         firIdeProvider: FirIdeProvider,
-        element: KtNamedFunction,
-        originalFunction: FirSimpleFunction,
+        firFunction: FirSimpleFunction,
         state: FirModuleResolveState
     ): FirSimpleFunction {
-        val builtFunction = firIdeProvider.buildFunctionWithBody(element)
+        val builtFunction = firIdeProvider.buildFunctionWithBody(firFunction.ktDeclaration as KtNamedFunction)
 
         // right now we can't resolve builtFunction header properly, as it built right in air,
         // without file, which is now required for running stages other then body resolve, so we
         // take original function header (which is resolved) and copy replacing body with body from builtFunction
-        return buildSimpleFunctionCopy(originalFunction) {
+        return buildSimpleFunctionCopy(firFunction) {
             body = builtFunction.body
             symbol = builtFunction.symbol as FirNamedFunctionSymbol
-            resolvePhase = minOf(originalFunction.resolvePhase, FirResolvePhase.DECLARATIONS)
+            resolvePhase = minOf(firFunction.resolvePhase, FirResolvePhase.DECLARATIONS)
             source = builtFunction.source
             session = state.rootModuleSession
         }
@@ -112,13 +102,12 @@ object LowLevelFirApiFacadeForCompletion {
 
     private fun buildPropertyCopyForCompletion(
         firIdeProvider: FirIdeProvider,
-        element: KtProperty,
-        originalProperty: FirProperty,
+        furProperty: FirProperty,
         state: FirModuleResolveState
     ): FirProperty {
-        val builtProperty = firIdeProvider.buildPropertyWithBody(element)
+        val builtProperty = firIdeProvider.buildPropertyWithBody(furProperty.ktDeclaration as KtProperty)
 
-        val originalSetter = originalProperty.setter
+        val originalSetter = furProperty.setter
         val builtSetter = builtProperty.setter
 
         // setter has a header with `value` parameter, and we want it type to be resolved
@@ -134,14 +123,14 @@ object LowLevelFirApiFacadeForCompletion {
             builtSetter
         }
 
-        return buildPropertyCopy(originalProperty) {
+        return buildPropertyCopy(furProperty) {
             symbol = builtProperty.symbol
             initializer = builtProperty.initializer
 
             getter = builtProperty.getter
             setter = copySetter
 
-            resolvePhase = minOf(originalProperty.resolvePhase, FirResolvePhase.DECLARATIONS)
+            resolvePhase = minOf(furProperty.resolvePhase, FirResolvePhase.DECLARATIONS)
             source = builtProperty.source
             session = state.rootModuleSession
         }

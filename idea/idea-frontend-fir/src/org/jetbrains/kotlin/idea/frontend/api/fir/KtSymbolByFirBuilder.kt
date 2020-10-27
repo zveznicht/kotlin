@@ -38,7 +38,6 @@ internal class KtSymbolByFirBuilder private constructor(
     private val project: Project,
     resolveState: FirModuleResolveState,
     override val token: ValidityToken,
-    val withReadOnlyCaching: Boolean,
     private val symbolsCache: BuilderCache<FirDeclaration, KtSymbol>,
     private val typesCache: BuilderCache<ConeKotlinType, KtType>
 ) : ValidityTokenOwner {
@@ -60,25 +59,11 @@ internal class KtSymbolByFirBuilder private constructor(
         project = project,
         token = token,
         resolveState = resolveState,
-        withReadOnlyCaching = false,
         symbolsCache = BuilderCache(),
         typesCache = BuilderCache()
     )
 
     private val resolveState by weakRef(resolveState)
-
-    fun createReadOnlyCopy(newResolveState: FirModuleResolveState): KtSymbolByFirBuilder {
-        check(!withReadOnlyCaching) { "Cannot create readOnly KtSymbolByFirBuilder from a readonly one" }
-        return KtSymbolByFirBuilder(
-            project,
-            token = token,
-            resolveState = newResolveState,
-            withReadOnlyCaching = true,
-            symbolsCache = symbolsCache.createReadOnlyCopy(),
-            typesCache = typesCache.createReadOnlyCopy()
-        )
-    }
-
 
     fun buildSymbol(fir: FirDeclaration): KtSymbol = symbolsCache.cache(fir) {
         when (fir) {
@@ -209,19 +194,10 @@ internal class KtSymbolByFirBuilder private constructor(
 
 private class BuilderCache<From, To> private constructor(
     private val cache: ConcurrentMap<From, To>,
-    private val isReadOnly: Boolean
 ) {
-    constructor() : this(cache = MapMaker().weakKeys().makeMap(), isReadOnly = false)
-
-    fun createReadOnlyCopy(): BuilderCache<From, To> {
-        check(!isReadOnly) { "Cannot create readOnly BuilderCache from a readonly one" }
-        return BuilderCache(cache, isReadOnly = true)
-    }
+    constructor() : this(cache = MapMaker().weakKeys().makeMap())
 
     inline fun <reified S : To> cache(key: From, calculation: () -> S): S {
-        if (isReadOnly) {
-            return (cache[key] ?: calculation()) as S
-        }
         return cache.getOrPut(key, calculation) as S
     }
 }

@@ -65,10 +65,6 @@ internal class FirModuleResolveStateImpl(
         return firFileBuilder.getBuiltFirFileOrNull(ktFile, cache)
     }
 
-    override fun recordPsiToFirMappingsForCompletionFrom(fir: FirDeclaration, firFile: FirFile, ktFile: KtFile) {
-        error("Should be called only from FirModuleResolveStateForCompletion")
-    }
-
     override fun findNonLocalSourceFirDeclaration(
         ktDeclaration: KtDeclaration,
     ): FirDeclaration = ktDeclaration.findSourceNonLocalFirDeclaration(
@@ -121,17 +117,19 @@ internal class FirModuleResolveStateImpl(
         firFunction: FirDeclaration,
         containerFirFile: FirFile,
         firIdeProvider: FirProvider,
-        toPhase: FirResolvePhase,
         towerDataContextCollector: FirTowerDataContextCollector
     ) {
+        require(firFunction.resolvePhase == FirResolvePhase.STATUS) {
+            "Invalid phase: required STATUS but was ${firFunction.resolvePhase}"
+        }
         firFileBuilder.runCustomResolveWithPCECheck(containerFirFile, rootModuleSession.cache) {
             firLazyDeclarationResolver.runLazyResolveWithoutLock(
                 firFunction,
                 rootModuleSession.cache,
                 containerFirFile,
                 firIdeProvider,
-                fromPhase = firFunction.resolvePhase,
-                toPhase,
+                fromPhase = FirResolvePhase.STATUS,
+                FirResolvePhase.BODY_RESOLVE,
                 towerDataContextCollector,
                 checkPCE = true
             )
