@@ -80,10 +80,6 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         Assert.assertTrue(sdks.all { it === refSdk })
     }
 
-    override fun importProject() {
-        importProject(true)
-    }
-
     @Test
     fun testJvmImport() {
         configureByFiles()
@@ -893,7 +889,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         val isCreateEmptyContentRootDirectories = currentExternalProjectSettings.isCreateEmptyContentRootDirectories
         try {
             currentExternalProjectSettings.isCreateEmptyContentRootDirectories = true
-            super.importProject()
+            super.importProject(skipIndexing = true)
         } finally {
             currentExternalProjectSettings.isCreateEmptyContentRootDirectories = isCreateEmptyContentRootDirectories
         }
