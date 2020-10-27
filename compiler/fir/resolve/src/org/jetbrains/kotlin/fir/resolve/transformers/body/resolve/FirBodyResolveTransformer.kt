@@ -44,7 +44,7 @@ open class FirBodyResolveTransformer(
 
     final override val resolutionContext: ResolutionContext = ResolutionContext(session, components, context)
 
-    internal open val expressionsTransformer = FirExpressionsResolveTransformer(this)
+    open val expressionsTransformer = FirExpressionsResolveTransformer(this)
     protected open val declarationsTransformer = FirDeclarationsResolveTransformer(this)
     private val controlFlowStatementsTransformer = FirControlFlowStatementsResolveTransformer(this)
 

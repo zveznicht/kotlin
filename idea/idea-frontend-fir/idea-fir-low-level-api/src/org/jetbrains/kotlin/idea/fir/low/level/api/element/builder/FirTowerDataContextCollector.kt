@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.idea.fir.low.level.api.element.builder
 
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
+import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.expressions.FirStatement
 import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.resolve.FirTowerDataContext
@@ -20,6 +21,10 @@ class FirTowerDataContextCollector {
 
     fun addDeclarationContext(declaration: FirDeclaration, context: FirTowerDataContext) {
         (declaration.psi as? KtElement)?.let { state[it] = context }
+    }
+
+    fun addBlockContent(block: FirBlock, context: FirTowerDataContext) {
+        (block.psi as? KtElement)?.let { state[it] = context }
     }
 
     fun getContext(psi: KtElement): FirTowerDataContext? = state[psi]

@@ -9,10 +9,12 @@ import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
+import org.jetbrains.kotlin.fir.expressions.FirBlock
 import org.jetbrains.kotlin.fir.expressions.FirStatement
 import org.jetbrains.kotlin.fir.resolve.ResolutionMode
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirBodyResolveTransformer
+import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.FirExpressionsResolveTransformer
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.ImplicitBodyResolveComputationSession
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.createReturnTypeCalculatorForIDE
 import org.jetbrains.kotlin.fir.visitors.CompositeTransformResult
@@ -37,6 +39,12 @@ internal class FirDesignatedBodyResolveTransformerForIDE(
         ::FirIdeDesignatedBodyResolveTransformerForReturnTypeCalculator
     )
 ) {
+
+    override val expressionsTransformer: FirExpressionsResolveTransformer = object : FirExpressionsResolveTransformer(this) {
+        override fun onBlockEnter(block: FirBlock) {
+            towerDataContextCollector?.addBlockContent(block, context.towerDataContext)
+        }
+    }
 
     override fun transformDeclarationContent(declaration: FirDeclaration, data: ResolutionMode): CompositeTransformResult<FirDeclaration> {
         if (designation.hasNext()) {

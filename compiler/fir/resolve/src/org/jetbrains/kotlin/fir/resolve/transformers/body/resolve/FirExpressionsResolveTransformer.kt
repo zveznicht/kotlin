@@ -300,8 +300,11 @@ open class FirExpressionsResolveTransformer(transformer: FirBodyResolveTransform
         return block.compose()
     }
 
+    protected open fun onBlockEnter(block: FirBlock){}
+
     internal fun transformBlockInCurrentScope(block: FirBlock, data: ResolutionMode) {
         dataFlowAnalyzer.enterBlock(block)
+        onBlockEnter(block)
         val numberOfStatements = block.statements.size
 
         block.transformStatementsIndexed(transformer) { index ->
