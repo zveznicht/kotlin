@@ -1030,7 +1030,7 @@ class NewMultiplatformProjectImportingTest : MultiplePluginVersionGradleImportin
         val isCreateEmptyContentRootDirectories = currentExternalProjectSettings.isCreateEmptyContentRootDirectories
         currentExternalProjectSettings.isCreateEmptyContentRootDirectories = true
         try {
-            super.importProject()
+            super.importProject(skipIndexing = true)
         } finally {
             currentExternalProjectSettings.isCreateEmptyContentRootDirectories = isCreateEmptyContentRootDirectories
         }
