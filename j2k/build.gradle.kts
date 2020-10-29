@@ -67,13 +67,10 @@ dependencies {
     testRuntime(intellijPluginDep("java-i18n"))
     testRuntime(intellijPluginDep("java-decompiler"))
     testRuntime(project(":plugins:kapt3-idea")) { isTransitive = false }
+    testRuntime(intellijPluginDep("platform-images"))
 
     if (Ide.AS36.orHigher()) {
         testRuntime(intellijPluginDep("android-layoutlib"))
-    }
-
-    if (Ide.AS41.orHigher()) {
-        testRuntime(intellijPluginDep("platform-images"))
     }
 }
 

@@ -63,6 +63,7 @@ dependencies {
     testRuntime(intellijPluginDep("java-decompiler"))
     testRuntime(intellijPluginDep("java-i18n"))
     testRuntime(intellijPluginDep("junit"))
+    testRuntime(intellijPluginDep("platform-images"))
 
     Ide.IJ {
         testRuntime(intellijPluginDep("maven"))
@@ -76,10 +77,6 @@ dependencies {
 
     if (Ide.AS36.orHigher()) {
         testRuntime(intellijPluginDep("android-layoutlib"))
-    }
-
-    if (Ide.AS41.orHigher()) {
-        testRuntime(intellijPluginDep("platform-images"))
     }
 }
 

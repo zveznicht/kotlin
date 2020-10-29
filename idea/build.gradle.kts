@@ -188,6 +188,7 @@ dependencies {
     testRuntime(intellijPluginDep("android"))
     testRuntime(intellijPluginDep("smali"))
     testRuntime(intellijPluginDep("testng"))
+    testRuntime(intellijPluginDep("platform-images"))
 
     if (isFirPlugin) {
         testRuntime(project(":idea:idea-fir"))
@@ -198,10 +199,6 @@ dependencies {
         testRuntime(intellijPluginDep("git4idea"))
         testRuntime(intellijPluginDep("google-cloud-tools-core-as"))
         testRuntime(intellijPluginDep("google-login-as"))
-    }
-
-    if (Ide.AS41.orHigher()) {
-        testRuntime(intellijPluginDep("platform-images"))
     }
 }
 

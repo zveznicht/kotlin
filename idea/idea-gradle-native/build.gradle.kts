@@ -75,13 +75,10 @@ dependencies {
     }
     testRuntime(intellijPluginDep("android"))
     testRuntime(intellijPluginDep("smali"))
+    testRuntime(intellijPluginDep("platform-images"))
 
     if (Ide.AS36.orHigher()) {
         testRuntime(intellijPluginDep("android-layoutlib"))
-    }
-
-    if (Ide.AS41.orHigher()) {
-        testRuntime(intellijPluginDep("platform-images"))
     }
 }
 
