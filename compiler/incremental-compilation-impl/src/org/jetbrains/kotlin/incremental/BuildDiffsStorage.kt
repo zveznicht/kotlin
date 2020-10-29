@@ -69,7 +69,9 @@ data class BuildDiffsStorage(val buildDiffs: List<BuildDifference>) {
                 ObjectOutputStream(file.outputStream().buffered()).use { output ->
                     output.writeInt(CURRENT_VERSION)
 
-                    val diffsToWrite = storage.buildDiffs
+                    //TODO without ${IncrementalCompilerRunner#compileWithBuildCacheProperty} property only one diff should be stored.
+                    // Simplify after success release
+                    val diffsToWrite = storage.buildDiffs.sortedBy { it.ts }.takeLast(MAX_DIFFS_ENTRIES)
                     val size = diffsToWrite.size
                     //TODO: only one diff should exist after success test change collection to a single value
                     if (size != 1) {
