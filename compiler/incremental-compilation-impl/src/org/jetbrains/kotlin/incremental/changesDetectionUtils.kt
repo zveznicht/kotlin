@@ -15,12 +15,12 @@ internal fun getClasspathChanges(
     changedFiles: ChangedFiles.Known,
     lastBuildInfo: BuildInfo,
     modulesApiHistory: ModulesApiHistory,
-    reporter: ICReporter?
+    reporter: ICReporter?,
+    withBuildHistory: Boolean = false
 ): ChangesEither {
-    val classpathSet = HashSet<File>()
+    reporter?.report { "Run with build history: $withBuildHistory" }
 
-    //TODO make true property
-    val buildHistoryFeature = true
+    val classpathSet = HashSet<File>()
 
     for (file in classpath) {
         when {
@@ -53,18 +53,18 @@ internal fun getClasspathChanges(
             ?: return ChangesEither.Unknown("Could not read diffs from $historyFile")
 
         val buildDiffs =
-            if (buildHistoryFeature) {
-                if (allBuilds.any { it.ts <= lastBuildTS }) {
-                    reporter?.report { "Previous builds before $lastBuildTS was found" }
-                }
-                allBuilds
-            } else {
+            if (withBuildHistory) {
                 val (knownBuilds, newBuilds) = allBuilds.partition { it.ts <= lastBuildTS }
 
                 if (knownBuilds.isEmpty()) {
                     return ChangesEither.Unknown("No previously known builds for $historyFile")
                 }
                 newBuilds
+            } else {
+                if (allBuilds.any { it.ts <= lastBuildTS }) {
+                    reporter?.report { "Previous builds before $lastBuildTS was found" }
+                }
+                allBuilds
             }
 
         for (buildDiff in buildDiffs) {

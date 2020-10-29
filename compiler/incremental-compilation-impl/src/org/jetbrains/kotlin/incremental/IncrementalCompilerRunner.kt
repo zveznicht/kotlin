@@ -57,6 +57,9 @@ abstract class IncrementalCompilerRunner<
     protected abstract fun createCacheManager(args: Args, projectDir: File?): CacheManager
     protected abstract fun destinationDir(args: Args): File
 
+    //TODO temporal measure to ensure quick disable, should be deleted after successful release
+    protected val compileWithBuildCacheProperty = "kotlin.compile.with.build.history"
+
     fun compile(
         allSourceFiles: List<File>,
         args: Args,
