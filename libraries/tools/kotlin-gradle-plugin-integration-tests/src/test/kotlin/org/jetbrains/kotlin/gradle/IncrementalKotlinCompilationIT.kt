@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.gradle
 
 import org.jetbrains.kotlin.gradle.util.modify
 import org.junit.Test
-import kotlin.test.assertTrue
 
 class IncrementalKotlinCompilationIT : BaseGradleIT() {
     val localBuildCacheSettings =
@@ -68,7 +67,8 @@ class IncrementalKotlinCompilationIT : BaseGradleIT() {
 
     @Test
     fun testBuildHistoryRelocation() {
-        val project = createIncrementalProjectWithCache()
+        val project = Project("incrementalMultiproject", workingDirRelativePath = "first/project")
+        setupLocalBuildCache(project)
 
         project.build("build", "--build-cache") {
             assertSuccessful()
@@ -78,8 +78,12 @@ class IncrementalKotlinCompilationIT : BaseGradleIT() {
         val buildCache = project.projectDir.resolve("build-cache")
         buildCache.exists()
 
-        val project2 = createIncrementalProjectWithCache()
+        val project2 = Project("incrementalMultiproject", workingDirRelativePath = "second/new-project")
+        setupLocalBuildCache(project2)
+
         buildCache.copyRecursively(project2.projectDir.resolve("build-cache"))
+
+        project.projectDir.deleteRecursively()
 
         project2.build("build", "--build-cache") {
             assertSuccessful()
@@ -90,6 +94,10 @@ class IncrementalKotlinCompilationIT : BaseGradleIT() {
 
     private fun createIncrementalProjectWithCache(): Project {
         val project = Project("incrementalMultiproject")
+        return setupLocalBuildCache(project)
+    }
+
+    private fun setupLocalBuildCache(project: Project): Project {
         project.setupWorkingDir()
 
         project.gradleSettingsScript().modify { "$it\n$localBuildCacheSettings" }
