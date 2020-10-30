@@ -13,6 +13,8 @@ import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import gnu.trove.TIntArrayList
 import org.jetbrains.kotlin.idea.core.util.range
 import org.jetbrains.kotlin.idea.frontend.api.analyze
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -98,7 +100,7 @@ object FirShortenReferences {
         require(typeUsage.qualifier != null)
 
         val fileCopy = typeUsage.containingKtFile.copy() as KtFile
-        val found = findKtElementInRange<KtUserType>(fileCopy, typeUsage.textRange) ?: error("Could not find a matching element!")
+        val found = findSameElementInCopy(typeUsage, fileCopy)
 
         found.deleteQualifier()
 
@@ -176,4 +178,34 @@ private val KOTLIN_LANGUAGE = Language.findLanguageByID("kotlin")!!
 
 private inline fun <reified T : KtElement> findKtElementInRange(file: KtFile, range: TextRange): T? {
     return CodeInsightUtilCore.findElementInRange(file, range.startOffset, range.endOffset, T::class.java, KOTLIN_LANGUAGE)
+}
+
+/**
+ * This is a copy from `com.intellij.psi.util.PsiTreeUtil#findSameElementInCopy` which is not available at the moment.
+ */
+private inline fun <reified T : PsiElement> findSameElementInCopy(element: T, copy: PsiFile): T {
+    val offsets = TIntArrayList()
+    var cur: PsiElement = element
+    while (cur.javaClass != copy.javaClass) {
+        var pos = 0
+        var sibling = cur.prevSibling
+        while (sibling != null) {
+            pos++
+            sibling = sibling.prevSibling
+        }
+        offsets.add(pos)
+        cur = checkNotNull(cur.parent) { "Cannot find parent file" }
+    }
+
+    cur = copy
+    for (level in offsets.size() - 1 downTo 0) {
+        val pos = offsets[level]
+        cur = checkNotNull(cur.firstChild) { "File structure differs: no child" }
+        for (i in 0 until pos) {
+            cur = checkNotNull(cur.nextSibling) { "File structure differs: number of siblings is less than $pos" }
+        }
+    }
+
+    check(cur.javaClass == element.javaClass) { "File structure differs: ${cur.javaClass} != ${element.javaClass}" }
+    return cur as T
 }
