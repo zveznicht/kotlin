@@ -1,4 +1,4 @@
-// ENABLE_FIR_TEST
+// FIR_COMPARISON
 open class Bar {
     companion object {
         object FromBarCompanion {

@@ -1,4 +1,4 @@
-// ENABLE_FIR_TEST
+// FIR_COMPARISON
 package test
 
 typealias Str = String

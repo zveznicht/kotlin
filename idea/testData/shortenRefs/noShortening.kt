@@ -1,4 +1,4 @@
-// ENABLE_FIR_TEST
+// FIR_COMPARISON
 interface T : Iterable<String>
 
 abstract class C : T {

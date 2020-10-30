@@ -1,4 +1,4 @@
-// ENABLE_FIR_TEST
+// FIR_COMPARISON
 class A(val n: Int) {
     fun foo(n: Int): Int = <selection>this.n + 1</selection>
 }

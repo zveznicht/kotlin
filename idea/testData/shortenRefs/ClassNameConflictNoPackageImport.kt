@@ -1,4 +1,4 @@
-// ENABLE_FIR_TEST
+// FIR_COMPARISON
 fun foo(array: Array<String>){}
 
 val v: <selection>java.lang.reflect.Array</selection>

@@ -1,4 +1,4 @@
-// ENABLE_FIR_TEST
+// FIR_COMPARISON
 package java.io
 
 class A : <selection>java.io.File</selection>

@@ -1,3 +1,4 @@
+// FIR_IGNORE
 package some
 
 fun Any.other() {

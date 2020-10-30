@@ -1,4 +1,4 @@
-// ENABLE_FIR_TEST
+// FIR_COMPARISON
 fun bar(s: String) {
     <selection>A.foo(s)</selection>
 }

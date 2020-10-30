@@ -1,4 +1,4 @@
-// ENABLE_FIR_TEST
+// FIR_COMPARISON
 fun File(p: Int): String = ""
 fun File(p: String): String = ""
 

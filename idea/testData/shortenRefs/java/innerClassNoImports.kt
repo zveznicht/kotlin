@@ -1,4 +1,4 @@
-// ENABLE_FIR_TEST
+// FIR_COMPARISON
 fun bar(s: String) {
     <selection>val t: A.B = A().B(s)</selection>
 }
