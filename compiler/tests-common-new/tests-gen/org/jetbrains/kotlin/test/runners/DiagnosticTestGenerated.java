@@ -9490,6 +9490,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                     }
 
                     @Test
+                    @TestMetadata("lazy.kt")
+                    public void testLazy() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/functions/lazy.kt");
+                    }
+
+                    @Test
                     @TestMetadata("manyReceivers.kt")
                     public void testManyReceivers() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/functions/manyReceivers.kt");
@@ -9505,12 +9511,6 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                     @TestMetadata("plusMatrix.kt")
                     public void testPlusMatrix() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/functions/plusMatrix.kt");
-                    }
-
-                    @Test
-                    @TestMetadata("resolutionFailure.kt")
-                    public void testResolutionFailure() throws Exception {
-                        runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/functions/resolutionFailure.kt");
                     }
 
                     @Test
