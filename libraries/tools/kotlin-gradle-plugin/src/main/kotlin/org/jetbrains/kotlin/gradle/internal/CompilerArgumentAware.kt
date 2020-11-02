@@ -20,7 +20,28 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.compilerRunner.ArgumentUtils
-import org.jetbrains.kotlin.caching.CompilerArgumentsSplitter
+import java.io.File
+
+@Suppress("UNCHECKED_CAST")
+private fun <T : CommonToolArguments> divideCompilerArguments(compArgs: T): Array<Array<String>> {
+    val argsClass = compArgs::class.java
+    val classpathParts = argsClass.declaredMethods.find { it.name == "getClasspath" }?.let {
+        (it.invoke(compArgs) as? String)?.split(File.pathSeparator)
+            ?.map { cp -> cp.replace('\\', '/') }?.toTypedArray()
+    } ?: emptyArray()
+    val pluginClasspaths = argsClass.declaredMethods.find { it.name == "getPluginClasspaths" }?.let {
+        (it.invoke(compArgs) as? Array<String>)?.map { cp -> cp.replace('\\', '/') }?.toTypedArray()
+    } ?: emptyArray()
+    val friendPaths = argsClass.declaredMethods.find { it.name == "getFriendPaths" }?.let {
+        (it.invoke(compArgs) as? Array<String>)?.map { cp -> cp.replace('\\', '/') }?.toTypedArray()
+    } ?: emptyArray()
+    compArgs.apply {
+        argsClass.declaredMethods.find { it.name == "setClasspath" }?.invoke(this, null)
+        argsClass.declaredMethods.find { it.name == "setPluginClasspaths" }?.invoke(this, null)
+        argsClass.declaredMethods.find { it.name == "setFriendPaths" }?.invoke(this, null)
+    }
+    return arrayOf(ArgumentUtils.convertArgumentsToStringList(compArgs).toTypedArray(), classpathParts, pluginClasspaths, friendPaths)
+}
 
 interface CompilerArgumentAware<T : CommonToolArguments> {
     val serializedCompilerArguments: List<String>
@@ -38,16 +59,13 @@ interface CompilerArgumentAware<T : CommonToolArguments> {
         get() = CompilerArgumentsGradleInput.createInputsMap(prepareCompilerArguments())
 
     val serializedCompilerArgumentsForBucket: Array<Array<String>>
-        get() = compilerArgumentsSplitter().splitCompilerArguments(prepareCompilerArguments(ignoreClasspathResolutionErrors = true))
+        get() = divideCompilerArguments(prepareCompilerArguments())
 
     val defaultSerializedCompilerArgumentsForBucket: Array<Array<String>>
-        get() = createCompilerArgs().also { setupCompilerArgs(it, defaultsOnly = true) }.let {
-            compilerArgumentsSplitter().splitCompilerArguments(it)
-        }
+        get() = divideCompilerArguments(createCompilerArgs().also { setupCompilerArgs(it, defaultsOnly = true) })
 
     fun createCompilerArgs(): T
     fun setupCompilerArgs(args: T, defaultsOnly: Boolean = false, ignoreClasspathResolutionErrors: Boolean = false)
-    fun compilerArgumentsSplitter(): CompilerArgumentsSplitter<T>
 }
 
 internal fun <T : CommonToolArguments> CompilerArgumentAware<T>.prepareCompilerArguments(ignoreClasspathResolutionErrors: Boolean = false) =
