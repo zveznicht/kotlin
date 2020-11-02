@@ -86,7 +86,7 @@ dependencies {
     testRuntime(intellijPluginDep("android"))
     testRuntime(intellijPluginDep("smali"))
 
-    if (Ide.AS41.orHigher()) {
+    if (Ide.AS41.orHigher() || Ide.IJ201.orHigher()) {
          testRuntime(intellijPluginDep("platform-images"))
     }
 
