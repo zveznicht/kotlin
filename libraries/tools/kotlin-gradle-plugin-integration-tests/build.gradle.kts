@@ -77,7 +77,7 @@ fun Test.includeNative(include: Boolean) {
 }
 
 fun Test.advanceGradleVersion() {
-    val gradleVersionForTests = "6.3"
+    val gradleVersionForTests = "6.7"
     systemProperty("kotlin.gradle.version.for.tests", gradleVersionForTests)
 }
 
