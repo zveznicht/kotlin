@@ -117,8 +117,6 @@ class ScriptGenerator(declarationGenerator: DeclarationGenerator) : DeclarationG
 
             irScript.earlierScripts = existedScripts
 
-//            irScript.baseClass = context.symbolTable.referenceClass(descriptor.getSuperClassOrAny()).owner.defaultType
-
             for (d in ktScript.declarations) {
                 when (d) {
                     is KtScriptInitializer -> {
