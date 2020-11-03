@@ -117,7 +117,7 @@ private class ScriptsToClassesLowering(val context: JvmBackendContext) {
                 (irScript.baseClass as? IrSimpleType)?.let {
                     val cl = it.classifier.owner as IrClass
                     cl.primaryConstructor!!.valueParameters
-                } ?: irScript.explicitCallParameters)
+                } ?: irScript.explicitCallParameters
             explicitCallParameters.forEach { addConstructorParameter(it, true) }
             irScript.implicitReceiversParameters.forEach { addConstructorParameter(it, false) }
             irScript.providedProperties.forEach { addConstructorParameter(it.first, false) }

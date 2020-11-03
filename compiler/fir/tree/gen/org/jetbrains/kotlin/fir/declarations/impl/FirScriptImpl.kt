@@ -32,6 +32,7 @@ internal class FirScriptImpl(
     override val session: FirSession,
     override var resolvePhase: FirResolvePhase,
     override val origin: FirDeclarationOrigin,
+    override val attributes: FirDeclarationAttributes,
     override val annotations: MutableList<FirAnnotationCall>,
     override var returnTypeRef: FirTypeRef,
     override var receiverTypeRef: FirTypeRef?,
@@ -42,7 +43,6 @@ internal class FirScriptImpl(
     override val name: Name,
     override var baseClass: FirTypeRef?,
 ) : FirScript() {
-    override val attributes: FirDeclarationAttributes = FirDeclarationAttributes()
     override var controlFlowGraphReference: FirControlFlowGraphReference? = null
     override var typeRef: FirTypeRef = FirImplicitTypeRefImpl(null)
 
@@ -124,6 +124,10 @@ internal class FirScriptImpl(
     override fun replaceValueParameters(newValueParameters: List<FirValueParameter>) {
         valueParameters.clear()
         valueParameters.addAll(newValueParameters)
+    }
+
+    override fun replaceBody(newBody: FirBlock?) {
+        body = newBody
     }
 
     override fun replaceTypeRef(newTypeRef: FirTypeRef) {

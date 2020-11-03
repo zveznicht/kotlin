@@ -672,7 +672,7 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
             }
         }
         if (callableDeclaration is FirProperty) {
-            callableDeclaration.transformStatus(this, callableDeclaration.resolveStatus(callableDeclaration.status, null, false).mode())
+            callableDeclaration.transformStatus(this, callableDeclaration.resolveStatus(callableDeclaration.status, null).mode())
         }
     }
 

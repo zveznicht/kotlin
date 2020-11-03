@@ -84,7 +84,10 @@ class FirBasedSignatureComposer(private val mangler: FirMangler) : Fir2IrSignatu
             is FirScript -> {
                 val callableId = declaration.symbol.callableId
                 IdSignature.PublicSignature(
-                    callableId.packageName.asString(), callableId.relativeCallableName.asString(), builder.hashId, builder.mask
+                    callableId.packageName.asString(),
+                    // TODO: check whether it's valid to use simple name here
+                    callableId.callableName.asString(),
+                    builder.hashId, builder.mask
                 )
             }
             is FirTypeAlias -> {

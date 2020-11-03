@@ -38,6 +38,7 @@ class FirScriptBuilder : FirAnnotationContainerBuilder, FirExpressionBuilder {
     lateinit var session: FirSession
     var resolvePhase: FirResolvePhase = FirResolvePhase.RAW_FIR
     lateinit var origin: FirDeclarationOrigin
+    var attributes: FirDeclarationAttributes = FirDeclarationAttributes()
     override val annotations: MutableList<FirAnnotationCall> = mutableListOf()
     lateinit var returnTypeRef: FirTypeRef
     var receiverTypeRef: FirTypeRef? = null
@@ -54,6 +55,7 @@ class FirScriptBuilder : FirAnnotationContainerBuilder, FirExpressionBuilder {
             session,
             resolvePhase,
             origin,
+            attributes,
             annotations,
             returnTypeRef,
             receiverTypeRef,

@@ -51,6 +51,8 @@ abstract class FirScript : FirAnnotatedDeclaration, FirFunction<FirScript>, FirE
 
     abstract override fun replaceValueParameters(newValueParameters: List<FirValueParameter>)
 
+    abstract override fun replaceBody(newBody: FirBlock?)
+
     abstract override fun replaceTypeRef(newTypeRef: FirTypeRef)
 
     abstract override fun <D> transformAnnotations(transformer: FirTransformer<D>, data: D): FirScript
