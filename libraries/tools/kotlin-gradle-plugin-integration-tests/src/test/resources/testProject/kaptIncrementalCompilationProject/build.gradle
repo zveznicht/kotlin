@@ -18,8 +18,8 @@ repositories {
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation "org.jetbrains.kotlin:annotation-processor-example:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlin:annotation-processor-example:$kotlin_version"
     kapt "org.jetbrains.kotlin:annotation-processor-example:$kotlin_version"
-    testImplementation 'junit:junit:4.12'
+    testCompile 'junit:junit:4.12'
 }

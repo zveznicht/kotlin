@@ -11,9 +11,6 @@ import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.file.DefaultFileSystemLocation
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderFactory
-import org.jetbrains.kotlin.gradle.fixtures.FakeGradleProvider
-import org.jetbrains.kotlin.gradle.fixtures.FakeGradleRegularFile
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.Opcodes
 import org.junit.Assert.*
@@ -172,7 +169,7 @@ class ClasspathAnalyzerTest {
 }
 
 class StructureTransformTestAction(val input: File) : StructureTransformAction() {
-    override val inputArtifact: Provider<FileSystemLocation> = FakeGradleProvider(FakeGradleRegularFile(input))
+    override val inputArtifact: File = input
 
     override fun getParameters(): TransformParameters.None? {
         //no need for StructureTransformAction and so for test

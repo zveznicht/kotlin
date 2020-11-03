@@ -2,7 +2,6 @@ package org.jetbrains.kotlin.gradle
 
 import com.intellij.testFramework.TestDataFile
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.tooling.GradleConnector
 import org.gradle.util.GradleVersion
 import org.intellij.lang.annotations.Language
@@ -214,8 +213,7 @@ abstract class BaseGradleIT {
         val parallelTasksInProject: Boolean? = null,
         val jsCompilerType: KotlinJsCompilerType? = null,
         val configurationCache: Boolean = false,
-        val configurationCacheProblems: ConfigurationCacheProblems = ConfigurationCacheProblems.FAIL,
-        val warningMode: WarningMode = WarningMode.Summary
+        val configurationCacheProblems: ConfigurationCacheProblems = ConfigurationCacheProblems.FAIL
     )
 
     enum class ConfigurationCacheProblems {
@@ -830,7 +828,6 @@ Finished executing task ':$taskName'|
 
             // Workaround: override a console type set in the user machine gradle.properties (since Gradle 4.3):
             add("--console=plain")
-            add("--warning-mode=${options.warningMode.name.toLowerCase()}")
             addAll(options.freeCommandLineArgs)
         }
 
