@@ -23,24 +23,24 @@ import org.jetbrains.kotlin.compilerRunner.ArgumentUtils
 import java.io.File
 
 @Suppress("UNCHECKED_CAST")
-private fun <T : CommonToolArguments> divideCompilerArguments(compArgs: T): Array<Array<String>> {
+private fun <T : CommonToolArguments> divideCompilerArguments(compArgs: T): List<List<String>> {
     val argsClass = compArgs::class.java
     val classpathParts = argsClass.declaredMethods.find { it.name == "getClasspath" }?.let {
         (it.invoke(compArgs) as? String)?.split(File.pathSeparator)
-            ?.map { cp -> cp.replace('\\', '/') }?.toTypedArray()
-    } ?: emptyArray()
+            ?.map { cp -> cp.replace('\\', '/') }
+    }.orEmpty()
     val pluginClasspaths = argsClass.declaredMethods.find { it.name == "getPluginClasspaths" }?.let {
-        (it.invoke(compArgs) as? Array<String>)?.map { cp -> cp.replace('\\', '/') }?.toTypedArray()
-    } ?: emptyArray()
+        (it.invoke(compArgs) as? Array<String>)?.map { cp -> cp.replace('\\', '/') }
+    }.orEmpty()
     val friendPaths = argsClass.declaredMethods.find { it.name == "getFriendPaths" }?.let {
-        (it.invoke(compArgs) as? Array<String>)?.map { cp -> cp.replace('\\', '/') }?.toTypedArray()
-    } ?: emptyArray()
+        (it.invoke(compArgs) as? Array<String>)?.map { cp -> cp.replace('\\', '/') }
+    }.orEmpty()
     compArgs.apply {
         argsClass.declaredMethods.find { it.name == "setClasspath" }?.invoke(this, null)
         argsClass.declaredMethods.find { it.name == "setPluginClasspaths" }?.invoke(this, null)
         argsClass.declaredMethods.find { it.name == "setFriendPaths" }?.invoke(this, null)
     }
-    return arrayOf(ArgumentUtils.convertArgumentsToStringList(compArgs).toTypedArray(), classpathParts, pluginClasspaths, friendPaths)
+    return listOf(ArgumentUtils.convertArgumentsToStringList(compArgs), classpathParts, pluginClasspaths, friendPaths)
 }
 
 interface CompilerArgumentAware<T : CommonToolArguments> {
@@ -58,10 +58,10 @@ interface CompilerArgumentAware<T : CommonToolArguments> {
     val filteredArgumentsMap: Map<String, String>
         get() = CompilerArgumentsGradleInput.createInputsMap(prepareCompilerArguments())
 
-    val serializedCompilerArgumentsForBucket: Array<Array<String>>
+    val serializedCompilerArgumentsForBucket: List<List<String>>
         get() = divideCompilerArguments(prepareCompilerArguments())
 
-    val defaultSerializedCompilerArgumentsForBucket: Array<Array<String>>
+    val defaultSerializedCompilerArgumentsForBucket: List<List<String>>
         get() = divideCompilerArguments(createCompilerArgs().also { setupCompilerArgs(it, defaultsOnly = true) })
 
     fun createCompilerArgs(): T
@@ -89,10 +89,10 @@ interface CompilerArgumentAwareWithInput<T : CommonToolArguments> : CompilerArgu
         get() = super.filteredArgumentsMap
 
     @get:Internal
-    override val serializedCompilerArgumentsForBucket: Array<Array<String>>
+    override val serializedCompilerArgumentsForBucket: List<List<String>>
         get() = super.serializedCompilerArgumentsForBucket
 
     @get:Internal
-    override val defaultSerializedCompilerArgumentsForBucket: Array<Array<String>>
+    override val defaultSerializedCompilerArgumentsForBucket: List<List<String>>
         get() = super.defaultSerializedCompilerArgumentsForBucket
 }

@@ -140,9 +140,9 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun Task.getCompilerArgumentsForBucket(methodName: String): Array<Array<String>>? {
+    private fun Task.getCompilerArgumentsForBucket(methodName: String): List<List<String>>? {
         return try {
-            javaClass.getDeclaredMethod(methodName).invoke(this) as Array<Array<String>>
+            javaClass.getDeclaredMethod(methodName).invoke(this) as List<List<String>>
         } catch (e: Exception) {
             // No argument accessor method is available
             null
@@ -197,7 +197,7 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
 
             val currentCompilerArgumentsForBucket =
                 compileTask.getCompilerArgumentsForBucket("getSerializedCompilerArgumentsForBucket")?.let {
-                    FlatCompilerArgumentsBucket(it[0], it[1], it[2], it[3])
+                    FlatCompilerArgumentsBucket(it[0].toTypedArray(), it[1].toTypedArray(), it[2].toTypedArray(), it[3].toTypedArray())
                 } ?: RawToFlatCompilerArgumentsBucketConverter().let {
                     val currentArguments = compileTask.getCompilerArguments("getSerializedCompilerArguments")
                         ?: compileTask.getCompilerArguments("getSerializedCompilerArgumentsIgnoreClasspathIssues")
@@ -210,7 +210,7 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
 
             val defaultCompilerArgumentsForBucket =
                 compileTask.getCompilerArgumentsForBucket("getDefaultSerializedCompilerArgumentsForBucket")?.let {
-                    FlatCompilerArgumentsBucket(it[0], it[1], it[2], it[3])
+                    FlatCompilerArgumentsBucket(it[0].toTypedArray(), it[1].toTypedArray(), it[2].toTypedArray(), it[3].toTypedArray())
                 } ?: RawToFlatCompilerArgumentsBucketConverter().convert(compileTask.getCompilerArguments("getDefaultSerializedCompilerArguments").orEmpty())
 
             val defaultCompilerArgumentsBucket =
