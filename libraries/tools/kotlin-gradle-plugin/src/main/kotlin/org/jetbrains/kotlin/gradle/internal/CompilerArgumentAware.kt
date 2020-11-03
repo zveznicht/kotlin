@@ -23,24 +23,33 @@ import org.jetbrains.kotlin.compilerRunner.ArgumentUtils
 import java.io.File
 
 @Suppress("UNCHECKED_CAST")
-private fun <T : CommonToolArguments> divideCompilerArguments(compArgs: T): List<List<String>> {
-    val argsClass = compArgs::class.java
-    val classpathParts = argsClass.declaredMethods.find { it.name == "getClasspath" }?.let {
-        (it.invoke(compArgs) as? String)?.split(File.pathSeparator)
-            ?.map { cp -> cp.replace('\\', '/') }
-    }.orEmpty()
-    val pluginClasspaths = argsClass.declaredMethods.find { it.name == "getPluginClasspaths" }?.let {
-        (it.invoke(compArgs) as? Array<String>)?.map { cp -> cp.replace('\\', '/') }
-    }.orEmpty()
-    val friendPaths = argsClass.declaredMethods.find { it.name == "getFriendPaths" }?.let {
-        (it.invoke(compArgs) as? Array<String>)?.map { cp -> cp.replace('\\', '/') }
-    }.orEmpty()
-    compArgs.apply {
-        argsClass.declaredMethods.find { it.name == "setClasspath" }?.invoke(this, null)
-        argsClass.declaredMethods.find { it.name == "setPluginClasspaths" }?.invoke(this, null)
-        argsClass.declaredMethods.find { it.name == "setFriendPaths" }?.invoke(this, null)
+private fun <T : CommonToolArguments> divideCompilerArguments(compArgs: T): List<List<String>> = when (compArgs) {
+    is K2JVMCompilerArguments -> {
+        val classpathParts = compArgs.classpath?.split(File.pathSeparator)?.map { it.replace('\\', '/') }.orEmpty()
+            .also { compArgs.classpath = null }
+        val pluginClasspaths = compArgs.pluginClasspaths?.map { it.replace('\\', '/') }.orEmpty()
+            .also { compArgs.pluginClasspaths = null }
+        val friendPaths = compArgs.friendPaths?.map { it.replace('\\', '/') }.orEmpty()
+            .also { compArgs.friendPaths = null }
+        listOf(ArgumentUtils.convertArgumentsToStringList(compArgs), classpathParts, pluginClasspaths, friendPaths)
     }
-    return listOf(ArgumentUtils.convertArgumentsToStringList(compArgs), classpathParts, pluginClasspaths, friendPaths)
+    is K2MetadataCompilerArguments -> {
+        val classpathParts = compArgs.classpath?.split(File.pathSeparator)?.map { it.replace('\\', '/') }.orEmpty()
+            .also { compArgs.classpath = null }
+        val pluginClasspaths = compArgs.pluginClasspaths?.map { it.replace('\\', '/') }.orEmpty()
+            .also { compArgs.pluginClasspaths = null }
+        val friendPaths = compArgs.friendPaths?.map { it.replace('\\', '/') }.orEmpty()
+            .also { compArgs.friendPaths = null }
+        listOf(ArgumentUtils.convertArgumentsToStringList(compArgs), classpathParts, pluginClasspaths, friendPaths)
+    }
+    is CommonCompilerArguments -> {
+        val pluginClasspaths = compArgs.pluginClasspaths?.map { it.replace('\\', '/') }.orEmpty()
+            .also { compArgs.pluginClasspaths = null }
+        listOf(ArgumentUtils.convertArgumentsToStringList(compArgs), emptyList(), pluginClasspaths, emptyList())
+    }
+    else -> {
+        listOf(ArgumentUtils.convertArgumentsToStringList(compArgs), emptyList(), emptyList(), emptyList())
+    }
 }
 
 interface CompilerArgumentAware<T : CommonToolArguments> {
