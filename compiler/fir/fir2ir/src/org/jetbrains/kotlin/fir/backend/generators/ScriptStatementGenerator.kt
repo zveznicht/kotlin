@@ -27,8 +27,10 @@ internal class ScriptStatementGenerator(
     fun convertScriptContent(irScript: IrScript, script: FirScript) {
         declarationStorage.enterScope(irScript)
         irScript.explicitCallParameters = script.valueParameters.mapIndexed { index, firValueParameter ->
-            declarationStorage.createIrParameter(firValueParameter, index)
+            declarationStorage.createIrParameter(firValueParameter, index).also { it.parent = irScript }
         }
+        irScript.implicitReceiversParameters = emptyList() // TODO!
+        irScript.providedProperties = emptyList() // TODO!
         fakeOverrideGenerator.bindOverriddenSymbols(irScript.statements.filterIsInstance<IrDeclaration>())
         script.body?.statements?.forEach { statement ->
             when {

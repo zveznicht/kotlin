@@ -177,8 +177,6 @@ class Fir2IrDeclarationStorage(
             irScript.parent = parent
         }
         irScript.baseClass = script.baseClass?.toIrType() ?: irBuiltIns.anyNType
-//        irScript.explicitCallParameters = listOf(createSyntheticIrParameter(Name.identifier("args"), irBuiltIns.arrayClass.typeWith(irBuiltIns.stringType)))
-                // script.valueParameters.mapIndexed { idx, parameter -> createIrParameter(parameter, idx) }
         scriptCache[script] = irScript
         return irScript
     }
