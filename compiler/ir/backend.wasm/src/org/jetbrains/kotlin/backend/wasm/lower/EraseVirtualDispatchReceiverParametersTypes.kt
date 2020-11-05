@@ -6,12 +6,14 @@
 package org.jetbrains.kotlin.backend.wasm.lower
 
 import org.jetbrains.kotlin.backend.common.CommonBackendContext
-import org.jetbrains.kotlin.backend.common.FunctionLoweringPass
+import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.ir.copyTo
 import org.jetbrains.kotlin.backend.common.ir.isOverridableOrOverrides
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
+import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irImplicitCast
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrFunction
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -19,6 +21,8 @@ import org.jetbrains.kotlin.ir.expressions.IrGetValue
 import org.jetbrains.kotlin.ir.types.isAny
 import org.jetbrains.kotlin.ir.util.isInterface
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
+import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
+import org.jetbrains.kotlin.ir.visitors.acceptChildrenVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 
 /**
@@ -43,8 +47,21 @@ import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
  *
  *  Related issue: [https://github.com/WebAssembly/gc/issues/29]
  */
-class EraseVirtualDispatchReceiverParametersTypes(val context: CommonBackendContext) : FunctionLoweringPass {
-    override fun lower(irFunction: IrFunction) {
+class EraseVirtualDispatchReceiverParametersTypes(val context: CommonBackendContext) : FileLoweringPass {
+    override fun lower(file: IrFile) {
+        file.acceptChildrenVoid(object : IrElementVisitorVoid {
+            override fun visitElement(element: IrElement) {
+                element.acceptChildrenVoid(this)
+            }
+
+            override fun visitFunction(declaration: IrFunction) {
+                lower(declaration)
+                super.visitFunction(declaration)
+            }
+        })
+    }
+
+    fun lower(irFunction: IrFunction) {
         // Lower only functions that override other functions
         if (irFunction !is IrSimpleFunction) return
         if (!irFunction.isOverridableOrOverrides) return

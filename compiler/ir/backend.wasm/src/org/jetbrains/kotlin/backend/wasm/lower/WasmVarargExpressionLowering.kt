@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.backend.wasm.WasmBackendContext
 import org.jetbrains.kotlin.ir.builders.irCall
 import org.jetbrains.kotlin.ir.builders.irGet
 import org.jetbrains.kotlin.ir.builders.irInt
-import org.jetbrains.kotlin.ir.builders.irTemporaryVar
+import org.jetbrains.kotlin.ir.builders.irTemporary
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -43,7 +43,7 @@ internal class WasmVarargExpressionLowering(
             it.name == Name.identifier("set")
         }!!
         return builder.irComposite(irVararg) {
-            val arrayTempVariable = irTemporaryVar(
+            val arrayTempVariable = irTemporary(
                 value = irCall(primaryConstructor).apply {
                     putValueArgument(0, irInt(irVararg.elements.size))
                     if (primaryConstructor.typeParameters.isNotEmpty()) {
