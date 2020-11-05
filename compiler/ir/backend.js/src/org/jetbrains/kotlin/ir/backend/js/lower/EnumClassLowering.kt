@@ -445,7 +445,7 @@ class EnumEntryCreateGetInstancesFunsLowering(val context: JsCommonBackendContex
         }
 }
 
-class EnumSyntheticFunctionsLowering(val context: JsIrBackendContext) : DeclarationTransformer {
+class EnumSyntheticFunctionsLowering(val context: JsCommonBackendContext) : DeclarationTransformer {
 
     private var IrEnumEntry.getInstanceFun by context.mapping.enumEntryToGetInstanceFun
 
