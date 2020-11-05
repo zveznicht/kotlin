@@ -57,11 +57,6 @@ abstract class IncrementalCompilerRunner<
     protected abstract fun createCacheManager(args: Args, projectDir: File?): CacheManager
     protected abstract fun destinationDir(args: Args): File
 
-    //TODO temporal measure to ensure quick disable, should be deleted after successful release
-    protected val compileWithBuildCacheProperty = "kotlin.compile.with.build.history"
-    protected val withBuildHistory : Boolean = (System.getProperty(compileWithBuildCacheProperty) ?: false) as Boolean
-
-
     fun compile(
         allSourceFiles: List<File>,
         args: Args,
@@ -345,6 +340,7 @@ abstract class IncrementalCompilerRunner<
         currentBuildInfo: BuildInfo,
         dirtyData: DirtyData
     ) {
+        val prevDiffs = BuildDiffsStorage.readFromFile(buildHistoryFile, reporter)?.buildDiffs ?: emptyList()
         val newDiff = if (compilationMode is CompilationMode.Incremental) {
             BuildDifference(currentBuildInfo.startTS, true, dirtyData)
         } else {
@@ -352,13 +348,6 @@ abstract class IncrementalCompilerRunner<
             BuildDifference(currentBuildInfo.startTS, false, emptyDirtyData)
         }
 
-        val prevDiffs = if (withBuildHistory) {
-            BuildDiffsStorage.readFromFile(buildHistoryFile, reporter)?.buildDiffs ?: emptyList()
-        } else {
-            emptyList()
-        }
-
-        //TODO old history build should be restored in case of build fail
         BuildDiffsStorage.writeToFile(buildHistoryFile, BuildDiffsStorage(prevDiffs + newDiff), reporter)
     }
 

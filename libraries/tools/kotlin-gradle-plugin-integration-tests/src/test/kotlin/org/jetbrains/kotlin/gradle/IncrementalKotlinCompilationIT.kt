@@ -5,8 +5,10 @@
 
 package org.jetbrains.kotlin.gradle
 
+import junit.framework.Assert.assertTrue
 import org.jetbrains.kotlin.gradle.util.modify
 import org.junit.Test
+import java.util.*
 
 class IncrementalKotlinCompilationIT : BaseGradleIT() {
     val localBuildCacheSettings =
@@ -68,27 +70,56 @@ class IncrementalKotlinCompilationIT : BaseGradleIT() {
     @Test
     fun testBuildHistoryRelocation() {
         val project = Project("incrementalMultiproject", workingDirRelativePath = "first/project")
-        setupLocalBuildCache(project)
+        project.setupWorkingDir()
 
-        project.build("build", "--build-cache") {
+        project.build("build") {
             assertSuccessful()
             assertTasksExecuted(":app:compileKotlin", ":lib:compileKotlin")
         }
 
-        val buildCache = project.projectDir.resolve("build-cache")
-        buildCache.exists()
+        val appKotlinCompile = project.projectDir.resolve("app/build/kotlin")
+        val libKotlinCompile = project.projectDir.resolve("lib/build/kotlin")
+        appKotlinCompile.exists()
+        libKotlinCompile.exists()
 
         val project2 = Project("incrementalMultiproject", workingDirRelativePath = "second/new-project")
-        setupLocalBuildCache(project2)
+        project2.setupWorkingDir()
 
-        buildCache.copyRecursively(project2.projectDir.resolve("build-cache"))
+        appKotlinCompile.copyRecursively(project2.projectDir.resolve("app/build/kotlin"))
+        libKotlinCompile.copyRecursively(project2.projectDir.resolve("lib/build/kotlin"))
 
         project.projectDir.deleteRecursively()
 
-        project2.build("build", "--build-cache") {
+        project2.build("build", "-Dorg.gradle.debug=true") {
             assertSuccessful()
-            assertTasksGetFromCache(":app:compileKotlin", ":lib:compileKotlin")
+            assertTasksUpToDate(":app:compileKotlin", ":lib:compileKotlin")
         }
+
+    }
+
+    @Test
+    fun testBuildHistoryPathIndependence() {
+        val project = Project("incrementalMultiproject", workingDirRelativePath = "first/project")
+        project.setupWorkingDir()
+
+        project.debugKotlinDaemon("build") {
+            assertSuccessful()
+            assertTasksExecuted(":app:compileKotlin", ":lib:compileKotlin")
+        }
+
+        val project2 = Project("incrementalMultiproject", workingDirRelativePath = "second/new-project")
+        project2.setupWorkingDir()
+
+        project2.build("build", "-Dkotlin.daemon.jvm.options=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5007 --max-workers=1") {
+            assertSuccessful()
+            assertTasksExecuted(":app:compileKotlin", ":lib:compileKotlin")
+        }
+
+        //TODO move to new method, check existens
+        val appProject1BuildHistory = project.projectDir.resolve("app/build/kotlin/compileKotlin/build-history.bin").readBytes()
+        val appProject2BuildHistory = project2.projectDir.resolve("app/build/kotlin/compileKotlin/build-history.bin").readBytes()
+
+        assertTrue(Arrays.equals(appProject1BuildHistory, appProject2BuildHistory))
 
     }
 
