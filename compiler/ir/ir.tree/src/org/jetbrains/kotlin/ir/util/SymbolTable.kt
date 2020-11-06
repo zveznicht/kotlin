@@ -354,7 +354,9 @@ class SymbolTable(
         listOf(valueParameterSymbolTable, variableSymbolTable, scopedTypeParameterSymbolTable, localDelegatedPropertySymbolTable)
 
     fun referenceExternalPackageFragment(descriptor: PackageFragmentDescriptor) =
-        externalPackageFragmentTable.referenced(descriptor) { IrExternalPackageFragmentSymbolImpl(descriptor) }
+        synchronized(IrLock) {
+            externalPackageFragmentTable.referenced(descriptor) { IrExternalPackageFragmentSymbolImpl(descriptor) }
+        }
 
     fun declareExternalPackageFragment(descriptor: PackageFragmentDescriptor): IrExternalPackageFragment {
         return externalPackageFragmentTable.declare(
@@ -403,7 +405,9 @@ class SymbolTable(
     }
 
     override fun referenceScript(descriptor: ScriptDescriptor): IrScriptSymbol {
-        return scriptSymbolTable.referenced(descriptor) { IrScriptSymbolImpl(descriptor) }
+        synchronized(IrLock) {
+            return scriptSymbolTable.referenced(descriptor) { IrScriptSymbolImpl(descriptor) }
+        }
     }
 
     private fun createClassSymbol(descriptor: ClassDescriptor): IrClassSymbol {
@@ -448,10 +452,14 @@ class SymbolTable(
     }
 
     override fun referenceClass(descriptor: ClassDescriptor) =
-        classSymbolTable.referenced(descriptor) { createClassSymbol(descriptor) }
+        synchronized(IrLock) {
+            classSymbolTable.referenced(descriptor) { createClassSymbol(descriptor) }
+        }
 
     fun referenceClassIfAny(sig: IdSignature): IrClassSymbol? =
-        classSymbolTable.get(sig)
+        synchronized(IrLock) {
+            classSymbolTable.get(sig)
+        }
 
     override fun referenceClassFromLinker(descriptor: ClassDescriptor, sig: IdSignature): IrClassSymbol =
         classSymbolTable.run {
@@ -497,10 +505,14 @@ class SymbolTable(
         )
 
     override fun referenceConstructor(descriptor: ClassConstructorDescriptor) =
-        constructorSymbolTable.referenced(descriptor) { createConstructorSymbol(descriptor) }
+        synchronized(IrLock) {
+            constructorSymbolTable.referenced(descriptor) { createConstructorSymbol(descriptor) }
+        }
 
     fun referenceConstructorIfAny(sig: IdSignature): IrConstructorSymbol? =
-        constructorSymbolTable.get(sig)
+        synchronized(IrLock) {
+            constructorSymbolTable.get(sig)
+        }
 
     fun declareConstructorFromLinker(
         descriptor: ClassConstructorDescriptor,
@@ -566,7 +578,9 @@ class SymbolTable(
     }
 
     override fun referenceEnumEntry(descriptor: ClassDescriptor) =
-        enumEntrySymbolTable.referenced(descriptor) { createEnumEntrySymbol(descriptor) }
+        synchronized(IrLock) {
+            enumEntrySymbolTable.referenced(descriptor) { createEnumEntrySymbol(descriptor) }
+        }
 
     override fun referenceEnumEntryFromLinker(descriptor: ClassDescriptor, sig: IdSignature) =
         enumEntrySymbolTable.run {
@@ -624,7 +638,9 @@ class SymbolTable(
     }
 
     override fun referenceField(descriptor: PropertyDescriptor) =
-        fieldSymbolTable.referenced(descriptor) { createFieldSymbol(descriptor) }
+        synchronized(IrLock) {
+            fieldSymbolTable.referenced(descriptor) { createFieldSymbol(descriptor) }
+        }
 
     override fun referenceFieldFromLinker(descriptor: PropertyDescriptor, sig: IdSignature) =
         fieldSymbolTable.run {
@@ -638,8 +654,10 @@ class SymbolTable(
     val propertyTable = HashMap<PropertyDescriptor, IrProperty>()
 
     override fun referenceProperty(descriptor: PropertyDescriptor, generate: () -> IrProperty): IrProperty =
-        @Suppress("DEPRECATION")
-        propertyTable.getOrPut(descriptor, generate)
+        synchronized(IrLock) {
+            @Suppress("DEPRECATION")
+            propertyTable.getOrPut(descriptor, generate)
+        }
 
     private fun createPropertySymbol(descriptor: PropertyDescriptor): IrPropertySymbol {
         return signaturer.composeSignature(descriptor)?.let { IrPropertyPublicSymbolImpl(descriptor, it) } ?: IrPropertySymbolImpl(
@@ -703,10 +721,14 @@ class SymbolTable(
     }
 
     override fun referenceProperty(descriptor: PropertyDescriptor): IrPropertySymbol =
-        propertySymbolTable.referenced(descriptor) { createPropertySymbol(descriptor) }
+        synchronized(IrLock) {
+            propertySymbolTable.referenced(descriptor) { createPropertySymbol(descriptor) }
+        }
 
     fun referencePropertyIfAny(sig: IdSignature): IrPropertySymbol? =
-        propertySymbolTable.get(sig)
+        synchronized(IrLock) {
+            propertySymbolTable.get(sig)
+        }
 
     override fun referencePropertyFromLinker(descriptor: PropertyDescriptor, sig: IdSignature): IrPropertySymbol =
         propertySymbolTable.run {
@@ -723,7 +745,9 @@ class SymbolTable(
     }
 
     override fun referenceTypeAlias(descriptor: TypeAliasDescriptor): IrTypeAliasSymbol =
-        typeAliasSymbolTable.referenced(descriptor) { createTypeAliasSymbol(descriptor) }
+        synchronized(IrLock) {
+            typeAliasSymbolTable.referenced(descriptor) { createTypeAliasSymbol(descriptor) }
+        }
 
     fun declareTypeAliasFromLinker(
         descriptor: TypeAliasDescriptor,
@@ -811,10 +835,14 @@ class SymbolTable(
     }
 
     override fun referenceSimpleFunction(descriptor: FunctionDescriptor) =
-        simpleFunctionSymbolTable.referenced(descriptor) { createSimpleFunctionSymbol(descriptor) }
+        synchronized(IrLock) {
+            simpleFunctionSymbolTable.referenced(descriptor) { createSimpleFunctionSymbol(descriptor) }
+        }
 
     fun referenceSimpleFunctionIfAny(sig: IdSignature): IrSimpleFunctionSymbol? =
-        simpleFunctionSymbolTable.get(sig)
+        synchronized(IrLock) {
+            simpleFunctionSymbolTable.get(sig)
+        }
 
     override fun referenceSimpleFunctionFromLinker(descriptor: FunctionDescriptor, sig: IdSignature): IrSimpleFunctionSymbol {
         return simpleFunctionSymbolTable.run {
@@ -824,7 +852,9 @@ class SymbolTable(
     }
 
     override fun referenceDeclaredFunction(descriptor: FunctionDescriptor) =
-        simpleFunctionSymbolTable.referenced(descriptor) { throw AssertionError("Function is not declared: $descriptor") }
+        synchronized(IrLock) {
+            simpleFunctionSymbolTable.referenced(descriptor) { throw AssertionError("Function is not declared: $descriptor") }
+        }
 
     val unboundSimpleFunctions: Set<IrSimpleFunctionSymbol> get() = simpleFunctionSymbolTable.unboundSymbols
 
@@ -919,13 +949,17 @@ class SymbolTable(
     }
 
     override fun referenceValueParameter(descriptor: ParameterDescriptor) =
-        valueParameterSymbolTable.referenced(descriptor) {
-            throw AssertionError("Undefined parameter referenced: $descriptor\n${valueParameterSymbolTable.dump()}")
+        synchronized(IrLock) {
+            valueParameterSymbolTable.referenced(descriptor) {
+                throw AssertionError("Undefined parameter referenced: $descriptor\n${valueParameterSymbolTable.dump()}")
+            }
         }
 
     override fun referenceTypeParameter(classifier: TypeParameterDescriptor): IrTypeParameterSymbol =
-        scopedTypeParameterSymbolTable.get(classifier) ?: globalTypeParameterSymbolTable.referenced(classifier) {
-            createTypeParameterSymbol(classifier)
+        synchronized(IrLock) {
+            scopedTypeParameterSymbolTable.get(classifier) ?: globalTypeParameterSymbolTable.referenced(classifier) {
+                createTypeParameterSymbol(classifier)
+            }
         }
 
     override fun referenceTypeParameterFromLinker(classifier: TypeParameterDescriptor, sig: IdSignature): IrTypeParameterSymbol {
@@ -966,7 +1000,9 @@ class SymbolTable(
         }
 
     override fun referenceVariable(descriptor: VariableDescriptor) =
-        variableSymbolTable.referenced(descriptor) { throw AssertionError("Undefined variable referenced: $descriptor") }
+        synchronized(IrLock) {
+            variableSymbolTable.referenced(descriptor) { throw AssertionError("Undefined variable referenced: $descriptor") }
+        }
 
     fun declareLocalDelegatedProperty(
         startOffset: Int,
@@ -989,8 +1025,10 @@ class SymbolTable(
         }
 
     fun referenceLocalDelegatedProperty(descriptor: VariableDescriptorWithAccessors) =
-        localDelegatedPropertySymbolTable.referenced(descriptor) {
-            throw AssertionError("Undefined local delegated property referenced: $descriptor")
+        synchronized(IrLock) {
+            localDelegatedPropertySymbolTable.referenced(descriptor) {
+                throw AssertionError("Undefined local delegated property referenced: $descriptor")
+            }
         }
 
     @ObsoleteDescriptorBasedAPI
@@ -1014,13 +1052,15 @@ class SymbolTable(
     }
 
     fun referenceValue(value: ValueDescriptor): IrValueSymbol =
-        when (value) {
-            is ParameterDescriptor ->
-                valueParameterSymbolTable.referenced(value) { throw AssertionError("Undefined parameter referenced: $value") }
-            is VariableDescriptor ->
-                variableSymbolTable.referenced(value) { throw AssertionError("Undefined variable referenced: $value") }
-            else ->
-                throw IllegalArgumentException("Unexpected value descriptor: $value")
+        synchronized(IrLock) {
+            when (value) {
+                is ParameterDescriptor ->
+                    valueParameterSymbolTable.referenced(value) { throw AssertionError("Undefined parameter referenced: $value") }
+                is VariableDescriptor ->
+                    variableSymbolTable.referenced(value) { throw AssertionError("Undefined variable referenced: $value") }
+                else ->
+                    throw IllegalArgumentException("Unexpected value descriptor: $value")
+            }
         }
 
     @OptIn(ObsoleteDescriptorBasedAPI::class)
