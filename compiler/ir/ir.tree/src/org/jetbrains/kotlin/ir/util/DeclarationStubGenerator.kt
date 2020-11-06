@@ -18,6 +18,7 @@ package org.jetbrains.kotlin.ir.util
 
 import org.jetbrains.kotlin.config.LanguageVersionSettings
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.ir.IrLock
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
@@ -91,7 +92,7 @@ class DeclarationStubGenerator(
     }
 
     fun generateOrGetEmptyExternalPackageFragmentStub(descriptor: PackageFragmentDescriptor): IrExternalPackageFragment {
-        synchronized(this) {
+        synchronized(IrLock) {
             val referenced = symbolTable.referenceExternalPackageFragment(descriptor)
             if (referenced.isBound) {
                 return referenced.owner
@@ -151,7 +152,7 @@ class DeclarationStubGenerator(
         descriptor: PropertyDescriptor,
         bindingContext: BindingContext? = null
     ): IrProperty {
-        synchronized(this) {
+        synchronized(IrLock) {
             val referenced = symbolTable.referenceProperty(descriptor)
             if (referenced.isBound) {
                 return referenced.owner
@@ -175,7 +176,7 @@ class DeclarationStubGenerator(
     }
 
     fun generateFieldStub(descriptor: PropertyDescriptor): IrField {
-        synchronized(this) {
+        synchronized(IrLock) {
             val referenced = symbolTable.referenceField(descriptor)
             if (referenced.isBound) {
                 return referenced.owner
@@ -202,7 +203,7 @@ class DeclarationStubGenerator(
     }
 
     fun generateFunctionStub(descriptor: FunctionDescriptor, createPropertyIfNeeded: Boolean = true): IrSimpleFunction {
-        synchronized(this) {
+        synchronized(IrLock) {
             val referenced = symbolTable.referenceSimpleFunction(descriptor)
             if (referenced.isBound) {
                 return referenced.owner
@@ -236,7 +237,7 @@ class DeclarationStubGenerator(
     }
 
     fun generateConstructorStub(descriptor: ClassConstructorDescriptor): IrConstructor {
-        synchronized(this) {
+        synchronized(IrLock) {
             val referenced = symbolTable.referenceConstructor(descriptor)
             if (referenced.isBound) {
                 return referenced.owner
@@ -260,7 +261,7 @@ class DeclarationStubGenerator(
     private fun KotlinType.toIrType() = typeTranslator.translateType(this)
 
     internal fun generateValueParameterStub(descriptor: ValueParameterDescriptor): IrValueParameter = with(descriptor) {
-        synchronized(this) {
+        synchronized(IrLock) {
             symbolTable.irFactory.createValueParameter(
                 UNDEFINED_OFFSET, UNDEFINED_OFFSET, computeOrigin(this), IrValueParameterSymbolImpl(this), name, index, type.toIrType(),
                 varargElementType?.toIrType(), isCrossinline, isNoinline, isHidden = false, isAssignable = false
@@ -279,7 +280,7 @@ class DeclarationStubGenerator(
     }
 
     fun generateClassStub(descriptor: ClassDescriptor): IrClass {
-        synchronized(this) {
+        synchronized(IrLock) {
             val referenceClass = symbolTable.referenceClass(descriptor)
             if (referenceClass.isBound) {
                 return referenceClass.owner
@@ -305,7 +306,7 @@ class DeclarationStubGenerator(
     }
 
     fun generateEnumEntryStub(descriptor: ClassDescriptor): IrEnumEntry {
-        synchronized(this) {
+        synchronized(IrLock) {
             val referenced = symbolTable.referenceEnumEntry(descriptor)
             if (referenced.isBound) {
                 return referenced.owner
@@ -341,7 +342,7 @@ class DeclarationStubGenerator(
     }
 
     internal fun generateOrGetScopedTypeParameterStub(descriptor: TypeParameterDescriptor): IrTypeParameter {
-        synchronized(this) {
+        synchronized(IrLock) {
             val referenced = symbolTable.referenceTypeParameter(descriptor)
             if (referenced.isBound) {
                 return referenced.owner
@@ -362,7 +363,7 @@ class DeclarationStubGenerator(
     }
 
     fun generateTypeAliasStub(descriptor: TypeAliasDescriptor): IrTypeAlias {
-        synchronized(this) {
+        synchronized(IrLock) {
             val referenced = symbolTable.referenceTypeAlias(descriptor)
             if (referenced.isBound) {
                 return referenced.owner
