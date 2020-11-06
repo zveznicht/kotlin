@@ -77,6 +77,10 @@ interface ReferenceSymbolTable {
     fun leaveScope(owner: IrDeclaration)
 }
 
+/*
+    Methods that may be invoked from by-file lowerings (in particular, from lazy IR)
+    need to be protected by IrLock.
+ */
 class SymbolTable(
     val signaturer: IdSignatureComposer,
     val irFactory: IrFactory,
