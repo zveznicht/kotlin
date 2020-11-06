@@ -26,6 +26,10 @@ import org.jetbrains.kotlin.types.typeUtil.replaceArgumentsWithStarProjections
 import org.jetbrains.kotlin.types.typesApproximation.approximateCapturedTypes
 import java.util.*
 
+/*
+    Methods that may be invoked from by-file lowerings (in particular, from lazy IR)
+    need to be protected by IrLock.
+ */
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 class TypeTranslator(
     private val symbolTable: ReferenceSymbolTable,
