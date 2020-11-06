@@ -83,12 +83,12 @@ typealias ConeKotlinErrorType = ConeClassErrorType
 
 class ConeClassLikeErrorLookupTag(override val classId: ClassId) : ConeClassLikeLookupTag()
 
-class ConeClassErrorType(val diagnostic: ConeDiagnostic) : ConeClassLikeType() {
+class ConeClassErrorType(
+    val diagnostic: ConeDiagnostic,
+    override val typeArguments: Array<out ConeTypeProjection> = EMPTY_ARRAY,
+) : ConeClassLikeType() {
     override val lookupTag: ConeClassLikeLookupTag
         get() = ConeClassLikeErrorLookupTag(ClassId.fromString("<error>"))
-
-    override val typeArguments: Array<out ConeTypeProjection>
-        get() = EMPTY_ARRAY
 
     override val nullability: ConeNullability
         get() = ConeNullability.UNKNOWN

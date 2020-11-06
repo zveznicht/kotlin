@@ -97,9 +97,6 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
         substitutor: ConeSubstitutor?,
         areBareTypesAllowed: Boolean
     ): ConeKotlinType {
-        if (symbol == null) {
-            return ConeKotlinErrorType(ConeSimpleDiagnostic("Symbol not found, for `${typeRef.render()}`", DiagnosticKind.SymbolNotFound))
-        }
         if (symbol is FirTypeParameterSymbol) {
             for (part in typeRef.qualifier) {
                 if (part.typeArgumentList.typeArguments.isNotEmpty()) {
@@ -134,13 +131,17 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
                 }
             }
         }
-        return symbol.constructType(typeArguments, typeRef.isMarkedNullable, typeRef.annotations.computeTypeAttributes())
-            .also {
-                val lookupTag = it.lookupTag
-                if (lookupTag is ConeClassLikeLookupTagImpl && symbol is FirClassLikeSymbol<*>) {
-                    lookupTag.bindSymbolToLookupTag(session, symbol)
-                }
+        val type = symbol?.constructType(typeArguments, typeRef.isMarkedNullable, typeRef.annotations.computeTypeAttributes())
+            ?: ConeKotlinErrorType(
+                ConeSimpleDiagnostic("Symbol not found, for `${typeRef.render()}`", DiagnosticKind.SymbolNotFound),
+                typeArguments
+            )
+        return type.also {
+            val lookupTag = it.lookupTag
+            if (lookupTag is ConeClassLikeLookupTagImpl && symbol is FirClassLikeSymbol<*>) {
+                lookupTag.bindSymbolToLookupTag(session, symbol)
             }
+        }
     }
 
     private fun createFunctionalType(typeRef: FirFunctionTypeRef): ConeClassLikeType {
