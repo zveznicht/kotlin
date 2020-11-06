@@ -39,6 +39,10 @@ import org.jetbrains.kotlin.serialization.deserialization.descriptors.Deserializ
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
+/*
+    Methods that may be invoked from by-file lowerings (in particular, from lazy IR)
+    need to be protected by IrLock.
+ */
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 class DeclarationStubGenerator(
     val moduleDescriptor: ModuleDescriptor,

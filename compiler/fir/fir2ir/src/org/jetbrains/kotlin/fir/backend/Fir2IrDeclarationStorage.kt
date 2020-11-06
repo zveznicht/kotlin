@@ -53,6 +53,10 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.serialization.deserialization.descriptors.DeserializedContainerSource
 
+/*
+    Methods that may be invoked from by-file lowerings (in particular, from lazy IR)
+    need to be protected by IrLock.
+ */
 @OptIn(ObsoleteDescriptorBasedAPI::class)
 class Fir2IrDeclarationStorage(
     private val components: Fir2IrComponents,
