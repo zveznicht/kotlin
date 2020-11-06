@@ -499,7 +499,7 @@ public actual fun String.compareTo(other: String, ignoreCase: Boolean = false): 
 /**
  * Returns `true` if this string is equal to the contents of the specified [CharSequence], `false` otherwise.
  *
- * Note that if the [CharSequence] argument is a [StringBuffer] then the comparison is performed in a synchronized block
+ * Note that if the [CharSequence] argument is a [StringBuffer] then the comparison may be performed in a synchronized block
  * that acquires that [StringBuffer]'s monitor.
  */
 @kotlin.internal.InlineOnly
@@ -527,7 +527,7 @@ public actual infix fun CharSequence?.contentEquals(other: CharSequence?): Boole
     return if (this is String && other != null)
         contentEquals(other)
     else
-        contentEqualsImpl(other, ignoreCase = false)
+        contentEqualsImpl(other)
 }
 
 /**
@@ -541,10 +541,10 @@ public actual infix fun CharSequence?.contentEquals(other: CharSequence?): Boole
  * @sample samples.text.Strings.contentEquals
  */
 public actual fun CharSequence?.contentEquals(other: CharSequence?, ignoreCase: Boolean): Boolean {
-    return if (!ignoreCase && this is String && other != null)
-        contentEquals(other)
+    return if (ignoreCase)
+        contentEqualsIgnoreCaseImpl(other)
     else
-        contentEqualsImpl(other, ignoreCase)
+        contentEquals(other)
 }
 
 /**
