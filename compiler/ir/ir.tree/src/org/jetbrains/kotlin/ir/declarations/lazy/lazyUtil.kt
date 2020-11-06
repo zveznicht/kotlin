@@ -14,11 +14,14 @@ fun <T> lazyVar(initializer: () -> T): ReadWriteProperty<Any?, T> = Synchronized
 private class SynchronizedLazyVar<T>(initializer: () -> T) : ReadWriteProperty<Any?, T> {
     private var isInitialized = false
     private var initializer: (() -> T)? = initializer
+
     @Volatile
     private var _value: Any? = null
 
     private val value: T
         get() {
+            @Suppress("UNCHECKED_CAST")
+            if (isInitialized) return _value as T
             synchronized(this) {
                 if (!isInitialized) {
                     withInitialIr { _value = initializer!!() }
