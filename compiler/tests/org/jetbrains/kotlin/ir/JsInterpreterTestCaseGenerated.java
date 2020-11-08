@@ -575,6 +575,11 @@ public class JsInterpreterTestCaseGenerated extends AbstractJsInterpreterTestCas
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/ir/interpreter/useCases"), Pattern.compile("^(.+)\\.kt(s)?$"), null, true);
         }
 
+        @TestMetadata("logIntrinsic.kt")
+        public void testLogIntrinsic() throws Exception {
+            runTest("compiler/testData/ir/interpreter/useCases/logIntrinsic.kt");
+        }
+
         @TestMetadata("matrixArray.kt")
         public void testMatrixArray() throws Exception {
             runTest("compiler/testData/ir/interpreter/useCases/matrixArray.kt");
