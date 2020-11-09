@@ -20,17 +20,14 @@ interface IrInlineCallGenerator : IrCallGenerator {
     ) {
         val element = codegen.context.psiSourceManager.findPsiElement(expression, codegen.irFunction)
             ?: codegen.context.psiSourceManager.findPsiElement(codegen.irFunction)
-        if (!codegen.state.globalInlineContext.enterIntoInlining(
-                expression.symbol.owner.suspendFunctionOriginal().toIrBasedDescriptor(), element)
+        val success = !codegen.state.globalInlineContext.withInlining(
+            expression.symbol.owner.suspendFunctionOriginal().toIrBasedDescriptor(), element
         ) {
+            genInlineCall(callableMethod, codegen, expression, isInsideIfCondition)
+        }
+        if (success) {
             val message = "Call is a part of inline call cycle: ${expression.render()}"
             AsmUtil.genThrow(codegen.visitor, "java/lang/UnsupportedOperationException", message)
-            return
-        }
-        try {
-            genInlineCall(callableMethod, codegen, expression, isInsideIfCondition)
-        } finally {
-            codegen.state.globalInlineContext.exitFromInlining()
         }
     }
 

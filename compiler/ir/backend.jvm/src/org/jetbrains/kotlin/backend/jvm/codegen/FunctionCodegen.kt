@@ -101,12 +101,9 @@ class FunctionCodegen(
         } else {
             val sourceMapper = context.getSourceMapper(classCodegen.irClass)
             val frameMap = irFunction.createFrameMapWithReceivers()
-            context.state.globalInlineContext.enterDeclaration(irFunction.suspendFunctionOriginal().toIrBasedDescriptor())
-            try {
+            context.state.globalInlineContext.withDeclaration(irFunction.suspendFunctionOriginal().toIrBasedDescriptor()) {
                 val adapter = InstructionAdapter(methodVisitor)
                 ExpressionCodegen(irFunction, signature, frameMap, adapter, classCodegen, inlinedInto, sourceMapper).generate()
-            } finally {
-                context.state.globalInlineContext.exitDeclaration()
             }
             methodVisitor.visitMaxs(-1, -1)
             SMAP(sourceMapper.resultMappings)

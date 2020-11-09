@@ -5,11 +5,14 @@
 
 package org.jetbrains.kotlin.backend.jvm
 
-import org.jetbrains.kotlin.backend.common.CodegenUtil
+import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContextImpl
 import org.jetbrains.kotlin.backend.common.ir.BuiltinSymbolsBase
 import org.jetbrains.kotlin.backend.common.phaser.PhaseConfig
+import org.jetbrains.kotlin.backend.common.phaser.invokeToplevel
+import org.jetbrains.kotlin.backend.common.phaser.makeIrFilePhase
+import org.jetbrains.kotlin.backend.common.phaser.performByIrFile
 import org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen
 import org.jetbrains.kotlin.backend.jvm.codegen.DescriptorMetadataSerializer
 import org.jetbrains.kotlin.backend.jvm.lower.MultifileFacadeFileEntry
@@ -26,6 +29,7 @@ import org.jetbrains.kotlin.ir.backend.jvm.serialization.JvmIrLinker
 import org.jetbrains.kotlin.ir.backend.jvm.serialization.JvmManglerDesc
 import org.jetbrains.kotlin.ir.builders.TranslationPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrClass
+import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
 import org.jetbrains.kotlin.ir.declarations.impl.IrFactoryImpl
 import org.jetbrains.kotlin.ir.descriptors.IrBuiltIns
@@ -148,24 +152,9 @@ class JvmIrCodegenFactory(private val phaseConfig: PhaseConfig) : CodegenFactory
         JvmLower(context).lower(irModuleFragment)
 
         for (generateMultifileFacade in listOf(true, false)) {
-            for (irFile in irModuleFragment.files) {
-                // Generate multifile facades first, to compute and store JVM signatures of const properties which are later used
-                // when serializing metadata in the multifile parts.
-                // TODO: consider dividing codegen itself into separate phases (bytecode generation, metadata serialization) to avoid this
-                val isMultifileFacade = irFile.fileEntry is MultifileFacadeFileEntry
-                if (isMultifileFacade != generateMultifileFacade) continue
-
-                try {
-                    for (loweredClass in irFile.declarations) {
-                        if (loweredClass !is IrClass) {
-                            throw AssertionError("File-level declaration should be IrClass after JvmLower, got: " + loweredClass.render())
-                        }
-                        ClassCodegen.getOrCreate(loweredClass, context).generate()
-                    }
-                } catch (e: Throwable) {
-                    CodegenUtil.reportBackendException(e, "code generation", irFile.fileEntry.name)
-                }
-            }
+            val codegenPhase = makeCodegenPhase(generateMultifileFacade)
+            val codegenPhaseConfig = PhaseConfig(codegenPhase)
+            codegenPhase.invokeToplevel(codegenPhaseConfig, context, irModuleFragment)
         }
         // TODO: split classes into groups connected by inline calls; call this after every group
         //       and clear `JvmBackendContext.classCodegens`
@@ -190,3 +179,32 @@ class JvmIrCodegenFactory(private val phaseConfig: PhaseConfig) : CodegenFactory
         )
     }
 }
+
+private fun makeCodegenPhase(generateMultifileFacade: Boolean) =
+    performByIrFile(
+        name = "CodegenByIrFile",
+        description = "Code generation by IrFile",
+        lower = listOf(
+            makeIrFilePhase<JvmBackendContext>(
+                { context ->
+                    object : FileLoweringPass {
+                        override fun lower(irFile: IrFile) {
+                            val isMultifileFacade = irFile.fileEntry is MultifileFacadeFileEntry
+                            if (isMultifileFacade != generateMultifileFacade) return
+
+                            for (loweredClass in irFile.declarations) {
+                                if (loweredClass !is IrClass) {
+                                    throw AssertionError("File-level declaration should be IrClass after JvmLower, got: " + loweredClass.render())
+                                }
+                                ClassCodegen.getOrCreate(loweredClass, context).generate()
+                            }
+                        }
+                    }
+                },
+                name = "Codegen",
+                description = "Code generation"
+            )
+        )
+    )
+
+

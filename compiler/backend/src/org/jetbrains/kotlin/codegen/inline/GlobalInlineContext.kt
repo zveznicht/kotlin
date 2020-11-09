@@ -29,6 +29,17 @@ class GlobalInlineContext(private val diagnostics: DiagnosticSink) {
         inlineDeclarationSet.remove(inlineCallsAndDeclarations.removeLast())
     }
 
+    inline fun withDeclaration(descriptor: CallableDescriptor, block: () -> Unit) {
+        synchronized(this) {
+            enterDeclaration(descriptor)
+            try {
+                block()
+            } finally {
+                exitDeclaration()
+            }
+        }
+    }
+
     fun enterIntoInlining(callee: CallableDescriptor?, element: PsiElement?): Boolean {
         if (callee != null && callee.original in inlineDeclarationSet) {
             element?.let { diagnostics.report(Errors.INLINE_CALL_CYCLE.on(it, callee.original)) }
@@ -49,6 +60,15 @@ class GlobalInlineContext(private val diagnostics: DiagnosticSink) {
         inlineCallsAndDeclarations.removeLast()
         val pop = typesUsedInInlineFunctions.pop()
         typesUsedInInlineFunctions.peek()?.addAll(pop)
+    }
+
+    inline fun withInlining(callee: CallableDescriptor?, element: PsiElement?, block: () -> Unit): Boolean {
+        synchronized(this) {
+            if (!enterIntoInlining(callee, element)) return false
+            block()
+            exitFromInlining()
+            return true
+        }
     }
 
     fun recordTypeFromInlineFunction(type: String) = typesUsedInInlineFunctions.peek().add(type)
