@@ -77,7 +77,7 @@ val PsiElement.prevLeafs: Sequence<PsiElement>
     get() = generateSequence({ prevLeaf() }, { it.prevLeaf() })
 
 val PsiElement.prevLeafsWithSelf: Sequence<PsiElement>
-    get() = generateSequence(this, { it.prevLeaf() })
+    get() = generateSequence(this) { it.prevLeaf() }
 
 val PsiElement.nextLeafs: Sequence<PsiElement>
     get() = generateSequence({ nextLeaf() }, { it.nextLeaf() })

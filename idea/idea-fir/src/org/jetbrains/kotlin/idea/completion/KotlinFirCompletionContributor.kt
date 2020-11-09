@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.idea.completion
 import com.intellij.codeInsight.completion.*
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.patterns.PsiJavaPatterns
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.util.ProcessingContext
@@ -23,6 +24,7 @@ import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.isExtension
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.prevLeafsWithSelf
+import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
 class KotlinFirCompletionContributor : CompletionContributor() {
     init {
@@ -71,8 +73,14 @@ private class KotlinAvailableScopesCompletionProvider(prefixMatcher: PrefixMatch
         lookupElementFactory.createLookupElement(symbol)?.let(::addElement)
     }
 
+    private fun PsiElement.isWhiteSpaceOrLeftPar() = when (this) {
+        is PsiWhiteSpace -> true
+        is LeafPsiElement -> elementType == KtTokens.LPAR
+        else -> false
+    }
+
     private fun getPosition(parameters: CompletionParameters, originalFile: KtFile): KtElement? {
-        val offset = parameters.position.textRange.startOffset
+        val offset = parameters.position.startOffset
         val elementAtOffset = originalFile.findElementAt(offset)
         val elementAtOffsetParent = elementAtOffset?.parent
         val elementAtOffsetPrevSibling = elementAtOffset?.prevSibling
@@ -88,18 +96,14 @@ private class KotlinAvailableScopesCompletionProvider(prefixMatcher: PrefixMatch
                  */
                 elementAtOffsetPrevSibling
             }
-            else -> elementAtOffset?.prevLeafsWithSelf?.firstOrNull { it !is PsiWhiteSpace && !(it is LeafPsiElement && it.elementType == KtTokens.LPAR) }?.parent
-        } as? KtElement?
+            else -> elementAtOffset?.prevLeafsWithSelf?.firstOrNull { it.isWhiteSpaceOrLeftPar() }?.parent
+        } as? KtElement
     }
 
-    fun addCompletions(parameters: CompletionParameters, result: CompletionResultSet) {
-        val originalFile = parameters.originalFile as? KtFile ?: return
-
-        val position = getPosition(parameters, originalFile) ?: return
-
+    private fun getExplicitReceiver(position: KtElement): KtExpression? {
         val positionParent = position.parent
         val positionGrandparent = positionParent?.parent
-        val explicitReceiver = when {
+        return when {
             position is KtOperationReferenceExpression -> {
                 /*
                  x infixCall <caret>
@@ -126,6 +130,13 @@ private class KotlinAvailableScopesCompletionProvider(prefixMatcher: PrefixMatch
             }
             else -> null
         }
+    }
+
+    fun addCompletions(parameters: CompletionParameters, result: CompletionResultSet) {
+        val originalFile = parameters.originalFile as? KtFile ?: return
+
+        val position = getPosition(parameters, originalFile) ?: return
+        val explicitReceiver = getExplicitReceiver(position)
 
         analyze(originalFile) {
             val (implicitScopes, _) = originalFile.getScopeContextForPosition(position)

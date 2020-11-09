@@ -17,7 +17,7 @@ internal sealed class EnclosingDeclarationContext {
 
     companion object {
         fun detect(positionInFile: KtElement): EnclosingDeclarationContext {
-            val ktNamedFunction = positionInFile.parentsOfType<KtNamedFunction>().filter { it.name != null }.firstOrNull()
+            val ktNamedFunction = positionInFile.parentsOfType<KtNamedFunction>().firstOrNull { it.name != null }
             if (ktNamedFunction != null) {
                 return FunctionContext(ktNamedFunction)
             }
