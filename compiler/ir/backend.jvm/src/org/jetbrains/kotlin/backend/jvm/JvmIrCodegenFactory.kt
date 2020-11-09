@@ -149,13 +149,8 @@ class JvmIrCodegenFactory(private val phaseConfig: PhaseConfig) : CodegenFactory
             context.typeMapper.mapType(context.referenceClass(descriptor).defaultType)
         }
 
-        JvmLower(context).lower(irModuleFragment)
+        jvmPhases.invokeToplevel(phaseConfig, context, irModuleFragment)
 
-        for (generateMultifileFacade in listOf(true, false)) {
-            val codegenPhase = makeCodegenPhase(generateMultifileFacade)
-            val codegenPhaseConfig = PhaseConfig(codegenPhase)
-            codegenPhase.invokeToplevel(codegenPhaseConfig, context, irModuleFragment)
-        }
         // TODO: split classes into groups connected by inline calls; call this after every group
         //       and clear `JvmBackendContext.classCodegens`
         state.afterIndependentPart()
@@ -179,32 +174,3 @@ class JvmIrCodegenFactory(private val phaseConfig: PhaseConfig) : CodegenFactory
         )
     }
 }
-
-private fun makeCodegenPhase(generateMultifileFacade: Boolean) =
-    performByIrFile(
-        name = "CodegenByIrFile",
-        description = "Code generation by IrFile",
-        lower = listOf(
-            makeIrFilePhase<JvmBackendContext>(
-                { context ->
-                    object : FileLoweringPass {
-                        override fun lower(irFile: IrFile) {
-                            val isMultifileFacade = irFile.fileEntry is MultifileFacadeFileEntry
-                            if (isMultifileFacade != generateMultifileFacade) return
-
-                            for (loweredClass in irFile.declarations) {
-                                if (loweredClass !is IrClass) {
-                                    throw AssertionError("File-level declaration should be IrClass after JvmLower, got: " + loweredClass.render())
-                                }
-                                ClassCodegen.getOrCreate(loweredClass, context).generate()
-                            }
-                        }
-                    }
-                },
-                name = "Codegen",
-                description = "Code generation"
-            )
-        )
-    )
-
-
