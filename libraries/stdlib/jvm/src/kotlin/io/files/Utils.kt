@@ -36,6 +36,11 @@ import java.io.IOException
  * @throws IOException in case of input/output error.
  * @throws IllegalArgumentException if [prefix] is shorter than three symbols.
  */
+@Deprecated(
+    "Avoid creating temporary directories in the default temp location with this function " +
+    "due to too wide permissions on the newly created directory. " +
+    "Use kotlin.io.path.createTempDirectory instead."
+)
 public fun createTempDir(prefix: String = "tmp", suffix: String? = null, directory: File? = null): File {
     val dir = File.createTempFile(prefix, suffix, directory)
     dir.delete()
@@ -71,6 +76,11 @@ public fun createTempDir(prefix: String = "tmp", suffix: String? = null, directo
  * @throws IOException in case of input/output error.
  * @throws IllegalArgumentException if [prefix] is shorter than three symbols.
  */
+@Deprecated(
+    "Avoid creating temporary files in the default temp location with this function " +
+    "due to too wide permissions on the newly created file. " +
+    "Use kotlin.io.path.createTempFile instead or resort to java.io.File.createTempFile."
+)
 public fun createTempFile(prefix: String = "tmp", suffix: String? = null, directory: File? = null): File {
     return File.createTempFile(prefix, suffix, directory)
 }
