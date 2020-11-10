@@ -38,3 +38,6 @@ interface ModuleInfo {
         val Capability = ModuleCapability<ModuleInfo>("ModuleInfo")
     }
 }
+
+@Deprecated(message = "")
+fun methodToPreserveCompatibility() {}
