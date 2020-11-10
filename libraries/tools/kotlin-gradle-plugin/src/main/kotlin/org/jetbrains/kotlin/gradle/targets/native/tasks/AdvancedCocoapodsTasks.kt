@@ -6,7 +6,6 @@
 package org.jetbrains.kotlin.gradle.targets.native.tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Task
 import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
@@ -110,21 +109,8 @@ open class PodInstallTask : DefaultTask() {
 }
 
 private interface ExtendedErrorDiagnostic {
-    val lazyPredicate: () -> Boolean
-    val lazyMessage: () -> String
-}
-
-private interface ExtendedLoggingTask : Task {
-    @get:Internal
-    var outputText: String?
-
-    fun executeCommandAndLog(
-        command: List<String>,
-        processConfiguration: ((ProcessBuilder.() -> Unit))? = null,
-        extendedErrorDiagnostic: ExtendedErrorDiagnostic? = null
-    ) {
-        outputText = runCommand(command, project.logger, processConfiguration, extendedErrorDiagnostic)
-    }
+    fun isAppropriateOutput(output: String): Boolean
+    val message: String
 }
 
 abstract class DownloadCocoapodsTask : DefaultTask() {
@@ -259,8 +245,7 @@ open class PodDownloadGitTask : DownloadCocoapodsTask() {
         )
         val repo = repo.get()
         repo.mkdir()
-        val configProcess: ProcessBuilder.() -> Unit = { directory(repo) }
-        runCommand(initCommand, logger, configProcess)
+        runCommand(initCommand, logger) { directory(repo) }
 
         val fetchCommand = listOf(
             "git",
@@ -269,14 +254,14 @@ open class PodDownloadGitTask : DownloadCocoapodsTask() {
             "$url",
             commit
         )
-        runCommand(fetchCommand, logger, configProcess)
+        runCommand(fetchCommand, logger) { directory(repo) }
 
         val checkoutCommand = listOf(
             "git",
             "checkout",
             "FETCH_HEAD"
         )
-        runCommand(checkoutCommand, logger, configProcess)
+        runCommand(checkoutCommand, logger) { directory(repo) }
     }
 
     private fun cloneShallow(url: URI, branch: String) {
@@ -288,8 +273,7 @@ open class PodDownloadGitTask : DownloadCocoapodsTask() {
             "--branch", branch,
             "--depth", "1"
         )
-        val configProcess: ProcessBuilder.() -> Unit = { directory(gitDir) }
-        runCommand(shallowCloneCommand, project.logger, configProcess)
+        runCommand(shallowCloneCommand, project.logger) { directory(gitDir) }
     }
 
     private fun cloneHead(podspecLocation: Git) {
@@ -300,8 +284,7 @@ open class PodDownloadGitTask : DownloadCocoapodsTask() {
             podName.get(),
             "--depth", "1"
         )
-        val configProcess: ProcessBuilder.() -> Unit = { directory(gitDir) }
-        runCommand(cloneHeadCommand, project.logger, configProcess)
+        runCommand(cloneHeadCommand, project.logger) { directory(gitDir) }
     }
 
     private fun fallback(podspecLocation: Git) {
@@ -313,23 +296,20 @@ open class PodDownloadGitTask : DownloadCocoapodsTask() {
             "${podspecLocation.url}",
             podName.get()
         )
-        val configProcess: ProcessBuilder.() -> Unit = { directory(gitDir) }
-        runCommand(cloneAllCommand, project.logger, configProcess)
+        runCommand(cloneAllCommand, project.logger) { directory(gitDir) }
     }
 }
 
 private fun runCommand(
     command: List<String>,
     logger: Logger,
-    processConfiguration: ((ProcessBuilder.() -> Unit))? = null,
     extendedErrorDiagnostic: ExtendedErrorDiagnostic? = null,
-    errorHandler: ((retCode: Int, process: Process) -> Unit)? = null
+    errorHandler: ((retCode: Int, process: Process) -> Unit)? = null,
+    processConfiguration: ProcessBuilder.() -> Unit = { }
 ): String {
     val process = ProcessBuilder(command)
         .apply {
-            if (processConfiguration != null) {
-                this.processConfiguration()
-            }
+            this.processConfiguration()
         }.start()
 
     var inputText = ""
@@ -365,7 +345,7 @@ private fun runCommand(
                 |Executing of '${command.joinToString(" ")}' failed with code $retCode and message: 
                 |
                 |$errorText
-                |${extendedErrorDiagnostic?.takeIf { it.lazyPredicate() }?.let { it.lazyMessage() } ?: ""}
+                |${extendedErrorDiagnostic?.takeIf { it.isAppropriateOutput(inputText) }?.message ?: ""}
                 """.trimMargin()
     }
 
@@ -376,16 +356,13 @@ private fun runCommand(
  * The task takes the path to the .podspec file and calls `pod gen`
  * to create synthetic xcode project and workspace.
  */
-open class PodGenTask : DefaultTask(), ExtendedLoggingTask {
+open class PodGenTask : DefaultTask() {
 
     init {
         onlyIf {
             pods.get().isNotEmpty()
         }
     }
-
-    @get:Internal
-    override var outputText: String? = null
 
     @get:InputFile
     internal lateinit var podspec: Provider<File>
@@ -425,14 +402,11 @@ open class PodGenTask : DefaultTask(), ExtendedLoggingTask {
         )
 
         val podGenDiagnostic = object : ExtendedErrorDiagnostic {
-            override val lazyPredicate: () -> Boolean
-                get() = {
-                    outputText?.let {
-                        !it.contains("deployment target") && !it.contains("requested platforms: [\"${family.platformLiteral}\"]")
-                    } ?: true
-                }
-            override val lazyMessage: () -> String
-                get() = {
+            override fun isAppropriateOutput(output: String): Boolean =
+                output.contains("deployment target") || output.contains("requested platforms: [\"${family.platformLiteral}\"]")
+
+            override val message: String
+                get() =
                     """
                         |Tip: try to configure deployment_target for ALL targets as follows:
                         |cocoapods {
@@ -441,10 +415,9 @@ open class PodGenTask : DefaultTask(), ExtendedLoggingTask {
                         |   ...
                         |}
                     """.trimMargin()
-                }
         }
 
-        executeCommandAndLog(podGenProcessArgs, { directory(syntheticDir) }, podGenDiagnostic)
+        runCommand(podGenProcessArgs, project.logger, podGenDiagnostic) { directory(syntheticDir) }
 
         val podsXcprojFile = podsXcodeProjDir.get()
         check(podsXcprojFile.exists() && podsXcprojFile.isDirectory) {
@@ -454,7 +427,7 @@ open class PodGenTask : DefaultTask(), ExtendedLoggingTask {
 }
 
 
-open class PodSetupBuildTask : DefaultTask(), ExtendedLoggingTask {
+open class PodSetupBuildTask : DefaultTask() {
 
     @get:Input
     lateinit var frameworkName: Provider<String>
@@ -475,9 +448,6 @@ open class PodSetupBuildTask : DefaultTask(), ExtendedLoggingTask {
     @get:Internal
     internal lateinit var podsXcodeProjDir: Provider<File>
 
-    @get:Internal
-    override var outputText: String? = null
-
     @TaskAction
     fun setupBuild() {
         val podsXcodeProjDir = podsXcodeProjDir.get()
@@ -489,13 +459,11 @@ open class PodSetupBuildTask : DefaultTask(), ExtendedLoggingTask {
             "-sdk", sdk.get()
         )
 
-        executeCommandAndLog(buildSettingsReceivingCommand, { directory(podsXcodeProjDir.parentFile) })
+        val outputText = runCommand(buildSettingsReceivingCommand, project.logger) { directory(podsXcodeProjDir.parentFile) }
 
-        outputText?.reader()?.also {
-            val buildSettingsProperties = PodBuildSettingsProperties.readSettingsFromReader(it)
-            buildSettingsFile.get().let { bsf ->
-                buildSettingsProperties.writeSettings(bsf)
-            }
+        val buildSettingsProperties = PodBuildSettingsProperties.readSettingsFromReader(outputText.reader())
+        buildSettingsFile.get().let { bsf ->
+            buildSettingsProperties.writeSettings(bsf)
         }
     }
 }
@@ -506,7 +474,7 @@ private fun getBuildSettingFileName(pod: CocoapodsDependency, sdk: String): Stri
 /**
  * The task compiles external cocoa pods sources.
  */
-open class PodBuildTask : DefaultTask(), ExtendedLoggingTask {
+open class PodBuildTask : DefaultTask() {
 
     @get:InputFile
     internal lateinit var buildSettingsFile: Provider<File>
@@ -539,9 +507,6 @@ open class PodBuildTask : DefaultTask(), ExtendedLoggingTask {
     @get:Internal
     internal lateinit var podsXcodeProjDir: Provider<File>
 
-    @get:Internal
-    override var outputText: String? = null
-
     @TaskAction
     fun buildDependencies() {
         val podBuildSettings = PodBuildSettingsProperties.readSettingsFromReader(buildSettingsFile.get().reader())
@@ -556,7 +521,7 @@ open class PodBuildTask : DefaultTask(), ExtendedLoggingTask {
             "-configuration", podBuildSettings.configuration
         )
 
-        executeCommandAndLog(podXcodeBuildCommand, { directory(podsXcodeProjDir.parentFile) })
+        runCommand(podXcodeBuildCommand, project.logger) { directory(podsXcodeProjDir.parentFile) }
     }
 }
 
