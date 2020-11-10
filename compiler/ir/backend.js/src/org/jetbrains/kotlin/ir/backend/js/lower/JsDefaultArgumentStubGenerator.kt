@@ -41,7 +41,6 @@ class JsDefaultArgumentStubGenerator(override val context: JsIrBackendContext) :
         // but in case we have such functionality in the future the logic bellow should be fixed
         return irCall(invokeFunctionN, IrStatementOrigin.INVOKE).apply {
             dispatchReceiver = irImplicitCast(irGet(handlerDeclaration), invokeFunctionN.dispatchReceiverParameter!!.type)
-            assert(newIrFunction.extensionReceiverParameter == null)
             params.forEachIndexed { i, variable -> putValueArgument(i, irGet(variable)) }
         }
     }
