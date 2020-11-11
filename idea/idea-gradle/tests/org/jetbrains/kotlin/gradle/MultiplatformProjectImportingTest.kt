@@ -323,10 +323,9 @@ class MultiplatformProjectImportingTest : MultiplePluginVersionGradleImportingTe
         )
     }
 
-    @Test
-    //BUNCH(203): replace with  gradleVersionForLatestPlugin = legacyMppImportTestMinVersionForMaster
-    // after updating platform (may require updating android gradle plugin in testdata)
-    @PluginTargetVersions(gradleVersion = "<6.0")
+
+    //BUNCH(203): @Test enable after updating platform (may require updating android gradle plugin in testdata)
+    @PluginTargetVersions(gradleVersion = "<6.0", pluginVersion = "1.4.10")
     fun testJsTestOutputFileInProjectWithAndroid() {
         configureByFiles()
         createProjectSubFile(
