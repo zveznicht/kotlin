@@ -353,12 +353,8 @@ private fun getKotlinOptions(kotlinCompileTask: Any): PSourceRootKotlinOptions? 
     fun parseBoolean(name: String) = compileArguments.contains("-$name")
     fun parseString(name: String) = compileArguments.dropWhile { it != "-$name" }.drop(1).firstOrNull()
 
-    fun isOptionForScriptingCompilerPlugin(option: String): Boolean {
-        return option.startsWith("-Xplugin=") && option.contains("kotlin-scripting-compiler-embeddable")
-    }
-
     val extraArguments = compileArguments.filter {
-        it.startsWith("-X") && !isOptionForScriptingCompilerPlugin(it)
+        it.startsWith("-X") && !it.startsWith("-Xplugin=")
     }
 
     return PSourceRootKotlinOptions(
