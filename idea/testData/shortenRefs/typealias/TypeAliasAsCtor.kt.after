@@ -1,3 +1,4 @@
+// FIR_COMPARISON
 package test
 
 class WithCtor(val x: Int)

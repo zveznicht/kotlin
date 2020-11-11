@@ -1,3 +1,4 @@
+// FIR_COMPARISON
 import dependency.C.Companion.Nested
 
 fun foo() {

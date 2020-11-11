@@ -1,3 +1,4 @@
+// FIR_COMPARISON
 class A(val n: Int) {
 
 }

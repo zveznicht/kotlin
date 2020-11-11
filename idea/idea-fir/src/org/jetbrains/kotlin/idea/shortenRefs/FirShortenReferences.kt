@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.idea.shortenRefs
 
-import com.intellij.codeInsight.CodeInsightUtilCore
 import com.intellij.lang.Language
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runUndoTransparentWriteAction
@@ -15,10 +14,17 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import gnu.trove.TIntArrayList
+import org.jetbrains.kotlin.fir.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
 import org.jetbrains.kotlin.idea.core.util.range
 import org.jetbrains.kotlin.idea.frontend.api.analyze
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassKind
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassOrObjectSymbol
+import org.jetbrains.kotlin.idea.frontend.api.symbols.KtPackageSymbol
+import org.jetbrains.kotlin.idea.intentions.getLeftMostReceiverExpression
+import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 
 private enum class FilterResult {
     SKIP,
@@ -71,19 +77,57 @@ object FirShortenReferences {
         }
     }
 
-    private fun collectShorteningsInFile(file: KtFile, elementFilter: PsiElementFilter): List<ShortenCommand> {
-        val collectedTypes = runReadAction {
-            val classCollector = TypesCollectorVisitor(elementFilter)
-            file.accept(classCollector)
+    private fun collectShorteningsInFile(file: KtFile, elementFilter: PsiElementFilter): List<ShortenCommand> = runReadAction {
+        val classCollector = QualifiedTypesCollector(elementFilter)
+        file.accept(classCollector)
+        val collectedTypes = classCollector.collectedElements
 
-            classCollector.collectedTypes
+        val expressionsCollector = QualifiedExpressionCollector(elementFilter)
+        file.accept(expressionsCollector)
+        val collectedExpressions = expressionsCollector.collectedElements
+
+        val typesToShorten = collectedTypes
+            .filter { it.qualifier != null }
+            .filter { typeCanBeShortened(it) }
+            .map { ShortenTypeNow(it) }
+
+        val expressionsToShorten = collectedExpressions
+            .filter { expressionCanBeShortened(it) }
+            .map { ShortenExpressionNow(it) }
+
+        typesToShorten + expressionsToShorten
+    }
+
+    private fun expressionCanBeShortened(expression: KtDotQualifiedExpression): Boolean {
+        if (!canBePossibleToDropReceiver(expression)) return false
+
+        val shortenedExpression = createShortenedCopy(expression)
+
+        val originalTarget = expression.resolveToPsi() ?: return false
+        val shortenedTarget = shortenedExpression.resolveToPsi() ?: return false
+
+        return originalTarget == shortenedTarget
+    }
+
+    private fun canBePossibleToDropReceiver(element: KtDotQualifiedExpression): Boolean {
+        val nameRef = when (val receiver = element.receiverExpression) {
+            is KtThisExpression -> return true
+            is KtNameReferenceExpression -> receiver
+            // FIXME this is a hack; currently fir does not work well with multi-word packages like `foo.bar` and can resolve only from `foo`
+            is KtDotQualifiedExpression -> {
+                receiver.getLeftMostReceiverExpression() as? KtNameReferenceExpression ?: return false
+            }
+            else -> return false
         }
 
-        return runReadAction {
-            collectedTypes
-                .filter { it.qualifier != null }
-                .filter { typeCanBeShortened(it) }
-                .map { ShortenNow(it) }
+        if (nameRef.getReferencedName() == ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE) return true
+
+        analyze(element) {
+            return when (val symbol = nameRef.mainReference.resolveToSymbol()) {
+                is KtPackageSymbol -> true
+                is KtClassOrObjectSymbol -> symbol.classKind != KtClassKind.OBJECT
+                else -> false
+            }
         }
     }
 
@@ -94,6 +138,13 @@ object FirShortenReferences {
         val shortenedTypeResolved = createShortenedCopy(typeUsage).resolveToPsi()
 
         return originalTypeResolved == shortenedTypeResolved
+    }
+
+    private fun createShortenedCopy(expression: KtDotQualifiedExpression): KtExpression {
+        val fileCopy = expression.containingKtFile.copy() as KtFile
+        val expressionCopy = findSameElementInCopy(expression, fileCopy)
+        
+        return expressionCopy.replace(expressionCopy.selectorExpression!!) as KtExpression
     }
 
     private fun createShortenedCopy(typeUsage: KtUserType): KtUserType {
@@ -108,31 +159,66 @@ object FirShortenReferences {
     }
 
     fun performShortenings(shortenings: List<ShortenCommand>) {
-        for (command in shortenings) {
-            if (command is ShortenNow) {
-                runUndoTransparentWriteAction {
-                    command.element.deleteQualifier()
+        runUndoTransparentWriteAction {
+            for (command in shortenings) {
+                when (command) {
+                    is ShortenTypeNow -> {
+                        command.element.deleteQualifier()
+                    }
+                    is ShortenExpressionNow -> {
+                        command.element.selectorExpression?.let(command.element::replace)
+                    }
                 }
             }
         }
     }
 }
 
-private fun KtUserType.resolveToPsi(): PsiElement? {
-    val singeReference = referenceExpression?.mainReference ?: return null
+private fun KtElement.resolveToPsi(): PsiElement? {
+    val referenceExpression = when (this) {
+        is KtDotQualifiedExpression -> selectorExpression?.referenceExpression()
+        is KtUserType -> referenceExpression
+        is KtExpression -> referenceExpression()
+        else -> return null
+    }
+
+    val singleReference = referenceExpression?.mainReference as? KtSimpleNameReference ?: return null
 
     analyze(containingKtFile) {
-        return singeReference.resolveToSymbol()?.psi
+        return singleReference.resolveToSymbol()?.psi
     }
 }
 
 sealed class ShortenCommand
-private class ShortenNow(val element: KtUserType) : ShortenCommand()
+private class ShortenTypeNow(val element: KtUserType) : ShortenCommand()
+private class ShortenExpressionNow(val element: KtDotQualifiedExpression): ShortenCommand()
 
-private class TypesCollectorVisitor(private val elementFilter: PsiElementFilter) : KtVisitorVoid() {
-    private val _collectedTypes = ArrayList<KtUserType>()
-    val collectedTypes: List<KtUserType> = _collectedTypes
+private abstract class QualifiedElementsCollector<T : KtElement>(protected val elementFilter: PsiElementFilter) : KtVisitorVoid() {
+    private val _collectedElements = ArrayList<T>()
+    val collectedElements: List<T> = _collectedElements
+    private var level = 0
 
+    override fun visitElement(element: PsiElement) {
+        if (elementFilter(element) != FilterResult.SKIP) {
+            element.acceptChildren(this)
+        }
+    }
+
+    protected fun addQualifiedElementToAnalyze(element: T) {
+        _collectedElements += element
+    }
+
+    protected fun nextLevel() {
+        level++
+    }
+
+    protected fun prevLevel() {
+        level--
+        assert(level >= 0)
+    }
+}
+
+private class QualifiedTypesCollector(elementFilter: PsiElementFilter) : QualifiedElementsCollector<KtUserType>(elementFilter) {
     override fun visitUserType(userType: KtUserType) {
         val filterResult = elementFilter(userType)
         if (filterResult == FilterResult.SKIP) return
@@ -150,35 +236,30 @@ private class TypesCollectorVisitor(private val elementFilter: PsiElementFilter)
             prevLevel()
         }
     }
+}
 
-    override fun visitElement(element: PsiElement) {
-        if (elementFilter(element) != FilterResult.SKIP) {
-            element.acceptChildren(this)
+private class QualifiedExpressionCollector(elementFilter: PsiElementFilter) :
+    QualifiedElementsCollector<KtDotQualifiedExpression>(elementFilter) {
+    override fun visitDotQualifiedExpression(expression: KtDotQualifiedExpression) {
+        val filterResult = elementFilter(expression)
+        if (filterResult == FilterResult.SKIP) return
+
+        expression.selectorExpression?.acceptChildren(this)
+
+        if (filterResult == FilterResult.PROCESS) {
+            addQualifiedElementToAnalyze(expression)
+            nextLevel()
         }
-    }
 
-
-    private fun addQualifiedElementToAnalyze(element: KtUserType) {
-        _collectedTypes += element
-    }
-
-    private var level = 0
-
-    private fun nextLevel() {
-        level++
-    }
-
-    private fun prevLevel() {
-        level--
-        assert(level >= 0)
+        // elements in receiver must be under
+        expression.receiverExpression.accept(this)
+        if (filterResult == FilterResult.PROCESS) {
+            prevLevel()
+        }
     }
 }
 
 private val KOTLIN_LANGUAGE = Language.findLanguageByID("kotlin")!!
-
-private inline fun <reified T : KtElement> findKtElementInRange(file: KtFile, range: TextRange): T? {
-    return CodeInsightUtilCore.findElementInRange(file, range.startOffset, range.endOffset, T::class.java, KOTLIN_LANGUAGE)
-}
 
 /**
  * This is a copy from `com.intellij.psi.util.PsiTreeUtil#findSameElementInCopy` which is not available at the moment.
