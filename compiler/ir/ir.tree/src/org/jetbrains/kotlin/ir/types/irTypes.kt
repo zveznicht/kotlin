@@ -154,7 +154,7 @@ val IrClassSymbol.starProjectedType: IrSimpleType
         annotations = emptyList()
     )
 
-val IrClass.typeConstructorParameters
+val IrClass.typeConstructorParameters: Sequence<IrTypeParameter>
     get() = generateSequence(this as IrTypeParametersContainer,
                              { current ->
                                  val parent = current.parent as? IrTypeParametersContainer
