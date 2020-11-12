@@ -1,0 +1,28 @@
+package
+
+package test {
+
+    public object Parceler1 : kotlinx.android.parcel.Parceler<kotlin.String> {
+        private constructor Parceler1()
+        public open override /*1*/ fun create(/*0*/ parcel: android.os.Parcel): kotlin.String
+        public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*fake_override*/ fun newArray(/*0*/ size: kotlin.Int): kotlin.Array<kotlin.String>
+        public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+        public open override /*1*/ fun kotlin.String.write(/*0*/ parcel: android.os.Parcel, /*1*/ flags: kotlin.Int): kotlin.Unit
+    }
+
+    @kotlinx.android.parcel.Parcelize public final data class Test : android.os.Parcelable {
+        public constructor Test(/*0*/ a: @kotlinx.android.parcel.WriteWith<test.Parceler1> kotlin.String, /*1*/ b: @kotlinx.android.parcel.WriteWith<[ERROR : Parceler2]> kotlin.collections.List<@kotlinx.android.parcel.WriteWith<test.Parceler1> kotlin.String>)
+        public final val a: @kotlinx.android.parcel.WriteWith<test.Parceler1> kotlin.String
+        public final val b: @kotlinx.android.parcel.WriteWith<[ERROR : Parceler2]> kotlin.collections.List<@kotlinx.android.parcel.WriteWith<test.Parceler1> kotlin.String>
+        public final operator /*synthesized*/ fun component1(): @kotlinx.android.parcel.WriteWith<test.Parceler1> kotlin.String
+        public final operator /*synthesized*/ fun component2(): @kotlinx.android.parcel.WriteWith<[ERROR : Parceler2]> kotlin.collections.List<@kotlinx.android.parcel.WriteWith<test.Parceler1> kotlin.String>
+        public final /*synthesized*/ fun copy(/*0*/ a: @kotlinx.android.parcel.WriteWith<test.Parceler1> kotlin.String = ..., /*1*/ b: @kotlinx.android.parcel.WriteWith<[ERROR : Parceler2]> kotlin.collections.List<@kotlinx.android.parcel.WriteWith<test.Parceler1> kotlin.String> = ...): test.Test
+        public open override /*1*/ /*synthesized*/ fun describeContents(): kotlin.Int
+        public open override /*1*/ /*synthesized*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+        public open override /*1*/ /*synthesized*/ fun hashCode(): kotlin.Int
+        public open override /*1*/ /*synthesized*/ fun toString(): kotlin.String
+        public open override /*1*/ /*synthesized*/ fun writeToParcel(/*0*/ parcel: android.os.Parcel, /*1*/ flags: kotlin.Int): kotlin.Unit
+    }
+}
