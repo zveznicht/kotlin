@@ -168,12 +168,9 @@ import org.jetbrains.kotlin.nj2k.inference.mutability.AbstractMutabilityInferenc
 import org.jetbrains.kotlin.nj2k.inference.nullability.AbstractNullabilityInferenceTest
 import org.jetbrains.kotlin.noarg.AbstractBlackBoxCodegenTestForNoArg
 import org.jetbrains.kotlin.noarg.AbstractBytecodeListingTestForNoArg
-import org.jetbrains.kotlin.parcelize.test.AbstractParcelizeBoxTest
-import org.jetbrains.kotlin.parcelize.test.AbstractParcelizeBytecodeListingTest
-import org.jetbrains.kotlin.parcelize.test.AbstractParcelizeIrBoxTest
-import org.jetbrains.kotlin.parcelize.test.AbstractParcelizeIrBytecodeListingTest
 import org.jetbrains.kotlin.pacelize.ide.test.AbstractParcelizeCheckerTest
 import org.jetbrains.kotlin.pacelize.ide.test.AbstractParcelizeQuickFixTest
+import org.jetbrains.kotlin.parcelize.test.*
 import org.jetbrains.kotlin.psi.patternMatching.AbstractPsiUnifierTest
 import org.jetbrains.kotlin.samWithReceiver.AbstractSamWithReceiverScriptTest
 import org.jetbrains.kotlin.samWithReceiver.AbstractSamWithReceiverTest
@@ -1602,6 +1599,10 @@ fun main(args: Array<String>) {
 
             testClass<AbstractParcelizeIrBytecodeListingTest> {
                 model("codegen", targetBackend = TargetBackend.JVM_IR)
+            }
+
+            testClass<AbstractParcelizeDiagnosticsTest> {
+                model("diagnostics")
             }
         }
 
