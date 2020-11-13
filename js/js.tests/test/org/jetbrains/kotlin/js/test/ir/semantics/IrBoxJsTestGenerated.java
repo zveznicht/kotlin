@@ -5401,6 +5401,11 @@ public class IrBoxJsTestGenerated extends AbstractIrBoxJsTest {
             runTest("js/js.translator/testData/box/kotlin.test/inherited.kt");
         }
 
+        @TestMetadata("invalidArguments.kt")
+        public void testInvalidArguments() throws Exception {
+            runTest("js/js.translator/testData/box/kotlin.test/invalidArguments.kt");
+        }
+
         @TestMetadata("mpp.kt")
         public void testMpp() throws Exception {
             runTest("js/js.translator/testData/box/kotlin.test/mpp.kt");
