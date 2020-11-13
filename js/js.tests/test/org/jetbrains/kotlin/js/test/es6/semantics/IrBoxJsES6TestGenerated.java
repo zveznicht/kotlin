@@ -5391,6 +5391,11 @@ public class IrBoxJsES6TestGenerated extends AbstractIrBoxJsES6Test {
             runTest("js/js.translator/testData/box/kotlin.test/ignore.kt");
         }
 
+        @TestMetadata("illegalParameters.kt")
+        public void testIllegalParameters() throws Exception {
+            runTest("js/js.translator/testData/box/kotlin.test/illegalParameters.kt");
+        }
+
         @TestMetadata("incremental.kt")
         public void testIncremental() throws Exception {
             runTest("js/js.translator/testData/box/kotlin.test/incremental.kt");
@@ -5399,11 +5404,6 @@ public class IrBoxJsES6TestGenerated extends AbstractIrBoxJsES6Test {
         @TestMetadata("inherited.kt")
         public void testInherited() throws Exception {
             runTest("js/js.translator/testData/box/kotlin.test/inherited.kt");
-        }
-
-        @TestMetadata("invalidArguments.kt")
-        public void testInvalidArguments() throws Exception {
-            runTest("js/js.translator/testData/box/kotlin.test/invalidArguments.kt");
         }
 
         @TestMetadata("mpp.kt")

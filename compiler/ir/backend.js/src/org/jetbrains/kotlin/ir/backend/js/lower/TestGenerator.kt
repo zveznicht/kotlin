@@ -115,9 +115,9 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         val classVal = JsIrBuilder.buildVar(irClass.defaultType, fn, initializer = irClass.instance())
 
         val exceptionMessage = if (!irClass.canBeInstantiated()) {
-            "Test class ${irClass.fqNameWhenAvailable ?: irClass.name} must declare a single constructor with no explicit params"
+            "Test class ${irClass.fqNameWhenAvailable ?: irClass.name} must declare a single constructor with no explicit parameters"
         } else if (testFun.valueParameters.isNotEmpty()) {
-            "Test method ${irClass.fqNameWhenAvailable ?: irClass.name}::${testFun.name} can not have params"
+            "Test method ${irClass.fqNameWhenAvailable ?: irClass.name}::${testFun.name} can not have parameters"
         } else null
 
         if (exceptionMessage != null) {
