@@ -65,11 +65,11 @@ open class SerializerIrGenerator(
 
         // how to (auto)create backing field and getter/setter?
         compilerContext.symbolTable.withReferenceScope(irClass.descriptor) {
-            prop = generateSimplePropertyWithBackingField(desc, irClass, false)
+            prop = generateSimplePropertyWithBackingField(desc, irClass)
 
             // TODO: Do not use descriptors here
             localSerializersFieldsDescriptors.forEach {
-                generateSimplePropertyWithBackingField(it, irClass, true)
+                generateSimplePropertyWithBackingField(it, irClass)
             }
         }
 
