@@ -23,7 +23,8 @@ import java.io.IOException
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 
-data class BuildDifference(val ts: Long, val isIncremental: Boolean, val dirtyData: DirtyData)
+data class BuildDifference(val ts: Long, val previousBuildHash: Int = 0, val currentBuildHash: Int = 0,
+                           val isIncremental: Boolean, val dirtyData: DirtyData)
 
 // todo: storage format can be optimized by compressing fq-names
 data class BuildDiffsStorage(val buildDiffs: List<BuildDifference>) {
@@ -82,13 +83,17 @@ data class BuildDiffsStorage(val buildDiffs: List<BuildDifference>) {
 
         private fun ObjectInputStream.readBuildDifference(): BuildDifference {
             val ts = readLong()
+            val previousBuildHash = readInt()
+            val currentBuildHash = readInt()
             val isIncremental = readBoolean()
             val dirtyData = readDirtyData()
-            return BuildDifference(ts, isIncremental, dirtyData)
+            return BuildDifference(ts, previousBuildHash, currentBuildHash, isIncremental, dirtyData)
         }
 
         private fun ObjectOutputStream.writeBuildDifference(diff: BuildDifference) {
             writeLong(diff.ts)
+            writeInt(diff.previousBuildHash)
+            writeInt(diff.currentBuildHash)
             writeBoolean(diff.isIncremental)
             writeDirtyData(diff.dirtyData)
         }

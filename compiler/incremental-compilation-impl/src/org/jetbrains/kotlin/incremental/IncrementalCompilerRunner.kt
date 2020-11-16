@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.progress.CompilationCanceledStatus
 import java.io.File
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
 
 abstract class IncrementalCompilerRunner<
         Args : CommonCompilerArguments,
@@ -340,12 +341,13 @@ abstract class IncrementalCompilerRunner<
         currentBuildInfo: BuildInfo,
         dirtyData: DirtyData
     ) {
-        val prevDiffs = BuildDiffsStorage.readFromFile(buildHistoryFile, reporter)?.buildDiffs ?: emptyList()
+        val prevDiffs = BuildDiffsStorage.readFromFile(buildHistoryFile, reporter)?.buildDiffs?.let { sort(it) } ?: emptyList()
         val newDiff = if (compilationMode is CompilationMode.Incremental) {
-            BuildDifference(currentBuildInfo.startTS, true, dirtyData)
+            BuildDifference(currentBuildInfo.startTS, prevDiffs.lastOrNull()?.currentBuildHash ?: DEFAULT_EMPTY_HASH,
+                            calculateHash(), true, dirtyData)
         } else {
             val emptyDirtyData = DirtyData()
-            BuildDifference(currentBuildInfo.startTS, false, emptyDirtyData)
+            BuildDifference(currentBuildInfo.startTS, DEFAULT_EMPTY_HASH, calculateHash(),false, emptyDirtyData)
         }
 
         BuildDiffsStorage.writeToFile(buildHistoryFile, BuildDiffsStorage(prevDiffs + newDiff), reporter)
@@ -354,11 +356,40 @@ abstract class IncrementalCompilerRunner<
     companion object {
         const val DIRTY_SOURCES_FILE_NAME = "dirty-sources.txt"
         const val LAST_BUILD_INFO_FILE_NAME = "last-build.bin"
+        val atomicInt: AtomicInteger = AtomicInteger(0)
+
+        const val DEFAULT_EMPTY_HASH = 0
+
+        //TODO replace with lookup hash
+        fun calculateHash(): Int = atomicInt.incrementAndGet()
+
+        //TODO replace sort algorithm
+        fun sort(diffs: List<BuildDifference>): List<BuildDifference> {
+            val currentHash = diffs.map { it.currentBuildHash}.toList()
+            val previousHash = diffs.map { it.previousBuildHash to it }.toMap()
+
+            //TODO cant deal with broken sequence
+            val oldestBuildHash = previousHash.values.filterNot { currentHash.contains(it) }.toList()
+            if (oldestBuildHash.size != 1) {
+                //empty diffs will cause full rebuild
+                //TODO add proper log
+                return emptyList()
+            }
+            val sortedList = ArrayList<BuildDifference>(diffs.size)
+            var hash: Int? = oldestBuildHash.first().previousBuildHash
+            while (hash != null) {
+                hash = previousHash[hash]
+                    ?.also { sortedList.add(it) }
+                    ?.currentBuildHash
+            }
+            return sortedList
+        }
     }
 
     private object EmptyCompilationCanceledStatus : CompilationCanceledStatus {
         override fun checkCanceled() {
         }
     }
+
 }
 
