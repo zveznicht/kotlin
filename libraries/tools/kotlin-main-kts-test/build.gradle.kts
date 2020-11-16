@@ -12,6 +12,7 @@ dependencies {
     testCompile(commonDep("junit"))
     testCompile(projectTests(":kotlin-scripting-compiler")) { isTransitive = false }
     testRuntime(project(":kotlin-compiler-embeddable"))
+    testRuntime(kotlinStdlib("jdk8"))
 }
 
 sourceSets {

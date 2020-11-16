@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    api(kotlinStdlib())
+    api(kotlinStdlib("jdk8"))
     api(project(":compiler:compiler.version"))
 
     compileOnly(intellijCoreDep()) { includeJars("intellij-core") }
