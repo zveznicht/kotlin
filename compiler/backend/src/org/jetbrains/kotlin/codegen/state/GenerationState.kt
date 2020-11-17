@@ -109,8 +109,8 @@ class GenerationState private constructor(
             apply { wantsDiagnostics = v }
 
         var jvmBackendClassResolver: JvmBackendClassResolver = JvmBackendClassResolverForModuleWithDependencies(module); private set
-        fun jvmBackendClassResolver(v: JvmBackendClassResolver) =
-            apply { jvmBackendClassResolver = v }
+        fun jvmBackendClassResolver(v: JvmBackendClassResolver?) =
+            apply { if (v != null) jvmBackendClassResolver = v }
 
         var isIrBackend: Boolean = configuration.getBoolean(JVMConfigurationKeys.IR)
         fun isIrBackend(v: Boolean) =
