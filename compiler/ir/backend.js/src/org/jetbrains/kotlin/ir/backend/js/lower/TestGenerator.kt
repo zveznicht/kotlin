@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.ir.backend.js.lower
 import org.jetbrains.kotlin.backend.common.FileLoweringPass
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
@@ -98,8 +99,11 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         }
     }
 
-    private fun IrClass.canBeInstantiated() = constructors.all { constructor ->
-        constructor.isPrimary && constructor.explicitParametersCount == if (isInner) 1 else 0
+    private fun IrDeclarationWithVisibility.isReachable() =
+        (visibility == DescriptorVisibilities.PUBLIC) || (visibility == DescriptorVisibilities.INTERNAL)
+
+    private fun IrClass.canBeInstantiated() = constructors.any { constructor ->
+        constructor.isReachable() && constructor.explicitParametersCount == if (isInner) 1 else 0
     }
 
     private fun generateCodeForTestMethod(
@@ -115,9 +119,9 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         val classVal = JsIrBuilder.buildVar(irClass.defaultType, fn, initializer = irClass.instance())
 
         val exceptionMessage = if (!irClass.canBeInstantiated()) {
-            "Test class ${irClass.fqNameWhenAvailable ?: irClass.name} must declare a single constructor with no explicit parameters"
-        } else if (testFun.valueParameters.isNotEmpty()) {
-            "Test method ${irClass.fqNameWhenAvailable ?: irClass.name}::${testFun.name} can not have parameters"
+            "Test class ${irClass.fqNameWhenAvailable ?: irClass.name} must declare a constructor (public or internal) with no explicit parameters"
+        } else if (testFun.valueParameters.isNotEmpty() || !testFun.isReachable()) {
+            "Test method ${irClass.fqNameWhenAvailable ?: irClass.name}::${testFun.name} should be either public or internal and can not have parameters"
         } else null
 
         if (exceptionMessage != null) {
