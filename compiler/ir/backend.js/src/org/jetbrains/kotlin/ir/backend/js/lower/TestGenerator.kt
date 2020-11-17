@@ -123,11 +123,15 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
 
         val classVal = JsIrBuilder.buildVar(irClass.defaultType, fn, initializer = irClass.instance())
 
-        val exceptionMessage = if (!irClass.canBeInstantiated()) {
-            "Test class ${irClass.fqNameWhenAvailable ?: irClass.name} must declare a constructor (public or internal) with no explicit parameters"
-        } else if (testFun.valueParameters.isNotEmpty() || !testFun.isReachable()) {
-            "Test method ${irClass.fqNameWhenAvailable ?: irClass.name}::${testFun.name} should be either public or internal and can not have parameters"
-        } else null
+        val exceptionMessage = when {
+            !irClass.canBeInstantiated() -> {
+                "Test class ${irClass.fqNameWhenAvailable ?: irClass.name} must declare a constructor (public or internal) with no explicit parameters"
+            }
+            testFun.valueParameters.isNotEmpty() || !testFun.isReachable() -> {
+                "Test method ${irClass.fqNameWhenAvailable ?: irClass.name}::${testFun.name} should be either public or internal and can not have parameters"
+            }
+            else -> null
+        }
 
         if (exceptionMessage != null) {
             val irBuilder = context.createIrBuilder(fn.symbol)
