@@ -103,7 +103,12 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         (visibility == DescriptorVisibilities.PUBLIC) || (visibility == DescriptorVisibilities.INTERNAL)
 
     private fun IrClass.canBeInstantiated() = constructors.any { constructor ->
-        constructor.isReachable() && constructor.explicitParametersCount == if (isInner) 1 else 0
+        val isReachable = if (isObject) {
+            true
+        } else {
+            constructor.isReachable()
+        }
+        isReachable && constructor.explicitParametersCount == if (isInner) 1 else 0
     }
 
     private fun generateCodeForTestMethod(
