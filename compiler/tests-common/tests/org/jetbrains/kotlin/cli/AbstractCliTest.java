@@ -38,6 +38,7 @@ import org.jetbrains.kotlin.test.CompilerTestUtil;
 import org.jetbrains.kotlin.test.InTextDirectivesUtils;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
 import org.jetbrains.kotlin.test.TestCaseWithTmpdir;
+import org.jetbrains.kotlin.utils.ExceptionUtilsKt;
 import org.jetbrains.kotlin.utils.JsMetadataVersion;
 import org.jetbrains.kotlin.utils.PathUtil;
 import org.jetbrains.kotlin.utils.StringsKt;
@@ -249,7 +250,7 @@ public abstract class AbstractCliTest extends TestCaseWithTmpdir {
             return argumentPrefix + result.toAbsolutePath();
         }
         catch (IOException e) {
-            throw new RuntimeException(e);
+            throw ExceptionUtilsKt.rethrow(e);
         }
     }
 
