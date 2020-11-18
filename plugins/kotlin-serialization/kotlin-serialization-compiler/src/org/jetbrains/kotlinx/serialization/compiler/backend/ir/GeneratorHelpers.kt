@@ -240,36 +240,39 @@ interface IrBuilderExtension {
             }
         }
 
-        irProperty.backingField = propertyParent.generatePropertyBackingField(propertyDescriptor, irProperty, fieldName).apply {
-            parent = propertyParent
-            correspondingPropertySymbol = irProperty.symbol
-        }
+        propertyParent.generatePropertyBackingFieldIfNeeded(propertyDescriptor, irProperty, fieldName)
         val fieldSymbol = irProperty.backingField!!.symbol
         irProperty.getter = propertyDescriptor.getter?.let {
-            propertyParent.generatePropertyAccessor(propertyDescriptor, irProperty, it, fieldSymbol, isGetter = true) }
-        ?.apply { parent = propertyParent }
+            propertyParent.generatePropertyAccessor(propertyDescriptor, irProperty, it, fieldSymbol, isGetter = true)
+        }?.apply { parent = propertyParent }
         irProperty.setter = propertyDescriptor.setter?.let {
             propertyParent.generatePropertyAccessor(propertyDescriptor, irProperty, it, fieldSymbol, isGetter = false)
         }?.apply { parent = propertyParent }
         return irProperty
     }
 
-    private fun IrClass.generatePropertyBackingField(
-        descriptor: PropertyDescriptor,
+    private fun IrClass.generatePropertyBackingFieldIfNeeded(
+        propertyDescriptor: PropertyDescriptor,
         originProperty: IrProperty,
         name: Name,
-    ): IrField {
-        searchForDeclaration<IrProperty>(propertyDescriptor)?.backingField?.let { return it }
-        val fieldSymbol = compilerContext.symbolTable.referenceField(descriptor)
-        if (fieldSymbol.isBound) return fieldSymbol.owner
+    ) {
+        if (originProperty.backingField != null) return
+        val fieldSymbol = compilerContext.symbolTable.referenceField(propertyDescriptor)
 
-        return with(descriptor) {
+        val field = if (fieldSymbol.isBound) fieldSymbol.owner
+        else with(descriptor) {
             // TODO: type parameters
             originProperty.factory.createField(
                 originProperty.startOffset, originProperty.endOffset, SERIALIZABLE_PLUGIN_ORIGIN, fieldSymbol, name, type.toIrType(),
                 visibility, !isVar, isEffectivelyExternal(), dispatchReceiverParameter == null
             )
         }
+        field.apply {
+            parent = this@generatePropertyBackingFieldIfNeeded
+            correspondingPropertySymbol = originProperty.symbol
+        }
+
+        originProperty.backingField = field
     }
 
     private fun IrClass.generatePropertyAccessor(
