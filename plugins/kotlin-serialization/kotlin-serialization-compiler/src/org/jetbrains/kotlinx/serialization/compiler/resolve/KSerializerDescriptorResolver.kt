@@ -250,9 +250,11 @@ object KSerializerDescriptorResolver {
             propertyDescriptor, Annotations.EMPTY, Modality.OPEN, DescriptorVisibilities.PUBLIC, false, false, false,
             CallableMemberDescriptor.Kind.SYNTHESIZED, null, companionDescriptor.source
         )
-
         propertyGetter.initialize(propertyFromSerializer.type)
-        propertyDescriptor.initialize(propertyGetter, null)
+
+        val fieldDescriptor = FieldDescriptorImpl(Annotations.EMPTY, propertyDescriptor)
+
+        propertyDescriptor.initialize(propertyGetter, null, fieldDescriptor, null)
         propertyDescriptor.overriddenDescriptors = listOf(propertyFromSerializer)
 
         return propertyDescriptor
