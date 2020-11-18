@@ -10,9 +10,14 @@ class BadClass(id: Int) {
     fun foo() {}
 }
 
-private class BadUnreachableClass {
+private class BadPrivateClass {
     @Test
     fun foo() {}
+}
+
+class BadProtectedMethodClass {
+    @Test
+    protected fun foo() {}
 }
 
 class BadConstructorClass private constructor() {
@@ -51,11 +56,21 @@ class BadMethodClass() {
 }
 
 // non-reachable scenarios are tested in nested.kt
-class Outer {
+class OuterWithPrivateCompanion {
     private companion object {
         object InnerCompanion {
             @Test
             fun innerCompanionTest() {
+            }
+        }
+    }
+}
+
+class OuterWithPrivateMethod {
+    companion object {
+        object InnerCompanion {
+            @Test
+            private fun innerCompanionTest() {
             }
         }
     }
@@ -67,9 +82,14 @@ fun box() = checkLog {
                 caught("Test class BadClass must declare a constructor (publicly or internally reachable) with no explicit parameters")
             }
         }
-        suite("BadUnreachableClass") {
+        suite("BadPrivateClass") {
             test("foo") {
-                caught("Test class BadUnreachableClass must declare a constructor (publicly or internally reachable) with no explicit parameters")
+                caught("Test method BadPrivateClass::foo should be either (publicly or internally reachable) and can not have parameters")
+            }
+        }
+        suite("BadProtectedMethodClass") {
+            test("foo") {
+                caught("Test method BadProtectedMethodClass::foo should be either (publicly or internally reachable) and can not have parameters")
             }
         }
         suite("BadConstructorClass") {
@@ -100,11 +120,20 @@ fun box() = checkLog {
                 caught("Test method BadMethodClass::ping should be either (publicly or internally reachable) and can not have parameters")
             }
         }
-        suite("Outer") {
+        suite("OuterWithPrivateCompanion") {
             suite("Companion") {
                 suite("InnerCompanion") {
                     test("innerCompanionTest") {
-                        caught("Test object Outer.Companion.InnerCompanion must be publicly or internally reachable")
+                        caught("Test method OuterWithPrivateCompanion.Companion.InnerCompanion::innerCompanionTest should be either (publicly or internally reachable) and can not have parameters")
+                    }
+                }
+            }
+        }
+        suite("OuterWithPrivateMethod") {
+            suite("Companion") {
+                suite("InnerCompanion") {
+                    test("innerCompanionTest") {
+                        caught("Test method OuterWithPrivateMethod.Companion.InnerCompanion::innerCompanionTest should be either (publicly or internally reachable) and can not have parameters")
                     }
                 }
             }
