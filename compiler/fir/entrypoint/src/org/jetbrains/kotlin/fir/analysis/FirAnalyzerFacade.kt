@@ -27,8 +27,8 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi2ir.generators.GeneratorExtensions
 
 class FirAnalyzerFacade(val session: FirSession, val languageVersionSettings: LanguageVersionSettings, val ktFiles: List<KtFile>) {
-    private var firFiles: List<FirFile>? = null
-    private var scopeSession: ScopeSession? = null
+    var firFiles: List<FirFile>? = null
+    var scopeSession: ScopeSession? = null
     private var collectedDiagnostics: Map<FirFile, List<FirDiagnostic<*>>>? = null
 
     private fun buildRawFir() {
