@@ -105,13 +105,15 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         }
     }
 
-    private fun IrClass.canBeInstantiated() = constructors.any { constructor ->
-        val isReachable = if (isObject) {
+
+    private fun IrClass.canBeInstantiated(): Boolean {
+        return if (isObject) {
             isReachable()
         } else {
-            constructor.isReachable()
+            constructors.any {
+                it.isReachable() && it.explicitParametersCount == if (isInner) 1 else 0
+            }
         }
-        isReachable && constructor.explicitParametersCount == if (isInner) 1 else 0
     }
 
     private fun generateCodeForTestMethod(
@@ -123,8 +125,6 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
     ) {
         val fn = context.testFun!!.createInvocation(testFun.name.asString(), parentFunction, testFun.isIgnored)
         val body = fn.body as IrBlockBody
-
-        val classVal = JsIrBuilder.buildVar(irClass.defaultType, fn, initializer = irClass.instance())
 
         val exceptionMessage = when {
             testFun.valueParameters.isNotEmpty() || !testFun.isReachable() ->
@@ -142,6 +142,8 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
 
             return
         }
+
+        val classVal = JsIrBuilder.buildVar(irClass.defaultType, fn, initializer = irClass.instance())
 
         body.statements += classVal
 
@@ -179,7 +181,7 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         return if (kind == ClassKind.OBJECT) {
             JsIrBuilder.buildGetObjectValue(defaultType, symbol)
         } else {
-            declarations.asSequence().filterIsInstance<IrConstructor>().single { it.isPrimary }.let { constructor ->
+            declarations.asSequence().filterIsInstance<IrConstructor>().first { it.explicitParametersCount == if (isInner) 1 else 0 }.let { constructor ->
                 IrConstructorCallImpl.fromSymbolOwner(defaultType, constructor.symbol).also {
                     if (isInner) {
                         it.dispatchReceiver = (parent as IrClass).instance()

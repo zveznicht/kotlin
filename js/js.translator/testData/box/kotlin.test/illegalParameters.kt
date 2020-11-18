@@ -20,6 +20,12 @@ class BadProtectedMethodClass {
     protected fun foo() {}
 }
 
+class BadPrimaryGoodSecondary(id: Int) {
+    constructor(): this(3)
+    @Test
+    fun foo() {}
+}
+
 class BadConstructorClass private constructor() {
     @Test
     fun foo() {}
@@ -91,6 +97,9 @@ fun box() = checkLog {
             test("foo") {
                 caught("Test method BadProtectedMethodClass::foo should be either (publicly or internally reachable) and can not have parameters")
             }
+        }
+        suite("BadPrimaryGoodSecondary") {
+            test("foo")
         }
         suite("BadConstructorClass") {
             test("foo") {
