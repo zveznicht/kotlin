@@ -99,12 +99,15 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         }
     }
 
-    private fun IrDeclarationWithVisibility.isReachable() =
-        (visibility == DescriptorVisibilities.PUBLIC) || (visibility == DescriptorVisibilities.INTERNAL)
+    private fun IrDeclarationWithVisibility.isReachable(): Boolean {
+        return generateSequence(this) { it.parent as? IrDeclarationWithVisibility }.all {
+            (it.visibility == DescriptorVisibilities.PUBLIC) || (it.visibility == DescriptorVisibilities.INTERNAL)
+        }
+    }
 
     private fun IrClass.canBeInstantiated() = constructors.any { constructor ->
         val isReachable = if (isObject) {
-            true
+            false
         } else {
             constructor.isReachable()
         }
@@ -124,12 +127,12 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         val classVal = JsIrBuilder.buildVar(irClass.defaultType, fn, initializer = irClass.instance())
 
         val exceptionMessage = when {
-            !irClass.canBeInstantiated() -> {
-                "Test class ${irClass.fqNameWhenAvailable ?: irClass.name} must declare a constructor (public or internal) with no explicit parameters"
-            }
-            testFun.valueParameters.isNotEmpty() || !testFun.isReachable() -> {
-                "Test method ${irClass.fqNameWhenAvailable ?: irClass.name}::${testFun.name} should be either public or internal and can not have parameters"
-            }
+            irClass.isObject && !irClass.isReachable() ->
+                "Test object ${irClass.fqNameWhenAvailable ?: irClass.name} must be publicly or internally reachable"
+            !irClass.canBeInstantiated() ->
+                "Test class ${irClass.fqNameWhenAvailable ?: irClass.name} must declare a constructor (publicly or internally reachable) with no explicit parameters"
+            testFun.valueParameters.isNotEmpty() || !testFun.isReachable() ->
+                "Test method ${irClass.fqNameWhenAvailable ?: irClass.name}::${testFun.name} should be either (publicly or internally reachable) and can not have parameters"
             else -> null
         }
 
