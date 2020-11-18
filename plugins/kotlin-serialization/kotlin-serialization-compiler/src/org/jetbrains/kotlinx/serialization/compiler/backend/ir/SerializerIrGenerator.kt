@@ -66,8 +66,8 @@ open class SerializerIrGenerator(val irClass: IrClass, final override val compil
             prop = generateSimplePropertyWithBackingField(desc, irClass)
 
             // TODO: Do not use descriptors here
-            localSerializersFieldsDescriptors.forEach {
-                generateSimplePropertyWithBackingField(it, irClass)
+            localSerializersFieldsDescriptors = findLocalSerializersFieldDescriptors().map { it ->
+                it to generateSimplePropertyWithBackingField(it, irClass)
             }
         }
 
@@ -178,11 +178,11 @@ open class SerializerIrGenerator(val irClass: IrClass, final override val compil
             // store type arguments serializers in fields
             val thisAsReceiverParameter = irClass.thisReceiver!!
             ctor.valueParameters.forEachIndexed { index, param ->
-                val localSerial = compilerContext.symbolTable.referenceField(localSerializersFieldsDescriptors[index])
+                val localSerial = localSerializersFieldsDescriptors[index].second.backingField!!
                 +irSetField(generateReceiverExpressionForFieldAccess(
                     thisAsReceiverParameter.symbol,
-                    localSerializersFieldsDescriptors[index]
-                ), localSerial.owner, irGet(param))
+                    localSerializersFieldsDescriptors[index].first
+                ), localSerial, irGet(param))
             }
 
 
@@ -204,7 +204,7 @@ open class SerializerIrGenerator(val irClass: IrClass, final override val compil
         val typeParams = serializableDescriptor.declaredTypeParameters.mapIndexed { idx, _ ->
             irGetField(
                 irGet(irFun.dispatchReceiverParameter!!),
-                compilerContext.symbolTable.referenceField(localSerializersFieldsDescriptors[idx]).owner
+                localSerializersFieldsDescriptors[idx].second.backingField!!
             )
         }
         val kSerType = ((irFun.returnType as IrSimpleType).arguments.first() as IrTypeProjection).type
