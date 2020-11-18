@@ -99,19 +99,21 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         }
     }
 
+    private fun IrDeclarationWithVisibility.isVisible() = (visibility == DescriptorVisibilities.PUBLIC) || (visibility == DescriptorVisibilities.INTERNAL)
+
     private fun IrDeclarationWithVisibility.isReachable(): Boolean {
         return generateSequence(this) { it.parent as? IrDeclarationWithVisibility }.all {
-            (it.visibility == DescriptorVisibilities.PUBLIC) || (it.visibility == DescriptorVisibilities.INTERNAL)
+            it.isVisible()
         }
     }
 
-
     private fun IrClass.canBeInstantiated(): Boolean {
+        val isClassReachable = isReachable()
         return if (isObject) {
-            isReachable()
+            isClassReachable
         } else {
             constructors.any {
-                it.isReachable() && it.explicitParametersCount == if (isInner) 1 else 0
+                isClassReachable && it.isVisible() && it.explicitParametersCount == if (isInner) 1 else 0
             }
         }
     }
