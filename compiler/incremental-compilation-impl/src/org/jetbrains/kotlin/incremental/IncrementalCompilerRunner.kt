@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.incremental.util.BufferingMessageCollector
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.progress.CompilationCanceledStatus
 import java.io.File
+import java.io.IOException
 import java.util.*
 
 abstract class IncrementalCompilerRunner<
@@ -80,7 +81,10 @@ abstract class IncrementalCompilerRunner<
             val allKotlinFiles = allSourceFiles.filter { it.isKotlinFile(kotlinSourceFilesExtensions) }
             return compileIncrementally(args, caches, allKotlinFiles, CompilationMode.Rebuild(), messageCollector)
         }
-
+        // attempt IC
+        // if OK or failed compilation - return
+        // internal error - clear
+        // failed to close - clear
         return try {
             val changedFiles = providedChangedFiles ?: caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
             val compilationMode = sourcesToCompile(caches, changedFiles, args, messageCollector)
@@ -125,8 +129,8 @@ abstract class IncrementalCompilerRunner<
             }
         }
 
-        assert(!destinationDir.exists()) { "Could not delete destination dir $destinationDir" }
-        assert(!workingDir.exists()) { "Could not delete caches dir $workingDir" }
+        if (destinationDir.exists()) throw IOException("Could not delete directory $destinationDir.")
+        if (workingDir.exists()) throw IOException("Could not delete internal caches in folder $workingDir")
         destinationDir.mkdirs()
         workingDir.mkdirs()
     }
