@@ -50,4 +50,8 @@ class ImportAndCheckHighlighting : MultiplePluginVersionGradleImportingTestCase(
     override fun testDataDirName(): String {
         return "importAndCheckHighlighting"
     }
+
+    override fun isApplicableTest(): Boolean {
+        return super.isApplicableTest()
+    }
 }
