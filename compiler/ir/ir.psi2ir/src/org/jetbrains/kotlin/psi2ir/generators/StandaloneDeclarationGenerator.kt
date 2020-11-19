@@ -211,9 +211,17 @@ class StandaloneDeclarationGenerator(private val context: GeneratorContext) {
         descriptor: PropertyDescriptor,
         symbol: IrFieldSymbol
     ): IrField {
-        return IrFieldImpl(
+        return irFactory.createField(
             startOffset,
-            endOffset, origin, descriptor = descriptor, type = descriptor.type.toIrType(), symbol = symbol
+            endOffset,
+            origin,
+            type = descriptor.type.toIrType(),
+            symbol = symbol,
+            name = descriptor.name,
+            visibility = descriptor.visibility,
+            isFinal = !descriptor.isVar,
+            isExternal = descriptor.isExternal,
+            isStatic = descriptor.dispatchReceiverParameter == null
         )
     }
 
