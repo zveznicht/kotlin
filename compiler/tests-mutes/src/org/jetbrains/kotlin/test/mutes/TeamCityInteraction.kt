@@ -44,7 +44,7 @@ private fun traverseAll(requestHref: String, requestParams: Map<String, String>)
     while (!nextHref.isBlank()) {
         nextHref = request("$buildServerUrl$nextHref", emptyMap())
     }
-
+    val smth = "cool"
     return jsonResponses
 }
 
