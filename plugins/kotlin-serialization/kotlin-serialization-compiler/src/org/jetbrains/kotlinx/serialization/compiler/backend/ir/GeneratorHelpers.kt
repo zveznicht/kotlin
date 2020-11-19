@@ -15,11 +15,7 @@ import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.*
-import org.jetbrains.kotlin.ir.symbols.impl.IrTypeParameterSymbolImpl
-import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
-import org.jetbrains.kotlin.ir.symbols.impl.IrFieldSymbolImpl
-import org.jetbrains.kotlin.ir.symbols.impl.IrPropertySymbolImpl
-import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
+import org.jetbrains.kotlin.ir.symbols.impl.*
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeImpl
 import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
@@ -227,7 +223,6 @@ interface IrBuilderExtension {
     fun generateSimplePropertyWithBackingField(
         propertyDescriptor: PropertyDescriptor,
         propertyParent: IrClass,
-        declare: Boolean,
         fieldName: Name = propertyDescriptor.name,
     ): IrProperty {
         val irProperty = propertyParent.searchForDeclaration<IrProperty>(propertyDescriptor) ?: run {
@@ -260,7 +255,7 @@ interface IrBuilderExtension {
     ) {
         if (originProperty.backingField != null) return
 
-        val field = with(descriptor) {
+        val field = with(propertyDescriptor) {
             // TODO: type parameters
             originProperty.factory.createField(
                 originProperty.startOffset, originProperty.endOffset, SERIALIZABLE_PLUGIN_ORIGIN, IrFieldSymbolImpl(propertyDescriptor), name, type.toIrType(),
