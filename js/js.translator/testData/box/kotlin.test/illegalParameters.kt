@@ -5,6 +5,7 @@
 import common.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class BadClass(id: Int) {
     @Test
@@ -21,10 +22,12 @@ class BadProtectedMethodClass {
     protected fun foo() {}
 }
 
-class BadPrimaryGoodSecondary(id: Int) {
+class BadPrimaryGoodSecondary(private val id: Int) {
     constructor(): this(3)
     @Test
-    fun foo() {}
+    fun foo() {
+        assertEquals(id, 3)
+    }
 }
 
 class GoodSecondaryOnly {
