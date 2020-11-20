@@ -99,11 +99,12 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         }
     }
 
-    private fun IrDeclarationWithVisibility.isVisible() = (visibility == DescriptorVisibilities.PUBLIC) || (visibility == DescriptorVisibilities.INTERNAL)
+    private fun IrDeclarationWithVisibility.isEffectivelyVisible() =
+        (visibility == DescriptorVisibilities.PUBLIC) || (visibility == DescriptorVisibilities.INTERNAL)
 
     private fun IrDeclarationWithVisibility.isReachable(): Boolean {
         return generateSequence(this) { it.parent as? IrDeclarationWithVisibility }.all {
-            it.isVisible()
+            it.isEffectivelyVisible()
         }
     }
 
@@ -112,8 +113,8 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         return if (isObject) {
             isClassReachable
         } else {
-            constructors.any {
-                isClassReachable && it.isVisible() && it.explicitParametersCount == if (isInner) 1 else 0
+            isClassReachable && constructors.any {
+                it.isEffectivelyVisible() && it.explicitParametersCount == if (isInner) 1 else 0
             }
         }
     }
@@ -183,13 +184,14 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         return if (kind == ClassKind.OBJECT) {
             JsIrBuilder.buildGetObjectValue(defaultType, symbol)
         } else {
-            declarations.asSequence().filterIsInstance<IrConstructor>().first { it.explicitParametersCount == if (isInner) 1 else 0 }.let { constructor ->
-                IrConstructorCallImpl.fromSymbolOwner(defaultType, constructor.symbol).also {
-                    if (isInner) {
-                        it.dispatchReceiver = (parent as IrClass).instance()
+            declarations.asSequence().filterIsInstance<IrConstructor>().first { it.explicitParametersCount == if (isInner) 1 else 0 }
+                .let { constructor ->
+                    IrConstructorCallImpl.fromSymbolOwner(defaultType, constructor.symbol).also {
+                        if (isInner) {
+                            it.dispatchReceiver = (parent as IrClass).instance()
+                        }
                     }
                 }
-            }
         }
     }
 

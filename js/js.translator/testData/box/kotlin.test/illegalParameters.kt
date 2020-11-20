@@ -4,6 +4,7 @@
 
 import common.*
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class BadClass(id: Int) {
     @Test
@@ -26,7 +27,36 @@ class BadPrimaryGoodSecondary(id: Int) {
     fun foo() {}
 }
 
+class GoodSecondaryOnly {
+    constructor() {
+        triggered = 3
+    }
+    constructor(id: Int) {
+        triggered = id
+    }
+    companion object {
+        private var triggered = 0
+    }
+    @Test
+    fun foo() {
+        assertEquals(triggered, 3)
+    }
+}
+
+class BadSecondaryOnly {
+    private constructor() {}
+    constructor(id: Int) {}
+    @Test
+    fun foo() {}
+}
+
 class BadConstructorClass private constructor() {
+    @Test
+    fun foo() {}
+}
+
+class BadProtectedConstructorClass protected constructor() {
+    constructor(flag: Boolean): this()
     @Test
     fun foo() {}
 }
@@ -101,9 +131,22 @@ fun box() = checkLog {
         suite("BadPrimaryGoodSecondary") {
             test("foo")
         }
+        suite("GoodSecondaryOnly") {
+            test("foo")
+        }
+        suite("BadSecondaryOnly") {
+            test("foo") {
+                caught("Test class BadSecondaryOnly must declare a constructor (publicly or internally reachable) with no explicit parameters")
+            }
+        }
         suite("BadConstructorClass") {
             test("foo") {
                 caught("Test class BadConstructorClass must declare a constructor (publicly or internally reachable) with no explicit parameters")
+            }
+        }
+        suite("BadProtectedConstructorClass") {
+            test("foo") {
+                caught("Test class BadProtectedConstructorClass must declare a constructor (publicly or internally reachable) with no explicit parameters")
             }
         }
         suite("GoodClass") {
