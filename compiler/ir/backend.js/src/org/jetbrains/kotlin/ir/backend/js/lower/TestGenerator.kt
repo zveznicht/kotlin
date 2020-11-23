@@ -131,9 +131,9 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
 
         val exceptionMessage = when {
             testFun.valueParameters.isNotEmpty() || !testFun.isEffectivelyVisibleFromTests() ->
-                "Test method ${irClass.fqNameWhenAvailable ?: irClass.name}::${testFun.name} should be visible and can not have parameters"
+                "Test method ${irClass.fqNameWhenAvailable ?: irClass.name}::${testFun.name} should have public or internal visibility, can not have parameters"
             !irClass.canBeInstantiated() ->
-                "Test class ${irClass.fqNameWhenAvailable ?: irClass.name} must declare a visible constructor with no explicit parameters"
+                "Test class ${irClass.fqNameWhenAvailable ?: irClass.name} must declare a public or internal constructor with no explicit parameters"
             else -> null
         }
 

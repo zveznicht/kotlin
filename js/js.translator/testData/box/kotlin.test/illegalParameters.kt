@@ -118,17 +118,17 @@ class OuterWithPrivateMethod {
 fun box() = checkLog {
         suite("BadClass") {
             test("foo") {
-                caught("Test class BadClass must declare a visible constructor with no explicit parameters")
+                caught("Test class BadClass must declare a public or internal constructor with no explicit parameters")
             }
         }
         suite("BadPrivateClass") {
             test("foo") {
-                caught("Test method BadPrivateClass::foo should be visible and can not have parameters")
+                caught("Test method BadPrivateClass::foo should have public or internal visibility, can not have parameters")
             }
         }
         suite("BadProtectedMethodClass") {
             test("foo") {
-                caught("Test method BadProtectedMethodClass::foo should be visible and can not have parameters")
+                caught("Test method BadProtectedMethodClass::foo should have public or internal visibility, can not have parameters")
             }
         }
         suite("BadPrimaryGoodSecondary") {
@@ -139,17 +139,17 @@ fun box() = checkLog {
         }
         suite("BadSecondaryOnly") {
             test("foo") {
-                caught("Test class BadSecondaryOnly must declare a visible constructor with no explicit parameters")
+                caught("Test class BadSecondaryOnly must declare a public or internal constructor with no explicit parameters")
             }
         }
         suite("BadConstructorClass") {
             test("foo") {
-                caught("Test class BadConstructorClass must declare a visible constructor with no explicit parameters")
+                caught("Test class BadConstructorClass must declare a public or internal constructor with no explicit parameters")
             }
         }
         suite("BadProtectedConstructorClass") {
             test("foo") {
-                caught("Test class BadProtectedConstructorClass must declare a visible constructor with no explicit parameters")
+                caught("Test class BadProtectedConstructorClass must declare a public or internal constructor with no explicit parameters")
             }
         }
         suite("GoodClass") {
@@ -163,23 +163,23 @@ fun box() = checkLog {
         suite("BadNestedClass") {
             suite("NestedTestClass") {
                 test("foo") {
-                    caught("Test class BadNestedClass.NestedTestClass must declare a visible constructor with no explicit parameters")
+                    caught("Test class BadNestedClass.NestedTestClass must declare a public or internal constructor with no explicit parameters")
                 }
             }
         }
         suite("BadMethodClass") {
             test("foo") {
-                caught("Test method BadMethodClass::foo should be visible and can not have parameters")
+                caught("Test method BadMethodClass::foo should have public or internal visibility, can not have parameters")
             }
             test("ping") {
-                caught("Test method BadMethodClass::ping should be visible and can not have parameters")
+                caught("Test method BadMethodClass::ping should have public or internal visibility, can not have parameters")
             }
         }
         suite("OuterWithPrivateCompanion") {
             suite("Companion") {
                 suite("InnerCompanion") {
                     test("innerCompanionTest") {
-                        caught("Test method OuterWithPrivateCompanion.Companion.InnerCompanion::innerCompanionTest should be visible and can not have parameters")
+                        caught("Test method OuterWithPrivateCompanion.Companion.InnerCompanion::innerCompanionTest should have public or internal visibility, can not have parameters")
                     }
                 }
             }
@@ -188,7 +188,7 @@ fun box() = checkLog {
             suite("Companion") {
                 suite("InnerCompanion") {
                     test("innerCompanionTest") {
-                        caught("Test method OuterWithPrivateMethod.Companion.InnerCompanion::innerCompanionTest should be visible and can not have parameters")
+                        caught("Test method OuterWithPrivateMethod.Companion.InnerCompanion::innerCompanionTest should have public or internal visibility, can not have parameters")
                     }
                 }
             }
