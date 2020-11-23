@@ -99,22 +99,22 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         }
     }
 
-    private fun IrDeclarationWithVisibility.isEffectivelyVisible() =
+    private fun IrDeclarationWithVisibility.isVisibleFromTests() =
         (visibility == DescriptorVisibilities.PUBLIC) || (visibility == DescriptorVisibilities.INTERNAL)
 
-    private fun IrDeclarationWithVisibility.isReachable(): Boolean {
+    private fun IrDeclarationWithVisibility.isEffectivelyVisibleFromTests(): Boolean {
         return generateSequence(this) { it.parent as? IrDeclarationWithVisibility }.all {
-            it.isEffectivelyVisible()
+            it.isVisibleFromTests()
         }
     }
 
     private fun IrClass.canBeInstantiated(): Boolean {
-        val isClassReachable = isReachable()
+        val isClassReachable = isEffectivelyVisibleFromTests()
         return if (isObject) {
             isClassReachable
         } else {
             isClassReachable && constructors.any {
-                it.isEffectivelyVisible() && it.explicitParametersCount == if (isInner) 1 else 0
+                it.isVisibleFromTests() && it.explicitParametersCount == if (isInner) 1 else 0
             }
         }
     }
@@ -130,7 +130,7 @@ class TestGenerator(val context: JsIrBackendContext, val testContainerFactory: (
         val body = fn.body as IrBlockBody
 
         val exceptionMessage = when {
-            testFun.valueParameters.isNotEmpty() || !testFun.isReachable() ->
+            testFun.valueParameters.isNotEmpty() || !testFun.isEffectivelyVisibleFromTests() ->
                 "Test method ${irClass.fqNameWhenAvailable ?: irClass.name}::${testFun.name} should be visible and can not have parameters"
             !irClass.canBeInstantiated() ->
                 "Test class ${irClass.fqNameWhenAvailable ?: irClass.name} must declare a visible constructor with no explicit parameters"
