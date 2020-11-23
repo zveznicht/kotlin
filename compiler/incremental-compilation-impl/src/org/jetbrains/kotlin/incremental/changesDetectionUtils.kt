@@ -15,7 +15,8 @@ internal fun getClasspathChanges(
     changedFiles: ChangedFiles.Known,
     lastBuildInfo: BuildInfo,
     modulesApiHistory: ModulesApiHistory,
-    reporter: ICReporter?
+    reporter: ICReporter?,
+    jarSnapshots: Map<String, JarSnapshot> = mapOf()
 ): ChangesEither {
     val classpathSet = HashSet<File>()
     for (file in classpath) {

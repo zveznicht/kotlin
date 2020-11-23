@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.incremental.multiproject
 
+import org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.Companion.JAR_SNAPSHOT_FILE_NAME
 import org.jetbrains.kotlin.incremental.IncrementalModuleEntry
 import org.jetbrains.kotlin.incremental.IncrementalModuleInfo
 import org.jetbrains.kotlin.incremental.util.Either
@@ -15,11 +16,17 @@ import java.util.zip.ZipFile
 
 interface ModulesApiHistory {
     fun historyFilesForChangedFiles(changedFiles: Set<File>): Either<Set<File>>
+    fun jarSnapshot(jar: File): File?
 }
 
 object EmptyModulesApiHistory : ModulesApiHistory {
     override fun historyFilesForChangedFiles(changedFiles: Set<File>): Either<Set<File>> =
         Either.Error("Multi-module IC is not configured")
+
+    override fun jarSnapshot(jar: File): File? {
+        //Unsupported
+        return null
+    }
 }
 
 abstract class ModulesApiHistoryBase(protected val modulesInfo: IncrementalModuleInfo) : ModulesApiHistory {
@@ -115,6 +122,11 @@ class ModulesApiHistoryJvm(modulesInfo: IncrementalModuleInfo) : ModulesApiHisto
 
         return Either.Success(result)
     }
+
+    override fun jarSnapshot(jar: File): File? {
+        //TODO replace with proper search or move to modulesInfo
+        return modulesInfo.jarToClassListFile[jar]?.parentFile?.resolve("compileKotlin/${JAR_SNAPSHOT_FILE_NAME}")
+    }
 }
 
 class ModulesApiHistoryJs(modulesInfo: IncrementalModuleInfo) : ModulesApiHistoryBase(modulesInfo) {
@@ -125,6 +137,10 @@ class ModulesApiHistoryJs(modulesInfo: IncrementalModuleInfo) : ModulesApiHistor
             moduleEntry != null -> Either.Success(setOf(moduleEntry.buildHistoryFile))
             else -> Either.Error("No module is found for jar $jar")
         }
+    }
+
+    override fun jarSnapshot(jar: File): File? {
+        TODO("Unsupported")
     }
 }
 
@@ -144,6 +160,10 @@ class ModulesApiHistoryAndroid(modulesInfo: IncrementalModuleInfo) : ModulesApiH
 
         val jarPath = Paths.get(jar.absolutePath)
         return getHistoryForModuleNames(jarPath, getPossibleModuleNamesFromJar(jarPath))
+    }
+
+    override fun jarSnapshot(jar: File): File? {
+        TODO("Unsupported")
     }
 
     override fun getBuildHistoryForDir(file: File): Either<Set<File>> {

@@ -16,14 +16,38 @@
 
 package org.jetbrains.kotlin.incremental
 
+import org.jetbrains.kotlin.incremental.JarSnapshot.Companion.readJarSnapshot
+import org.jetbrains.kotlin.incremental.JarSnapshot.Companion.writeJarSnapshot
 import java.io.*
 
-data class BuildInfo(val startTS: Long) : Serializable {
+//TODO store jar snapshot to check if its upToDate
+data class BuildInfo(val startTS: Long, val dependencyToJarSnapshot: Map<String, JarSnapshot> = mapOf()) : Serializable {
     companion object {
+        private fun ObjectInputStream.readBuildInfo() : BuildInfo {
+            val ts = readLong()
+            val size = readInt()
+            val jarSnapshots = HashMap<String, JarSnapshot>(size)
+            repeat(size) {
+                val identifier = readUTF()
+                val snapshot = readJarSnapshot()
+                jarSnapshots.put(identifier, snapshot)
+            }
+            return BuildInfo(ts, jarSnapshots)
+        }
+
+        private fun ObjectOutputStream.writeBuildInfo(buildInfo: BuildInfo) {
+            writeLong(buildInfo.startTS)
+            writeInt(buildInfo.dependencyToJarSnapshot.size)
+            for((identifier, jarSnapshot) in buildInfo.dependencyToJarSnapshot) {
+                writeUTF(identifier)
+                writeJarSnapshot(jarSnapshot)
+            }
+        }
+
         fun read(file: File): BuildInfo? =
             try {
                 ObjectInputStream(FileInputStream(file)).use {
-                    it.readObject() as BuildInfo
+                    it.readBuildInfo()
                 }
             } catch (e: Exception) {
                 null

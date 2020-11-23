@@ -34,6 +34,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.progress.CompilationCanceledStatus
 import java.io.File
 import java.util.*
+import kotlin.collections.HashMap
 
 abstract class IncrementalCompilerRunner<
         Args : CommonCompilerArguments,
@@ -51,7 +52,12 @@ abstract class IncrementalCompilerRunner<
     protected val cacheDirectory = File(workingDir, cacheDirName)
     private val dirtySourcesSinceLastTimeFile = File(workingDir, DIRTY_SOURCES_FILE_NAME)
     protected val lastBuildInfoFile = File(workingDir, LAST_BUILD_INFO_FILE_NAME)
+    protected val jarSnapshotFile = File(workingDir, JAR_SNAPSHOT_FILE_NAME)
     protected open val kotlinSourceFilesExtensions: List<String> = DEFAULT_KOTLIN_SOURCE_FILES_EXTENSIONS
+
+    //TODO temporal measure to ensure quick disable, should be deleted after successful release
+    protected val compileWithSnapshotProperty = "kotlin.compile.incremental.snapshot"
+    protected val withSnapshot : Boolean = (System.getProperty(compileWithSnapshotProperty) ?: false) as Boolean
 
     protected abstract fun isICEnabled(): Boolean
     protected abstract fun createCacheManager(args: Args, projectDir: File?): CacheManager
@@ -78,16 +84,17 @@ abstract class IncrementalCompilerRunner<
                 caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
             }
             val allKotlinFiles = allSourceFiles.filter { it.isKotlinFile(kotlinSourceFilesExtensions) }
-            return compileIncrementally(args, caches, allKotlinFiles, CompilationMode.Rebuild(), messageCollector)
+            return compileIncrementally(args, caches, allKotlinFiles, CompilationMode.Rebuild(), messageCollector, withSnapshot)
         }
 
         return try {
             val changedFiles = providedChangedFiles ?: caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
+            val classpathJarSnapshot = HashMap<String, JarSnapshot> ()
             val compilationMode = sourcesToCompile(caches, changedFiles, args, messageCollector)
 
             val exitCode = when (compilationMode) {
                 is CompilationMode.Incremental -> {
-                    compileIncrementally(args, caches, allSourceFiles, compilationMode, messageCollector)
+                    compileIncrementally(args, caches, allSourceFiles, compilationMode, messageCollector, withSnapshot)
                 }
                 is CompilationMode.Rebuild -> {
                     rebuild { "Non-incremental compilation will be performed: ${compilationMode.reason}" }
@@ -207,14 +214,25 @@ abstract class IncrementalCompilerRunner<
         caches: CacheManager,
         allKotlinSources: List<File>,
         compilationMode: CompilationMode,
-        originalMessageCollector: MessageCollector
+        originalMessageCollector: MessageCollector,
+        withSnapshot: Boolean
     ): ExitCode {
         preBuildHook(args, compilationMode)
+
+        //TODO it should be calculated based on allKotlinSource or by incremental update
+//        "caches.lookupCache.lookupMap.keys"
 
         val dirtySources = when (compilationMode) {
             is CompilationMode.Incremental -> compilationMode.dirtyFiles.toMutableList()
             is CompilationMode.Rebuild -> allKotlinSources.toMutableList()
         }
+
+//        if (withSnapshot) {
+            val jarSnapshot = when (compilationMode) {
+                is CompilationMode.Incremental -> JarSnapshot.read(jarSnapshotFile)
+                is CompilationMode.Rebuild -> JarSnapshot(setOf(), allKotlinSources.map { FqName(it.absolutePath) }.toSet())
+            }
+//        }
 
         val currentBuildInfo = BuildInfo(startTS = System.currentTimeMillis())
         val buildDirtyLookupSymbols = HashSet<LookupSymbol>()
@@ -298,6 +316,9 @@ abstract class IncrementalCompilerRunner<
 
         if (exitCode == ExitCode.OK) {
             BuildInfo.write(currentBuildInfo, lastBuildInfoFile)
+
+            //write jar snapshot
+            JarSnapshot.write(jarSnapshot, jarSnapshotFile)
         }
         if (exitCode == ExitCode.OK && compilationMode is CompilationMode.Incremental) {
             buildDirtyLookupSymbols.addAll(additionalDirtyLookupSymbols())
@@ -354,6 +375,7 @@ abstract class IncrementalCompilerRunner<
     companion object {
         const val DIRTY_SOURCES_FILE_NAME = "dirty-sources.txt"
         const val LAST_BUILD_INFO_FILE_NAME = "last-build.bin"
+        const val JAR_SNAPSHOT_FILE_NAME = "jar-snapshot.bin"
     }
 
     private object EmptyCompilationCanceledStatus : CompilationCanceledStatus {

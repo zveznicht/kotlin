@@ -170,7 +170,8 @@ class IncrementalJvmCompilerRunner(
     private fun calculateSourcesToCompileImpl(
         caches: IncrementalJvmCachesManager,
         changedFiles: ChangedFiles.Known,
-        args: K2JVMCompilerArguments
+        args: K2JVMCompilerArguments,
+        jarSnapshots: MutableMap<String, JarSnapshot> = HashMap()
     ): CompilationMode {
         val dirtyFiles = DirtyFilesContainer(caches, reporter, kotlinSourceFilesExtensions)
         initDirtyFiles(dirtyFiles, changedFiles)
@@ -178,7 +179,13 @@ class IncrementalJvmCompilerRunner(
         val lastBuildInfo = BuildInfo.read(lastBuildInfoFile) ?: return CompilationMode.Rebuild { "No information on previous build" }
         reporter.reportVerbose { "Last Kotlin Build info -- $lastBuildInfo" }
 
-        val classpathChanges = getClasspathChanges(args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter)
+        //fill jarSnapshots
+        args.classpathAsList
+            .filter { it.extension.equals("jar", ignoreCase = true) }
+                //TODO use path transformation
+            .forEach { modulesApiHistory.jarSnapshot(it)?.let {file -> jarSnapshots.put(it.absolutePath, JarSnapshot.read(file)) }}
+
+        val classpathChanges = getClasspathChanges(args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter, jarSnapshots)
 
         @Suppress("UNUSED_VARIABLE") // for sealed when
         val unused = when (classpathChanges) {

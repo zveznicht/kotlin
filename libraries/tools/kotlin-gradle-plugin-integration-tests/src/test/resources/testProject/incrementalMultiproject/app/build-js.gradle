@@ -3,5 +3,5 @@ apply plugin: 'kotlin2js'
 dependencies {
     implementation project(':lib')
     // do not remove until KT-25488 is fixed
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-js:1.4.255-SNAPSHOT"
 }
