@@ -150,6 +150,7 @@ object JsExportDeclarationChecker : DeclarationChecker {
                 }
             }
 
+            currentlyProcessed.remove(this)
             return arguments.last().type.isExportableReturn(bindingContext, currentlyProcessed)
         }
 
