@@ -136,7 +136,7 @@ object JsExportDeclarationChecker : DeclarationChecker {
         bindingContext: BindingContext,
         currentlyProcessed: MutableSet<KotlinType> = mutableSetOf()
     ): Boolean {
-        if (currentlyProcessed.contains(this)) {
+        if (!currentlyProcessed.add(this)) {
             return true
         }
 
