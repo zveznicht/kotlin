@@ -111,7 +111,7 @@ public expect annotation class JvmWildcard()
 @MustBeDocumented
 @SinceKotlin("1.5")
 @OptionalExpectation
-public expect annotation class JvmInline
+public expect annotation class JvmInline()
 
 /**
  * Marks the JVM backing field of the annotated property as `volatile`, meaning that writes to this field
