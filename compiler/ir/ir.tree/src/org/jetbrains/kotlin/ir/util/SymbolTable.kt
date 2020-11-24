@@ -615,15 +615,6 @@ class SymbolTable(
             initializer = irInitializer
         }
 
-    fun declareFieldIfNotExists(
-        descriptor: PropertyDescriptor,
-        fieldFactory: (IrFieldSymbol) -> IrField
-    ) = fieldSymbolTable.declareIfNotExists(
-        descriptor,
-        { createFieldSymbol(descriptor) },
-        fieldFactory
-    )
-
     fun declareFieldFromLinker(descriptor: PropertyDescriptor, sig: IdSignature, factory: (IrFieldSymbol) -> IrField): IrField {
         return fieldSymbolTable.run {
             require(sig.isLocal)
