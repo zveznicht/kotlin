@@ -204,34 +204,8 @@ class StandaloneDeclarationGenerator(private val context: GeneratorContext) {
         return irFunction
     }
 
-    fun generateField(
-        startOffset: Int,
-        endOffset: Int,
-        origin: IrDeclarationOrigin,
-        descriptor: PropertyDescriptor,
-        symbol: IrFieldSymbol
-    ): IrField {
-        return irFactory.createField(
-            startOffset,
-            endOffset,
-            origin,
-            type = descriptor.type.toIrType(),
-            symbol = symbol,
-            name = descriptor.name,
-            visibility = descriptor.visibility,
-            isFinal = !descriptor.isVar,
-            isExternal = descriptor.isExternal,
-            isStatic = descriptor.dispatchReceiverParameter == null
-        )
-    }
-
-
     fun generateProperty(
-        startOffset: Int,
-        endOffset: Int,
-        origin: IrDeclarationOrigin,
-        descriptor: PropertyDescriptor,
-        symbol: IrPropertySymbol
+        startOffset: Int, endOffset: Int, origin: IrDeclarationOrigin, descriptor: PropertyDescriptor, symbol: IrPropertySymbol
     ): IrProperty {
         val irProperty = irFactory.createProperty(
             startOffset, endOffset, origin, symbol,

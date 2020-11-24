@@ -128,10 +128,6 @@ class SyntheticDeclarationsGenerator(context: GeneratorContext) : DeclarationDes
         return generator.generateProperty(offset, offset, IrDeclarationOrigin.DEFINED, descriptor, symbol)
     }
 
-    private fun createField(descriptor: PropertyDescriptor, symbol: IrFieldSymbol): IrField {
-        return generator.generateField(offset, offset, IrDeclarationOrigin.DEFINED, descriptor, symbol)
-    }
-
     private fun declareAccessor(accessorDescriptor: PropertyAccessorDescriptor, property: IrProperty): IrSimpleFunction {
         // TODO: type parameters
         return symbolTable.declareSimpleFunctionIfNotExists(accessorDescriptor) {
@@ -149,17 +145,7 @@ class SyntheticDeclarationsGenerator(context: GeneratorContext) : DeclarationDes
                 createPropertyStub(descriptor, it).insertDeclaration(data).also { p ->
                     descriptor.getter?.let { g -> p.getter = declareAccessor(g, p) }
                     descriptor.setter?.let { s -> p.setter = declareAccessor(s, p) }
-                    descriptor.backingField?.let { _ -> p.backingField = declareBackingField(descriptor, p) }
                 }
-            }
-        }
-    }
-
-    private fun declareBackingField(fieldDescriptor: PropertyDescriptor, property: IrProperty): IrField {
-        return symbolTable.declareFieldIfNotExists(fieldDescriptor) {
-            createField(fieldDescriptor, it).also { acc ->
-                acc.parent = property.parent
-                acc.correspondingPropertySymbol = property.symbol
             }
         }
     }
