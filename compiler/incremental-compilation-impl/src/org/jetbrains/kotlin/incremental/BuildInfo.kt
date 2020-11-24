@@ -55,7 +55,7 @@ data class BuildInfo(val startTS: Long, val dependencyToJarSnapshot: Map<String,
 
         fun write(buildInfo: BuildInfo, file: File) {
             ObjectOutputStream(FileOutputStream(file)).use {
-                it.writeObject(buildInfo)
+                it.writeBuildInfo(buildInfo)
             }
         }
     }

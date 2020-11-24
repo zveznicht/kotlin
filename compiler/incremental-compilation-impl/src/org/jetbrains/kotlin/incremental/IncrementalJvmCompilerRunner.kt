@@ -76,6 +76,7 @@ fun makeIncrementally(
             modulesApiHistory = EmptyModulesApiHistory,
             kotlinSourceFilesExtensions = kotlinExtensions
         )
+        //TODO set properly
         compiler.compile(sourceFiles, args, messageCollector, providedChangedFiles = null)
     }
 }
@@ -157,10 +158,11 @@ class IncrementalJvmCompilerRunner(
         caches: IncrementalJvmCachesManager,
         changedFiles: ChangedFiles.Known,
         args: K2JVMCompilerArguments,
-        messageCollector: MessageCollector
+        messageCollector: MessageCollector,
+        classpathJarSnapshot: MutableMap<String, JarSnapshot>
     ): CompilationMode {
         return try {
-            calculateSourcesToCompileImpl(caches, changedFiles, args)
+            calculateSourcesToCompileImpl(caches, changedFiles, args, )
         } finally {
             psiFileProvider.messageCollector.flush(messageCollector)
             psiFileProvider.messageCollector.clear()

@@ -90,11 +90,11 @@ abstract class IncrementalCompilerRunner<
         return try {
             val changedFiles = providedChangedFiles ?: caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
             val classpathJarSnapshot = HashMap<String, JarSnapshot> ()
-            val compilationMode = sourcesToCompile(caches, changedFiles, args, messageCollector)
+            val compilationMode = sourcesToCompile(caches, changedFiles, args, messageCollector, classpathJarSnapshot)
 
             val exitCode = when (compilationMode) {
                 is CompilationMode.Incremental -> {
-                    compileIncrementally(args, caches, allSourceFiles, compilationMode, messageCollector, withSnapshot)
+                    compileIncrementally(args, caches, allSourceFiles, compilationMode, messageCollector, withSnapshot, classpathJarSnapshot)
                 }
                 is CompilationMode.Rebuild -> {
                     rebuild { "Non-incremental compilation will be performed: ${compilationMode.reason}" }
@@ -142,10 +142,11 @@ abstract class IncrementalCompilerRunner<
         caches: CacheManager,
         changedFiles: ChangedFiles,
         args: Args,
-        messageCollector: MessageCollector
+        messageCollector: MessageCollector,
+        dependenciesJarSnapshots: MutableMap<String, JarSnapshot>
     ): CompilationMode =
         when (changedFiles) {
-            is ChangedFiles.Known -> calculateSourcesToCompile(caches, changedFiles, args, messageCollector)
+            is ChangedFiles.Known -> calculateSourcesToCompile(caches, changedFiles, args, messageCollector, dependenciesJarSnapshots)
             is ChangedFiles.Unknown -> CompilationMode.Rebuild { "inputs' changes are unknown (first or clean build)" }
         }
 
@@ -153,7 +154,8 @@ abstract class IncrementalCompilerRunner<
         caches: CacheManager,
         changedFiles: ChangedFiles.Known,
         args: Args,
-        messageCollector: MessageCollector
+        messageCollector: MessageCollector,
+        jarSnapshots: MutableMap<String, JarSnapshot>
     ): CompilationMode
 
     protected fun initDirtyFiles(dirtyFiles: DirtyFilesContainer, changedFiles: ChangedFiles.Known) {
@@ -215,7 +217,8 @@ abstract class IncrementalCompilerRunner<
         allKotlinSources: List<File>,
         compilationMode: CompilationMode,
         originalMessageCollector: MessageCollector,
-        withSnapshot: Boolean
+        withSnapshot: Boolean,
+        classpathJarSnapshot: MutableMap<String, JarSnapshot> = HashMap()
     ): ExitCode {
         preBuildHook(args, compilationMode)
 
@@ -234,7 +237,7 @@ abstract class IncrementalCompilerRunner<
             }
 //        }
 
-        val currentBuildInfo = BuildInfo(startTS = System.currentTimeMillis())
+        val currentBuildInfo = BuildInfo(startTS = System.currentTimeMillis(), classpathJarSnapshot)
         val buildDirtyLookupSymbols = HashSet<LookupSymbol>()
         val buildDirtyFqNames = HashSet<FqName>()
         val allDirtySources = HashSet<File>()
