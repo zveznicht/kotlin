@@ -33,6 +33,9 @@ private fun traverseAll(requestHref: String, requestParams: Map<String, String>)
     val jsonResponses = mutableListOf<JsonNode>()
 
     fun request(url: String, params: Map<String, String>): String {
+        println(url)
+        println(headers)
+        println(params)
         val currentResponse = khttp.get(url, headers, params, auth = authUser)
         checkResponseAndLog(currentResponse)
         val currentJsonResponse = jsonObjectMapper.readTree(currentResponse.text)
