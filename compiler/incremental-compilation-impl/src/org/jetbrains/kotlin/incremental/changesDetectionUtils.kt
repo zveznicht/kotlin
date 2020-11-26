@@ -16,7 +16,9 @@ internal fun getClasspathChanges(
     lastBuildInfo: BuildInfo,
     modulesApiHistory: ModulesApiHistory,
     reporter: ICReporter?,
-    jarSnapshots: Map<String, JarSnapshot> = mapOf()
+    jarSnapshots: Map<String, JarSnapshot>,
+    withSnapshot: Boolean,
+    parameters: JarSnapshotDiffService.Parameters
 ): ChangesEither {
     val classpathSet = HashSet<File>()
     for (file in classpath) {
@@ -34,33 +36,47 @@ internal fun getClasspathChanges(
 
     if (modifiedClasspath.isEmpty()) return ChangesEither.Known()
 
-    val lastBuildTS = lastBuildInfo.startTS
+    if (withSnapshot) {
+        //TODO
+        val symbols = HashSet<LookupSymbol>()
+        val fqNames = HashSet<FqName>()
+        for ((module, jarSnapshot) in jarSnapshots) {
+            val actualJarSnapshot = lastBuildInfo.dependencyToJarSnapshot[module]
+            if (actualJarSnapshot == null) {
+                return ChangesEither.Unknown("Some jar are removed from classpath $module")
+            }
+            JarSnapshotDiffService.compareJarsInternal(parameters, jarSnapshot, actualJarSnapshot)
+        }
+        return ChangesEither.Known(symbols, fqNames)
+    } else {
+        val lastBuildTS = lastBuildInfo.startTS
 
-    val symbols = HashSet<LookupSymbol>()
-    val fqNames = HashSet<FqName>()
+        val symbols = HashSet<LookupSymbol>()
+        val fqNames = HashSet<FqName>()
 
-    val historyFilesEither = modulesApiHistory.historyFilesForChangedFiles(modifiedClasspath)
-    val historyFiles = when (historyFilesEither) {
-        is Either.Success<Set<File>> -> historyFilesEither.value
-        is Either.Error -> return ChangesEither.Unknown(historyFilesEither.reason)
-    }
-
-    for (historyFile in historyFiles) {
-        val allBuilds = BuildDiffsStorage.readDiffsFromFile(historyFile, reporter = reporter)
-            ?: return ChangesEither.Unknown("Could not read diffs from $historyFile")
-        val (knownBuilds, newBuilds) = allBuilds.partition { it.ts <= lastBuildTS }
-        if (knownBuilds.isEmpty()) {
-            return ChangesEither.Unknown("No previously known builds for $historyFile")
+        val historyFilesEither = modulesApiHistory.historyFilesForChangedFiles(modifiedClasspath)
+        val historyFiles = when (historyFilesEither) {
+            is Either.Success<Set<File>> -> historyFilesEither.value
+            is Either.Error -> return ChangesEither.Unknown(historyFilesEither.reason)
         }
 
-        for (buildDiff in newBuilds) {
-            if (!buildDiff.isIncremental) return ChangesEither.Unknown("Non-incremental build from dependency $historyFile")
+        for (historyFile in historyFiles) {
+            val allBuilds = BuildDiffsStorage.readDiffsFromFile(historyFile, reporter = reporter)
+                ?: return ChangesEither.Unknown("Could not read diffs from $historyFile")
+            val (knownBuilds, newBuilds) = allBuilds.partition { it.ts <= lastBuildTS }
+            if (knownBuilds.isEmpty()) {
+                return ChangesEither.Unknown("No previously known builds for $historyFile")
+            }
 
-            val dirtyData = buildDiff.dirtyData
-            symbols.addAll(dirtyData.dirtyLookupSymbols)
-            fqNames.addAll(dirtyData.dirtyClassesFqNames)
+            for (buildDiff in newBuilds) {
+                if (!buildDiff.isIncremental) return ChangesEither.Unknown("Non-incremental build from dependency $historyFile")
+
+                val dirtyData = buildDiff.dirtyData
+                symbols.addAll(dirtyData.dirtyLookupSymbols)
+                fqNames.addAll(dirtyData.dirtyClassesFqNames)
+            }
         }
-    }
 
-    return ChangesEither.Known(symbols, fqNames)
+        return ChangesEither.Known(symbols, fqNames)
+    }
 }

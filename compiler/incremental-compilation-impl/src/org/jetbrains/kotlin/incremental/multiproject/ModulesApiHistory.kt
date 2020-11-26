@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.incremental.multiproject
 import org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.Companion.JAR_SNAPSHOT_FILE_NAME
 import org.jetbrains.kotlin.incremental.IncrementalModuleEntry
 import org.jetbrains.kotlin.incremental.IncrementalModuleInfo
+import org.jetbrains.kotlin.incremental.JarSnapshotDiffService
 import org.jetbrains.kotlin.incremental.util.Either
 import java.io.File
 import java.nio.file.Path

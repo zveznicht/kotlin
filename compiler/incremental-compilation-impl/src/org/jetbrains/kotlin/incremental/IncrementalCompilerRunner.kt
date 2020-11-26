@@ -90,6 +90,7 @@ abstract class IncrementalCompilerRunner<
         return try {
             val changedFiles = providedChangedFiles ?: caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
             val classpathJarSnapshot = HashMap<String, JarSnapshot> ()
+
             val compilationMode = sourcesToCompile(caches, changedFiles, args, messageCollector, classpathJarSnapshot)
 
             val exitCode = when (compilationMode) {

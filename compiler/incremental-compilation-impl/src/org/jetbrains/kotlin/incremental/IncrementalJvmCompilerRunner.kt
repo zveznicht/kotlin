@@ -162,7 +162,7 @@ class IncrementalJvmCompilerRunner(
         classpathJarSnapshot: MutableMap<String, JarSnapshot>
     ): CompilationMode {
         return try {
-            calculateSourcesToCompileImpl(caches, changedFiles, args, )
+            calculateSourcesToCompileImpl(caches, changedFiles, args, classpathJarSnapshot)
         } finally {
             psiFileProvider.messageCollector.flush(messageCollector)
             psiFileProvider.messageCollector.clear()
@@ -187,7 +187,8 @@ class IncrementalJvmCompilerRunner(
                 //TODO use path transformation
             .forEach { modulesApiHistory.jarSnapshot(it)?.let {file -> jarSnapshots.put(it.absolutePath, JarSnapshot.read(file)) }}
 
-        val classpathChanges = getClasspathChanges(args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter, jarSnapshots)
+        val classpathChanges = getClasspathChanges(args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter,
+                                                   jarSnapshots, withSnapshot, JarSnapshotDiffService.Parameters(caches, reporter, kotlinSourceFilesExtensions))
 
         @Suppress("UNUSED_VARIABLE") // for sealed when
         val unused = when (classpathChanges) {
