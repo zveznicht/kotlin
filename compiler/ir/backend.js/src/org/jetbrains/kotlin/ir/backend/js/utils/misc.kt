@@ -15,10 +15,14 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrVarargImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.types.isNullableAny
 import org.jetbrains.kotlin.ir.types.isUnit
+import org.jetbrains.kotlin.ir.util.isEffectivelyExternal
 import org.jetbrains.kotlin.ir.util.isTopLevelDeclaration
+import org.jetbrains.kotlin.ir.util.parentClassOrNull
 import org.jetbrains.kotlin.name.Name
 
 fun TODO(element: IrElement): Nothing = TODO(element::class.java.simpleName + " is not supported yet here")
+
+fun IrFunction.isEffectivelyExportable() = isEffectivelyExternal() || getJsName() != null || parentClassOrNull?.isJsExport() == true
 
 fun IrFunction.isEqualsInheritedFromAny() =
     name == Name.identifier("equals") &&
