@@ -1,0 +1,27 @@
+FILE: kt43296.kt
+    public abstract interface Slice<V> : R|kotlin/Any| {
+    }
+    public abstract interface A : R|kotlin/Any| {
+    }
+    public abstract interface B : R|A| {
+    }
+    public abstract interface C : R|A| {
+    }
+    public final val SL0: R|Slice<A>|
+        public get(): R|Slice<A>|
+    public final val SL1: R|Slice<B>|
+        public get(): R|Slice<B>|
+    public final val SL2: R|Slice<C>|
+        public get(): R|Slice<C>|
+    public final fun <X> foo(s: R|Slice<X>|): R|X?| {
+        when () {
+            ===(R|<local>/s|, R|/SL1|) || ===(R|<local>/s|, R|/SL2|) ->  {
+                ^foo <Inapplicable(INAPPLICABLE): /bar>#<R|A|>(R|<local>/s|)
+            }
+        }
+
+        ^foo Null(null)
+    }
+    public final fun <Y> bar(w: R|Slice<Y>|): R|Y?| {
+        ^bar Null(null)
+    }
