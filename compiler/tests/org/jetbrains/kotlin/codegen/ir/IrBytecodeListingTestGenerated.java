@@ -952,6 +952,11 @@ public class IrBytecodeListingTestGenerated extends AbstractIrBytecodeListingTes
             runTest("compiler/testData/codegen/bytecodeListing/inlineClasses/inlineClassWithManyKindsOfMembers.kt");
         }
 
+        @TestMetadata("jvmName.kt")
+        public void testJvmName() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/inlineClasses/jvmName.kt");
+        }
+
         @TestMetadata("memberExtensionProperty.kt")
         public void testMemberExtensionProperty() throws Exception {
             runTest("compiler/testData/codegen/bytecodeListing/inlineClasses/memberExtensionProperty.kt");
