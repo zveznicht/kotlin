@@ -30,11 +30,11 @@ import org.jetbrains.kotlin.types.typeUtil.asTypeProjection
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 
 // null means that type should be leaved as is
-fun prepareArgumentTypeRegardingCaptureTypes(argumentType: UnwrappedType): UnwrappedType? {
-    return if (argumentType is NewCapturedType) null else captureFromExpression(argumentType)
+fun prepareArgumentTypeRegardingCaptureTypes(argumentType: UnwrappedType, mm: Map<Int, MutableSet<Pair<TypeConstructor, List<TypeProjection>>>> = mapOf()): UnwrappedType? {
+    return if (argumentType is NewCapturedType) null else captureFromExpression(argumentType, mm)
 }
 
-fun captureFromExpression(type: UnwrappedType): UnwrappedType? {
+fun captureFromExpression(type: UnwrappedType, mm: Map<Int, MutableSet<Pair<TypeConstructor, List<TypeProjection>>>> = mapOf()): UnwrappedType? {
     val typeConstructor = type.constructor
 
     if (typeConstructor !is IntersectionTypeConstructor) {
@@ -52,23 +52,29 @@ fun captureFromExpression(type: UnwrappedType): UnwrappedType? {
      *  Result of capturing arguments by components: [[CapturedType(*)], null]
      *  The resulting type: ({Comparable<CapturedType(*)> & java.io.Serializable}..{Comparable<CapturedType(*)>? & java.io.Serializable?})
      */
-    val capturedArgumentsByComponents = captureArgumentsForIntersectionType(typeConstructor) ?: return null
+    val capturedArgumentsByComponents = captureArgumentsForIntersectionType(type.lowerIfFlexible(), type.upperIfFlexible(), mm) ?: return null
 
-    fun replaceArgumentsByComponents(typeToReplace: UnwrappedType) =
-        typeToReplace.constructor.supertypes.mapIndexed { i, componentType ->
-            val capturedArguments = capturedArgumentsByComponents[i] ?: return@mapIndexed componentType.asSimpleType()
+    if (capturedArgumentsByComponents.first == null) return null
+
+    fun replaceArgumentsByComponents(typeToReplace: UnwrappedType, caps: List<List<TypeProjection>?>): List<SimpleType> {
+        val types = if (typeToReplace.constructor is IntersectionTypeConstructor) typeToReplace.constructor.supertypes else listOf(typeToReplace)
+        return types.mapIndexed { i, componentType ->
+            val capturedArguments = caps[i] ?: return@mapIndexed componentType.asSimpleType()
             componentType.unwrap().replaceArguments(capturedArguments)
         }
+    }
 
     return if (type is FlexibleType) {
-        val lowerIntersectedType =
-            intersectTypes(replaceArgumentsByComponents(type.lowerBound)).makeNullableAsSpecified(type.lowerBound.isMarkedNullable)
-        val upperIntersectedType =
-            intersectTypes(replaceArgumentsByComponents(type.upperBound)).makeNullableAsSpecified(type.upperBound.isMarkedNullable)
+        val lowerIntersectedType = intersectTypes(
+            replaceArgumentsByComponents(type.lowerBound, capturedArgumentsByComponents.first!!)
+        ).makeNullableAsSpecified(type.lowerBound.isMarkedNullable)
+        val upperIntersectedType = intersectTypes(
+            replaceArgumentsByComponents(type.upperBound, capturedArgumentsByComponents.second ?: capturedArgumentsByComponents.first!!)
+        ).makeNullableAsSpecified(type.upperBound.isMarkedNullable)
 
         KotlinTypeFactory.flexibleType(lowerIntersectedType, upperIntersectedType)
     } else {
-        intersectTypes(replaceArgumentsByComponents(type)).makeNullableAsSpecified(type.isMarkedNullable)
+        intersectTypes(replaceArgumentsByComponents(type, capturedArgumentsByComponents.first!!)).makeNullableAsSpecified(type.isMarkedNullable)
     }
 }
 
@@ -76,15 +82,45 @@ fun captureFromExpression(type: UnwrappedType): UnwrappedType? {
 internal fun captureFromArguments(type: SimpleType, status: CaptureStatus) =
     captureArguments(type, status)?.let { type.replaceArguments(it) }
 
-private fun captureArgumentsForIntersectionType(typeConstructor: TypeConstructor): List<List<TypeProjection>?>? {
+private fun captureArgumentsForIntersectionType(lowerType: KotlinType, upperType: KotlinType, mm: Map<Int, MutableSet<Pair<TypeConstructor, List<TypeProjection>>>> = mapOf()): Pair<List<List<TypeProjection>?>?, List<List<TypeProjection>?>?>? {
     var changed = false
-    val capturedArgumentsByComponents = typeConstructor.supertypes.map { supertype ->
-        captureArguments(supertype.unwrap(), CaptureStatus.FROM_EXPRESSION)?.apply { changed = true }
+    val capturedArgumentsByComponentsForLowerBound = lowerType.constructor.supertypes.map { supertype ->
+        val place = mm.entries.find { (_, types) ->
+            if (types.any { it.first == supertype.constructor && it.second.withIndex().all { (i, t) -> t == supertype.arguments[i] } }) {
+                return@find true
+            }
+
+            false
+        }?.key
+        captureArguments(supertype.unwrap(), CaptureStatus.FROM_EXPRESSION)?.apply { changed = true } to place
     }
 
     if (!changed) return null
 
-    return capturedArgumentsByComponents
+    if (lowerType === upperType) return capturedArgumentsByComponentsForLowerBound.map { it.first } to null
+
+    val types = if (upperType.constructor is IntersectionTypeConstructor) upperType.constructor.supertypes else listOf(upperType)
+
+    val capturedArgumentsByComponentsForUpperBound = types.map { supertype ->
+        val place = mm.entries.find { (_, types) ->
+            if (types.any { it.first == supertype.constructor && it.second.withIndex().all { (i, t) -> t == supertype.arguments[i] } }) {
+                return@find true
+            }
+
+            false
+        }?.key
+        val vv = capturedArgumentsByComponentsForLowerBound.find { it.second == place }
+        if (vv != null) {
+            changed = true
+            vv.first
+        } else {
+            captureArguments(supertype.unwrap(), CaptureStatus.FROM_EXPRESSION)?.apply { changed = true }
+        }
+    }
+
+    val aa = capturedArgumentsByComponentsForLowerBound.map { it.first } to capturedArgumentsByComponentsForUpperBound
+
+    return aa
 }
 
 private fun captureFromArguments(type: UnwrappedType, status: CaptureStatus): UnwrappedType? {

@@ -25,11 +25,12 @@ import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
 import org.jetbrains.kotlin.resolve.calls.model.CollectionLiteralKotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.KotlinCallArgument
 import org.jetbrains.kotlin.resolve.calls.model.SimpleKotlinCallArgument
+import org.jetbrains.kotlin.resolve.calls.model.TypeArgument
 import org.jetbrains.kotlin.resolve.descriptorUtil.isParameterOfAnnotation
 import org.jetbrains.kotlin.resolve.descriptorUtil.module
 import org.jetbrains.kotlin.resolve.multiplatform.ExpectedActualResolver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValueWithSmartCastInfo
-import org.jetbrains.kotlin.types.UnwrappedType
+import org.jetbrains.kotlin.types.*
 import org.jetbrains.kotlin.types.checker.intersectWrappedTypes
 import org.jetbrains.kotlin.types.checker.prepareArgumentTypeRegardingCaptureTypes
 import org.jetbrains.kotlin.types.typeUtil.isNullableNothing
@@ -71,6 +72,26 @@ val ReceiverValueWithSmartCastInfo.stableType: UnwrappedType
          *
          * Such redundant type with captured argument may further lead to contradiction in constraint system or less exact solution.
          */
+        // keep mapping intersection components of lower and upper bounds of a flexible type
+        /*
+         1) Collect lower bound's constructors and upper ones (index of the original type => lower and upper constructors)
+         2) Map them to lower and upper bound intersection component by type constructors
+         Should be able to answer: did types come from the same original type?
+         // the same type argument on the same position within specific original type
+         */
+        val mm = mutableMapOf<Int, MutableSet<Pair<TypeConstructor, List<TypeProjection>>>>()
+        for ((index, type) in allOriginalTypes.withIndex()) {
+            if (index !in mm) {
+                mm[index] = mutableSetOf()
+            }
+            if (type is FlexibleType) {
+                mm[index]!!.add(type.lowerBound.constructor to type.arguments)
+                mm[index]!!.add(type.upperBound.constructor to type.arguments)
+            } else {
+                mm[index]!!.add(type.constructor to type.arguments)
+            }
+        }
+
         val intersectionType = intersectWrappedTypes(allOriginalTypes)
 
         // Intersection type of Nothing with any flexible types will be Nothing!.
@@ -80,7 +101,7 @@ val ReceiverValueWithSmartCastInfo.stableType: UnwrappedType
             return intersectionType.makeNullable().unwrap()
         }
 
-        return prepareArgumentTypeRegardingCaptureTypes(intersectionType) ?: intersectionType
+        return prepareArgumentTypeRegardingCaptureTypes(intersectionType, mm) ?: intersectionType
     }
 
 internal fun KotlinCallArgument.getExpectedType(parameter: ParameterDescriptor, languageVersionSettings: LanguageVersionSettings) =
