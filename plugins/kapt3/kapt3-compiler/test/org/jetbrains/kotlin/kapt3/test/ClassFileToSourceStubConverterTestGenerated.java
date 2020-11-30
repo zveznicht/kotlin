@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.kapt3.test;
 
 import com.intellij.testFramework.TestDataPath;
+import org.jetbrains.kotlin.base.kapt3.KaptFlag;
 import org.jetbrains.kotlin.test.JUnit3RunnerWithInners;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
 import org.jetbrains.kotlin.test.TestMetadata;
@@ -71,6 +72,13 @@ public class ClassFileToSourceStubConverterTestGenerated extends AbstractClassFi
     @TestMetadata("comments.kt")
     public void testComments() throws Exception {
         runTest("plugins/kapt3/kapt3-compiler/testData/converter/comments.kt");
+    }
+
+    /** Regression test for KT-43593. */
+    @TestMetadata("commentsRemoved.kt")
+    public void testCommentsRemoved() throws Exception {
+        getKaptFlagsToDisable().add(KaptFlag.KEEP_KDOC_COMMENTS_IN_STUBS);
+        runTest("plugins/kapt3/kapt3-compiler/testData/converter/commentsRemoved.kt");
     }
 
     @TestMetadata("cyrillicClassName.kt")

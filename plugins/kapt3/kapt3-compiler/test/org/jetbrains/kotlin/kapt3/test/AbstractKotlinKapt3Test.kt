@@ -125,7 +125,8 @@ abstract class AbstractKotlinKapt3Test : KotlinKapt3TestBase() {
             incrementalDataOutputDir = sourcesOutputDir
 
             this.javacOptions.putAll(javacOptions)
-            flags.addAll(kaptFlags)
+            flags.addAll(kaptFlagsToEnable)
+            flags.removeAll(kaptFlagsToDisable)
 
             detectMemoryLeaks = DetectMemoryLeaksMode.NONE
         }.build()
@@ -249,18 +250,18 @@ open class AbstractClassFileToSourceStubConverterTest : AbstractKotlinKapt3Test(
     override fun doTest(filePath: String) {
         val wholeFile = File(filePath)
 
-        kaptFlags.add(KaptFlag.MAP_DIAGNOSTIC_LOCATIONS)
+        kaptFlagsToEnable.add(KaptFlag.MAP_DIAGNOSTIC_LOCATIONS)
 
         if (wholeFile.isOptionSet("CORRECT_ERROR_TYPES")) {
-            kaptFlags.add(KaptFlag.CORRECT_ERROR_TYPES)
+            kaptFlagsToEnable.add(KaptFlag.CORRECT_ERROR_TYPES)
         }
 
         if (wholeFile.isOptionSet("STRICT_MODE")) {
-            kaptFlags.add(KaptFlag.STRICT)
+            kaptFlagsToEnable.add(KaptFlag.STRICT)
         }
 
         if (wholeFile.isOptionSet("STRIP_METADATA")) {
-            kaptFlags.add(KaptFlag.STRIP_METADATA)
+            kaptFlagsToEnable.add(KaptFlag.STRIP_METADATA)
         }
 
         super.doTest(filePath)
@@ -327,9 +328,9 @@ open class AbstractClassFileToSourceStubConverterTest : AbstractKotlinKapt3Test(
 
 abstract class AbstractKotlinKaptContextTest : AbstractKotlinKapt3Test() {
     override fun doTest(filePath: String) {
-        kaptFlags.add(KaptFlag.CORRECT_ERROR_TYPES)
-        kaptFlags.add(KaptFlag.STRICT)
-        kaptFlags.add(KaptFlag.MAP_DIAGNOSTIC_LOCATIONS)
+        kaptFlagsToEnable.add(KaptFlag.CORRECT_ERROR_TYPES)
+        kaptFlagsToEnable.add(KaptFlag.STRICT)
+        kaptFlagsToEnable.add(KaptFlag.MAP_DIAGNOSTIC_LOCATIONS)
         super.doTest(filePath)
     }
 

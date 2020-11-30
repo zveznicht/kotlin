@@ -141,7 +141,8 @@ abstract class AbstractKotlinKapt3IntegrationTest : KotlinKapt3TestBase() {
             incrementalDataOutputDir = Files.createTempDirectory("kaptIncrementalData").toFile()
 
             mutableOptions?.let { processingOptions.putAll(it) }
-            flags.addAll(kaptFlags)
+            flags.addAll(kaptFlagsToEnable)
+            flags.removeAll(kaptFlagsToDisable)
             detectMemoryLeaks = DetectMemoryLeaksMode.NONE
         }.build()
 
