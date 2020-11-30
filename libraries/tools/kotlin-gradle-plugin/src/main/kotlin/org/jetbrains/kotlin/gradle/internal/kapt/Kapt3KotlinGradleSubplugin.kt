@@ -75,10 +75,13 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
             File(project.buildDir, "generated/source/kaptKotlin/$sourceSetName")
 
         // Pairs of property names and their default values.
-        // The default values of these properties should typically match those defined in org.jetbrains.kotlin.base.kapt3.KaptFlag,
+        // The default values of these properties should typically match those defined in org.jetbrains.kotlin.base.kapt3.KaptFlag.
         private val VERBOSE_OPTION_NAME = Pair("kapt.verbose", false)
         private val USE_WORKER_API = Pair("kapt.use.worker.api", true)
-        private val INCREMENTAL_APT = Pair("kapt.incremental.apt", true) // Currently doesn't match KaptFlag, not sure if it's intended.
+        private val INCREMENTAL_APT = Pair(
+            "kapt.incremental.apt",
+            true // Currently doesn't match the default value of KaptFlag.INCREMENTAL_APT, but it's fine (see https://github.com/JetBrains/kotlin/pull/3942#discussion_r532578690).
+        )
         private val INFO_AS_WARNINGS = Pair("kapt.info.as.warnings", false)
         private val INCLUDE_COMPILE_CLASSPATH = Pair("kapt.include.compile.classpath", true)
         private val KAPT_KEEP_KDOC_COMMENTS_IN_STUBS = Pair("kapt.keep.kdoc.comments.in.stubs", true)
@@ -410,7 +413,10 @@ class Kapt3GradleSubplugin @Inject internal constructor(private val registry: To
         pluginOptions += SubpluginOption("correctErrorTypes", "${kaptExtension.correctErrorTypes}")
         pluginOptions += SubpluginOption("dumpDefaultParameterValues", "${kaptExtension.dumpDefaultParameterValues}")
         pluginOptions += SubpluginOption("mapDiagnosticLocations", "${kaptExtension.mapDiagnosticLocations}")
-        pluginOptions += SubpluginOption("strictMode", "${kaptExtension.strictMode}") // Currently doesn't match KaptCliOption, not sure if it's intended.
+        pluginOptions += SubpluginOption(
+            "strictMode", // Currently doesn't match KaptCliOption.STRICT_MODE_OPTION, is it a typo introduced in https://github.com/JetBrains/kotlin/commit/c83581e6b8155c6d89da977be6e3cd4af30562e5?
+            "${kaptExtension.strictMode}"
+        )
         pluginOptions += SubpluginOption("stripMetadata", "${kaptExtension.stripMetadata}")
         pluginOptions += SubpluginOption("keepKDocCommentsInStubs", "${project.isKaptKeepKDocCommentsInStubs()}")
         pluginOptions += SubpluginOption("showProcessorTimings", "${kaptExtension.showProcessorTimings}")
