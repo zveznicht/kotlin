@@ -5,6 +5,7 @@ Cleaning output files:
   out/production/module/test/B.class
 End of files
 Compiling files:
+  src/Base.kt
 End of files
 Exit code: OK
 ------------------------------------------
