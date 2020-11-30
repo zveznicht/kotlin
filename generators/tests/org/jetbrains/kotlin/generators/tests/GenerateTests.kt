@@ -1501,6 +1501,7 @@ fun main(args: Array<String>) {
                 model("incremental/incrementalJvmCompilerOnly", extension = null, excludeParentDirs = true, targetBackend = targetBackend)
             }
             testClass<AbstractIncrementalJvmCompilerRunnerTest>(init = incrementalJvmTestData(TargetBackend.JVM))
+            testClass<AbstractIncrementalFirJvmCompilerRunnerTest>(init = incrementalJvmTestData(TargetBackend.JVM_IR))
             testClass<AbstractIrIncrementalJvmCompilerRunnerTest>(init = incrementalJvmTestData(TargetBackend.JVM_IR))
 
             testClass<AbstractIncrementalJsCompilerRunnerTest> {
