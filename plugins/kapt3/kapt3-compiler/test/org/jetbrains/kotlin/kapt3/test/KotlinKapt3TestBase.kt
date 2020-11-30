@@ -10,11 +10,13 @@ import org.jetbrains.kotlin.codegen.CodegenTestCase
 import java.io.File
 
 abstract class KotlinKapt3TestBase : CodegenTestCase() {
-    val kaptFlags = mutableListOf<KaptFlag>()
+    val kaptFlagsToEnable = mutableListOf<KaptFlag>()
+    val kaptFlagsToDisable = mutableListOf<KaptFlag>()
 
     override fun setUp() {
         super.setUp()
-        kaptFlags.clear()
+        kaptFlagsToEnable.clear()
+        kaptFlagsToDisable.clear()
     }
 
     protected fun File.isOptionSet(name: String) = this.useLines { lines -> lines.any { it.trim() == "// $name" } }
@@ -22,11 +24,11 @@ abstract class KotlinKapt3TestBase : CodegenTestCase() {
     override fun doTest(filePath: String) {
         val wholeFile = File(filePath)
 
-        kaptFlags.add(KaptFlag.MAP_DIAGNOSTIC_LOCATIONS)
+        kaptFlagsToEnable.add(KaptFlag.MAP_DIAGNOSTIC_LOCATIONS)
 
         fun handleFlag(flag: KaptFlag) {
             if (wholeFile.isOptionSet(flag.name)) {
-                kaptFlags.add(flag)
+                kaptFlagsToEnable.add(flag)
             }
         }
 
