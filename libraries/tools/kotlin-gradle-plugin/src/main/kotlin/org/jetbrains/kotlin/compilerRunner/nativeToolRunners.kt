@@ -89,7 +89,7 @@ internal abstract class KotlinNativeToolRunner(
 
 /** A common ancestor for all runners that run the cinterop tool. */
 internal abstract class AbstractKotlinNativeCInteropRunner(toolName: String, project: Project) : KotlinNativeToolRunner(toolName, project) {
-    override val mustRunViaExec get() = true
+    override val mustRunViaExec get() = project.disableKonanDaemon
 
     override val execEnvironment by lazy {
         val llvmExecutablesPath = llvmExecutablesPath
