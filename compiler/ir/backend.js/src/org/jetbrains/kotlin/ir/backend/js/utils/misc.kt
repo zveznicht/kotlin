@@ -22,7 +22,7 @@ import org.jetbrains.kotlin.name.Name
 
 fun TODO(element: IrElement): Nothing = TODO(element::class.java.simpleName + " is not supported yet here")
 
-fun IrFunction.hasJsStableName(): Boolean {
+fun IrFunction.hasStableJsName(): Boolean {
     val namedOrMissingGetter = when (this) {
         is IrSimpleFunction -> {
             val owner = correspondingPropertySymbol?.owner
