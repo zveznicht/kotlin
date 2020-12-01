@@ -433,6 +433,11 @@ public class ShortenRefsTestGenerated extends AbstractShortenRefsTest {
             runTest("idea/testData/shortenRefs/sameFile/rootPackage.kt");
         }
 
+        @TestMetadata("rootPackageShortenFakeRootPackage.kt")
+        public void testRootPackageShortenFakeRootPackage() throws Exception {
+            runTest("idea/testData/shortenRefs/sameFile/rootPackageShortenFakeRootPackage.kt");
+        }
+
         @TestMetadata("selfReferencingFunction.kt")
         public void testSelfReferencingFunction() throws Exception {
             runTest("idea/testData/shortenRefs/sameFile/selfReferencingFunction.kt");
