@@ -15,8 +15,7 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.JsCommonBackendContext
 import org.jetbrains.kotlin.ir.backend.js.JsLoweredDeclarationOrigin
-import org.jetbrains.kotlin.ir.backend.js.utils.isEffectivelyExportable
-import org.jetbrains.kotlin.ir.backend.js.utils.isJsExport
+import org.jetbrains.kotlin.ir.backend.js.utils.hasJsStableName
 import org.jetbrains.kotlin.ir.backend.js.utils.realOverrideTarget
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
@@ -119,7 +118,7 @@ abstract class BridgesConstruction(val context: JsCommonBackendContext) : Declar
     ): IrFunction {
 
         val origin =
-            if (bridge.isEffectivelyExportable())
+            if (bridge.hasJsStableName())
                 JsLoweredDeclarationOrigin.BRIDGE_TO_EXTERNAL_FUNCTION
             else
                 IrDeclarationOrigin.BRIDGE

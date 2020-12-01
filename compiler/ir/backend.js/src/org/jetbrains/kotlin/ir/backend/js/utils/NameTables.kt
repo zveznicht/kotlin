@@ -110,20 +110,8 @@ fun jsFunctionSignature(declaration: IrFunction): Signature {
 
     val declarationName = declaration.getJsNameOrKotlinName().asString()
 
-    val namedOrMissingGetter = when (declaration) {
-        is IrSimpleFunction -> {
-            val owner = declaration.correspondingPropertySymbol?.owner
-            if (owner == null) {
-                true
-            } else {
-                owner.getter?.getJsName() != null
-            }
-        }
-        else -> true
-    }
-
     val needsStableName = declaration.origin == JsLoweredDeclarationOrigin.BRIDGE_TO_EXTERNAL_FUNCTION ||
-            (declaration.isEffectivelyExportable() && namedOrMissingGetter) ||
+            declaration.hasJsStableName() ||
             (declaration as? IrSimpleFunction)?.isMethodOfAny() == true // Handle names for special functions
 
     if (needsStableName) {

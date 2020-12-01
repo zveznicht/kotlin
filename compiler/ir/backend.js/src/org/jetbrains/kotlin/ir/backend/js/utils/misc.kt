@@ -22,7 +22,21 @@ import org.jetbrains.kotlin.name.Name
 
 fun TODO(element: IrElement): Nothing = TODO(element::class.java.simpleName + " is not supported yet here")
 
-fun IrFunction.isEffectivelyExportable() = isEffectivelyExternal() || getJsName() != null || parentClassOrNull?.isJsExport() == true
+fun IrFunction.hasJsStableName(): Boolean {
+    val namedOrMissingGetter = when (this) {
+        is IrSimpleFunction -> {
+            val owner = correspondingPropertySymbol?.owner
+            if (owner == null) {
+                true
+            } else {
+                owner.getter?.getJsName() != null
+            }
+        }
+        else -> true
+    }
+
+    return (isEffectivelyExternal() || getJsName() != null || parentClassOrNull?.isJsExport() == true) && namedOrMissingGetter
+}
 
 fun IrFunction.isEqualsInheritedFromAny() =
     name == Name.identifier("equals") &&
