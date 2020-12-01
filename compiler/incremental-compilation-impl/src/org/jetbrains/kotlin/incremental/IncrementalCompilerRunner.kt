@@ -231,12 +231,24 @@ abstract class IncrementalCompilerRunner<
             is CompilationMode.Rebuild -> allKotlinSources.toMutableList()
         }
 
-//        if (withSnapshot) {
-            val jarSnapshot = when (compilationMode) {
-                is CompilationMode.Incremental -> JarSnapshot.read(jarSnapshotFile)
-                is CompilationMode.Rebuild -> JarSnapshot(setOf(), allKotlinSources.map { FqName(it.absolutePath) }.toSet())
+        val jarSnapshot = if (withSnapshot) {
+            when (compilationMode) {
+                is CompilationMode.Incremental -> JarSnapshot.read(jarSnapshotFile).also {
+                    for (file in compilationMode.dirtyFiles.toMutableList()) {
+                        if (file.exists()) {
+                            //TODO
+                            it.fqNames.add(FqName(file.absolutePath))
+                        } else {
+                            it.fqNames.remove(FqName(file.absolutePath))
+                        }
+                    }
+                }
+                is CompilationMode.Rebuild -> JarSnapshot(mutableSetOf(), allKotlinSources.map { FqName(it.absolutePath) }.toMutableSet())
             }
-//        }
+        } else {
+            JarSnapshot(mutableSetOf(), mutableSetOf())
+        }
+
 
         val currentBuildInfo = BuildInfo(startTS = System.currentTimeMillis(), classpathJarSnapshot)
         val buildDirtyLookupSymbols = HashSet<LookupSymbol>()
@@ -322,6 +334,7 @@ abstract class IncrementalCompilerRunner<
             BuildInfo.write(currentBuildInfo, lastBuildInfoFile)
 
             //write jar snapshot
+            jarSnapshot.symbols.addAll(buildDirtyLookupSymbols)
             JarSnapshot.write(jarSnapshot, jarSnapshotFile)
         }
         if (exitCode == ExitCode.OK && compilationMode is CompilationMode.Incremental) {

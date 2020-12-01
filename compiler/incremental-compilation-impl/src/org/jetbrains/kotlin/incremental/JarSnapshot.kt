@@ -12,13 +12,13 @@ import org.jetbrains.kotlin.incremental.BuildDiffsStorage.Companion.writeLookups
 import org.jetbrains.kotlin.name.FqName
 import java.io.*
 
-class JarSnapshot (val symbols: Set<LookupSymbol>,
-                   val fqNames: Set<FqName>) {
+class JarSnapshot (val symbols: MutableSet<LookupSymbol>,
+                   val fqNames: MutableSet<FqName>) {
 
     companion object {
         fun ObjectInputStream.readJarSnapshot(): JarSnapshot {
-            val symbolsResult = readLookups().toSet()
-            val fqNamesResult = readFqNames().toSet()
+            val symbolsResult = readLookups().toMutableSet()
+            val fqNamesResult = readFqNames().toMutableSet()
             return JarSnapshot(symbolsResult, fqNamesResult)
         }
 
