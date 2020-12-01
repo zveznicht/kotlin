@@ -42,7 +42,7 @@ class PropertyAccessorInlineLowering(private val context: CommonBackendContext) 
                 // TODO: temporary workarounds
                 if (parent.isExpect || property.isExpect) return expression
                 if (parent.parent is IrExternalPackageFragment) return expression
-                if (parent.isInline) return expression
+                //if (parent.isInline) return expression
             }
             if (property.isEffectivelyExternal()) return expression
 
