@@ -270,3 +270,13 @@ private fun FlyweightCapableTreeStructure<LighterASTNode>.lastChild(node: Lighte
     getChildren(node, childrenRef)
     return childrenRef.get()?.lastOrNull()
 }
+
+fun toFile(element: FirSourceElement) {
+    var node: LighterASTNode? = element.lighterASTNode
+    val tree = element.treeStructure
+    while (node != null && node.tokenType != KtNodeTypes.KT_FILE) {
+        node = tree.getParent(node)
+    }
+    if (node == null) return
+}
+
