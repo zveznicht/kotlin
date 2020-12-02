@@ -1,4 +1,3 @@
-// FIR_COMPARISON
 import A.*
 
 fun bar() {

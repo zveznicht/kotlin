@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.idea.shortenRefs
 
-import com.intellij.lang.Language
 import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.editor.RangeMarker
@@ -13,6 +12,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.SmartPsiElementPointer
 import gnu.trove.TIntArrayList
 import org.jetbrains.kotlin.fir.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
 import org.jetbrains.kotlin.idea.core.util.range
@@ -20,10 +20,10 @@ import org.jetbrains.kotlin.idea.frontend.api.analyze
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassKind
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassOrObjectSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtPackageSymbol
-import org.jetbrains.kotlin.idea.intentions.getLeftMostReceiverExpression
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.createSmartPointer
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
 
 private enum class FilterResult {
@@ -89,11 +89,11 @@ object FirShortenReferences {
         val typesToShorten = collectedTypes
             .filter { it.qualifier != null }
             .filter { typeCanBeShortened(it) }
-            .map { ShortenTypeNow(it) }
+            .map { ShortenTypeNow(it.createSmartPointer()) }
 
         val expressionsToShorten = collectedExpressions
             .filter { expressionCanBeShortened(it) }
-            .map { ShortenExpressionNow(it) }
+            .map { ShortenExpressionNow(it.createSmartPointer()) }
 
         typesToShorten + expressionsToShorten
     }
@@ -113,9 +113,8 @@ object FirShortenReferences {
         val nameRef = when (val receiver = element.receiverExpression) {
             is KtThisExpression -> return true
             is KtNameReferenceExpression -> receiver
-            // FIXME this is a hack; currently fir does not work well with multi-word packages like `foo.bar` and can resolve only from `foo`
             is KtDotQualifiedExpression -> {
-                receiver.getLeftMostReceiverExpression() as? KtNameReferenceExpression ?: return false
+                receiver.selectorExpression as? KtNameReferenceExpression ?: return false
             }
             else -> return false
         }
@@ -144,7 +143,7 @@ object FirShortenReferences {
         val fileCopy = expression.containingKtFile.copy() as KtFile
         val expressionCopy = findSameElementInCopy(expression, fileCopy)
         
-        return expressionCopy.replace(expressionCopy.selectorExpression!!) as KtExpression
+        return expressionCopy.deleteQualifier()!!
     }
 
     private fun createShortenedCopy(typeUsage: KtUserType): KtUserType {
@@ -163,10 +162,10 @@ object FirShortenReferences {
             for (command in shortenings) {
                 when (command) {
                     is ShortenTypeNow -> {
-                        command.element.deleteQualifier()
+                        command.element?.deleteQualifier()
                     }
                     is ShortenExpressionNow -> {
-                        command.element.selectorExpression?.let(command.element::replace)
+                        command.element?.deleteQualifier()
                     }
                 }
             }
@@ -190,8 +189,13 @@ private fun KtElement.resolveToPsi(): PsiElement? {
 }
 
 sealed class ShortenCommand
-private class ShortenTypeNow(val element: KtUserType) : ShortenCommand()
-private class ShortenExpressionNow(val element: KtDotQualifiedExpression): ShortenCommand()
+private class ShortenTypeNow(private val ptr: SmartPsiElementPointer<KtUserType>) : ShortenCommand() {
+    val element: KtUserType? get() = ptr.element
+}
+
+private class ShortenExpressionNow(private val ptr: SmartPsiElementPointer<KtDotQualifiedExpression>) : ShortenCommand() {
+    val element: KtDotQualifiedExpression? get() = ptr.element
+}
 
 private abstract class QualifiedElementsCollector<T : KtElement>(protected val elementFilter: PsiElementFilter) : KtVisitorVoid() {
     private val _collectedElements = ArrayList<T>()
@@ -259,7 +263,10 @@ private class QualifiedExpressionCollector(elementFilter: PsiElementFilter) :
     }
 }
 
-private val KOTLIN_LANGUAGE = Language.findLanguageByID("kotlin")!!
+private fun KtDotQualifiedExpression.deleteQualifier(): KtExpression? {
+    val selectorExpression = selectorExpression ?: return null
+    return this.replace(selectorExpression) as KtExpression
+}
 
 /**
  * This is a copy from `com.intellij.psi.util.PsiTreeUtil#findSameElementInCopy` which is not available at the moment.

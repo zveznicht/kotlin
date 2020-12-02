@@ -1,4 +1,3 @@
-// FIR_COMPARISON
 open class Bar {
     companion object {
         class FromBarCompanion

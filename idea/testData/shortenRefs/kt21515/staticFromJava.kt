@@ -1,4 +1,3 @@
-// FIR_COMPARISON
 open class Base {
     companion object : Java()
 }
