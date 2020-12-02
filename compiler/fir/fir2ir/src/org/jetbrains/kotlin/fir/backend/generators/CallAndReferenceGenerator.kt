@@ -48,7 +48,7 @@ class CallAndReferenceGenerator(
     private val approximator = object : AbstractTypeApproximator(session.typeContext) {}
     private val adapterGenerator = AdapterGenerator(components, conversionScope)
 
-    private fun FirTypeRef.toIrType(): IrType = with(typeConverter) { toIrType() }
+    private fun FirTypeRef.toIrType(isCatchTypeCall: Boolean = false): IrType = with(typeConverter) { toIrType(isCatchTypeCall = isCatchTypeCall) }
 
     private fun ConeKotlinType.toIrType(): IrType = with(typeConverter) { toIrType() }
 
@@ -192,7 +192,7 @@ class CallAndReferenceGenerator(
         variableAsFunctionMode: Boolean = false
     ): IrExpression {
         try {
-            val type = typeRef.toIrType()
+            val type = typeRef.toIrType(typeRef is FirMultiCatchTypeRef)
             val samConstructorCall = qualifiedAccess.tryConvertToSamConstructorCall(type)
             if (samConstructorCall != null) return samConstructorCall
 

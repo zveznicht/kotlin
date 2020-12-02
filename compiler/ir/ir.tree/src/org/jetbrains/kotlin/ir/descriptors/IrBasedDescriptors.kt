@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
 import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.types.impl.IrCatchType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.constants.*
@@ -1050,6 +1051,7 @@ private fun getContainingDeclaration(declaration: IrDeclaration): DeclarationDes
 }
 
 fun IrType.toIrBasedKotlinType(): KotlinType = when (this) {
+    is IrCatchType -> this.commonSuperType.toIrBasedKotlinType()
     is IrSimpleType -> makeKotlinType(classifier, arguments, hasQuestionMark)
     else -> TODO(toString())
 }

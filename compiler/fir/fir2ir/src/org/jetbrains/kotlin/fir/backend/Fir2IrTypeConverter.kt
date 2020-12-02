@@ -60,13 +60,20 @@ class Fir2IrTypeConverter(
     private val capturedTypeCache = mutableMapOf<ConeCapturedType, IrType>()
     private val errorTypeForCapturedTypeStub by lazy { createErrorType() }
 
-    fun FirTypeRef.toIrType(typeContext: ConversionTypeContext = ConversionTypeContext.DEFAULT): IrType {
+    fun FirTypeRef.toIrType(typeContext: ConversionTypeContext = ConversionTypeContext.DEFAULT, isCatchTypeCall: Boolean = false): IrType {
         capturedTypeCache.clear()
         return when (this) {
-            is FirMultiCatchTypeRef -> IrCatchType(
-                types.map { it.toIrType(typeContext) }.toSet(),
-                with(annotationGenerator) { annotations.toIrAnnotations() }
-            )
+            is FirMultiCatchTypeRef -> {
+                val irCatchType = IrCatchType(
+                    types.map { it.toIrType(typeContext) }.toSet(),
+                    with(annotationGenerator) { annotations.toIrAnnotations() }
+                )
+                return if (isCatchTypeCall) {
+                    irCatchType.commonSuperType
+                } else {
+                    irCatchType
+                }
+            }
             !is FirResolvedTypeRef -> createErrorType()
             !is FirImplicitBuiltinTypeRef -> type.toIrType(typeContext, annotations)
             is FirImplicitNothingTypeRef -> irBuiltIns.nothingType
