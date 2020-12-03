@@ -11,9 +11,12 @@ import org.gradle.api.tasks.bundling.Zip
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsOptions
 import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
+import org.jetbrains.kotlin.gradle.plugin.mpp.TransformKotlinGranularMetadata
 import org.jetbrains.kotlin.gradle.plugin.mpp.isMain
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsReportAggregatingTestRun
+import org.jetbrains.kotlin.gradle.targets.metadata.KotlinMetadataTargetConfigurator
 import org.jetbrains.kotlin.gradle.tasks.KotlinTasksProvider
+import org.jetbrains.kotlin.gradle.tasks.registerTask
 import org.jetbrains.kotlin.gradle.testing.internal.kotlinTestRegistry
 import org.jetbrains.kotlin.gradle.testing.testTaskName
 import org.jetbrains.kotlin.gradle.utils.klibModuleName
@@ -80,6 +83,15 @@ open class KotlinJsIrTargetConfigurator(kotlinPluginVersion: String) :
                     "${target.project.name}_${compilation.name}"
                 }
                 freeCompilerArgs += listOf("$MODULE_NAME=${target.project.klibModuleName(baseName)}")
+
+                if (compilation.isMain()) {
+                    val a = target.project.registerTask<TransformJsIrDependencyWithIncrementalCache>(
+                        KotlinMetadataTargetConfigurator.transformGranularMetadataTaskName(compilation.name),
+                        listOf(compilation.defaultSourceSet)
+                    ) { }
+
+                    target.project.files().builtBy(a)
+                }
             }
 
             compilation.binaries
