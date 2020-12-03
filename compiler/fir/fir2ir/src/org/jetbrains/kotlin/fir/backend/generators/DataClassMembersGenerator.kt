@@ -17,8 +17,6 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirDeclarationStatusImpl
 import org.jetbrains.kotlin.fir.scopes.unsubstitutedScope
 import org.jetbrains.kotlin.fir.symbols.CallableId
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
-import org.jetbrains.kotlin.fir.symbols.impl.ConeClassLikeLookupTagImpl
-import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirVariableSymbol
 import org.jetbrains.kotlin.fir.types.ConeStarProjection
@@ -32,12 +30,11 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.IrGeneratorContextBase
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.descriptors.WrappedValueParameterDescriptor
 import org.jetbrains.kotlin.ir.expressions.IrMemberAccessExpression
+import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.util.DataClassMembersGenerator
-import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
 
 /**
@@ -101,16 +98,14 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
             }
         }
 
-        fun generateDispatchReceiverParameter(irFunction: IrFunction, valueParameterDescriptor: WrappedValueParameterDescriptor) =
+        fun generateDispatchReceiverParameter(irFunction: IrFunction) =
             irFunction.declareThisReceiverParameter(
                 components.symbolTable,
                 irClass.defaultType,
                 origin,
                 UNDEFINED_OFFSET,
                 UNDEFINED_OFFSET
-            ).apply {
-                valueParameterDescriptor.bind(this)
-            }
+            )
 
 
         private val FirSimpleFunction.matchesEqualsSignature: Boolean
@@ -228,7 +223,6 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
             returnType: IrType,
             otherParameterNeeded: Boolean = false
         ): IrFunction {
-            val thisReceiverDescriptor = WrappedValueParameterDescriptor()
             val firFunction = buildSimpleFunction {
                 origin = FirDeclarationOrigin.Synthetic
                 this.name = name
@@ -278,7 +272,7 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
                 }
             }.apply {
                 parent = irClass
-                dispatchReceiverParameter = generateDispatchReceiverParameter(this, thisReceiverDescriptor)
+                dispatchReceiverParameter = generateDispatchReceiverParameter(this)
                 components.irBuiltIns.anyClass.descriptor.unsubstitutedMemberScope
                     .getContributedFunctions(this.name, NoLookupLocation.FROM_BACKEND)
                     .singleOrNull { function -> function.name == this.name }
@@ -288,20 +282,13 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
             }
         }
 
-        private fun createSyntheticIrParameter(irFunction: IrFunction, name: Name, type: IrType, index: Int = 0): IrValueParameter {
-            val descriptor = WrappedValueParameterDescriptor()
-            return components.symbolTable.declareValueParameter(
-                UNDEFINED_OFFSET, UNDEFINED_OFFSET, origin, descriptor, type
-            ) { symbol ->
-                components.irFactory.createValueParameter(
-                    UNDEFINED_OFFSET, UNDEFINED_OFFSET, origin, symbol, name, index, type, null,
-                    isCrossinline = false, isNoinline = false, isAssignable = false
-                )
-            }.apply {
+        private fun createSyntheticIrParameter(irFunction: IrFunction, name: Name, type: IrType, index: Int = 0): IrValueParameter =
+            components.irFactory.createValueParameter(
+                UNDEFINED_OFFSET, UNDEFINED_OFFSET, origin, IrValueParameterSymbolImpl(), name, index, type, null,
+                isCrossinline = false, isNoinline = false, isAssignable = false
+            ).apply {
                 parent = irFunction
-                descriptor.bind(this)
             }
-        }
     }
 
     companion object {
