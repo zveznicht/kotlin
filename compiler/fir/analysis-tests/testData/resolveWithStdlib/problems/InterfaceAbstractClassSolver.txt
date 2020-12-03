@@ -1,0 +1,95 @@
+FILE: InterfaceAbstractClassSolver.kt
+    public abstract interface KindOwner : R|kotlin/Any| {
+        public abstract val allParents: R|kotlin/collections/List<KindOwner>|
+            public get(): R|kotlin/collections/List<KindOwner>|
+
+    }
+    private final val R|KindOwner|.origin: R|KindOwner|
+        private get(): R|KindOwner| {
+            ^ this@R|/origin|
+        }
+    private abstract class ElementMapping : R|kotlin/Any| {
+        public constructor(elements: R|kotlin/collections/Collection<KindOwner>|): R|ElementMapping| {
+            super<R|kotlin/Any|>()
+        }
+
+        public abstract val varToElements: R|kotlin/collections/Map<kotlin/Int, KindOwner>|
+            public get(): R|kotlin/collections/Map<kotlin/Int, KindOwner>|
+
+        public abstract val elementsToVar: R|kotlin/collections/Map<KindOwner, kotlin/Int>|
+            public get(): R|kotlin/collections/Map<KindOwner, kotlin/Int>|
+
+        public final operator fun get(element: R|KindOwner|): R|kotlin/Int| {
+            ^get this@R|/ElementMapping|.R|/ElementMapping.elementsToVar|.R|kotlin/collections/getValue|<R|KindOwner|, R|kotlin/Int|>(R|<local>/element|)
+        }
+
+        public final operator fun get(index: R|kotlin/Int|): R|KindOwner| {
+            ^get this@R|/ElementMapping|.R|/ElementMapping.varToElements|.R|kotlin/collections/getValue|<R|kotlin/Int|, R|KindOwner|>(R|<local>/index|)
+        }
+
+        public final val size: R|kotlin/Int| = R|<local>/elements|.R|kotlin/collections/Collection.size|
+            public get(): R|kotlin/Int|
+
+    }
+    private final fun buildGraphs(elements: R|kotlin/collections/Collection<KindOwner>|, elementMapping: R|ElementMapping|): R|kotlin/Pair<kotlin/collections/List<kotlin/collections/List<kotlin/Int>>, kotlin/collections/List<kotlin/collections/List<kotlin/Int>>>| {
+        lval g: R|kotlin/collections/List<kotlin/collections/MutableList<kotlin/Int>>| = Int(1).R|kotlin/Int.rangeTo|(R|<local>/elementMapping|.R|/ElementMapping.size|.R|kotlin/Int.times|(Int(2))).R|kotlin/collections/map|<R|kotlin/Int|, R|kotlin/collections/MutableList<kotlin/Int>|>(<L> = map@fun <anonymous>(it: R|kotlin/Int|): R|kotlin/collections/MutableList<kotlin/Int>| <kind=UNKNOWN>  {
+            ^ R|kotlin/collections/mutableListOf|<R|kotlin/Int|>()
+        }
+        )
+        lval gt: R|kotlin/collections/List<kotlin/collections/MutableList<kotlin/Int>>| = Int(1).R|kotlin/Int.rangeTo|(R|<local>/elementMapping|.R|/ElementMapping.size|.R|kotlin/Int.times|(Int(2))).R|kotlin/collections/map|<R|kotlin/Int|, R|kotlin/collections/MutableList<kotlin/Int>|>(<L> = map@fun <anonymous>(it: R|kotlin/Int|): R|kotlin/collections/MutableList<kotlin/Int>| <kind=UNKNOWN>  {
+            ^ R|kotlin/collections/mutableListOf|<R|kotlin/Int|>()
+        }
+        )
+        local final fun R|kotlin/Int|.direct(): R|kotlin/Int| {
+            ^direct this@R|<local>/direct|
+        }
+
+        local final fun R|kotlin/Int|.invert(): R|kotlin/Int| {
+            ^invert this@R|<local>/invert|.R|kotlin/Int.plus|(Int(1))
+        }
+
+        local final fun extractIndex(element: R|KindOwner|): R|kotlin/Int| {
+            ^extractIndex R|<local>/elementMapping|.R|/ElementMapping.get|(R|<local>/element|).R|kotlin/Int.times|(Int(2))
+        }
+
+        lval <iterator>: R|kotlin/collections/Iterator<KindOwner>| = R|<local>/elements|.R|SubstitutionOverride<kotlin/collections/Collection.iterator: R|kotlin/collections/Iterator<KindOwner>|>|()
+        while(R|<local>/<iterator>|.R|kotlin/collections/Iterator.hasNext|()) {
+            lval element: R|KindOwner| = R|<local>/<iterator>|.R|SubstitutionOverride<kotlin/collections/Iterator.next: R|KindOwner|>|()
+            lval elementVar: R|kotlin/Int| = R|<local>/extractIndex|(R|<local>/element|)
+            lval <iterator>: R|kotlin/collections/Iterator<KindOwner>| = R|<local>/element|.R|/KindOwner.allParents|.R|SubstitutionOverride<kotlin/collections/List.iterator: R|kotlin/collections/Iterator<KindOwner>|>|()
+            while(R|<local>/<iterator>|.R|kotlin/collections/Iterator.hasNext|()) {
+                lval parent: R|KindOwner| = R|<local>/<iterator>|.R|SubstitutionOverride<kotlin/collections/Iterator.next: R|KindOwner|>|()
+                lval parentVar: R|kotlin/Int| = R|<local>/extractIndex|(R|<local>/parent|.R|/origin|)
+                R|<local>/g|.R|SubstitutionOverride<kotlin/collections/List.get: R|kotlin/collections/MutableList<kotlin/Int>|>|(R|<local>/parentVar|.R|<local>/direct|()).R|kotlin/collections/plusAssign|<R|kotlin/Int|>(R|<local>/elementVar|.R|<local>/direct|())
+                R|<local>/g|.R|SubstitutionOverride<kotlin/collections/List.get: R|kotlin/collections/MutableList<kotlin/Int>|>|(R|<local>/elementVar|.R|<local>/invert|()).R|kotlin/collections/plusAssign|<R|kotlin/Int|>(R|<local>/parentVar|.R|<local>/invert|())
+            }
+
+            lval <iterator>: R|kotlin/collections/IntIterator| = Int(0).R|kotlin/ranges/until|(R|<local>/element|.R|/KindOwner.allParents|.R|kotlin/collections/List.size|).R|kotlin/ranges/IntProgression.iterator|()
+            while(R|<local>/<iterator>|.R|kotlin/collections/Iterator.hasNext|()) {
+                lval i: R|kotlin/Int| = R|<local>/<iterator>|.R|kotlin/collections/IntIterator.next|()
+                lval <iterator>: R|kotlin/collections/IntIterator| = R|<local>/i|.R|kotlin/Int.plus|(Int(1)).R|kotlin/ranges/until|(R|<local>/element|.R|/KindOwner.allParents|.R|kotlin/collections/List.size|).R|kotlin/ranges/IntProgression.iterator|()
+                while(R|<local>/<iterator>|.R|kotlin/collections/Iterator.hasNext|()) {
+                    lval j: R|kotlin/Int| = R|<local>/<iterator>|.R|kotlin/collections/IntIterator.next|()
+                    lval firstParentVar: R|kotlin/Int| = R|<local>/extractIndex|(R|<local>/element|.R|/KindOwner.allParents|.R|SubstitutionOverride<kotlin/collections/List.get: R|KindOwner|>|(R|<local>/i|).R|/origin|)
+                    lval secondParentVar: R|kotlin/Int| = R|<local>/extractIndex|(R|<local>/element|.R|/KindOwner.allParents|.R|SubstitutionOverride<kotlin/collections/List.get: R|KindOwner|>|(R|<local>/j|).R|/origin|)
+                    R|<local>/g|.R|SubstitutionOverride<kotlin/collections/List.get: R|kotlin/collections/MutableList<kotlin/Int>|>|(R|<local>/firstParentVar|.R|<local>/direct|()).R|kotlin/collections/plusAssign|<R|kotlin/Int|>(R|<local>/secondParentVar|.R|<local>/invert|())
+                    R|<local>/g|.R|SubstitutionOverride<kotlin/collections/List.get: R|kotlin/collections/MutableList<kotlin/Int>|>|(R|<local>/secondParentVar|.R|<local>/direct|()).R|kotlin/collections/plusAssign|<R|kotlin/Int|>(R|<local>/firstParentVar|.R|<local>/invert|())
+                }
+
+            }
+
+        }
+
+        lval <iterator>: R|kotlin/collections/IntIterator| = R|<local>/g|.R|kotlin/collections/indices|.R|kotlin/ranges/IntProgression.iterator|()
+        while(R|<local>/<iterator>|.R|kotlin/collections/Iterator.hasNext|()) {
+            lval from: R|kotlin/Int| = R|<local>/<iterator>|.R|kotlin/collections/IntIterator.next|()
+            lval <iterator>: R|kotlin/collections/MutableIterator<kotlin/Int>| = R|<local>/g|.R|SubstitutionOverride<kotlin/collections/List.get: R|kotlin/collections/MutableList<kotlin/Int>|>|(R|<local>/from|).R|SubstitutionOverride<kotlin/collections/MutableList.iterator: R|kotlin/collections/MutableIterator<kotlin/Int>|>|()
+            while(R|<local>/<iterator>|.R|kotlin/collections/Iterator.hasNext|()) {
+                lval to: R|kotlin/Int| = R|<local>/<iterator>|.R|SubstitutionOverride<kotlin/collections/MutableIterator.next: R|kotlin/Int|>|()
+                R|<local>/gt|.R|SubstitutionOverride<kotlin/collections/List.get: R|kotlin/collections/MutableList<kotlin/Int>|>|(R|<local>/to|).R|kotlin/collections/plusAssign|<R|kotlin/Int|>(R|<local>/from|)
+            }
+
+        }
+
+        ^buildGraphs R|<local>/g|.R|kotlin/to|<R|kotlin/collections/List<kotlin/collections/MutableList<kotlin/Int>>|, R|kotlin/collections/List<kotlin/collections/MutableList<kotlin/Int>>|>(R|<local>/gt|)
+    }

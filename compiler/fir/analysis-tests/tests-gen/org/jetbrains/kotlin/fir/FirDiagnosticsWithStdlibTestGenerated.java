@@ -1214,6 +1214,11 @@ public class FirDiagnosticsWithStdlibTestGenerated extends AbstractFirDiagnostic
             runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/problems/EnumMapGet.kt");
         }
 
+        @TestMetadata("InterfaceAbstractClassSolver.kt")
+        public void testInterfaceAbstractClassSolver() throws Exception {
+            runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/problems/InterfaceAbstractClassSolver.kt");
+        }
+
         @TestMetadata("invokePriority.kt")
         public void testInvokePriority() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolveWithStdlib/problems/invokePriority.kt");
