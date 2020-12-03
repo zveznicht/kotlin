@@ -10,7 +10,7 @@ val SL2: Slice<C>
 
 fun <X> foo(s: Slice<X>): X? {
     if (s === SL1 || s === SL2) {
-        return <!INAPPLICABLE_CANDIDATE!>bar<!>(s) // inferred as bar<A>(s), but A is not a subtype of X
+        return bar(s) // inferred as bar<A>(s), but A is not a subtype of X
     }
     return null
 }

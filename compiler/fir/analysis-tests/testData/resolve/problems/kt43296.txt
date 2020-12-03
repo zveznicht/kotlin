@@ -16,7 +16,7 @@ FILE: kt43296.kt
     public final fun <X> foo(s: R|Slice<X>|): R|X?| {
         when () {
             ===(R|<local>/s|, R|/SL1|) || ===(R|<local>/s|, R|/SL2|) ->  {
-                ^foo <Inapplicable(INAPPLICABLE): /bar>#<R|A|>(R|<local>/s|)
+                ^foo R|/bar|<R|X|>(R|<local>/s|)
             }
         }
 
