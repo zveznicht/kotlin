@@ -57,7 +57,7 @@ abstract class IncrementalCompilerRunner<
 
     //TODO temporal measure to ensure quick disable, should be deleted after successful release
     protected val compileWithSnapshotProperty = "kotlin.compile.incremental.snapshot"
-    protected val withSnapshot : Boolean = (System.getProperty(compileWithSnapshotProperty) ?: false) as Boolean
+    protected val withSnapshot: Boolean = (System.getProperty(compileWithSnapshotProperty) ?: true) as Boolean
 
     protected abstract fun isICEnabled(): Boolean
     protected abstract fun createCacheManager(args: Args, projectDir: File?): CacheManager
@@ -235,11 +235,12 @@ abstract class IncrementalCompilerRunner<
             when (compilationMode) {
                 is CompilationMode.Incremental -> JarSnapshot.read(jarSnapshotFile).also {
                     for (file in compilationMode.dirtyFiles.toMutableList()) {
+                        val fqName = FqName(file.absolutePath)
                         if (file.exists()) {
                             //TODO
-                            it.fqNames.add(FqName(file.absolutePath))
+                            it.fqNames.add(fqName)
                         } else {
-                            it.fqNames.remove(FqName(file.absolutePath))
+                            it.fqNames.remove(fqName)
                         }
                     }
                 }
@@ -308,7 +309,23 @@ abstract class IncrementalCompilerRunner<
             val changesCollector = ChangesCollector()
             updateCaches(services, caches, generatedFiles, changesCollector)
 
-            if (compilationMode is CompilationMode.Rebuild) break
+            if (compilationMode is CompilationMode.Rebuild) {
+                if (withSnapshot) {
+                    //TODO add hash
+                    jarSnapshot.symbols.addAll(lookupTracker.lookups.keySet())
+                    for (change in changesCollector.changes()) {
+                        if (change is ChangeInfo.MembersChanged) {
+                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
+                            for (fqName in fqNames) {
+                                for (name in change.names) {
+                                    jarSnapshot.symbols.add(LookupSymbol(name, fqName.shortName().identifier))
+                                }
+                            }
+                        }
+                    }
+                }
+                break
+            }
 
             val (dirtyLookupSymbols, dirtyClassFqNames) = changesCollector.getDirtyData(listOf(caches.platformCache), reporter)
             val compiledInThisIterationSet = sourcesToCompile.toHashSet()
@@ -328,6 +345,31 @@ abstract class IncrementalCompilerRunner<
 
             buildDirtyLookupSymbols.addAll(dirtyLookupSymbols)
             buildDirtyFqNames.addAll(dirtyClassFqNames)
+            if (withSnapshot) {
+                for(change in changesCollector.changes()) {
+                    when (change) {
+                        is ChangeInfo.Removed -> {
+                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
+                            for (fqName in fqNames) {
+                                jarSnapshot.symbols.removeAll(change.names.map { LookupSymbol(it, fqName.shortName().identifier) })
+                            }
+                        }
+                        is ChangeInfo.MembersChanged -> {
+                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
+                            for (fqName in fqNames) {
+                                for (name in change.names) {
+                                    //TODO add valid check if it is added method or removed
+                                    val lookup = LookupSymbol(name, fqName.shortName().identifier)
+                                    if (!jarSnapshot.symbols.remove(lookup)) {
+                                        jarSnapshot.symbols.add(lookup)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                jarSnapshot.symbols.addAll(buildDirtyLookupSymbols)
+            }
         }
 
         if (exitCode == ExitCode.OK) {

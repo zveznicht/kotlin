@@ -40,12 +40,16 @@ internal fun getClasspathChanges(
         //TODO
         val symbols = HashSet<LookupSymbol>()
         val fqNames = HashSet<FqName>()
+
         for ((module, jarSnapshot) in jarSnapshots) {
             val actualJarSnapshot = lastBuildInfo.dependencyToJarSnapshot[module]
             if (actualJarSnapshot == null) {
                 return ChangesEither.Unknown("Some jar are removed from classpath $module")
             }
-            JarSnapshotDiffService.compareJarsInternal(parameters, jarSnapshot, actualJarSnapshot)
+            val diffData = JarSnapshotDiffService.compareJarsInternal(parameters, jarSnapshot, actualJarSnapshot)
+            symbols.addAll(diffData.dirtyLookupSymbols)
+            fqNames.addAll(diffData.dirtyClassesFqNames)
+
         }
         return ChangesEither.Known(symbols, fqNames)
     } else {
