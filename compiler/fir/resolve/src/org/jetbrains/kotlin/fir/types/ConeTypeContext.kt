@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.name.FqNameUnsafe
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext
 import org.jetbrains.kotlin.types.TypeSystemCommonBackendContext
+import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.types.model.*
 
 class ErrorTypeConstructor(val reason: String) : TypeConstructorMarker {
@@ -164,6 +165,12 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
         require(this is ConeKotlinType)
 
         return this
+    }
+
+    override fun KotlinTypeMarker.asTypeArgument(variance: Variance): TypeArgumentMarker {
+        require(this is ConeKotlinType)
+
+        return this.toTypeProjection(variance)
     }
 
     override fun CapturedTypeMarker.lowerType(): KotlinTypeMarker? {

@@ -178,6 +178,7 @@ fun KotlinType.getImmediateSuperclassNotAny(): KotlinType? {
 }
 
 fun KotlinType.asTypeProjection(): TypeProjection = TypeProjectionImpl(this)
+fun KotlinType.asTypeProjection(variance: Variance): TypeProjection = TypeProjectionImpl(variance, this)
 fun KotlinType.contains(predicate: (UnwrappedType) -> Boolean) = TypeUtils.contains(this, predicate)
 
 fun KotlinType.replaceArgumentsWithStarProjections() = replaceArgumentsWith(::StarProjectionImpl)

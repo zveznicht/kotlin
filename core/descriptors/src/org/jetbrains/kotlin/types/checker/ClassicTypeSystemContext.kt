@@ -261,6 +261,11 @@ interface ClassicTypeSystemContext : TypeSystemInferenceExtensionContext, TypeSy
         return this.asTypeProjection()
     }
 
+    override fun KotlinTypeMarker.asTypeArgument(variance: Variance): TypeArgumentMarker {
+        require(this is KotlinType, this::errorMessage)
+        return this.asTypeProjection(variance)
+    }
+
     override fun TypeConstructorMarker.isUnitTypeConstructor(): Boolean {
         require(this is TypeConstructor, this::errorMessage)
         return KotlinBuiltIns.isTypeConstructorForGivenClass(this, FqNames.unit)

@@ -333,8 +333,29 @@ object AbstractTypeChecker {
 
                 if (!anyNonOutParameter && isSubtypeForSameConstructor(newArguments, superType)) return true
 
-                // TODO: rethink this; now components order in intersection type affects semantic due to run subtyping (which can add constraints) only until the first successful candidate
-                return supertypesWithSameConstructor.any { isSubtypeForSameConstructor(it.asArgumentList(), superType) }
+                val typeArgumentsByIntersectionComponents = mutableListOf<MutableList<KotlinTypeMarker>>()
+                val resultType = with(this as TypeSystemInferenceExtensionContext) {
+                    for (superTypeComponent in supertypesWithSameConstructor) {
+                        for (i in 0 until superTypeComponent.argumentsCount()) {
+                            if (typeArgumentsByIntersectionComponents.size <= i) {
+                                typeArgumentsByIntersectionComponents.add(mutableListOf())
+                            }
+                            typeArgumentsByIntersectionComponents[i].add(superTypeComponent.getArgument(i).getType())
+                        }
+                    }
+
+                    val intersectedArguments = typeArgumentsByIntersectionComponents.map {
+                        val intersectedType = intersectTypes(it)
+                        if (intersectedType.typeConstructor() is IntersectionTypeConstructorMarker) {
+                            intersectedType.asTypeArgument(Variance.IN_VARIANCE)
+                        } else {
+                            intersectedType.asTypeArgument()
+                        }
+                    }
+
+                    supertypesWithSameConstructor.first().replaceArguments(intersectedArguments)
+                }
+                return isSubtypeForSameConstructor(resultType.asArgumentList(), superType)
             }
         }
     }
@@ -354,7 +375,6 @@ object AbstractTypeChecker {
 
             val superArgumentType = superProjection.getType()
             val subArgumentType = capturedSubArguments[index].let {
-                assert(it.getVariance() == TypeVariance.INV) { "Incorrect sub argument: $it" }
                 it.getType()
             }
 

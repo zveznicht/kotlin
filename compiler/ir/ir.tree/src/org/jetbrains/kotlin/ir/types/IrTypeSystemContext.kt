@@ -97,6 +97,7 @@ interface IrTypeSystemContext : TypeSystemContext, TypeSystemCommonSuperTypesCon
         }
 
     override fun KotlinTypeMarker.asTypeArgument() = this as IrTypeArgument
+    override fun KotlinTypeMarker.asTypeArgument(variance: Variance) = createTypeArgument(this, variance.convertVariance())
 
     override fun CapturedTypeMarker.lowerType(): KotlinTypeMarker? = error("Captured Type is not valid for IrTypes")
 

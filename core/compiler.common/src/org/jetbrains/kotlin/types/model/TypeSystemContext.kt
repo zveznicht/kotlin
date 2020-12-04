@@ -270,6 +270,7 @@ interface TypeSystemContext : TypeSystemOptimizationContext {
     fun SimpleTypeMarker.isStubType(): Boolean
 
     fun KotlinTypeMarker.asTypeArgument(): TypeArgumentMarker
+    fun KotlinTypeMarker.asTypeArgument(variance: Variance): TypeArgumentMarker
 
     fun CapturedTypeMarker.lowerType(): KotlinTypeMarker?
 
