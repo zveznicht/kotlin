@@ -13,12 +13,16 @@ import org.jetbrains.kotlin.gradle.plugin.*
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
 import org.jetbrains.kotlin.gradle.plugin.mpp.TransformKotlinGranularMetadata
 import org.jetbrains.kotlin.gradle.plugin.mpp.isMain
+import org.jetbrains.kotlin.gradle.plugin.sources.KotlinDependencyScope
+import org.jetbrains.kotlin.gradle.plugin.sources.sourceSetDependencyConfigurationByScope
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsReportAggregatingTestRun
+import org.jetbrains.kotlin.gradle.targets.metadata.ALL_COMPILE_METADATA_CONFIGURATION_NAME
 import org.jetbrains.kotlin.gradle.targets.metadata.KotlinMetadataTargetConfigurator
 import org.jetbrains.kotlin.gradle.tasks.KotlinTasksProvider
 import org.jetbrains.kotlin.gradle.tasks.registerTask
 import org.jetbrains.kotlin.gradle.testing.internal.kotlinTestRegistry
 import org.jetbrains.kotlin.gradle.testing.testTaskName
+import org.jetbrains.kotlin.gradle.utils.addExtendsFromRelation
 import org.jetbrains.kotlin.gradle.utils.klibModuleName
 
 open class KotlinJsIrTargetConfigurator(kotlinPluginVersion: String) :
@@ -85,12 +89,32 @@ open class KotlinJsIrTargetConfigurator(kotlinPluginVersion: String) :
                 freeCompilerArgs += listOf("$MODULE_NAME=${target.project.klibModuleName(baseName)}")
 
                 if (compilation.isMain()) {
+                    val sourceSet = compilation.defaultSourceSet
+                    val conf = target.project.configurations.create("porriii").apply {
+                        isCanBeConsumed = false
+                        isCanBeResolved = true
+
+                        usesPlatformOf(target)
+                    }
+                    KotlinDependencyScope.values().forEach { scope ->
+                        val sourceSetDependencyConfigurationByScope = target.project.sourceSetDependencyConfigurationByScope(sourceSet, scope)
+
+                        target.project.addExtendsFromRelation(
+                            "porriii",
+                            sourceSetDependencyConfigurationByScope.name
+                        )
+                    }
                     val a = target.project.registerTask<TransformJsIrDependencyWithIncrementalCache>(
                         KotlinMetadataTargetConfigurator.transformGranularMetadataTaskName(compilation.name),
                         listOf(compilation.defaultSourceSet)
                     ) { }
-
-                    target.project.files().builtBy(a)
+                    compilation.compileDependencyFiles += target.project.files(
+                        target.project.provider {
+                            mutableSetOf<Any>().apply {
+                                add(target.project.files().builtBy(a))
+                            }
+                        }
+                    )
                 }
             }
 

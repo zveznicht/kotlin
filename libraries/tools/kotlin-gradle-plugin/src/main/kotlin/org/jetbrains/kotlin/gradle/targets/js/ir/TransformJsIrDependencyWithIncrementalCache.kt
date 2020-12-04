@@ -41,7 +41,7 @@ open class TransformJsIrDependencyWithIncrementalCache
             project,
             kotlinSourceSet,
             listOf(API_SCOPE, IMPLEMENTATION_SCOPE, COMPILE_ONLY_SCOPE),
-            project.configurations.getByName("implementation")
+            project.configurations.getByName("porriii")
         )
     }
 
