@@ -6,6 +6,7 @@ Cleaning output files:
 End of files
 Compiling files:
   src/A.kt
+  src/B.kt
   src/Base.kt
   src/BaseUsage.kt
 End of files

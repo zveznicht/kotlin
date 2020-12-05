@@ -1,13 +1,11 @@
 ================ Step #1 =================
 
-Cleaning output files:
-  out/production/module/META-INF/module.kotlin_module
-  out/production/module/test/B.class
-End of files
 Compiling files:
   src/A.kt
+  src/B.kt
   src/Base.kt
-  src/BaseUsage.kt
+  src/C.kt
+  src/D.kt
 End of files
 Exit code: OK
 ------------------------------------------
