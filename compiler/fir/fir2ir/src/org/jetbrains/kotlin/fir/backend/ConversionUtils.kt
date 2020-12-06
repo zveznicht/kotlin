@@ -42,6 +42,7 @@ import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.expressions.IrStatementOrigin
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.*
+import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.types.impl.IrErrorTypeImpl
 import org.jetbrains.kotlin.ir.util.SymbolTable
@@ -330,21 +331,14 @@ internal fun IrDeclarationParent.declareThisReceiverParameter(
     thisOrigin: IrDeclarationOrigin,
     startOffset: Int = this.startOffset,
     endOffset: Int = this.endOffset
-): IrValueParameter {
-    val receiverDescriptor = WrappedReceiverParameterDescriptor()
-    return symbolTable.declareValueParameter(
-        startOffset, endOffset, thisOrigin, receiverDescriptor, thisType
-    ) { symbol ->
-        symbolTable.irFactory.createValueParameter(
-            startOffset, endOffset, thisOrigin, symbol,
-            Name.special("<this>"), UNDEFINED_PARAMETER_INDEX, thisType,
-            varargElementType = null, isCrossinline = false, isNoinline = false, isAssignable = false
-        ).apply {
-            this.parent = this@declareThisReceiverParameter
-            receiverDescriptor.bind(this)
-        }
+): IrValueParameter =
+    symbolTable.irFactory.createValueParameter(
+        startOffset, endOffset, thisOrigin, IrValueParameterSymbolImpl(),
+        Name.special("<this>"), UNDEFINED_PARAMETER_INDEX, thisType,
+        varargElementType = null, isCrossinline = false, isNoinline = false, isAssignable = false
+    ).apply {
+        this.parent = this@declareThisReceiverParameter
     }
-}
 
 fun FirClass<*>.irOrigin(firProvider: FirProvider): IrDeclarationOrigin = when {
     firProvider.getFirClassifierContainerFileIfAny(symbol) != null -> IrDeclarationOrigin.DEFINED
