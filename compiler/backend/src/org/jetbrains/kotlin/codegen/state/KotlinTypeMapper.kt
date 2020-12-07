@@ -454,7 +454,8 @@ class KotlinTypeMapper @JvmOverloads constructor(
                     functionDescriptor = descriptor
                 }
 
-                val isFakeOverrideOfJvmDefault = functionDescriptor.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE &&
+                val isFakeOverrideOfJvmDefault = toInlinedErasedClass &&
+                        functionDescriptor.kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE &&
                         functionDescriptor.overridesJvmDefault()
 
                 val isStaticInvocation = !isFakeOverrideOfJvmDefault &&
