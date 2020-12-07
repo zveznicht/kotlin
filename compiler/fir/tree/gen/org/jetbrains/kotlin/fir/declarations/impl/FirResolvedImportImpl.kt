@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.fir.declarations.impl
 import org.jetbrains.kotlin.fir.FirSourceElement
 import org.jetbrains.kotlin.fir.declarations.FirImport
 import org.jetbrains.kotlin.fir.declarations.FirResolvedImport
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -22,6 +23,7 @@ internal class FirResolvedImportImpl(
     override var delegate: FirImport,
     override val packageFqName: FqName,
     override val relativeClassName: FqName?,
+    override val symbol: FirClassLikeSymbol<*>?,
 ) : FirResolvedImport() {
     override val source: FirSourceElement? get() = delegate.source
     override val importedFqName: FqName? get() = delegate.importedFqName

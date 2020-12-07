@@ -103,6 +103,7 @@ fun SmartPrinter.printImplementation(implementation: Implementation) {
                     it.isNotEmpty() && !isInterface && !isAbstract &&
                             !element.type.contains("Reference")
                             && !element.type.contains("ResolvedQualifier")
+                            && !element.type.contains("ResolvedImport")
                             && !element.type.endsWith("Ref")
                 }
                 ?.let { symbolFields ->

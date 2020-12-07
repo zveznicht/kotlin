@@ -27,13 +27,8 @@ abstract class FirAbstractSimpleImportingScope(
     override fun processClassifiersByNameWithSubstitution(name: Name, processor: (FirClassifierSymbol<*>, ConeSubstitutor) -> Unit) {
         val imports = simpleImports[name] ?: return
         if (imports.isEmpty()) return
-        val provider = session.firSymbolProvider
         for (import in imports) {
-            val importedName = import.importedName ?: continue
-            val classId =
-                import.resolvedClassId?.createNestedClassId(importedName)
-                    ?: ClassId.topLevel(import.packageFqName.child(importedName))
-            val symbol = provider.getClassLikeSymbolByFqName(classId) ?: continue
+            val symbol = import.symbol ?: continue
             processor(symbol, ConeSubstitutor.Empty)
         }
     }

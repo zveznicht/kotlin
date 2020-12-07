@@ -66,30 +66,29 @@ class FirQualifiedNameResolver(private val components: BodyResolveComponents) {
         }
         val symbolProvider = session.firSymbolProvider
         var qualifierParts = qualifierStack.asReversed().map { it.name.asString() }
-        var resolved: PackageOrClass?
+        var resolved: PackageOrClass
         do {
             resolved = resolveToPackageOrClass(
                 symbolProvider,
                 FqName.fromSegments(qualifierParts)
             )
-            if (resolved == null)
+            if (resolved.relativeClassFqName != null && resolved.classSymbol == null)
                 qualifierParts = qualifierParts.dropLast(1)
-        } while (resolved == null && qualifierParts.isNotEmpty())
+        } while (resolved.relativeClassFqName != null && resolved.classSymbol == null && qualifierParts.isNotEmpty())
 
-        if (resolved != null) {
-            qualifierPartsToDrop = qualifierParts.size - 1
-            return buildResolvedQualifier {
-                this.source = source
-                packageFqName = resolved.packageFqName
-                relativeClassFqName = resolved.relativeClassFqName
-                symbol = resolved.classSymbol
-                typeArguments.addAll(qualifierStack.take(qualifierParts.size).flatMap { it.typeArguments })
-            }.apply {
-                resultType = components.typeForQualifier(this)
-            }
+        if (resolved.relativeClassFqName != null && resolved.classSymbol == null) {
+            return null
         }
-
-        return null
+        qualifierPartsToDrop = qualifierParts.size - 1
+        return buildResolvedQualifier {
+            this.source = source
+            packageFqName = resolved.packageFqName
+            relativeClassFqName = resolved.relativeClassFqName
+            symbol = resolved.classSymbol
+            typeArguments.addAll(qualifierStack.take(qualifierParts.size).flatMap { it.typeArguments })
+        }.apply {
+            resultType = components.typeForQualifier(this)
+        }
     }
 
 }

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.builder.FirBuilderDsl
 import org.jetbrains.kotlin.fir.declarations.FirImport
 import org.jetbrains.kotlin.fir.declarations.FirResolvedImport
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedImportImpl
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
@@ -26,12 +27,14 @@ class FirResolvedImportBuilder {
     lateinit var delegate: FirImport
     lateinit var packageFqName: FqName
     var relativeClassName: FqName? = null
+    var symbol: FirClassLikeSymbol<*>? = null
 
     fun build(): FirResolvedImport {
         return FirResolvedImportImpl(
             delegate,
             packageFqName,
             relativeClassName,
+            symbol,
         )
     }
 

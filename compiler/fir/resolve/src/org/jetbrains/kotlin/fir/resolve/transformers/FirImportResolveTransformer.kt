@@ -20,7 +20,10 @@ import org.jetbrains.kotlin.fir.visitors.compose
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
-class FirImportResolveProcessor(session: FirSession, scopeSession: ScopeSession) : FirTransformerBasedResolveProcessor(session, scopeSession) {
+class FirImportResolveProcessor(
+    session: FirSession,
+    scopeSession: ScopeSession
+) : FirTransformerBasedResolveProcessor(session, scopeSession) {
     override val transformer = FirImportResolveTransformer(session)
 }
 
@@ -48,27 +51,60 @@ open class FirImportResolveTransformer protected constructor(
         if (!fqName.isAcceptable) return import.compose()
 
         if (import.isAllUnder) {
-            return transformImportForFqName(fqName, import)
+            val (packageFqName, relativeClassFqName, symbol) = resolveToPackageOrClass(symbolProvider, fqName)
+            return if (relativeClassFqName != null && symbol == null) {
+                import.compose()
+            } else {
+                buildResolvedImport {
+                    this.delegate = import
+                    this.packageFqName = packageFqName
+                    relativeClassName = relativeClassFqName
+                    this.symbol = symbol
+                }.compose()
+            }
         }
 
-        val parentFqName = fqName.parent()
-        return transformImportForFqName(parentFqName, import)
+        return transformSimpleImportForFqName(fqName, import)
     }
 
     protected open val FqName.isAcceptable: Boolean
         get() = true
 
-    private fun transformImportForFqName(fqName: FqName, delegate: FirImport): CompositeTransformResult<FirImport> {
-        val (packageFqName, relativeClassFqName) = resolveToPackageOrClass(symbolProvider, fqName) ?: return delegate.compose()
+    private fun transformSimpleImportForFqName(fqName: FqName, delegate: FirImport): CompositeTransformResult<FirImport> {
+        val (packageFqName, relativeClassFqName, symbol) = resolveToPackageOrClass(symbolProvider, fqName)
+        val parentClassFqName = relativeClassFqName?.parent()?.takeIf { !it.isRoot }
+        if (symbol == null) {
+            if (relativeClassFqName != null && parentClassFqName != null) {
+                val parentClassId = ClassId(packageFqName, parentClassFqName, false)
+                if (symbolProvider.getClassLikeSymbolByFqName(parentClassId) == null) {
+                    return delegate.compose()
+                }
+            }
+            if (!packageFqName.isRoot && relativeClassFqName == null) {
+                val parentPackageFqName = packageFqName.parent()
+                val classFqName = FqName(packageFqName.shortName().asString())
+                val classSymbol = symbolProvider.getClassLikeSymbolByFqName(ClassId(parentPackageFqName, classFqName, false))
+                if (classSymbol != null) {
+                    return buildResolvedImport {
+                        this.delegate = delegate
+                        this.packageFqName = parentPackageFqName
+                        relativeClassName = classFqName
+                        this.symbol = classSymbol
+                    }.compose()
+                }
+            }
+        }
+
         return buildResolvedImport {
             this.delegate = delegate
             this.packageFqName = packageFqName
-            relativeClassName = relativeClassFqName
+            relativeClassName = parentClassFqName
+            this.symbol = symbol
         }.compose()
     }
 }
 
-fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName): PackageOrClass? {
+fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName): PackageOrClass {
     var currentPackage = fqName
 
     val pathSegments = fqName.pathSegments()
@@ -86,7 +122,7 @@ fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName): 
         FqName.fromSegments((prefixSize until pathSegments.size).map { pathSegments[it].asString() })
 
     val classId = ClassId(currentPackage, relativeClassFqName, false)
-    val symbol = symbolProvider.getClassLikeSymbolByFqName(classId) ?: return null
+    val symbol = symbolProvider.getClassLikeSymbolByFqName(classId)
 
     return PackageOrClass(currentPackage, relativeClassFqName, symbol)
 }
