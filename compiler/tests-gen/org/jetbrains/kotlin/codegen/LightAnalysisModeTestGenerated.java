@@ -16650,6 +16650,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             public void testJvmDefaultSmartCast() throws Exception {
                 runTest("compiler/testData/codegen/box/inlineClasses/jvm8DefaultInterfaceMethods/jvmDefaultSmartCast.kt");
             }
+
+            @TestMetadata("jvmDefaultSuspend.kt")
+            public void testJvmDefaultSuspend() throws Exception {
+                runTest("compiler/testData/codegen/box/inlineClasses/jvm8DefaultInterfaceMethods/jvmDefaultSuspend.kt");
+            }
         }
 
         @TestMetadata("compiler/testData/codegen/box/inlineClasses/propertyDelegation")
