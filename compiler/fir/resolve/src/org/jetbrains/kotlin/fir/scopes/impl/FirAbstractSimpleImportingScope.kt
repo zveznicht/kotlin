@@ -11,9 +11,7 @@ import org.jetbrains.kotlin.fir.resolve.ScopeSession
 import org.jetbrains.kotlin.fir.resolve.calls.tower.TowerScopeLevel
 import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
-import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousObjectSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassifierSymbol
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.Name
@@ -26,23 +24,17 @@ abstract class FirAbstractSimpleImportingScope(
     // TODO try to hide this
     abstract val simpleImports: Map<Name, List<FirResolvedImport>>
 
-    private val classifierCache = mutableMapOf<FirResolvedImport, FirClassLikeSymbol<*>>()
-
     override fun processClassifiersByNameWithSubstitution(name: Name, processor: (FirClassifierSymbol<*>, ConeSubstitutor) -> Unit) {
         val imports = simpleImports[name] ?: return
         if (imports.isEmpty()) return
         val provider = session.firSymbolProvider
         for (import in imports) {
-            val symbol = classifierCache.getOrPut(import) {
-                val importedName = import.importedName ?: return@getOrPut STUB_CLASS_LIKE_SYMBOL
-                val classId =
-                    import.resolvedClassId?.createNestedClassId(importedName)
-                        ?: ClassId.topLevel(import.packageFqName.child(importedName))
-                provider.getClassLikeSymbolByFqName(classId) ?: STUB_CLASS_LIKE_SYMBOL
-            }
-            if (symbol !== STUB_CLASS_LIKE_SYMBOL) {
-                processor(symbol, ConeSubstitutor.Empty)
-            }
+            val importedName = import.importedName ?: continue
+            val classId =
+                import.resolvedClassId?.createNestedClassId(importedName)
+                    ?: ClassId.topLevel(import.packageFqName.child(importedName))
+            val symbol = provider.getClassLikeSymbolByFqName(classId) ?: continue
+            processor(symbol, ConeSubstitutor.Empty)
         }
     }
 
@@ -57,9 +49,5 @@ abstract class FirAbstractSimpleImportingScope(
         for (import in imports) {
             processCallables(import, import.importedName!!, token, processor)
         }
-    }
-
-    companion object {
-        private val STUB_CLASS_LIKE_SYMBOL = FirAnonymousObjectSymbol()
     }
 }
