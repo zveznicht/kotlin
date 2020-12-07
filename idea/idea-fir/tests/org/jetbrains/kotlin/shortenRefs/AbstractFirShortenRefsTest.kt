@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.idea.FIR_COMPARISON
 import org.jetbrains.kotlin.idea.FIR_IGNORE
 import org.jetbrains.kotlin.idea.runTestWithCustomEnableDirective
 import org.jetbrains.kotlin.idea.shortenRefs.FirShortenReferences
+import org.jetbrains.kotlin.idea.util.application.executeWriteCommand
 import org.jetbrains.kotlin.idea.util.application.runReadAction
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
@@ -22,13 +23,17 @@ abstract class AbstractFirShortenRefsTest : AbstractImportsTest() {
         val selectionModel = myFixture.editor.selectionModel
         if (!selectionModel.hasSelection()) error("No selection in input file")
 
-        val (startOffset, endOffset) = runReadAction { selectionModel.selectionStart to selectionModel.selectionEnd }
+        do {
+            val (startOffset, endOffset) = runReadAction { selectionModel.selectionStart to selectionModel.selectionEnd }
 
-        val shortenings = executeOnPooledThread {
-            FirShortenReferences.collectPossibleShortenings(file, startOffset, endOffset)
-        }
+            val shortenings = executeOnPooledThread {
+                FirShortenReferences.collectPossibleShortenings(file, startOffset, endOffset)
+            }
 
-        FirShortenReferences.performShortenings(shortenings)
+            val needAnotherRound = project.executeWriteCommand<Boolean>("") {
+                FirShortenReferences.performShortenings(file, shortenings)
+            }
+        } while (needAnotherRound)
 
         selectionModel.removeSelection()
         return null

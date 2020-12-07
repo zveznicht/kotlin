@@ -9,10 +9,7 @@ import com.intellij.openapi.application.runReadAction
 import com.intellij.openapi.application.runUndoTransparentWriteAction
 import com.intellij.openapi.editor.RangeMarker
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.SmartPsiElementPointer
+import com.intellij.psi.*
 import gnu.trove.TIntArrayList
 import org.jetbrains.kotlin.fir.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
 import org.jetbrains.kotlin.idea.core.util.range
@@ -20,8 +17,11 @@ import org.jetbrains.kotlin.idea.frontend.api.analyze
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassKind
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtClassOrObjectSymbol
 import org.jetbrains.kotlin.idea.frontend.api.symbols.KtPackageSymbol
+import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.mainReference
+import org.jetbrains.kotlin.idea.util.ImportInsertHelperImpl
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.createSmartPointer
 import org.jetbrains.kotlin.psi.psiUtil.referenceExpression
@@ -86,17 +86,56 @@ object FirShortenReferences {
         file.accept(expressionsCollector)
         val collectedExpressions = expressionsCollector.collectedElements
 
-        val typesToShorten = collectedTypes
-            .filter { it.qualifier != null }
-            .filter { typeCanBeShortened(it) }
-            .map { ShortenTypeNow(it.createSmartPointer()) }
+        val typesToShorten = analyseCollectedTypes(collectedTypes)
 
         val expressionsToShorten = collectedExpressions
+            .map { it.element }
             .filter { expressionCanBeShortened(it) }
             .map { ShortenExpressionNow(it.createSmartPointer()) }
 
         typesToShorten + expressionsToShorten
     }
+
+    private fun analyseCollectedTypes(collectedTypes: List<ElementToAnalyze<KtUserType>>): List<ShortenCommand> {
+        val result = mutableListOf<ShortenCommand>()
+
+        var index = 0
+        while (index < collectedTypes.size) {
+            val (element, level) = collectedTypes[index++]
+            if (element.qualifier == null) continue
+
+            val shortening = computeShorteningForType(element)
+            if (shortening != null) {
+                result += shortening
+
+                while (index < collectedTypes.size && collectedTypes[index].level > level) {
+                    index++
+                }
+            }
+        }
+
+        return result
+    }
+
+    private fun computeShorteningForType(typeUsage: KtUserType): ShortenCommand? {
+        requireNotNull(typeUsage.qualifier)
+
+        val originalTarget = typeUsage.resolveToPsi() ?: return null
+        val shortenedTarget = createShortenedCopy(typeUsage).resolveToPsi()
+
+        return when {
+            shortenedTarget == null -> originalTarget.takeIf(::canBeImported)?.getKotlinFqName()?.let(::AddImport)
+            originalTarget == shortenedTarget -> ShortenTypeNow(typeUsage.createSmartPointer())
+            else -> null
+        }
+    }
+
+    private fun canBeImported(originalTarget: PsiElement): Boolean =
+        when (originalTarget) {
+            is KtClassOrObject -> originalTarget.isTopLevel()
+            is PsiClass -> originalTarget.containingClass == null
+            else -> false
+        }
 
     private fun expressionCanBeShortened(expression: KtDotQualifiedExpression): Boolean {
         if (!canBePossibleToDropReceiver(expression)) return false
@@ -130,19 +169,10 @@ object FirShortenReferences {
         }
     }
 
-    private fun typeCanBeShortened(typeUsage: KtUserType): Boolean {
-        require(typeUsage.qualifier != null)
-
-        val originalTypeResolved = typeUsage.resolveToPsi() ?: return false
-        val shortenedTypeResolved = createShortenedCopy(typeUsage).resolveToPsi()
-
-        return originalTypeResolved == shortenedTypeResolved
-    }
-
     private fun createShortenedCopy(expression: KtDotQualifiedExpression): KtExpression {
         val fileCopy = expression.containingKtFile.copy() as KtFile
         val expressionCopy = findSameElementInCopy(expression, fileCopy)
-        
+
         return expressionCopy.deleteQualifier()!!
     }
 
@@ -157,7 +187,10 @@ object FirShortenReferences {
         return found
     }
 
-    fun performShortenings(shortenings: List<ShortenCommand>) {
+    /**
+     * @return `true` if some changes were done to the [file] which can allow new shortenings, `false` otherwise.
+     */
+    fun performShortenings(file: KtFile, shortenings: List<ShortenCommand>): Boolean {
         runUndoTransparentWriteAction {
             for (command in shortenings) {
                 when (command) {
@@ -167,9 +200,14 @@ object FirShortenReferences {
                     is ShortenExpressionNow -> {
                         command.element?.deleteQualifier()
                     }
+                    is AddImport -> {
+                        ImportInsertHelperImpl.addImport(file.project, file, command.nameToImport)
+                    }
                 }
             }
         }
+
+        return shortenings.any { it is AddImport }
     }
 }
 
@@ -192,14 +230,16 @@ sealed class ShortenCommand
 private class ShortenTypeNow(private val ptr: SmartPsiElementPointer<KtUserType>) : ShortenCommand() {
     val element: KtUserType? get() = ptr.element
 }
-
 private class ShortenExpressionNow(private val ptr: SmartPsiElementPointer<KtDotQualifiedExpression>) : ShortenCommand() {
     val element: KtDotQualifiedExpression? get() = ptr.element
 }
+private class AddImport(val nameToImport: FqName) : ShortenCommand()
+
+private data class ElementToAnalyze<TElement>(val element: TElement, val level: Int)
 
 private abstract class QualifiedElementsCollector<T : KtElement>(protected val elementFilter: PsiElementFilter) : KtVisitorVoid() {
-    private val _collectedElements = ArrayList<T>()
-    val collectedElements: List<T> = _collectedElements
+    private val _collectedElements = ArrayList<ElementToAnalyze<T>>()
+    val collectedElements: List<ElementToAnalyze<T>> = _collectedElements
     private var level = 0
 
     override fun visitElement(element: PsiElement) {
@@ -209,7 +249,7 @@ private abstract class QualifiedElementsCollector<T : KtElement>(protected val e
     }
 
     protected fun addQualifiedElementToAnalyze(element: T) {
-        _collectedElements += element
+        _collectedElements += ElementToAnalyze(element, level)
     }
 
     protected fun nextLevel() {

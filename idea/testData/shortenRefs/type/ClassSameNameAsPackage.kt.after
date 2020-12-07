@@ -1,4 +1,6 @@
 import same.same
 
+// FIR_COMPARISON
+
 fun f(s: same) {
 }

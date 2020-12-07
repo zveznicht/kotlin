@@ -1,2 +1,2 @@
-// FIR_COMPARISON
+// FIR_IGNORE
 val x: Map.Entry<Array<String>, dependency.Array>
