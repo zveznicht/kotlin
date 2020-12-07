@@ -875,6 +875,11 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/bytecodeText/checkcast"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
         }
 
+        @TestMetadata("kt13747.kt")
+        public void testKt13747() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/checkcast/kt13747.kt");
+        }
+
         @TestMetadata("kt14811.kt")
         public void testKt14811() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/checkcast/kt14811.kt");
@@ -893,6 +898,84 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
         @TestMetadata("kt22714.kt")
         public void testKt22714() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/checkcast/kt22714.kt");
+        }
+
+        @TestMetadata("compiler/testData/codegen/bytecodeText/checkcast/implicit")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class Implicit extends AbstractBytecodeTextTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInImplicit() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/bytecodeText/checkcast/implicit"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
+            }
+
+            @TestMetadata("functionCall.kt")
+            public void testFunctionCall() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/functionCall.kt");
+            }
+
+            @TestMetadata("functionCallWithExplicitCastOnMerge.kt")
+            public void testFunctionCallWithExplicitCastOnMerge() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/functionCallWithExplicitCastOnMerge.kt");
+            }
+
+            @TestMetadata("generic.kt")
+            public void testGeneric() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/generic.kt");
+            }
+
+            @TestMetadata("kt16446.kt")
+            public void testKt16446() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/kt16446.kt");
+            }
+
+            @TestMetadata("kt18939.kt")
+            public void testKt18939() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/kt18939.kt");
+            }
+
+            @TestMetadata("kt21473.kt")
+            public void testKt21473() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/kt21473.kt");
+            }
+
+            @TestMetadata("lambdaAsParameter.kt")
+            public void testLambdaAsParameter() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/lambdaAsParameter.kt");
+            }
+
+            @TestMetadata("listAndMutableList.kt")
+            public void testListAndMutableList() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/listAndMutableList.kt");
+            }
+
+            @TestMetadata("nullable.kt")
+            public void testNullable() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/nullable.kt");
+            }
+
+            @TestMetadata("return.kt")
+            public void testReturn() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/return.kt");
+            }
+
+            @TestMetadata("simple.kt")
+            public void testSimple() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/simple.kt");
+            }
+
+            @TestMetadata("simpleExplicitCast.kt")
+            public void testSimpleExplicitCast() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/simpleExplicitCast.kt");
+            }
+
+            @TestMetadata("simpleWithExplicitCastOnMerge.kt")
+            public void testSimpleWithExplicitCastOnMerge() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/checkcast/implicit/simpleWithExplicitCastOnMerge.kt");
+            }
         }
     }
 

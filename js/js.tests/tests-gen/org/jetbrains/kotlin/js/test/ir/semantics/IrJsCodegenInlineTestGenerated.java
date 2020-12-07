@@ -2615,9 +2615,24 @@ public class IrJsCodegenInlineTestGenerated extends AbstractIrJsCodegenInlineTes
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/boxInline/optimizations"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS_IR, true);
         }
 
+        @TestMetadata("checkcast.kt")
+        public void testCheckcast() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/optimizations/checkcast.kt");
+        }
+
+        @TestMetadata("checkcastAfterInline.kt")
+        public void testCheckcastAfterInline() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/optimizations/checkcastAfterInline.kt");
+        }
+
         @TestMetadata("kt20844.kt")
         public void testKt20844() throws Exception {
             runTest("compiler/testData/codegen/boxInline/optimizations/kt20844.kt");
+        }
+
+        @TestMetadata("typeParameters.kt")
+        public void testTypeParameters() throws Exception {
+            runTest("compiler/testData/codegen/boxInline/optimizations/typeParameters.kt");
         }
     }
 

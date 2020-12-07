@@ -2813,6 +2813,41 @@ public class IrJsCodegenBoxES6TestGenerated extends AbstractIrJsCodegenBoxES6Tes
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/checkcastOptimization"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JS_IR_ES6, true);
         }
 
+        @TestMetadata("functionCallWithElvis.kt")
+        public void testFunctionCallWithElvis() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/functionCallWithElvis.kt");
+        }
+
+        @TestMetadata("functionCallWithIf.kt")
+        public void testFunctionCallWithIf() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/functionCallWithIf.kt");
+        }
+
+        @TestMetadata("functionCallWithReturn.kt")
+        public void testFunctionCallWithReturn() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/functionCallWithReturn.kt");
+        }
+
+        @TestMetadata("functionCallWithTry.kt")
+        public void testFunctionCallWithTry() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/functionCallWithTry.kt");
+        }
+
+        @TestMetadata("genereicParamDowncast.kt")
+        public void testGenereicParamDowncast() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/genereicParamDowncast.kt");
+        }
+
+        @TestMetadata("genericProperty.kt")
+        public void testGenericProperty() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/genericProperty.kt");
+        }
+
+        @TestMetadata("intersection.kt")
+        public void testIntersection() throws Exception {
+            runTest("compiler/testData/codegen/box/checkcastOptimization/intersection.kt");
+        }
+
         @TestMetadata("kt19128.kt")
         public void testKt19128() throws Exception {
             runTest("compiler/testData/codegen/box/checkcastOptimization/kt19128.kt");
