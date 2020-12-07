@@ -49,11 +49,6 @@ public class ShortenRefsTestGenerated extends AbstractShortenRefsTest {
         runTest("idea/testData/shortenRefs/ClassNameConflict.kt");
     }
 
-    @TestMetadata("ClassNameConflictNoPackageImport.kt")
-    public void testClassNameConflictNoPackageImport() throws Exception {
-        runTest("idea/testData/shortenRefs/ClassNameConflictNoPackageImport.kt");
-    }
-
     @TestMetadata("classObject.kt")
     public void testClassObject() throws Exception {
         runTest("idea/testData/shortenRefs/classObject.kt");

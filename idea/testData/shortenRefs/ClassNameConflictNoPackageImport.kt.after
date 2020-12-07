@@ -1,4 +1,0 @@
-// FIR_COMPARISON
-fun foo(array: Array<String>){}
-
-val v: java.lang.reflect.Array
