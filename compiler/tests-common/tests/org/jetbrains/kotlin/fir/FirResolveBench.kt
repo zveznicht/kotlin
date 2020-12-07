@@ -312,9 +312,9 @@ class FirResolveBench(val withProgress: Boolean) {
                         val type = resolvedTypeRef.type
                         if (type is ConeKotlinErrorType || type is ConeClassErrorType) {
                             errorTypes++
-                            if (resolvedTypeRef is FirErrorTypeRef && resolvedTypeRef.diagnostic is ConeStubDiagnostic) {
-                                return
-                            }
+//                            if (resolvedTypeRef is FirErrorTypeRef && resolvedTypeRef.diagnostic is ConeStubDiagnostic) {
+//                                return
+//                            }
                             val psi = resolvedTypeRef.psi ?: return
                             val problem = "${resolvedTypeRef::class.simpleName} -> ${type::class.simpleName}: ${type.render()}"
                             reportProblem(problem, psi)
