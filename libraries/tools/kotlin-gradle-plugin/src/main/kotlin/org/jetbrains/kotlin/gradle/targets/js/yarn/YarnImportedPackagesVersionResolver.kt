@@ -7,10 +7,7 @@ package org.jetbrains.kotlin.gradle.targets.js.yarn
 
 import com.google.gson.Gson
 import org.gradle.api.Project
-import org.jetbrains.kotlin.gradle.targets.js.npm.GradleNodeModule
-import org.jetbrains.kotlin.gradle.targets.js.npm.NpmProject
-import org.jetbrains.kotlin.gradle.targets.js.npm.PackageJson
-import org.jetbrains.kotlin.gradle.targets.js.npm.fileVersion
+import org.jetbrains.kotlin.gradle.targets.js.npm.*
 import org.jetbrains.kotlin.gradle.targets.js.npm.resolved.KotlinCompilationNpmResolution
 import java.io.File
 
@@ -29,9 +26,14 @@ class YarnImportedPackagesVersionResolver(
         it.internalCompositeDependencies
     }
 
+    private val externalNpmDependencies = npmProjects.flatMapTo(mutableSetOf()) {
+        it.externalNpmDependencies
+    }
+
     fun resolveAndUpdatePackages(): MutableList<String> {
         resolve(externalModules, false)
         resolve(internalCompositeModules, true)
+        resolve(externalNpmDependencies)
 
         npmProjects.forEach {
             writePackageJson(
@@ -49,6 +51,37 @@ class YarnImportedPackagesVersionResolver(
         return importedProjectWorkspaces
     }
 
+    private fun resolve(modules: Set<NpmDependency>) {
+        modules
+            .groupBy { it.name }
+            .forEach { (name, deps) ->
+                val depsRanges = deps
+                    .map { it.version }
+                    .flatMap { versionToNpmRanges(it) }
+                    .fold(setOf()) { acc: Set<NpmRange>, next: NpmRange ->
+                        acc union next
+                    }
+
+                var maxNpmRange: NpmRange = depsRanges.first()
+
+                for (depRange in depsRanges.drop(1)) {
+                    if (maxNpmRange.endVersion == null) {
+                        break
+                    }
+                    if (depRange.endVersion == null) {
+                        maxNpmRange = depRange
+                        break
+                    } else {
+                        if (depRange.endVersion > maxNpmRange.endVersion!!) {
+                            maxNpmRange = depRange
+                        }
+                    }
+                }
+
+                resolvedVersion[name] = ResolvedNpmDependency.ExternalResolvedNpmDependency(maxNpmRange.toString())
+            }
+    }
+
     private fun resolve(modules: MutableSet<GradleNodeModule>, isWorkspace: Boolean) {
         modules.groupBy { it.name }.forEach { (name, versions) ->
             val selected: GradleNodeModule = if (versions.size > 1) {
@@ -58,7 +91,7 @@ class YarnImportedPackagesVersionResolver(
                             "Only latest version will be used."
                 )
                 val selected = sorted.last()
-                resolvedVersion[name] = ResolvedNpmDependency(
+                resolvedVersion[name] = ResolvedNpmDependency.KotlinResolvedNpmDependency(
                     version = selected.version,
                     file = selected.path
                 )
@@ -102,7 +135,14 @@ class YarnImportedPackagesVersionResolver(
         map.iterator().forEachRemaining {
             val resolved = resolvedVersion[it.key]
             if (resolved != null && it.value != resolved.version) {
-                it.setValue(fileVersion(resolved.file))
+                it.setValue(
+                    when (resolved) {
+                        is ResolvedNpmDependency.KotlinResolvedNpmDependency ->
+                            fileVersion(resolved.file)
+                        is ResolvedNpmDependency.ExternalResolvedNpmDependency ->
+                            resolved.version
+                    }
+                )
                 doneSomething = true
             }
         }
@@ -110,7 +150,8 @@ class YarnImportedPackagesVersionResolver(
     }
 }
 
-private data class ResolvedNpmDependency(
-    val version: String,
-    val file: File
-)
+sealed class ResolvedNpmDependency(val version: String) {
+    class KotlinResolvedNpmDependency(version: String, val file: File) : ResolvedNpmDependency(version)
+
+    class ExternalResolvedNpmDependency(version: String) : ResolvedNpmDependency(version)
+}

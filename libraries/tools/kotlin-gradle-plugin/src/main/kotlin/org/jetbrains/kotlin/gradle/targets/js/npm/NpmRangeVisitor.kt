@@ -108,9 +108,7 @@ class NpmRangeVisitor : NodeSemverExpressionBaseVisitor<Set<NpmRange>>() {
         ctx.basicRange()
             .flatMap { visitBasicRange(it) }
             .fold(setOf()) { ranges, range ->
-                if (ranges.isEmpty()) setOf(range)
-                else ranges
-                    .flatMapTo(mutableSetOf()) { it union range }
+                ranges union range
             }
 
     private fun version(version: String): Set<NpmRange> =

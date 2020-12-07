@@ -84,6 +84,12 @@ infix fun NpmRange.union(other: NpmRange): Set<NpmRange> {
     ).toSetOrEmpty()
 }
 
+infix fun Set<NpmRange>.union(other: NpmRange): Set<NpmRange> {
+    return if (isEmpty()) setOf(other)
+    else this
+        .flatMapTo(mutableSetOf()) { it union other }
+}
+
 fun NpmRange.invert(): Set<NpmRange> {
     if (startVersion == null && endVersion == null) return emptySet()
 
