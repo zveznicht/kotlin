@@ -74,13 +74,13 @@ inline fun <reified F : FirDeclaration, R> KtDeclaration.withFirDeclarationOfTyp
 }
 
 /**
-* Creates [FirDeclaration] by [KtLambdaExpression] and executes an [action] on it
-*
-* If resulted [FirDeclaration] is not [F] throws [InvalidFirElementTypeException]
-*
-* [FirDeclaration] passed to [action] should not be leaked outside [action] lambda
-* Otherwise, some threading problems may arise,
-*/
+ * Creates [FirDeclaration] by [KtLambdaExpression] and executes an [action] on it
+ *
+ * If resulted [FirDeclaration] is not [F] throws [InvalidFirElementTypeException]
+ *
+ * [FirDeclaration] passed to [action] should not be leaked outside [action] lambda
+ * Otherwise, some threading problems may arise,
+ */
 @OptIn(InternalForInline::class)
 inline fun <reified F : FirDeclaration, R> KtLambdaExpression.withFirDeclarationOfType(
     resolveState: FirModuleResolveState,
@@ -110,7 +110,16 @@ fun <D : FirDeclaration, R> D.withFirDeclaration(
             val cache = session.cache
             val file = resolveState.getFirFile(this, cache)
                 ?: error("Fir file was not found for\n${render()}\n${ktDeclaration.getElementTextInContext()}")
-            cache.firFileLockProvider.withReadLock(file) { action(this) }
+            when (phase) {
+                FirResolvePhase.BODY_RESOLVE -> {
+                    /*
+                     The BODY_RESOLVE phase is the maximum possible phase we can resolve our declaration to
+                     So there is not need to run whole `action` under read lock
+                     */
+                    action(cache.firFileLockProvider.withReadLock(file) { this })
+                }
+                else -> cache.firFileLockProvider.withReadLock(file) { action(this) }
+            }
         }
         else -> action(this)
     }
