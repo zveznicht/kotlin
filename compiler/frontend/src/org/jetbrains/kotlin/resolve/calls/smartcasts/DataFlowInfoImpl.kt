@@ -73,7 +73,7 @@ internal class DataFlowInfoImpl private constructor(
         }
 
         val identifierInfo = value.identifierInfo
-        if (!nullability.canBeNull() && languageVersionSettings.supportsFeature(LanguageFeature.SafeCallBoundSmartCasts)) {
+        if (!nullability.canBeNull()) {
             when (identifierInfo) {
                 is IdentifierInfo.Qualified -> {
                     val receiverType = identifierInfo.receiverType

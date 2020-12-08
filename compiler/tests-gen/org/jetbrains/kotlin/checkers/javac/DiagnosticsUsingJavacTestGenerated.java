@@ -21705,11 +21705,6 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                 runTest("compiler/testData/diagnostics/tests/smartCasts/lambdaUsesOwnerModifies.kt");
             }
 
-            @TestMetadata("level_1_0.kt")
-            public void testLevel_1_0() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/smartCasts/level_1_0.kt");
-            }
-
             @TestMetadata("localClassChanges.kt")
             public void testLocalClassChanges() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/smartCasts/localClassChanges.kt");
