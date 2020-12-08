@@ -65,11 +65,8 @@ class SignatureEnhancement(
         }
     }
 
-    fun extractNullability(
-        annotationDescriptor: AnnotationDescriptor,
-        onlyForJspecify: Boolean
-    ): NullabilityQualifierWithMigrationStatus? {
-        extractNullabilityFromKnownAnnotations(annotationDescriptor, onlyForJspecify)?.let { return it }
+    fun extractNullability(annotationDescriptor: AnnotationDescriptor): NullabilityQualifierWithMigrationStatus? {
+        extractNullabilityFromKnownAnnotations(annotationDescriptor)?.let { return it }
 
         val typeQualifierAnnotation =
             annotationTypeQualifierResolver.resolveTypeQualifierAnnotation(annotationDescriptor)
@@ -78,20 +75,17 @@ class SignatureEnhancement(
         val jsr305State = annotationTypeQualifierResolver.resolveJsr305AnnotationState(annotationDescriptor)
         if (jsr305State.isIgnore) return null
 
-        return extractNullabilityFromKnownAnnotations(
-            typeQualifierAnnotation, onlyForJspecify
-        )?.copy(isForWarningOnly = jsr305State.isWarning)
+        return extractNullabilityFromKnownAnnotations(typeQualifierAnnotation)?.copy(isForWarningOnly = jsr305State.isWarning)
     }
 
     private fun extractNullabilityFromKnownAnnotations(
-        annotationDescriptor: AnnotationDescriptor,
-        onlyForJspecify: Boolean
+        annotationDescriptor: AnnotationDescriptor
     ): NullabilityQualifierWithMigrationStatus? {
         val annotationFqName = annotationDescriptor.fqName ?: return null
 
         val migrationStatus =
             jspecifyMigrationStatus(annotationFqName)
-                ?: (if (!onlyForJspecify) commonMigrationStatus(annotationFqName, annotationDescriptor) else null)
+                ?: commonMigrationStatus(annotationFqName, annotationDescriptor)
                 ?: return null
 
         return if (!migrationStatus.isForWarningOnly
@@ -438,7 +432,7 @@ class SignatureEnhancement(
         }
 
         private fun Annotations.extractNullability(): NullabilityQualifierWithMigrationStatus? =
-            this.firstNotNullResult { extractNullability(it, onlyForJspecify = typeParameterBounds) }
+            this.firstNotNullResult { extractNullability(it) }
 
         private fun computeIndexedQualifiersForOverride(): (Int) -> JavaTypeQualifiers {
 
