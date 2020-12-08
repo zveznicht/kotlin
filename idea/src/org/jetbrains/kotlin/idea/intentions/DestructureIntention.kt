@@ -11,7 +11,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
 import com.intellij.util.Processor
 import com.intellij.util.Query
-import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.descriptors.ValueParameterDescriptor
@@ -23,7 +22,6 @@ import org.jetbrains.kotlin.idea.core.NewDeclarationNameValidator
 import org.jetbrains.kotlin.idea.core.isVisible
 import org.jetbrains.kotlin.idea.findUsages.ReferencesSearchScopeHelper
 import org.jetbrains.kotlin.idea.inspections.IntentionBasedInspection
-import org.jetbrains.kotlin.idea.project.languageVersionSettings
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.lexer.KtTokens
@@ -150,18 +148,17 @@ class DestructureIntention : SelfTargetingRangeIntention<KtDeclaration>(
         internal fun KtDeclaration.isSuitableDeclaration() = getUsageScopeElement() != null
 
         private fun KtDeclaration.getUsageScopeElement(): PsiElement? {
-            val lambdaSupported = languageVersionSettings.supportsFeature(LanguageFeature.DestructuringLambdaParameters)
             return when (this) {
                 is KtParameter -> {
                     val parent = parent
                     when {
                         parent is KtForExpression -> parent
-                        parent.parent is KtFunctionLiteral -> if (lambdaSupported) parent.parent else null
+                        parent.parent is KtFunctionLiteral -> parent.parent
                         else -> null
                     }
                 }
                 is KtProperty -> parent.takeIf { isLocal }
-                is KtFunctionLiteral -> if (!hasParameterSpecification() && lambdaSupported) this else null
+                is KtFunctionLiteral -> if (!hasParameterSpecification()) this else null
                 else -> null
             }
         }

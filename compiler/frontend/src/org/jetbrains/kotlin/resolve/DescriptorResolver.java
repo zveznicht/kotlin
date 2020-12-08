@@ -318,10 +318,6 @@ public class DescriptorResolver {
 
         Function0<List<VariableDescriptor>> destructuringVariables;
         if (destructuringDeclaration != null) {
-            if (!languageVersionSettings.supportsFeature(LanguageFeature.DestructuringLambdaParameters)) {
-                trace.report(Errors.UNSUPPORTED_FEATURE.on(valueParameter,
-                                                           TuplesKt.to(LanguageFeature.DestructuringLambdaParameters, languageVersionSettings)));
-            }
 
             destructuringVariables = () -> {
                 assert owner.getDispatchReceiverParameter() == null

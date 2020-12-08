@@ -19,7 +19,6 @@ enum class LanguageFeature(
 ) {
     // Note: names of these entries are also used in diagnostic tests and in user-visible messages (see presentableText below)
     InlineProperties(KOTLIN_1_1),
-    DestructuringLambdaParameters(KOTLIN_1_1),
     UnderscoresInNumericLiterals(KOTLIN_1_1),
     InlineConstVals(KOTLIN_1_1),
     NoDelegationToJavaDefaultInterfaceMembers(KOTLIN_1_1),

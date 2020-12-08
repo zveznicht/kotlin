@@ -8525,11 +8525,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
                     runTest("compiler/testData/diagnostics/tests/functionLiterals/destructuringInLambdas/underscore.kt");
                 }
 
-                @TestMetadata("unsupportedFeature.kt")
-                public void testUnsupportedFeature() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/functionLiterals/destructuringInLambdas/unsupportedFeature.kt");
-                }
-
                 @TestMetadata("unusedParameters.kt")
                 public void testUnusedParameters() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/functionLiterals/destructuringInLambdas/unusedParameters.kt");
