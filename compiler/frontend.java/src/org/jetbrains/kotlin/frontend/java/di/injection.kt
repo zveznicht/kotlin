@@ -146,5 +146,5 @@ fun ComponentProvider.initJvmBuiltInsForTopDownAnalysis() {
 }
 
 fun JvmBuiltIns.initialize(module: ModuleDescriptor, languageVersionSettings: LanguageVersionSettings) {
-    initialize(module, languageVersionSettings.supportsFeature(LanguageFeature.AdditionalBuiltInsMembers))
+    initialize(module, true)
 }

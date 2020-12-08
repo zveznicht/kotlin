@@ -4100,11 +4100,6 @@ public class DiagnosticsTestWithStdLibGenerated extends AbstractDiagnosticsTestW
         public void testBlackListed() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/targetedBuiltIns/blackListed.kt");
         }
-
-        @TestMetadata("unsupportedFeature.kt")
-        public void testUnsupportedFeature() throws Exception {
-            runTest("compiler/testData/diagnostics/testsWithStdLib/targetedBuiltIns/unsupportedFeature.kt");
-        }
     }
 
     @TestMetadata("compiler/testData/diagnostics/testsWithStdLib/trailingComma")

@@ -119,9 +119,7 @@ class MultiModuleJavaAnalysisCustomTest : KtUsefulTestCase() {
 
         builtIns.initialize(
             resolverForProject.descriptorForModule(resolverForProject.allModules.first()),
-            resolverForProject.resolverForModule(resolverForProject.allModules.first())
-                .componentProvider.get<LanguageVersionSettings>()
-                .supportsFeature(LanguageFeature.AdditionalBuiltInsMembers)
+            true
         )
 
         performChecks(resolverForProject, modules)

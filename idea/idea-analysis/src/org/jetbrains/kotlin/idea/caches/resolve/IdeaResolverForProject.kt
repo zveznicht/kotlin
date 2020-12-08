@@ -146,9 +146,7 @@ class IdeaResolverForProject(
                 // SDK should be present, otherwise we wouldn't have created JvmBuiltIns in createBuiltIns
                 val sdkDescriptor = resolverForSdk.descriptorForModule(sdk!!)
 
-                val isAdditionalBuiltInsFeaturesSupported = module.supportsAdditionalBuiltInsMembers(projectContextFromSdkResolver.project)
-
-                newBuiltIns.initialize(sdkDescriptor, isAdditionalBuiltInsFeaturesSupported)
+                newBuiltIns.initialize(sdkDescriptor, true)
             }
 
             return@compute newBuiltIns
