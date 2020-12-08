@@ -69,7 +69,7 @@ open class FirImportResolveTransformer protected constructor(
                 this.delegate = delegate
                 this.packageFqName = packageFqName
                 relativeClassName = relativeClassFqName
-                this.symbol = symbol
+                this.symbol = null
             }.compose()
         }
     }
