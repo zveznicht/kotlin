@@ -585,11 +585,6 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
             runTest("compiler/testData/diagnostics/tests/ShiftFunctionTypes.kt");
         }
 
-        @TestMetadata("SingleUnderscoreUnsupported.kt")
-        public void testSingleUnderscoreUnsupported() throws Exception {
-            runTest("compiler/testData/diagnostics/tests/SingleUnderscoreUnsupported.kt");
-        }
-
         @TestMetadata("StarsInFunctionCalls.kt")
         public void testStarsInFunctionCalls() throws Exception {
             runTest("compiler/testData/diagnostics/tests/StarsInFunctionCalls.kt");
@@ -4249,11 +4244,6 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
             @TestMetadata("unresolvedReference.kt")
             public void testUnresolvedReference() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/controlFlowAnalysis/unresolvedReference.kt");
-            }
-
-            @TestMetadata("unusedInAnonymous.kt")
-            public void testUnusedInAnonymous() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/controlFlowAnalysis/unusedInAnonymous.kt");
             }
 
             @TestMetadata("useUninitializedInLambda.kt")
