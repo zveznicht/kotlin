@@ -582,11 +582,6 @@ public class BodyResolver {
                         trace.report(INTERFACE_WITH_SUPERCLASS.on(typeReference));
                         addSupertype = false;
                     }
-                    else if (ktClassOrObject.hasModifier(KtTokens.DATA_KEYWORD) &&
-                             !languageVersionSettings.supportsFeature(LanguageFeature.DataClassInheritance)) {
-                        trace.report(DATA_CLASS_CANNOT_HAVE_CLASS_SUPERTYPES.on(typeReference));
-                        addSupertype = false;
-                    }
                     else if (DescriptorUtils.isSubclass(classDescriptor, builtIns.getThrowable())) {
                         if (!supertypeOwner.getDeclaredTypeParameters().isEmpty()) {
                             trace.report(GENERIC_THROWABLE_SUBCLASS.on(ktClassOrObject.getTypeParameterList()));

@@ -23191,11 +23191,6 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirOldFronte
             runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noCallableReferencesWithEmptyLHS.kt");
         }
 
-        @TestMetadata("noDataClassInheritance.kt")
-        public void testNoDataClassInheritance() throws Exception {
-            runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noDataClassInheritance.kt");
-        }
-
         @TestMetadata("noInlineProperty.kt")
         public void testNoInlineProperty() throws Exception {
             runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noInlineProperty.kt");

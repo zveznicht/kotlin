@@ -18,7 +18,6 @@ enum class LanguageFeature(
     val kind: Kind = OTHER // NB: default value OTHER doesn't force pre-releaseness (see KDoc)
 ) {
     // Note: names of these entries are also used in diagnostic tests and in user-visible messages (see presentableText below)
-    DataClassInheritance(KOTLIN_1_1),
     InlineProperties(KOTLIN_1_1),
     DestructuringLambdaParameters(KOTLIN_1_1),
     SingleUnderscoreForParameterName(KOTLIN_1_1),
