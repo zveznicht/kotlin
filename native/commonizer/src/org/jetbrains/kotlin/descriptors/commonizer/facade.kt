@@ -5,6 +5,8 @@
 
 package org.jetbrains.kotlin.descriptors.commonizer
 
+import kotlinx.metadata.klib.ChunkedKlibModuleFragmentWriteStrategy
+import kotlinx.metadata.klib.KlibModuleMetadata.SerializedKlibMetadata
 import org.jetbrains.kotlin.descriptors.commonizer.builder.DeclarationsBuilderVisitor1
 import org.jetbrains.kotlin.descriptors.commonizer.builder.DeclarationsBuilderVisitor2
 import org.jetbrains.kotlin.descriptors.commonizer.builder.createGlobalBuilderComponents
@@ -13,6 +15,9 @@ import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.*
 import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.CirNode.Companion.dimension
 import org.jetbrains.kotlin.descriptors.commonizer.mergedtree.CirTreeMerger.CirTreeMergeResult
 import org.jetbrains.kotlin.descriptors.commonizer.metadata.MetadataBuilder
+import org.jetbrains.kotlin.descriptors.commonizer.utils.strip
+import org.jetbrains.kotlin.library.SerializedMetadata
+import org.jetbrains.kotlin.serialization.konan.impl.KlibResolvedModuleDescriptorsFactoryImpl
 import org.jetbrains.kotlin.storage.LockBasedStorageManager
 import org.jetbrains.kotlin.storage.StorageManager
 
@@ -26,8 +31,11 @@ fun runCommonization(parameters: Parameters): Result {
     val mergedTree = mergeResult.root
 
     // build resulting descriptors:
+    val modulesByTargets0 = LinkedHashMap<Target, Map<String, SerializedKlibMetadata>>() // use linked hash map to preserve order
     for (targetIndex in 0 until mergedTree.dimension) {
         val (target, metadataModules) = MetadataBuilder.build(mergedTree, targetIndex)
+        val strategy = ChunkedKlibModuleFragmentWriteStrategy()
+        modulesByTargets0[target] = metadataModules.associate { it.name to it.write(strategy) }
         parameters.progressLogger?.invoke("Metadata: Built modules for target [$target]")
     }
 
@@ -40,26 +48,24 @@ fun runCommonization(parameters: Parameters): Result {
         val target = component.target
         check(target !in modulesByTargets)
 
-        //        val commonizedModules: List<ModuleResult.Commonized> = components.cache.getAllModules(component.index).mapNotNull { module ->
-        //            if (module.name == KlibResolvedModuleDescriptorsFactoryImpl.FORWARD_DECLARATIONS_MODULE_NAME)
-        //                return@mapNotNull null
-        //
-        //            val libraryName = module.name.asString().removePrefix("<").removeSuffix(">")
-        //            val serializedMetadata = modulesByTargets0.getValue(target).getValue(libraryName)
-        //
-        //            val libraryMetadata = LibraryMetadata(
-        //                libraryName,
-        //                SerializedMetadata(
-        //                    serializedMetadata.header,
-        //                    serializedMetadata.fragments,
-        //                    serializedMetadata.fragmentNames
-        //                )
-        //            )
-        //
-        //            ModuleResult.Commonized(module, libraryMetadata)
-        //        }
+        val commonizedModules: List<ModuleResult.Commonized> = components.cache.getAllModules(component.index).mapNotNull { module ->
+            if (module.name == KlibResolvedModuleDescriptorsFactoryImpl.FORWARD_DECLARATIONS_MODULE_NAME)
+                return@mapNotNull null
 
-        val commonizedModules: List<ModuleResult.Commonized> = components.cache.getAllModules(component.index).map(ModuleResult::Commonized)
+            val libraryName = module.name.strip()
+            val serializedMetadata = modulesByTargets0.getValue(target).getValue(libraryName)
+
+            val libraryMetadata = LibraryMetadata(
+                libraryName,
+                SerializedMetadata(
+                    serializedMetadata.header,
+                    serializedMetadata.fragments,
+                    serializedMetadata.fragmentNames
+                )
+            )
+
+            ModuleResult.Commonized(module, libraryMetadata)
+        }
 
         val absentModules: List<ModuleResult.Absent> = if (target is LeafTarget)
             mergeResult.absentModuleInfos.getValue(target).map { ModuleResult.Absent(it.originalLocation) }
