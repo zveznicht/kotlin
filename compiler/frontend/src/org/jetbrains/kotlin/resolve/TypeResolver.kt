@@ -566,10 +566,6 @@ class TypeResolver(
         if (ErrorUtils.isError(descriptor)) {
             return createErrorTypeForTypeConstructor(c, projectionFromAllQualifierParts, typeConstructor)
         }
-        if (!languageVersionSettings.supportsFeature(LanguageFeature.TypeAliases)) {
-            c.trace.report(UNSUPPORTED_FEATURE.on(type, LanguageFeature.TypeAliases to languageVersionSettings))
-            return createErrorTypeForTypeConstructor(c, projectionFromAllQualifierParts, typeConstructor)
-        }
 
         val parameters = typeConstructor.parameters
 

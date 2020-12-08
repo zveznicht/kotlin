@@ -18,9 +18,6 @@ interface DeserializationConfiguration {
     val reportErrorsOnIrDependencies: Boolean
         get() = false
 
-    val typeAliasesAllowed: Boolean
-        get() = true
-
     val isJvmPackageNameSupported: Boolean
         get() = true
 

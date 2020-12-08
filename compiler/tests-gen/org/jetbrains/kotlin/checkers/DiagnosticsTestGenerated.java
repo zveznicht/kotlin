@@ -720,11 +720,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
             runTest("compiler/testData/diagnostics/tests/UnusedParameters.kt");
         }
 
-        @TestMetadata("UnusedParametersVersion10.kt")
-        public void testUnusedParametersVersion10() throws Exception {
-            runTest("compiler/testData/diagnostics/tests/UnusedParametersVersion10.kt");
-        }
-
         @TestMetadata("UnusedVariables.kt")
         public void testUnusedVariables() throws Exception {
             runTest("compiler/testData/diagnostics/tests/UnusedVariables.kt");
@@ -24953,11 +24948,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
             @TestMetadata("typealiasRhsRepeatedAnnotations.kt")
             public void testTypealiasRhsRepeatedAnnotations() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/typealias/typealiasRhsRepeatedAnnotations.kt");
-            }
-
-            @TestMetadata("unsupportedTypeAlias.kt")
-            public void testUnsupportedTypeAlias() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/typealias/unsupportedTypeAlias.kt");
             }
 
             @TestMetadata("unusedTypeAliasParameter.kt")

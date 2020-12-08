@@ -504,7 +504,6 @@ object KeywordCompletion {
 
     private fun isModifierSupportedAtLanguageLevel(keyword: KtKeywordToken, languageVersionSettings: LanguageVersionSettings): Boolean {
         val feature = when (keyword) {
-            TYPE_ALIAS_KEYWORD -> LanguageFeature.TypeAliases
             HEADER_KEYWORD, IMPL_KEYWORD -> return false
             EXPECT_KEYWORD, ACTUAL_KEYWORD -> LanguageFeature.MultiPlatformProjects
             SUSPEND_KEYWORD -> LanguageFeature.Coroutines
