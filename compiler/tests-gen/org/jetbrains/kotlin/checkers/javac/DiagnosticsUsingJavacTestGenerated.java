@@ -17839,11 +17839,6 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                     runTest("compiler/testData/diagnostics/tests/properties/inferenceFromGetters/topLevel.kt");
                 }
 
-                @TestMetadata("unsupportedInferenceFromGetters.kt")
-                public void testUnsupportedInferenceFromGetters() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/properties/inferenceFromGetters/unsupportedInferenceFromGetters.kt");
-                }
-
                 @TestMetadata("vars.kt")
                 public void testVars() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/properties/inferenceFromGetters/vars.kt");

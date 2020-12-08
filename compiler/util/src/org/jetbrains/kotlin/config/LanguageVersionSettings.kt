@@ -23,7 +23,6 @@ enum class LanguageFeature(
     DslMarkersSupport(KOTLIN_1_1),
     UnderscoresInNumericLiterals(KOTLIN_1_1),
     InlineConstVals(KOTLIN_1_1),
-    ShortSyntaxForPropertyGetters(KOTLIN_1_1),
     NoDelegationToJavaDefaultInterfaceMembers(KOTLIN_1_1),
     DefaultImportOfPackageKotlinComparisons(KOTLIN_1_1),
 
