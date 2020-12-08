@@ -141,7 +141,6 @@ class DoubleColonExpressionResolver(
                 if (!type.isSubtypeOf(type.builtIns.anyType)) {
                     c.trace.report(EXPRESSION_OF_NULLABLE_TYPE_IN_CLASS_LITERAL_LHS.on(expression.receiverExpression!!, type))
                 }
-                reportUnsupportedIfNeeded(expression, c)
             }
             return
         }
@@ -204,17 +203,6 @@ class DoubleColonExpressionResolver(
     private fun shouldTryResolveLHSAsType(expression: KtDoubleColonExpression): Boolean {
         val lhs = expression.receiverExpression
         return lhs != null && lhs.canBeConsideredProperType()
-    }
-
-    private fun reportUnsupportedIfNeeded(expression: KtDoubleColonExpression, c: ExpressionTypingContext) {
-        if (!languageVersionSettings.supportsFeature(LanguageFeature.BoundCallableReferences)) {
-            c.trace.report(
-                UNSUPPORTED_FEATURE.on(
-                    expression.receiverExpression!!,
-                    LanguageFeature.BoundCallableReferences to languageVersionSettings
-                )
-            )
-        }
     }
 
     private fun shouldTryResolveLHSAsReservedExpression(expression: KtDoubleColonExpression): Boolean {
@@ -451,9 +439,7 @@ class DoubleColonExpressionResolver(
                 val classDescriptor = resultingDescriptor.classDescriptor
                 if (classDescriptor.companionObjectDescriptor != null) return null
 
-                if (DescriptorUtils.isObject(classDescriptor) ||
-                    (!languageVersionSettings.supportsFeature(LanguageFeature.BoundCallableReferences) &&
-                            DescriptorUtils.isEnumEntry(classDescriptor))) {
+                if (DescriptorUtils.isObject(classDescriptor)) {
                     return DoubleColonLHS.Expression(typeInfo, isObjectQualifier = true)
                 }
             }
@@ -668,7 +654,7 @@ class DoubleColonExpressionResolver(
 
         val resolutionResults = resolveCallableReferenceRHS(expression, lhsResult, context, resolveArgumentsMode)
 
-        reportUnsupportedCallableReferenceIfNeeded(expression, context, lhsResult, resolutionResults)
+        reportUnsupportedCallableReferenceIfNeeded(expression, context, resolutionResults)
 
         return lhsResult to resolutionResults
     }
@@ -676,7 +662,6 @@ class DoubleColonExpressionResolver(
     private fun reportUnsupportedCallableReferenceIfNeeded(
         expression: KtCallableReferenceExpression,
         context: ExpressionTypingContext,
-        lhsResult: DoubleColonLHS?,
         resolutionResults: OverloadResolutionResults<CallableDescriptor>?
     ) {
         val descriptor =
@@ -687,12 +672,6 @@ class DoubleColonExpressionResolver(
             && !context.languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines)
         ) {
             context.trace.report(UNSUPPORTED.on(expression.callableReference, "Callable reference to suspend function"))
-        }
-
-        val expressionResult = lhsResult as? DoubleColonLHS.Expression ?: return
-        // "<expr>::foo" was not supported without bound callable references, except the case of a nested class constructor in an object
-        if (!expressionResult.isObjectQualifier || descriptor !is ConstructorDescriptor) {
-            reportUnsupportedIfNeeded(expression, context)
         }
     }
 

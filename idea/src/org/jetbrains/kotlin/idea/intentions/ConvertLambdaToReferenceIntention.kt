@@ -99,8 +99,6 @@ open class ConvertLambdaToReferenceIntention(textGetter: () -> String) : SelfTar
         }
 
         if (!descriptorHasReceiver && explicitReceiver != null && calleeDescriptor !is ClassConstructorDescriptor) return false
-        val noBoundReferences = !languageVersionSettings.supportsFeature(LanguageFeature.BoundCallableReferences)
-        if (noBoundReferences && descriptorHasReceiver && explicitReceiver == null) return false
 
         val callableArgumentsCount = (callableExpression as? KtCallExpression)?.valueArguments?.size ?: 0
         val enableFunctionReferenceWithDefaultValueAsOtherType =
@@ -128,10 +126,9 @@ open class ConvertLambdaToReferenceIntention(textGetter: () -> String) : SelfTar
         val explicitReceiverDescriptor = (explicitReceiver as? KtNameReferenceExpression)?.let {
             context[REFERENCE_TARGET, it]
         } as? ValueDescriptor
-        val lambdaParameterAsExplicitReceiver = when (noBoundReferences) {
-            true -> explicitReceiver != null
-            false -> explicitReceiverDescriptor != null && explicitReceiverDescriptor == lambdaValueParameterDescriptors.firstOrNull()
-        }
+        val lambdaParameterAsExplicitReceiver =
+            explicitReceiverDescriptor != null && explicitReceiverDescriptor == lambdaValueParameterDescriptors.firstOrNull()
+
         val explicitReceiverShift = if (lambdaParameterAsExplicitReceiver) 1 else 0
 
         val lambdaParametersCount = lambdaValueParameterDescriptors.size

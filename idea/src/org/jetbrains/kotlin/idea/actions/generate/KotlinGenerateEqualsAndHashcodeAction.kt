@@ -130,7 +130,6 @@ class KotlinGenerateEqualsAndHashcodeAction : KotlinGenerateMemberActionBase<Kot
 
     private fun generateClassLiteralsNotEqual(paramName: String, targetClass: KtClassOrObject): String {
         val defaultExpression = "javaClass != $paramName?.javaClass"
-        if (!targetClass.languageVersionSettings.supportsFeature(LanguageFeature.BoundCallableReferences)) return defaultExpression
         return when {
             targetClass.platform.isJs() -> "other == null || this::class.js != $paramName::class.js"
             targetClass.platform.isCommon() -> "other == null || this::class != $paramName::class"
@@ -140,7 +139,6 @@ class KotlinGenerateEqualsAndHashcodeAction : KotlinGenerateMemberActionBase<Kot
 
     private fun generateClassLiteral(targetClass: KtClassOrObject): String {
         val defaultExpression = "javaClass"
-        if (!targetClass.languageVersionSettings.supportsFeature(LanguageFeature.BoundCallableReferences)) return defaultExpression
         return when {
             targetClass.platform.isJs() -> "this::class.js"
             targetClass.platform.isCommon() -> "this::class"
