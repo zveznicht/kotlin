@@ -61,24 +61,19 @@ open class FirImportResolveTransformer protected constructor(
         get() = true
 
     private fun transformNonClassImportForFqName(fqName: FqName, delegate: FirImport): CompositeTransformResult<FirImport> {
-        val (packageFqName, relativeClassFqName, symbol) = resolveToPackageOrClass(symbolProvider, fqName)
-        return if (relativeClassFqName != null && symbol == null) {
-            delegate.compose()
-        } else {
-            buildResolvedImport {
-                this.delegate = delegate
-                this.packageFqName = packageFqName
-                relativeClassName = relativeClassFqName
-                this.symbol = null
-            }.compose()
-        }
+        val (packageFqName, relativeClassFqName) = resolveToPackageOrClass(symbolProvider, fqName)
+            ?: return delegate.compose()
+        return buildResolvedImport {
+            this.delegate = delegate
+            this.packageFqName = packageFqName
+            relativeClassName = relativeClassFqName
+            this.symbol = null
+        }.compose()
     }
 
     private fun transformSimpleImportForFqName(fqName: FqName, delegate: FirImport): CompositeTransformResult<FirImport> {
         val (packageFqName, relativeClassFqName, symbol) = resolveToPackageOrClass(symbolProvider, fqName, missFirst = true)
-        if (symbol == null) {
-            return transformNonClassImportForFqName(fqName.parent(), delegate)
-        }
+            ?: return transformNonClassImportForFqName(fqName.parent(), delegate)
 
         val parentClassFqName = relativeClassFqName?.parent()?.takeIf { !it.isRoot }
         return buildResolvedImport {
@@ -90,7 +85,7 @@ open class FirImportResolveTransformer protected constructor(
     }
 }
 
-fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName, missFirst: Boolean = false): PackageOrClass {
+fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName, missFirst: Boolean = false): PackageOrClass? {
     var currentPackage = fqName
 
     val pathSegments = fqName.pathSegments()
@@ -110,7 +105,7 @@ fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName, m
         FqName.fromSegments((prefixSize until pathSegments.size).map { pathSegments[it].asString() })
 
     val classId = ClassId(currentPackage, relativeClassFqName, false)
-    val symbol = symbolProvider.getClassLikeSymbolByFqName(classId)
+    val symbol = symbolProvider.getClassLikeSymbolByFqName(classId) ?: return null
 
     return PackageOrClass(currentPackage, relativeClassFqName, symbol)
 }
