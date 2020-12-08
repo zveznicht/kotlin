@@ -90,7 +90,7 @@ class PSICallResolver(
         tracingStrategy: TracingStrategy
     ): OverloadResolutionResults<D> {
         val isBinaryRemOperator = isBinaryRemOperator(context.call)
-        val refinedName = refineNameForRemOperator(isBinaryRemOperator, name)
+        val refinedName = refineNameForRemOperator(name)
 
         val kotlinCallKind = resolutionKind.toKotlinCallKind()
         val kotlinCall = toKotlinCall(context, kotlinCallKind, context.call, refinedName, tracingStrategy, isSpecialFunction = false)
@@ -103,8 +103,7 @@ class PSICallResolver(
                 FactoryProviderForInvoke(context, scopeTower, kotlinCall)
             }
 
-        val shouldUseOperatorRem = languageVersionSettings.supportsFeature(LanguageFeature.OperatorRem)
-        if (isBinaryRemOperator && shouldUseOperatorRem && (result.isEmpty() || result.areAllInapplicable())) {
+        if (isBinaryRemOperator && (result.isEmpty() || result.areAllInapplicable())) {
             result = resolveToDeprecatedMod(name, context, kotlinCallKind, tracingStrategy, scopeTower, resolutionCallbacks, expectedType)
         }
 
@@ -176,9 +175,8 @@ class PSICallResolver(
         }
     }
 
-    private fun refineNameForRemOperator(isBinaryRemOperator: Boolean, name: Name): Name {
-        val shouldUseOperatorRem = languageVersionSettings.supportsFeature(LanguageFeature.OperatorRem)
-        return if (isBinaryRemOperator && !shouldUseOperatorRem) OperatorConventions.REM_TO_MOD_OPERATION_NAMES[name]!! else name
+    private fun refineNameForRemOperator(name: Name): Name {
+        return name
     }
 
     private fun createResolutionCallbacks(context: BasicCallResolutionContext) =

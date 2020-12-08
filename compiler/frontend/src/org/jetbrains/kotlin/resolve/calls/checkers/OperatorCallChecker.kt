@@ -109,7 +109,7 @@ fun FunctionDescriptor.isOperatorMod(): Boolean {
 }
 
 fun shouldWarnAboutDeprecatedModFromBuiltIns(languageVersionSettings: LanguageVersionSettings): Boolean {
-    return languageVersionSettings.supportsFeature(LanguageFeature.OperatorRem) && languageVersionSettings.apiVersion >= ApiVersion.KOTLIN_1_1
+    return languageVersionSettings.apiVersion >= ApiVersion.KOTLIN_1_1
 }
 
 private fun checkModConvention(
@@ -123,9 +123,7 @@ private fun checkModConvention(
             warnAboutDeprecatedOrForbiddenMod(descriptor, diagnosticHolder, modifier, languageVersionSettings)
         }
     } else {
-        if (languageVersionSettings.supportsFeature(LanguageFeature.OperatorRem)) {
-            warnAboutDeprecatedOrForbiddenMod(descriptor, diagnosticHolder, modifier, languageVersionSettings)
-        }
+        warnAboutDeprecatedOrForbiddenMod(descriptor, diagnosticHolder, modifier, languageVersionSettings)
     }
 }
 

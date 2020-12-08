@@ -178,9 +178,8 @@ class NewResolutionOldInference(
             context, dynamicScope, syntheticScopes, context.call.createLookupLocation(), typeApproximator, implicitsResolutionFilter, callResolver, candidateInterceptor
         )
 
-        val shouldUseOperatorRem = languageVersionSettings.supportsFeature(LanguageFeature.OperatorRem)
         val isBinaryRemOperator = isBinaryRemOperator(context.call)
-        val nameToResolve = if (isBinaryRemOperator && !shouldUseOperatorRem)
+        val nameToResolve = if (isBinaryRemOperator && !true)
             OperatorConventions.REM_TO_MOD_OPERATION_NAMES[name]!!
         else
             name
@@ -197,7 +196,7 @@ class NewResolutionOldInference(
         // Temporary hack to resolve 'rem' as 'mod' if the first is do not present
         val emptyOrInapplicableCandidates = candidates.isEmpty() ||
                 candidates.all { it.resultingApplicability.isInapplicable }
-        if (isBinaryRemOperator && shouldUseOperatorRem && emptyOrInapplicableCandidates) {
+        if (isBinaryRemOperator && true && emptyOrInapplicableCandidates) {
             val deprecatedName = OperatorConventions.REM_TO_MOD_OPERATION_NAMES[name]
             val processorForDeprecatedName =
                 kind.createTowerProcessor(this, deprecatedName!!, tracing, scopeTower, detailedReceiver, context)

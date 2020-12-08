@@ -16266,16 +16266,6 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirOldFronte
             runTest("compiler/testData/diagnostics/tests/operatorRem/modWithRemAssign.kt");
         }
 
-        @TestMetadata("noDeprecatedModConventionWithoutFeature.kt")
-        public void testNoDeprecatedModConventionWithoutFeature() throws Exception {
-            runTest("compiler/testData/diagnostics/tests/operatorRem/noDeprecatedModConventionWithoutFeature.kt");
-        }
-
-        @TestMetadata("noOperatorRemFeature.kt")
-        public void testNoOperatorRemFeature() throws Exception {
-            runTest("compiler/testData/diagnostics/tests/operatorRem/noOperatorRemFeature.kt");
-        }
-
         @TestMetadata("numberRemConversions.kt")
         public void testNumberRemConversions() throws Exception {
             runTest("compiler/testData/diagnostics/tests/operatorRem/numberRemConversions.kt");
@@ -16334,11 +16324,6 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirOldFronte
         @TestMetadata("resolveModIfRemIsHidden.kt")
         public void testResolveModIfRemIsHidden() throws Exception {
             runTest("compiler/testData/diagnostics/tests/operatorRem/resolveModIfRemIsHidden.kt");
-        }
-
-        @TestMetadata("resolveToModWhenNoOperatorRemFeature.kt")
-        public void testResolveToModWhenNoOperatorRemFeature() throws Exception {
-            runTest("compiler/testData/diagnostics/tests/operatorRem/resolveToModWhenNoOperatorRemFeature.kt");
         }
     }
 
