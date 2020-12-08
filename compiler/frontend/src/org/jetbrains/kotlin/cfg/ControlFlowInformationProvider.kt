@@ -736,9 +736,6 @@ class ControlFlowInformationProvider private constructor(
             }
             is KtFunction -> {
                 val anonymous = owner is KtFunctionLiteral || owner is KtNamedFunction && owner.name == null
-                if (anonymous && !languageVersionSettings.supportsFeature(LanguageFeature.SingleUnderscoreForParameterName)) {
-                    return
-                }
                 val mainFunctionDetector = MainFunctionDetector(trace.bindingContext, languageVersionSettings)
                 val isMain = owner is KtNamedFunction && mainFunctionDetector.isMain(owner)
                 val functionName = functionDescriptor.name

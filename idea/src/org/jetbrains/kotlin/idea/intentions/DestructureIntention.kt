@@ -65,7 +65,6 @@ class DestructureIntention : SelfTargetingRangeIntention<KtDeclaration>(
         )
 
         val names = ArrayList<String>()
-        val underscoreSupported = element.languageVersionSettings.supportsFeature(LanguageFeature.SingleUnderscoreForParameterName)
         // For all unused we generate normal names, not underscores
         val allUnused = usagesToRemove.all { (_, usagesToReplace, variableToDrop) ->
             usagesToReplace.isEmpty() && variableToDrop == null
@@ -73,7 +72,7 @@ class DestructureIntention : SelfTargetingRangeIntention<KtDeclaration>(
 
         usagesToRemove.forEach { (descriptor, usagesToReplace, variableToDrop, name) ->
             val suggestedName =
-                if (usagesToReplace.isEmpty() && variableToDrop == null && underscoreSupported && !allUnused) {
+                if (usagesToReplace.isEmpty() && variableToDrop == null && !allUnused) {
                     "_"
                 } else {
                     name ?: KotlinNameSuggester.suggestNameByName(descriptor.name.asString(), validator)

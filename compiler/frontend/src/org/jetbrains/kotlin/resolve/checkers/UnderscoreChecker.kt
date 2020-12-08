@@ -38,13 +38,6 @@ object UnderscoreChecker : DeclarationChecker {
         val isValidSingleUnderscore = allowSingleUnderscore && identifier.text == "_"
         if (!isValidSingleUnderscore && identifier.text.all { it == '_' }) {
             diagnosticHolder.report(Errors.UNDERSCORE_IS_RESERVED.on(identifier))
-        } else if (isValidSingleUnderscore && !languageVersionSettings.supportsFeature(LanguageFeature.SingleUnderscoreForParameterName)) {
-            diagnosticHolder.report(
-                Errors.UNSUPPORTED_FEATURE.on(
-                    identifier,
-                    LanguageFeature.SingleUnderscoreForParameterName to languageVersionSettings
-                )
-            )
         }
     }
 

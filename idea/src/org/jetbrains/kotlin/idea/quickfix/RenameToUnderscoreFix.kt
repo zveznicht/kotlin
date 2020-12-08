@@ -40,9 +40,7 @@ class RenameToUnderscoreFix(element: KtCallableDeclaration) : KotlinQuickFixActi
                 else -> null
             }
 
-            if (declaration?.nameIdentifier == null || !declaration.languageVersionSettings
-                    .supportsFeature(LanguageFeature.SingleUnderscoreForParameterName)
-            ) {
+            if (declaration?.nameIdentifier == null) {
                 return null
             }
 
