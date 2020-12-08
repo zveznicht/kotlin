@@ -2464,11 +2464,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
                     runTest("compiler/testData/diagnostics/tests/callableReference/generic/nestedCallWithOverload.kt");
                 }
 
-                @TestMetadata("noInferenceFeatureForCallableReferences.kt")
-                public void testNoInferenceFeatureForCallableReferences() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/callableReference/generic/noInferenceFeatureForCallableReferences.kt");
-                }
-
                 @TestMetadata("resolutionGenericCallableWithNullableTypes.kt")
                 public void testResolutionGenericCallableWithNullableTypes() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/callableReference/generic/resolutionGenericCallableWithNullableTypes.kt");

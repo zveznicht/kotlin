@@ -29,7 +29,6 @@ enum class LanguageFeature(
     ShortSyntaxForPropertyGetters(KOTLIN_1_1),
     RefinedSamAdaptersPriority(KOTLIN_1_1),
     SafeCallBoundSmartCasts(KOTLIN_1_1),
-    TypeInferenceOnGenericsForCallableReferences(KOTLIN_1_1),
     NoDelegationToJavaDefaultInterfaceMembers(KOTLIN_1_1),
     DefaultImportOfPackageKotlinComparisons(KOTLIN_1_1),
 
