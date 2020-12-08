@@ -128,7 +128,7 @@ fun StorageComponentContainer.configureJavaSpecificComponents(
     if (useBuiltInsProvider && builtIns is JvmBuiltIns) {
         // TODO(dsavvinov): make sure that useBuiltInsProvider == true <=> builtIns is JvmBuiltIns
         // Currently, that's not the case at least in IDE unit-tests, because they do not set-up
-        // dependency on SDK properly
+        // dependency on SDK properly, see KT-43828
         useInstance(builtIns.settings)
         useImpl<JvmBuiltInsPackageFragmentProvider>()
     }
