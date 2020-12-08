@@ -23213,11 +23213,6 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                 runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noMultiplatformProjects.kt");
             }
 
-            @TestMetadata("noTopLevelSealedInheritance.kt")
-            public void testNoTopLevelSealedInheritance() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noTopLevelSealedInheritance.kt");
-            }
-
             @TestMetadata("compiler/testData/diagnostics/tests/sourceCompatibility/apiVersion")
             @TestDataPath("$PROJECT_ROOT")
             @RunWith(JUnit3RunnerWithInners.class)
