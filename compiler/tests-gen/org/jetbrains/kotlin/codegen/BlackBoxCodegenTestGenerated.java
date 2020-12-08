@@ -17990,11 +17990,6 @@ public class BlackBoxCodegenTestGenerated extends AbstractBlackBoxCodegenTest {
             runTest("compiler/testData/codegen/box/jdk/stream.kt");
         }
 
-        @TestMetadata("streamBackwardCompatibility.kt")
-        public void testStreamBackwardCompatibility() throws Exception {
-            runTest("compiler/testData/codegen/box/jdk/streamBackwardCompatibility.kt");
-        }
-
         @TestMetadata("useStream.kt")
         public void testUseStream() throws Exception {
             runTest("compiler/testData/codegen/box/jdk/useStream.kt");
