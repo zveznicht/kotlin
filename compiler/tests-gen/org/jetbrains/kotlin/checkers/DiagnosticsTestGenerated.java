@@ -23370,39 +23370,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
                     runTest("compiler/testData/diagnostics/tests/sourceCompatibility/apiVersion/typealiasesOnImport.kt");
                 }
             }
-
-            @TestMetadata("compiler/testData/diagnostics/tests/sourceCompatibility/noBoundCallableReferences")
-            @TestDataPath("$PROJECT_ROOT")
-            @RunWith(JUnit3RunnerWithInners.class)
-            public static class NoBoundCallableReferences extends AbstractDiagnosticsTestWithFirValidation {
-                private void runTest(String testDataFilePath) throws Exception {
-                    KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
-                }
-
-                public void testAllFilesPresentInNoBoundCallableReferences() throws Exception {
-                    KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/sourceCompatibility/noBoundCallableReferences"), Pattern.compile("^(.*)\\.kts?$"), Pattern.compile("^(.+)\\.fir\\.kts?$"), true);
-                }
-
-                @TestMetadata("boundCallableReference.kt")
-                public void testBoundCallableReference() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noBoundCallableReferences/boundCallableReference.kt");
-                }
-
-                @TestMetadata("boundClassLiteral.kt")
-                public void testBoundClassLiteral() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noBoundCallableReferences/boundClassLiteral.kt");
-                }
-
-                @TestMetadata("qualifiedJavaClassLiteralInKClassExtension.kt")
-                public void testQualifiedJavaClassLiteralInKClassExtension() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noBoundCallableReferences/qualifiedJavaClassLiteralInKClassExtension.kt");
-                }
-
-                @TestMetadata("qualifiedJavaClassReferenceInKClassExtension.kt")
-                public void testQualifiedJavaClassReferenceInKClassExtension() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noBoundCallableReferences/qualifiedJavaClassReferenceInKClassExtension.kt");
-                }
-            }
         }
 
         @TestMetadata("compiler/testData/diagnostics/tests/substitutions")
