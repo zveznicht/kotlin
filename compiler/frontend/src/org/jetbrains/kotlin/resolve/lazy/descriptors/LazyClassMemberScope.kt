@@ -308,9 +308,7 @@ open class LazyClassMemberScope(
             result.add(DataClassDescriptorResolver.createCopyFunctionDescriptor(constructor.valueParameters, thisDescriptor, trace))
         }
 
-        if (c.languageVersionSettings.supportsFeature(LanguageFeature.DataClassInheritance)) {
-            addFunctionFromAnyIfNeeded(result, name, fromSupertypes)
-        }
+        addFunctionFromAnyIfNeeded(result, name, fromSupertypes)
     }
 
     private fun addFunctionFromAnyIfNeeded(
