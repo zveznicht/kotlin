@@ -24,8 +24,9 @@ import org.jetbrains.kotlin.utils.JavaTypeEnhancementState
 import org.jetbrains.kotlin.utils.ReportLevel
 import java.io.File
 
-val FOREIGN_ANNOTATIONS_SOURCES_PATH = "third-party/annotations"
-val TEST_ANNOTATIONS_SOURCE_PATH = "compiler/testData/foreignAnnotations/testAnnotations"
+const val FOREIGN_ANNOTATIONS_SOURCES_PATH = "third-party/annotations"
+const val FOREIGN_JDK8_ANNOTATIONS_SOURCES_PATH = "third-party/jdk8-annotations"
+const val TEST_ANNOTATIONS_SOURCE_PATH = "compiler/testData/foreignAnnotations/testAnnotations"
 
 abstract class AbstractForeignAnnotationsTest : AbstractDiagnosticsTest() {
     private val JSR305_GLOBAL_DIRECTIVE = "JSR305_GLOBAL_REPORT"

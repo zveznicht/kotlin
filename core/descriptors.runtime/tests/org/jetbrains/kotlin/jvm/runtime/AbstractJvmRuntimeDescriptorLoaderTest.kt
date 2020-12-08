@@ -98,7 +98,7 @@ abstract class AbstractJvmRuntimeDescriptorLoaderTest : TestCaseWithTmpdir() {
         }
 
         val expected = LoadDescriptorUtil.loadTestPackageAndBindingContextFromJavaRoot(
-            tmpdir, testRootDisposable, jdkKind, ConfigurationKind.ALL, true, false, false, null
+            tmpdir, testRootDisposable, jdkKind, ConfigurationKind.ALL, true, false, false, false, null
         ).first
 
         RecursiveDescriptorComparator.validateAndCompareDescriptors(expected, actual, comparatorConfiguration, null)
@@ -125,7 +125,7 @@ abstract class AbstractJvmRuntimeDescriptorLoaderTest : TestCaseWithTmpdir() {
                     },
                     ""
                 )
-                LoadDescriptorUtil.compileJavaWithAnnotationsJar(sources, tmpdir)
+                LoadDescriptorUtil.compileJavaWithAnnotationsJar(sources, tmpdir, false)
             }
             fileName.endsWith(".kt") -> {
                 val environment = KotlinTestUtils.createEnvironmentWithJdkAndNullabilityAnnotationsFromIdea(

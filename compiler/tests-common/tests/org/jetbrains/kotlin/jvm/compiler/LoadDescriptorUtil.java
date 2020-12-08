@@ -43,10 +43,7 @@ import org.jetbrains.kotlin.name.Name;
 import org.jetbrains.kotlin.psi.KtFile;
 import org.jetbrains.kotlin.resolve.BindingContext;
 import org.jetbrains.kotlin.resolve.lazy.JvmResolveUtil;
-import org.jetbrains.kotlin.test.ConfigurationKind;
-import org.jetbrains.kotlin.test.InTextDirectivesUtils;
-import org.jetbrains.kotlin.test.KotlinTestUtils;
-import org.jetbrains.kotlin.test.TestJdkKind;
+import org.jetbrains.kotlin.test.*;
 import org.jetbrains.kotlin.utils.ExceptionUtilsKt;
 
 import java.io.File;
@@ -54,6 +51,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import static org.jetbrains.kotlin.checkers.AbstractForeignAnnotationsTestKt.FOREIGN_JDK8_ANNOTATIONS_SOURCES_PATH;
 
 public class LoadDescriptorUtil {
     @NotNull
@@ -80,6 +79,7 @@ public class LoadDescriptorUtil {
             boolean isBinaryRoot,
             boolean usePsiClassReading,
             boolean useJavacWrapper,
+            boolean withForeignAnnotations,
             @Nullable LanguageVersionSettings explicitLanguageVersionSettings
     ) {
         return loadTestPackageAndBindingContextFromJavaRoot(
@@ -90,6 +90,7 @@ public class LoadDescriptorUtil {
                 isBinaryRoot,
                 usePsiClassReading,
                 useJavacWrapper,
+                withForeignAnnotations,
                 explicitLanguageVersionSettings,
                 Collections.emptyList(),
                 (configuration) -> {}
@@ -105,13 +106,18 @@ public class LoadDescriptorUtil {
             boolean isBinaryRoot,
             boolean usePsiClassReading,
             boolean useJavacWrapper,
+            boolean withForeignAnnotations,
             @Nullable LanguageVersionSettings explicitLanguageVersionSettings,
             @NotNull List<File> additionalClasspath,
             @NotNull Consumer<KotlinCoreEnvironment> configureEnvironment
     ) {
         List<File> javaBinaryRoots = new ArrayList<>();
         // TODO: use the same additional binary roots as those were used for compilation
-        javaBinaryRoots.add(KotlinTestUtils.getAnnotationsJar());
+        if (withForeignAnnotations) {
+            javaBinaryRoots.add(MockLibraryUtil.compileJavaFilesLibraryToJar(FOREIGN_JDK8_ANNOTATIONS_SOURCES_PATH, "foreign-annotations"));
+        } else {
+            javaBinaryRoots.add(KotlinTestUtils.getAnnotationsJar());
+        }
         javaBinaryRoots.add(ForTestCompileRuntime.jvmAnnotationsForTests());
         javaBinaryRoots.addAll(additionalClasspath);
 
@@ -142,7 +148,11 @@ public class LoadDescriptorUtil {
         return Pair.create(packageView, analysisResult.getBindingContext());
     }
 
-    public static void compileJavaWithAnnotationsJar(@NotNull Collection<File> javaFiles, @NotNull File outDir) throws IOException {
+    public static void compileJavaWithAnnotationsJar(
+            @NotNull Collection<File> javaFiles,
+            @NotNull File outDir,
+            boolean useJetbrainsAnnotationsWithTypeUse
+    ) throws IOException {
         List<String> args = new ArrayList<>(Arrays.asList(
                 "-sourcepath", "compiler/testData/loadJava/include",
                 "-d", outDir.getPath())
@@ -151,7 +161,11 @@ public class LoadDescriptorUtil {
         List<File> classpath = new ArrayList<>();
 
         classpath.add(ForTestCompileRuntime.runtimeJarForTests());
-        classpath.add(KotlinTestUtils.getAnnotationsJar());
+        if (useJetbrainsAnnotationsWithTypeUse) {
+            classpath.add(MockLibraryUtil.compileJavaFilesLibraryToJar(FOREIGN_JDK8_ANNOTATIONS_SOURCES_PATH, "foreign-annotations"));
+        } else {
+            classpath.add(KotlinTestUtils.getAnnotationsJar());
+        }
 
         for (File test : javaFiles) {
             String content = FilesKt.readText(test, Charsets.UTF_8);
