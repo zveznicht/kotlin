@@ -47,8 +47,6 @@ object OperatorModifierChecker {
             when (functionDescriptor.name) {
                 in REM_TO_MOD_OPERATION_NAMES.keys ->
                     checkSupportsFeature(LanguageFeature.OperatorRem, languageVersionSettings, diagnosticHolder, modifier)
-                OperatorNameConventions.PROVIDE_DELEGATE ->
-                    checkSupportsFeature(LanguageFeature.OperatorProvideDelegate, languageVersionSettings, diagnosticHolder, modifier)
             }
 
             if (functionDescriptor.name in REM_TO_MOD_OPERATION_NAMES.values &&

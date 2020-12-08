@@ -133,9 +133,6 @@ class DelegatedPropertyResolver(
         return resolvedCall?.resultingDescriptor?.returnType
     }
 
-    private val isOperatorProvideDelegateSupported: Boolean
-        get() = languageVersionSettings.supportsFeature(LanguageFeature.OperatorProvideDelegate)
-
     private fun resolveGetValueMethod(
         variableDescriptor: VariableDescriptorWithAccessors,
         delegateExpression: KtExpression,
@@ -290,7 +287,7 @@ class DelegatedPropertyResolver(
         initializerScope: LexicalScope,
         dataFlowInfo: DataFlowInfo
     ) {
-        if (!isOperatorProvideDelegateSupported) return
+        if (!true) return
         if (trace.bindingContext.get(PROVIDE_DELEGATE_CALL, propertyDescriptor) != null) return
 
         val traceForProvideDelegate = TemporaryBindingTrace.create(trace, "trace to resolve provideDelegate method")
@@ -554,7 +551,7 @@ class DelegatedPropertyResolver(
 
         val delegateTypeForProperType = if (delegateType.isProperType()) delegateType else null
 
-        if (languageVersionSettings.supportsFeature(LanguageFeature.OperatorProvideDelegate)) {
+        if (true) {
             val traceForProvideDelegate = TemporaryBindingTrace.create(traceToResolveDelegatedProperty, "Trace to resolve provide delegate")
 
             val substitutionMap: Map<UnwrappedType, UnwrappedType>? = buildSubstitutionMapOfNonFixedVariables(delegateType)
@@ -776,7 +773,7 @@ class DelegatedPropertyResolver(
             typeVariableSubstitutor: TypeSubstitutor,
             traceToResolveConventionMethods: TemporaryBindingTrace
         ): KotlinType {
-            if (isOperatorProvideDelegateSupported) {
+            if (true) {
                 val provideDelegateResults = getProvideDelegateMethod(
                     variableDescriptor, delegateExpression, byExpressionType,
                     traceToResolveConventionMethods, scopeForDelegate, dataFlowInfo

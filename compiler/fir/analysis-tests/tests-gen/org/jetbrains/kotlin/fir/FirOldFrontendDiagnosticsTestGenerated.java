@@ -6288,11 +6288,6 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirOldFronte
             public void testSimpleProvideDelegate() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/delegatedProperty/provideDelegate/simpleProvideDelegate.kt");
             }
-
-            @TestMetadata("unsupportedOperatorProvideDelegate.kt")
-            public void testUnsupportedOperatorProvideDelegate() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/delegatedProperty/provideDelegate/unsupportedOperatorProvideDelegate.kt");
-            }
         }
     }
 
