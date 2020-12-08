@@ -84,12 +84,19 @@ open class FirImportResolveTransformer protected constructor(
                 val parentPackageFqName = packageFqName.parent()
                 val classFqName = FqName(packageFqName.shortName().asString())
                 val classSymbol = symbolProvider.getClassLikeSymbolByFqName(ClassId(parentPackageFqName, classFqName, false))
-                if (classSymbol != null) {
-                    return buildResolvedImport {
+                return if (classSymbol != null) {
+                    buildResolvedImport {
                         this.delegate = delegate
                         this.packageFqName = parentPackageFqName
                         relativeClassName = classFqName
                         this.symbol = classSymbol
+                    }.compose()
+                } else {
+                    buildResolvedImport {
+                        this.delegate = delegate
+                        this.packageFqName = parentPackageFqName
+                        relativeClassName = null
+                        this.symbol = null
                     }.compose()
                 }
             }
