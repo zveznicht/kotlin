@@ -51,17 +51,7 @@ open class FirImportResolveTransformer protected constructor(
         if (!fqName.isAcceptable) return import.compose()
 
         if (import.isAllUnder) {
-            val (packageFqName, relativeClassFqName, symbol) = resolveToPackageOrClass(symbolProvider, fqName)
-            return if (relativeClassFqName != null && symbol == null) {
-                import.compose()
-            } else {
-                buildResolvedImport {
-                    this.delegate = import
-                    this.packageFqName = packageFqName
-                    relativeClassName = relativeClassFqName
-                    this.symbol = symbol
-                }.compose()
-            }
+            return transformNonClassImportForFqName(fqName, import)
         }
 
         return transformSimpleImportForFqName(fqName, import)
@@ -70,38 +60,27 @@ open class FirImportResolveTransformer protected constructor(
     protected open val FqName.isAcceptable: Boolean
         get() = true
 
+    private fun transformNonClassImportForFqName(fqName: FqName, delegate: FirImport): CompositeTransformResult<FirImport> {
+        val (packageFqName, relativeClassFqName, symbol) = resolveToPackageOrClass(symbolProvider, fqName)
+        return if (relativeClassFqName != null && symbol == null) {
+            delegate.compose()
+        } else {
+            buildResolvedImport {
+                this.delegate = delegate
+                this.packageFqName = packageFqName
+                relativeClassName = relativeClassFqName
+                this.symbol = symbol
+            }.compose()
+        }
+    }
+
     private fun transformSimpleImportForFqName(fqName: FqName, delegate: FirImport): CompositeTransformResult<FirImport> {
         val (packageFqName, relativeClassFqName, symbol) = resolveToPackageOrClass(symbolProvider, fqName)
-        val parentClassFqName = relativeClassFqName?.parent()?.takeIf { !it.isRoot }
         if (symbol == null) {
-            if (relativeClassFqName != null && parentClassFqName != null) {
-                val parentClassId = ClassId(packageFqName, parentClassFqName, false)
-                if (symbolProvider.getClassLikeSymbolByFqName(parentClassId) == null) {
-                    return delegate.compose()
-                }
-            }
-            if (!packageFqName.isRoot && relativeClassFqName == null) {
-                val parentPackageFqName = packageFqName.parent()
-                val classFqName = FqName(packageFqName.shortName().asString())
-                val classSymbol = symbolProvider.getClassLikeSymbolByFqName(ClassId(parentPackageFqName, classFqName, false))
-                return if (classSymbol != null) {
-                    buildResolvedImport {
-                        this.delegate = delegate
-                        this.packageFqName = parentPackageFqName
-                        relativeClassName = classFqName
-                        this.symbol = classSymbol
-                    }.compose()
-                } else {
-                    buildResolvedImport {
-                        this.delegate = delegate
-                        this.packageFqName = parentPackageFqName
-                        relativeClassName = null
-                        this.symbol = null
-                    }.compose()
-                }
-            }
+            return transformNonClassImportForFqName(fqName.parent(), delegate)
         }
 
+        val parentClassFqName = relativeClassFqName?.parent()?.takeIf { !it.isRoot }
         return buildResolvedImport {
             this.delegate = delegate
             this.packageFqName = packageFqName
