@@ -75,7 +75,7 @@ open class FirImportResolveTransformer protected constructor(
     }
 
     private fun transformSimpleImportForFqName(fqName: FqName, delegate: FirImport): CompositeTransformResult<FirImport> {
-        val (packageFqName, relativeClassFqName, symbol) = resolveToPackageOrClass(symbolProvider, fqName)
+        val (packageFqName, relativeClassFqName, symbol) = resolveToPackageOrClass(symbolProvider, fqName, missFirst = true)
         if (symbol == null) {
             return transformNonClassImportForFqName(fqName.parent(), delegate)
         }
@@ -90,17 +90,19 @@ open class FirImportResolveTransformer protected constructor(
     }
 }
 
-fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName): PackageOrClass {
+fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName, missFirst: Boolean = false): PackageOrClass {
     var currentPackage = fqName
 
     val pathSegments = fqName.pathSegments()
     var prefixSize = pathSegments.size
+    var miss = missFirst
     while (!currentPackage.isRoot && prefixSize > 0) {
-        if (symbolProvider.getPackage(currentPackage) != null) {
+        if (!miss && symbolProvider.getPackage(currentPackage) != null) {
             break
         }
         currentPackage = currentPackage.parent()
         prefixSize--
+        miss = false
     }
 
     if (currentPackage == fqName) return PackageOrClass(currentPackage, null, null)
