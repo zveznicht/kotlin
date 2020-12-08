@@ -4265,16 +4265,6 @@ public class DiagnosticsTestWithStdLibGenerated extends AbstractDiagnosticsTestW
             runTest("compiler/testData/diagnostics/testsWithStdLib/typealias/exceptionTypeAliases.kt");
         }
 
-        @TestMetadata("exceptionTypeAliasesInvisibleWithApiVersion1_0.kt")
-        public void testExceptionTypeAliasesInvisibleWithApiVersion1_0() throws Exception {
-            runTest("compiler/testData/diagnostics/testsWithStdLib/typealias/exceptionTypeAliasesInvisibleWithApiVersion1_0.kt");
-        }
-
-        @TestMetadata("exceptionTypeAliasesInvisibleWithoutFeature.kt")
-        public void testExceptionTypeAliasesInvisibleWithoutFeature() throws Exception {
-            runTest("compiler/testData/diagnostics/testsWithStdLib/typealias/exceptionTypeAliasesInvisibleWithoutFeature.kt");
-        }
-
         @TestMetadata("hashMapTypeAlias.kt")
         public void testHashMapTypeAlias() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/typealias/hashMapTypeAlias.kt");

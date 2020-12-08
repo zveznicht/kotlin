@@ -235,10 +235,7 @@ abstract class DeserializedMemberScope protected constructor(
         private val propertyProtosBytes = propertyList.groupByName { it.name }.packToByteArray()
 
         private val typeAliasBytes =
-            if (c.components.configuration.typeAliasesAllowed)
-                typeAliasList.groupByName { it.name }.packToByteArray()
-            else
-                emptyMap()
+            typeAliasList.groupByName { it.name }.packToByteArray()
 
         private fun Map<Name, Collection<AbstractMessageLite>>.packToByteArray(): Map<Name, ByteArray> =
             mapValues { entry ->
@@ -388,10 +385,8 @@ abstract class DeserializedMemberScope protected constructor(
     private inner class NoReorderImplementation(
         private val functionList: List<ProtoBuf.Function>,
         private val propertyList: List<ProtoBuf.Property>,
-        typeAliasList: List<ProtoBuf.TypeAlias>
+        private val typeAliasList: List<ProtoBuf.TypeAlias>
     ) : Implementation {
-
-        private val typeAliasList = if (c.components.configuration.typeAliasesAllowed) typeAliasList else emptyList()
 
         private val declaredFunctions: List<SimpleFunctionDescriptor>
                 by c.storageManager.createLazyValue { computeFunctions() }

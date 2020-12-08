@@ -757,16 +757,6 @@ public class DescriptorResolver {
                     ErrorUtils.createErrorType(name.asString()),
                     ErrorUtils.createErrorType(name.asString()));
         }
-        else if (!languageVersionSettings.supportsFeature(LanguageFeature.TypeAliases)) {
-            typeResolver.resolveAbbreviatedType(scopeWithTypeParameters, typeReference, trace);
-            PsiElement typeAliasKeyword = typeAlias.getTypeAliasKeyword();
-            trace.report(UNSUPPORTED_FEATURE.on(typeAliasKeyword != null ? typeAliasKeyword : typeAlias,
-                                                TuplesKt.to(LanguageFeature.TypeAliases, languageVersionSettings)));
-            typeAliasDescriptor.initialize(
-                    typeParameterDescriptors,
-                    ErrorUtils.createErrorType(name.asString()),
-                    ErrorUtils.createErrorType(name.asString()));
-        }
         else {
             typeAliasDescriptor.initialize(
                     typeParameterDescriptors,

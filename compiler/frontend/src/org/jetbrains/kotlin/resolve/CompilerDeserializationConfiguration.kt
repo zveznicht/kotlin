@@ -21,8 +21,6 @@ class CompilerDeserializationConfiguration(languageVersionSettings: LanguageVers
 
     override val reportErrorsOnIrDependencies = languageVersionSettings.getFlag(AnalysisFlags.reportErrorsOnIrDependencies)
 
-    override val typeAliasesAllowed = languageVersionSettings.supportsFeature(LanguageFeature.TypeAliases)
-
     override val isJvmPackageNameSupported = languageVersionSettings.supportsFeature(LanguageFeature.JvmPackageName)
 
     override val readDeserializedContracts: Boolean = languageVersionSettings.supportsFeature(LanguageFeature.ReadDeserializedContracts)
