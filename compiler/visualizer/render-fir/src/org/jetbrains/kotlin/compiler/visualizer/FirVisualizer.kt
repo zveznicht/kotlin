@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.fir.references.FirNamedReference
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
 import org.jetbrains.kotlin.fir.resolve.directExpansionType
 import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
-import org.jetbrains.kotlin.fir.resolve.getSymbolByLookupTag
+import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.firUnsafe
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.*
@@ -302,7 +302,7 @@ class FirVisualizer(private val firFile: FirFile) : BaseRenderer() {
                 if (it is FirResolvedQualifier) {
                     val lookupTag = (it.typeRef as FirResolvedTypeRef).coneTypeSafe<ConeClassLikeType>()?.lookupTag
                     val type = lookupTag?.let {
-                        (symbolProvider.getSymbolByLookupTag(it)?.fir as? FirClass)?.superTypeRefs?.first()?.render()
+                        (it.toSymbol(symbolProvider.session)?.fir as? FirClass)?.superTypeRefs?.first()?.render()
                     }
                     if (type != null) return@joinTo type
                 }
@@ -382,7 +382,7 @@ class FirVisualizer(private val firFile: FirFile) : BaseRenderer() {
                 data.append(coneClassType.lookupTag.classId.getWithoutCurrentPackage())
 
                 val typeParameters =
-                    (symbolProvider.getSymbolByLookupTag(coneClassType.lookupTag)?.fir as? FirRegularClass)
+                    (coneClassType.lookupTag.toSymbol(symbolProvider.session)?.fir as? FirRegularClass)
                         ?.typeParameters ?: emptyList()
                 renderListInTriangles(typeParameters, data)
                 visitArguments(delegatedConstructorCall.arguments, data)

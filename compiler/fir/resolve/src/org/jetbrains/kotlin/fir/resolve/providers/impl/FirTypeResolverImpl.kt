@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.diagnostics.ConeWrongNumberOfTypeArgumentsError
-import org.jetbrains.kotlin.fir.resolve.getSymbolByLookupTag
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
@@ -51,7 +50,7 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
     ): Pair<FirClassifierSymbol<*>?, ConeSubstitutor?> {
         return when (typeRef) {
             is FirResolvedTypeRef -> {
-                val resultSymbol = typeRef.coneTypeSafe<ConeLookupTagBasedType>()?.lookupTag?.let(symbolProvider::getSymbolByLookupTag)
+                val resultSymbol = typeRef.coneTypeSafe<ConeLookupTagBasedType>()?.lookupTag?.toSymbol(symbolProvider.session)
                 resultSymbol to null
             }
 

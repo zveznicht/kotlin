@@ -10,9 +10,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.search.GlobalSearchScope
 import org.jetbrains.kotlin.fir.FirElement
 import org.jetbrains.kotlin.fir.declarations.*
-import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
-import org.jetbrains.kotlin.fir.resolve.getSymbolByLookupTag
+import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.ConeTypeParameterLookupTag
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassifierSymbol
@@ -23,7 +22,6 @@ import org.jetbrains.kotlin.idea.fir.low.level.api.api.FirModuleResolveState
 import org.jetbrains.kotlin.idea.frontend.api.*
 import org.jetbrains.kotlin.idea.frontend.api.fir.symbols.*
 import org.jetbrains.kotlin.idea.frontend.api.fir.types.*
-import org.jetbrains.kotlin.idea.frontend.api.fir.utils.threadLocal
 import org.jetbrains.kotlin.idea.frontend.api.fir.utils.weakRef
 import org.jetbrains.kotlin.idea.frontend.api.symbols.*
 import org.jetbrains.kotlin.idea.frontend.api.types.KtType
@@ -155,11 +153,11 @@ internal class KtSymbolByFirBuilder private constructor(
     }
 
     fun buildClassLikeSymbolByLookupTag(lookupTag: ConeClassLikeLookupTag): KtClassLikeSymbol? = withValidityAssertion {
-        firProvider.getSymbolByLookupTag(lookupTag)?.fir?.let(::buildClassLikeSymbol)
+        lookupTag.toSymbol(firProvider.session)?.fir?.let(::buildClassLikeSymbol)
     }
 
     fun buildTypeParameterSymbolByLookupTag(lookupTag: ConeTypeParameterLookupTag): KtTypeParameterSymbol? = withValidityAssertion {
-        (firProvider.getSymbolByLookupTag(lookupTag) as? FirTypeParameterSymbol)?.fir?.let(::buildTypeParameterSymbol)
+        (lookupTag.toSymbol(firProvider.session) as? FirTypeParameterSymbol)?.fir?.let(::buildTypeParameterSymbol)
     }
 
     fun buildClassLikeSymbolByClassId(classId: ClassId): FirRegularClass? = withValidityAssertion {
