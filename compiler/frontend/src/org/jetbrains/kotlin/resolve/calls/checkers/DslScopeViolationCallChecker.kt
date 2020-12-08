@@ -28,7 +28,6 @@ import org.jetbrains.kotlin.resolve.scopes.utils.parentsWithSelf
 
 object DslScopeViolationCallChecker : CallChecker {
     override fun check(resolvedCall: ResolvedCall<*>, reportOn: PsiElement, context: CallCheckerContext) {
-        if (!context.languageVersionSettings.supportsFeature(LanguageFeature.DslMarkersSupport)) return
         val callImplicitReceivers = resolvedCall.getImplicitReceivers()
 
         val originalReceivers = if (context.languageVersionSettings.supportsFeature(LanguageFeature.NewInference))

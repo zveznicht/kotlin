@@ -19384,11 +19384,6 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirOldFronte
                 runTest("compiler/testData/diagnostics/tests/resolve/dslMarker/twoLanguages.kt");
             }
 
-            @TestMetadata("unsupportedFeature.kt")
-            public void testUnsupportedFeature() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/resolve/dslMarker/unsupportedFeature.kt");
-            }
-
             @TestMetadata("useOfExtensions.kt")
             public void testUseOfExtensions() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/resolve/dslMarker/useOfExtensions.kt");

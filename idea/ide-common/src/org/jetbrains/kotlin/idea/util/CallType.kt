@@ -320,7 +320,7 @@ fun CallTypeAndReceiver<*, *>.receiverTypesWithIndex(
     }
 
     val implicitReceiverValues = resolutionScope.getImplicitReceiversWithInstance(
-        excludeShadowedByDslMarkers = languageVersionSettings.supportsFeature(LanguageFeature.DslMarkersSupport)
+        excludeShadowedByDslMarkers = true
     ).map { it.value }
 
     val dataFlowInfo = bindingContext.getDataFlowInfoBefore(contextElement)

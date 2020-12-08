@@ -178,7 +178,7 @@ class ReferenceVariantsHelper(
         val languageVersionSettings = resolutionFacade.frontendService<LanguageVersionSettings>()
 
         val implicitReceiverTypes = resolutionScope.getImplicitReceiversWithInstance(
-            languageVersionSettings.supportsFeature(LanguageFeature.DslMarkersSupport)
+            true
         ).flatMap {
             smartCastManager.getSmartCastVariantsWithLessSpecificExcluded(
                 it.value,
