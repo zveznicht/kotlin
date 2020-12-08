@@ -44,12 +44,6 @@ object CreatePropertyDelegateAccessorsActionFactory : CreateCallableMemberFromUs
         val propertyDescriptor = context[BindingContext.DECLARATION_TO_DESCRIPTOR, property] as? VariableDescriptorWithAccessors
             ?: return emptyList()
 
-        if (propertyDescriptor is LocalVariableDescriptor
-            && !element.languageVersionSettings.supportsFeature(LanguageFeature.LocalDelegatedProperties)
-        ) {
-            return emptyList()
-        }
-
         val propertyReceiver = propertyDescriptor.extensionReceiverParameter ?: propertyDescriptor.dispatchReceiverParameter
         val propertyType = propertyDescriptor.type
 

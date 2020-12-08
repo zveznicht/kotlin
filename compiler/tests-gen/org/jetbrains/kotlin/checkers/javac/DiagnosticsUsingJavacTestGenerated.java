@@ -23208,11 +23208,6 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                 runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noInlineProperty.kt");
             }
 
-            @TestMetadata("noLocalDelegatedProperty.kt")
-            public void testNoLocalDelegatedProperty() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noLocalDelegatedProperty.kt");
-            }
-
             @TestMetadata("noMultiplatformProjects.kt")
             public void testNoMultiplatformProjects() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/sourceCompatibility/noMultiplatformProjects.kt");
