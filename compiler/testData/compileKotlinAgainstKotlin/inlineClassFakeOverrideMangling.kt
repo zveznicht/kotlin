@@ -8,8 +8,15 @@ abstract class A {
     fun foo(s: String) = IC(s)
 }
 
-class C : A()
+open class C : A()
+
+class D: C()
 
 // FILE: 2.kt
 
-fun box() = C().foo("OK").s
+fun box(): String {
+    var res = C().foo("OK").s
+    if (res != "OK") return "FAIL 1 $res"
+    res = D().foo("OK").s
+    return res
+}
