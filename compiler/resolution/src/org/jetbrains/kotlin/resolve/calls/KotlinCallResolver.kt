@@ -122,16 +122,9 @@ class KotlinCallResolver(
         expectedType: UnwrappedType?,
         candidates: Collection<KotlinResolutionCandidate>
     ): CallResolutionResult {
-        var refinedCandidates = candidates
-        if (!callComponents.languageVersionSettings.supportsFeature(LanguageFeature.RefinedSamAdaptersPriority)) {
-            val nonSynthesized = candidates.filter { !it.resolvedCall.candidateDescriptor.isSynthesized }
-            if (!nonSynthesized.isEmpty()) {
-                refinedCandidates = nonSynthesized
-            }
-        }
 
         var maximallySpecificCandidates = overloadingConflictResolver.chooseMaximallySpecificCandidates(
-            refinedCandidates,
+            candidates,
             CheckArgumentTypesMode.CHECK_VALUE_ARGUMENTS,
             discriminateGenerics = true // todo
         )

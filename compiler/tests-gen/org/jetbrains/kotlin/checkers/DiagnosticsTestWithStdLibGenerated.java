@@ -3972,19 +3972,9 @@ public class DiagnosticsTestWithStdLibGenerated extends AbstractDiagnosticsTestW
             runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/samOverloadsWithGenerics.kt");
         }
 
-        @TestMetadata("samOverloadsWithGenericsWithoutRefinedSams.kt")
-        public void testSamOverloadsWithGenericsWithoutRefinedSams() throws Exception {
-            runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/samOverloadsWithGenericsWithoutRefinedSams.kt");
-        }
-
         @TestMetadata("samOverloadsWithKtFunction.kt")
         public void testSamOverloadsWithKtFunction() throws Exception {
             runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/samOverloadsWithKtFunction.kt");
-        }
-
-        @TestMetadata("samOverloadsWithKtFunctionWithoutRefinedSams.kt")
-        public void testSamOverloadsWithKtFunctionWithoutRefinedSams() throws Exception {
-            runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/samOverloadsWithKtFunctionWithoutRefinedSams.kt");
         }
     }
 

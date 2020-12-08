@@ -208,22 +208,8 @@ public class ResolutionResultsHandler {
     ) {
         OverloadingConflictResolver<MutableResolvedCall<D>> myResolver = (OverloadingConflictResolver) overloadingConflictResolver;
 
-        Set<MutableResolvedCall<D>> refinedCandidates = candidates;
-        if (!languageVersionSettings.supportsFeature(LanguageFeature.RefinedSamAdaptersPriority)) {
-            Set<MutableResolvedCall<D>> nonSynthesized = new HashSet<>();
-            for (MutableResolvedCall<D> candidate : candidates) {
-                if (!TowerUtilsKt.isSynthesized(candidate.getCandidateDescriptor())) {
-                    nonSynthesized.add(candidate);
-                }
-            }
-
-            if (!nonSynthesized.isEmpty()) {
-                refinedCandidates = nonSynthesized;
-            }
-        }
-
         Set<MutableResolvedCall<D>> specificCalls =
-                myResolver.chooseMaximallySpecificCandidates(refinedCandidates, checkArgumentsMode, discriminateGenerics);
+                myResolver.chooseMaximallySpecificCandidates(candidates, checkArgumentsMode, discriminateGenerics);
 
         if (specificCalls.size() > 1) {
             specificCalls = specificCalls.stream()

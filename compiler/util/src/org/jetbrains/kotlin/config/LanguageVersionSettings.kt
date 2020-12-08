@@ -26,7 +26,6 @@ enum class LanguageFeature(
     InlineConstVals(KOTLIN_1_1),
     OperatorRem(KOTLIN_1_1),
     ShortSyntaxForPropertyGetters(KOTLIN_1_1),
-    RefinedSamAdaptersPriority(KOTLIN_1_1),
     NoDelegationToJavaDefaultInterfaceMembers(KOTLIN_1_1),
     DefaultImportOfPackageKotlinComparisons(KOTLIN_1_1),
 

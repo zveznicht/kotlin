@@ -23975,16 +23975,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
                     runTest("compiler/testData/diagnostics/tests/syntheticExtensions/samAdapters/overloadResolutionStatic.kt");
                 }
 
-                @TestMetadata("overloadResolutionStaticWithoutRefinedSams.kt")
-                public void testOverloadResolutionStaticWithoutRefinedSams() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/syntheticExtensions/samAdapters/overloadResolutionStaticWithoutRefinedSams.kt");
-                }
-
-                @TestMetadata("overloadResolutionWithoutRefinedSams.kt")
-                public void testOverloadResolutionWithoutRefinedSams() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/syntheticExtensions/samAdapters/overloadResolutionWithoutRefinedSams.kt");
-                }
-
                 @TestMetadata("PackageLocal.kt")
                 public void testPackageLocal() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/syntheticExtensions/samAdapters/PackageLocal.kt");
