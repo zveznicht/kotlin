@@ -14,7 +14,7 @@ object SpecialJvmAnnotations {
         JvmAnnotationNames.METADATA_FQ_NAME,
         JvmAnnotationNames.JETBRAINS_NOT_NULL_ANNOTATION,
         JvmAnnotationNames.JETBRAINS_NULLABLE_ANNOTATION,
-        FqName("java.lang.annotation.Target"),
+        JvmAnnotationNames.TARGET_ANNOTATION,
         FqName("java.lang.annotation.Retention"),
         FqName("java.lang.annotation.Documented")
     ).mapTo(mutableSetOf(), ClassId::topLevel)
