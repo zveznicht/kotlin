@@ -14648,11 +14648,6 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirOldFronte
                 runTest("compiler/testData/diagnostics/tests/modifiers/const/kt15913.kt");
             }
 
-            @TestMetadata("noDivisionByZeroFeature.kt")
-            public void testNoDivisionByZeroFeature() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/modifiers/const/noDivisionByZeroFeature.kt");
-            }
-
             @TestMetadata("types.kt")
             public void testTypes() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/modifiers/const/types.kt");

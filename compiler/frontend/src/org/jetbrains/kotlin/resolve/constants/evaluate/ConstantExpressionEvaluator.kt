@@ -647,9 +647,7 @@ private class ConstantExpressionEvaluatorVisitor(
                 val parentExpression: KtExpression = PsiTreeUtil.getParentOfType(receiverExpression, KtExpression::class.java)!!
                 trace.report(Errors.DIVISION_BY_ZERO.on(parentExpression))
 
-                if ((isIntegerType(argumentForReceiver.value) && isIntegerType(argumentForParameter.value)) ||
-                    !languageVersionSettings.supportsFeature(LanguageFeature.DivisionByZeroInConstantExpressions)
-                ) {
+                if (isIntegerType(argumentForReceiver.value) && isIntegerType(argumentForParameter.value)) {
                     return ErrorValue.create("Division by zero").wrap()
                 }
             }

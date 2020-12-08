@@ -22,7 +22,6 @@ enum class LanguageFeature(
     DestructuringLambdaParameters(KOTLIN_1_1),
     DslMarkersSupport(KOTLIN_1_1),
     UnderscoresInNumericLiterals(KOTLIN_1_1),
-    DivisionByZeroInConstantExpressions(KOTLIN_1_1),
     InlineConstVals(KOTLIN_1_1),
     ShortSyntaxForPropertyGetters(KOTLIN_1_1),
     NoDelegationToJavaDefaultInterfaceMembers(KOTLIN_1_1),
