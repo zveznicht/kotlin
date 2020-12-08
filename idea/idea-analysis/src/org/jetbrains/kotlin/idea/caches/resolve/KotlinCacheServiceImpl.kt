@@ -227,7 +227,7 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
 
     private fun IdeaModuleInfo.platformSettings(targetPlatform: TargetPlatform) = PlatformAnalysisSettings.create(
         this@KotlinCacheServiceImpl.project, targetPlatform, sdk,
-        supportsAdditionalBuiltInsMembers(this@KotlinCacheServiceImpl.project),
+        true,
         isReleaseCoroutines()
     )
 
@@ -520,12 +520,6 @@ class KotlinCacheServiceImpl(val project: Project) : KotlinCacheService {
     private companion object {
         private val SUPPRESS_ANNOTATION_SHORT_NAME = StandardNames.FqNames.suppress.shortName().identifier
     }
-}
-
-fun IdeaModuleInfo.supportsAdditionalBuiltInsMembers(project: Project): Boolean {
-    return IDELanguageSettingsProvider
-        .getLanguageVersionSettings(this, project)
-        .supportsFeature(LanguageFeature.AdditionalBuiltInsMembers)
 }
 
 val IdeaModuleInfo.sdk: Sdk? get() = dependencies().firstIsInstanceOrNull<SdkInfo>()?.sdk
