@@ -20,7 +20,10 @@ import org.jetbrains.kotlin.fir.visitors.compose
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
-class FirImportResolveProcessor(session: FirSession, scopeSession: ScopeSession) : FirTransformerBasedResolveProcessor(session, scopeSession) {
+class FirImportResolveProcessor(
+    session: FirSession,
+    scopeSession: ScopeSession
+) : FirTransformerBasedResolveProcessor(session, scopeSession) {
     override val transformer = FirImportResolveTransformer(session)
 }
 
@@ -48,37 +51,53 @@ open class FirImportResolveTransformer protected constructor(
         if (!fqName.isAcceptable) return import.compose()
 
         if (import.isAllUnder) {
-            return transformImportForFqName(fqName, import)
+            return transformNonClassImportForFqName(fqName, import)
         }
 
-        val parentFqName = fqName.parent()
-        return transformImportForFqName(parentFqName, import)
+        return transformSimpleImportForFqName(fqName, import)
     }
 
     protected open val FqName.isAcceptable: Boolean
         get() = true
 
-    private fun transformImportForFqName(fqName: FqName, delegate: FirImport): CompositeTransformResult<FirImport> {
-        val (packageFqName, relativeClassFqName) = resolveToPackageOrClass(symbolProvider, fqName) ?: return delegate.compose()
+    private fun transformNonClassImportForFqName(fqName: FqName, delegate: FirImport): CompositeTransformResult<FirImport> {
+        val (packageFqName, relativeClassFqName) = resolveToPackageOrClass(symbolProvider, fqName)
+            ?: return delegate.compose()
         return buildResolvedImport {
             this.delegate = delegate
             this.packageFqName = packageFqName
             relativeClassName = relativeClassFqName
+            this.symbol = null
+        }.compose()
+    }
+
+    private fun transformSimpleImportForFqName(fqName: FqName, delegate: FirImport): CompositeTransformResult<FirImport> {
+        val (packageFqName, relativeClassFqName, symbol) = resolveToPackageOrClass(symbolProvider, fqName, missFirst = true)
+            ?: return transformNonClassImportForFqName(fqName.parent(), delegate)
+
+        val parentClassFqName = relativeClassFqName?.parent()?.takeIf { !it.isRoot }
+        return buildResolvedImport {
+            this.delegate = delegate
+            this.packageFqName = packageFqName
+            relativeClassName = parentClassFqName
+            this.symbol = symbol
         }.compose()
     }
 }
 
-fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName): PackageOrClass? {
+fun resolveToPackageOrClass(symbolProvider: FirSymbolProvider, fqName: FqName, missFirst: Boolean = false): PackageOrClass? {
     var currentPackage = fqName
 
     val pathSegments = fqName.pathSegments()
     var prefixSize = pathSegments.size
+    var miss = missFirst
     while (!currentPackage.isRoot && prefixSize > 0) {
-        if (symbolProvider.getPackage(currentPackage) != null) {
+        if (!miss && symbolProvider.getPackage(currentPackage) != null) {
             break
         }
         currentPackage = currentPackage.parent()
         prefixSize--
+        miss = false
     }
 
     if (currentPackage == fqName) return PackageOrClass(currentPackage, null, null)
