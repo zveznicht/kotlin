@@ -1,10 +1,10 @@
-// !LANGUAGE: +ImprovementsAroundTypeEnhancement +ReadTypeUseAnnotationsFromClassFiles
+// !LANGUAGE: +ReadTypeUseAnnotationsFromClassFiles
 
 package test;
 
 import org.jetbrains.annotations.*;
 
-public class Basic<T extends @NotNull Object> {
+public class Basic_DisabledImprovements<T extends @NotNull Object> {
     interface G<T> extends G2<@NotNull T, @NotNull String> { }
 
     interface G2<A, B> { }
