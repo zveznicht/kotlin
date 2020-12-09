@@ -8,8 +8,7 @@ fun ping(a: String = "A", b: Int = 1): String {
 }
 
 @JsExport
-open class Ping {
-    private val defaultSeed = 3
+open class Ping(private val defaultSeed: Int = 3) {
     private fun calculate(n: Int) = n * n
     fun ping(s: Int = defaultSeed, c: (Int) -> Int = ::calculate): Int {
         return c(s)
@@ -44,7 +43,8 @@ external interface JsResult {
     val transform00: Int
     val transform11: Int
 
-    val Ping_ping00: Int
+    val Ping_ping00a: Int
+    val Ping_ping00b: Int
     val Ping_ping11: Int
 
     val Pong_ping00: Int
@@ -88,16 +88,18 @@ fun box(): String {
         return "fail9: ${res.transform11}"
     }
 
-    if (res.Ping_ping00 != 9) {
-        return "fail10: ${res.Ping_ping00}"
+    if (res.Ping_ping00a != 9) {
+        return "fail10: ${res.Ping_ping00a}"
+    }
+    if (res.Ping_ping00b != 100) {
+        return "fail11: ${res.Ping_ping00b}"
     }
     if (res.Ping_ping11 != -64) {
-        return "fail11: ${res.Ping_ping11}"
+        return "fail12: ${res.Ping_ping11}"
     }
     if (res.Pong_ping00 != 9) {
-        return "fail12: ${res.Pong_ping00}"
+        return "fail13: ${res.Pong_ping00}"
     }
-
 
     return "OK"
 }
