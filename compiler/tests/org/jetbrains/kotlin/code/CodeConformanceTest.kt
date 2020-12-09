@@ -338,6 +338,11 @@ class CodeConformanceTest : TestCase() {
             RepoAllowList("https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-dev", root, setOf()),
             RepoAllowList(
                 // Please use cache-redirector for importing in tests
+                "https://dl.bintray.com/kotlin/kotlin-eap", root, setOf()
+            ),
+            RepoAllowList("https://cache-redirector.jetbrains.com/dl.bintray.com/kotlin/kotlin-eap", root, setOf()),
+            RepoAllowList(
+                // Please use cache-redirector for importing in tests
                 "https://dl.bintray.com/kotlin/kotlin-bootstrap", root, setOf(
                     "kotlin-ultimate/build.gradle.kts"
                 )
