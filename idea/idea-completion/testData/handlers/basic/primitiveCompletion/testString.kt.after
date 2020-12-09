@@ -1,0 +1,7 @@
+// FIR_COMPARISON
+
+fun test(): String {
+
+}
+
+// ELEMENT: String
