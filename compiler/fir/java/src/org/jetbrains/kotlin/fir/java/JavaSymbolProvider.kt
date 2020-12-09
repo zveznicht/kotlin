@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusIm
 import org.jetbrains.kotlin.fir.expressions.FirExpression
 import org.jetbrains.kotlin.fir.expressions.builder.*
 import org.jetbrains.kotlin.fir.java.declarations.*
+import org.jetbrains.kotlin.fir.java.types.FirLazyJavaSuperTypeRef
 import org.jetbrains.kotlin.fir.resolve.constructType
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
@@ -267,8 +268,15 @@ class JavaSymbolProvider(
         }
         firJavaClass.replaceSuperTypeRefs(
             javaClass.supertypes.map { supertype ->
-                supertype.toFirResolvedTypeRef(
-                    this@JavaSymbolProvider.session, javaTypeParameterStack, isForSupertypes = true, forTypeParameterBounds = false
+                FirLazyJavaSuperTypeRef(
+                    computeDelegate = {
+                        supertype.toFirResolvedTypeRef(
+                            this@JavaSymbolProvider.session,
+                            javaTypeParameterStack,
+                            isForSupertypes = true,
+                            forTypeParameterBounds = false
+                        )
+                    }
                 )
             }
         )
