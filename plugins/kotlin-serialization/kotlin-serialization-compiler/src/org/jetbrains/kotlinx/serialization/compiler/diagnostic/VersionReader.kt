@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.config.ApiVersion
 import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinarySourceElement
+import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.BindingTrace
 import org.jetbrains.kotlin.util.slicedMap.Slices
@@ -64,5 +65,14 @@ object VersionReader {
         val file = File(jarFile)
         if (!file.exists()) return null
         return getVersionsFromManifest(file)
+    }
+
+    internal val minVersionForInlineClasses = ApiVersion.parse("1.1-M1-SNAPSHOT")!!
+
+    fun canSupportInlineClasses(module: ModuleDescriptor, trace: BindingTrace): Boolean {
+        // Klibs do not have manifest file, unfortunately, so we hope for the better
+        val currentVersion = getVersionsForCurrentModuleFromTrace(module, trace) ?: return true
+        val implVersion = currentVersion.implementationVersion ?: return false
+        return implVersion >= minVersionForInlineClasses
     }
 }
