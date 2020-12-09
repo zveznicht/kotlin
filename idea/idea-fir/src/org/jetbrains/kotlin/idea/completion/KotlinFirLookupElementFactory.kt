@@ -16,11 +16,18 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
+import org.jetbrains.kotlin.idea.frontend.api.HackToForceAllowRunningAnalyzeOnEDT
 import org.jetbrains.kotlin.idea.frontend.api.KtAnalysisSession
+import org.jetbrains.kotlin.idea.frontend.api.hackyAllowRunningOnEdt
 import org.jetbrains.kotlin.idea.frontend.api.symbols.*
 import org.jetbrains.kotlin.idea.frontend.api.symbols.markers.KtNamedSymbol
+import org.jetbrains.kotlin.idea.frontend.api.types.KtType
+import org.jetbrains.kotlin.idea.frontend.api.types.render
+import org.jetbrains.kotlin.idea.shortenRefs.FirShortenReferences
 import org.jetbrains.kotlin.lexer.KtTokens
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtTypeArgumentList
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import org.jetbrains.kotlin.renderer.render
@@ -54,6 +61,12 @@ private class UniqueLookupObject
 private class ClassLookupElementFactory {
     fun createLookup(symbol: KtClassLikeSymbol): LookupElementBuilder {
         return LookupElementBuilder.create(UniqueLookupObject(), symbol.name.asString())
+            .withInsertHandler(createInsertHandler(symbol))
+    }
+
+    private fun createInsertHandler(symbol: KtClassLikeSymbol): InsertHandler<LookupElement>? {
+        val classFqName = symbol.classIdIfNonLocal?.asSingleFqName() ?: return null
+        return ClassifierInsertionHandler(classFqName)
     }
 }
 
@@ -122,6 +135,23 @@ private class FunctionLookupElementFactory {
 
     companion object {
         private val LOG = logger<FunctionLookupElementFactory>()
+    }
+}
+
+/**
+ * The simplest implementation of the insertion handler for a classifiers.
+ */
+private class ClassifierInsertionHandler(private val fqName: FqName) : InsertHandler<LookupElement> {
+    override fun handleInsert(context: InsertionContext, item: LookupElement) {
+        val targetFile = context.file as? KtFile ?: return
+        context.document.replaceString(context.startOffset, context.tailOffset, fqName.render())
+
+        val (fqnTypeStart, fqnTypeEnd) = context.startOffset to context.tailOffset
+
+        context.commitDocument()
+
+        val shortenings = withAllowedResolve { FirShortenReferences.collectPossibleShortenings(targetFile, fqnTypeStart, fqnTypeEnd) }
+        FirShortenReferences.performShortenings(targetFile, shortenings)
     }
 }
 
@@ -247,4 +277,10 @@ private fun CharSequence.indexOfSkippingSpace(c: Char, startIndex: Int): Int? {
         if (currentChar != ' ' && currentChar != '\t') return null
     }
     return null
+}
+
+// FIXME: This is a hack, we should think how we can get rid of it
+private inline fun <T> withAllowedResolve(action: () -> T): T {
+    @OptIn(HackToForceAllowRunningAnalyzeOnEDT::class)
+    return hackyAllowRunningOnEdt(action)
 }
