@@ -65,8 +65,11 @@ class SignatureEnhancement(
         }
     }
 
-    fun extractNullability(annotationDescriptor: AnnotationDescriptor): NullabilityQualifierWithMigrationStatus? {
-        extractNullabilityFromKnownAnnotations(annotationDescriptor)?.let { return it }
+    fun extractNullability(
+        annotationDescriptor: AnnotationDescriptor,
+        isImprovementsEnabled: Boolean
+    ): NullabilityQualifierWithMigrationStatus? {
+        extractNullabilityFromKnownAnnotations(annotationDescriptor, isImprovementsEnabled)?.let { return it }
 
         val typeQualifierAnnotation =
             annotationTypeQualifierResolver.resolveTypeQualifierAnnotation(annotationDescriptor)
@@ -75,18 +78,19 @@ class SignatureEnhancement(
         val jsr305State = annotationTypeQualifierResolver.resolveJsr305AnnotationState(annotationDescriptor)
         if (jsr305State.isIgnore) return null
 
-        return extractNullabilityFromKnownAnnotations(typeQualifierAnnotation)?.copy(isForWarningOnly = jsr305State.isWarning)
+        return extractNullabilityFromKnownAnnotations(typeQualifierAnnotation, isImprovementsEnabled)
+            ?.copy(isForWarningOnly = jsr305State.isWarning)
     }
 
     private fun extractNullabilityFromKnownAnnotations(
-        annotationDescriptor: AnnotationDescriptor
+        annotationDescriptor: AnnotationDescriptor,
+        isImprovementsEnabled: Boolean
     ): NullabilityQualifierWithMigrationStatus? {
         val annotationFqName = annotationDescriptor.fqName ?: return null
 
-        val migrationStatus =
-            jspecifyMigrationStatus(annotationFqName)
-                ?: commonMigrationStatus(annotationFqName, annotationDescriptor)
-                ?: return null
+        val migrationStatus = jspecifyMigrationStatus(annotationFqName)
+            ?: (if (isImprovementsEnabled) commonMigrationStatus(annotationFqName, annotationDescriptor) else null)
+            ?: return null
 
         return if (!migrationStatus.isForWarningOnly
             && annotationDescriptor is PossiblyExternalAnnotationDescriptor
@@ -329,10 +333,10 @@ class SignatureEnhancement(
             typeParameterForArgument: TypeParameterDescriptor?,
             isFromStarProjection: Boolean
         ): JavaTypeQualifiers {
+            val isImprovementsEnabled = containerContext.components.settings.enhancementImprovements
+
             val composedAnnotation =
-                if (isHeadTypeConstructor && typeContainer is TypeParameterDescriptor) {
-                    composeAnnotations(typeContainer.annotations, annotations)
-                } else if (isHeadTypeConstructor && typeContainer != null) {
+                if (isHeadTypeConstructor && typeContainer != null && typeContainer !is TypeParameterDescriptor && isImprovementsEnabled) {
                     val filteredContainerAnnotations = typeContainer.annotations.filter {
                         val (_, targets) = annotationTypeQualifierResolver.resolveAnnotation(it) ?: return@filter false
                         /*
@@ -346,6 +350,8 @@ class SignatureEnhancement(
                         AnnotationQualifierApplicabilityType.TYPE_USE !in targets
                     }
                     composeAnnotations(Annotations.create(filteredContainerAnnotations), annotations)
+                } else if (isHeadTypeConstructor && typeContainer != null) {
+                    composeAnnotations(typeContainer.annotations, annotations)
                 } else annotations
 
             fun <T : Any> List<FqName>.ifPresent(qualifier: T) =
@@ -364,7 +370,7 @@ class SignatureEnhancement(
             val (nullabilityFromBoundsForTypeBasedOnTypeParameter, isTypeParameterWithNotNullableBounds) =
                 nullabilityInfoBoundsForTypeParameterUsage()
 
-            val annotationsNullability = composedAnnotation.extractNullability()?.takeUnless { isFromStarProjection }
+            val annotationsNullability = composedAnnotation.extractNullability(isImprovementsEnabled)?.takeUnless { isFromStarProjection }
             val nullabilityInfo =
                 annotationsNullability
                     ?: computeNullabilityInfoInTheAbsenceOfExplicitAnnotation(
@@ -455,8 +461,8 @@ class SignatureEnhancement(
             }
         }
 
-        private fun Annotations.extractNullability(): NullabilityQualifierWithMigrationStatus? =
-            this.firstNotNullResult { extractNullability(it) }
+        private fun Annotations.extractNullability(isImprovementsEnabled: Boolean): NullabilityQualifierWithMigrationStatus? =
+            this.firstNotNullResult { extractNullability(it, isImprovementsEnabled) }
 
         private fun computeIndexedQualifiersForOverride(): (Int) -> JavaTypeQualifiers {
 

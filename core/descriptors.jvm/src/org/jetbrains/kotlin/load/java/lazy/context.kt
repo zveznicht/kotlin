@@ -84,6 +84,7 @@ class JavaResolverComponents(
 interface JavaResolverSettings {
     val isReleaseCoroutines: Boolean
     val correctNullabilityForNotNullTypeParameter: Boolean
+    val enhancementImprovements: Boolean
 
     object Default : JavaResolverSettings {
         override val isReleaseCoroutines: Boolean
@@ -91,16 +92,21 @@ interface JavaResolverSettings {
 
         override val correctNullabilityForNotNullTypeParameter: Boolean
             get() = false
+
+        override val enhancementImprovements: Boolean
+            get() = false
     }
 
     companion object {
         fun create(
             isReleaseCoroutines: Boolean,
-            correctNullabilityForNotNullTypeParameter: Boolean
+            correctNullabilityForNotNullTypeParameter: Boolean,
+            enhancementImprovements: Boolean,
         ): JavaResolverSettings =
             object : JavaResolverSettings {
                 override val isReleaseCoroutines get() = isReleaseCoroutines
                 override val correctNullabilityForNotNullTypeParameter get() = correctNullabilityForNotNullTypeParameter
+                override val enhancementImprovements get() = enhancementImprovements
             }
     }
 }
@@ -172,9 +178,11 @@ private fun LazyJavaResolverContext.extractDefaultNullabilityQualifier(
         return null
     }
 
+    val isImprovementsEnabled = components.settings.enhancementImprovements
+
     val nullabilityQualifier =
-        components.signatureEnhancement.extractNullability(typeQualifier)?.copy(isForWarningOnly = jsr305State.isWarning)
-            ?: return null
+        components.signatureEnhancement.extractNullability(typeQualifier, isImprovementsEnabled)
+            ?.copy(isForWarningOnly = jsr305State.isWarning) ?: return null
 
     return JavaDefaultQualifiers(nullabilityQualifier, applicability)
 }

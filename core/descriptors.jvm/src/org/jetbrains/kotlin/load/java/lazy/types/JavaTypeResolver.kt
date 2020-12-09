@@ -62,12 +62,15 @@ class JavaTypeResolver(
     fun transformArrayType(arrayType: JavaArrayType, attr: JavaTypeAttributes, isVararg: Boolean = false): KotlinType {
         val javaComponentType = arrayType.componentType
         val primitiveType = (javaComponentType as? JavaPrimitiveType)?.type
-        val annotations = LazyJavaAnnotations(c, arrayType)
+        val isImprovementsEnabled = c.components.settings.enhancementImprovements
+        val annotations = if (isImprovementsEnabled) LazyJavaAnnotations(c, arrayType) else Annotations.EMPTY
 
         if (primitiveType != null) {
             val jetType = c.module.builtIns.getPrimitiveArrayKotlinType(primitiveType)
 
-            jetType.replaceAnnotations(Annotations.create(annotations + jetType.annotations))
+            if (isImprovementsEnabled) {
+                jetType.replaceAnnotations(Annotations.create(annotations + jetType.annotations))
+            }
 
             return if (attr.isForAnnotationParameter)
                 jetType

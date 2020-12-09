@@ -142,6 +142,8 @@ enum class LanguageFeature(
     ForbidReferencingToUnderscoreNamedParameterOfCatchBlock(KOTLIN_1_5, kind = BUG_FIX),
     UseCorrectExecutionOrderForVarargArguments(KOTLIN_1_5, kind = BUG_FIX),
 
+    ImprovementsAroundTypeEnhancement(sinceVersion = KOTLIN_1_6, defaultState = State.ENABLED_WITH_WARNING, kind = UNSTABLE_FEATURE),
+
     // Temporarily disabled, see KT-27084/KT-22379
     SoundSmartcastFromLoopConditionForLoopAssignedVariables(sinceVersion = null, kind = BUG_FIX),
 
@@ -257,6 +259,7 @@ enum class LanguageVersion(val major: Int, val minor: Int) : DescriptionAware {
     KOTLIN_1_3(1, 3),
     KOTLIN_1_4(1, 4),
     KOTLIN_1_5(1, 5),
+    KOTLIN_1_6(1, 5),
     ;
 
     val isStable: Boolean
