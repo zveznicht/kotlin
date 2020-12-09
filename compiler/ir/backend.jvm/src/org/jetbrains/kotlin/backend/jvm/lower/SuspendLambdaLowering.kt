@@ -23,6 +23,7 @@ import org.jetbrains.kotlin.codegen.inline.coroutines.FOR_INLINE_SUFFIX
 import org.jetbrains.kotlin.descriptors.DescriptorVisibilities
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.ir.IrElement
+import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.*
@@ -33,11 +34,10 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrVariableSymbolImpl
+import org.jetbrains.kotlin.ir.symbols.IrValueParameterSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
-import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
-import org.jetbrains.kotlin.ir.visitors.IrElementVisitorVoid
-import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
+import org.jetbrains.kotlin.ir.visitors.*
 import org.jetbrains.kotlin.load.java.JavaDescriptorVisibilities
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.name.SpecialNames
@@ -143,6 +143,7 @@ private class SuspendLambdaLowering(context: JvmBackendContext) : SuspendLowerin
             }
         }
 
+    @OptIn(ObsoleteDescriptorBasedAPI::class)
     private fun generateContinuationClassForLambda(reference: IrFunctionReference, parent: IrDeclarationParent): IrClass =
         context.irFactory.buildClass {
             name = SpecialNames.NO_NAME_PROVIDED
@@ -168,10 +169,22 @@ private class SuspendLambdaLowering(context: JvmBackendContext) : SuspendLowerin
                         + context.irBuiltIns.anyNType
             )
             superTypes = listOf(suspendLambda.defaultType, functionNType)
+            val usedParams = mutableListOf<IrSymbolOwner>()
+
+            // marking the parameters referenced in the function
+            function.acceptChildrenVoid(
+                object : IrElementVisitorVoid {
+                    override fun visitElement(element: IrElement) =
+                        if (element is IrDeclarationReference && element.symbol is IrValueParameterSymbol && element.symbol.owner in function.explicitParameters)
+                            usedParams += element.symbol.owner
+                        else
+                            Unit
+                },
+            )
 
             addField(COROUTINE_LABEL_FIELD_NAME, context.irBuiltIns.intType, JavaDescriptorVisibilities.PACKAGE_VISIBILITY)
 
-            val parametersFields = function.explicitParameters.map {
+            val parametersFields = function.explicitParameters.filter { it in usedParams }.map {
                 addField {
                     // Rename `$this` to avoid being caught by inlineCodegenUtils.isCapturedFieldName()
                     name = if (it.index < 0) Name.identifier("p\$") else it.name
