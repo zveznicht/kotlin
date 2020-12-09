@@ -885,6 +885,10 @@ internal class CacheBuilder(val project: Project, val binary: NativeBinary, val 
     }
 
     companion object {
+        private val cachableTargets = setOf(
+            KonanTarget.IOS_X64, KonanTarget.MACOS_X64, KonanTarget.IOS_ARM64
+        )
+
         internal fun getRootCacheDirectory(konanHome: File, target: KonanTarget, debuggable: Boolean, cacheKind: NativeCacheKind): File {
             require(cacheKind != NativeCacheKind.NONE) { "Usupported cache kind: ${NativeCacheKind.NONE}" }
             val optionsAwareCacheName = "$target${if (debuggable) "-g" else ""}$cacheKind"
@@ -897,7 +901,7 @@ internal class CacheBuilder(val project: Project, val binary: NativeBinary, val 
             } ?: error("No output for kind $cacheKind")
 
         internal fun cacheWorksFor(target: KonanTarget) =
-            target == KonanTarget.IOS_X64 || target == KonanTarget.MACOS_X64
+            target in cachableTargets
 
         internal val DEFAULT_CACHE_KIND: NativeCacheKind = NativeCacheKind.STATIC
     }

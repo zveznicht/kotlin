@@ -113,6 +113,9 @@ internal class PlatformLibrariesGenerator(val project: Project, val konanTarget:
                 CacheBuilder.getRootCacheDirectory(File(konanHome), konanTarget, true, konanCacheKind).absolutePath
             )
             args.addArg("-cache-arg", "-g")
+            when (konanTarget) {
+                KonanTarget.IOS_ARM64 -> args.add("-Xembed-bitcode-marker")
+            }
         }
 
         mode?.let {
