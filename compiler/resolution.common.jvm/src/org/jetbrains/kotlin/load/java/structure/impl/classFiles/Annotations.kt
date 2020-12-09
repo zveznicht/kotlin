@@ -35,6 +35,9 @@ internal class AnnotationsCollectorFieldVisitor(
         BinaryJavaAnnotation.addAnnotation(field, desc, context, signatureParser)
 
     override fun visitTypeAnnotation(typeRef: Int, typePath: TypePath?, desc: String, visible: Boolean): AnnotationVisitor? {
+        // We don't support reading type use annotations on fields at all without a special flag
+        if (!context.readTypeUseAnnotationsFromClassFiles) return null
+
         val typeReference = TypeReference(typeRef)
 
         if (typePath != null) {
@@ -111,6 +114,8 @@ internal class AnnotationsAndParameterCollectorMethodVisitor(
         val typeReference = TypeReference(typeRef)
 
         if (typePath != null) {
+            if (!context.readTypeUseAnnotationsFromClassFiles) return null
+
             val baseType = when (typeReference.sort) {
                 TypeReference.METHOD_RETURN -> member.safeAs<BinaryJavaMethod>()?.returnType
                 TypeReference.METHOD_FORMAL_PARAMETER -> member.valueParameters[typeReference.formalParameterIndex].type
@@ -125,10 +130,18 @@ internal class AnnotationsAndParameterCollectorMethodVisitor(
         }
 
         val targetType = when (typeReference.sort) {
-            TypeReference.METHOD_RETURN -> (member as? BinaryJavaMethod)?.returnType as JavaPlainType
-            TypeReference.METHOD_TYPE_PARAMETER -> member.typeParameters[typeReference.typeParameterIndex] as BinaryJavaTypeParameter
-            TypeReference.METHOD_FORMAL_PARAMETER -> member.valueParameters[typeReference.formalParameterIndex].type as JavaPlainType
-            TypeReference.METHOD_TYPE_PARAMETER_BOUND -> BinaryJavaAnnotation.computeTypeParameterBound(member.typeParameters, typeReference) as JavaPlainType
+            TypeReference.METHOD_RETURN ->
+                (member as? BinaryJavaMethod)?.returnType as JavaPlainType
+            TypeReference.METHOD_TYPE_PARAMETER ->
+                if (context.readTypeUseAnnotationsFromClassFiles) {
+                    member.typeParameters[typeReference.typeParameterIndex] as BinaryJavaTypeParameter
+                } else null
+            TypeReference.METHOD_FORMAL_PARAMETER ->
+                member.valueParameters[typeReference.formalParameterIndex].type as JavaPlainType
+            TypeReference.METHOD_TYPE_PARAMETER_BOUND ->
+                if (context.readTypeUseAnnotationsFromClassFiles) {
+                    BinaryJavaAnnotation.computeTypeParameterBound(member.typeParameters, typeReference) as JavaPlainType
+                } else null
             else -> null
         } ?: return null
 
@@ -164,7 +177,9 @@ class BinaryJavaAnnotation private constructor(
             signatureParser: BinaryClassSignatureParser
         ): AnnotationVisitor {
             val (javaAnnotation, annotationVisitor) = createAnnotationAndVisitor(desc, context, signatureParser)
-            annotationOwner.annotations.add(javaAnnotation)
+            if (annotationOwner !is BinaryJavaTypeParameter || context.readTypeUseAnnotationsFromClassFiles) {
+                annotationOwner.annotations.add(javaAnnotation)
+            }
             return annotationVisitor
         }
 

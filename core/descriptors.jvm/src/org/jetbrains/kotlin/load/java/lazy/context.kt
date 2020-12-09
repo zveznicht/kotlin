@@ -85,6 +85,7 @@ interface JavaResolverSettings {
     val isReleaseCoroutines: Boolean
     val correctNullabilityForNotNullTypeParameter: Boolean
     val enhancementImprovements: Boolean
+    val readingTypeUseAnnotationsFromClassFiles: Boolean
 
     object Default : JavaResolverSettings {
         override val isReleaseCoroutines: Boolean
@@ -95,6 +96,9 @@ interface JavaResolverSettings {
 
         override val enhancementImprovements: Boolean
             get() = false
+
+        override val readingTypeUseAnnotationsFromClassFiles: Boolean
+            get() = false
     }
 
     companion object {
@@ -102,11 +106,13 @@ interface JavaResolverSettings {
             isReleaseCoroutines: Boolean,
             correctNullabilityForNotNullTypeParameter: Boolean,
             enhancementImprovements: Boolean,
+            readingTypeUseAnnotationsFromClassFiles: Boolean
         ): JavaResolverSettings =
             object : JavaResolverSettings {
                 override val isReleaseCoroutines get() = isReleaseCoroutines
                 override val correctNullabilityForNotNullTypeParameter get() = correctNullabilityForNotNullTypeParameter
                 override val enhancementImprovements get() = enhancementImprovements
+                override val readingTypeUseAnnotationsFromClassFiles get() = readingTypeUseAnnotationsFromClassFiles
             }
     }
 }

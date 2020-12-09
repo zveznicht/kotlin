@@ -66,6 +66,16 @@ public class LoadJava8TestGenerated extends AbstractLoadJava8Test {
             public void testBasic_DisabledImprovements() throws Exception {
                 runTest("compiler/testData/loadJava8/compiledJava/typeParameterAnnotations/Basic_DisabledImprovements.java");
             }
+
+            @TestMetadata("Basic_DisabledImprovementsAndreading.java")
+            public void testBasic_DisabledImprovementsAndreading() throws Exception {
+                runTest("compiler/testData/loadJava8/compiledJava/typeParameterAnnotations/Basic_DisabledImprovementsAndreading.java");
+            }
+
+            @TestMetadata("Basic_DisabledReading.java")
+            public void testBasic_DisabledReading() throws Exception {
+                runTest("compiler/testData/loadJava8/compiledJava/typeParameterAnnotations/Basic_DisabledReading.java");
+            }
         }
 
         @TestMetadata("compiler/testData/loadJava8/compiledJava/typeUseAnnotations")
@@ -93,6 +103,16 @@ public class LoadJava8TestGenerated extends AbstractLoadJava8Test {
             @TestMetadata("Basic_DisabledImprovements.java")
             public void testBasic_DisabledImprovements() throws Exception {
                 runTest("compiler/testData/loadJava8/compiledJava/typeUseAnnotations/Basic_DisabledImprovements.java");
+            }
+
+            @TestMetadata("Basic_DisabledImprovementsAndReading.java")
+            public void testBasic_DisabledImprovementsAndReading() throws Exception {
+                runTest("compiler/testData/loadJava8/compiledJava/typeUseAnnotations/Basic_DisabledImprovementsAndReading.java");
+            }
+
+            @TestMetadata("Basic_DisabledReading.java")
+            public void testBasic_DisabledReading() throws Exception {
+                runTest("compiler/testData/loadJava8/compiledJava/typeUseAnnotations/Basic_DisabledReading.java");
             }
 
             @TestMetadata("ClassTypeParameterBounds.java")
@@ -165,6 +185,16 @@ public class LoadJava8TestGenerated extends AbstractLoadJava8Test {
             public void testBasic_DisabledImprovements() throws Exception {
                 runTest("compiler/testData/loadJava8/sourceJava/typeParameterAnnotations/Basic_DisabledImprovements.java");
             }
+
+            @TestMetadata("Basic_DisabledImprovementsAndreading.java")
+            public void testBasic_DisabledImprovementsAndreading() throws Exception {
+                runTest("compiler/testData/loadJava8/sourceJava/typeParameterAnnotations/Basic_DisabledImprovementsAndreading.java");
+            }
+
+            @TestMetadata("Basic_DisabledReading.java")
+            public void testBasic_DisabledReading() throws Exception {
+                runTest("compiler/testData/loadJava8/sourceJava/typeParameterAnnotations/Basic_DisabledReading.java");
+            }
         }
 
         @TestMetadata("compiler/testData/loadJava8/sourceJava/typeUseAnnotations")
@@ -192,6 +222,16 @@ public class LoadJava8TestGenerated extends AbstractLoadJava8Test {
             @TestMetadata("Basic_DisabledImprovements.java")
             public void testBasic_DisabledImprovements() throws Exception {
                 runTest("compiler/testData/loadJava8/sourceJava/typeUseAnnotations/Basic_DisabledImprovements.java");
+            }
+
+            @TestMetadata("Basic_DisabledImprovementsAndReading.java")
+            public void testBasic_DisabledImprovementsAndReading() throws Exception {
+                runTest("compiler/testData/loadJava8/sourceJava/typeUseAnnotations/Basic_DisabledImprovementsAndReading.java");
+            }
+
+            @TestMetadata("Basic_DisabledReading.java")
+            public void testBasic_DisabledReading() throws Exception {
+                runTest("compiler/testData/loadJava8/sourceJava/typeUseAnnotations/Basic_DisabledReading.java");
             }
 
             @TestMetadata("ClassTypeParameterBounds.java")

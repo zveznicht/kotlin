@@ -135,6 +135,7 @@ fun StorageComponentContainer.configureJavaSpecificComponents(
             isReleaseCoroutines = languageVersionSettings.supportsFeature(LanguageFeature.ReleaseCoroutines),
             correctNullabilityForNotNullTypeParameter = languageVersionSettings.supportsFeature(LanguageFeature.ProhibitUsingNullableTypeParameterAgainstNotNullAnnotated),
             enhancementImprovements = languageVersionSettings.supportsFeature(LanguageFeature.ImprovementsAroundTypeEnhancement),
+            readingTypeUseAnnotationsFromClassFiles = languageVersionSettings.supportsFeature(LanguageFeature.ReadTypeUseAnnotationsFromClassFiles),
         )
     )
 

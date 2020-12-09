@@ -53,17 +53,20 @@ class KotlinCliJavaFileManagerImpl(private val myPsiManager: PsiManager) : CoreJ
     private val topLevelClassesCache: MutableMap<FqName, VirtualFile?> = THashMap()
     private val allScope = GlobalSearchScope.allScope(myPsiManager.project)
     private var usePsiClassFilesReading = false
+    private var readTypeUseAnnotationsFromClassFiles = false
 
     fun initialize(
         index: JvmDependenciesIndex,
         packagePartProviders: List<JvmPackagePartProvider>,
         singleJavaFileRootsIndex: SingleJavaFileRootsIndex,
-        usePsiClassFilesReading: Boolean
+        usePsiClassFilesReading: Boolean,
+        readTypeUseAnnotationsFromClassFiles: Boolean
     ) {
         this.index = index
         this.packagePartProviders = packagePartProviders
         this.singleJavaFileRootsIndex = singleJavaFileRootsIndex
         this.usePsiClassFilesReading = usePsiClassFilesReading
+        this.readTypeUseAnnotationsFromClassFiles = readTypeUseAnnotationsFromClassFiles
     }
 
     private fun findPsiClass(classId: ClassId, searchScope: GlobalSearchScope): PsiClass? = perfCounter.time {
@@ -110,7 +113,7 @@ class KotlinCliJavaFileManagerImpl(private val myPsiManager: PsiManager) : CoreJ
                 val classContent = classFileContentFromRequest ?: virtualFile.contentsToByteArray()
                 if (virtualFile.nameWithoutExtension.contains("$") && isNotTopLevelClass(classContent)) return@getOrPut null
 
-                val resolver = ClassifierResolutionContext { findClass(it, allScope) }
+                val resolver = ClassifierResolutionContext(readTypeUseAnnotationsFromClassFiles) { findClass(it, allScope) }
 
                 BinaryJavaClass(
                     virtualFile, classId.asSingleFqName(), resolver, signatureParsingComponent,

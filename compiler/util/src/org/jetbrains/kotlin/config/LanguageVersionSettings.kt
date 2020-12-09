@@ -143,6 +143,7 @@ enum class LanguageFeature(
     UseCorrectExecutionOrderForVarargArguments(KOTLIN_1_5, kind = BUG_FIX),
 
     ImprovementsAroundTypeEnhancement(sinceVersion = KOTLIN_1_6, defaultState = State.ENABLED_WITH_WARNING, kind = UNSTABLE_FEATURE),
+    ReadTypeUseAnnotationsFromClassFiles(sinceVersion = KOTLIN_1_6, defaultState = State.ENABLED_WITH_WARNING, kind = UNSTABLE_FEATURE),
 
     // Temporarily disabled, see KT-27084/KT-22379
     SoundSmartcastFromLoopConditionForLoopAssignedVariables(sinceVersion = null, kind = BUG_FIX),

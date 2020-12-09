@@ -35,9 +35,13 @@ class ClassifierResolutionContext private constructor(
     // that nobody starts resolving classifier until type parameters and inner classes are initialized.
     // Currently it's implemented through laziness in the PlainJavaClassifierType.
     private var typeParameters: ImmutableMap<String, JavaTypeParameter>,
-    private var innerClasses: ImmutableMap<String, InnerClassInfo>
+    private var innerClasses: ImmutableMap<String, InnerClassInfo>,
+    val readTypeUseAnnotationsFromClassFiles: Boolean
 ) {
-    constructor(classesByQName: ClassIdToJavaClass) : this(classesByQName, ImmutableHashMap.empty(), ImmutableHashMap.empty())
+    constructor(
+        readTypeUseAnnotationsFromClassFiles: Boolean,
+        classesByQName: ClassIdToJavaClass
+    ) : this(classesByQName, ImmutableHashMap.empty(), ImmutableHashMap.empty(), readTypeUseAnnotationsFromClassFiles)
 
     internal data class Result(val classifier: JavaClassifier?, val qualifiedName: String)
 
@@ -50,17 +54,16 @@ class ClassifierResolutionContext private constructor(
     internal fun addTypeParameters(newTypeParameters: Collection<JavaTypeParameter>) {
         if (newTypeParameters.isEmpty()) return
 
-        typeParameters =
-                newTypeParameters
-                    .fold(typeParameters) { acc, typeParameter ->
-                        acc.put(typeParameter.name.identifier, typeParameter)
-                    }
+        typeParameters = newTypeParameters.fold(typeParameters) { acc, typeParameter ->
+            acc.put(typeParameter.name.identifier, typeParameter)
+        }
     }
 
     private fun resolveClass(classId: ClassId) = Result(classesByQName(classId), classId.asSingleFqName().asString())
     internal fun resolveTypeParameter(name: String) = Result(typeParameters.getOrNull(name), name)
 
-    internal fun copyForMember() = ClassifierResolutionContext(classesByQName, typeParameters, innerClasses)
+    internal fun copyForMember() =
+        ClassifierResolutionContext(classesByQName, typeParameters, innerClasses, readTypeUseAnnotationsFromClassFiles)
 
     internal fun mapInternalNameToClassId(internalName: String): ClassId {
         if ('$' in internalName) {
@@ -77,7 +80,7 @@ class ClassifierResolutionContext private constructor(
     // See com.intellij.psi.impl.compiled.StubBuildingVisitor.GUESSING_MAPPER
     private fun convertNestedClassInternalNameWithSimpleHeuristic(internalName: String): ClassId? {
         val splitPoints = SmartList<Int>()
-        for (p in 0 until internalName.length) {
+        for (p in internalName.indices) {
             val c = internalName[p]
             if (c == '$' && p > 0 && internalName[p - 1] != '/' && p < internalName.length - 1 && internalName[p + 1] != '$') {
                 splitPoints.add(p)
