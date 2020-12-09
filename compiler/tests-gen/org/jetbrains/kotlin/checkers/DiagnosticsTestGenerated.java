@@ -24859,11 +24859,6 @@ public class DiagnosticsTestGenerated extends AbstractDiagnosticsTestWithFirVali
             public void testIllegalUnderscores() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/underscoresInNumericLiterals/illegalUnderscores.kt");
             }
-
-            @TestMetadata("noUnderscores.kt")
-            public void testNoUnderscores() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/underscoresInNumericLiterals/noUnderscores.kt");
-            }
         }
 
         @TestMetadata("compiler/testData/diagnostics/tests/unit")

@@ -243,12 +243,6 @@ public class BasicExpressionTypingVisitor extends ExpressionTypingVisitor {
 
         if (!text.contains("_")) return;
 
-        if (!components.languageVersionSettings.supportsFeature(LanguageFeature.UnderscoresInNumericLiterals)) {
-            context.trace.report(Errors.UNSUPPORTED_FEATURE.on(expression,
-                                                               TuplesKt.to(LanguageFeature.UnderscoresInNumericLiterals, components.languageVersionSettings)));
-            return;
-        }
-
         if (ParseUtilsKt.hasIllegalUnderscore(expression.getText(), elementType)) {
             context.trace.report(Errors.ILLEGAL_UNDERSCORE.on(expression));
         }
