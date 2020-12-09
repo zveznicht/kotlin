@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.fir.declarations
 
 import org.jetbrains.kotlin.fir.FirSourceElement
+import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -25,6 +26,7 @@ abstract class FirResolvedImport : FirImport() {
     abstract val packageFqName: FqName
     abstract val relativeClassName: FqName?
     abstract val resolvedClassId: ClassId?
+    abstract val symbol: FirClassLikeSymbol<*>?
     abstract val importedName: Name?
 
     override fun <R, D> accept(visitor: FirVisitor<R, D>, data: D): R = visitor.visitResolvedImport(this, data)

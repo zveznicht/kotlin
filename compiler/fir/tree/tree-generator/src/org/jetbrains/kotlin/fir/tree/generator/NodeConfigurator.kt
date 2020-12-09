@@ -418,6 +418,7 @@ object NodeConfigurator : AbstractFieldConfigurator<FirTreeBuilder>(FirTreeBuild
             +field("packageFqName", fqNameType)
             +field("relativeClassName", fqNameType, nullable = true)
             +field("resolvedClassId", classIdType, nullable = true)
+            +field("symbol", classLikeSymbolType, nullable = true)
             +field(
                 "importedName",
                 nameType,
