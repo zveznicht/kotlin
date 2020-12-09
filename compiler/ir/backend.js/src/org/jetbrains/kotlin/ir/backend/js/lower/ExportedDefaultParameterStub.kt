@@ -8,8 +8,10 @@ package org.jetbrains.kotlin.ir.backend.js.lower
 import org.jetbrains.kotlin.backend.common.DeclarationTransformer
 import org.jetbrains.kotlin.backend.common.ir.copyParameterDeclarationsFrom
 import org.jetbrains.kotlin.backend.common.ir.passTypeArgumentsFrom
+import org.jetbrains.kotlin.backend.common.lower.VariableRemapper
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irBlockBody
+import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.backend.js.JsLoweredDeclarationOrigin
 import org.jetbrains.kotlin.ir.backend.js.ir.JsIrBuilder
@@ -19,6 +21,7 @@ import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.builders.declarations.buildFun
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrConstructorCall
+import org.jetbrains.kotlin.ir.expressions.IrExpression
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.FqName
 
@@ -28,12 +31,54 @@ private fun IrConstructorCall.isAnnotation(name: FqName): Boolean {
 
 class ExportedDefaultParameterStub(val context: JsIrBackendContext) : DeclarationTransformer {
 
-    override fun transformFlat(declaration: IrDeclaration): List<IrDeclaration>? {
-        if (declaration !is IrFunction) {
-            return null
+    private fun IrBuilderWithScope.createDefaultResolutionExpression(value: IrValueParameter): IrExpression? {
+        return value.defaultValue?.let { defaultValue ->
+            irIfThenElse(
+                value.type,
+                irReferentialEquals(
+                    irGet(value),
+                    irCall(this@ExportedDefaultParameterStub.context.intrinsics.jsUndefined)
+                ),
+                defaultValue.expression,
+                irGet(value)
+            )
+        }
+    }
+
+    private fun IrConstructor.introduceDefaultResolution(): IrConstructor {
+        val irBuilder = context.createIrBuilder(symbol, startOffset, endOffset)
+
+        val variables = mutableMapOf<IrValueParameter, IrValueDeclaration>()
+
+        val defaultResolutionStatements = valueParameters.mapNotNull { valueParameter ->
+            irBuilder.createDefaultResolutionExpression(valueParameter)?.let { initializer ->
+                JsIrBuilder.buildVar(
+                    valueParameter.type,
+                    this@introduceDefaultResolution,
+                    name = valueParameter.name.asString(),
+                    initializer = initializer
+                ).also {
+                    variables[valueParameter] = it
+                }
+            }
+
         }
 
-        if (declaration is IrConstructor) {
+        if (variables.isNotEmpty()) {
+            body?.transformChildren(VariableRemapper(variables), null)
+
+            body = context.irFactory.createBlockBody(UNDEFINED_OFFSET, UNDEFINED_OFFSET) {
+                statements += defaultResolutionStatements
+                statements += body?.statements ?: emptyList()
+            }
+        }
+
+
+        return this
+    }
+
+    override fun transformFlat(declaration: IrDeclaration): List<IrDeclaration>? {
+        if (declaration !is IrFunction) {
             return null
         }
 
@@ -43,6 +88,10 @@ class ExportedDefaultParameterStub(val context: JsIrBackendContext) : Declaratio
 
         if (!declaration.valueParameters.any { it.defaultValue != null }) {
             return null
+        }
+
+        if (declaration is IrConstructor) {
+            return listOf(declaration.introduceDefaultResolution())
         }
 
         val fn = context.irFactory.buildFun {
@@ -66,22 +115,7 @@ class ExportedDefaultParameterStub(val context: JsIrBackendContext) : Declaratio
                 extensionReceiver = fn.extensionReceiverParameter?.let { irGet(it) }
 
                 declaration.valueParameters.forEachIndexed { index, irValueParameter ->
-                    val defaultValue = irValueParameter.defaultValue
-
-                    val value = if (defaultValue != null) {
-                        irIfThenElse(
-                            irValueParameter.type,
-                            irReferentialEquals(
-                                irGet(irValueParameter),
-                                irCall(this@ExportedDefaultParameterStub.context.intrinsics.jsUndefined)
-                            ),
-                            defaultValue.expression,
-                            irGet(irValueParameter)
-                        )
-                    } else {
-                        irGet(irValueParameter)
-                    }
-
+                    val value = createDefaultResolutionExpression(irValueParameter) ?: irGet(irValueParameter)
                     putValueArgument(index, value)
                 }
             })

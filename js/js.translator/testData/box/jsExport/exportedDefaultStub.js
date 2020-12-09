@@ -22,7 +22,8 @@ module.exports = function() {
         "transform00": transform(),
         "transform11": transform(-5, function(it) { return it * it * it }),
 
-        "Ping_ping00": new Ping().ping(),
+        "Ping_ping00a": new Ping().ping(),
+        "Ping_ping00b": new Ping(10).ping(),
         "Ping_ping11": new Ping().ping(-4, function(it) { return it * it * it }),
 
         "Pong_ping00": new Pong().ping()
