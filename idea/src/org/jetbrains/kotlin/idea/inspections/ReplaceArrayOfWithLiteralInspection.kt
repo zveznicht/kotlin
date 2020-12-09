@@ -12,7 +12,6 @@ import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElementVisitor
-import org.jetbrains.kotlin.config.LanguageFeature.ArrayLiteralsInAnnotations
 import org.jetbrains.kotlin.idea.KotlinBundle
 import org.jetbrains.kotlin.idea.intentions.isArrayOfMethod
 import org.jetbrains.kotlin.idea.project.languageVersionSettings
@@ -22,10 +21,6 @@ import org.jetbrains.kotlin.psi.psiUtil.getParentOfType
 class ReplaceArrayOfWithLiteralInspection : AbstractKotlinInspection() {
 
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): PsiElementVisitor = callExpressionVisitor(fun(expression) {
-        if (!expression.languageVersionSettings.supportsFeature(ArrayLiteralsInAnnotations) &&
-            !ApplicationManager.getApplication().isUnitTestMode
-        ) return
-
         val calleeExpression = expression.calleeExpression as? KtNameReferenceExpression ?: return
         if (!expression.isArrayOfMethod()) return
 

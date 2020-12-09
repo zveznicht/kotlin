@@ -477,9 +477,7 @@ class SmartCompletion(
     }
 
     private fun MutableCollection<LookupElement>.addArrayLiteralsInAnnotationsCompletions() {
-        if (expression.languageVersionSettings.supportsFeature(LanguageFeature.ArrayLiteralsInAnnotations)) {
-            this.addAll(ArrayLiteralsInAnnotationItems.collect(expectedInfos, expression))
-        }
+        this.addAll(ArrayLiteralsInAnnotationItems.collect(expectedInfos, expression))
     }
 
     companion object {
