@@ -242,7 +242,7 @@ projectTest(parallel = true) {
     inputs.dir(rootDir.resolve("compiler/cli/cli-common/resources")) // compiler.xml
 
     inputs.dir(testDataDir)
-    inputs.dir(rootDir.resolve("dist"))
+    inputs.dir(rootDir.resolve("dist")).withNormalizer(ClasspathNormalizer::class.java)
     inputs.dir(rootDir.resolve("compiler/testData"))
     inputs.dir(rootDir.resolve("libraries/stdlib/api/js"))
     inputs.dir(rootDir.resolve("libraries/stdlib/api/js-v1"))
