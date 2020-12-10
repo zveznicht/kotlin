@@ -594,10 +594,6 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
                 KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
             }
 
-            private void runTestWithPackageReplacement(String testDataFilePath, String packageName) throws Exception {
-                KotlinTestUtils.runTest0(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.WASM, testDataFilePath);
-            }
-
             public void testAllFilesPresentInJvm() throws Exception {
                 KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/assert/jvm"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.WASM, true);
             }
@@ -2859,10 +2855,6 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
         public static class CapturedVarsOptimization extends AbstractIrCodegenBoxWasmTest {
             private void runTest(String testDataFilePath) throws Exception {
                 KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
-            }
-
-            private void runTestWithPackageReplacement(String testDataFilePath, String packageName) throws Exception {
-                KotlinTestUtils.runTest0(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.WASM, testDataFilePath);
             }
 
             public void testAllFilesPresentInCapturedVarsOptimization() throws Exception {
@@ -11223,6 +11215,11 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
             @TestMetadata("anotherFile.kt")
             public void testAnotherFile() throws Exception {
                 runTest("compiler/testData/codegen/box/properties/const/anotherFile.kt");
+            }
+
+            @TestMetadata("constPropertyAccessor.kt")
+            public void testConstPropertyAccessor() throws Exception {
+                runTest("compiler/testData/codegen/box/properties/const/constPropertyAccessor.kt");
             }
         }
 

@@ -251,8 +251,6 @@ fun main(args: Array<String>) {
                 model("ir/sourceRanges")
             }
 
-
-
             testClass<AbstractBytecodeListingTest> {
                 model("codegen/bytecodeListing", targetBackend = TargetBackend.JVM)
             }
@@ -462,6 +460,14 @@ fun main(args: Array<String>) {
                 model("lexer/kotlin")
             }
 
+            testClass<AbstractComposeLikeIrBlackBoxCodegenTest> {
+                model("codegen/composeLike", targetBackend = TargetBackend.JVM_IR)
+            }
+
+            testClass<AbstractComposeLikeIrBytecodeTextTest> {
+                model("codegen/composeLikeBytecodeText", targetBackend = TargetBackend.JVM_IR)
+            }
+
             testClass<AbstractIrBlackBoxCodegenTest> {
                 model("codegen/box", targetBackend = TargetBackend.JVM_IR, excludeDirs = listOf("oldLanguageVersions"))
             }
@@ -509,8 +515,7 @@ fun main(args: Array<String>) {
             testClass<AbstractJvmOldAgainstIrBoxTest> {
                 model(
                     "compileKotlinAgainstKotlin",
-                    targetBackend = TargetBackend.JVM_MULTI_MODULE_OLD_AGAINST_IR,
-                    skipTestsForExperimentalCoroutines = true
+                    targetBackend = TargetBackend.JVM_MULTI_MODULE_OLD_AGAINST_IR
                 )
             }
 
@@ -634,8 +639,7 @@ fun main(args: Array<String>) {
             testClass<AbstractJvmOldAgainstIrBoxInlineTest> {
                 model(
                     "codegen/boxInline",
-                    targetBackend = TargetBackend.JVM_MULTI_MODULE_OLD_AGAINST_IR,
-                    skipTestsForExperimentalCoroutines = true
+                    targetBackend = TargetBackend.JVM_MULTI_MODULE_OLD_AGAINST_IR
                 )
             }
         }
@@ -713,8 +717,7 @@ fun main(args: Array<String>) {
             testClass<AbstractFirOldFrontendDiagnosticsTestWithStdlib> {
                 model(
                     "diagnostics/testsWithStdLib",
-                    excludedPattern = excludedFirTestdataPattern,
-                    skipTestsForExperimentalCoroutines = true
+                    excludedPattern = excludedFirTestdataPattern
                 )
             }
         }
