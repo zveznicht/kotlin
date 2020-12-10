@@ -102,13 +102,17 @@ private fun extractAdditionalArgsAndResetIgnored(
         currentBucket.setMultipleArgument(it, emptyBucketForPlatform.extractMultipleArgumentValue(it))
     }
 
-    val additionalArgumentsString = (additionalSingle + additionalMulti + additionalFlags).joinToString(" ") {
+    return mutableListOf<String>().apply {
+        addAll(additionalSingle)
+        addAll(additionalMulti)
+        addAll(additionalFlags)
+        addAll(currentBucket.freeArgs)
+        addAll(currentBucket.internalArguments)
+    }.joinToString(" ") {
         if (StringUtil.containsWhitespaces(it) || it.startsWith('"')) {
             StringUtil.wrapWithDoubleQuote(StringUtil.escapeQuotes(it))
         } else it
     }
-
-    return additionalArgumentsString
 }
 
 fun configureFacetByFlatArgsInfo(kotlinFacet: KotlinFacet, flatArgsInfo: FlatArgsInfo, modelsProvider: IdeModifiableModelsProvider?) {

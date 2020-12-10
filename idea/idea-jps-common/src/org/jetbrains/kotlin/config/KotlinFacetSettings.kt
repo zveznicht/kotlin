@@ -211,8 +211,8 @@ class KotlinFacetSettings {
             compilerArgumentsBucket?.let {
                 FlatToRawCompilerArgumentsBucketConverter(CommonCompilerArguments::class.java.classLoader).convert(it)
             }?.also { parseCommandLineArguments(it, this) }
-            this.autoAdvanceLanguageVersion = autoAdvanceLanguageVersion
-            this.autoAdvanceApiVersion = autoAdvanceApiVersion
+            autoAdvanceLanguageVersion = this@KotlinFacetSettings.autoAdvanceLanguageVersion
+            autoAdvanceApiVersion = this@KotlinFacetSettings.autoAdvanceApiVersion
         }
         set(value) {
             if (compilerArgumentsBucket != null)
