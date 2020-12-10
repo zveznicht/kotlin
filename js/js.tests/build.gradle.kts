@@ -252,7 +252,9 @@ projectTest(parallel = true) {
     outputs.dir("$buildDir/out-min")
     outputs.dir("$buildDir/out-pir")
 
-    configureTestDistribution()
+    configureTestDistribution {
+        maxRemoteExecutors.set(15)
+    }
 }
 
 projectTest("jsTest", true) {
