@@ -9,6 +9,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.impl.scopes.LibraryScopeBase
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.projectRoots.JavaSdk
 import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.*
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
@@ -23,10 +24,7 @@ import com.intellij.util.SmartList
 import com.intellij.util.containers.ContainerUtil
 import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType
-import org.jetbrains.kotlin.analyzer.CombinedModuleInfo
-import org.jetbrains.kotlin.analyzer.LibraryModuleInfo
-import org.jetbrains.kotlin.analyzer.ModuleInfo
-import org.jetbrains.kotlin.analyzer.TrackableModuleInfo
+import org.jetbrains.kotlin.analyzer.*
 import org.jetbrains.kotlin.caches.project.cacheByClassInvalidatingOnRootModifications
 import org.jetbrains.kotlin.caches.project.cacheInvalidatingOnRootModifications
 import org.jetbrains.kotlin.caches.resolve.resolution
@@ -456,6 +454,12 @@ data class SdkInfo(override val project: Project, val sdk: Sdk) : IdeaModuleInfo
 
     override val analyzerServices: PlatformDependentAnalyzerServices
         get() = JvmPlatformAnalyzerServices
+
+    override val capabilities: Map<ModuleCapability<*>, Any?>
+        get() = when (this.sdk.sdkType) {
+            is JavaSdk -> super.capabilities + mapOf(JDK_CAPABILITY to true)
+            else -> super.capabilities
+        }
 }
 
 object NotUnderContentRootModuleInfo : IdeaModuleInfo {
