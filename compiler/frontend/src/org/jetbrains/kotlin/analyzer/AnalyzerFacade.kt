@@ -134,10 +134,8 @@ class LazyModuleDependencies<M : ModuleInfo>(
     private val dependencies = storageManager.createLazyValue {
 
         val moduleDescriptors = mutableSetOf<ModuleDescriptorImpl>()
-        val sdkDescriptor = firstDependency?.let {
-            val descriptor = resolverForProject.descriptorForModule(it)
-            moduleDescriptors.add(descriptor)
-            descriptor
+        firstDependency?.let {
+            moduleDescriptors.add(resolverForProject.descriptorForModule(it))
         }
         val moduleDescriptor = resolverForProject.descriptorForModule(module)
         val dependencyOnBuiltIns = module.dependencyOnBuiltIns()
@@ -153,27 +151,10 @@ class LazyModuleDependencies<M : ModuleInfo>(
         if (dependencyOnBuiltIns == ModuleInfo.DependencyOnBuiltIns.LAST) {
             moduleDescriptors.add(moduleDescriptor.builtIns.builtInsModule)
         }
-
-        sdkDescriptor?.builtIns?.builtInsModule?.let { sdkBuiltinsDescriptor ->
-            if (moduleDescriptors.add(sdkBuiltinsDescriptor)) {
-                sdkBuiltInsModuleDescriptor = sdkBuiltinsDescriptor
-            }
-        }
-
         moduleDescriptors.toList()
     }
 
-    private var sdkBuiltInsModuleDescriptor: ModuleDescriptorImpl? = null
-
-    private val _packageDependencies = storageManager.createLazyValue {
-        allDependencies.filter {
-            it != sdkBuiltInsModuleDescriptor
-        }
-    }
-
     override val allDependencies: List<ModuleDescriptorImpl> get() = dependencies()
-
-    override val packageFragmentDependencies: List<ModuleDescriptorImpl> get() = _packageDependencies()
 
     override val directExpectedByDependencies by storageManager.createLazyValue {
         module.expectedBy.map {
