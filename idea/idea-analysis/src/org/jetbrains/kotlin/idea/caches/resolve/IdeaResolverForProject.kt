@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.idea.caches.resolve
 
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.kotlin.analyzer.*
 import org.jetbrains.kotlin.analyzer.common.CommonAnalysisParameters
@@ -33,6 +34,7 @@ import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.ResolutionAnchorProvider
 import org.jetbrains.kotlin.resolve.jvm.JvmPlatformParameters
+import java.util.concurrent.atomic.AtomicBoolean
 
 class IdeaResolverForProject(
     debugName: String,
@@ -142,27 +144,32 @@ class IdeaResolverForProject(
             // Note #1: we can't use .getOrPut, because we have to put builtIns into map *before* initialization
             // Note #2: it's OK to put not-initialized built-ins into public map, because access to [cache] is guarded by storageManager.lock
             val newBuiltIns = module.platform.idePlatformKind.resolution.createBuiltIns(module, projectContextFromSdkResolver, sdk, stdlib)
-            cache[key] = newBuiltIns
 
-            if (newBuiltIns is JvmBuiltIns) {
-                // SDK should be present, otherwise we wouldn't have created JvmBuiltIns in createBuiltIns
-                val sdkDescriptor = resolverForSdk.descriptorForModule(sdk!!)
-                val isAdditionalBuiltInsFeaturesSupported = module.supportsAdditionalBuiltInsMembers(projectContextFromSdkResolver.project)
+            try {
+                cache[key] = newBuiltIns
 
-                newBuiltIns.initialize(sdkDescriptor, isAdditionalBuiltInsFeaturesSupported)
+                if (newBuiltIns is JvmBuiltIns) {
+                    // SDK should be present, otherwise we wouldn't have created JvmBuiltIns in createBuiltIns
+                    val sdkDescriptor = resolverForSdk.descriptorForModule(sdk!!)
+                    val isAdditionalBuiltInsFeaturesSupported = module.supportsAdditionalBuiltInsMembers(projectContextFromSdkResolver.project)
 
-                if (newBuiltIns.kind == JvmBuiltIns.Kind.FROM_DEPENDENCIES) {
-                    require(IdeBuiltInsLoadingState.isFromDependenciesForJvm) {
-                        "Incorrect attempt to create built-ins from module dependencies"
+                    newBuiltIns.initialize(sdkDescriptor, isAdditionalBuiltInsFeaturesSupported)
+
+                    if (newBuiltIns.kind == JvmBuiltIns.Kind.FROM_DEPENDENCIES) {
+                        require(IdeBuiltInsLoadingState.isFromDependenciesForJvm) {
+                            "Incorrect attempt to create built-ins from module dependencies"
+                        }
+
+                        val stdlibDescriptor = stdlib?.let { resolverForSdk.descriptorForModule(it) }
+                            ?: error("Attempt to create built-ins without proper dependency on Kotlin standard library")
+                        newBuiltIns.builtInsModule = stdlibDescriptor
                     }
-
-                    val stdlibDescriptor = stdlib?.let { resolverForSdk.descriptorForModule(it) }
-                        ?: error("Attempt to create built-ins without proper dependency on Kotlin standard library")
-                    newBuiltIns.builtInsModule = stdlibDescriptor
                 }
+                return@compute newBuiltIns
+            } catch (e: Exception) {
+                cache.remove(key)
+                throw e
             }
-
-            return@compute newBuiltIns
         }
 
         private fun findStdlibForModulesBuiltins(module: IdeaModuleInfo): LibraryInfo? {
