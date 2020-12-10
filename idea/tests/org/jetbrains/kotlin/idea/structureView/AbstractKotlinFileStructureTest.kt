@@ -51,7 +51,7 @@ abstract class AbstractKotlinFileStructureTest : KotlinFileStructureTestBase() {
             """.trimMargin()
         }
         super.tearDown()
-        LOG.error(message)
+        LOG.debug(message)
     }
 
     fun doTest(path: String) {
