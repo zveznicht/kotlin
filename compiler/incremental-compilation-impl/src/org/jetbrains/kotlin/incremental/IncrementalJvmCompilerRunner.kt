@@ -185,10 +185,10 @@ class IncrementalJvmCompilerRunner(
         args.classpathAsList
             .filter { it.extension.equals("jar", ignoreCase = true) }
                 //TODO use path transformation
-            .forEach { modulesApiHistory.jarSnapshot(it)?.let {file -> jarSnapshots.put(it.absolutePath, JarSnapshot.read(file)) }}
+            .forEach { modulesApiHistory.jarSnapshot(it)?.let {file -> jarSnapshots[it.absolutePath] = JarSnapshot.read(file) }}
 
         val classpathChanges = getClasspathChanges(args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter,
-                                                   jarSnapshots, withSnapshot, JarSnapshotDiffService.Parameters(caches, reporter, kotlinSourceFilesExtensions))
+                                                   jarSnapshots, withSnapshot)
 
         @Suppress("UNUSED_VARIABLE") // for sealed when
         val unused = when (classpathChanges) {

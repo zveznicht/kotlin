@@ -27,6 +27,11 @@ class ChangesCollector {
     private val removedMembers = hashMapOf<FqName, MutableSet<String>>()
     private val changedMembers = hashMapOf<FqName, MutableSet<String>>()
     private val areSubclassesAffected = hashMapOf<FqName, Boolean>()
+    //TODO for test only: ProtoData or ProtoBuf
+    private val storage = hashMapOf<FqName, ProtoData>()
+
+    //TODO change to immutable map
+    fun protoDataChanges() : Map<FqName, ProtoData> = storage
 
     fun changes(): List<ChangeInfo> {
         val changes = arrayListOf<ChangeInfo>()
@@ -76,6 +81,12 @@ class ChangesCollector {
     fun collectProtoChanges(oldData: ProtoData?, newData: ProtoData?, collectAllMembersForNewClass: Boolean = false) {
         if (oldData == null && newData == null) {
             throw IllegalStateException("Old and new value are null")
+        }
+
+        if (newData != null && newData is ClassProtoData) {
+            //TODO store new proto
+            val fqName = newData.nameResolver.getClassId(newData.proto.fqName).asSingleFqName()
+            storage[fqName] = newData
         }
 
         if (oldData == null) {

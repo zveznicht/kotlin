@@ -234,20 +234,21 @@ abstract class IncrementalCompilerRunner<
         val jarSnapshot = if (withSnapshot) {
             when (compilationMode) {
                 is CompilationMode.Incremental -> JarSnapshot.read(jarSnapshotFile).also {
-                    for (file in compilationMode.dirtyFiles.toMutableList()) {
-                        val fqName = FqName(file.absolutePath)
-                        if (file.exists()) {
-                            //TODO
-                            it.fqNames.add(fqName)
-                        } else {
-                            it.fqNames.remove(fqName)
-                        }
-                    }
+                    //TODO
+//                    for (file in compilationMode.dirtyFiles.toMutableList()) {
+//                        val fqName = FqName(file.absolutePath)
+//                        if (file.exists()) {
+//                            //TODO
+//                            it.fqNames.add(fqName)
+//                        } else {
+//                            it.fqNames.remove(fqName)
+//                        }
+//                    }
                 }
-                is CompilationMode.Rebuild -> JarSnapshot(mutableSetOf(), allKotlinSources.map { FqName(it.absolutePath) }.toMutableSet())
+                is CompilationMode.Rebuild -> JarSnapshot(mutableMapOf())
             }
         } else {
-            JarSnapshot(mutableSetOf(), mutableSetOf())
+            JarSnapshot(mutableMapOf())
         }
 
 
@@ -266,6 +267,7 @@ abstract class IncrementalCompilerRunner<
 
             val lookupTracker = LookupTrackerImpl(LookupTracker.DO_NOTHING)
             val expectActualTracker = ExpectActualTrackerImpl()
+//            val protoTracker = ProtoTrackerImpl()
             val (sourcesToCompile, removedKotlinSources) = dirtySources.partition(File::exists)
 
             allDirtySources.addAll(dirtySources)
@@ -309,20 +311,21 @@ abstract class IncrementalCompilerRunner<
             val changesCollector = ChangesCollector()
             updateCaches(services, caches, generatedFiles, changesCollector)
 
+
             if (compilationMode is CompilationMode.Rebuild) {
                 if (withSnapshot) {
                     //TODO add hash
-                    jarSnapshot.symbols.addAll(lookupTracker.lookups.keySet())
-                    for (change in changesCollector.changes()) {
-                        if (change is ChangeInfo.MembersChanged) {
-                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
-                            for (fqName in fqNames) {
-                                for (name in change.names) {
-                                    jarSnapshot.symbols.add(LookupSymbol(name, fqName.shortName().identifier))
-                                }
-                            }
-                        }
-                    }
+                    jarSnapshot.protos.putAll(changesCollector.protoDataChanges())
+//                    for (change in changesCollector.changes()) {
+//                        if (change is ChangeInfo.MembersChanged) {
+//                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
+//                            for (fqName in fqNames) {
+//                                for (name in change.names) {
+//                                    jarSnapshot.symbols.add(LookupSymbol(name, fqName.shortName().identifier))
+//                                }
+//                            }
+//                        }
+//                    }
                 }
                 break
             }
@@ -346,38 +349,45 @@ abstract class IncrementalCompilerRunner<
             buildDirtyLookupSymbols.addAll(dirtyLookupSymbols)
             buildDirtyFqNames.addAll(dirtyClassFqNames)
             if (withSnapshot) {
-                for(change in changesCollector.changes()) {
-                    when (change) {
-                        is ChangeInfo.Removed -> {
-                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
-                            for (fqName in fqNames) {
-                                jarSnapshot.symbols.removeAll(change.names.map { LookupSymbol(it, fqName.shortName().identifier) })
-                            }
-                        }
-                        is ChangeInfo.MembersChanged -> {
-                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
-                            for (fqName in fqNames) {
-                                for (name in change.names) {
-                                    //TODO add valid check if it is added method or removed
-                                    val lookup = LookupSymbol(name, fqName.shortName().identifier)
-                                    if (!jarSnapshot.symbols.remove(lookup)) {
-                                        jarSnapshot.symbols.add(lookup)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                jarSnapshot.symbols.addAll(buildDirtyLookupSymbols)
+                //TODO check method/class remove
+                jarSnapshot.protos.putAll(changesCollector.protoDataChanges())
             }
+//                for(change in changesCollector.protoDataChanges()) {
+////                    change.
+//                    val oldData = jarSnapshot.protos.put(change.key, change.value)
+//
+//                    when (change) {
+//                        is ChangeInfo.Removed -> {
+//                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
+//                            for (fqName in fqNames) {
+//                                jarSnapshot.symbols.removeAll(change.names.map { LookupSymbol(it, fqName.shortName().identifier) })
+//                            }
+//                        }
+//                        is ChangeInfo.MembersChanged -> {
+//                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
+//                            for (fqName in fqNames) {
+//                                for (name in change.names) {
+//                                    //TODO add valid check if it is added method or removed
+//                                    val lookup = LookupSymbol(name, fqName.shortName().identifier)
+//                                    if (!jarSnapshot.symbols.remove(lookup)) {
+//                                        jarSnapshot.symbols.add(lookup)
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//                jarSnapshot.symbols.addAll(buildDirtyLookupSymbols)
         }
 
         if (exitCode == ExitCode.OK) {
             BuildInfo.write(currentBuildInfo, lastBuildInfoFile)
 
             //write jar snapshot
-            jarSnapshot.symbols.addAll(buildDirtyLookupSymbols)
-            JarSnapshot.write(jarSnapshot, jarSnapshotFile)
+            if (withSnapshot) {
+                //TODO check method/class remove
+                JarSnapshot.write(jarSnapshot, jarSnapshotFile)
+            }
         }
         if (exitCode == ExitCode.OK && compilationMode is CompilationMode.Incremental) {
             buildDirtyLookupSymbols.addAll(additionalDirtyLookupSymbols())

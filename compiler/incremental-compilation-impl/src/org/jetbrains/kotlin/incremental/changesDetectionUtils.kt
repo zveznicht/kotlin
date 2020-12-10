@@ -17,8 +17,8 @@ internal fun getClasspathChanges(
     modulesApiHistory: ModulesApiHistory,
     reporter: ICReporter?,
     jarSnapshots: Map<String, JarSnapshot>,
-    withSnapshot: Boolean,
-    parameters: JarSnapshotDiffService.Parameters
+    withSnapshot: Boolean
+//    parameters: JarSnapshotDiffService.Parameters
 ): ChangesEither {
     val classpathSet = HashSet<File>()
     for (file in classpath) {
@@ -46,7 +46,7 @@ internal fun getClasspathChanges(
             if (actualJarSnapshot == null) {
                 return ChangesEither.Unknown("Some jar are removed from classpath $module")
             }
-            val diffData = JarSnapshotDiffService.compareJarsInternal(parameters, jarSnapshot, actualJarSnapshot)
+            val diffData = JarSnapshotDiffService.compareJarsInternal(jarSnapshot, actualJarSnapshot)
             symbols.addAll(diffData.dirtyLookupSymbols)
             fqNames.addAll(diffData.dirtyClassesFqNames)
 
