@@ -22,12 +22,15 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.util.CachedValueImpl
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.diagnostics.Diagnostic
+import org.jetbrains.kotlin.diagnostics.DiagnosticSink
+import org.jetbrains.kotlin.diagnostics.Errors
 
 class MutableDiagnosticsWithSuppression(
     private val suppressCache: KotlinSuppressCache,
     private val delegateDiagnostics: Diagnostics,
 ) : Diagnostics {
     private val diagnosticList = ArrayList<Diagnostic>()
+    private var diagnosticsCallback: DiagnosticSink.DiagnosticsCallback? = null
 
     //NOTE: CachedValuesManager is not used because it requires Project passed to this object
     private val cache = CachedValueImpl {
@@ -43,12 +46,31 @@ class MutableDiagnosticsWithSuppression(
     override fun forElement(psiElement: PsiElement) = readonlyView().forElement(psiElement)
     override fun noSuppression() = readonlyView().noSuppression()
 
+    override fun setCallback(callback: DiagnosticSink.DiagnosticsCallback) {
+        assert(diagnosticsCallback == null) { "diagnostic callback has been already registered" }
+        diagnosticsCallback = callback
+        delegateDiagnostics.setCallback(callback)
+    }
+
+    override fun resetCallback() {
+        diagnosticsCallback = null
+        delegateDiagnostics.resetCallback()
+    }
+
     //essential that this list is readonly
     fun getOwnDiagnostics(): List<Diagnostic> {
         return diagnosticList
     }
 
     fun report(diagnostic: Diagnostic) {
+        diagnosticsCallback?.let { callback ->
+            // TODO: it is known that on diagnostic callback REDECLARATION could run into a recursion
+            //   so, it is worth to ignore only them from on-fly reporting
+            if (diagnostic.factory != Errors.REDECLARATION && this.suppressCache.filter.invoke(diagnostic)) {
+                callback.callback(diagnostic)
+            }
+        }
+
         diagnosticList.add(diagnostic)
         modificationTracker.incModificationCount()
     }
