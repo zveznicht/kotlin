@@ -115,9 +115,8 @@ public class LoadDescriptorUtil {
         // TODO: use the same additional binary roots as those were used for compilation
         if (withForeignAnnotations) {
             javaBinaryRoots.add(MockLibraryUtil.compileJavaFilesLibraryToJar(FOREIGN_JDK8_ANNOTATIONS_SOURCES_PATH, "foreign-annotations"));
-        } else {
-            javaBinaryRoots.add(KotlinTestUtils.getAnnotationsJar());
         }
+        javaBinaryRoots.add(KotlinTestUtils.getAnnotationsJar());
         javaBinaryRoots.add(ForTestCompileRuntime.jvmAnnotationsForTests());
         javaBinaryRoots.addAll(additionalClasspath);
 
@@ -163,9 +162,8 @@ public class LoadDescriptorUtil {
         classpath.add(ForTestCompileRuntime.runtimeJarForTests());
         if (useJetbrainsAnnotationsWithTypeUse) {
             classpath.add(MockLibraryUtil.compileJavaFilesLibraryToJar(FOREIGN_JDK8_ANNOTATIONS_SOURCES_PATH, "foreign-annotations"));
-        } else {
-            classpath.add(KotlinTestUtils.getAnnotationsJar());
         }
+        classpath.add(KotlinTestUtils.getAnnotationsJar());
 
         for (File test : javaFiles) {
             String content = FilesKt.readText(test, Charsets.UTF_8);

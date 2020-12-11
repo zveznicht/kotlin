@@ -1,4 +1,4 @@
-// !LANGUAGE: +ReadTypeUseAnnotationsFromClassFiles
+// !LANGUAGE: +ReadTypeUseAnnotationsFromClassFiles -ImprovementsAroundTypeEnhancement
 
 package test;
 

@@ -31,8 +31,6 @@ import org.jetbrains.kotlin.load.java.components.SignaturePropagator
 import org.jetbrains.kotlin.load.java.lazy.types.JavaTypeResolver
 import org.jetbrains.kotlin.load.java.sources.JavaSourceElementFactory
 import org.jetbrains.kotlin.load.java.structure.JavaTypeParameterListOwner
-import org.jetbrains.kotlin.load.java.typeEnhancement.NullabilityQualifier
-import org.jetbrains.kotlin.load.java.typeEnhancement.NullabilityQualifierWithMigrationStatus
 import org.jetbrains.kotlin.load.java.typeEnhancement.SignatureEnhancement
 import org.jetbrains.kotlin.load.kotlin.DeserializedDescriptorResolver
 import org.jetbrains.kotlin.load.kotlin.KotlinClassFinder
@@ -42,7 +40,6 @@ import org.jetbrains.kotlin.serialization.deserialization.ErrorReporter
 import org.jetbrains.kotlin.storage.StorageManager
 import org.jetbrains.kotlin.types.checker.NewKotlinTypeChecker
 import org.jetbrains.kotlin.utils.JavaTypeEnhancementState
-import java.util.*
 
 class JavaResolverComponents(
     val storageManager: StorageManager,
@@ -84,7 +81,7 @@ class JavaResolverComponents(
 interface JavaResolverSettings {
     val isReleaseCoroutines: Boolean
     val correctNullabilityForNotNullTypeParameter: Boolean
-    val enhancementImprovements: Boolean
+    val typeEnhancementImprovements: Boolean
     val readingTypeUseAnnotationsFromClassFiles: Boolean
 
     object Default : JavaResolverSettings {
@@ -94,7 +91,7 @@ interface JavaResolverSettings {
         override val correctNullabilityForNotNullTypeParameter: Boolean
             get() = false
 
-        override val enhancementImprovements: Boolean
+        override val typeEnhancementImprovements: Boolean
             get() = false
 
         override val readingTypeUseAnnotationsFromClassFiles: Boolean
@@ -105,13 +102,13 @@ interface JavaResolverSettings {
         fun create(
             isReleaseCoroutines: Boolean,
             correctNullabilityForNotNullTypeParameter: Boolean,
-            enhancementImprovements: Boolean,
+            typeEnhancementImprovements: Boolean,
             readingTypeUseAnnotationsFromClassFiles: Boolean
         ): JavaResolverSettings =
             object : JavaResolverSettings {
                 override val isReleaseCoroutines get() = isReleaseCoroutines
                 override val correctNullabilityForNotNullTypeParameter get() = correctNullabilityForNotNullTypeParameter
-                override val enhancementImprovements get() = enhancementImprovements
+                override val typeEnhancementImprovements get() = typeEnhancementImprovements
                 override val readingTypeUseAnnotationsFromClassFiles get() = readingTypeUseAnnotationsFromClassFiles
             }
     }
@@ -184,10 +181,10 @@ private fun LazyJavaResolverContext.extractDefaultNullabilityQualifier(
         return null
     }
 
-    val isImprovementsEnabled = components.settings.enhancementImprovements
+    val areImprovementsEnabled = components.settings.typeEnhancementImprovements
 
     val nullabilityQualifier =
-        components.signatureEnhancement.extractNullability(typeQualifier, isImprovementsEnabled)
+        components.signatureEnhancement.extractNullability(typeQualifier, areImprovementsEnabled, typeParameterBounds = false)
             ?.copy(isForWarningOnly = jsr305State.isWarning) ?: return null
 
     return JavaDefaultQualifiers(nullabilityQualifier, applicability)

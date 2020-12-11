@@ -53,7 +53,6 @@ class BinaryJavaValueParameter(
 ) : JavaValueParameter, MapBasedJavaAnnotationOwner, MutableJavaAnnotationOwner {
     override val annotations: MutableCollection<JavaAnnotation> = SmartList()
     override val annotationsByFqName by buildLazyValueForMap()
-    override val isDeprecatedInJavaDoc = false
 
     override var name: Name? = null
 

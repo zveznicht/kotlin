@@ -62,7 +62,7 @@ abstract class KotlinMultiFileTestWithJava<M : KotlinBaseTest.TestModule, F : Ko
             configuration.addKotlinSourceRoot(kotlinSourceRoot!!.path)
         }
 
-        // Currently, we're testing IDE behavior when generating the .txt files for comparison, but this can be changed.
+        // Currently, by default, we're testing IDE behavior when generating the .txt files for comparison, but this can be changed.
         // The main difference is the fact that the new class file reading implementation doesn't load parameter names from JDK classes.
         configuration.put(JVMConfigurationKeys.USE_PSI_CLASS_FILES_READING, usePsiClassFilesReading)
 
@@ -135,7 +135,7 @@ abstract class KotlinMultiFileTestWithJava<M : KotlinBaseTest.TestModule, F : Ko
                 fileName: String,
                 text: String,
                 directives: Directives
-            ): F? {
+            ): F {
                 if (fileName.endsWith(".java")) {
                     writeSourceFile(fileName, text, javaFilesDir)
                 }

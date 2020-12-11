@@ -26,10 +26,10 @@ import org.jetbrains.kotlin.name.FqName
 class LazyJavaAnnotations(
     private val c: LazyJavaResolverContext,
     private val annotationOwner: JavaAnnotationOwner,
-    private val areFreshlySupportedAnnotations: Boolean = false
+    private val areAnnotationsFreshlySupported: Boolean = false
 ) : Annotations {
     private val annotationDescriptors = c.components.storageManager.createMemoizedFunctionWithNullableValues { annotation: JavaAnnotation ->
-        JavaAnnotationMapper.mapOrResolveJavaAnnotation(annotation, c, areFreshlySupportedAnnotations)
+        JavaAnnotationMapper.mapOrResolveJavaAnnotation(annotation, c, areAnnotationsFreshlySupported)
     }
 
     override fun findAnnotation(fqName: FqName) =
