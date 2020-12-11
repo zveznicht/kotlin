@@ -167,8 +167,8 @@ class IdeaResolverForProject(
                             ?: error("Attempt to create built-ins without proper dependency on Kotlin standard library")
                         newBuiltIns.builtInsModule = stdlibDescriptor
                     }
-                    uninitializedStateInCache = false
                 }
+                uninitializedStateInCache = false
                 return@compute newBuiltIns
             } catch (e: Exception) {
                 exc = e
