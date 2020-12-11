@@ -4,7 +4,7 @@ package test;
 
 import org.jetbrains.annotations.*;
 
-public class Basic_DisabledImprovements {
+public class Basic_DisabledReading {
     public interface G<@NotNull T> {
         <@NotNull R> void foo(R r);
     }

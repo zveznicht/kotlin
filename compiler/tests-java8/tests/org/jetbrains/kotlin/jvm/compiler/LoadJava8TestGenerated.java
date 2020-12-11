@@ -67,9 +67,9 @@ public class LoadJava8TestGenerated extends AbstractLoadJava8Test {
                 runTest("compiler/testData/loadJava8/compiledJava/typeParameterAnnotations/Basic_DisabledImprovements.java");
             }
 
-            @TestMetadata("Basic_DisabledImprovementsAndreading.java")
-            public void testBasic_DisabledImprovementsAndreading() throws Exception {
-                runTest("compiler/testData/loadJava8/compiledJava/typeParameterAnnotations/Basic_DisabledImprovementsAndreading.java");
+            @TestMetadata("Basic_DisabledImprovementsAndReading.java")
+            public void testBasic_DisabledImprovementsAndReading() throws Exception {
+                runTest("compiler/testData/loadJava8/compiledJava/typeParameterAnnotations/Basic_DisabledImprovementsAndReading.java");
             }
 
             @TestMetadata("Basic_DisabledReading.java")
