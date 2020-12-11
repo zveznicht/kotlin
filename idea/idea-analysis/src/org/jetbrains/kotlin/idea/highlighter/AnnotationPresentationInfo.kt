@@ -59,11 +59,9 @@ class AnnotationPresentationInfo(
         }
 
         if (diagnostic.severity == Severity.WARNING) {
-            annotation.problemGroup(KotlinSuppressableWarningProblemGroup(diagnostic.factory))
-
             if (fixes.isEmpty()) {
                 // if there are no quick fixes we need to register an EmptyIntentionAction to enable 'suppress' actions
-                annotation.newFix(EmptyIntentionAction(diagnostic.factory.name!!)).registerFix()
+                annotation.newFix(EmptyIntentionAction(diagnostic.factory.name)).registerFix()
             }
         }
     }
@@ -77,13 +75,20 @@ class AnnotationPresentationInfo(
             Severity.INFO -> HighlightSeverity.WEAK_WARNING
         }
 
+
         val message = nonDefaultMessage ?: getDefaultMessage(diagnostic)
         holder.newAnnotation(severity, message)
             .range(range)
             .tooltip(getMessage(diagnostic))
             .also { builder -> highlightType?.let { builder.highlightType(it) } }
             .also { builder -> textAttributes?.let { builder.textAttributes(it) } }
+            .also {
+                if (diagnostic.severity == Severity.WARNING) {
+                    it.problemGroup(KotlinSuppressableWarningProblemGroup(diagnostic.factory))
+                }
+            }
             .also { consumer(it) }
+
             .create()
     }
 

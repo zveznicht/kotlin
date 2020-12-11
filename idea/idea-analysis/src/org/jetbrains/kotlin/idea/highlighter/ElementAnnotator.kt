@@ -29,56 +29,68 @@ internal class ElementAnnotator(
     private val element: PsiElement,
     private val shouldSuppressUnusedParameter: (KtParameter) -> Boolean
 ) {
-    fun registerDiagnosticsAnnotations(holder: AnnotationHolder, diagnostics: Collection<Diagnostic>, noFixes: Boolean) {
-        diagnostics.groupBy { it.factory }.forEach { registerDiagnosticAnnotations(holder, it.value, noFixes) }
-    }
-
     fun registerDiagnosticsAnnotations(
         holder: AnnotationHolder,
-        diagnostic: Diagnostic,
+        diagnostics: Collection<Diagnostic>,
+        annotationBuilderByDiagnostic: MutableMap<Diagnostic, AnnotationBuilder>? = null,
+        noFixes: Boolean
+    ) = diagnostics.groupBy { it.factory }
+        .forEach { registerSameFactoryDiagnosticsAnnotations(holder, it.value, annotationBuilderByDiagnostic, noFixes) }
+
+    private fun registerSameFactoryDiagnosticsAnnotations(
+        holder: AnnotationHolder,
+        diagnostics: List<Diagnostic>,
         annotationBuilderByDiagnostic: MutableMap<Diagnostic, AnnotationBuilder>? = null,
         noFixes: Boolean
     ) {
-        // hack till the root cause #KT-21246 is fixed
-        if (isIrCompileClassDiagnosticForModulesWithEnabledIR(diagnostic)) return
-
-        val presentationInfo = presentationInfo(diagnostic) ?: return
-        setUpAnnotations(holder, listOf(diagnostic), presentationInfo, annotationBuilderByDiagnostic, noFixes)
-    }
-
-    fun registerDiagnosticsQuickFixes(
-        diagnostic: Diagnostic,
-        annotationBuilderByDiagnostic: MutableMap<Diagnostic, AnnotationBuilder>
-    ) {
-        // hack till the root cause #KT-21246 is fixed
-        if (isIrCompileClassDiagnosticForModulesWithEnabledIR(diagnostic)) return
-
-        val presentationInfo = presentationInfo(diagnostic) ?: return
-        val annotationBuilder = annotationBuilderByDiagnostic[diagnostic] ?: return
-
-        val diagnostics = listOf(diagnostic)
-        val fixesMap = createFixesMap(diagnostics) ?: return
-
-        presentationInfo.applyFixes(fixesMap, diagnostic, annotationBuilder)
-    }
-
-    private fun registerDiagnosticAnnotations(holder: AnnotationHolder, diagnostics: List<Diagnostic>, noFixes: Boolean) {
-        assert(diagnostics.isNotEmpty())
-
-        val validDiagnostics = diagnostics.filter { it.isValid }
-        if (validDiagnostics.isEmpty()) return
+        if (checkIsValid(diagnostics)) return
 
         val diagnostic = diagnostics.first()
         val factory = diagnostic.factory
 
+        assert(diagnostics.all { it.psiElement == element && it.factory == factory })
+
         // hack till the root cause #KT-21246 is fixed
         if (isIrCompileClassDiagnosticForModulesWithEnabledIR(diagnostic)) return
 
-        assert(diagnostics.all { it.psiElement == element && it.factory == factory })
-
         val presentationInfo = presentationInfo(diagnostic) ?: return
+        setUpAnnotations(holder, diagnostics, presentationInfo, annotationBuilderByDiagnostic, noFixes)
+    }
 
-        setUpAnnotations(holder, diagnostics, presentationInfo, null, noFixes)
+    fun registerDiagnosticsQuickFixes(
+        diagnostics: List<Diagnostic>,
+        annotationBuilderByDiagnostic: MutableMap<Diagnostic, AnnotationBuilder>
+    ) = diagnostics.groupBy { it.factory }
+        .forEach { registerDiagnosticsSameFactoryQuickFixes(it.value, annotationBuilderByDiagnostic) }
+
+    private fun registerDiagnosticsSameFactoryQuickFixes(
+        diagnostics: List<Diagnostic>,
+        annotationBuilderByDiagnostic: MutableMap<Diagnostic, AnnotationBuilder>
+    ) {
+        if (checkIsValid(diagnostics)) return
+
+        run {
+            val diagnostic = diagnostics.first()
+            val factory = diagnostic.factory
+
+            assert(diagnostics.all { it.psiElement == element && it.factory == factory })
+            // hack till the root cause #KT-21246 is fixed
+            if (isIrCompileClassDiagnosticForModulesWithEnabledIR(diagnostic)) return
+        }
+
+        val fixesMap = createFixesMap(diagnostics) ?: return
+
+        diagnostics.forEach {
+            val presentationInfo = presentationInfo(it) ?: return
+            val annotationBuilder = annotationBuilderByDiagnostic[it] ?: return
+
+            presentationInfo.applyFixes(fixesMap, it, annotationBuilder)
+        }
+    }
+
+    private fun checkIsValid(diagnostics: List<Diagnostic>): Boolean {
+        assert(diagnostics.isNotEmpty())
+        return !diagnostics.any { it.isValid }
     }
 
     private fun presentationInfo(diagnostic: Diagnostic): AnnotationPresentationInfo? {
