@@ -106,10 +106,12 @@ class DataClassMembersGenerator(val components: Fir2IrComponents) {
                 }
             }
 
-            private fun getHashCodeFunction(klass: IrClass): IrSimpleFunctionSymbol {
-                return klass.functions.singleOrNull { it.name.asString() == "hashCode" && it.valueParameters.isEmpty() }?.symbol
+            private fun getHashCodeFunction(klass: IrClass): IrSimpleFunctionSymbol =
+                klass.functions.singleOrNull {
+                    it.name.asString() == "hashCode" && it.valueParameters.isEmpty() && it.extensionReceiverParameter == null
+                }?.symbol
                     ?: context.irBuiltIns.anyClass.functions.single { it.owner.name.asString() == "hashCode" }
-            }
+
 
             val IrTypeParameter.erasedUpperBound: IrClass
                 get() {

@@ -235,7 +235,8 @@ abstract class DataClassMembersGenerator(
     }
 
     fun getIrProperty(property: PropertyDescriptor): IrProperty =
-        irClass.properties.single { it.descriptor == property }
+        irClass.properties.singleOrNull { it.descriptor == property }
+            ?: error("Could not find IR counterpart to $property")
 
     fun getBackingField(property: PropertyDescriptor): IrField =
         getIrProperty(property).backingField!!

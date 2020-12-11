@@ -36,7 +36,7 @@ abstract class IrBindablePublicSymbolBase<out D : DeclarationDescriptor, B : IrS
     IrBindableSymbol<D, B>, IrPublicSymbolBase<D>(sig, descriptor) {
 
     init {
-        assert(descriptor?.let(::isOriginalDescriptor) != false) {
+        assert(descriptor == null || isOriginalDescriptor(descriptor)) {
             "Substituted descriptor $descriptor for ${descriptor!!.original}"
         }
         assert(sig.isPublic)

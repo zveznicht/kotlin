@@ -48,7 +48,7 @@ abstract class IrBindableSymbolBase<out D : DeclarationDescriptor, B : IrSymbolO
     IrBindableSymbol<D, B>, IrSymbolBase<D>(descriptor) {
 
     init {
-        assert(descriptor?.let(::isOriginalDescriptor) != false) {
+        assert(descriptor == null || isOriginalDescriptor(descriptor)) {
             "Substituted descriptor $descriptor for ${descriptor!!.original}"
         }
         if (descriptor != null) {

@@ -88,7 +88,7 @@ class DataClassMembersGenerator(
 
             private fun MemberScope.findHashCodeFunctionOrNull() =
                 getContributedFunctions(Name.identifier("hashCode"), NoLookupLocation.FROM_BACKEND)
-                    .find { it.valueParameters.isEmpty() }
+                    .find { it.valueParameters.isEmpty() && it.extensionReceiverParameter == null }
 
             private fun getHashCodeFunction(type: KotlinType): FunctionDescriptor =
                 type.memberScope.findHashCodeFunctionOrNull()
