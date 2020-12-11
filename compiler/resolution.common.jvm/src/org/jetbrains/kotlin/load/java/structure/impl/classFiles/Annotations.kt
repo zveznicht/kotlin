@@ -46,13 +46,13 @@ internal class AnnotationsCollectorFieldVisitor(
             when (typeReference.sort) {
                 TypeReference.FIELD -> {
                     val targetType = computeTargetType(field.type, translatedPath)
-                    return BinaryJavaAnnotation.addAnnotation(targetType as JavaPlainType, desc, context, signatureParser)
+                    return BinaryJavaAnnotation.addAnnotation(targetType as JavaPlainType, desc, context, signatureParser, true)
                 }
             }
         }
 
         return when (typeReference.sort) {
-            TypeReference.FIELD -> BinaryJavaAnnotation.addAnnotation(field.type as JavaPlainType, desc, context, signatureParser)
+            TypeReference.FIELD -> BinaryJavaAnnotation.addAnnotation(field.type as JavaPlainType, desc, context, signatureParser, true)
             else -> null
         }
     }
@@ -125,27 +125,29 @@ internal class AnnotationsAndParameterCollectorMethodVisitor(
             } ?: return null
 
             return BinaryJavaAnnotation.addAnnotation(
-                computeTargetType(baseType, translatePath(typePath)) as JavaPlainType, desc, context, signatureParser
+                computeTargetType(baseType, translatePath(typePath)) as JavaPlainType, desc, context, signatureParser, true
             )
         }
 
-        val targetType = when (typeReference.sort) {
+        val (targetType, isFreshlySupportedAnnotation) = when (typeReference.sort) {
             TypeReference.METHOD_RETURN ->
-                (member as? BinaryJavaMethod)?.returnType as JavaPlainType
+                (member as? BinaryJavaMethod)?.returnType as JavaPlainType to false
             TypeReference.METHOD_TYPE_PARAMETER ->
-                if (context.readTypeUseAnnotationsFromClassFiles) {
+                (if (context.readTypeUseAnnotationsFromClassFiles) {
                     member.typeParameters[typeReference.typeParameterIndex] as BinaryJavaTypeParameter
-                } else null
+                } else null) to true
             TypeReference.METHOD_FORMAL_PARAMETER ->
-                member.valueParameters[typeReference.formalParameterIndex].type as JavaPlainType
+                member.valueParameters[typeReference.formalParameterIndex].type as JavaPlainType to false
             TypeReference.METHOD_TYPE_PARAMETER_BOUND ->
-                if (context.readTypeUseAnnotationsFromClassFiles) {
+                (if (context.readTypeUseAnnotationsFromClassFiles) {
                     BinaryJavaAnnotation.computeTypeParameterBound(member.typeParameters, typeReference) as JavaPlainType
-                } else null
-            else -> null
-        } ?: return null
+                } else null) to true
+            else -> return null
+        }
 
-        return BinaryJavaAnnotation.addAnnotation(targetType, desc, context, signatureParser)
+        if (targetType == null) return null
+
+        return BinaryJavaAnnotation.addAnnotation(targetType, desc, context, signatureParser, isFreshlySupportedAnnotation)
     }
 
     enum class PathElementType { ARRAY_ELEMENT, WILDCARD_BOUND, ENCLOSING_CLASS, TYPE_ARGUMENT }
@@ -154,7 +156,8 @@ internal class AnnotationsAndParameterCollectorMethodVisitor(
 class BinaryJavaAnnotation private constructor(
     desc: String,
     private val context: ClassifierResolutionContext,
-    override val arguments: Collection<JavaAnnotationArgument>
+    override val arguments: Collection<JavaAnnotationArgument>,
+    override val isFreshlySupportedTypeUseAnnotation: Boolean
 ) : JavaAnnotation {
 
     companion object {
@@ -162,10 +165,11 @@ class BinaryJavaAnnotation private constructor(
         fun createAnnotationAndVisitor(
             desc: String,
             context: ClassifierResolutionContext,
-            signatureParser: BinaryClassSignatureParser
+            signatureParser: BinaryClassSignatureParser,
+            isFreshlySupportedTypeUseAnnotation: Boolean = false
         ): Pair<JavaAnnotation, AnnotationVisitor> {
             val arguments = mutableListOf<JavaAnnotationArgument>()
-            val annotation = BinaryJavaAnnotation(desc, context, arguments)
+            val annotation = BinaryJavaAnnotation(desc, context, arguments, isFreshlySupportedTypeUseAnnotation)
 
             return annotation to BinaryJavaAnnotationVisitor(context, signatureParser, arguments)
         }
@@ -174,9 +178,11 @@ class BinaryJavaAnnotation private constructor(
             annotationOwner: MutableJavaAnnotationOwner,
             desc: String,
             context: ClassifierResolutionContext,
-            signatureParser: BinaryClassSignatureParser
+            signatureParser: BinaryClassSignatureParser,
+            isFreshlySupportedAnnotation: Boolean = false
         ): AnnotationVisitor {
-            val (javaAnnotation, annotationVisitor) = createAnnotationAndVisitor(desc, context, signatureParser)
+            val (javaAnnotation, annotationVisitor) =
+                createAnnotationAndVisitor(desc, context, signatureParser, isFreshlySupportedAnnotation)
             if (annotationOwner !is BinaryJavaTypeParameter || context.readTypeUseAnnotationsFromClassFiles) {
                 annotationOwner.annotations.add(javaAnnotation)
             }
