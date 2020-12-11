@@ -151,7 +151,11 @@ val compileKotlinJs by tasks.existing(KotlinCompile::class) {
 
 
 val compileTestKotlinJs by tasks.existing(KotlinCompile::class) {
-    kotlinOptions.freeCompilerArgs += "-Xcommon-sources=${kotlin.sourceSets["commonTest"].kotlin.joinToString(",")}"
+    doFirst {
+        // Note: common test sources are copied to the actual source directory by commonMainSources task,
+        // so can't do this at configuration time:
+        kotlinOptions.freeCompilerArgs += "-Xcommon-sources=${kotlin.sourceSets["commonTest"].kotlin.joinToString(",")}"
+    }
 }
 
 val packFullRuntimeKLib by tasks.registering(Jar::class) {
