@@ -30,6 +30,27 @@ dependencies {
     testRuntime(intellijDep())
 
     compile(intellijPluginDep("java"))
+    testRuntimeOnly(intellijPluginDep("java"))
+
+    testRuntimeOnly(intellijDep())
+    testRuntimeOnly(intellijRuntimeAnnotations())
+    testRuntimeOnly(toolsJar())
+    testRuntimeOnly(project(":kotlin-reflect"))
+    testRuntimeOnly(project(":plugins:android-extensions-ide"))
+    testRuntimeOnly(project(":plugins:kapt3-idea"))
+    testRuntimeOnly(project(":sam-with-receiver-ide-plugin"))
+    testRuntimeOnly(project(":noarg-ide-plugin"))
+    testRuntimeOnly(project(":allopen-ide-plugin"))
+    testRuntimeOnly(project(":kotlin-scripting-idea"))
+    testRuntimeOnly(project(":kotlinx-serialization-ide-plugin"))
+    testRuntimeOnly(project(":plugins:parcelize:parcelize-ide"))
+    testRuntimeOnly(project(":nj2k:nj2k-services"))
+    testRuntimeOnly(project(":kotlin-reflect"))
+    testRuntimeOnly(project(":idea:kotlin-gradle-tooling"))
+    testRuntimeOnly(project(":kotlin-gradle-statistics"))
+
+    testImplementation(intellijPluginDep("gradle-java"))
+    testRuntimeOnly(intellijPluginDep("gradle-java"))
 }
 
 sourceSets {
