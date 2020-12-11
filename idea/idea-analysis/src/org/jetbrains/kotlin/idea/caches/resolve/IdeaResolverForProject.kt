@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.idea.caches.resolve
 
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProcessCanceledException
 import com.intellij.openapi.util.ModificationTracker
 import org.jetbrains.kotlin.analyzer.*
@@ -34,7 +35,6 @@ import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.resolve.ResolutionAnchorProvider
 import org.jetbrains.kotlin.resolve.jvm.JvmPlatformParameters
-import java.util.concurrent.atomic.AtomicBoolean
 
 class IdeaResolverForProject(
     debugName: String,
@@ -134,19 +134,22 @@ class IdeaResolverForProject(
         private val cache = mutableMapOf<BuiltInsCacheKey, KotlinBuiltIns>()
 
         fun getOrCreateIfNeeded(module: IdeaModuleInfo): KotlinBuiltIns = projectContextFromSdkResolver.storageManager.compute {
-            val sdk = resolverForSdk.sdkDependency(module)
-            val stdlib = findStdlibForModulesBuiltins(module)
-
-            val key = module.platform.idePlatformKind.resolution.getKeyForBuiltIns(module, sdk, stdlib)
-            val cachedBuiltIns = cache[key]
-            if (cachedBuiltIns != null) return@compute cachedBuiltIns
-
-            // Note #1: we can't use .getOrPut, because we have to put builtIns into map *before* initialization
-            // Note #2: it's OK to put not-initialized built-ins into public map, because access to [cache] is guarded by storageManager.lock
-            val newBuiltIns = module.platform.idePlatformKind.resolution.createBuiltIns(module, projectContextFromSdkResolver, sdk, stdlib)
-
+            var exc: Exception? = null
+            var uninitializedStateInCache = false
             try {
+                val sdk = resolverForSdk.sdkDependency(module)
+                val stdlib = findStdlibForModulesBuiltins(module)
+
+                val key = module.platform.idePlatformKind.resolution.getKeyForBuiltIns(module, sdk, stdlib)
+                val cachedBuiltIns = cache[key]
+                if (cachedBuiltIns != null) return@compute cachedBuiltIns
+
+                // Note #1: we can't use .getOrPut, because we have to put builtIns into map *before* initialization
+                // Note #2: it's OK to put not-initialized built-ins into public map, because access to [cache] is guarded by storageManager.lock
+                val newBuiltIns =
+                    module.platform.idePlatformKind.resolution.createBuiltIns(module, projectContextFromSdkResolver, sdk, stdlib)
                 cache[key] = newBuiltIns
+                uninitializedStateInCache = true
 
                 if (newBuiltIns is JvmBuiltIns) {
                     // SDK should be present, otherwise we wouldn't have created JvmBuiltIns in createBuiltIns
@@ -164,11 +167,20 @@ class IdeaResolverForProject(
                             ?: error("Attempt to create built-ins without proper dependency on Kotlin standard library")
                         newBuiltIns.builtInsModule = stdlibDescriptor
                     }
+                    uninitializedStateInCache = false
                 }
                 return@compute newBuiltIns
             } catch (e: Exception) {
-                cache.remove(key)
+                exc = e
                 throw e
+            } finally {
+                if (uninitializedStateInCache) {
+                    LOG.error(
+                        """Uninitialized built-ins in cache due to exception:
+                            |${exc?.stackTrace?.joinToString("\n")}
+                        """.trimMargin()
+                    )
+                }
             }
         }
 
@@ -179,6 +191,10 @@ class IdeaResolverForProject(
             return module.dependencies().lazyClosure { it.dependencies() }.firstOrNull {
                 it is LibraryInfo && it.isKotlinStdlib(projectContextFromSdkResolver.project)
             } as? LibraryInfo
+        }
+
+        companion object {
+            private val LOG = Logger.getInstance(BuiltInsCache::class.java)
         }
     }
 
