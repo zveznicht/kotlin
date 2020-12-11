@@ -26,9 +26,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.util.io.FileUtil
 import org.gradle.api.artifacts.Dependency
 import org.gradle.tooling.model.idea.IdeaModule
-import org.jetbrains.kotlin.caching.CachedCompilerArgumentBySourceSet
-import org.jetbrains.kotlin.caching.CompilerArgumentsMapperWithMerge
-import org.jetbrains.kotlin.caching.deepCopy
+import org.jetbrains.kotlin.caching.*
 import org.jetbrains.kotlin.gradle.*
 import org.jetbrains.kotlin.idea.inspections.gradle.getDependencyModules
 import org.jetbrains.kotlin.idea.statistics.FUSEventGroups
@@ -53,8 +51,8 @@ var DataNode<ModuleData>.isResolved
         by NotNullableCopyableDataNodeUserDataProperty(Key.create<Boolean>("IS_RESOLVED"), false)
 var DataNode<ModuleData>.hasKotlinPlugin
         by NotNullableCopyableDataNodeUserDataProperty(Key.create<Boolean>("HAS_KOTLIN_PLUGIN"), false)
-var DataNode<ModuleData>.cachedCompilerArgumentsBySourceSet
-        by CopyableDataNodeUserDataProperty(Key.create<CachedCompilerArgumentBySourceSet>("CACHED_COMPILER_ARGUMENTS"))
+var DataNode<ModuleData>.flatCompilerArgumentBySourceSet
+        by NotNullableCopyableDataNodeUserDataProperty(Key.create<FlatCompilerArgumentBySourceSet>("FLAT_ARGUMENTS"), mutableMapOf())
 var DataNode<ModuleData>.coroutines
         by CopyableDataNodeUserDataProperty(Key.create<String>("KOTLIN_COROUTINES"))
 var DataNode<out ModuleData>.isHmpp
@@ -238,7 +236,10 @@ class KotlinGradleProjectResolverExtension : AbstractProjectResolverExtension() 
 
         ideModule.isResolved = true
         ideModule.hasKotlinPlugin = gradleModel.hasKotlinPlugin
-        ideModule.cachedCompilerArgumentsBySourceSet = gradleModel.cachedCompilerArgumentsBySourceSet.deepCopy()
+        gradleModel.cachedCompilerArgumentsBySourceSet
+            .map { it.key to it.value.convertToFlat(ideProject.projectCompilerArgumentsMapper) }
+            .forEach { (k, v) -> ideModule.flatCompilerArgumentBySourceSet[k] = v }
+
         ideModule.coroutines = gradleModel.coroutines
         ideModule.platformPluginId = gradleModel.platformPluginId
 

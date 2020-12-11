@@ -416,7 +416,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
                 dependencyResolver,
                 project,
                 dependencyMapper,
-                compilerArgumentsMapper
+                compilerArgumentsMapper,
+                platform
             )
             if (compilation == null || platform != KotlinPlatform.ANDROID) {
                 compilation
@@ -585,8 +586,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         dependencyResolver: DependencyResolver,
         project: Project,
         dependencyMapper: KotlinDependencyMapper,
-        compilerArgumentsMapper: ICompilerArgumentsMapper
-
+        compilerArgumentsMapper: ICompilerArgumentsMapper,
+        platform: KotlinPlatform
     ): KotlinCompilationImpl? {
         val compilationClass = gradleCompilation.javaClass
         val getKotlinSourceSets = compilationClass.getMethodOrNull("getKotlinSourceSets") ?: return null
@@ -803,7 +804,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         val converter = RawToCachedCompilerArgumentsBucketConverter(classLoader, compilerArgumentsMapper)
         val currentCachedArgumentsBucket = compileTaskClass.getMethodOrNull("getSerializedCompilerArguments")
             ?.let { safelyGetArguments(compileKotlinTask, it) }
-            ?.let { converter.convert(it) } ?: return null
+            ?.let { converter.convert(it) }
+            ?: return null
         val defaultCachedArgumentsBucket = compileTaskClass.getMethodOrNull("getDefaultSerializedCompilerArguments")
             ?.let { safelyGetArguments(compileKotlinTask, it) }
             ?.let { converter.convert(it) }

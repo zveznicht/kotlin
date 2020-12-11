@@ -111,15 +111,6 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun Task.getSerializedTargetPlatform(): String? {
-        return try {
-            javaClass.getDeclaredMethod("serializedTargetPlatform").invoke(this) as? String
-        } catch (e: Exception) {
-            // No argument accessor method is available
-            null
-        }
-    }
-
     private fun Task.getDependencyClasspath(): List<String> {
         try {
             val abstractKotlinCompileClass = javaClass.classLoader.loadClass(ABSTRACT_KOTLIN_COMPILE_CLASS)
@@ -167,18 +158,16 @@ class KotlinGradleModelBuilder : AbstractKotlinGradleModelBuilder() {
 
             forEach { compileTask ->
                 val sourceSetName = compileTask.getSourceSetName()
-                val serializedTargetPlatform = compileTask.getSerializedTargetPlatform()
+
 
                 val currentCompilerArgumentsBucket = converter.convert(
                     compileTask.getCompilerArguments("getSerializedCompilerArguments")
                         ?: compileTask.getCompilerArguments("getSerializedCompilerArgumentsIgnoreClasspathIssues")
-                        ?: emptyList(),
-                    serializedTargetPlatform
+                        ?: emptyList()
                 )
 
                 val defaultCompilerArgumentsBucket = converter.convert(
                     compileTask.getCompilerArguments("getDefaultSerializedCompilerArguments").orEmpty(),
-                    serializedTargetPlatform
                 )
 
                 val dependencyClasspath = compileTask.getDependencyClasspath()

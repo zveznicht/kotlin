@@ -9,16 +9,60 @@ import org.jetbrains.kotlin.caching.*
 import org.jetbrains.kotlin.cli.common.arguments.*
 import org.jetbrains.kotlin.compilerRunner.ArgumentUtils
 import org.jetbrains.kotlin.platform.IdePlatformKind
+import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import kotlin.reflect.KProperty1
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.memberProperties
 
-private fun CommonCompilerArguments.calculateTargetPlatform() = IdePlatformKind.platformByCompilerArguments(this)?.serializeComponentPlatforms()
+@Suppress("UNCHECKED_CAST")
+fun CommonCompilerArguments.toFlatCompilerArguments(): FlatCompilerArgumentsBucket {
+    val (flagPropertiesToArgumentAnnotation,
+        singlePropertiesToArgumentAnnotation,
+        multiplePropertiesToArgumentAnnotation,
+        classpathPropertiesToArgumentAnnotation) =
+        DividedPropertiesWithArgumentAnnotationInfoManager(this::class.java.classLoader).dividedPropertiesWithArgumentAnnotationInfo
 
-fun CommonCompilerArguments.toFlatCompilerArguments(): FlatCompilerArgumentsBucket =
-    ArgumentUtils.convertArgumentsToStringList(this).let {
-        RawToFlatCompilerArgumentsBucketConverter(this::class.java.classLoader).convert(it, calculateTargetPlatform())
+    val properties = this::class.java.kotlin.memberProperties
+
+    val flagProperties = flagPropertiesToArgumentAnnotation.filterKeys { properties.contains(it) }
+    val flagPropsToValues = flagProperties.mapNotNull { it.safeAs<KProperty1<CommonCompilerArguments, Boolean>>() }
+        .associateWith { it.get(this) }
+    val flatFlags = flagPropsToValues.filterValues { it }.mapNotNull { flagPropertiesToArgumentAnnotation[it.key]?.value }
+
+    val singleProperties = properties.intersect(singlePropertiesToArgumentAnnotation.keys)
+    val singlePropsToValues = singleProperties.mapNotNull { it.safeAs<KProperty1<CommonCompilerArguments, String?>>() }
+        .associateWith { it.get(this) }
+    val singleArguments = singlePropsToValues.map { singlePropertiesToArgumentAnnotation[it.key] to it.value }
+        .filter { it.first != null && it.second != null }.associate { it.first!!.value to it.second!! }
+
+    val multipleProperties = properties.intersect(multiplePropertiesToArgumentAnnotation.keys)
+    val multiplePropsToValues = multipleProperties.mapNotNull { it.safeAs<KProperty1<CommonCompilerArguments, Array<String>?>>() }
+        .associateWith { it.get(this) }
+    val multipleArguments = multiplePropsToValues.map { multiplePropertiesToArgumentAnnotation[it.key] to it.value }
+        .filter { it.first != null && it.second != null }.associate { it.first!!.value to it.second!!.toList() }
+
+    val classpathProperties = properties.intersect(classpathPropertiesToArgumentAnnotation.keys)
+    val classpathPropsToValues = classpathProperties.mapNotNull { it.safeAs<KProperty1<CommonCompilerArguments, String?>>() }
+        .associateWith { it.get(this) }
+    val classpathArguments = classpathPropsToValues.map { classpathPropertiesToArgumentAnnotation[it.key] to it.value }
+        .singleOrNull { it.first != null && it.second != null }
+        ?.let { it.first!!.value to it.second!!.split(File.pathSeparator) }
+
+    val freeArgs = CommonCompilerArguments::freeArgs.invoke(this)
+    val internalArguments = CommonCompilerArguments::internalArguments.invoke(this).map { it.stringRepresentation }
+
+    return FlatCompilerArgumentsBucket().apply {
+        classpathParts = classpathArguments
+        flagArguments.addAll(flatFlags)
+        this.singleArguments.putAll(singleArguments)
+        this.multipleArguments.putAll(multipleArguments)
+        this.freeArgs.addAll(freeArgs)
+        this.internalArguments.addAll(internalArguments)
     }
+}
 
 fun createDummyCompilerArgumentsBucket(): FlatCompilerArgumentsBucket = CommonCompilerArguments.DummyImpl().toFlatCompilerArguments()
 
@@ -107,8 +151,6 @@ fun FlatCompilerArgumentsBucket.setClasspathArgument(newClasspaths: List<String>
 
 @Suppress("UNCHECKED_CAST")
 fun mergeFlatCompilerArgumentsBuckets(from: FlatCompilerArgumentsBucket, to: FlatCompilerArgumentsBucket) {
-    to.targetPlatform = from.targetPlatform
-
     if (from.classpathParts != null || to.classpathParts != null) {
         val joinedClasspathParts = (from.classpathParts?.second.orEmpty() + to.classpathParts?.second.orEmpty()).distinct()
         val classpathKey = to.classpathParts?.first ?: from.classpathParts?.first

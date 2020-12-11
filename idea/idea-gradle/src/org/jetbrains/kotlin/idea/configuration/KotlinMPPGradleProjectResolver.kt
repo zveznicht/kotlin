@@ -271,16 +271,13 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
             val mppMapper = ideProject.mppProjectCompilerArgumentsMapper ?: return
             for (compilation in compilations) {
                 val kotlinSourceSetInfo = ideModule.kotlinSourceSetInfoByCompilation[compilation] ?: continue
-                val cachedArgsInfo = ideModule.cachedCompilerArgumentsByCompilation[compilation] ?: continue
+                val flatArgsInfo = compilation.cachedArgsInfo.convertToFlat(mppMapper) ?: continue
 
-                kotlinSourceSetInfo.flatArgsInfo = cachedArgsInfo.convertToFlat(mppMapper)
+                kotlinSourceSetInfo.flatArgsInfo = flatArgsInfo
 
                 if (compilation.platform == KotlinPlatform.JVM || compilation.platform == KotlinPlatform.ANDROID) {
                     ideModule.compilationDataByCompilation[compilation]?.targetCompatibility =
-                        cachedArgsInfo.currentCompilerArgumentsBucket.extractGeneralArgument(
-                            K2JVMCompilerArguments::jvmTarget,
-                            mppMapper
-                        )
+                        flatArgsInfo.currentCompilerArgumentsBucket.extractSingleArgumentValue(K2JVMCompilerArguments::jvmTarget)
                 }
 
             }
@@ -296,10 +293,6 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
             val key = cacheMapping.entries.firstOrNull { info.isSuitableValue(it.value) }?.key
             return singleArguments[key]?.let { mapper.getArgument(it) }
         }
-
-        private fun KotlinMPPGradleModel.collectCachedCompilerArgumentByCompilation(ideModule: DataNode<ModuleData>) =
-            targets.flatMap { it.compilations }.associate { it to it.cachedArgsInfo }
-                .also { ideModule.cachedCompilerArgumentsByCompilation.putAll(it) }
 
         fun initializeModuleData(
             gradleModule: IdeaModule,
@@ -403,7 +396,6 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
                         gradleModule,
                         resolverCtx
                     ).also {
-                        mainModuleNode.cachedCompilerArgumentsByCompilation[compilation] = compilation.cachedArgsInfo
                         mainModuleNode.kotlinSourceSetInfoByCompilation[compilation] = it
                     } ?: continue
                     kotlinSourceSet.externalSystemRunTasks =
@@ -559,7 +551,6 @@ open class KotlinMPPGradleProjectResolver : AbstractProjectResolverExtensionComp
             val mppModel = resolverCtx.getMppModel(gradleModule) ?: return
             with(mppModel) {
                 mergeMapper(ideModule)
-                collectCachedCompilerArgumentByCompilation(ideModule)
             }
             val sourceSetToPackagePrefix = mppModel.targets.flatMap { it.compilations }
                 .flatMap { compilation ->

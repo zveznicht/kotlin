@@ -33,12 +33,11 @@ var DataNode<out ModuleData>.kotlinSourceSet: KotlinSourceSetInfo?
 val DataNode<ModuleData>.kotlinAndroidSourceSets: List<KotlinSourceSetInfo>?
     get() = ExternalSystemApiUtil.getChildren(this, KotlinAndroidSourceSetData.KEY).firstOrNull()?.data?.sourceSetInfos
 
-typealias CachedCompilerArgumentByCompilation = MutableMap<KotlinCompilation, CachedArgsInfo>
 typealias KotlinSourceSetInfoByCompilation = MutableMap<KotlinCompilation, KotlinSourceSetInfo?>
 typealias CompilationDataByCompilation = MutableMap<KotlinCompilation, GradleSourceSetData?>
 
-var DataNode<ModuleData>.cachedCompilerArgumentsByCompilation: CachedCompilerArgumentByCompilation
-        by NotNullableCopyableDataNodeUserDataProperty(Key.create("MPP_CACHED_COMPILER_ARGUMENTS"), mutableMapOf())
+var DataNode<ModuleData>.flatCompilerArgumentsByCompilation: FlatCompilerArgumentBySourceSet
+        by NotNullableCopyableDataNodeUserDataProperty(Key.create("MPP_FLAT_COMPILER_ARGUMENTS"), mutableMapOf())
 
 var DataNode<ModuleData>.compilationDataByCompilation: CompilationDataByCompilation
         by NotNullableCopyableDataNodeUserDataProperty(Key.create("COMPILATION_DATA_BY_COMPILATION"), mutableMapOf())

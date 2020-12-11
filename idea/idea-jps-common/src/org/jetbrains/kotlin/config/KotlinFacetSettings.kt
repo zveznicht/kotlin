@@ -215,10 +215,11 @@ class KotlinFacetSettings {
             autoAdvanceApiVersion = this@KotlinFacetSettings.autoAdvanceApiVersion
         }
         set(value) {
-            if (compilerArgumentsBucket != null)
-                value?.apply { mergeFlatCompilerArgumentsBuckets(toFlatCompilerArguments(), compilerArgumentsBucket!!) }
-            else
-                compilerArgumentsBucket = value?.toFlatCompilerArguments()
+            //TODO skip only if compilerArguments came from Android side
+//            if (compilerArgumentsBucket != null)
+//                value?.apply { mergeFlatCompilerArgumentsBuckets(toFlatCompilerArguments(), compilerArgumentsBucket!!) }
+//            else
+//                compilerArgumentsBucket = value?.toFlatCompilerArguments()
         }
 
     var compilerArgumentsBucket: FlatCompilerArgumentsBucket? = null

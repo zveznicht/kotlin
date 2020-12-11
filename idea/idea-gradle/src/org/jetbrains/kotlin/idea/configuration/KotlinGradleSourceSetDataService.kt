@@ -284,12 +284,9 @@ fun configureFacetByGradleModule(
     }
     ideModule.hasExternalSdkConfiguration = sourceSetNode?.data?.sdkName != null
 
-    val projectDataNode = moduleNode.getDataNode(ProjectKeys.PROJECT) ?: return null
-    val generalMapper = projectDataNode.projectCompilerArgumentsMapper
-
-    val cachedArgsInfo = moduleNode.cachedCompilerArgumentsBySourceSet?.get(sourceSetName ?: "main")
-    if (cachedArgsInfo != null) {
-        configureFacetByCachedCompilerArguments(cachedArgsInfo, generalMapper, kotlinFacet, modelsProvider)
+    val flatArgsInfo = moduleNode.flatCompilerArgumentBySourceSet?.get(sourceSetName ?: "main")
+    if (flatArgsInfo != null) {
+        configureFacetByFlatArgsInfo(kotlinFacet, flatArgsInfo, modelsProvider)
     }
     //TODO move into `configureFacetByCachedCompilerArguments`
     with(kotlinFacet.configuration.settings) {
@@ -307,30 +304,14 @@ fun configureFacetByGradleModule(
     return kotlinFacet
 }
 
-private fun configureFacetByCachedCompilerArguments(
-    cachedArgsInfo: CachedArgsInfo,
-    mapper: CompilerArgumentsMapperWithMerge,
-    kotlinFacet: KotlinFacet,
-    modelsProvider: IdeModifiableModelsProvider
-) {
-    val (flatCurrentArguments, flatDefaultArguments) = with(CachedToFlatCompilerArgumentsBucketConverter(mapper)) {
-        convert(cachedArgsInfo.currentCompilerArgumentsBucket) to convert(cachedArgsInfo.defaultCompilerArgumentsBucket)
-    }
-    val dependencyClasspath = cachedArgsInfo.dependencyClasspath.map { mapper.getArgument(it) }
-    val flatArgsInfo = FlatArgsInfoImpl(flatCurrentArguments, flatDefaultArguments, dependencyClasspath)
-    configureFacetByFlatArgsInfo(kotlinFacet, flatArgsInfo, modelsProvider)
-}
 
 private fun getExplicitOutputPath(moduleNode: DataNode<ModuleData>, platformKind: IdePlatformKind<*>?, sourceSet: String): String? {
     if (!platformKind.isJavaScript) {
         return null
     }
 
-    val projectDataNode = moduleNode.getDataNode(ProjectKeys.PROJECT) ?: return null
-    val generalMapper = projectDataNode.projectCompilerArgumentsMapper
-
-    return moduleNode.cachedCompilerArgumentsBySourceSet?.get(sourceSet)
-        ?.currentCompilerArgumentsBucket?.extractGeneralArgument(K2JSCompilerArguments::outputFile, generalMapper)
+    return moduleNode.flatCompilerArgumentBySourceSet?.get(sourceSet)
+        ?.currentCompilerArgumentsBucket?.extractSingleArgumentValue(K2JSCompilerArguments::outputFile)
 }
 
 internal fun adjustClasspath(kotlinFacet: KotlinFacet, dependencyClasspath: List<String>) {

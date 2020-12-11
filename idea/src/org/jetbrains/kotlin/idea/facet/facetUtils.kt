@@ -81,10 +81,7 @@ private fun KotlinFacetSettings.initializeCompilerArgumentsBucket(
 ) {
     if (compilerArgumentsBucket == null) {
         val targetPlatform = platform ?: getDefaultTargetPlatform(module, rootModel)
-        compilerArgumentsBucket = createAndPrepareCompilerArguments(targetPlatform, module, commonArguments).let {
-            val arguments = ArgumentUtils.convertArgumentsToStringList(it)
-            RawToFlatCompilerArgumentsBucketConverter(commonArguments::class.java.classLoader).convert(arguments)
-        }
+        compilerArgumentsBucket = createAndPrepareCompilerArguments(targetPlatform, module, commonArguments).toFlatCompilerArguments()
         this.targetPlatform = targetPlatform
     }
 }
@@ -306,10 +303,9 @@ fun parseCompilerArgumentsToFacet(
     kotlinFacet: KotlinFacet,
     modelsProvider: IdeModifiableModelsProvider?
 ) {
-    val targetPlatform = kotlinFacet.configuration.settings.targetPlatform ?: return
     with(RawToFlatCompilerArgumentsBucketConverter(CommonCompilerArguments::class.java.classLoader)) {
-        val argumentsBucket = convert(arguments, targetPlatform.serializeComponentPlatforms())
-        val defaultBucket = convert(defaultArguments, targetPlatform.serializeComponentPlatforms())
+        val argumentsBucket = convert(arguments)
+        val defaultBucket = convert(defaultArguments)
         configureFacetByFlatArgsInfo(kotlinFacet, FlatArgsInfoImpl(argumentsBucket, defaultBucket), modelsProvider)
     }
 }

@@ -44,9 +44,6 @@ interface CompilerArgumentAware<T : CommonToolArguments> {
     val filteredArgumentsMap: Map<String, String>
         get() = CompilerArgumentsGradleInput.createInputsMap(prepareCompilerArguments())
 
-    val serializedTargetPlatform: String?
-        get() = calculateTargetPlatform(prepareCompilerArguments())?.serializeComponentPlatforms()
-
     fun createCompilerArgs(): T
     fun setupCompilerArgs(args: T, defaultsOnly: Boolean = false, ignoreClasspathResolutionErrors: Boolean = false)
 }
@@ -78,10 +75,6 @@ interface CompilerArgumentAwareWithInput<T : CommonToolArguments> : CompilerArgu
     @get:Internal
     override val serializedCompilerArgumentsIgnoreClasspathIssues: List<String>
         get() = super.serializedCompilerArgumentsIgnoreClasspathIssues
-
-    @get:Internal
-    override val serializedTargetPlatform: String?
-        get() = super.serializedTargetPlatform
 
     @get:Input
     override val filteredArgumentsMap: Map<String, String>

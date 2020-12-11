@@ -122,9 +122,8 @@ fun configureFacetByFlatArgsInfo(kotlinFacet: KotlinFacet, flatArgsInfo: FlatArg
         val currentBucket = flatArgsInfo.currentCompilerArgumentsBucket
         val defaultBucket = flatArgsInfo.defaultCompilerArgumentsBucket
 
-        if (compilerArgumentsBucket.targetPlatform == currentBucket.targetPlatform) {
-            mergeFlatCompilerArgumentsBuckets(currentBucket, compilerArgumentsBucket)
-        }
+        //TODO restore checking platform compatibilities
+        mergeFlatCompilerArgumentsBuckets(currentBucket, compilerArgumentsBucket)
 
         defaultBucket.convertPathsToSystemIndependent()
         with(compilerArgumentsBucket) {

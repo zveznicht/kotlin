@@ -51,7 +51,7 @@ fun TargetPlatform.createArguments(init: (CommonCompilerArguments).() -> Unit = 
 private fun CommonCompilerArguments.convertToFlatBucket(): FlatCompilerArgumentsBucket = ArgumentUtils.convertArgumentsToStringList(this)
     .let {
         RawToFlatCompilerArgumentsBucketConverter(this::class.java.classLoader)
-            .convert(it, IdePlatformKind.platformByCompilerArguments(this)?.serializeComponentPlatforms())
+            .convert(it)
     }
 
 private fun readV1Config(element: Element): KotlinFacetSettings {
@@ -176,7 +176,6 @@ private fun readV2Config(element: Element): KotlinFacetSettings {
 
 private fun readCompilerArgumentsBucket(element: Element): FlatCompilerArgumentsBucket? {
     element.getChild("compilerArgumentsBucket")?.let { bucketElement ->
-        val targetPlatform = bucketElement.getAttributeValue("targetPlatform")
         val classpathKey = bucketElement.getAttributeValue("classpathKey")
         val classpathPartsList = readElementsList(bucketElement, "classpathParts", "classpathPart")
         val classpathParts = classpathKey?.takeIf { !classpathPartsList.isNullOrEmpty() }?.let { it to classpathPartsList!! }
@@ -198,7 +197,6 @@ private fun readCompilerArgumentsBucket(element: Element): FlatCompilerArguments
             readElementsList(bucketElement, "internalArguments", "internalArgument")?.also { addAll(it) }
         }
         return FlatCompilerArgumentsBucket(
-            targetPlatform,
             classpathParts,
             singleArguments,
             multipleArguments,
@@ -483,9 +481,6 @@ private fun saveElementsList(element: Element, elementsList: List<String>, rootE
 
 private fun FlatCompilerArgumentsBucket.writeCompilerArgumentsBucket(element: Element): Element {
     val bucketElement = Element("compilerArgumentsBucket")
-    targetPlatform?.also {
-        bucketElement.setAttribute("targetPlatform", it)
-    }
 
     classpathParts?.also { partKv ->
         bucketElement.setAttribute("classpathKey", partKv.first)

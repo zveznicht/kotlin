@@ -8,15 +8,19 @@ package org.jetbrains.kotlin.caching
 import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
 import org.jetbrains.kotlin.gradle.getMethodOrNull
 import org.jetbrains.kotlin.utils.addToStdlib.cast
+import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.full.memberProperties
 
 typealias CachedCompilerArgumentBySourceSet = Map<String, CachedArgsInfo>
-typealias FlatCompilerArgumentBySourceSet = Map<String, FlatArgsInfo>
+typealias FlatCompilerArgumentBySourceSet = MutableMap<String, FlatArgsInfo>
 
-const val ARGUMENT_ANNOTATION_CLASS = "org.jetbrains.kotlin.cli.common.arguments.Argument"
+private val ARGUMENT_ANNOTATION_CLASSES =
+    setOf("org.jetbrains.kotlin.cli.common.arguments.Argument", "org.jetbrains.kotlin.com.sampullara.cli.Argument")
+
 const val PARSE_ARGUMENTS_CLASS = "org.jetbrains.kotlin.cli.common.arguments.ParseCommandLineArgumentsKt"
 const val COMMON_TOOL_ARGUMENTS_CLASS = "org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments"
 const val JS_DCE_ARGUMENTS_CLASS = "org.jetbrains.kotlin.cli.common.arguments.K2JSDceArguments"
@@ -25,34 +29,71 @@ const val JS_ARGUMENTS_CLASS = "org.jetbrains.kotlin.cli.common.arguments.K2JSCo
 const val METADATA_ARGUMENTS_CLASS = "org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments"
 const val JVM_ARGUMENTS_CLASS = "org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments"
 
+internal enum class ArgumentPrefix {
+    VALUE, SHORT_NAME, DEPRECATED_NAME
+}
+
+internal data class SuitResult(val argumentAnnotationInfo: ArgumentAnnotationInfo, val likeAdvanced: Boolean, val prefix: ArgumentPrefix)
+
 data class ArgumentAnnotationInfo(
     val value: String,
     val shortName: String,
     val deprecatedName: String,
     val delimiter: String,
     val isAdvanced: Boolean
-)
-
-fun ArgumentAnnotationInfo.isSuitableValue(value: String): Boolean =
-    (if (isAdvanced) value.substringBefore("=") else value).let {
-        it == this.value || (shortName.isNotEmpty() && it == shortName) || (deprecatedName.isNotEmpty() && it == deprecatedName)
+) {
+    internal operator fun get(argumentPrefix: ArgumentPrefix): String = when (argumentPrefix) {
+        ArgumentPrefix.VALUE -> value
+        ArgumentPrefix.SHORT_NAME -> shortName
+        ArgumentPrefix.DEPRECATED_NAME -> deprecatedName
     }
+}
+
+fun ArgumentAnnotationInfo.processArgumentWithInfo(
+    from: RawCompilerArgumentsBucket,
+    processedArguments: MutableList<String>
+): Map<String, String> = from.mapIndexedNotNull { index, s -> suitArgument(s)?.let { index to it } }
+    .map { (id, res) ->
+        processedArguments += from[id]
+        val first = res.argumentAnnotationInfo[res.prefix]
+        val second =
+            if (res.likeAdvanced) from[id].substringAfter("=") else from.getOrNull(id + 1)?.also { processedArguments += it }
+                ?: error("Value for argument $first was not found!")
+        first to second
+    }.toMap()
+
+
+fun ArgumentAnnotationInfo.isSuitableValue(arg: String): Boolean = suitArgument(arg) != null
+
+internal fun ArgumentAnnotationInfo.suitArgument(arg: String): SuitResult? {
+    val prefix = arg.substringBefore("=")
+    val likeAdvanced = prefix != arg
+    val prefixKind = when (prefix) {
+        value -> ArgumentPrefix.VALUE
+        shortName -> ArgumentPrefix.SHORT_NAME
+        deprecatedName -> ArgumentPrefix.DEPRECATED_NAME
+        else -> null
+    }
+    return prefixKind?.let { SuitResult(this, likeAdvanced, it) }
+}
 
 data class DividedPropertiesWithArgumentAnnotationInfo(
-    val flagPropertiesToArgumentAnnotation: HashMap<KProperty1<out CommonCompilerArguments, Boolean>, ArgumentAnnotationInfo>,
-    val singlePropertiesToArgumentAnnotation: HashMap<KProperty1<out CommonCompilerArguments, String?>, ArgumentAnnotationInfo>,
-    val multiplePropertiesToArgumentAnnotation: HashMap<KProperty1<out CommonCompilerArguments, Array<String>?>, ArgumentAnnotationInfo>,
-    val classpathPropertiesToArgumentAnnotation: HashMap<KProperty1<out CommonCompilerArguments, String?>, ArgumentAnnotationInfo>
+    val flagPropertiesToArgumentAnnotation: Map<KProperty1<CommonCompilerArguments, Boolean>, ArgumentAnnotationInfo>,
+    val singlePropertiesToArgumentAnnotation: Map<KProperty1<CommonCompilerArguments, String?>, ArgumentAnnotationInfo>,
+    val multiplePropertiesToArgumentAnnotation: Map<KProperty1<CommonCompilerArguments, Array<String>?>, ArgumentAnnotationInfo>,
+    val classpathPropertiesToArgumentAnnotation: Map<KProperty1<CommonCompilerArguments, String?>, ArgumentAnnotationInfo>
 )
 
 private fun getClassSafely(className: String, classLoader: ClassLoader?): Class<*>? = try {
-    Class.forName(className, false, classLoader)
+    Class.forName(className, true, classLoader)
 } catch (e: NoClassDefFoundError) {
+    null
+} catch (e: ClassNotFoundException) {
     null
 }
 
 val ClassLoader?.argumentAnnotationClazz: Class<*>?
-    get() = getClassSafely(ARGUMENT_ANNOTATION_CLASS, this)
+    get() = ARGUMENT_ANNOTATION_CLASSES.mapNotNull { getClassSafely(it, this) }.firstOrNull()
 
 val ClassLoader?.commonToolArgumentsClazz: Class<*>?
     get() = getClassSafely(COMMON_TOOL_ARGUMENTS_CLASS, this)
@@ -80,12 +121,12 @@ class DividedPropertiesWithArgumentAnnotationInfoManager(val classLoader: ClassL
                 jsArgumentsClazz,
                 metadataArgumentsClazz,
                 jvmArgumentsClazz
-            ).flatMap { it.kotlin.declaredMemberProperties }
+            ).flatMap { it.kotlin.memberProperties }
                 .mapNotNull { argClazzProp ->
                     argClazzProp.annotations.firstOrNull { annotation ->
                         with(annotation::class.java) {
                             Proxy.isProxyClass(this)
-                                    && (getMethodOrNull("annotationType")?.invoke(annotation) as Class<*>).name == ARGUMENT_ANNOTATION_CLASS
+                                    && (getMethodOrNull("annotationType")?.invoke(annotation) as Class<*>).name in ARGUMENT_ANNOTATION_CLASSES
                                     || kotlin == argumentAnnotationClazz?.kotlin
                         }
                     }?.let {
@@ -93,27 +134,24 @@ class DividedPropertiesWithArgumentAnnotationInfoManager(val classLoader: ClassL
                         val shortName = it.javaClass.getMethodOrNull("shortName")?.invoke(it) as? String ?: return@mapNotNull null
                         val deprecatedName = it.javaClass.getMethodOrNull("deprecatedName")?.invoke(it) as? String ?: return@mapNotNull null
                         val delimiter = it.javaClass.getMethodOrNull("delimiter")?.invoke(it) as? String ?: return@mapNotNull null
-                        val isAdvanced = isAdvancedMethod?.invoke(null, it) as? Boolean ?: return@mapNotNull null
+                        val isAdvanced = isAdvancedMethod?.invoke(null, it) as? Boolean ?: value.startsWith("-X")
                         argClazzProp to ArgumentAnnotationInfo(value, shortName, deprecatedName, delimiter, isAdvanced)
                     } ?: return@mapNotNull null
 
                 }.toMap()
         }
 
-        val flagPropsToArgumentAnnotation = hashMapOf<KProperty1<out CommonCompilerArguments, Boolean>, ArgumentAnnotationInfo>()
-        val singlePropsToArgumentAnnotation = hashMapOf<KProperty1<out CommonCompilerArguments, String?>, ArgumentAnnotationInfo>()
-        val multiplePropsToArgumentAnnotation = hashMapOf<KProperty1<out CommonCompilerArguments, Array<String>?>, ArgumentAnnotationInfo>()
-        val classpathPropsToArgumentAnnotation = hashMapOf<KProperty1<out CommonCompilerArguments, String?>, ArgumentAnnotationInfo>()
+        val classpathPropsToArgumentAnnotation = allPropertiesToArgumentAnnotation.filter { it.key.name == "classpath" }
+            .map { it.key.cast<KProperty1<CommonCompilerArguments, String?>>() to it.value }.toMap()
+        val flagPropsToArgumentAnnotation = allPropertiesToArgumentAnnotation.filter { it.key.returnType.classifier == Boolean::class }
+            .map { it.key.cast<KProperty1<CommonCompilerArguments, Boolean>>() to it.value }.toMap()
+        val singlePropsToArgumentAnnotation =
+            allPropertiesToArgumentAnnotation.filter { it.key.returnType.classifier == String::class && it.key.name != "classpath" }
+                .map { it.key.cast<KProperty1<CommonCompilerArguments, String?>>() to it.value }.toMap()
+        val multiplePropsToArgumentAnnotation =
+            allPropertiesToArgumentAnnotation.filter { it.key.returnType.classifier == Array<String>::class }
+                .map { it.key.cast<KProperty1<CommonCompilerArguments, Array<String>?>>() to it.value }.toMap()
 
-        allPropertiesToArgumentAnnotation.forEach { (prop, ann) ->
-            if (prop.name == "classpath") classpathPropsToArgumentAnnotation[prop.cast()] = ann
-            else when (prop.returnType.classifier) {
-                Boolean::class -> flagPropsToArgumentAnnotation[prop.cast()] = ann
-                String::class -> singlePropsToArgumentAnnotation[prop.cast()] = ann
-                Array<String>::class -> multiplePropsToArgumentAnnotation[prop.cast()] = ann
-                else -> throw IllegalStateException("Unsupported argument type: ${prop.returnType}")
-            }
-        }
         DividedPropertiesWithArgumentAnnotationInfo(
             flagPropsToArgumentAnnotation,
             singlePropsToArgumentAnnotation,
@@ -122,7 +160,3 @@ class DividedPropertiesWithArgumentAnnotationInfoManager(val classLoader: ClassL
         )
     }
 }
-
-
-fun CachedCompilerArgumentBySourceSet.deepCopy(): CachedCompilerArgumentBySourceSet =
-    entries.associate { it.key to CachedArgsInfoImpl(it.value) }
