@@ -313,6 +313,7 @@ abstract class IncrementalCompilerRunner<
             val (dirtyLookupSymbols, dirtyClassFqNames, forceRecompile) = changesCollector.getDirtyData(listOf(caches.platformCache), reporter)
             val compiledInThisIterationSet = sourcesToCompile.toHashSet()
 
+            val forceToRecompileFiles = mapClassesFqNamesToFiles(listOf(caches.platformCache), forceRecompile, reporter)
             with(dirtySources) {
                 clear()
                 addAll(mapLookupSymbolsToFiles(caches.lookupCache, dirtyLookupSymbols, reporter, excludes = compiledInThisIterationSet))
@@ -324,13 +325,9 @@ abstract class IncrementalCompilerRunner<
                         excludes = compiledInThisIterationSet
                     )
                 )
-                addAll(
-                    mapClassesFqNamesToFiles(
-                        listOf(caches.platformCache),
-                        forceRecompile,
-                        reporter
-                    )
-                )
+                if (!compiledInThisIterationSet.containsAll(forceToRecompileFiles)) {
+                    addAll(forceToRecompileFiles)
+                }
             }
 
             buildDirtyLookupSymbols.addAll(dirtyLookupSymbols)
