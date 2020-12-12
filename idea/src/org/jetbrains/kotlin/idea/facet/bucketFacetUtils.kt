@@ -124,7 +124,8 @@ fun configureFacetByFlatArgsInfo(kotlinFacet: KotlinFacet, flatArgsInfo: FlatArg
         //TODO restore checking platform compatibilities
         copyBucketTo(currentBucket, compilerArgumentsBucket) { property, value ->
             value != when {
-                property.name == K2JVMCompilerArguments::classpath.name -> emptyBucket.extractClasspaths()
+                property.name in setOf(K2JVMCompilerArguments::classpath.name, K2MetadataCompilerArguments::classpath.name) ->
+                    emptyBucket.extractClasspaths()
                 property.returnType.classifier == Boolean::class ->
                     emptyBucket.extractFlagArgumentValue(property.cast<KProperty1<out CommonCompilerArguments, Boolean>>())
                 property.returnType.classifier == String::class ->

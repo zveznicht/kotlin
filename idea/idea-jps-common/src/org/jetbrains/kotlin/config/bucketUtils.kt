@@ -159,6 +159,9 @@ fun copyBucketTo(
     if (from == to) return
 
     with(DividedPropertiesWithArgumentAnnotationInfoManager(to::class.java.classLoader).dividedPropertiesWithArgumentAnnotationInfo) {
+        classpathPropertiesToArgumentAnnotation.keys.associateWith { from.extractClasspaths() }
+            .filterNot { filter != null && !filter(it.key, it.value) }
+            .forEach { (_, fromValue) -> to.setClasspathArgument(fromValue.orEmpty()) }
         singlePropertiesToArgumentAnnotation.keys.associateWith { from.extractSingleArgumentValue(it) }
             .filterNot { filter != null && !filter(it.key, it.value) }
             .forEach { (prop, fromValue) -> to.setSingleArgument(prop, fromValue) }
