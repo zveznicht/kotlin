@@ -177,7 +177,9 @@ class ChangesCollector {
     }
 
     private fun addChangedParents(fqName: FqName, parents: Collection<FqName>) {
-        changedParents.getOrPut(fqName) { HashSet() }.addAll(parents)
+        if (parents.isNotEmpty()) {
+            changedParents.getOrPut(fqName) { HashSet() }.addAll(parents)
+        }
     }
 
     private fun ClassProtoData.collectChangedParents(fqName: FqName, parents: Collection<ProtoBuf.Type>) {
@@ -185,7 +187,6 @@ class ChangesCollector {
             nameResolver.getClassId(type.className).asSingleFqName()
         }
         addChangedParents(fqName, changedParentsFqNames)
-
     }
 
     private fun ClassProtoData.getNonPrivateMemberNames(): Set<String> {
