@@ -54,7 +54,7 @@ abstract class AbstractIncrementalCache<ClassName>(
     protected val pathConverter: FileToPathConverter
 ) : BasicMapsOwner(workingDir), IncrementalCacheCommon {
     companion object {
-        private val ATTRIBUTES = "attributes"
+        private val CLASS_ATTRIBUTES = "class-attributes"
         private val SUBTYPES = "subtypes"
         private val SUPERTYPES = "supertypes"
         private val CLASS_FQ_NAME_TO_SOURCE = "class-fq-name-to-source"
@@ -76,7 +76,7 @@ abstract class AbstractIncrementalCache<ClassName>(
         result
     }
 
-    private val classAttributesMap = registerMap(ClassAttributesMap(ATTRIBUTES.storageFile))
+    private val classAttributesMap = registerMap(ClassAttributesMap(CLASS_ATTRIBUTES.storageFile))
     private val subtypesMap = registerMap(SubtypesMap(SUBTYPES.storageFile))
     private val supertypesMap = registerMap(SupertypesMap(SUPERTYPES.storageFile))
     protected val classFqNameToSourceMap = registerMap(ClassFqNameToSourceMap(CLASS_FQ_NAME_TO_SOURCE.storageFile, pathConverter))
