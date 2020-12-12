@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
+import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.memberProperties
@@ -150,22 +151,22 @@ fun FlatCompilerArgumentsBucket.setClasspathArgument(newClasspaths: List<String>
 }
 
 @Suppress("UNCHECKED_CAST")
-fun mergeFlatCompilerArgumentsBuckets(from: FlatCompilerArgumentsBucket, to: FlatCompilerArgumentsBucket) {
-    if (from.classpathParts != null || to.classpathParts != null) {
-        val joinedClasspathParts = (from.classpathParts?.second.orEmpty() + to.classpathParts?.second.orEmpty()).distinct()
-        val classpathKey = to.classpathParts?.first ?: from.classpathParts?.first
-        to.classpathParts = classpathKey?.let { it to joinedClasspathParts }
-    }
+fun copyBucketTo(
+    from: FlatCompilerArgumentsBucket,
+    to: FlatCompilerArgumentsBucket,
+    filter: ((KProperty1<out CommonCompilerArguments, Any?>, Any?) -> Boolean)? = null
+) {
+    if (from == to) return
 
     with(DividedPropertiesWithArgumentAnnotationInfoManager(to::class.java.classLoader).dividedPropertiesWithArgumentAnnotationInfo) {
-        singlePropertiesToArgumentAnnotation.keys.mapNotNull { it as? KProperty1<CommonCompilerArguments, String?> }
-            .associateWith { from.extractSingleArgumentValue(it) }
+        singlePropertiesToArgumentAnnotation.keys.associateWith { from.extractSingleArgumentValue(it) }
+            .filterNot { filter != null && !filter(it.key, it.value) }
             .forEach { (prop, fromValue) -> to.setSingleArgument(prop, fromValue) }
-        multiplePropertiesToArgumentAnnotation.keys.mapNotNull { it as? KProperty1<CommonCompilerArguments, Array<String>?> }
-            .associateWith { from.extractMultipleArgumentValue(it) }
+        multiplePropertiesToArgumentAnnotation.keys.associateWith { from.extractMultipleArgumentValue(it) }
+            .filterNot { filter != null && !filter(it.key, it.value) }
             .forEach { (prop, fromValue) -> to.setMultipleArgument(prop, fromValue) }
-        flagPropertiesToArgumentAnnotation.keys.mapNotNull { it as? KProperty1<CommonCompilerArguments, Boolean> }
-            .associateWith { from.extractFlagArgumentValue(it) }
+        flagPropertiesToArgumentAnnotation.keys.associateWith { from.extractFlagArgumentValue(it) }
+            .filterNot { filter != null && !filter(it.key, it.value) }
             .forEach { (prop, fromValue) -> to.setFlagArgument(prop, fromValue) }
     }
     to.freeArgs.apply {

@@ -15,8 +15,6 @@ import org.jetbrains.kotlin.caching.DividedPropertiesWithArgumentAnnotationInfoM
 import org.jetbrains.kotlin.caching.FlatArgsInfo
 import org.jetbrains.kotlin.caching.FlatCompilerArgumentsBucket
 import org.jetbrains.kotlin.cli.common.arguments.*
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.config.*
 import org.jetbrains.kotlin.idea.core.isAndroidModule
 import org.jetbrains.kotlin.idea.framework.KotlinSdkType
@@ -26,9 +24,7 @@ import org.jetbrains.kotlin.platform.js.isJs
 import org.jetbrains.kotlin.platform.jvm.isJvm
 import org.jetbrains.kotlin.platform.konan.isNative
 import org.jetbrains.kotlin.utils.addToStdlib.cast
-import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
-import org.jetbrains.kotlin.utils.addToStdlib.safeAs
-import kotlin.collections.HashMap
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 
 private val TargetPlatform.primaryFields: List<String>
@@ -117,13 +113,27 @@ private fun extractAdditionalArgsAndResetIgnored(
 
 fun configureFacetByFlatArgsInfo(kotlinFacet: KotlinFacet, flatArgsInfo: FlatArgsInfo, modelsProvider: IdeModifiableModelsProvider?) {
     with(kotlinFacet.configuration.settings) {
+        val targetPlatform = this.targetPlatform!!
         val compilerArgumentsBucket = this.compilerArgumentsBucket!!
 
         val currentBucket = flatArgsInfo.currentCompilerArgumentsBucket
         val defaultBucket = flatArgsInfo.defaultCompilerArgumentsBucket
 
+        val emptyBucket = targetPlatform.createArguments().toFlatCompilerArguments()
+
         //TODO restore checking platform compatibilities
-        mergeFlatCompilerArgumentsBuckets(currentBucket, compilerArgumentsBucket)
+        copyBucketTo(currentBucket, compilerArgumentsBucket) { property, value ->
+            value != when {
+                property.name == K2JVMCompilerArguments::classpath.name -> emptyBucket.extractClasspaths()
+                property.returnType.classifier == Boolean::class ->
+                    emptyBucket.extractFlagArgumentValue(property.cast<KProperty1<out CommonCompilerArguments, Boolean>>())
+                property.returnType.classifier == String::class ->
+                    emptyBucket.extractSingleArgumentValue(property.cast<KProperty1<out CommonCompilerArguments, String?>>())
+                (property.returnType.classifier as? KClass<*>)?.java?.isArray == true ->
+                    emptyBucket.extractMultipleArgumentValue(property.cast<KProperty1<out CommonCompilerArguments, Array<String>?>>())
+                else -> error("Unexpected property ${property.name} in filtering")
+            }
+        }
 
         defaultBucket.convertPathsToSystemIndependent()
         with(compilerArgumentsBucket) {
@@ -137,7 +147,6 @@ fun configureFacetByFlatArgsInfo(kotlinFacet: KotlinFacet, flatArgsInfo: FlatArg
             convertPathsToSystemIndependent()
         }
 
-        val targetPlatform = this.targetPlatform!!
         if (modelsProvider != null)
             kotlinFacet.module.configureSdkIfPossible(targetPlatform, compilerArgumentsBucket, modelsProvider)
 
