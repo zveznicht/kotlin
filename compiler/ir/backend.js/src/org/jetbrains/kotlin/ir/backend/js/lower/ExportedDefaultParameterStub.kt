@@ -35,7 +35,7 @@ class ExportedDefaultParameterStub(val context: JsIrBackendContext) : Declaratio
         return value.defaultValue?.let { defaultValue ->
             irIfThenElse(
                 value.type,
-                irReferentialEquals(
+                irEqeqeq(
                     irGet(value),
                     irCall(this@ExportedDefaultParameterStub.context.intrinsics.jsUndefined)
                 ),
