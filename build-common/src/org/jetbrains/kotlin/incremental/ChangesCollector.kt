@@ -33,6 +33,20 @@ class ChangesCollector {
     //TODO change to immutable map
     fun protoDataChanges() : Map<FqName, ProtoData> = storage
 
+    companion object {
+        fun <T> T.getNonPrivateNames(nameResolver: NameResolver, vararg members: T.() -> List<MessageLite>) =
+            members.flatMap { this.it().filterNot { it.isPrivate }.names(nameResolver) }.toSet()
+
+        fun ClassProtoData.getNonPrivateMemberNames(): Set<String> {
+            return proto.getNonPrivateNames(
+                nameResolver,
+                ProtoBuf.Class::getConstructorList,
+                ProtoBuf.Class::getFunctionList,
+                ProtoBuf.Class::getPropertyList
+            ) + proto.enumEntryList.map { nameResolver.getString(it.name) }
+        }
+    }
+
     fun changes(): List<ChangeInfo> {
         val changes = arrayListOf<ChangeInfo>()
 
@@ -129,7 +143,7 @@ class ChangesCollector {
         }
     }
 
-    private fun <T> T.getNonPrivateNames(nameResolver: NameResolver, vararg members: T.() -> List<MessageLite>): Set<String> =
+    fun <T> T.getNonPrivateNames(nameResolver: NameResolver, vararg members: T.() -> List<MessageLite>) =
             members.flatMap { this.it().filterNot { it.isPrivate }.names(nameResolver) }.toSet()
 
     private fun ProtoData.collectAll(isRemoved: Boolean, collectAllMembersForNewClass: Boolean = false) =
@@ -173,15 +187,6 @@ class ChangesCollector {
 
             collectSignature(classFqName, areSubclassesAffected = true)
         }
-    }
-
-    private fun ClassProtoData.getNonPrivateMemberNames(): Set<String> {
-        return proto.getNonPrivateNames(
-                nameResolver,
-                ProtoBuf.Class::getConstructorList,
-                ProtoBuf.Class::getFunctionList,
-                ProtoBuf.Class::getPropertyList
-        ) + proto.enumEntryList.map { nameResolver.getString(it.name) }
     }
 
     fun collectMemberIfValueWasChanged(scope: FqName, name: String, oldValue: Any?, newValue: Any?) {

@@ -23,35 +23,35 @@ abstract class JarSnapshotDiffService() : BuildService<JarSnapshotDiffService.Pa
 
     companion object {
         //Store list of changed lookups
-        val diffCache: MutableMap<Pair<JarSnapshot, JarSnapshot>, DirtyFilesContainer> = mutableMapOf()
-        //TODO for test only
-        fun compareJarsInternal(caches: IncrementalCachesManager<*>, reporter: ICReporter, sourceFilesExtensions: List<String>,
-                                snapshot: JarSnapshot, newJar: JarSnapshot) =
-            diffCache.computeIfAbsent(Pair(snapshot, newJar)) { (snapshotJar, actualJar) ->
-                DirtyFilesContainer(caches, reporter, sourceFilesExtensions)
-                    .also {
-                        it.addByDirtyClasses(snapshotJar.fqNames.minus(actualJar.fqNames))
-                        it.addByDirtyClasses(actualJar.fqNames.minus(snapshotJar.fqNames))
-                        it.addByDirtySymbols(snapshotJar.symbols.minus(actualJar.symbols))
-                        it.addByDirtySymbols(actualJar.symbols.minus(snapshotJar.symbols))
-                    }
-            }
+//        val diffCache: MutableMap<Pair<JarSnapshot, JarSnapshot>, DirtyFilesContainer> = mutableMapOf()
+//        //TODO for test only
+//        fun compareJarsInternal(caches: IncrementalCachesManager<*>, reporter: ICReporter, sourceFilesExtensions: List<String>,
+//                                snapshot: JarSnapshot, newJar: JarSnapshot) =
+//            diffCache.computeIfAbsent(Pair(snapshot, newJar)) { (snapshotJar, actualJar) ->
+//                DirtyFilesContainer(caches, reporter, sourceFilesExtensions)
+//                    .also {
+//                        it.addByDirtyClasses(snapshotJar.fqNames.minus(actualJar.fqNames))
+//                        it.addByDirtyClasses(actualJar.fqNames.minus(snapshotJar.fqNames))
+//                        it.addByDirtySymbols(snapshotJar.symbols.minus(actualJar.symbols))
+//                        it.addByDirtySymbols(actualJar.symbols.minus(snapshotJar.symbols))
+//                    }
+//            }
     }
 
 //        TODO add proper sync
-    @Synchronized
-    fun compareJarsInternal(snapshot: JarSnapshot, newJar: JarSnapshot): DirtyFilesContainer {
-        return diffCache.computeIfAbsent(Pair(snapshot, newJar)) { (snapshotJar, actualJar) ->
-            DirtyFilesContainer(caches, reporter, sourceFilesExtensions)
-                .also {
-                    it.addByDirtyClasses(snapshotJar.fqNames.minus(actualJar.fqNames))
-                    it.addByDirtyClasses(actualJar.fqNames.minus(snapshotJar.fqNames))
-                    it.addByDirtySymbols(snapshotJar.symbols.minus(actualJar.symbols))
-                    it.addByDirtySymbols(actualJar.symbols.minus(snapshotJar.symbols))
-                }
-
-        }
-    }
+//    @Synchronized
+//    fun compareJarsInternal(snapshot: JarSnapshot, newJar: JarSnapshot): DirtyFilesContainer {
+//        return diffCache.computeIfAbsent(Pair(snapshot, newJar)) { (snapshotJar, actualJar) ->
+//            DirtyFilesContainer(caches, reporter, sourceFilesExtensions)
+//                .also {
+//                    it.addByDirtyClasses(snapshotJar.fqNames.minus(actualJar.fqNames))
+//                    it.addByDirtyClasses(actualJar.fqNames.minus(snapshotJar.fqNames))
+//                    it.addByDirtySymbols(snapshotJar.symbols.minus(actualJar.symbols))
+//                    it.addByDirtySymbols(actualJar.symbols.minus(snapshotJar.symbols))
+//                }
+//
+//        }
+//    }
 
 
 

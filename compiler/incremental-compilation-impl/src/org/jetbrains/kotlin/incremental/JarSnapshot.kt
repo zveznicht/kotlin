@@ -5,15 +5,17 @@
 
 package org.jetbrains.kotlin.incremental
 
-import org.jetbrains.kotlin.incremental.BuildDiffsStorage.Companion.readFqNames
-import org.jetbrains.kotlin.incremental.BuildDiffsStorage.Companion.readLookups
-import org.jetbrains.kotlin.incremental.BuildDiffsStorage.Companion.writeFqNames
-import org.jetbrains.kotlin.incremental.BuildDiffsStorage.Companion.writeLookups
 import org.jetbrains.kotlin.incremental.JarSnapshot.Companion.readJarSnapshot
+import org.jetbrains.kotlin.incremental.JavaClassProtoMapValueExternalizer.readBytesWithSize
+import org.jetbrains.kotlin.incremental.JavaClassProtoMapValueExternalizer.writeBytesWithSize
 import org.jetbrains.kotlin.metadata.ProtoBuf
+import org.jetbrains.kotlin.metadata.deserialization.NameResolverImpl
+import org.jetbrains.kotlin.metadata.jvm.JvmProtoBuf
+import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmNameResolver
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.protobuf.CodedInputStream
 import org.jetbrains.kotlin.protobuf.CodedOutputStream
+import org.jetbrains.kotlin.renderer.DescriptorRenderer
+import org.jetbrains.kotlin.serialization.DescriptorSerializer
 import java.io.*
 
 class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
@@ -22,35 +24,56 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
         fun ObjectInputStream.readJarSnapshot(): JarSnapshot {
 
             val size = readInt()
-            val codedInputStream = CodedInputStream.newInstance(this)
+//            val codedInputStream = CodedInputStream.newInstance(this)
+            val mutableMap = hashMapOf<FqName, ProtoData>()
             repeat(size) {
                 val fqNameString = readUTF()
                 val fqName = FqName(fqNameString)
-                val classProtoBuff = ProtoBuf.Class.PARSER.parseFrom(codedInputStream)
+//                val classProtoBuff = ProtoBuf.Class.PARSER.parseFrom(codedInputStream)
 
-                ClassProtoData()
-                when (protoData)  {
-                    is ClassProtoData -> protoData.proto.writeTo(codedOutputStream)
-                    is PackagePartProtoData -> protoData.proto.writeTo(codedOutputStream)
-                }
-
+                val serializableData = JavaClassProtoMapValueExternalizer.read(this)
+                val stringArray = readArrayString()
+                mutableMap.put(fqName, serializableData.toProtoData())
             }
+            return JarSnapshot(mutableMap)
+
+
+//                if (isPackageFacade) {
+//                    val (nameResolver, packageProto) = JvmProtoBufUtil.readPackageDataFrom(bytes, strings)
+//                    PackagePartProtoData(packageProto, nameResolver, packageFqName)
+//                } else {
+//                    val (nameResolver, classProto) = JvmProtoBufUtil.readClassDataFrom(bytes, strings)
+//                    ClassProtoData(classProto, nameResolver)
+//                }
+//                when (protoData)  {
+//                    is ClassProtoData -> protoData.proto.writeTo(codedOutputStream)
+//                    is PackagePartProtoData -> protoData.proto.writeTo(codedOutputStream)
+//                }
+
+//            }
             //TODO fix it, to compilation only
-            return JarSnapshot(mutableMapOf())
+//            return JarSnapshot(mutableMap)
         }
 
         fun ObjectOutputStream.writeJarSnapshot(jarSnapshot: JarSnapshot) {
-            val codedOutputStream = CodedOutputStream.newInstance(this)
+//            val codedOutputStream = CodedOutputStream.newInstance(this)
+
             writeInt(jarSnapshot.protos.size)
             for (entry in jarSnapshot.protos) {
                 writeUTF(entry.key.asString())
                 val protoData = entry.value
-                when (protoData)  {
-                     is ClassProtoData -> protoData.proto.writeTo(codedOutputStream)
-                     is PackagePartProtoData -> protoData.proto.writeTo(codedOutputStream)
+                when (protoData) {
+                     is ClassProtoData -> {
+                         val extension = JavaClassesSerializerExtension()
+                         val (stringTable, qualifiedNameTable) = extension.stringTable.buildProto()
+                         JavaClassProtoMapValueExternalizer.save(this,
+                             SerializedJavaClass(protoData.proto, stringTable, qualifiedNameTable)
+                         )
+                     }
+//                     is PackagePartProtoData -> protoData.proto.writeTo(codedOutputStream)
                 }
             }
-            codedOutputStream.flush()
+//            codedOutputStream.flush()
 //            writeLookups(jarSnapshot.symbols)
 //            writeFqNames(jarSnapshot.fqNames)
         }
@@ -67,5 +90,31 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
                 return it.readJarSnapshot()
             }
         }
+        fun ObjectInputStream.readArrayString(): Array<String>{
+            val size = readInt()
+            val array = arrayOf<String>()
+            repeat(size) {
+                array[it] = readUTF()
+            }
+            return array
+        }
+
+        fun ObjectOutputStream.writeArrayString(array: Array<String>) {
+            writeInt(array.size)
+            for (string in array) {
+                writeUTF(string)
+            }
+        }
+
+//        fun ObjectInputStream.readStringTableTypes(): JvmProtoBuf.StringTableTypes {
+//            return ProtoBuf.StringTable.parseFrom(readBytesWithSize(), JAVA_CLASS_PROTOBUF_REGISTRY)
+//        }
+
+        fun ObjectOutputStream.writeStringTableTypes(stringTableTypes: JvmProtoBuf.StringTableTypes) {
+            writeBytesWithSize(stringTableTypes.toByteArray())
+        }
+
     }
+
+
 }

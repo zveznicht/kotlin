@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.incremental
 
+import org.jetbrains.kotlin.incremental.ChangesCollector.Companion.getNonPrivateMemberNames
 import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.serialization.deserialization.getClassId
@@ -57,13 +58,13 @@ import org.jetbrains.kotlin.serialization.deserialization.getClassId
         ) {
             if (protoData is ClassProtoData) {
                 fqNames.add(fqName)
-                symbols.addAll(protoData.proto.getNonPrivateNames(
-                    protoData.nameResolver,
-                    ProtoBuf.Class::getConstructorList,
-                    ProtoBuf.Class::getFunctionList,
-                    ProtoBuf.Class::getPropertyList
-                ) + protoData.proto.enumEntryList.map { protoData.nameResolver.getString(it.name) }
-                )
+//                val fqNames = withSubtypes(fqName, caches)
+                // need to recompile subtypes because changed member might break override
+
+//                for (name in change.names) {
+//                    fqNames.mapTo(symbols) { LookupSymbol(name, it.asString()) }
+//                }
+                symbols.addAll( protoData.getNonPrivateMemberNames().map{ LookupSymbol(it, fqName.asString()) })
             }
         }
 
