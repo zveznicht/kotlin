@@ -63,11 +63,11 @@ class ReflectKotlinClass private constructor(
     override val classId: ClassId
         get() = klass.classId
 
-    override fun loadClassAnnotations(visitor: KotlinJvmBinaryClass.AnnotationVisitor, cachedContents: ByteArray?) {
+    override fun loadClassAnnotations(visitor: KotlinJvmBinaryClass.AnnotationVisitor, cachedContents: Any?) {
         ReflectClassStructure.loadClassAnnotations(klass, visitor)
     }
 
-    override fun visitMembers(visitor: KotlinJvmBinaryClass.MemberVisitor, cachedContents: ByteArray?) {
+    override fun visitMembers(visitor: KotlinJvmBinaryClass.MemberVisitor, cachedContents: Any?) {
         ReflectClassStructure.visitMembers(klass, visitor)
     }
 

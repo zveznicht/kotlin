@@ -318,7 +318,7 @@ class KotlinDeserializedJvmSymbolsProvider(
         } catch (e: ProcessCanceledException) {
             return null
         }
-        val (kotlinJvmBinaryClass, byteContent) = when (result) {
+        val (kotlinJvmBinaryClass, cachedContent) = when (result) {
             is KotlinClassFinder.Result.KotlinClass -> result
             is KotlinClassFinder.Result.ClassFileContent -> {
                 handledByJava.add(classId)
@@ -340,7 +340,7 @@ class KotlinDeserializedJvmSymbolsProvider(
         val symbol = FirRegularClassSymbol(classId)
         deserializeClassToSymbol(
             classId, classProto, symbol, nameResolver, session,
-            JvmBinaryAnnotationDeserializer(session, kotlinJvmBinaryClass, byteContent),
+            JvmBinaryAnnotationDeserializer(session, kotlinJvmBinaryClass, cachedContent),
             kotlinScopeProvider,
             parentContext, KotlinJvmBinarySourceElement(kotlinJvmBinaryClass),
             this::findAndDeserializeClass
@@ -357,7 +357,7 @@ class KotlinDeserializedJvmSymbolsProvider(
                 override fun visitEnd() {
                 }
             },
-            byteContent,
+            cachedContent,
         )
         (symbol.fir.annotations as MutableList<FirAnnotationCall>) += annotations
         return symbol

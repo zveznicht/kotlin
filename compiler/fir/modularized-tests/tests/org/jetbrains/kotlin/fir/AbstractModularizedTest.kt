@@ -55,7 +55,7 @@ private val Node.childNodesList get() = childNodes.toList()
 
 private val ROOT_PATH_PREFIX = System.getProperty("fir.bench.prefix", "/")
 
-abstract class AbstractModularizedTest : KtUsefulTestCase() {
+abstract class /**/AbstractModularizedTest : KtUsefulTestCase() {
     private val folderDateFormat = SimpleDateFormat("yyyy-MM-dd")
     private lateinit var reportDate: Date
 
