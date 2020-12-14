@@ -167,7 +167,7 @@ public final class InTextDirectivesUtils {
         List<String> resultPrefixes = Lists.newArrayList();
 
         for (String prefix : prefixes) {
-            if (prefix.startsWith("//") || prefix.startsWith("##")) {
+            if (prefix.startsWith("//")) {
                 resultPrefixes.add(StringUtil.trimLeading(prefix.substring(2)));
             }
             else {
