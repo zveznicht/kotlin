@@ -63,9 +63,8 @@ abstract class FirAbstractImportingScope(
         if (classId != null) {
             getStaticsScope(classId)?.processFunctionsByName(callableId.callableName, processor)
         } else if (name.isSpecial || name.identifier.isNotEmpty()) {
-            val symbols = provider.getTopLevelCallableSymbols(callableId.packageName, callableId.callableName)
+            val symbols = provider.getTopLevelFunctionSymbols(callableId.packageName, callableId.callableName)
             for (symbol in symbols) {
-                if (symbol !is FirNamedFunctionSymbol) continue
                 symbol.ensureResolvedForCalls(session)
                 processor(symbol)
             }
@@ -82,9 +81,8 @@ abstract class FirAbstractImportingScope(
         if (classId != null) {
             getStaticsScope(classId)?.processPropertiesByName(callableId.callableName, processor)
         } else if (name.isSpecial || name.identifier.isNotEmpty()) {
-            val symbols = provider.getTopLevelCallableSymbols(callableId.packageName, callableId.callableName)
+            val symbols = provider.getTopLevelPropertySymbols(callableId.packageName, callableId.callableName)
             for (symbol in symbols) {
-                if (symbol !is FirVariableSymbol) continue
                 symbol.ensureResolvedForCalls(session)
                 processor(symbol)
             }
