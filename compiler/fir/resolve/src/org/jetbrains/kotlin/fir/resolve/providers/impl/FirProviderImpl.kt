@@ -136,28 +136,30 @@ class FirProviderImpl(val session: FirSession, val kotlinScopeProvider: KotlinSc
             state.callableContainerMap[symbol] = file
         }
 
-        override fun visitConstructor(constructor: FirConstructor, data: Pair<State, FirFile>) {
-            val symbol = constructor.symbol
+        private inline fun <reified D : FirCallableMemberDeclaration<D>, S : FirCallableSymbol<D>> registerCallable(
+            symbol: S,
+            data: Pair<State, FirFile>,
+            map: MutableMap<CallableId, List<S>>
+        ) {
             val callableId = symbol.callableId
             val (state, file) = data
-            state.constructorMap.merge(callableId, listOf(symbol)) { a, b -> a + b }
+            map.merge(callableId, listOf(symbol)) { a, b -> a + b }
             state.callableContainerMap[symbol] = file
+        }
+
+        override fun visitConstructor(constructor: FirConstructor, data: Pair<State, FirFile>) {
+            val symbol = constructor.symbol
+            registerCallable(symbol, data, data.first.constructorMap)
         }
 
         override fun visitSimpleFunction(simpleFunction: FirSimpleFunction, data: Pair<State, FirFile>) {
             val symbol = simpleFunction.symbol
-            val callableId = symbol.callableId
-            val (state, file) = data
-            state.functionMap.merge(callableId, listOf(symbol)) { a, b -> a + b }
-            state.callableContainerMap[symbol] = file
+            registerCallable(symbol, data, data.first.functionMap)
         }
 
         override fun visitProperty(property: FirProperty, data: Pair<State, FirFile>) {
             val symbol = property.symbol
-            val callableId = symbol.callableId
-            val (state, file) = data
-            state.propertyMap.merge(callableId, listOf(symbol)) { a, b -> a + b }
-            state.callableContainerMap[symbol] = file
+            registerCallable(symbol, data, data.first.propertyMap)
             property.getter?.let { visitPropertyAccessor(it, data) }
             property.setter?.let { visitPropertyAccessor(it, data) }
         }
