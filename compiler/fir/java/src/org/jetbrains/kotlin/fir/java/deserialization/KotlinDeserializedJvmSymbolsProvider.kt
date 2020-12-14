@@ -73,18 +73,20 @@ class KotlinDeserializedJvmSymbolsProvider(
         val proto: ProtoBuf.Package,
         val context: FirDeserializationContext,
     ) {
-        val topLevelFunctionNameIndex by lazy {
-            proto.functionList.withIndex()
-                .groupBy({ context.nameResolver.getName(it.value.name) }) { (index) -> index }
+        private inline fun <reified T> mapIt(protoList: List<T>, getName: T.() -> Int): Map<Name, List<Int>> {
+            var i = 0
+            val result = mutableMapOf<Name, MutableList<Int>>()
+            for (protoElement in protoList) {
+                val name = context.nameResolver.getName(protoElement.getName())
+                result.getOrPut(name) { mutableListOf() } += i
+                i++
+            }
+            return result
         }
-        val topLevelPropertyNameIndex by lazy {
-            proto.propertyList.withIndex()
-                .groupBy({ context.nameResolver.getName(it.value.name) }) { (index) -> index }
-        }
-        val typeAliasNameIndex by lazy {
-            proto.typeAliasList.withIndex()
-                .groupBy({ context.nameResolver.getName(it.value.name) }) { (index) -> index }
-        }
+
+        val topLevelFunctionNameIndex by lazy { mapIt(proto.functionList) { name } }
+        val topLevelPropertyNameIndex by lazy { mapIt(proto.propertyList) { name } }
+        val typeAliasNameIndex by lazy { mapIt(proto.typeAliasList) { name } }
     }
 
     private val knownClassNamesInPackage = mutableMapOf<FqName, Set<String>?>()
