@@ -168,13 +168,9 @@ object KotlinStdlibIndex : KotlinFileIndexBase<KotlinStdlibIndex>(KotlinStdlibIn
     private const val STDLIB_TAG_MANIFEST_ATTRIBUTE = "Kotlin-Runtime-Component"
     val KOTLIN_STDLIB_NAME = FqName("kotlin-stdlib")
     val KOTLIN_STDLIB_COMMON_NAME = FqName("kotlin-stdlib-common")
-    val KOTLIN_TEST_COMMON_NAME = FqName("kotlin-test-common")
-    val KOTLIN_TEST_ANNOTATIONS_COMMON_NAME = FqName("kotlin-test-annotations-common")
 
     val STANDARD_LIBRARY_DEPENDENCY_NAMES = setOf(
         KOTLIN_STDLIB_COMMON_NAME,
-        KOTLIN_TEST_COMMON_NAME,
-        KOTLIN_TEST_ANNOTATIONS_COMMON_NAME,
     )
 
     override fun getIndexer() = INDEXER
