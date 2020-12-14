@@ -14,7 +14,7 @@ import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.backend.js.JsIrBackendContext
 import org.jetbrains.kotlin.ir.backend.js.ir.JsIrArithBuilder
 import org.jetbrains.kotlin.ir.backend.js.ir.JsIrBuilder
-import org.jetbrains.kotlin.ir.backend.js.utils.isPure
+import org.jetbrains.kotlin.ir.util.isPure
 import org.jetbrains.kotlin.ir.builders.declarations.addFunction
 import org.jetbrains.kotlin.ir.builders.declarations.buildField
 import org.jetbrains.kotlin.ir.declarations.*
@@ -50,10 +50,12 @@ class PropertyLazyInitLowering(
         if (container !is IrField && container !is IrSimpleFunction && container !is IrProperty)
             return
 
-        if (container.origin !in compatibleOrigins) return
+        if (!container.isCompatibleDeclaration()) return
 
         val file = container.parent as? IrFile
             ?: return
+
+        container.assertCompatibleDeclaration()
 
         val initFun = (when {
             file in fileToInitializationFuns -> fileToInitializationFuns[file]
@@ -242,7 +244,10 @@ class RemoveInitializersForLazyProperties(
         declaration.correspondingProperty
             ?.takeIf { it.isForLazyInit() }
             ?.backingField
-            ?.let { it.initializer = null }
+            ?.let {
+                it.assertCompatibleDeclaration()
+                it.initializer = null
+            }
 
         return null
     }
@@ -298,9 +303,14 @@ private fun IrDeclaration.propertyWithPersistentSafe(transform: IrDeclaration.()
 private fun IrDeclaration.isCompatibleDeclaration() =
     origin in compatibleOrigins
 
+private fun IrDeclaration.assertCompatibleDeclaration() {
+    assert((this as? PersistentIrElementBase<*>)?.createdOn?.let { it == 0 } != false)
+}
+
 private val compatibleOrigins = listOf(
     IrDeclarationOrigin.DEFINED,
     IrDeclarationOrigin.DELEGATED_PROPERTY_ACCESSOR,
+    IrDeclarationOrigin.PROPERTY_DELEGATE,
     IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR,
     IrDeclarationOrigin.PROPERTY_BACKING_FIELD,
 )

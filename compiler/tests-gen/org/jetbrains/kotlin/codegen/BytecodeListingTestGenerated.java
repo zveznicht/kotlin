@@ -39,6 +39,11 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
         KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/bytecodeListing"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
     }
 
+    @TestMetadata("anonymousObjectInGenericFun.kt")
+    public void testAnonymousObjectInGenericFun() throws Exception {
+        runTest("compiler/testData/codegen/bytecodeListing/anonymousObjectInGenericFun.kt");
+    }
+
     @TestMetadata("callableNameIntrinsic.kt")
     public void testCallableNameIntrinsic() throws Exception {
         runTest("compiler/testData/codegen/bytecodeListing/callableNameIntrinsic.kt");
@@ -207,21 +212,6 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
     @TestMetadata("rawTypeInSignature.kt")
     public void testRawTypeInSignature() throws Exception {
         runTest("compiler/testData/codegen/bytecodeListing/rawTypeInSignature.kt");
-    }
-
-    @TestMetadata("samAdapterAndInlinedOne.kt")
-    public void testSamAdapterAndInlinedOne() throws Exception {
-        runTest("compiler/testData/codegen/bytecodeListing/samAdapterAndInlinedOne.kt");
-    }
-
-    @TestMetadata("samGenericSuperinterface.kt")
-    public void testSamGenericSuperinterface() throws Exception {
-        runTest("compiler/testData/codegen/bytecodeListing/samGenericSuperinterface.kt");
-    }
-
-    @TestMetadata("samSpecializedGenericSuperinterface.kt")
-    public void testSamSpecializedGenericSuperinterface() throws Exception {
-        runTest("compiler/testData/codegen/bytecodeListing/samSpecializedGenericSuperinterface.kt");
     }
 
     @TestMetadata("varargsBridge.kt")
@@ -674,52 +664,28 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
             KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
         }
 
-        private void runTestWithPackageReplacement(String testDataFilePath, String packageName) throws Exception {
-            KotlinTestUtils.runTest(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.JVM, testDataFilePath);
-        }
-
         public void testAllFilesPresentInCoroutines() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/bytecodeListing/coroutines"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
         }
 
         @TestMetadata("coroutineContextIntrinsic.kt")
-        public void testCoroutineContextIntrinsic_1_2() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/coroutineContextIntrinsic.kt", "kotlin.coroutines.experimental");
-        }
-
-        @TestMetadata("coroutineContextIntrinsic.kt")
-        public void testCoroutineContextIntrinsic_1_3() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/coroutineContextIntrinsic.kt", "kotlin.coroutines");
+        public void testCoroutineContextIntrinsic() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/coroutines/coroutineContextIntrinsic.kt");
         }
 
         @TestMetadata("coroutineFields.kt")
-        public void testCoroutineFields_1_2() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/coroutineFields.kt", "kotlin.coroutines.experimental");
-        }
-
-        @TestMetadata("coroutineFields.kt")
-        public void testCoroutineFields_1_3() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/coroutineFields.kt", "kotlin.coroutines");
+        public void testCoroutineFields() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/coroutines/coroutineFields.kt");
         }
 
         @TestMetadata("oomInReturnUnit.kt")
-        public void testOomInReturnUnit_1_2() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/oomInReturnUnit.kt", "kotlin.coroutines.experimental");
-        }
-
-        @TestMetadata("oomInReturnUnit.kt")
-        public void testOomInReturnUnit_1_3() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/oomInReturnUnit.kt", "kotlin.coroutines");
+        public void testOomInReturnUnit() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/coroutines/oomInReturnUnit.kt");
         }
 
         @TestMetadata("privateAccessor.kt")
-        public void testPrivateAccessor_1_2() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/privateAccessor.kt", "kotlin.coroutines.experimental");
-        }
-
-        @TestMetadata("privateAccessor.kt")
-        public void testPrivateAccessor_1_3() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/privateAccessor.kt", "kotlin.coroutines");
+        public void testPrivateAccessor() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/coroutines/privateAccessor.kt");
         }
 
         @TestMetadata("privateSuspendFun.kt")
@@ -733,23 +699,13 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
         }
 
         @TestMetadata("suspendReifiedFun.kt")
-        public void testSuspendReifiedFun_1_2() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/suspendReifiedFun.kt", "kotlin.coroutines.experimental");
-        }
-
-        @TestMetadata("suspendReifiedFun.kt")
-        public void testSuspendReifiedFun_1_3() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/suspendReifiedFun.kt", "kotlin.coroutines");
+        public void testSuspendReifiedFun() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/coroutines/suspendReifiedFun.kt");
         }
 
         @TestMetadata("tcoContinuation.kt")
-        public void testTcoContinuation_1_2() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/tcoContinuation.kt", "kotlin.coroutines.experimental");
-        }
-
-        @TestMetadata("tcoContinuation.kt")
-        public void testTcoContinuation_1_3() throws Exception {
-            runTestWithPackageReplacement("compiler/testData/codegen/bytecodeListing/coroutines/tcoContinuation.kt", "kotlin.coroutines");
+        public void testTcoContinuation() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/coroutines/tcoContinuation.kt");
         }
 
         @TestMetadata("compiler/testData/codegen/bytecodeListing/coroutines/spilling")
@@ -1526,6 +1482,84 @@ public class BytecodeListingTestGenerated extends AbstractBytecodeListingTest {
         @TestMetadata("samAdapterForJavaInterfaceWithNullability.kt")
         public void testSamAdapterForJavaInterfaceWithNullability() throws Exception {
             runTest("compiler/testData/codegen/bytecodeListing/nullabilityAnnotations/samAdapterForJavaInterfaceWithNullability.kt");
+        }
+    }
+
+    @TestMetadata("compiler/testData/codegen/bytecodeListing/sam")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Sam extends AbstractBytecodeListingTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInSam() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/bytecodeListing/sam"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
+        }
+
+        @TestMetadata("callableRefGenericFunInterface.kt")
+        public void testCallableRefGenericFunInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/callableRefGenericFunInterface.kt");
+        }
+
+        @TestMetadata("callableRefGenericSamInterface.kt")
+        public void testCallableRefGenericSamInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/callableRefGenericSamInterface.kt");
+        }
+
+        @TestMetadata("callableRefSpecializedFunInterface.kt")
+        public void testCallableRefSpecializedFunInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/callableRefSpecializedFunInterface.kt");
+        }
+
+        @TestMetadata("callableRefSpecializedSamInterface.kt")
+        public void testCallableRefSpecializedSamInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/callableRefSpecializedSamInterface.kt");
+        }
+
+        @TestMetadata("genericFunInterface.kt")
+        public void testGenericFunInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/genericFunInterface.kt");
+        }
+
+        @TestMetadata("genericSamInterface.kt")
+        public void testGenericSamInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/genericSamInterface.kt");
+        }
+
+        @TestMetadata("lambdaGenericFunInterface.kt")
+        public void testLambdaGenericFunInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/lambdaGenericFunInterface.kt");
+        }
+
+        @TestMetadata("lambdaGenericSamInterface.kt")
+        public void testLambdaGenericSamInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/lambdaGenericSamInterface.kt");
+        }
+
+        @TestMetadata("lambdaSpecializedFunInterface.kt")
+        public void testLambdaSpecializedFunInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/lambdaSpecializedFunInterface.kt");
+        }
+
+        @TestMetadata("lambdaSpecializedSamInterface.kt")
+        public void testLambdaSpecializedSamInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/lambdaSpecializedSamInterface.kt");
+        }
+
+        @TestMetadata("samAdapterAndInlinedOne.kt")
+        public void testSamAdapterAndInlinedOne() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/samAdapterAndInlinedOne.kt");
+        }
+
+        @TestMetadata("specializedFunInterface.kt")
+        public void testSpecializedFunInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/specializedFunInterface.kt");
+        }
+
+        @TestMetadata("specializedSamInterface.kt")
+        public void testSpecializedSamInterface() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/sam/specializedSamInterface.kt");
         }
     }
 

@@ -6,6 +6,7 @@
 package org.jetbrains.kotlin.idea.frontend.api
 
 import org.jetbrains.kotlin.diagnostics.Diagnostic
+import org.jetbrains.kotlin.idea.frontend.api.calls.KtCall
 import org.jetbrains.kotlin.idea.frontend.api.components.*
 import org.jetbrains.kotlin.idea.frontend.api.scopes.*
 import org.jetbrains.kotlin.idea.frontend.api.symbols.*
@@ -32,7 +33,7 @@ import org.jetbrains.kotlin.psi.*
  *
  * To create analysis session consider using [analyze]
  */
-abstract class KtAnalysisSession(override val token: ValidityToken) : ValidityTokenOwner {
+abstract class KtAnalysisSession(final override val token: ValidityToken) : ValidityTokenOwner {
     protected abstract val smartCastProvider: KtSmartCastProvider
     protected abstract val typeProvider: KtTypeProvider
     protected abstract val diagnosticProvider: KtDiagnosticProvider
@@ -42,6 +43,8 @@ abstract class KtAnalysisSession(override val token: ValidityToken) : ValidityTo
     protected abstract val callResolver: KtCallResolver
     protected abstract val completionCandidateChecker: KtCompletionCandidateChecker
     protected abstract val symbolDeclarationOverridesProvider: KtSymbolDeclarationOverridesProvider
+    @Suppress("LeakingThis")
+    protected open val typeRenderer: KtTypeRenderer = KtDefaultTypeRenderer(this, token)
 
     /// TODO: get rid of
     @Deprecated("Used only in completion now, temporary")
@@ -118,9 +121,9 @@ abstract class KtAnalysisSession(override val token: ValidityToken) : ValidityTo
 
     fun <S : KtSymbol> KtSymbolPointer<S>.restoreSymbol(): S? = restoreSymbol(this@KtAnalysisSession)
 
-    fun KtCallExpression.resolveCall(): CallInfo? = callResolver.resolveCall(this)
+    fun KtCallExpression.resolveCall(): KtCall? = callResolver.resolveCall(this)
 
-    fun KtBinaryExpression.resolveCall(): CallInfo? = callResolver.resolveCall(this)
+    fun KtBinaryExpression.resolveCall(): KtCall? = callResolver.resolveCall(this)
 
     fun KtReference.resolveToSymbols(): Collection<KtSymbol> {
         check(this is KtSymbolBasedReference) { "To get reference symbol the one should be KtSymbolBasedReference" }
@@ -142,4 +145,7 @@ abstract class KtAnalysisSession(override val token: ValidityToken) : ValidityTo
         psiFakeCompletionExpression,
         psiReceiverExpression
     )
+
+    fun KtType.render(options: KtTypeRendererOptions = KtTypeRendererOptions.DEFAULT): String =
+        typeRenderer.render(this, options)
 }

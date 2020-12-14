@@ -594,10 +594,6 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
                 KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
             }
 
-            private void runTestWithPackageReplacement(String testDataFilePath, String packageName) throws Exception {
-                KotlinTestUtils.runTest0(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.WASM, testDataFilePath);
-            }
-
             public void testAllFilesPresentInJvm() throws Exception {
                 KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/assert/jvm"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.WASM, true);
             }
@@ -2861,10 +2857,6 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
                 KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
             }
 
-            private void runTestWithPackageReplacement(String testDataFilePath, String packageName) throws Exception {
-                KotlinTestUtils.runTest0(filePath -> doTestWithCoroutinesPackageReplacement(filePath, packageName), TargetBackend.WASM, testDataFilePath);
-            }
-
             public void testAllFilesPresentInCapturedVarsOptimization() throws Exception {
                 KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/closures/capturedVarsOptimization"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.WASM, true);
             }
@@ -2987,6 +2979,24 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
         @TestMetadata("removeClash.kt")
         public void testRemoveClash() throws Exception {
             runTest("compiler/testData/codegen/box/collections/removeClash.kt");
+        }
+    }
+
+    @TestMetadata("compiler/testData/codegen/box/companion")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class Companion extends AbstractIrCodegenBoxWasmTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInCompanion() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/companion"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.WASM, true);
+        }
+
+        @TestMetadata("inlineFunctionCompanionPropertyAccess.kt")
+        public void testInlineFunctionCompanionPropertyAccess() throws Exception {
+            runTest("compiler/testData/codegen/box/companion/inlineFunctionCompanionPropertyAccess.kt");
         }
     }
 
@@ -5249,6 +5259,11 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
             runTest("compiler/testData/codegen/box/funInterface/samConstructorExplicitInvocation.kt");
         }
 
+        @TestMetadata("samConversionToGenericInterfaceInGenericFun.kt")
+        public void testSamConversionToGenericInterfaceInGenericFun() throws Exception {
+            runTest("compiler/testData/codegen/box/funInterface/samConversionToGenericInterfaceInGenericFun.kt");
+        }
+
         @TestMetadata("compiler/testData/codegen/box/funInterface/equality")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)
@@ -7449,6 +7464,19 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
             }
         }
 
+        @TestMetadata("compiler/testData/codegen/box/inlineClasses/javaInterop")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class JavaInterop extends AbstractIrCodegenBoxWasmTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTest0(this::doTest, TargetBackend.WASM, testDataFilePath);
+            }
+
+            public void testAllFilesPresentInJavaInterop() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/inlineClasses/javaInterop"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.WASM, true);
+            }
+        }
+
         @TestMetadata("compiler/testData/codegen/box/inlineClasses/jvm8DefaultInterfaceMethods")
         @TestDataPath("$PROJECT_ROOT")
         @RunWith(JUnit3RunnerWithInners.class)
@@ -8018,6 +8046,11 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
 
         public void testAllFilesPresentInIr() throws Exception {
             KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/ir"), Pattern.compile("^([^_](.+))\\.kt$"), null, TargetBackend.WASM, true);
+        }
+
+        @TestMetadata("anonymousObjectInGenericFun.kt")
+        public void testAnonymousObjectInGenericFun() throws Exception {
+            runTest("compiler/testData/codegen/box/ir/anonymousObjectInGenericFun.kt");
         }
 
         @TestMetadata("anonymousObjectInsideElvis.kt")
@@ -11223,6 +11256,11 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
             @TestMetadata("anotherFile.kt")
             public void testAnotherFile() throws Exception {
                 runTest("compiler/testData/codegen/box/properties/const/anotherFile.kt");
+            }
+
+            @TestMetadata("constPropertyAccessor.kt")
+            public void testConstPropertyAccessor() throws Exception {
+                runTest("compiler/testData/codegen/box/properties/const/constPropertyAccessor.kt");
             }
         }
 
