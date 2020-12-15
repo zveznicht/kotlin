@@ -159,7 +159,7 @@ class IncrementalJvmCompilerRunner(
         changedFiles: ChangedFiles.Known,
         args: K2JVMCompilerArguments,
         messageCollector: MessageCollector,
-        classpathJarSnapshot: MutableMap<String, JarSnapshot>
+        classpathJarSnapshot: Map<String, JarSnapshot>
     ): CompilationMode {
         return try {
             calculateSourcesToCompileImpl(caches, changedFiles, args, classpathJarSnapshot)
@@ -169,23 +169,28 @@ class IncrementalJvmCompilerRunner(
         }
     }
 
+    override fun setupJarDependencies(args: K2JVMCompilerArguments, withSnapshot: Boolean): Map<String, JarSnapshot> {
+        //fill jarSnapshots
+        if (!withSnapshot) return emptyMap()
+        val jarSnapshots = HashMap<String, JarSnapshot>()
+        args.classpathAsList
+            .filter { it.extension.equals("jar", ignoreCase = true) }
+            //TODO use path transformation
+            .forEach { modulesApiHistory.jarSnapshot(it)?.let {file -> jarSnapshots[it.absolutePath] = JarSnapshot.read(file) }}
+        return jarSnapshots
+    }
+
     private fun calculateSourcesToCompileImpl(
         caches: IncrementalJvmCachesManager,
         changedFiles: ChangedFiles.Known,
         args: K2JVMCompilerArguments,
-        jarSnapshots: MutableMap<String, JarSnapshot> = HashMap()
+        jarSnapshots: Map<String, JarSnapshot> = HashMap()
     ): CompilationMode {
         val dirtyFiles = DirtyFilesContainer(caches, reporter, kotlinSourceFilesExtensions)
         initDirtyFiles(dirtyFiles, changedFiles)
 
         val lastBuildInfo = BuildInfo.read(lastBuildInfoFile) ?: return CompilationMode.Rebuild { "No information on previous build" }
         reporter.reportVerbose { "Last Kotlin Build info -- $lastBuildInfo" }
-
-        //fill jarSnapshots
-        args.classpathAsList
-            .filter { it.extension.equals("jar", ignoreCase = true) }
-                //TODO use path transformation
-            .forEach { modulesApiHistory.jarSnapshot(it)?.let {file -> jarSnapshots[it.absolutePath] = JarSnapshot.read(file) }}
 
         val classpathChanges = getClasspathChanges(args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter,
                                                    jarSnapshots, withSnapshot)

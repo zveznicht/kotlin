@@ -84,12 +84,12 @@ abstract class IncrementalCompilerRunner<
                 caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
             }
             val allKotlinFiles = allSourceFiles.filter { it.isKotlinFile(kotlinSourceFilesExtensions) }
-            return compileIncrementally(args, caches, allKotlinFiles, CompilationMode.Rebuild(), messageCollector, withSnapshot)
+            return compileIncrementally(args, caches, allKotlinFiles, CompilationMode.Rebuild(), messageCollector, withSnapshot, setupJarDependencies(args, withSnapshot))
         }
 
         return try {
             val changedFiles = providedChangedFiles ?: caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
-            val classpathJarSnapshot = HashMap<String, JarSnapshot> ()
+            val classpathJarSnapshot = setupJarDependencies(args, withSnapshot)
 
             val compilationMode = sourcesToCompile(caches, changedFiles, args, messageCollector, classpathJarSnapshot)
 
@@ -144,7 +144,7 @@ abstract class IncrementalCompilerRunner<
         changedFiles: ChangedFiles,
         args: Args,
         messageCollector: MessageCollector,
-        dependenciesJarSnapshots: MutableMap<String, JarSnapshot>
+        dependenciesJarSnapshots: Map<String, JarSnapshot>
     ): CompilationMode =
         when (changedFiles) {
             is ChangedFiles.Known -> calculateSourcesToCompile(caches, changedFiles, args, messageCollector, dependenciesJarSnapshots)
@@ -156,8 +156,10 @@ abstract class IncrementalCompilerRunner<
         changedFiles: ChangedFiles.Known,
         args: Args,
         messageCollector: MessageCollector,
-        jarSnapshots: MutableMap<String, JarSnapshot>
+        jarSnapshots: Map<String, JarSnapshot>
     ): CompilationMode
+
+    protected open fun setupJarDependencies(args: Args, withSnapshot: Boolean): Map<String, JarSnapshot> = mapOf()
 
     protected fun initDirtyFiles(dirtyFiles: DirtyFilesContainer, changedFiles: ChangedFiles.Known) {
         dirtyFiles.add(changedFiles.modified, "was modified since last time")
@@ -219,7 +221,7 @@ abstract class IncrementalCompilerRunner<
         compilationMode: CompilationMode,
         originalMessageCollector: MessageCollector,
         withSnapshot: Boolean,
-        classpathJarSnapshot: MutableMap<String, JarSnapshot> = HashMap()
+        classpathJarSnapshot: Map<String, JarSnapshot> = HashMap()
     ): ExitCode {
         preBuildHook(args, compilationMode)
 

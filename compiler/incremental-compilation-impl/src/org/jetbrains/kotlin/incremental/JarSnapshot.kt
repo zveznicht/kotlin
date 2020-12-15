@@ -32,7 +32,7 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
 //                val classProtoBuff = ProtoBuf.Class.PARSER.parseFrom(codedInputStream)
 
                 val serializableData = JavaClassProtoMapValueExternalizer.read(this)
-                val stringArray = readArrayString()
+//                val stringArray = readArrayString()
                 mutableMap.put(fqName, serializableData.toProtoData())
             }
             return JarSnapshot(mutableMap)
