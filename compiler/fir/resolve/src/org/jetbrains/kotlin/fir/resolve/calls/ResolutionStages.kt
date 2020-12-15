@@ -59,7 +59,7 @@ internal object CheckExplicitReceiverConsistency : ResolutionStage() {
 
 object CheckExtensionReceiver : ResolutionStage() {
     override suspend fun check(candidate: Candidate, callInfo: CallInfo, sink: CheckerSink, context: ResolutionContext) {
-        val expectedReceiverType = candidate.getReceiverType(context) ?: return
+        val expectedReceiverType = candidate.getReceiverType() ?: return
 
         val argumentExtensionReceiverValue = candidate.extensionReceiverValue ?: return
         val expectedType = candidate.substitutor.substituteOrSelf(expectedReceiverType.type)
@@ -81,13 +81,15 @@ object CheckExtensionReceiver : ResolutionStage() {
         sink.yieldIfNeed()
     }
 
-    private fun Candidate.getReceiverType(context: ResolutionContext): ConeKotlinType? {
+    private fun Candidate.getReceiverType(): ConeKotlinType? {
         val callableSymbol = symbol as? FirCallableSymbol<*> ?: return null
         val callable = callableSymbol.fir
         val receiverType = callable.receiverTypeRef?.coneType
         if (receiverType != null) return receiverType
         val returnTypeRef = callable.returnTypeRef as? FirResolvedTypeRef ?: return null
-        if (!returnTypeRef.type.isExtensionFunctionType(context.session)) return null
+        val returnType = returnTypeRef.type.lowerBoundIfFlexible()
+        // NB: hypothetically we don't need fullyExpandedType() call here...
+        if (returnType.attributes.extensionFunctionType == null) return null
         return (returnTypeRef.type.typeArguments.firstOrNull() as? ConeKotlinTypeProjection)?.type
     }
 }
