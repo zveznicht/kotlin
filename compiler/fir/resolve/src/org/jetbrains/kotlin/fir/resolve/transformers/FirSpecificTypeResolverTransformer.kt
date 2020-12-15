@@ -20,7 +20,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 class FirSpecificTypeResolverTransformer(
     override val session: FirSession,
-    private val errorTypeAsResolved: Boolean = true
+    private val errorTypeAsResolved: Boolean = true,
+    private val fullyExpandTypes: Boolean = false,
 ) : FirAbstractTreeTransformer<FirScope>(phase = FirResolvePhase.SUPER_TYPES) {
     private val typeResolver = session.typeResolver
 
@@ -40,12 +41,12 @@ class FirSpecificTypeResolverTransformer(
 
     override fun transformTypeRef(typeRef: FirTypeRef, data: FirScope): CompositeTransformResult<FirTypeRef> {
         typeRef.transformChildren(this, data)
-        return transformType(typeRef, typeResolver.resolveType(typeRef, data, areBareTypesAllowed))
+        return transformType(typeRef, typeResolver.resolveType(typeRef, data, areBareTypesAllowed, fullyExpandTypes))
     }
 
     override fun transformFunctionTypeRef(functionTypeRef: FirFunctionTypeRef, data: FirScope): CompositeTransformResult<FirTypeRef> {
         functionTypeRef.transformChildren(this, data)
-        val resolvedType = typeResolver.resolveType(functionTypeRef, data, areBareTypesAllowed).takeIfAcceptable()
+        val resolvedType = typeResolver.resolveType(functionTypeRef, data, areBareTypesAllowed, fullyExpandTypes).takeIfAcceptable()
         return if (resolvedType != null && resolvedType !is ConeClassErrorType) {
             buildResolvedTypeRef {
                 source = functionTypeRef.source

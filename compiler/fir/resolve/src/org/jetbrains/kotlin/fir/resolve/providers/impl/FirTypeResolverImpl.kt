@@ -165,13 +165,16 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
     override fun resolveType(
         typeRef: FirTypeRef,
         scope: FirScope,
-        areBareTypesAllowed: Boolean
+        areBareTypesAllowed: Boolean,
+        shouldExpandTypes: Boolean
     ): ConeKotlinType {
         return when (typeRef) {
             is FirResolvedTypeRef -> typeRef.type
             is FirUserTypeRef -> {
                 val (symbol, substitutor) = resolveToSymbol(typeRef, scope)
-                resolveUserType(typeRef, symbol, substitutor, areBareTypesAllowed)
+                resolveUserType(typeRef, symbol, substitutor, areBareTypesAllowed).let {
+                    if (shouldExpandTypes) it.fullyExpandedType(session) else it
+                }
             }
             is FirFunctionTypeRef -> createFunctionalType(typeRef)
             is FirDynamicTypeRef -> ConeKotlinErrorType(ConeIntermediateDiagnostic("Not supported: ${typeRef::class.simpleName}"))

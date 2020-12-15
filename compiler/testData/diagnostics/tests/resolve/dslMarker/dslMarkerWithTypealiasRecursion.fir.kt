@@ -10,10 +10,10 @@ class Foo
 class Bar
 
 typealias YBar = <!OTHER_ERROR!>ZBar<!>
-typealias ZBar = YBar
+typealias ZBar = <!OTHER_ERROR!>YBar<!>
 
 fun Foo.foo(body: Foo.() -> Unit) = body()
-fun Foo.zbar(body: ZBar.() -> Unit) = Bar().body()
+fun Foo.zbar(body: <!OTHER_ERROR!>ZBar<!>.() -> Unit) = Bar().body()
 
 fun test() {
     Foo().foo {

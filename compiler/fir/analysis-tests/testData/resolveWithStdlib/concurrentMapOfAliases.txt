@@ -12,7 +12,7 @@ FILE: concurrentMapOfAliases.kt
             this@R|/A|.R|/A.foo|.R|SubstitutionOverride<java/util/concurrent/ConcurrentHashMap.get: R|kotlin/CharSequence?|>|(String(dd))?.{ (this@R|/A|, $subj$).R|/A.baz|() }
         }
 
-        private final fun R|MyAlias|.baz(): R|kotlin/Unit| {
+        private final fun R|kotlin/CharSequence|.baz(): R|kotlin/Unit| {
         }
 
     }

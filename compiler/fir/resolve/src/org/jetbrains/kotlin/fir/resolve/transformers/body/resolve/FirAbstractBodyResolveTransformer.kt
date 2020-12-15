@@ -129,7 +129,7 @@ abstract class FirAbstractBodyResolveTransformer(phase: FirResolvePhase) : FirAb
             qualifiedResolver
         )
         val typeResolverTransformer = FirSpecificTypeResolverTransformer(
-            session
+            session, fullyExpandTypes = true
         )
         override val callCompleter: FirCallCompleter = FirCallCompleter(transformer, this)
         override val dataFlowAnalyzer: FirDataFlowAnalyzer<*> =

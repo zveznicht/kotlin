@@ -11,5 +11,10 @@ import org.jetbrains.kotlin.fir.types.ConeKotlinType
 import org.jetbrains.kotlin.fir.types.FirTypeRef
 
 abstract class FirTypeResolver : FirSessionComponent {
-    abstract fun resolveType(typeRef: FirTypeRef, scope: FirScope, areBareTypesAllowed: Boolean): ConeKotlinType
+    abstract fun resolveType(
+        typeRef: FirTypeRef,
+        scope: FirScope,
+        areBareTypesAllowed: Boolean,
+        shouldExpandTypes: Boolean
+    ): ConeKotlinType
 }

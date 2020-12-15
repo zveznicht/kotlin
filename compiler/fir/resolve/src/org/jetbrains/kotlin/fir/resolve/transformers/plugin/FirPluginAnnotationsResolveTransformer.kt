@@ -88,7 +88,8 @@ private class FirAnnotationResolveTransformer(
     var metaAnnotations: Set<AnnotationFqn> = emptySet()
     private val typeResolverTransformer: FirSpecificTypeResolverTransformer = FirSpecificTypeResolverTransformer(
         session,
-        errorTypeAsResolved = false
+        errorTypeAsResolved = false,
+        fullyExpandTypes = true
     )
 
     private var owners: PersistentList<FirAnnotatedDeclaration> = persistentListOf()

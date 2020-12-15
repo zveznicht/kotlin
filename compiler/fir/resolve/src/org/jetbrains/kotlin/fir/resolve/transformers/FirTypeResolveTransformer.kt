@@ -46,7 +46,8 @@ class FirTypeResolveTransformer(
         scopes.addAll(initialScopes.asReversed())
     }
 
-    private val typeResolverTransformer: FirSpecificTypeResolverTransformer = FirSpecificTypeResolverTransformer(session)
+    private val typeResolverTransformer: FirSpecificTypeResolverTransformer =
+        FirSpecificTypeResolverTransformer(session, fullyExpandTypes = true)
 
     override fun transformFile(file: FirFile, data: Nothing?): CompositeTransformResult<FirFile> {
         checkSessionConsistency(file)
