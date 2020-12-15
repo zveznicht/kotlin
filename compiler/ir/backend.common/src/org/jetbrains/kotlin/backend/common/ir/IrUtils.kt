@@ -482,6 +482,8 @@ fun IrClass.addFakeOverrides(irBuiltIns: IrBuiltIns, implementedMembers: List<Ir
     IrOverridingUtil(irBuiltIns, FakeOverrideBuilderForLowerings)
         .buildFakeOverridesForClassUsingOverriddenSymbols(this, implementedMembers)
         .forEach { addChild(it) }
+    // To reduce memory pressure.
+    FakeOverrideBuilderForLowerings.propertyOverriddenSymbols.clear()
 }
 
 @OptIn(ObsoleteDescriptorBasedAPI::class)
