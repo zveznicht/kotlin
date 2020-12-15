@@ -238,6 +238,7 @@ class ScopeTowerLevel(
         processor: TowerScopeLevelProcessor<FirFunctionSymbol<*>>
     ): ProcessorAction {
         var empty = true
+        session.firLookupTracker?.recordLookupIfNeeded(info, scope, false)
         scope.processFunctionsAndConstructorsByName(
             info.name,
             session,
@@ -255,6 +256,7 @@ class ScopeTowerLevel(
         processor: TowerScopeLevelProcessor<FirVariableSymbol<*>>
     ): ProcessorAction {
         var empty = true
+        session.firLookupTracker?.recordLookupIfNeeded(info, scope, false)
         scope.processPropertiesByName(info.name) { candidate ->
             empty = false
             consumeCallableCandidate(candidate, processor)
@@ -267,6 +269,7 @@ class ScopeTowerLevel(
         processor: TowerScopeLevelProcessor<AbstractFirBasedSymbol<*>>
     ): ProcessorAction {
         var empty = true
+        session.firLookupTracker?.recordLookupIfNeeded(info, scope, false)
         scope.processClassifiersByName(info.name) {
             empty = false
             processor.consumeCandidate(

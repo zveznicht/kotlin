@@ -58,4 +58,7 @@ class FirPackageMemberScope(val fqName: FqName, val session: FirSession) : FirSc
             }
         }
     }
+
+    override val scopeLookupName: FqName
+        get() = fqName
 }
