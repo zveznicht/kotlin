@@ -122,7 +122,9 @@ class KotlinGradleSourceSetDataService : AbstractProjectDataService<GradleSource
 
             val moduleNode = ExternalSystemApiUtil.findParent(sourceSetNode, ProjectKeys.MODULE) ?: continue
             val kotlinFacet = configureFacetByGradleModule(ideModule, modelsProvider, moduleNode, sourceSetNode) ?: continue
-            GradleProjectImportHandler.getInstances(project).forEach { it.importBySourceSet(kotlinFacet, sourceSetNode) }
+            GradleProjectImportHandler.getInstances(project)
+                .filterNot { it::class.java.name.endsWith("AndroidExtensionsGradleImportHandler") }
+                .forEach { it.importBySourceSet(kotlinFacet, sourceSetNode) }
         }
     }
 }

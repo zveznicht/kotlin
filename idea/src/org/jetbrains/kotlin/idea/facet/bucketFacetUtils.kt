@@ -122,19 +122,7 @@ fun configureFacetByFlatArgsInfo(kotlinFacet: KotlinFacet, flatArgsInfo: FlatArg
         val emptyBucket = targetPlatform.createArguments().toFlatCompilerArguments()
 
         //TODO restore checking platform compatibilities
-        copyBucketTo(currentBucket, compilerArgumentsBucket) { property, value ->
-            value != when {
-                property.name in setOf(K2JVMCompilerArguments::classpath.name, K2MetadataCompilerArguments::classpath.name) ->
-                    emptyBucket.extractClasspaths()
-                property.returnType.classifier == Boolean::class ->
-                    emptyBucket.extractFlagArgumentValue(property.cast<KProperty1<out CommonCompilerArguments, Boolean>>())
-                property.returnType.classifier == String::class ->
-                    emptyBucket.extractSingleArgumentValue(property.cast<KProperty1<out CommonCompilerArguments, String?>>())
-                (property.returnType.classifier as? KClass<*>)?.java?.isArray == true ->
-                    emptyBucket.extractMultipleArgumentValue(property.cast<KProperty1<out CommonCompilerArguments, Array<String>?>>())
-                else -> error("Unexpected property ${property.name} in filtering")
-            }
-        }
+        copyBucketIgnoreEmpty(currentBucket, compilerArgumentsBucket, emptyBucket)
 
         defaultBucket.convertPathsToSystemIndependent()
         with(compilerArgumentsBucket) {

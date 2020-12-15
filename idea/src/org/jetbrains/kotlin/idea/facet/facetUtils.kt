@@ -202,6 +202,7 @@ fun KotlinFacet.configureFacet(
 ) {
     val module = module
     with(configuration.settings) {
+        compilerArgumentsBucket = null
         targetPlatform = null
         compilerSettings = null
         isHmppEnabled = hmppEnabled

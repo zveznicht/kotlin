@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
+import kotlin.reflect.KClass
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.declaredMemberProperties
@@ -181,3 +182,18 @@ fun copyBucketTo(
         addAll(from.internalArguments)
     }
 }
+
+fun copyBucketIgnoreEmpty(from: FlatCompilerArgumentsBucket, to: FlatCompilerArgumentsBucket, emptyBucket: FlatCompilerArgumentsBucket?) =
+    copyBucketTo(from, to) { property, value ->
+        value != when {
+            property.name in setOf(K2JVMCompilerArguments::classpath.name, K2MetadataCompilerArguments::classpath.name) ->
+                emptyBucket?.extractClasspaths()
+            property.returnType.classifier == Boolean::class ->
+                emptyBucket?.extractFlagArgumentValue(property.cast<KProperty1<out CommonCompilerArguments, Boolean>>())
+            property.returnType.classifier == String::class ->
+                emptyBucket?.extractSingleArgumentValue(property.cast<KProperty1<out CommonCompilerArguments, String?>>())
+            (property.returnType.classifier as? KClass<*>)?.java?.isArray == true ->
+                emptyBucket?.extractMultipleArgumentValue(property.cast<KProperty1<out CommonCompilerArguments, Array<String>?>>())
+            else -> error("Unexpected property ${property.name} in filtering")
+        }
+    }
