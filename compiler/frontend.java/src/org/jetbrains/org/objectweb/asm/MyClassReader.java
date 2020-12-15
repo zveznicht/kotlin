@@ -82,9 +82,8 @@ public class MyClassReader extends ClassReader {
             if ((currentByte & 0x80) == 0) {
                 charBuffer[strLength++] = (char) currentByte;
             } else { // else if ((currentByte & 0xE0) == 0xC0) {
-                int secondByte = classBuffer[currentOffset++] & 0x3F;
                 charBuffer[strLength++] =
-                        (char) (((currentByte & 0x1F) << 6) + secondByte);
+                        (char) ((currentByte << 6) + classBuffer[currentOffset++] + 0x1080);
             //} else {
             //    System.out.println("3: " + currentByte);
             //    charBuffer[strLength++] =
