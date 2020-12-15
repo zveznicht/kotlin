@@ -25,6 +25,8 @@ import org.jetbrains.kotlin.load.kotlin.header.KotlinClassHeader
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.util.PerformanceCounter
 import org.jetbrains.kotlin.utils.rethrow
+import org.jetbrains.org.objectweb.asm.ClassReader
+import org.jetbrains.org.objectweb.asm.tree.ClassNode
 import java.io.FileNotFoundException
 import java.io.IOException
 
@@ -63,13 +65,21 @@ class VirtualFileKotlinClass private constructor(
 
                 try {
                     val byteContent = fileContent ?: file.contentsToByteArray(false)
+
+                    val classNode = ClassNode().also {
+                        ClassReader(byteContent).accept(
+                            it,
+                            ClassReader.SKIP_CODE or ClassReader.SKIP_FRAMES
+                        )
+                    }
+
                     if (!byteContent.isEmpty()) {
-                        val kotlinJvmBinaryClass = FileBasedKotlinClass.create(byteContent) { name, classVersion, header, innerClasses ->
+                        val kotlinJvmBinaryClass = FileBasedKotlinClass.create(classNode) { name, classVersion, header, innerClasses ->
                             VirtualFileKotlinClass(file, name, classVersion, header, innerClasses)
                         }
 
-                        return@time kotlinJvmBinaryClass?.let { KotlinClass(it, byteContent) }
-                            ?: KotlinClassFinder.Result.ClassFileContent(byteContent)
+                        return@time kotlinJvmBinaryClass?.let { KotlinClass(it, classNode) }
+                            ?: KotlinClassFinder.Result.ClassFileContent(byteContent, classNode)
                     }
                 } catch (e: FileNotFoundException) {
                     // Valid situation. User can delete jar file.

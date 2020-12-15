@@ -72,12 +72,13 @@ class LazyJavaPackageScope(
                 is KotlinClassLookupResult.Found -> kotlinResult.descriptor
                 is KotlinClassLookupResult.SyntheticClass -> null
                 is KotlinClassLookupResult.NotFound -> {
+                    val classFileContent = kotlinClassOrClassFileContent?.safeAs<KotlinClassFinder.Result.ClassFileContent>()
                     val javaClass =
                         request.javaClass ?: c.components.finder.findClass(
                             JavaClassFinder.Request(
                                 requestClassId,
-                                kotlinClassOrClassFileContent?.safeAs<KotlinClassFinder.Result.ClassFileContent>()
-                                    ?.content
+                                classFileContent?.content,
+                                classFileContent?.cachedData,
                             )
                         )
 

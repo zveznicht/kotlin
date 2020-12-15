@@ -15,6 +15,7 @@ interface JavaClassFinder {
         val classId: ClassId,
         @Suppress("ArrayInDataClass")
         val previouslyFoundClassFileContent: ByteArray? = null,
+        val classNode: Any? = null,
         val outerClass: JavaClass? = null
     )
 

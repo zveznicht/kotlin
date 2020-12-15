@@ -28,10 +28,10 @@ import org.jetbrains.kotlin.serialization.deserialization.descriptors.Deserializ
 class JvmBinaryAnnotationDeserializer(
     val session: FirSession,
     kotlinBinaryClass: KotlinJvmBinaryClass,
-    byteContent: ByteArray?
+    cachedContent: Any?
 ) : AbstractAnnotationDeserializer(session) {
     private val annotationInfo by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        session.loadMemberAnnotations(kotlinBinaryClass, byteContent)
+        session.loadMemberAnnotations(kotlinBinaryClass, cachedContent)
     }
 
     override fun inheritAnnotationInfo(parent: AbstractAnnotationDeserializer) {
@@ -266,7 +266,7 @@ class JvmBinaryAnnotationDeserializer(
 private data class MemberAnnotations(val memberAnnotations: MutableMap<MemberSignature, MutableList<FirAnnotationCall>>)
 
 // TODO: better to be in KotlinDeserializedJvmSymbolsProvider?
-private fun FirSession.loadMemberAnnotations(kotlinBinaryClass: KotlinJvmBinaryClass, byteContent: ByteArray?): MemberAnnotations {
+private fun FirSession.loadMemberAnnotations(kotlinBinaryClass: KotlinJvmBinaryClass, cachedContent: Any?): MemberAnnotations {
     val memberAnnotations = hashMapOf<MemberSignature, MutableList<FirAnnotationCall>>()
 
     kotlinBinaryClass.visitMembers(object : KotlinJvmBinaryClass.MemberVisitor {
@@ -313,7 +313,7 @@ private fun FirSession.loadMemberAnnotations(kotlinBinaryClass: KotlinJvmBinaryC
                 }
             }
         }
-    }, byteContent)
+    }, cachedContent)
 
     return MemberAnnotations(memberAnnotations)
 }

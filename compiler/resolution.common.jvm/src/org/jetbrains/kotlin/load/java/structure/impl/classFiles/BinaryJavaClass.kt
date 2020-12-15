@@ -28,6 +28,7 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.SmartList
 import org.jetbrains.kotlin.utils.addIfNotNull
 import org.jetbrains.org.objectweb.asm.*
+import org.jetbrains.org.objectweb.asm.tree.ClassNode
 import java.text.CharacterIterator
 import java.text.StringCharacterIterator
 
@@ -38,7 +39,8 @@ class BinaryJavaClass(
     private val signatureParser: BinaryClassSignatureParser,
     override var access: Int = 0,
     override val outerClass: JavaClass?,
-    classContent: ByteArray? = null
+    classContent: ByteArray? = null,
+    classNode: ClassNode? = null,
 ) : ClassVisitor(ASM_API_VERSION_FOR_CLASS_READING), VirtualFileBoundJavaClass, BinaryJavaModifierListOwner, MutableJavaAnnotationOwner {
     override val annotations: MutableCollection<JavaAnnotation> = SmartList()
 
@@ -112,10 +114,14 @@ class BinaryJavaClass(
 
     init {
         try {
-            ClassReader(classContent ?: virtualFile.contentsToByteArray()).accept(
-                this,
-                ClassReader.SKIP_CODE or ClassReader.SKIP_FRAMES
-            )
+            if (classNode != null) {
+                classNode.accept(this)
+            } else {
+                ClassReader(classContent ?: virtualFile.contentsToByteArray()).accept(
+                    this,
+                    ClassReader.SKIP_CODE or ClassReader.SKIP_FRAMES
+                )
+            }
         } catch (e: Throwable) {
             throw IllegalStateException("Could not read class: $virtualFile", e)
         }
@@ -242,15 +248,16 @@ class BinaryJavaClass(
     override fun visitAnnotation(desc: String, visible: Boolean) =
         BinaryJavaAnnotation.addAnnotation(this, desc, context, signatureParser)
 
-    override fun findInnerClass(name: Name): JavaClass? = findInnerClass(name, classFileContent = null)
+    override fun findInnerClass(name: Name): JavaClass? = findInnerClass(name, classFileContent = null, classNode = null)
 
-    fun findInnerClass(name: Name, classFileContent: ByteArray?): JavaClass? {
+    fun findInnerClass(name: Name, classFileContent: ByteArray?, classNode: ClassNode?): JavaClass? {
         val access = ownInnerClassNameToAccess[name] ?: return null
 
         return virtualFile.parent.findChild("${virtualFile.nameWithoutExtension}$$name.class")?.let {
             BinaryJavaClass(
                 it, fqName.child(name), context.copyForMember(), signatureParser, access, this,
-                classFileContent
+                classFileContent,
+                classNode
             )
         }
     }
