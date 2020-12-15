@@ -420,6 +420,10 @@ task distCompiler(type: Copy) {
     }
 }
 
+task makeDist {
+    mkdir distDir
+}
+
 task distDef(type: Copy) {
 
     destinationDir distDir
