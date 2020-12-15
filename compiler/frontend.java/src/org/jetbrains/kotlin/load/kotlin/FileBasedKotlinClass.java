@@ -93,7 +93,7 @@ public abstract class FileBasedKotlinClass implements KotlinJvmBinaryClass {
         Ref<String> classNameRef = Ref.create();
         Ref<Integer> classVersion = Ref.create();
         InnerClassesInfo innerClasses = new InnerClassesInfo();
-        new ClassReader(fileContents).accept(new ClassVisitor(API_VERSION) {
+        new MyClassReader(fileContents).accept(new ClassVisitor(API_VERSION) {
             @Override
             public void visit(int version, int access, @NotNull String name, String signature, String superName, String[] interfaces) {
                 classNameRef.set(name);
