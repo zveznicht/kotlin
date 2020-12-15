@@ -40,6 +40,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.jvm.KotlinCliJavaFileManager
 import org.jetbrains.kotlin.util.PerformanceCounter
 import org.jetbrains.kotlin.utils.addIfNotNull
+import org.jetbrains.org.objectweb.asm.tree.ClassNode
 import java.util.*
 
 // TODO: do not inherit from CoreJavaFileManager to avoid accidental usage of its methods which do not use caches/indices
@@ -85,7 +86,7 @@ class KotlinCliJavaFileManagerImpl(private val myPsiManager: PsiManager) : CoreJ
     fun findClass(classId: ClassId, searchScope: GlobalSearchScope): JavaClass? = findClass(JavaClassFinder.Request(classId), searchScope)
 
     override fun findClass(request: JavaClassFinder.Request, searchScope: GlobalSearchScope): JavaClass? {
-        val (classId, classFileContentFromRequest, outerClassFromRequest) = request
+        val (classId, classFileContentFromRequest, classNode, outerClassFromRequest) = request
         val virtualFile = findVirtualFileForTopLevelClass(classId, searchScope) ?: return null
 
         if (!usePsiClassFilesReading && virtualFile.extension == "class") {
@@ -101,7 +102,7 @@ class KotlinCliJavaFileManagerImpl(private val myPsiManager: PsiManager) : CoreJ
                     val outerClass = outerClassFromRequest ?: findClass(outerClassId, searchScope)
 
                     return if (outerClass is BinaryJavaClass)
-                        outerClass.findInnerClass(classId.shortClassName, classFileContentFromRequest)
+                        outerClass.findInnerClass(classId.shortClassName, classFileContentFromRequest, classNode as? ClassNode)
                     else
                         outerClass?.findInnerClass(classId.shortClassName)
                 }
@@ -114,7 +115,7 @@ class KotlinCliJavaFileManagerImpl(private val myPsiManager: PsiManager) : CoreJ
 
                 BinaryJavaClass(
                     virtualFile, classId.asSingleFqName(), resolver, signatureParsingComponent,
-                    outerClass = null, classContent = classContent
+                    outerClass = null, classContent = classContent, classNode = classNode as? ClassNode
                 )
             }
         }
