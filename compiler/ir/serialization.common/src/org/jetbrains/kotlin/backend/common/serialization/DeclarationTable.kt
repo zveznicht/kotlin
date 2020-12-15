@@ -51,7 +51,7 @@ abstract class GlobalDeclarationTable(
 
 open class DeclarationTable(private val globalDeclarationTable: GlobalDeclarationTable) {
     private val table = mutableMapOf<IrDeclaration, IdSignature>()
-    private val signaturer = globalDeclarationTable.signaturer.also {
+    protected val signaturer = globalDeclarationTable.signaturer.also {
         it.reset()
         it.table = this
     }
@@ -60,7 +60,7 @@ open class DeclarationTable(private val globalDeclarationTable: GlobalDeclaratio
         return !isExportedDeclaration(this)
     }
 
-    fun isExportedDeclaration(declaration: IrDeclaration) = globalDeclarationTable.isExportedDeclaration(declaration)
+    open fun isExportedDeclaration(declaration: IrDeclaration) = globalDeclarationTable.isExportedDeclaration(declaration)
 
     protected open fun tryComputeBackendSpecificSignature(declaration: IrDeclaration): IdSignature? = null
 
@@ -76,7 +76,7 @@ open class DeclarationTable(private val globalDeclarationTable: GlobalDeclaratio
         return table.getOrPut(declaration) { builder() }
     }
 
-    fun signatureByDeclaration(declaration: IrDeclaration): IdSignature {
+    open fun signatureByDeclaration(declaration: IrDeclaration): IdSignature {
         return computeSignatureByDeclaration(declaration)
     }
 }
