@@ -30,6 +30,9 @@ import org.jetbrains.kotlin.name.Name;
 import org.jetbrains.kotlin.resolve.constants.ClassLiteralValue;
 import org.jetbrains.kotlin.resolve.jvm.JvmPrimitiveType;
 import org.jetbrains.org.objectweb.asm.*;
+import org.jetbrains.org.objectweb.asm.tree.AnnotationNode;
+import org.jetbrains.org.objectweb.asm.tree.ClassNode;
+import org.jetbrains.org.objectweb.asm.tree.InnerClassNode;
 
 import java.util.*;
 
@@ -126,6 +129,37 @@ public abstract class FileBasedKotlinClass implements KotlinJvmBinaryClass {
         return factory.invoke(id, classVersion.get(), header, innerClasses);
     }
 
+    @Nullable
+    public static <T> T create(
+            @NotNull ClassNode classNode,
+            @NotNull Function4<ClassId, Integer, KotlinClassHeader, InnerClassesInfo, T> factory
+    ) {
+        ReadKotlinClassHeaderAnnotationVisitor readHeaderVisitor = new ReadKotlinClassHeaderAnnotationVisitor();
+        String className = classNode.name;
+        int classVersion = classNode.version;
+        InnerClassesInfo innerClasses = new InnerClassesInfo();
+
+        for (InnerClassNode innerClass : classNode.innerClasses) {
+            innerClasses.add(innerClass.name, innerClass.outerName, innerClass.innerName);
+        }
+
+        if (classNode.visibleAnnotations != null) {
+            for (AnnotationNode annotation : classNode.visibleAnnotations) {
+                annotation.accept(convertAnnotationVisitor(readHeaderVisitor, annotation.desc, innerClasses));
+            }
+        }
+
+        readHeaderVisitor.visitEnd();
+
+        KotlinClassHeader header = readHeaderVisitor.createHeader();
+        if (header == null) {
+            return null;
+        }
+
+        ClassId id = resolveNameByInternalName(className, innerClasses);
+        return factory.invoke(id, classVersion, header, innerClasses);
+    }
+
     @NotNull
     @Override
     public ClassId getClassId() {
@@ -143,8 +177,26 @@ public abstract class FileBasedKotlinClass implements KotlinJvmBinaryClass {
     }
 
     @Override
-    public void loadClassAnnotations(@NotNull AnnotationVisitor annotationVisitor, @Nullable byte[] cachedContents) {
-        byte[] fileContents = cachedContents != null ? cachedContents : getFileContents();
+    public void loadClassAnnotations(@NotNull AnnotationVisitor annotationVisitor, @Nullable Object cachedContents) {
+        if (cachedContents instanceof ClassNode) {
+            List<AnnotationNode> visibleAnnotations = ((ClassNode) cachedContents).visibleAnnotations;
+            if (visibleAnnotations != null) {
+                for (AnnotationNode annotation : visibleAnnotations) {
+                    annotation.accept(convertAnnotationVisitor(annotationVisitor, annotation.desc, innerClasses));
+                }
+            }
+
+            List<AnnotationNode> invisibleAnnotations = ((ClassNode) cachedContents).invisibleAnnotations;
+            if (invisibleAnnotations != null) {
+                for (AnnotationNode annotation : invisibleAnnotations) {
+                    annotation.accept(convertAnnotationVisitor(annotationVisitor, annotation.desc, innerClasses));
+                }
+            }
+
+            return;
+        }
+
+        byte[] fileContents = getByteContents(cachedContents);
         new ClassReader(fileContents).accept(new ClassVisitor(API_VERSION) {
             @Override
             public org.jetbrains.org.objectweb.asm.AnnotationVisitor visitAnnotation(@NotNull String desc, boolean visible) {
@@ -226,65 +278,93 @@ public abstract class FileBasedKotlinClass implements KotlinJvmBinaryClass {
     }
 
     @Override
-    public void visitMembers(@NotNull MemberVisitor memberVisitor, @Nullable byte[] cachedContents) {
-        byte[] fileContents = cachedContents != null ? cachedContents : getFileContents();
-        new ClassReader(fileContents).accept(new ClassVisitor(API_VERSION) {
-            @Override
-            public FieldVisitor visitField(int access, @NotNull String name, @NotNull String desc, String signature, Object value) {
-                AnnotationVisitor v = memberVisitor.visitField(Name.identifier(name), desc, value);
-                if (v == null) return null;
+    public void visitMembers(@NotNull MemberVisitor memberVisitor, @Nullable Object cachedContents) {
+        MemberAnnotatingCollectorVisitor visitor = new MemberAnnotatingCollectorVisitor(memberVisitor, innerClasses);
 
-                return new FieldVisitor(API_VERSION) {
-                    @Override
-                    public org.jetbrains.org.objectweb.asm.AnnotationVisitor visitAnnotation(@NotNull String desc, boolean visible) {
-                        return convertAnnotationVisitor(v, desc, innerClasses);
+        if (cachedContents instanceof ClassNode) {
+            ((ClassNode) cachedContents).accept(visitor);
+            return;
+        }
+
+        byte[] fileContents = getByteContents(cachedContents);
+        new ClassReader(fileContents).accept(visitor, SKIP_CODE | SKIP_DEBUG | SKIP_FRAMES);
+    }
+
+    @NotNull
+    private byte[] getByteContents(@Nullable Object cachedContents) {
+        assert cachedContents == null || cachedContents instanceof byte[] : "Expected null or byte[], but " + cachedContents + " was found";
+        return cachedContents != null ? (byte[]) cachedContents : getFileContents();
+    }
+
+    private static class MemberAnnotatingCollectorVisitor extends ClassVisitor {
+        private final MemberVisitor memberVisitor;
+        private final InnerClassesInfo innerClasses;
+
+        private MemberAnnotatingCollectorVisitor(
+                MemberVisitor memberVisitor,
+                InnerClassesInfo innerClasses
+        ) {
+            super(API_VERSION);
+            this.memberVisitor = memberVisitor;
+            this.innerClasses = innerClasses;
+        }
+
+        @Override
+        public FieldVisitor visitField(int access, @NotNull String name, @NotNull String desc, String signature, Object value) {
+            AnnotationVisitor v = memberVisitor.visitField(Name.identifier(name), desc, value);
+            if (v == null) return null;
+
+            return new FieldVisitor(API_VERSION) {
+                @Override
+                public org.jetbrains.org.objectweb.asm.AnnotationVisitor visitAnnotation(@NotNull String desc, boolean visible) {
+                    return convertAnnotationVisitor(v, desc, innerClasses);
+                }
+
+                @Override
+                public void visitEnd() {
+                    v.visitEnd();
+                }
+            };
+        }
+
+        @Override
+        public MethodVisitor visitMethod(int access, @NotNull String name, @NotNull String desc, String signature, String[] exceptions) {
+            MethodAnnotationVisitor v = memberVisitor.visitMethod(Name.identifier(name), desc);
+            if (v == null) return null;
+
+            int methodParamCount = Type.getArgumentTypes(desc).length;
+            return new MethodVisitor(API_VERSION) {
+
+                private int visibleAnnotableParameterCount = methodParamCount;
+                private int invisibleAnnotableParameterCount = methodParamCount;
+
+                @Override
+                public org.jetbrains.org.objectweb.asm.AnnotationVisitor visitAnnotation(@NotNull String desc, boolean visible) {
+                    return convertAnnotationVisitor(v, desc, innerClasses);
+                }
+
+                @Override
+                public org.jetbrains.org.objectweb.asm.AnnotationVisitor visitParameterAnnotation(int parameter, @NotNull String desc, boolean visible) {
+                    int parameterIndex = parameter + methodParamCount - (visible ? visibleAnnotableParameterCount : invisibleAnnotableParameterCount);
+                    AnnotationArgumentVisitor av = v.visitParameterAnnotation(parameterIndex, resolveNameByDesc(desc, innerClasses), SourceElement.NO_SOURCE);
+                    return av == null ? null : convertAnnotationVisitor(av, innerClasses);
+                }
+
+                @Override
+                public void visitAnnotableParameterCount(int parameterCount, boolean visible) {
+                    if (visible)
+                        visibleAnnotableParameterCount = parameterCount;
+                    else {
+                        invisibleAnnotableParameterCount = parameterCount;
                     }
+                }
 
-                    @Override
-                    public void visitEnd() {
-                        v.visitEnd();
-                    }
-                };
-            }
-
-            @Override
-            public MethodVisitor visitMethod(int access, @NotNull String name, @NotNull String desc, String signature, String[] exceptions) {
-                MethodAnnotationVisitor v = memberVisitor.visitMethod(Name.identifier(name), desc);
-                if (v == null) return null;
-
-                int methodParamCount = Type.getArgumentTypes(desc).length;
-                return new MethodVisitor(API_VERSION) {
-
-                    private int visibleAnnotableParameterCount = methodParamCount;
-                    private int invisibleAnnotableParameterCount = methodParamCount;
-
-                    @Override
-                    public org.jetbrains.org.objectweb.asm.AnnotationVisitor visitAnnotation(@NotNull String desc, boolean visible) {
-                        return convertAnnotationVisitor(v, desc, innerClasses);
-                    }
-
-                    @Override
-                    public org.jetbrains.org.objectweb.asm.AnnotationVisitor visitParameterAnnotation(int parameter, @NotNull String desc, boolean visible) {
-                        int parameterIndex = parameter + methodParamCount - (visible ? visibleAnnotableParameterCount : invisibleAnnotableParameterCount);
-                        AnnotationArgumentVisitor av = v.visitParameterAnnotation(parameterIndex, resolveNameByDesc(desc, innerClasses), SourceElement.NO_SOURCE);
-                        return av == null ? null : convertAnnotationVisitor(av, innerClasses);
-                    }
-
-                    public void visitAnnotableParameterCount(int parameterCount, boolean visible) {
-                        if (visible)
-                            visibleAnnotableParameterCount = parameterCount;
-                        else {
-                            invisibleAnnotableParameterCount = parameterCount;
-                        }
-                    }
-
-                    @Override
-                    public void visitEnd() {
-                        v.visitEnd();
-                    }
-                };
-            }
-        }, SKIP_CODE | SKIP_DEBUG | SKIP_FRAMES);
+                @Override
+                public void visitEnd() {
+                    v.visitEnd();
+                }
+            };
+        }
     }
 
     @NotNull

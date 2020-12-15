@@ -178,6 +178,22 @@ public class ReadKotlinClassHeaderAnnotationVisitor implements AnnotationVisitor
             else if (METADATA_STRINGS_FIELD_NAME.equals(string)) {
                 return stringsArrayVisitor();
             }
+            else if (METADATA_VERSION_FIELD_NAME.equals(string)) {
+                return new CollectIntArrayAnnotationVisitor() {
+                    @Override
+                    protected void visitEnd(@NotNull int[] data) {
+                        metadataVersionArray = data;
+                    }
+                };
+            }
+            else if (BYTECODE_VERSION_FIELD_NAME.equals(string)) {
+                return new CollectIntArrayAnnotationVisitor() {
+                    @Override
+                    protected void visitEnd(@NotNull int[] data) {
+                        bytecodeVersion = new JvmBytecodeBinaryVersion(data);
+                    }
+                };
+            }
             else {
                 return null;
             }
@@ -322,5 +338,41 @@ public class ReadKotlinClassHeaderAnnotationVisitor implements AnnotationVisitor
         }
 
         protected abstract void visitEnd(@NotNull String[] data);
+    }
+
+    private abstract static class CollectIntArrayAnnotationVisitor implements AnnotationArrayArgumentVisitor {
+        private final List<Integer> integers;
+
+        public CollectIntArrayAnnotationVisitor() {
+            this.integers = new ArrayList<Integer>();
+        }
+
+        @Override
+        public void visit(@Nullable Object value) {
+            if (value instanceof Integer) {
+                integers.add((Integer) value);
+            }
+        }
+
+        @Override
+        public void visitEnum(@NotNull ClassId enumClassId, @NotNull Name enumEntryName) {
+        }
+
+        @Override
+        public void visitClassLiteral(@NotNull ClassLiteralValue classLiteralValue) {
+        }
+
+        @Override
+        public void visitEnd() {
+            int[] result = new int[integers.size()];
+
+            for (int i = 0; i < integers.size(); i++) {
+                result[i] = integers.get(i);
+            }
+
+            visitEnd(result);
+        }
+
+        protected abstract void visitEnd(@NotNull int[] data);
     }
 }
