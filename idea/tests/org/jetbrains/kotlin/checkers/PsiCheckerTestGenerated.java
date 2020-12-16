@@ -140,11 +140,6 @@ public class PsiCheckerTestGenerated extends AbstractPsiCheckerTest {
             runTest("idea/testData/checker/GenericArgumentConsistency.kt");
         }
 
-        @TestMetadata("IllegalContainer.kt")
-        public void testIllegalContainer() throws Exception {
-            runTest("idea/testData/checker/IllegalContainer.kt");
-        }
-
         @TestMetadata("IncDec.kt")
         public void testIncDec() throws Exception {
             runTest("idea/testData/checker/IncDec.kt");
