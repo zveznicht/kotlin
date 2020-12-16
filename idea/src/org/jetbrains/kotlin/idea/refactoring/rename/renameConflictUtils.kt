@@ -279,7 +279,11 @@ private fun checkUsagesRetargeting(
                 val canQualifyThis = receiversWithExpectedName.isEmpty()
                         || receiversWithExpectedName.size == 1 && (declaration !is KtClassOrObject || expectedLabelName != name)
                 if (canQualifyThis) {
-                    psiFactory.createExpressionByPattern("${implicitReceiver.explicateAsText()}.$0", callExpression)
+                    if (refElement.parent is KtCallableReferenceExpression) {
+                        psiFactory.createExpressionByPattern("${implicitReceiver.explicateAsText()}::$0", callExpression)
+                    } else {
+                        psiFactory.createExpressionByPattern("${implicitReceiver.explicateAsText()}.$0", callExpression)
+                    }
                 } else {
                     val defaultReceiverClassText =
                         implicitReceivers.firstOrNull()?.value?.type?.constructor?.declarationDescriptor?.canonicalRender()
@@ -294,7 +298,11 @@ private fun checkUsagesRetargeting(
             ?: continue
         }
 
-        val newCallee = qualifiedExpression.getQualifiedElementSelector() as? KtSimpleNameExpression ?: continue
+        val newCallee = if (qualifiedExpression is KtCallableReferenceExpression) {
+            qualifiedExpression.callableReference
+        } else {
+            qualifiedExpression.getQualifiedElementSelector() as? KtSimpleNameExpression ?: continue
+        }
         if (isNewName) {
             newCallee.getReferencedNameElement().replace(psiFactory.createNameIdentifier(name))
         }

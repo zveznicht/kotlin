@@ -39,6 +39,11 @@ public class RenameTestGenerated extends AbstractRenameTest {
         runTest("idea/testData/refactoring/rename/ambiguousClassFunImportRenameFun/ambiguousClassFunImportRenameFun.test");
     }
 
+    @TestMetadata("ambiguousReference/ambiguousReference.test")
+    public void testAmbiguousReference_AmbiguousReference() throws Exception {
+        runTest("idea/testData/refactoring/rename/ambiguousReference/ambiguousReference.test");
+    }
+
     @TestMetadata("automaticRenamer/simple.test")
     public void testAutomaticRenamer_Simple() throws Exception {
         runTest("idea/testData/refactoring/rename/automaticRenamer/simple.test");
