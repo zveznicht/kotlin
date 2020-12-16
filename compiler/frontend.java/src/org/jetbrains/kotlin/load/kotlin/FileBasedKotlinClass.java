@@ -20,8 +20,10 @@ import com.intellij.openapi.util.Ref;
 import kotlin.jvm.functions.Function4;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.kotlin.SpecialJvmAnnotations;
 import org.jetbrains.kotlin.builtins.jvm.JavaToKotlinClassMap;
 import org.jetbrains.kotlin.descriptors.SourceElement;
+import org.jetbrains.kotlin.load.java.JvmAnnotationNames;
 import org.jetbrains.kotlin.load.kotlin.header.KotlinClassHeader;
 import org.jetbrains.kotlin.load.kotlin.header.ReadKotlinClassHeaderAnnotationVisitor;
 import org.jetbrains.kotlin.name.ClassId;
@@ -367,8 +369,16 @@ public abstract class FileBasedKotlinClass implements KotlinJvmBinaryClass {
         }
     }
 
+    private static final String NOT_NULL_DESCRIPTOR = "L" + JvmAnnotationNames.JETBRAINS_NOT_NULL_ANNOTATION.asString().replace(".", "/") + ";";
+    private static final String NULLABLE_DESCRIPTOR = "L" + JvmAnnotationNames.JETBRAINS_NULLABLE_ANNOTATION.asString().replace(".", "/") + ";";
+    private static final String KOTLIN_METADATA_DESCRIPTOR = "L" + JvmAnnotationNames.METADATA_FQ_NAME.asString().replace(".", "/") + ";";
+
     @NotNull
     private static ClassId resolveNameByDesc(@NotNull String desc, @NotNull InnerClassesInfo innerClasses) {
+        if (NOT_NULL_DESCRIPTOR.equals(desc)) return SpecialJvmAnnotations.INSTANCE.getJETBRAINS_NOT_NULL_CLASS_ID();
+        if (NULLABLE_DESCRIPTOR.equals(desc)) return SpecialJvmAnnotations.INSTANCE.getJETBRAINS_NULLABLE_CLASS_ID();
+        if (KOTLIN_METADATA_DESCRIPTOR.equals(desc)) return SpecialJvmAnnotations.INSTANCE.getMETADATA_CLASS_ID();
+
         assert desc.startsWith("L") && desc.endsWith(";") : "Not a JVM descriptor: " + desc;
         String name = desc.substring(1, desc.length() - 1);
         return resolveNameByInternalName(name, innerClasses);

@@ -10,12 +10,18 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 
 object SpecialJvmAnnotations {
-    val SPECIAL_ANNOTATIONS: Set<ClassId> = listOf(
-        JvmAnnotationNames.METADATA_FQ_NAME,
-        JvmAnnotationNames.JETBRAINS_NOT_NULL_ANNOTATION,
-        JvmAnnotationNames.JETBRAINS_NULLABLE_ANNOTATION,
-        FqName("java.lang.annotation.Target"),
-        FqName("java.lang.annotation.Retention"),
-        FqName("java.lang.annotation.Documented")
-    ).mapTo(mutableSetOf(), ClassId::topLevel)
+    val METADATA_CLASS_ID = ClassId.topLevel(JvmAnnotationNames.METADATA_FQ_NAME)
+    val JETBRAINS_NOT_NULL_CLASS_ID = ClassId.topLevel(JvmAnnotationNames.JETBRAINS_NOT_NULL_ANNOTATION)
+    val JETBRAINS_NULLABLE_CLASS_ID = ClassId.topLevel(JvmAnnotationNames.JETBRAINS_NULLABLE_ANNOTATION)
+
+    val SPECIAL_ANNOTATIONS: Set<ClassId> = mutableSetOf<ClassId>().apply {
+        add(METADATA_CLASS_ID)
+        add(JETBRAINS_NOT_NULL_CLASS_ID)
+        add(JETBRAINS_NULLABLE_CLASS_ID)
+        listOf(
+            FqName("java.lang.annotation.Target"),
+            FqName("java.lang.annotation.Retention"),
+            FqName("java.lang.annotation.Documented")
+        ).mapTo(this, ClassId::topLevel)
+    }
 }

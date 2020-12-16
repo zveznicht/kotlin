@@ -5,14 +5,13 @@
 
 package org.jetbrains.kotlin.fir.java.deserialization
 
+import org.jetbrains.kotlin.SpecialJvmAnnotations
 import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.deserialization.AbstractAnnotationDeserializer
 import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotationCall
-import org.jetbrains.kotlin.fir.resolve.firSymbolProvider
-import org.jetbrains.kotlin.fir.resolve.providers.impl.FirCompositeSymbolProvider
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.load.kotlin.KotlinJvmBinaryClass
 import org.jetbrains.kotlin.load.kotlin.MemberSignature
@@ -28,10 +27,11 @@ import org.jetbrains.kotlin.serialization.deserialization.descriptors.Deserializ
 class JvmBinaryAnnotationDeserializer(
     val session: FirSession,
     kotlinBinaryClass: KotlinJvmBinaryClass,
-    cachedContent: Any?
+    cachedContent: Any?,
+    kotlinDeserializedJvmSymbolsProvider: KotlinDeserializedJvmSymbolsProvider,
 ) : AbstractAnnotationDeserializer(session) {
     private val annotationInfo by lazy(LazyThreadSafetyMode.PUBLICATION) {
-        session.loadMemberAnnotations(kotlinBinaryClass, cachedContent)
+        kotlinDeserializedJvmSymbolsProvider.loadMemberAnnotations(kotlinBinaryClass, cachedContent)
     }
 
     override fun inheritAnnotationInfo(parent: AbstractAnnotationDeserializer) {
@@ -266,7 +266,10 @@ class JvmBinaryAnnotationDeserializer(
 private data class MemberAnnotations(val memberAnnotations: MutableMap<MemberSignature, MutableList<FirAnnotationCall>>)
 
 // TODO: better to be in KotlinDeserializedJvmSymbolsProvider?
-private fun FirSession.loadMemberAnnotations(kotlinBinaryClass: KotlinJvmBinaryClass, cachedContent: Any?): MemberAnnotations {
+private fun KotlinDeserializedJvmSymbolsProvider.loadMemberAnnotations(
+    kotlinBinaryClass: KotlinJvmBinaryClass,
+    cachedContent: Any?,
+): MemberAnnotations {
     val memberAnnotations = hashMapOf<MemberSignature, MutableList<FirAnnotationCall>>()
 
     kotlinBinaryClass.visitMembers(object : KotlinJvmBinaryClass.MemberVisitor {
@@ -290,7 +293,8 @@ private fun FirSession.loadMemberAnnotations(kotlinBinaryClass: KotlinJvmBinaryC
                 classId: ClassId,
                 source: SourceElement
             ): KotlinJvmBinaryClass.AnnotationArgumentVisitor? {
-                val paramSignature = MemberSignature.fromMethodSignatureAndParameterIndex(signature, index)
+                if (classId in SpecialJvmAnnotations.SPECIAL_ANNOTATIONS) return null
+                val paramSignature = MemberSignature.fromMethodSignatureAndParameterIndex(this.signature, index)
                 var result = memberAnnotations[paramSignature]
                 if (result == null) {
                     result = arrayListOf()
@@ -317,14 +321,3 @@ private fun FirSession.loadMemberAnnotations(kotlinBinaryClass: KotlinJvmBinaryC
 
     return MemberAnnotations(memberAnnotations)
 }
-
-// TODO: Or, better to migrate annotation deserialization in KotlinDeserializedJvmSymbolsProvider to here?
-private fun FirSession.loadAnnotationIfNotSpecial(
-    annotationClassId: ClassId,
-    result: MutableList<FirAnnotationCall>
-): KotlinJvmBinaryClass.AnnotationArgumentVisitor? =
-    (firSymbolProvider as? FirCompositeSymbolProvider)
-        ?.providers
-        ?.filterIsInstance<KotlinDeserializedJvmSymbolsProvider>()
-        ?.singleOrNull()
-        ?.loadAnnotationIfNotSpecial(annotationClassId, result)
