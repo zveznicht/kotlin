@@ -391,6 +391,10 @@ class EnumClassCreateInitializerLowering(val context: JsCommonBackendContext) : 
                             +irSetField(null, instanceField, entry.initializerExpression!!.expression.deepCopyWithSymbols(it))
                         }
                     }
+
+                    irClass.companionObject()?.let { companionObject ->
+                        +irGetObjectValue(companionObject.defaultType, companionObject.symbol)
+                    }
                 }.statements
             }
         }
@@ -436,9 +440,6 @@ class EnumEntryCreateGetInstancesFunsLowering(val context: JsCommonBackendContex
             it.body = context.irFactory.createBlockBody(UNDEFINED_OFFSET, UNDEFINED_OFFSET) {
                 statements += context.createIrBuilder(it.symbol).irBlockBody(it) {
                     +irCall(initEntryInstancesFun)
-                    irClass.companionObject()?.let { companionObject ->
-                        +irGetObjectValue(companionObject.defaultType, companionObject.symbol)
-                    }
                     +irReturn(irGetField(null, enumEntry.correspondingField!!))
                 }.statements
             }
