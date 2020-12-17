@@ -6,18 +6,21 @@ enum class Foo(val text: String) {
     PING("foo");
 
     init {
-        logs += "B"
+        logs += "${text}A;"
     }
 
     companion object {
+        init {
+            logs += "StatA;"
+        }
         val first = values()[0]
         init {
-            logs += first.text
+            logs += "Stat${first.text};"
         }
     }
 
     init {
-        logs += "C"
+        logs += "${text}B;"
     }
 }
 
@@ -26,7 +29,7 @@ fun box(): String {
 
     if (Foo.first !== Foo.FOO) return "FAIL 0: ${Foo.first}"
 
-    if (logs != "BCBCBCfoo") return "FAIL 1: ${logs}"
+    if (logs != "fooA;fooB;barA;barB;fooA;fooB;StatA;Statfoo;") return "FAIL 1: ${logs}"
 
     return "OK"
 }
