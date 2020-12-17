@@ -36,7 +36,7 @@ open class RootPackageJsonTask : DefaultTask() {
 
     @TaskAction
     fun resolve() {
-        resolutionManager.prepare()
+        resolutionManager.prepare(logger)
     }
 
     companion object {

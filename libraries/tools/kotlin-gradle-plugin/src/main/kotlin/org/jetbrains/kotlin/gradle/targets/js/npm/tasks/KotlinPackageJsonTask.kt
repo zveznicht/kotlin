@@ -101,9 +101,9 @@ open class KotlinPackageJsonTask : DefaultTask() {
                 task.inputs.file(packageJsonTask.map { it.packageJson })
             }
 
-            nodeJs.rootPackageJsonTaskProvider?.configure { it.mustRunAfter(packageJsonTask) }
+            nodeJs.rootPackageJsonTaskProvider!!.configure { it.mustRunAfter(packageJsonTask) }
 
-            compilation.compileKotlinTaskProvider.dependsOn(npmInstallTask)
+            compilation.compileKotlinTaskProvider.dependsOn(npmInstallTask!!)
             compilation.compileKotlinTaskProvider.dependsOn(packageJsonTask)
 
             return packageJsonTask
