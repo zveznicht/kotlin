@@ -16,12 +16,13 @@
 
 package org.jetbrains.kotlin.util.slicedMap;
 
+import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class WritableSlice<K, V> extends ReadOnlySlice<K, V> {
     @NotNull
     @Override
-    public abstract KeyWithSlice<K, V, WritableSlice<K, V>> getKey();
+    public abstract Key<V> getKey();
 
     // True to put, false to skip
     public abstract boolean check(K key, V value);

@@ -16,11 +16,12 @@
 
 package org.jetbrains.kotlin.util.slicedMap;
 
+import com.intellij.openapi.util.Key;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class ReadOnlySlice<K, V> {
     @NotNull
-    public abstract KeyWithSlice<K, V, ? extends ReadOnlySlice<K, V>> getKey();
+    public abstract Key<V> getKey();
 
     public abstract V computeValue(SlicedMap map, K key, V value, boolean valueNotFound);
 
