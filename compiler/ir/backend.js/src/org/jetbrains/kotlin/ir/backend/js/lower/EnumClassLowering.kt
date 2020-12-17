@@ -436,11 +436,8 @@ class EnumEntryCreateGetInstancesFunsLowering(val context: JsCommonBackendContex
             it.body = context.irFactory.createBlockBody(UNDEFINED_OFFSET, UNDEFINED_OFFSET) {
                 statements += context.createIrBuilder(it.symbol).irBlockBody(it) {
                     +irCall(initEntryInstancesFun)
-                    val jsContext = this@EnumEntryCreateGetInstancesFunsLowering.context
                     irClass.companionObject()?.let { companionObject ->
-                        jsContext.mapping.objectToGetInstanceFunction[companionObject]?.let {
-                            +irCall(it)
-                        }
+                        +irGetObjectValue(companionObject.defaultType, companionObject.symbol)
                     }
                     +irReturn(irGetField(null, enumEntry.correspondingField!!))
                 }.statements

@@ -293,17 +293,11 @@ private val enumClassCreateInitializerLoweringPhase = makeDeclarationTransformer
     prerequisite = setOf(enumClassConstructorLoweringPhase)
 )
 
-private val objectDeclarationLoweringPhase = makeDeclarationTransformerPhase(
-    ::ObjectDeclarationLowering,
-    name = "ObjectDeclarationLowering",
-    description = "Create lazy object instance generator functions"
-)
-
 private val enumEntryCreateGetInstancesFunsLoweringPhase = makeDeclarationTransformerPhase(
     ::EnumEntryCreateGetInstancesFunsLowering,
     name = "EnumEntryCreateGetInstancesFunsLowering",
     description = "Create enumEntry_getInstance functions",
-    prerequisite = setOf(enumClassConstructorLoweringPhase, objectDeclarationLoweringPhase)
+    prerequisite = setOf(enumClassConstructorLoweringPhase)
 )
 
 private val enumSyntheticFunsLoweringPhase = makeDeclarationTransformerPhase(
@@ -664,6 +658,12 @@ private val staticMembersLoweringPhase = makeDeclarationTransformerPhase(
     description = "Move static member declarations to top-level"
 )
 
+private val objectDeclarationLoweringPhase = makeDeclarationTransformerPhase(
+    ::ObjectDeclarationLowering,
+    name = "ObjectDeclarationLowering",
+    description = "Create lazy object instance generator functions"
+)
+
 private val invokeStaticInitializersPhase = makeBodyLoweringPhase(
     ::InvokeStaticInitializersLowering,
     name = "IntroduceStaticInitializersLowering",
@@ -727,7 +727,6 @@ val loweringList = listOf<Lowering>(
     enumEntryInstancesLoweringPhase,
     enumEntryInstancesBodyLoweringPhase,
     enumClassCreateInitializerLoweringPhase,
-    objectDeclarationLoweringPhase,
     enumEntryCreateGetInstancesFunsLoweringPhase,
     enumSyntheticFunsLoweringPhase,
     enumUsageLoweringPhase,
@@ -769,6 +768,7 @@ val loweringList = listOf<Lowering>(
     autoboxingTransformerPhase,
     blockDecomposerLoweringPhase,
     constLoweringPhase,
+    objectDeclarationLoweringPhase,
     invokeStaticInitializersPhase,
     objectUsageLoweringPhase,
     captureStackTraceInThrowablesPhase,
