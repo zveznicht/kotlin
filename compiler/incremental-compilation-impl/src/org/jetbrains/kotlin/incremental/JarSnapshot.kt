@@ -22,7 +22,13 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
 
     companion object {
         fun ObjectInputStream.readJarSnapshot(): JarSnapshot {
-
+            // Format:
+            // numRecords: Int
+            // record {
+            //   proto
+            //   StringTableTypes
+            //   Array<String>
+            // }
             val size = readInt()
 //            val codedInputStream = CodedInputStream.newInstance(this)
             val mutableMap = hashMapOf<FqName, ProtoData>()

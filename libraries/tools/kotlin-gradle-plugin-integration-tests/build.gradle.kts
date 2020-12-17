@@ -22,6 +22,8 @@ dependencies {
     testCompile(project(":kotlin-sam-with-receiver"))
     testCompile(project(":kotlin-test:kotlin-test-jvm"))
     testCompile(project(":native:kotlin-native-utils"))
+    //test jarSnapshot requres proto data read
+    testCompile(project(":kotlin-build-common"))
 
     testCompile(projectRuntimeJar(":kotlin-compiler-embeddable"))
     testCompile(intellijCoreDep()) { includeJars("jdom") }

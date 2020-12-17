@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.gradle
 
+import org.jetbrains.kotlin.incremental.JavaClassProtoMapValueExternalizer
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
@@ -30,8 +31,23 @@ class JarSnapshotIT : BaseGradleIT() {
     private fun Project.findJarSnapshot(projectName: String): TestJarSnapshot {
         val jarSnapshot = projectDir.resolve("$projectName/build/kotlin/compileKotlin/jar-snapshot.bin")
         assertTrue(jarSnapshot.exists(), "Jar snapshot wasn't found for prject \"$projectName\"")
+
         return ObjectInputStream(FileInputStream(jarSnapshot)).use {
-            TestJarSnapshot(it.readLookups(), it.readFqNames(this))
+            val size = it.readInt()
+            val fqNames = ArrayList<String>(size)
+            val lookups = HashMap<String, String>()
+            repeat(size) { i ->
+                {
+                    fqNames.add(it.readUTF())
+                    val serializableData = JavaClassProtoMapValueExternalizer.read(it)
+                }
+//                erializableData.toProtoData().
+
+            }
+
+//                val stringArray = readArrayString()
+//            mutableMap.put(fqName, serializableData.toProtoData())
+            TestJarSnapshot(fqNames, lookups)
         }
     }
 
@@ -85,30 +101,30 @@ class JarSnapshotIT : BaseGradleIT() {
         Assert.assertFalse(libJarSnapshotNew.fqNames.contains(classTodelete))
     }
 
-    @Test
-    fun testKotlinMethodRemovedFromLib() {
-        val project = Project("simpleNewIncremental")
-        project.setupWorkingDir()
-
-        project.build("build") {
-            assertSuccessful()
-            assertTasksExecuted(":lib:compileKotlin", ":lib:compileJava")
-        }
-        val libJarSnapshot = project.findJarSnapshot("lib")
-
-        val classTodelete = "lib/src/main/kotlin/test/KotlinClassToUpdate.kt"
-        Assert.assertTrue(libJarSnapshot.fqNames.contains(classTodelete))
-
-        project.projectDir.resolve(classTodelete).replace
-
-        project.build("build") {
-            assertSuccessful()
-            assertTasksExecuted(":lib:compileKotlin", ":lib:compileJava")
-        }
-
-        val libJarSnapshotNew = project.findJarSnapshot("lib")
-        Assert.assertFalse(libJarSnapshotNew.fqNames.contains(classTodelete))
-    }
+//    @Test
+//    fun testKotlinMethodRemovedFromLib() {
+//        val project = Project("simpleNewIncremental")
+//        project.setupWorkingDir()
+//
+//        project.build("build") {
+//            assertSuccessful()
+//            assertTasksExecuted(":lib:compileKotlin", ":lib:compileJava")
+//        }
+//        val libJarSnapshot = project.findJarSnapshot("lib")
+//
+//        val classTodelete = "lib/src/main/kotlin/test/KotlinClassToUpdate.kt"
+//        Assert.assertTrue(libJarSnapshot.fqNames.contains(classTodelete))
+//
+//        project.projectDir.resolve(classTodelete).replace
+//
+//        project.build("build") {
+//            assertSuccessful()
+//            assertTasksExecuted(":lib:compileKotlin", ":lib:compileJava")
+//        }
+//
+//        val libJarSnapshotNew = project.findJarSnapshot("lib")
+//        Assert.assertFalse(libJarSnapshotNew.fqNames.contains(classTodelete))
+//    }
 
     @Test
     fun testKotlinClassRemoved() {
@@ -129,8 +145,8 @@ class JarSnapshotIT : BaseGradleIT() {
 
 
     class TestJarSnapshot(
-        val lookups: List<Pair<String, String>>,
-        val fqNames: List<String>
+        val fqNames: List<String>,
+        val lookups: Map<String, String>
     )
 
     fun ObjectInputStream.readFqNames(project: Project): List<String> {
