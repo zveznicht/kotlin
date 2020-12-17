@@ -111,8 +111,7 @@ public class TrackingSlicedMap extends SlicedMapImpl {
     }
 
     private class SliceWithStackTrace<K, V>
-            extends AbstractWritableSlice<K, TrackableValue<V>>
-            implements WritableSlice<K, TrackableValue<V>> {
+            extends AbstractWritableSlice<K, TrackableValue<V>> {
 
         private final ReadOnlySlice<K, V> delegate;
 

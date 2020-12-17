@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Do nothing but dispatching all invokes to internal writable slice.
  */
-public class DelegatingSlice<K, V> implements WritableSlice<K, V> {
+public class DelegatingSlice<K, V> extends WritableSlice<K, V> {
     private final WritableSlice<K, V> delegate;
 
     public DelegatingSlice(@NotNull WritableSlice<K, V> delegate) {

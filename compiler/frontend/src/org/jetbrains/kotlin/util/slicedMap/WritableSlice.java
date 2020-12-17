@@ -18,18 +18,18 @@ package org.jetbrains.kotlin.util.slicedMap;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface WritableSlice<K, V> extends ReadOnlySlice<K, V> {
+public abstract class WritableSlice<K, V> extends ReadOnlySlice<K, V> {
     @NotNull
     @Override
-    KeyWithSlice<K, V, WritableSlice<K, V>> getKey();
+    public abstract KeyWithSlice<K, V, WritableSlice<K, V>> getKey();
 
     // True to put, false to skip
-    boolean check(K key, V value);
+    public abstract boolean check(K key, V value);
 
-    void afterPut(MutableSlicedMap map, K key, V value);
+    public abstract void afterPut(MutableSlicedMap map, K key, V value);
 
-    RewritePolicy getRewritePolicy();
+    public abstract RewritePolicy getRewritePolicy();
 
     // In a sliced map one can request all keys for a collective slice
-    boolean isCollective();
+    public abstract boolean isCollective();
 }

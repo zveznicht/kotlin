@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import com.intellij.openapi.util.Key;
 import com.intellij.util.keyFMap.KeyFMap;
+import gnu.trove.TIntObjectHashMap;
 import kotlin.jvm.functions.Function3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +31,8 @@ import java.util.Collections;
 import java.util.Map;
 
 public class SlicedMapImpl implements MutableSlicedMap {
+
+    private static final TIntObjectHashMap<WritableSlice> keyIdToSlice = new TIntObjectHashMap<WritableSlice>();
 
     private final boolean alwaysAllowRewrite;
     @Nullable
@@ -76,6 +79,10 @@ public class SlicedMapImpl implements MutableSlicedMap {
             collectiveSliceKeys.put(slice, key);
         }
 
+        int sliceKeyId = sliceKey.hashCode();
+        if (!keyIdToSlice.contains(sliceKeyId)) {
+            keyIdToSlice.put(sliceKeyId, slice);
+        }
         map.put(key, holder.plus(sliceKey, value));
         slice.afterPut(this, key, value);
     }
@@ -111,9 +118,9 @@ public class SlicedMapImpl implements MutableSlicedMap {
             if (holder == null) return;
 
             for (Key<?> sliceKey : holder.getKeys()) {
+                WritableSlice slice = keyIdToSlice.get(sliceKey.hashCode());
                 Object value = holder.get(sliceKey);
-
-                f.invoke(((AbstractWritableSlice) sliceKey).getSlice(), key, value);
+                f.invoke(slice, key, value);
             }
         });
     }

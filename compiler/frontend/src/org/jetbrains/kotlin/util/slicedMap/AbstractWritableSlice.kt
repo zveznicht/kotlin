@@ -16,9 +16,8 @@
 
 package org.jetbrains.kotlin.util.slicedMap
 
-abstract class AbstractWritableSlice<K, V>(debugName: String) : KeyWithSlice<K, V, WritableSlice<K, V>>(debugName), WritableSlice<K, V> {
-    override val slice: WritableSlice<K, V>
-        get() = this
+abstract class AbstractWritableSlice<K, V>(debugName: String) : WritableSlice<K, V>() {
+    val key2: KeyWithSlice<K, V, WritableSlice<K, V>> by lazy { KeyWithSlice<K, V, WritableSlice<K, V>>(debugName, this) }
 
-    override fun getKey(): AbstractWritableSlice<K, V> = this
+    override fun getKey(): KeyWithSlice<K, V, WritableSlice<K, V>> = key2
 }
