@@ -32,7 +32,10 @@ class UsageInfoWithReplacement(
     private val replacement: KtElement
 ) : KtResolvableCollisionUsageInfo(element, referencedElement) {
     override fun apply() {
-        val toBeReplaced = element?.parent as? KtCallableReferenceExpression ?: element
+        val toBeReplaced = (element?.parent as? KtCallableReferenceExpression)?.takeIf {
+            // ::element -> this::newElement
+            replacement is KtCallableReferenceExpression
+        } ?: element
         toBeReplaced?.replaced(replacement)?.addToShorteningWaitSet(ShortenReferences.Options.ALL_ENABLED)
     }
 }
