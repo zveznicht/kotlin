@@ -448,6 +448,9 @@ class EnumEntryCreateGetInstancesFunsLowering(val context: JsCommonBackendContex
         }
 }
 
+private val IrClass.isInstantiableEnum: Boolean
+    get() = isEnumClass && !isExpect && !isEffectivelyExternal()
+
 class EnumSyntheticFunctionsLowering(val context: JsCommonBackendContext) : DeclarationTransformer {
 
     private var IrEnumEntry.getInstanceFun by context.mapping.enumEntryToGetInstanceFun

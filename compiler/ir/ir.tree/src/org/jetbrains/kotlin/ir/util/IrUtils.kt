@@ -331,9 +331,6 @@ fun IrDeclaration.isEffectivelyExternal(): Boolean {
     }
 }
 
-val IrClass.isInstantiableEnum: Boolean
-    get() = isEnumClass && !isExpect && !isEffectivelyExternal()
-
 fun IrFunction.isExternalOrInheritedFromExternal(): Boolean {
     fun isExternalOrInheritedFromExternalImpl(f: IrSimpleFunction): Boolean =
         f.isEffectivelyExternal() || f.overriddenSymbols.any { isExternalOrInheritedFromExternalImpl(it.owner) }
