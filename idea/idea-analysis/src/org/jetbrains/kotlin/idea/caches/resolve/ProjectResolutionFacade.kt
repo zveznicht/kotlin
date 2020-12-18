@@ -98,9 +98,10 @@ internal class ProjectResolutionFacade(
                 }
             }
 
-            val allDependencies = resolverForProjectDependencies + listOf(
-                KotlinCodeBlockModificationListener.getInstance(project).kotlinOutOfCodeBlockTracker
-            )
+            val allDependencies = resolverForProjectDependencies + cachedValue.value?.allModules.orEmpty().mapNotNull {
+                (it as? TrackableModuleInfo)?.createModificationTracker()
+            }
+
             CachedValueProvider.Result.create(results, allDependencies)
         }, false
     )
