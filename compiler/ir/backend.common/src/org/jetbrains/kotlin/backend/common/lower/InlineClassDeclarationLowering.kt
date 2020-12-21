@@ -16,7 +16,10 @@ import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.transformStatement
-import org.jetbrains.kotlin.ir.util.*
+import org.jetbrains.kotlin.ir.util.defaultType
+import org.jetbrains.kotlin.ir.util.irCall
+import org.jetbrains.kotlin.ir.util.isReal
+import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.Name
@@ -74,46 +77,50 @@ class InlineClassLowering(val context: CommonBackendContext) {
             val initFunction = getOrCreateStaticMethod(irConstructor).also {
                 it.returnType = inlineClassType
             }
-            val body = irConstructor.body!!.deepCopyWithSymbols(initFunction) as IrBlockBody
-            val builder = context.createIrBuilder(initFunction.symbol)
-            fun unboxedInlineClassValue() = builder.irReinterpretCast(
-                builder.irGet(initFunction.valueParameters.single()),
-                type = klass.defaultType,
-            )
-            val origParameterSymbol = irConstructor.valueParameters.single().symbol
 
-            body.transformChildrenVoid(object : IrElementTransformerVoid() {
-                override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
-                    return builder.irBlock {}  // Removing delegating constructor call
-                }
+            initFunction.body = context.irFactory.createBlockBody(UNDEFINED_OFFSET, UNDEFINED_OFFSET) {
+                val origParameterSymbol = irConstructor.valueParameters.single().symbol
+                statements += context.createIrBuilder(initFunction.symbol).irBlockBody(initFunction) {
+                    val builder = this
+                    fun unboxedInlineClassValue() = builder.irReinterpretCast(
+                        builder.irGet(initFunction.valueParameters.single()),
+                        type = klass.defaultType,
+                    )
 
-                override fun visitSetField(expression: IrSetField): IrExpression {
-                    expression.transformChildrenVoid()
-                    if (expression.symbol.owner.parent == klass)
-                        return expression.value
-                    return expression
-                }
+                    (irConstructor.body as IrBlockBody).statements.forEach { statement ->
+                        +statement.transformStatement(object : IrElementTransformerVoid() {
+                            override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+                                return builder.irBlock {}  // Removing delegating constructor call
+                            }
 
-                override fun visitGetField(expression: IrGetField): IrExpression {
-                    expression.transformChildrenVoid()
-                    if (expression.symbol.owner.parent == klass)
-                        return builder.irGet(initFunction.valueParameters.single())
-                    return expression
-                }
+                            override fun visitSetField(expression: IrSetField): IrExpression {
+                                expression.transformChildrenVoid()
+                                if (expression.symbol.owner.parent == klass)
+                                    return expression.value
+                                return expression
+                            }
 
-                override fun visitGetValue(expression: IrGetValue): IrExpression {
-                    expression.transformChildrenVoid()
-                    if (expression.symbol.owner.parent == klass)
-                        return unboxedInlineClassValue()
-                    if (expression.symbol == origParameterSymbol)
-                        return builder.irGet(initFunction.valueParameters.single())
-                    return expression
-                }
-            })
+                            override fun visitGetField(expression: IrGetField): IrExpression {
+                                expression.transformChildrenVoid()
+                                if (expression.symbol.owner.parent == klass)
+                                    return builder.irGet(initFunction.valueParameters.single())
+                                return expression
+                            }
 
-            body.statements += builder.irReturn(unboxedInlineClassValue())
+                            override fun visitGetValue(expression: IrGetValue): IrExpression {
+                                expression.transformChildrenVoid()
+                                if (expression.symbol.owner.parent == klass)
+                                    return unboxedInlineClassValue()
+                                if (expression.symbol == origParameterSymbol)
+                                    return builder.irGet(initFunction.valueParameters.single())
+                                return expression
+                            }
+                        })
+                    }
+                    +irReturn(unboxedInlineClassValue())
+                }.statements
+            }
 
-            initFunction.body = body
             return listOf(irConstructor, initFunction)
         }
 
