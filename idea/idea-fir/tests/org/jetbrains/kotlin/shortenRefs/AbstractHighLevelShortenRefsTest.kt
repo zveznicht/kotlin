@@ -16,7 +16,7 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
 import java.io.File
 
-abstract class AbstractFirShortenRefsTest : AbstractImportsTest() {
+abstract class AbstractHighLevelShortenRefsTest : AbstractImportsTest() {
     override val captureExceptions: Boolean = false
 
     override fun doTest(file: KtFile): String? {

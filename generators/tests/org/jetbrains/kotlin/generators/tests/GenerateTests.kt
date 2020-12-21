@@ -181,7 +181,7 @@ import org.jetbrains.kotlin.samWithReceiver.AbstractSamWithReceiverScriptTest
 import org.jetbrains.kotlin.samWithReceiver.AbstractSamWithReceiverTest
 import org.jetbrains.kotlin.search.AbstractAnnotatedMembersSearchTest
 import org.jetbrains.kotlin.search.AbstractInheritorsSearchTest
-import org.jetbrains.kotlin.shortenRefs.AbstractFirShortenRefsTest
+import org.jetbrains.kotlin.shortenRefs.AbstractHighLevelShortenRefsTest
 import org.jetbrains.kotlin.shortenRefs.AbstractShortenRefsTest
 import org.jetbrains.kotlin.test.TargetBackend
 import org.jetbrains.kotlin.tools.projectWizard.cli.AbstractProjectTemplateBuildFileGenerationTest
@@ -1102,7 +1102,7 @@ fun main(args: Array<String>) {
                 model("checker/diagnosticsMessage")
             }
 
-            testClass<AbstractFirShortenRefsTest>() {
+            testClass<AbstractHighLevelShortenRefsTest>() {
                 model("shortenRefs", pattern = KT_WITHOUT_DOTS_IN_NAME, testMethod = "doTestWithMuting")
             }
         }

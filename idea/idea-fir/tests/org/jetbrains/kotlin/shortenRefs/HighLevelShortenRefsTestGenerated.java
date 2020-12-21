@@ -20,7 +20,7 @@ import java.util.regex.Pattern;
 @TestMetadata("idea/testData/shortenRefs")
 @TestDataPath("$PROJECT_ROOT")
 @RunWith(JUnit3RunnerWithInners.class)
-public class FirShortenRefsTestGenerated extends AbstractFirShortenRefsTest {
+public class HighLevelShortenRefsTestGenerated extends AbstractHighLevelShortenRefsTest {
     private void runTest(String testDataFilePath) throws Exception {
         KotlinTestUtils.runTest(this::doTestWithMuting, this, testDataFilePath);
     }
@@ -152,7 +152,7 @@ public class FirShortenRefsTestGenerated extends AbstractFirShortenRefsTest {
     @TestMetadata("idea/testData/shortenRefs/constructor")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
-    public static class Constructor extends AbstractFirShortenRefsTest {
+    public static class Constructor extends AbstractHighLevelShortenRefsTest {
         private void runTest(String testDataFilePath) throws Exception {
             KotlinTestUtils.runTest(this::doTestWithMuting, this, testDataFilePath);
         }
@@ -245,7 +245,7 @@ public class FirShortenRefsTestGenerated extends AbstractFirShortenRefsTest {
     @TestMetadata("idea/testData/shortenRefs/imports")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
-    public static class Imports extends AbstractFirShortenRefsTest {
+    public static class Imports extends AbstractHighLevelShortenRefsTest {
         private void runTest(String testDataFilePath) throws Exception {
             KotlinTestUtils.runTest(this::doTestWithMuting, this, testDataFilePath);
         }
@@ -273,7 +273,7 @@ public class FirShortenRefsTestGenerated extends AbstractFirShortenRefsTest {
     @TestMetadata("idea/testData/shortenRefs/java")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
-    public static class Java extends AbstractFirShortenRefsTest {
+    public static class Java extends AbstractHighLevelShortenRefsTest {
         private void runTest(String testDataFilePath) throws Exception {
             KotlinTestUtils.runTest(this::doTestWithMuting, this, testDataFilePath);
         }
@@ -341,7 +341,7 @@ public class FirShortenRefsTestGenerated extends AbstractFirShortenRefsTest {
     @TestMetadata("idea/testData/shortenRefs/kt21515")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
-    public static class Kt21515 extends AbstractFirShortenRefsTest {
+    public static class Kt21515 extends AbstractHighLevelShortenRefsTest {
         private void runTest(String testDataFilePath) throws Exception {
             KotlinTestUtils.runTest(this::doTestWithMuting, this, testDataFilePath);
         }
@@ -384,7 +384,7 @@ public class FirShortenRefsTestGenerated extends AbstractFirShortenRefsTest {
     @TestMetadata("idea/testData/shortenRefs/sameFile")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
-    public static class SameFile extends AbstractFirShortenRefsTest {
+    public static class SameFile extends AbstractHighLevelShortenRefsTest {
         private void runTest(String testDataFilePath) throws Exception {
             KotlinTestUtils.runTest(this::doTestWithMuting, this, testDataFilePath);
         }
@@ -442,7 +442,7 @@ public class FirShortenRefsTestGenerated extends AbstractFirShortenRefsTest {
     @TestMetadata("idea/testData/shortenRefs/this")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
-    public static class This extends AbstractFirShortenRefsTest {
+    public static class This extends AbstractHighLevelShortenRefsTest {
         private void runTest(String testDataFilePath) throws Exception {
             KotlinTestUtils.runTest(this::doTestWithMuting, this, testDataFilePath);
         }
@@ -495,7 +495,7 @@ public class FirShortenRefsTestGenerated extends AbstractFirShortenRefsTest {
     @TestMetadata("idea/testData/shortenRefs/type")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
-    public static class Type extends AbstractFirShortenRefsTest {
+    public static class Type extends AbstractHighLevelShortenRefsTest {
         private void runTest(String testDataFilePath) throws Exception {
             KotlinTestUtils.runTest(this::doTestWithMuting, this, testDataFilePath);
         }
@@ -598,7 +598,7 @@ public class FirShortenRefsTestGenerated extends AbstractFirShortenRefsTest {
     @TestMetadata("idea/testData/shortenRefs/typealias")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
-    public static class Typealias extends AbstractFirShortenRefsTest {
+    public static class Typealias extends AbstractHighLevelShortenRefsTest {
         private void runTest(String testDataFilePath) throws Exception {
             KotlinTestUtils.runTest(this::doTestWithMuting, this, testDataFilePath);
         }
