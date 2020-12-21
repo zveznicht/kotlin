@@ -782,7 +782,7 @@ public class BasicCompletionHandlerTestGenerated extends AbstractBasicCompletion
         }
 
         public void testAllFilesPresentInPrimitiveCompletion() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/idea-completion/testData/handlers/basic/primitiveCompletion"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
+            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/idea-completion/testData/handlers/basic/primitiveCompletion"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
         }
 
         @TestMetadata("testString.kt")

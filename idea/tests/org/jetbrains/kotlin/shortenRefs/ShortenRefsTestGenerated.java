@@ -390,7 +390,7 @@ public class ShortenRefsTestGenerated extends AbstractShortenRefsTest {
         }
 
         public void testAllFilesPresentInSameFile() throws Exception {
-            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/testData/shortenRefs/sameFile"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
+            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("idea/testData/shortenRefs/sameFile"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
         }
 
         @TestMetadata("classInSameFile.kt")
