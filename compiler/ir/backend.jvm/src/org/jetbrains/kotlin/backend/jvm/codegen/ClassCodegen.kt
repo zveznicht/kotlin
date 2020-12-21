@@ -360,11 +360,14 @@ class ClassCodegen private constructor(
             val continuationClass = method.continuationClass() // null if `SuspendLambda.invokeSuspend` - `this` is continuation itself
             val continuationClassCodegen = lazy { if (continuationClass != null) getOrCreate(continuationClass, context, method) else this }
 
+            // For suspend lambdas continuation class is null, and we need to use containing class to put L$ fields
+            val attributeContainer = continuationClass?.attributeOwnerId ?: irClass.attributeOwnerId
+
             node.acceptWithStateMachine(
                 method,
                 this,
                 smapCopyingVisitor,
-                context.continuationClassesVarsCountByType[continuationClass] ?: emptyMap()
+                context.continuationClassesVarsCountByType[attributeContainer] ?: emptyMap()
             ) {
                 continuationClassCodegen.value.visitor
             }
