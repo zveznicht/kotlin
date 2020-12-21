@@ -74,13 +74,17 @@ internal class KtFirReferenceShortener(
         return ShortenCommand(file, emptyList(), typesToShorten.map { it.createSmartPointer() })
     }
 
-    private fun findFirstClassifierInScopesByName(positionScopes: List<FirScope>, targetClassName: Name): ClassId? =
-        positionScopes
-            .asSequence()
-            .mapNotNull { scope -> scope.findFirstClassifierByName(targetClassName) }
-            .mapNotNull { classifierSymbol -> classifierSymbol.toLookupTag() as? ConeClassLikeLookupTag }
-            .map { it.classId }
-            .firstOrNull()
+    private fun findFirstClassifierInScopesByName(positionScopes: List<FirScope>, targetClassName: Name): ClassId? {
+        for (scope in positionScopes) {
+            val classifierSymbol = scope.findFirstClassifierByName(targetClassName) ?: continue
+            val classifierLookupTag = classifierSymbol.toLookupTag() as? ConeClassLikeLookupTag ?: continue
+
+            return classifierLookupTag.classId
+        }
+
+        return null
+    }
+
 
     private fun resolveFileToBodyResolve(file: KtFile) {
         for (declaration in file.declarations) {
@@ -89,8 +93,17 @@ internal class KtFirReferenceShortener(
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    private fun FirScope.findFirstClassifierByName(name: Name): FirClassifierSymbol<*>? =
-        buildList { processClassifiersByName(name, this::add) }.firstOrNull()
+    private fun FirScope.findFirstClassifierByName(name: Name): FirClassifierSymbol<*>? {
+        var element: FirClassifierSymbol<*>? = null
+
+        processClassifiersByName(name) {
+            if (element == null) {
+                element = it
+            }
+        }
+
+        return element
+    }
 
     private fun findScopesAtPosition(targetTypeReference: KtTypeReference): List<FirScope>? {
         val towerDataContext = firResolveState.getTowerDataContextForElement(targetTypeReference) ?: return null
