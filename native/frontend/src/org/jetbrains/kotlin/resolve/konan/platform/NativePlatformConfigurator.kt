@@ -16,14 +16,11 @@ import org.jetbrains.kotlin.resolve.calls.checkers.TypeOfChecker
 import org.jetbrains.kotlin.resolve.checkers.ExpectedActualDeclarationChecker
 import org.jetbrains.kotlin.resolve.inline.ReasonableInlineRule
 import org.jetbrains.kotlin.resolve.jvm.checkers.SuperCallWithDefaultArgumentsChecker
-import org.jetbrains.kotlin.resolve.konan.diagnostics.NativeSharedImmutableChecker
-import org.jetbrains.kotlin.resolve.konan.diagnostics.NativeThreadLocalChecker
-import org.jetbrains.kotlin.resolve.konan.diagnostics.NativeThrowsChecker
-import org.jetbrains.kotlin.resolve.konan.diagnostics.NativeTopLevelSingletonChecker
+import org.jetbrains.kotlin.resolve.konan.diagnostics.*
 
 object NativePlatformConfigurator : PlatformConfiguratorBase(
     additionalCallCheckers = listOf(
-        SuperCallWithDefaultArgumentsChecker(),
+        SuperCallWithDefaultArgumentsChecker(), FrozenChecker,
     ),
     additionalDeclarationCheckers = listOf(
         NativeThrowsChecker, NativeSharedImmutableChecker,
