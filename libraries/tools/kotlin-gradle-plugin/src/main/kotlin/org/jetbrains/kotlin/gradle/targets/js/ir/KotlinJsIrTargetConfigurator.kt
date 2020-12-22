@@ -89,13 +89,11 @@ open class KotlinJsIrTargetConfigurator(kotlinPluginVersion: String) :
                     "${target.project.name}_${compilation.name}"
                 }
 
-                val klibModuleName = target.project.klibModuleName(baseName)
-
-                val outFileName = if (produceUnzippedKlib) klibModuleName else "$klibModuleName.$KLIB_TYPE"
+                val outFileName = if (produceUnzippedKlib) baseName else "$baseName.$KLIB_TYPE"
                 val destinationDir = compilation.compileKotlinTask.destinationDir
-
                 outputFile = File(destinationDir, outFileName).canonicalPath
 
+                val klibModuleName = target.project.klibModuleName(baseName)
                 freeCompilerArgs = freeCompilerArgs + "$MODULE_NAME=$klibModuleName"
             }
 
