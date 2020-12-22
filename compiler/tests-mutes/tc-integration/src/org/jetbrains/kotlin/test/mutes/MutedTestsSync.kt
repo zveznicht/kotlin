@@ -93,7 +93,7 @@ class LocallyMutedTests {
 
     private fun getMutedTestsFromDatabase(): Map<String, List<MutedTest>> {
         val mutedTestsMap = mutableMapOf<String, List<MutedTest>>()
-        val databaseDir = "../../tests"
+        val databaseDir = "../../../tests"
 
         val commonDatabaseFile = File(databaseDir, "mute-common.csv")
         mutedTestsMap[muteCommonTestKey] = flakyTests(commonDatabaseFile)
