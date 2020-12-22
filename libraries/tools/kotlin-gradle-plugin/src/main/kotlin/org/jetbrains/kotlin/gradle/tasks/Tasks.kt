@@ -663,7 +663,14 @@ open class Kotlin2JsCompile : AbstractKotlinCompile<K2JSCompilerArguments>(), Ko
         args.apply { fillDefaultValues() }
         super.setupCompilerArgs(args, defaultsOnly = defaultsOnly, ignoreClasspathResolutionErrors = ignoreClasspathResolutionErrors)
 
-        args.outputFile = outputFile.canonicalPath
+        try {
+            outputFile.canonicalPath
+        } catch (ex: Throwable) {
+            logger.warn("IO EXCEPTION: outputFile: ${outputFile.path}")
+            throw ex
+        }
+
+        args.outputFile = outputFile.absoluteFile.normalize().absolutePath
 
         if (defaultsOnly) return
 
