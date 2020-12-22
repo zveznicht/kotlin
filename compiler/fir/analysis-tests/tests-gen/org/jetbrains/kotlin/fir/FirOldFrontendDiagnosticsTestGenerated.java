@@ -8170,6 +8170,11 @@ public class FirOldFrontendDiagnosticsTestGenerated extends AbstractFirOldFronte
                 public void testSimple() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/extensions/additionalReceiverExpressions/classes/simple.kt");
                 }
+
+                @TestMetadata("withConstructorParam.kt")
+                public void testWithConstructorParam() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/extensions/additionalReceiverExpressions/classes/withConstructorParam.kt");
+                }
             }
 
             @TestMetadata("compiler/testData/diagnostics/tests/extensions/additionalReceiverExpressions/functions")
