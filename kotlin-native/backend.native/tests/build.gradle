@@ -4833,7 +4833,7 @@ private void configureStdlibTest(KonanGTest task, boolean inWorker) {
             extraOpts inWorker ? '-trw' : '-tr',
                     '-Xverify-ir',
                     '-Xopt-in=kotlin.RequiresOptIn,kotlin.ExperimentalStdlibApi',
-                    "-friend-modules", project.rootProject.file("${project.properties['konan.home']}/klib/common/stdlib").absolutePath
+                    "-friend-modules", project.rootProject.file("${UtilsKt.getKotlinNativeDist(project)}/klib/common/stdlib").absolutePath
             extraOpts project.globalTestArgs
         }
     }
