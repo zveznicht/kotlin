@@ -170,16 +170,18 @@ private class SuspendLambdaLowering(context: JvmBackendContext) : SuspendLowerin
                         + context.irBuiltIns.anyNType
             )
             superTypes = listOf(suspendLambda.defaultType, functionNType)
-            val usedParams = ArrayList<IrSymbolOwner>(function.explicitParameters.size)
+            val usedParams = mutableSetOf<IrSymbolOwner>()
 
             // marking the parameters referenced in the function
             function.acceptChildrenVoid(
                 object : IrElementVisitorVoid {
-                    override fun visitElement(element: IrElement) =
-                        if (element is IrDeclarationReference && element.symbol is IrValueParameterSymbol && element.symbol.owner in function.explicitParameters)
-                            usedParams += element.symbol.owner
-                        else
-                            element.acceptChildrenVoid(this)
+                    override fun visitElement(element: IrElement) = element.acceptChildrenVoid(this)
+
+                    override fun visitGetValue(expression: IrGetValue) {
+                        if (expression.symbol is IrValueParameterSymbol && expression.symbol.owner in function.explicitParameters) {
+                            usedParams += expression.symbol.owner
+                        }
+                    }
                 },
             )
 
@@ -330,7 +332,7 @@ private class SuspendLambdaLowering(context: JvmBackendContext) : SuspendLowerin
             }
             it.putValueArgument(0, irGet(scope.valueParameters.last()))
         }
-        if (fieldsForUnbound.all { !it.isUsed }) {
+        if (fieldsForUnbound.none { it.isUsed }) {
             return constructorCall
         }
         val result = irTemporary(constructorCall, "result")
