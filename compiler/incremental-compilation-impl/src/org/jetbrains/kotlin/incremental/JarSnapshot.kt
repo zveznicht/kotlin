@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.protobuf.CodedOutputStream
 import org.jetbrains.kotlin.renderer.DescriptorRenderer
 import org.jetbrains.kotlin.serialization.DescriptorSerializer
+import org.jetbrains.kotlin.serialization.StringTableImpl
 import java.io.*
 
 class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
@@ -26,66 +27,60 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
             // numRecords: Int
             // record {
             //   fqName
+            //   isClassProtoData
             //   proto via JavaClassProtoMapValueExternalizer
             // }
             val size = readInt()
-//            val codedInputStream = CodedInputStream.newInstance(this)
             val mutableMap = hashMapOf<FqName, ProtoData>()
             repeat(size) {
                 val fqNameString = readUTF()
-                val fqName = FqName(fqNameString)
-//                val classProtoBuff = ProtoBuf.Class.PARSER.parseFrom(codedInputStream)
-
-                val serializableData = JavaClassProtoMapValueExternalizer.read(this)
-//                val stringArray = readArrayString()
-                mutableMap[fqName] = serializableData.toProtoData()
+                val isClassProtoData = readBoolean()
+                if (isClassProtoData) {
+                    val fqName = FqName(fqNameString)
+                    val serializableData = JavaClassProtoMapValueExternalizer.read(this)
+                    mutableMap[fqName] = serializableData.toProtoData()
+                } else {
+                    //TODO support PackageProtoData
+                }
             }
             return JarSnapshot(mutableMap)
-
-
-//                if (isPackageFacade) {
-//                    val (nameResolver, packageProto) = JvmProtoBufUtil.readPackageDataFrom(bytes, strings)
-//                    PackagePartProtoData(packageProto, nameResolver, packageFqName)
-//                } else {
-//                    val (nameResolver, classProto) = JvmProtoBufUtil.readClassDataFrom(bytes, strings)
-//                    ClassProtoData(classProto, nameResolver)
-//                }
-//                when (protoData)  {
-//                    is ClassProtoData -> protoData.proto.writeTo(codedOutputStream)
-//                    is PackagePartProtoData -> protoData.proto.writeTo(codedOutputStream)
-//                }
-
-//            }
-            //TODO fix it, to compilation only
-//            return JarSnapshot(mutableMap)
         }
 
         fun ObjectOutputStream.writeJarSnapshot(jarSnapshot: JarSnapshot) {
-//            val codedOutputStream = CodedOutputStream.newInstance(this)
-
             //TODO temp solution while packageProto is not fully support
-            writeInt(jarSnapshot.protos.values.count() { it is ClassProtoData })
+            writeInt(jarSnapshot.protos.size)
             for (entry in jarSnapshot.protos) {
-//                writeUTF(entry.key.asString())
+                writeUTF(entry.key.asString())
                 val protoData = entry.value
                 when (protoData) {
-                     is ClassProtoData -> {
-                         writeUTF(entry.key.asString()) //TODO until PackageProto doesn't work
-                         val extension = JavaClassesSerializerExtension()
-                         val (stringTable, qualifiedNameTable) = extension.stringTable.buildProto()
-                         JavaClassProtoMapValueExternalizer.save(this,
-                             SerializedJavaClass(protoData.proto, stringTable, qualifiedNameTable)
-                         )
-                     }
-                     is PackagePartProtoData -> {
-                         //TODO serialize packageProtoData
+                    is ClassProtoData -> {
+                        writeBoolean(true) //TODO until PackageProto doesn't work
+                        val nameResolver = protoData.nameResolver
+                        val (stringTable, qualifiedNameTable) =
+                            when (nameResolver) {
+                                is NameResolverImpl -> Pair(nameResolver.strings, nameResolver.qualifiedNames)
+                                is JvmNameResolver -> {
+                                    val stringTable = StringTableImpl()
+                                    //TODO dirty hack
+                                    repeat(nameResolver.strings.size) {
+                                        stringTable.getStringIndex(nameResolver.getString(it))
+                                    }
+                                    stringTable.buildProto()
+                                }
+                                else -> throw IllegalStateException("Can't store name resolver")
+                            }
+                        JavaClassProtoMapValueExternalizer.save(
+                            this,
+                            SerializedJavaClass(protoData.proto, stringTable, qualifiedNameTable)
+                        )
+                    }
+                    is PackagePartProtoData -> {
+                        writeBoolean(false)
+                        //TODO serialize packageProtoData
 //                         protoData.proto.writeTo(codedOutputStream)
-                     }
+                    }
                 }
             }
-//            codedOutputStream.flush()
-//            writeLookups(jarSnapshot.symbols)
-//            writeFqNames(jarSnapshot.fqNames)
         }
 
         fun write(buildInfo: JarSnapshot, file: File) {
@@ -96,36 +91,8 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
 
         fun read(file: File): JarSnapshot {
             ObjectInputStream(FileInputStream(file)).use {
-//                val codeOutputStream = CodedOutputStream.newInstance(it)
                 return it.readJarSnapshot()
             }
         }
-
-        fun ObjectInputStream.readArrayString(): Array<String>{
-            val size = readInt()
-            val array = arrayOf<String>()
-            repeat(size) {
-                array[it] = readUTF()
-            }
-            return array
-        }
-
-        fun ObjectOutputStream.writeArrayString(array: Array<String>) {
-            writeInt(array.size)
-            for (string in array) {
-                writeUTF(string)
-            }
-        }
-
-//        fun ObjectInputStream.readStringTableTypes(): JvmProtoBuf.StringTableTypes {
-//            return ProtoBuf.StringTable.parseFrom(readBytesWithSize(), JAVA_CLASS_PROTOBUF_REGISTRY)
-//        }
-
-        fun ObjectOutputStream.writeStringTableTypes(stringTableTypes: JvmProtoBuf.StringTableTypes) {
-            writeBytesWithSize(stringTableTypes.toByteArray())
-        }
-
     }
-
-
 }
