@@ -143,9 +143,9 @@ open class ConfigureKotlinInTempDirTest : AbstractConfigureKotlinInTempDirTest()
         |        <compilerArgumentsBucket>
         |          <classpathParts />
         |          <singleArguments>
-        |            <singleArgument key="-Xexplicit-api" value="disable" />
         |            <singleArgument key="-api-version" value="1.0" />
         |            <singleArgument key="-Xcoroutines" value="default" />
+        |            <singleArgument key="-Xexplicit-api" value="disable" />
         |            <singleArgument key="-language-version" value="1.1" />
         |          </singleArguments>
         |          <multipleArguments />
