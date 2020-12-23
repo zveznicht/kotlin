@@ -13432,6 +13432,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
                 runTest("compiler/testData/codegen/box/inference/builderInference/specialCallsWithCallableReferencesErrorType.kt");
             }
 
+            @TestMetadata("specialCallsWithCallableReferencesNonStrictOnlyInputTypes.kt")
+            public void testSpecialCallsWithCallableReferencesNonStrictOnlyInputTypes() throws Exception {
+                runTest("compiler/testData/codegen/box/inference/builderInference/specialCallsWithCallableReferencesNonStrictOnlyInputTypes.kt");
+            }
+
             @TestMetadata("substituteStubTypeIntoCR.kt")
             public void testSubstituteStubTypeIntoCR() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/builderInference/substituteStubTypeIntoCR.kt");
