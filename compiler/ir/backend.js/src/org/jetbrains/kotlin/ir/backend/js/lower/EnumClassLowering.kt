@@ -452,6 +452,7 @@ private val IrClass.isInstantiableEnum: Boolean
 class EnumSyntheticFunctionsLowering(val context: JsCommonBackendContext) : DeclarationTransformer {
 
     private val IrEnumEntry.getInstanceFun by context.mapping.enumEntryToGetInstanceFun
+    private val IrClass.initEntryInstancesFun: IrSimpleFunction? by context.mapping.enumClassToInitEntryInstancesFun
 
     override fun transformFlat(declaration: IrDeclaration): List<IrDeclaration>? {
         if (declaration is IrSimpleFunction) {
@@ -485,7 +486,10 @@ class EnumSyntheticFunctionsLowering(val context: JsCommonBackendContext) : Decl
                         irBranch(
                             irEquals(irString(it.name.identifier), irGet(nameParameter)), irReturn(irCall(it.getInstanceFun!!))
                         )
-                    } + irElseBranch(irCall(throwISESymbol))
+                    } + irElseBranch(irBlock {
+                        +irCall(irClass.initEntryInstancesFun!!)
+                        +irCall(throwISESymbol)
+                    })
                 )
             }
         }
