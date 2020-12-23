@@ -479,15 +479,13 @@ class EnumSyntheticFunctionsLowering(val context: JsCommonBackendContext) : Decl
 
         return context.createIrBuilder(valueOfFun.symbol).run {
             irBlockBody {
-                +irReturn(
-                    irWhen(
-                        irClass.defaultType,
-                        irClass.enumEntries.map {
-                            irBranch(
-                                irEquals(irString(it.name.identifier), irGet(nameParameter)), irCall(it.getInstanceFun!!)
-                            )
-                        } + irElseBranch(irCall(throwISESymbol))
-                    )
+                +irWhen(
+                    irClass.defaultType,
+                    irClass.enumEntries.map {
+                        irBranch(
+                            irEquals(irString(it.name.identifier), irGet(nameParameter)), irReturn(irCall(it.getInstanceFun!!))
+                        )
+                    } + irElseBranch(irCall(throwISESymbol))
                 )
             }
         }
