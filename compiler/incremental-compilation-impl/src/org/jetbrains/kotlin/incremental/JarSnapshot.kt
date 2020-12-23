@@ -25,9 +25,8 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
             // Format:
             // numRecords: Int
             // record {
-            //   proto
-            //   StringTableTypes
-            //   Array<String>
+            //   fqName
+            //   proto via JavaClassProtoMapValueExternalizer
             // }
             val size = readInt()
 //            val codedInputStream = CodedInputStream.newInstance(this)
@@ -39,7 +38,7 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
 
                 val serializableData = JavaClassProtoMapValueExternalizer.read(this)
 //                val stringArray = readArrayString()
-                mutableMap.put(fqName, serializableData.toProtoData())
+                mutableMap[fqName] = serializableData.toProtoData()
             }
             return JarSnapshot(mutableMap)
 
@@ -64,19 +63,24 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
         fun ObjectOutputStream.writeJarSnapshot(jarSnapshot: JarSnapshot) {
 //            val codedOutputStream = CodedOutputStream.newInstance(this)
 
-            writeInt(jarSnapshot.protos.size)
+            //TODO temp solution while packageProto is not fully support
+            writeInt(jarSnapshot.protos.values.count() { it is ClassProtoData })
             for (entry in jarSnapshot.protos) {
-                writeUTF(entry.key.asString())
+//                writeUTF(entry.key.asString())
                 val protoData = entry.value
                 when (protoData) {
                      is ClassProtoData -> {
+                         writeUTF(entry.key.asString()) //TODO until PackageProto doesn't work
                          val extension = JavaClassesSerializerExtension()
                          val (stringTable, qualifiedNameTable) = extension.stringTable.buildProto()
                          JavaClassProtoMapValueExternalizer.save(this,
                              SerializedJavaClass(protoData.proto, stringTable, qualifiedNameTable)
                          )
                      }
-//                     is PackagePartProtoData -> protoData.proto.writeTo(codedOutputStream)
+                     is PackagePartProtoData -> {
+                         //TODO serialize packageProtoData
+//                         protoData.proto.writeTo(codedOutputStream)
+                     }
                 }
             }
 //            codedOutputStream.flush()
@@ -90,12 +94,13 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
             }
         }
 
-        fun read (file: File) : JarSnapshot {
+        fun read(file: File): JarSnapshot {
             ObjectInputStream(FileInputStream(file)).use {
 //                val codeOutputStream = CodedOutputStream.newInstance(it)
                 return it.readJarSnapshot()
             }
         }
+
         fun ObjectInputStream.readArrayString(): Array<String>{
             val size = readInt()
             val array = arrayOf<String>()

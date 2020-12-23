@@ -29,9 +29,11 @@ class ChangesCollector {
     private val areSubclassesAffected = hashMapOf<FqName, Boolean>()
     //TODO for test only: ProtoData or ProtoBuf
     private val storage = hashMapOf<FqName, ProtoData>()
+    private val removed = ArrayList<FqName>()
 
     //TODO change to immutable map
-    fun protoDataChanges() : Map<FqName, ProtoData> = storage
+    fun protoDataChanges(): Map<FqName, ProtoData> = storage
+    fun protoDataRemoved(): List<FqName> = removed
 
     companion object {
         fun <T> T.getNonPrivateNames(nameResolver: NameResolver, vararg members: T.() -> List<MessageLite>) =
@@ -97,10 +99,27 @@ class ChangesCollector {
             throw IllegalStateException("Old and new value are null")
         }
 
-        if (newData != null && newData is ClassProtoData) {
-            //TODO store new proto
-            val fqName = newData.nameResolver.getClassId(newData.proto.fqName).asSingleFqName()
-            storage[fqName] = newData
+        if (newData != null) {
+            when (newData) {
+                is ClassProtoData -> {
+                    val fqName = newData.nameResolver.getClassId(newData.proto.fqName).asSingleFqName()
+                    storage[fqName] = newData
+                }
+                is PackagePartProtoData -> {
+                    //TODO fqName is not unique. It's package and can be present in both java and kotlin
+                    val fqName = newData.packageFqName
+                    storage[fqName] = newData
+                }
+            }
+        } else {
+            when (oldData) {
+                is ClassProtoData -> {
+                    removed.add(oldData.nameResolver.getClassId(oldData.proto.fqName).asSingleFqName())
+                }
+                is PackagePartProtoData -> {
+                    //TODO fqName is not unique. It's package and can be present in both java and kotlin
+                }
+            }
         }
 
         if (oldData == null) {

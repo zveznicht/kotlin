@@ -18,7 +18,6 @@ internal fun getClasspathChanges(
     reporter: ICReporter?,
     jarSnapshots: Map<String, JarSnapshot>,
     withSnapshot: Boolean
-//    parameters: JarSnapshotDiffService.Parameters
 ): ChangesEither {
     val classpathSet = HashSet<File>()
     for (file in classpath) {

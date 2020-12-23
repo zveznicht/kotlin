@@ -27,6 +27,7 @@ dependencies {
 
     testCompile(projectRuntimeJar(":kotlin-compiler-embeddable"))
     testCompile(intellijCoreDep()) { includeJars("jdom") }
+    testCompile(intellijCoreDep()) { includeJars("intellij-core") }
     // testCompileOnly dependency on non-shaded artifacts is needed for IDE support
     // testRuntime on shaded artifact is needed for running tests with shaded compiler
     testCompileOnly(project(path = ":kotlin-gradle-plugin-test-utils-embeddable", configuration = "compile"))

@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.gradle
 
 import org.jetbrains.kotlin.incremental.JavaClassProtoMapValueExternalizer
+import org.jetbrains.kotlin.incremental.ProtoData
+import org.jetbrains.kotlin.incremental.toProtoData
 import org.junit.Assert
 import org.junit.Test
 import java.io.File
@@ -24,7 +26,7 @@ class JarSnapshotIT : BaseGradleIT() {
         }
         val libJarSnapshot = project.findJarSnapshot("lib")
         Assert.assertEquals(libJarSnapshot.fqNames.size, 2)
-        Assert.assertEquals(libJarSnapshot.lookups.size, 5)
+//        Assert.assertEquals(libJarSnapshot.lookups.size, 5)
 
     }
 
@@ -37,17 +39,14 @@ class JarSnapshotIT : BaseGradleIT() {
             val fqNames = ArrayList<String>(size)
             val lookups = HashMap<String, String>()
             repeat(size) { i ->
-                {
-                    fqNames.add(it.readUTF())
-                    val serializableData = JavaClassProtoMapValueExternalizer.read(it)
-                }
-//                erializableData.toProtoData().
-
+                fqNames.add(it.readUTF())
+                JavaClassProtoMapValueExternalizer.read(it)
+//                println(serializableData.toProtoData().proto)
             }
 
 //                val stringArray = readArrayString()
 //            mutableMap.put(fqName, serializableData.toProtoData())
-            TestJarSnapshot(fqNames, lookups)
+            TestJarSnapshot(fqNames)
         }
     }
 
@@ -62,10 +61,10 @@ class JarSnapshotIT : BaseGradleIT() {
         }
         val libJarSnapshot = project.findJarSnapshot("lib")
 
-        val classTodelete = "lib/src/main/kotlin/test/KotlinClassToDelete.kt"
-        Assert.assertTrue(libJarSnapshot.fqNames.contains(classTodelete))
+        val classToDelete = "test.KotlinClassToDelete"
+        Assert.assertTrue(libJarSnapshot.fqNames.contains(classToDelete))
 
-        project.projectDir.resolve(classTodelete).delete()
+        project.projectDir.resolve("lib/src/main/kotlin/test/KotlinClassToDelete.kt").delete()
 
         project.build("build") {
             assertSuccessful()
@@ -73,7 +72,7 @@ class JarSnapshotIT : BaseGradleIT() {
         }
 
         val libJarSnapshotNew = project.findJarSnapshot("lib")
-        Assert.assertFalse(libJarSnapshotNew.fqNames.contains(classTodelete))
+        Assert.assertFalse(libJarSnapshotNew.fqNames.contains(classToDelete))
     }
 
     @Test
@@ -143,10 +142,9 @@ class JarSnapshotIT : BaseGradleIT() {
         }
     }
 
-
     class TestJarSnapshot(
-        val fqNames: List<String>,
-        val lookups: Map<String, String>
+        val fqNames: List<String>/*,
+        val protoData: ProtoData*/
     )
 
     fun ObjectInputStream.readFqNames(project: Project): List<String> {

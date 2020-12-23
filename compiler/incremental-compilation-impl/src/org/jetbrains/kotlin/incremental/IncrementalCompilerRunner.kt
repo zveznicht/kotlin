@@ -75,6 +75,13 @@ abstract class IncrementalCompilerRunner<
         assert(isICEnabled()) { "Incremental compilation is not enabled" }
         var caches = createCacheManager(args, projectDir)
 
+        //TODO if jar-snapshot is corrupted unable to rebuild. Should roll back to withSnapshot = false?
+        val classpathJarSnapshot = if (withSnapshot) {
+            setupJarDependencies(args, withSnapshot)
+        } else {
+           emptyMap()
+        }
+
         fun rebuild(reason: () -> String): ExitCode {
             reporter.report(reason)
             caches.close(false)
@@ -84,18 +91,19 @@ abstract class IncrementalCompilerRunner<
                 caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
             }
             val allKotlinFiles = allSourceFiles.filter { it.isKotlinFile(kotlinSourceFilesExtensions) }
-            return compileIncrementally(args, caches, allKotlinFiles, CompilationMode.Rebuild(), messageCollector, withSnapshot, setupJarDependencies(args, withSnapshot))
+            return compileIncrementally(args, caches, allKotlinFiles, CompilationMode.Rebuild(), messageCollector, withSnapshot,
+                                        classpathJarSnapshot = classpathJarSnapshot)
         }
 
         return try {
             val changedFiles = providedChangedFiles ?: caches.inputsCache.sourceSnapshotMap.compareAndUpdate(allSourceFiles)
-            val classpathJarSnapshot = setupJarDependencies(args, withSnapshot)
 
             val compilationMode = sourcesToCompile(caches, changedFiles, args, messageCollector, classpathJarSnapshot)
 
             val exitCode = when (compilationMode) {
                 is CompilationMode.Incremental -> {
-                    compileIncrementally(args, caches, allSourceFiles, compilationMode, messageCollector, withSnapshot, classpathJarSnapshot)
+                    val jarSnapshot = JarSnapshot.read(jarSnapshotFile)
+                    compileIncrementally(args, caches, allSourceFiles, compilationMode, messageCollector, withSnapshot, jarSnapshot, classpathJarSnapshot)
                 }
                 is CompilationMode.Rebuild -> {
                     rebuild { "Non-incremental compilation will be performed: ${compilationMode.reason}" }
@@ -221,6 +229,7 @@ abstract class IncrementalCompilerRunner<
         compilationMode: CompilationMode,
         originalMessageCollector: MessageCollector,
         withSnapshot: Boolean,
+        jarSnapshot: JarSnapshot = JarSnapshot(mutableMapOf()),
         classpathJarSnapshot: Map<String, JarSnapshot> = HashMap()
     ): ExitCode {
         preBuildHook(args, compilationMode)
@@ -232,27 +241,6 @@ abstract class IncrementalCompilerRunner<
             is CompilationMode.Incremental -> compilationMode.dirtyFiles.toMutableList()
             is CompilationMode.Rebuild -> allKotlinSources.toMutableList()
         }
-
-        val jarSnapshot = if (withSnapshot) {
-            when (compilationMode) {
-                is CompilationMode.Incremental -> JarSnapshot.read(jarSnapshotFile).also {
-                    //TODO
-//                    for (file in compilationMode.dirtyFiles.toMutableList()) {
-//                        val fqName = FqName(file.absolutePath)
-//                        if (file.exists()) {
-//                            //TODO
-//                            it.fqNames.add(fqName)
-//                        } else {
-//                            it.fqNames.remove(fqName)
-//                        }
-//                    }
-                }
-                is CompilationMode.Rebuild -> JarSnapshot(mutableMapOf())
-            }
-        } else {
-            JarSnapshot(mutableMapOf())
-        }
-
 
         val currentBuildInfo = BuildInfo(startTS = System.currentTimeMillis(), classpathJarSnapshot)
         val buildDirtyLookupSymbols = HashSet<LookupSymbol>()
@@ -269,7 +257,7 @@ abstract class IncrementalCompilerRunner<
 
             val lookupTracker = LookupTrackerImpl(LookupTracker.DO_NOTHING)
             val expectActualTracker = ExpectActualTrackerImpl()
-//            val protoTracker = ProtoTrackerImpl()
+            //TODO sourceToCompile calculate based on jarSnapshot
             val (sourcesToCompile, removedKotlinSources) = dirtySources.partition(File::exists)
 
             allDirtySources.addAll(dirtySources)
@@ -316,18 +304,7 @@ abstract class IncrementalCompilerRunner<
 
             if (compilationMode is CompilationMode.Rebuild) {
                 if (withSnapshot) {
-                    //TODO add hash
                     jarSnapshot.protos.putAll(changesCollector.protoDataChanges())
-//                    for (change in changesCollector.changes()) {
-//                        if (change is ChangeInfo.MembersChanged) {
-//                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
-//                            for (fqName in fqNames) {
-//                                for (name in change.names) {
-//                                    jarSnapshot.symbols.add(LookupSymbol(name, fqName.shortName().identifier))
-//                                }
-//                            }
-//                        }
-//                    }
                 }
                 break
             }
@@ -350,36 +327,13 @@ abstract class IncrementalCompilerRunner<
 
             buildDirtyLookupSymbols.addAll(dirtyLookupSymbols)
             buildDirtyFqNames.addAll(dirtyClassFqNames)
+
+            //update
             if (withSnapshot) {
-                //TODO check method/class remove
+                //TODO check method/ kts class remove
+                changesCollector.protoDataRemoved().forEach { jarSnapshot.protos.remove(it) }
                 jarSnapshot.protos.putAll(changesCollector.protoDataChanges())
             }
-//                for(change in changesCollector.protoDataChanges()) {
-////                    change.
-//                    val oldData = jarSnapshot.protos.put(change.key, change.value)
-//
-//                    when (change) {
-//                        is ChangeInfo.Removed -> {
-//                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
-//                            for (fqName in fqNames) {
-//                                jarSnapshot.symbols.removeAll(change.names.map { LookupSymbol(it, fqName.shortName().identifier) })
-//                            }
-//                        }
-//                        is ChangeInfo.MembersChanged -> {
-//                            val fqNames = withSubtypes(change.fqName, listOf(caches.platformCache))
-//                            for (fqName in fqNames) {
-//                                for (name in change.names) {
-//                                    //TODO add valid check if it is added method or removed
-//                                    val lookup = LookupSymbol(name, fqName.shortName().identifier)
-//                                    if (!jarSnapshot.symbols.remove(lookup)) {
-//                                        jarSnapshot.symbols.add(lookup)
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//                jarSnapshot.symbols.addAll(buildDirtyLookupSymbols)
         }
 
         if (exitCode == ExitCode.OK) {

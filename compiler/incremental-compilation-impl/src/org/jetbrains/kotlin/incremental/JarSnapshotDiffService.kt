@@ -6,48 +6,53 @@
 package org.jetbrains.kotlin.incremental
 
 import org.jetbrains.kotlin.incremental.ChangesCollector.Companion.getNonPrivateMemberNames
+import org.jetbrains.kotlin.incremental.ChangesCollector.Companion.getNonPrivateNames
 import org.jetbrains.kotlin.metadata.ProtoBuf
+import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
+import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility.PRIVATE
+import org.jetbrains.kotlin.metadata.deserialization.Flags
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.serialization.deserialization.getClassId
 
-//TOT Should be in gradle daemon so move it. Only for test here
- class JarSnapshotDiffService() {
-//    class Parameters (
-//        val protoDataProvider /*= ProtoDataProvider(serializerProtocol)*/
-//    ) {}
+//TODO Should be in gradle daemon so move it. Only for test here
+class JarSnapshotDiffService() {
 
     companion object {
         //Store list of changed lookups
-        val diffCache: MutableMap<Pair<JarSnapshot, JarSnapshot>, DirtyData> = mutableMapOf()
+        private val diffCache: MutableMap<Pair<JarSnapshot, JarSnapshot>, DirtyData> = mutableMapOf()
 
         //TODO for test only
         fun compareJarsInternal(
-//            parameters: Parameters,
             snapshotJar: JarSnapshot, newJar: JarSnapshot
-        )  = diffCache.computeIfAbsent(Pair(snapshotJar, newJar)) { (snapshot, actual) ->
-                val fqNames = mutableListOf<FqName>()
-                val symbols = mutableListOf<LookupSymbol>()
+        ) = diffCache.computeIfAbsent(Pair(snapshotJar, newJar)) { (snapshot, actual) ->
+            val fqNames = mutableListOf<FqName>()
+            val symbols = mutableListOf<LookupSymbol>()
 
-                for((fqName, protoData) in snapshot.protos) {
-                    val newProtoData = actual.protos[fqName]
-                    if (newProtoData == null) {
-                        addProtoInfo(protoData, fqNames, fqName, symbols)
-//                        parameters.protoDataProvider.
-//                    }
-                    } else {
-                        if (protoData is ClassProtoData && newProtoData is ClassProtoData) {
-                            ProtoCompareGenerated(protoData.nameResolver, newProtoData.nameResolver,
-                                                  protoData.proto.typeTable, newProtoData.proto.typeTable)
-                            val diff = DifferenceCalculatorForClass(protoData, newProtoData).difference()
+            for ((fqName, protoData) in snapshot.protos) {
+                val newProtoData = actual.protos[fqName]
+                if (newProtoData == null) {
+                    addProtoInfo(protoData, fqNames, fqName, symbols)
+                } else {
+                    if (protoData is ClassProtoData && newProtoData is ClassProtoData) {
+                        ProtoCompareGenerated(
+                            protoData.nameResolver, newProtoData.nameResolver,
+                            protoData.proto.typeTable, newProtoData.proto.typeTable
+                        )
+                        val diff = DifferenceCalculatorForClass(protoData, newProtoData).difference()
 //                            symbols.addAll(diff.changedMembersNames)
 
-                        }
+                    } else if (protoData is PackagePartProtoData && newProtoData is PackagePartProtoData) {
+                        //TODO update it
+                    } else {
+                        //TODO is it a valid case
+                        throw IllegalStateException("package proto and class proto have the same fqName: $fqName")
                     }
                 }
+            }
 //                fqNames.addAll(snapshot.protos.keys.removeAll(actual.protos.keys))
 
-                DirtyData(symbols, fqNames)
-            }
+            DirtyData(symbols, fqNames)
+        }
 
         //TODO change to return type
         private fun addProtoInfo(
@@ -56,39 +61,20 @@ import org.jetbrains.kotlin.serialization.deserialization.getClassId
             fqName: FqName,
             symbols: MutableList<LookupSymbol>
         ) {
-            if (protoData is ClassProtoData) {
-                fqNames.add(fqName)
-//                val fqNames = withSubtypes(fqName, caches)
-                // need to recompile subtypes because changed member might break override
+            when (protoData) {
+                is ClassProtoData -> {
+                    fqNames.add(fqName)
+                    symbols.addAll(protoData.getNonPrivateMemberNames().map { LookupSymbol(it, fqName.asString()) })
+                }
+                is PackagePartProtoData -> {
+                    symbols.addAll(
+                        protoData.proto.functionOrBuilderList.filterNot { Flags.VISIBILITY.get(it.flags) == PRIVATE }
+                            .map { LookupSymbol(protoData.nameResolver.getString(it.name), fqName.asString()) }.toSet()
+                    )
 
-//                for (name in change.names) {
-//                    fqNames.mapTo(symbols) { LookupSymbol(name, it.asString()) }
-//                }
-                symbols.addAll( protoData.getNonPrivateMemberNames().map{ LookupSymbol(it, fqName.asString()) })
+                }
             }
         }
 
-//            diffCache.computeIfAbsent(Pair(snapshot, newJar)) { (snapshotJar, actualJar) ->
-//                //TODO check relative path
-//                val symbols = mutableListOf<LookupSymbol>()
-//                symbols.addAll(snapshotJar.symbols.minus(actualJar.symbols))
-//                symbols.addAll(actualJar.symbols.minus(snapshotJar.symbols))
-//                val fqNames = mutableListOf<FqName>()
-//                fqNames.addAll(snapshotJar.fqNames.minus(actualJar.fqNames))
-//                fqNames.addAll(actualJar.fqNames.minus(snapshotJar.fqNames))
-//
-//                DirtyData(symbols, fqNames)
-//
-//                DirtyFilesContainer(parameters.caches, parameters.reporter, parameters.sourceFilesExtensions)
-//                    .also {
-//                        //calcalute hash
-//                        it.addByDirtyClasses(snapshotJar.fqNames.minus(actualJar.fqNames))
-//                        it.addByDirtyClasses(actualJar.fqNames.minus(snapshotJar.fqNames))
-//                        it.addByDirtySymbols(snapshotJar.symbols.minus(actualJar.symbols))
-//                        it.addByDirtySymbols(actualJar.symbols.minus(snapshotJar.symbols))
-//                    }
-            }
-//    }
-
-
+    }
 }
