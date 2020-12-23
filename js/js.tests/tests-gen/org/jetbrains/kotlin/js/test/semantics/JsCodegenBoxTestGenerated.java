@@ -11567,6 +11567,11 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
                 runTest("compiler/testData/codegen/box/inference/builderInference/lackOfNullCheckOnNullableInsideBuild.kt");
             }
 
+            @TestMetadata("specialCallsWithCallableReferencesErrorType.kt")
+            public void testSpecialCallsWithCallableReferencesErrorType() throws Exception {
+                runTest("compiler/testData/codegen/box/inference/builderInference/specialCallsWithCallableReferencesErrorType.kt");
+            }
+
             @TestMetadata("substituteStubTypeIntoCR.kt")
             public void testSubstituteStubTypeIntoCR() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/builderInference/substituteStubTypeIntoCR.kt");
