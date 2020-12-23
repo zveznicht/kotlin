@@ -11215,6 +11215,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             runTest("compiler/testData/codegen/box/enum/inclassobj.kt");
         }
 
+        @TestMetadata("initEntriesInValueOf.kt")
+        public void testInitEntriesInValueOf() throws Exception {
+            runTest("compiler/testData/codegen/box/enum/initEntriesInValueOf.kt");
+        }
+
         @TestMetadata("inner.kt")
         public void testInner() throws Exception {
             runTest("compiler/testData/codegen/box/enum/inner.kt");
@@ -13489,11 +13494,6 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
             runTest("compiler/testData/codegen/box/inlineClasses/inlineClassWithCustomEquals.kt");
         }
 
-        @TestMetadata("multifileClass.kt")
-        public void ignoreMultifileClass() throws Exception {
-            runTest("compiler/testData/codegen/box/inlineClasses/multifileClass.kt");
-        }
-
         @TestMetadata("simpleSecondaryConstructor.kt")
         public void ignoreSimpleSecondaryConstructor() throws Exception {
             runTest("compiler/testData/codegen/box/inlineClasses/simpleSecondaryConstructor.kt");
@@ -14140,6 +14140,11 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
         @TestMetadata("mappingOfBoxedFlexibleInlineClassType.kt")
         public void testMappingOfBoxedFlexibleInlineClassType() throws Exception {
             runTest("compiler/testData/codegen/box/inlineClasses/mappingOfBoxedFlexibleInlineClassType.kt");
+        }
+
+        @TestMetadata("multifileClass.kt")
+        public void testMultifileClass() throws Exception {
+            runTest("compiler/testData/codegen/box/inlineClasses/multifileClass.kt");
         }
 
         @TestMetadata("nestedInlineClass.kt")
