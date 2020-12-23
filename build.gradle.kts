@@ -852,8 +852,7 @@ tasks {
         if (Ide.IJ()) {
             dependsOn(
                 ":libraries:tools:new-project-wizard:test",
-                ":libraries:tools:new-project-wizard:new-project-wizard-cli:test",
-                ":idea:idea-new-project-wizard:test" // Temporary here. Remove after enabling builds for ideaNewProjectWizardTests
+                ":libraries:tools:new-project-wizard:new-project-wizard-cli:test"
             )
         }
     }
