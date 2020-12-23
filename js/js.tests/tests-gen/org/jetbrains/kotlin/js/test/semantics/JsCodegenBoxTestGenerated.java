@@ -9562,6 +9562,11 @@ public class JsCodegenBoxTestGenerated extends AbstractJsCodegenBoxTest {
             runTest("compiler/testData/codegen/box/enum/inclassobj.kt");
         }
 
+        @TestMetadata("initEntriesInValueOf.kt")
+        public void testInitEntriesInValueOf() throws Exception {
+            runTest("compiler/testData/codegen/box/enum/initEntriesInValueOf.kt");
+        }
+
         @TestMetadata("inner.kt")
         public void testInner() throws Exception {
             runTest("compiler/testData/codegen/box/enum/inner.kt");
