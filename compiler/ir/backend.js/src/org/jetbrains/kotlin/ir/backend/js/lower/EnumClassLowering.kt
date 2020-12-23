@@ -451,7 +451,7 @@ private val IrClass.isInstantiableEnum: Boolean
 
 class EnumSyntheticFunctionsLowering(val context: JsCommonBackendContext) : DeclarationTransformer {
 
-    private var IrEnumEntry.getInstanceFun by context.mapping.enumEntryToGetInstanceFun
+    private val IrEnumEntry.getInstanceFun by context.mapping.enumEntryToGetInstanceFun
 
     override fun transformFlat(declaration: IrDeclaration): List<IrDeclaration>? {
         if (declaration is IrSimpleFunction) {
