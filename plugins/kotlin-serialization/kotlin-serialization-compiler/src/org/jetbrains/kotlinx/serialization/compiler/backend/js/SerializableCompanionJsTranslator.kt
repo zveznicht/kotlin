@@ -35,6 +35,10 @@ class SerializableCompanionJsTranslator(
     val context: TranslationContext
 ) : SerializableCompanionCodegen(declaration, context.bindingContext()) {
 
+    override fun generateLazySerializerGetter(methodDescriptor: FunctionDescriptor) {
+        generateSerializerGetter(methodDescriptor)
+    }
+
     override fun generateSerializerGetter(methodDescriptor: FunctionDescriptor) {
         val f = context.buildFunction(methodDescriptor) { jsFun, context ->
             val serializer = requireNotNull(

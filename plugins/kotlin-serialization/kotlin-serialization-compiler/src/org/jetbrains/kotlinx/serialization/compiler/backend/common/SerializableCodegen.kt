@@ -20,7 +20,6 @@ abstract class SerializableCodegen(
     bindingContext: BindingContext
 ) : AbstractSerialGenerator(bindingContext, serializableDescriptor) {
     protected val properties = bindingContext.serializablePropertiesFor(serializableDescriptor)
-    protected val staticDescriptor = serializableDescriptor.declaredTypeParameters.isEmpty()
 
     private val fieldMissingOptimizationVersion = ApiVersion.parse("1.1")!!
     protected val useFieldMissingOptimization = canUseFieldMissingOptimization()

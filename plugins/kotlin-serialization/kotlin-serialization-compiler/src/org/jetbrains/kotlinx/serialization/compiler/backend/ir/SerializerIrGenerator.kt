@@ -28,8 +28,6 @@ import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.SerialTypeInfo
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.SerializerCodegen
 import org.jetbrains.kotlinx.serialization.compiler.backend.common.getSerialTypeInfo
-import org.jetbrains.kotlinx.serialization.compiler.backend.jvm.SerializerCodegenImpl
-import org.jetbrains.kotlinx.serialization.compiler.backend.jvm.SerializerForEnumsCodegen
 import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationDescriptorSerializerPlugin
 import org.jetbrains.kotlinx.serialization.compiler.extensions.SerializationPluginContext
 import org.jetbrains.kotlinx.serialization.compiler.resolve.*
@@ -60,7 +58,7 @@ open class SerializerIrGenerator(
 
     override fun generateSerialDesc() {
         val desc: PropertyDescriptor = generatedSerialDescPropertyDescriptor ?: return
-        val addFuncS = serialDescImplClass.referenceMethod(CallingConventions.addElement)
+        val addFuncS = serialDescImplClass.referenceFunctionSymbol(CallingConventions.addElement)
 
         val thisAsReceiverParameter = irClass.thisReceiver!!
         lateinit var prop: IrProperty
@@ -97,7 +95,7 @@ open class SerializerIrGenerator(
                         copySerialInfoAnnotationsToDescriptor(
                             serializableIrClass.annotations,
                             localDesc,
-                            serialDescImplClass.referenceMethod(CallingConventions.addClassAnnotation)
+                            serialDescImplClass.referenceFunctionSymbol(CallingConventions.addClassAnnotation)
                         )
 
                         // save local descriptor to field
@@ -147,7 +145,7 @@ open class SerializerIrGenerator(
             copySerialInfoAnnotationsToDescriptor(
                 property.annotations,
                 localDescriptor,
-                serialDescImplClass.referenceMethod(CallingConventions.addAnnotation)
+                serialDescImplClass.referenceFunctionSymbol(CallingConventions.addAnnotation)
             )
         }
     }
@@ -235,12 +233,6 @@ open class SerializerIrGenerator(
         /* Already implemented in .generateSerialClassDesc ? */
     }
 
-    protected inline fun ClassDescriptor.referenceMethod(methodName: String, predicate: (IrSimpleFunction) -> Boolean = { true }): IrFunctionSymbol {
-        val irClass = compilerContext.referenceClass(fqNameSafe)?.owner ?: error("Couldn't load class $this")
-        val simpleFunctions = irClass.declarations.filterIsInstance<IrSimpleFunction>()
-        return simpleFunctions.filter { it.name.asString() == methodName }.single { predicate(it) }.symbol
-    }
-
     override fun generateSave(function: FunctionDescriptor) = irClass.contributeFunction(function) { saveFunc ->
 
         val fieldInitializer: (SerializableProperty) -> IrExpression? =
@@ -257,7 +249,7 @@ open class SerializerIrGenerator(
         val localSerialDesc = irTemporary(irGet(descriptorGetterSymbol.owner.returnType, irThis(), descriptorGetterSymbol), "desc")
 
         //  fun beginStructure(desc: SerialDescriptor, vararg typeParams: KSerializer<*>): StructureEncoder
-        val beginFunc = encoderClass.referenceMethod(CallingConventions.begin) { it.valueParameters.size == 1 }
+        val beginFunc = encoderClass.referenceFunctionSymbol(CallingConventions.begin) { it.valueParameters.size == 1 }
 
         val call = irCall(beginFunc, type = kOutputClass.defaultType.toIrType()).mapValueParametersIndexed { _, _ ->
             irGet(localSerialDesc)
@@ -293,7 +285,7 @@ open class SerializerIrGenerator(
             // output.writeXxxElementValue(classDesc, index, value)
             val elementCall = formEncodeDecodePropertyCall(irGet(localOutput), saveFunc.dispatchReceiverParameter!!, property, {innerSerial, sti ->
                 val f =
-                    kOutputClass.referenceMethod("${CallingConventions.encode}${sti.elementMethodPrefix}Serializable${CallingConventions.elementPostfix}")
+                    kOutputClass.referenceFunctionSymbol("${CallingConventions.encode}${sti.elementMethodPrefix}Serializable${CallingConventions.elementPostfix}")
                 f to listOf(
                     irGet(localSerialDesc),
                     irInt(index),
@@ -302,7 +294,7 @@ open class SerializerIrGenerator(
                 )
             }, {
                 val f =
-                    kOutputClass.referenceMethod("${CallingConventions.encode}${it.elementMethodPrefix}${CallingConventions.elementPostfix}")
+                    kOutputClass.referenceFunctionSymbol("${CallingConventions.encode}${it.elementMethodPrefix}${CallingConventions.elementPostfix}")
                 val args: MutableList<IrExpression> = mutableListOf(irGet(localSerialDesc), irInt(index))
                 if (it.elementMethodPrefix != "Unit") args.add(property.irGet())
                 f to args
@@ -316,7 +308,7 @@ open class SerializerIrGenerator(
                 // emit check:
                 // if (obj.prop != DEFAULT_VALUE || output.shouldEncodeElementDefault(this.descriptor, i))
                 //    output.encodeIntElement(this.descriptor, i, obj.prop)
-                val shouldEncodeFunc = kOutputClass.referenceMethod(CallingConventions.shouldEncodeDefault)
+                val shouldEncodeFunc = kOutputClass.referenceFunctionSymbol(CallingConventions.shouldEncodeDefault)
                 val partA = irNotEquals(property.irGet(), fieldInitializer(property)!!)
                 val partB = irInvoke(irGet(localOutput), shouldEncodeFunc, irGet(localSerialDesc), irInt(index))
                 // Ir infrastructure does not have dedicated symbol for ||, so
@@ -327,7 +319,7 @@ open class SerializerIrGenerator(
         }
 
         // output.writeEnd(serialClassDesc)
-        val wEndFunc = kOutputClass.referenceMethod(CallingConventions.end)
+        val wEndFunc = kOutputClass.referenceFunctionSymbol(CallingConventions.end)
         +irInvoke(irGet(localOutput), wEndFunc, irGet(localSerialDesc))
     }
 
@@ -406,7 +398,7 @@ open class SerializerIrGenerator(
         }
 
         //input = input.beginStructure(...)
-        val beginFunc = decoderClass.referenceMethod(CallingConventions.begin) { it.valueParameters.size == 1 }
+        val beginFunc = decoderClass.referenceFunctionSymbol(CallingConventions.begin) { it.valueParameters.size == 1 }
         val call = irInvoke(
             irGet(loadFunc.valueParameters[0]),
             beginFunc,
@@ -420,13 +412,13 @@ open class SerializerIrGenerator(
             serializableProperties.mapIndexed { index, property ->
                 val body = irBlock {
                     val decodeFuncToCall = formEncodeDecodePropertyCall(localInput.get(), loadFunc.dispatchReceiverParameter!!, property, {innerSerial, sti ->
-                        inputClass.referenceMethod(
+                        inputClass.referenceFunctionSymbol(
                             "${CallingConventions.decode}${sti.elementMethodPrefix}Serializable${CallingConventions.elementPostfix}", {it.valueParameters.size == 4}
                         ) to listOf(
                             localSerialDesc.get(), irInt(index), innerSerial, localProps[index].get()
                         )
                     }, {
-                        inputClass.referenceMethod(
+                        inputClass.referenceFunctionSymbol(
                             "${CallingConventions.decode}${it.elementMethodPrefix}${CallingConventions.elementPostfix}", {it.valueParameters.size == 2}
                         ) to listOf(
                             localSerialDesc.get(), irInt(index)
@@ -446,7 +438,7 @@ open class SerializerIrGenerator(
             }
 
         // if (decoder.decodeSequentially())
-        val decodeSequentiallyCall = irInvoke(localInput.get(), inputClass.referenceMethod(CallingConventions.decodeSequentially))
+        val decodeSequentiallyCall = irInvoke(localInput.get(), inputClass.referenceFunctionSymbol(CallingConventions.decodeSequentially))
 
         val sequentialPart = irBlock {
             decoderCalls.forEach { (_, expr) -> +expr.deepCopyWithVariables() }
@@ -455,7 +447,7 @@ open class SerializerIrGenerator(
         val byIndexPart: IrExpression = irWhile().also { loop ->
             loop.condition = flagVar.get()
             loop.body = irBlock {
-                val readElementF = inputClass.referenceMethod(CallingConventions.decodeElementIndex)
+                val readElementF = inputClass.referenceFunctionSymbol(CallingConventions.decodeElementIndex)
                 +irSet(indexVar.symbol, irInvoke(localInput.get(), readElementF, localSerialDesc.get()))
                 +irWhen {
                     // if index == -1 (READ_DONE) break loop
@@ -484,7 +476,7 @@ open class SerializerIrGenerator(
         +irIfThenElse(compilerContext.irBuiltIns.unitType, decodeSequentiallyCall, sequentialPart, byIndexPart)
 
         //input.endStructure(...)
-        val endFunc = inputClass.referenceMethod(CallingConventions.end)
+        val endFunc = inputClass.referenceFunctionSymbol(CallingConventions.end)
         +irInvoke(
             localInput.get(),
             endFunc,
