@@ -410,7 +410,7 @@ class EnumEntryCreateGetInstancesFunsLowering(val context: JsCommonBackendContex
             val irClass = declaration.parentAsClass
             if (irClass.isInstantiableEnum) {
                 // Create entry instance getters. These are used to lower `IrGetEnumValue`.
-                val entryGetInstanceFun = createGetEntryInstanceFun(irClass, declaration, irClass.initEntryInstancesFun!!)
+                val entryGetInstanceFun = createGetEntryInstanceFun(irClass, declaration)
 
                 // TODO prettify
                 entryGetInstanceFun.parent = irClass.parent
@@ -426,7 +426,7 @@ class EnumEntryCreateGetInstancesFunsLowering(val context: JsCommonBackendContex
     }
 
     private fun createGetEntryInstanceFun(
-        irClass: IrClass, enumEntry: IrEnumEntry, initEntryInstancesFun: IrSimpleFunction
+        irClass: IrClass, enumEntry: IrEnumEntry
     ): IrSimpleFunction =
         context.mapping.enumEntryToGetInstanceFun.getOrPut(enumEntry) {
             context.irFactory.buildFun {
@@ -439,7 +439,7 @@ class EnumEntryCreateGetInstancesFunsLowering(val context: JsCommonBackendContex
         }.also {
             it.body = context.irFactory.createBlockBody(UNDEFINED_OFFSET, UNDEFINED_OFFSET) {
                 statements += context.createIrBuilder(it.symbol).irBlockBody(it) {
-                    +irCall(initEntryInstancesFun)
+                    +irCall(irClass.initEntryInstancesFun!!)
                     +irReturn(irGetField(null, enumEntry.correspondingField!!))
                 }.statements
             }
