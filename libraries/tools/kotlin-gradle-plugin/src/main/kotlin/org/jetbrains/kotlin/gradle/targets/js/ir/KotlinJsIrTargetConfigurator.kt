@@ -69,9 +69,8 @@ open class KotlinJsIrTargetConfigurator(kotlinPluginVersion: String) :
             compilation.kotlinOptions {
                 configureOptions()
 
-
-                var produceUnzippedKlib = PRODUCE_UNZIPPED_KLIB in freeCompilerArgs
-                var produceZippedKlib = PRODUCE_ZIPPED_KLIB in freeCompilerArgs
+                var produceUnzippedKlib = isProduceUnzippedKlib()
+                val produceZippedKlib = isProduceZippedKlib()
 
                 freeCompilerArgs = freeCompilerArgs + DISABLE_PRE_IR
 
@@ -89,9 +88,11 @@ open class KotlinJsIrTargetConfigurator(kotlinPluginVersion: String) :
                     "${target.project.name}_${compilation.name}"
                 }
 
-                val outFileName = if (produceUnzippedKlib) baseName else "$baseName.$KLIB_TYPE"
                 val destinationDir = compilation.compileKotlinTask.destinationDir
-                outputFile = File(destinationDir, outFileName).canonicalPath
+                outputFile = if (produceUnzippedKlib)
+                    destinationDir.absoluteFile.normalize().absolutePath
+                else
+                    File(destinationDir, "$baseName.$KLIB_TYPE").absoluteFile.normalize().absolutePath
 
                 val klibModuleName = target.project.klibModuleName(baseName)
                 freeCompilerArgs = freeCompilerArgs + "$MODULE_NAME=$klibModuleName"

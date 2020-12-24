@@ -5,6 +5,8 @@
 
 package org.jetbrains.kotlin.gradle.targets.js.ir
 
+import org.jetbrains.kotlin.gradle.dsl.KotlinJsOptions
+
 /**
  * @see [compiler/testData/cli/js/jsExtraHelp.out]
  */
@@ -21,3 +23,6 @@ internal const val PRODUCE_UNZIPPED_KLIB = "-Xir-produce-klib-dir"
 internal const val PRODUCE_ZIPPED_KLIB = "-Xir-produce-klib-file"
 
 internal const val MODULE_NAME = "-Xir-module-name"
+
+fun KotlinJsOptions.isProduceUnzippedKlib() = PRODUCE_UNZIPPED_KLIB in freeCompilerArgs
+fun KotlinJsOptions.isProduceZippedKlib() = PRODUCE_ZIPPED_KLIB in freeCompilerArgs
