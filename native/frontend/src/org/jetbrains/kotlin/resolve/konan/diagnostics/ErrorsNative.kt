@@ -45,7 +45,7 @@ object ErrorsNative {
     val VARIABLE_IN_ENUM = DiagnosticFactory0.create<KtElement>(Severity.WARNING)
 
     @JvmField
-    val FREEZE_WARNING = DiagnosticFactory2.create<KtElement, MutabilityResult, CapturedCandidate>(Severity.WARNING)
+    val FROZEN_MUTABLE_OBJECT = DiagnosticFactory2.create<KtElement, MutabilityResult, CapturedCandidate>(Severity.WARNING)
 
     init {
         Errors.Initializer.initializeFactoryNames(ErrorsNative::class.java)

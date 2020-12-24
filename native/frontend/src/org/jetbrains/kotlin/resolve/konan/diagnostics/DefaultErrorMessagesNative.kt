@@ -10,8 +10,6 @@ import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap
 import org.jetbrains.kotlin.diagnostics.rendering.Renderer
 import org.jetbrains.kotlin.diagnostics.rendering.Renderers
 
-import org.jetbrains.kotlin.inspections.*
-
 private val DIAGNOSTIC_FACTORY_TO_RENDERER by lazy {
     DiagnosticFactoryToRendererMap("Native").apply {
         put(ErrorsNative.THROWS_LIST_EMPTY, "@Throws must have non-empty class list")
@@ -44,7 +42,7 @@ private val DIAGNOSTIC_FACTORY_TO_RENDERER by lazy {
         )
         put(ErrorsNative.INAPPLICABLE_THREAD_LOCAL_TOP_LEVEL, "@ThreadLocal is applicable only to top level declarations")
         put(
-            ErrorsNative.FREEZE_WARNING,
+            ErrorsNative.FROZEN_MUTABLE_OBJECT,
             """Captured {1} with mutable state might cause unexpected IncorrectMutabilityException at runtime. 
                 |Consider avoiding mutable objects from being captured by thread-confined context.
             """.trimMargin(),

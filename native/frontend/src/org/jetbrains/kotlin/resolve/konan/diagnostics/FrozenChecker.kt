@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.resolve.konan.diagnostics
 import com.intellij.psi.PsiElement
 import com.intellij.util.containers.MultiMap
 import org.jetbrains.kotlin.inspections.*
-import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.resolve.calls.checkers.CallChecker
 import org.jetbrains.kotlin.resolve.calls.checkers.CallCheckerContext
 import org.jetbrains.kotlin.resolve.calls.model.ResolvedCall
@@ -36,7 +35,7 @@ object FrozenChecker : CallChecker {
                 }
                 is Stateful, is TransitivelyStateful -> {
                     for (mutableBastard in candidatesByTypes[type]) {
-                        context.trace.report(ErrorsNative.FREEZE_WARNING.on(mutableBastard.element, mutabilityState, mutableBastard))
+                        context.trace.report(ErrorsNative.FROZEN_MUTABLE_OBJECT.on(mutableBastard.element, mutabilityState, mutableBastard))
                     }
                     continue
                 }
