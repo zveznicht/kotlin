@@ -89,14 +89,14 @@ class InlineClassLowering(val context: CommonBackendContext) {
                     (irConstructor.body as IrBlockBody).deepCopyWithSymbols(initFunction).statements.forEach { statement ->
                         +statement.transformStatement(object : IrElementTransformerVoid() {
                             override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
-                                delegatingCtorCall = expression.deepCopyWithSymbols()
+                                delegatingCtorCall = expression.deepCopyWithSymbols(irConstructor)
                                 return builder.irBlock {}  // Removing delegating constructor call
                             }
 
                             override fun visitSetField(expression: IrSetField): IrExpression {
                                 val isMemberFieldSet = expression.symbol.owner.parent == klass
                                 if (isMemberFieldSet) {
-                                    setMemberField = expression.deepCopyWithSymbols()
+                                    setMemberField = expression.deepCopyWithSymbols(irConstructor)
                                 }
                                 expression.transformChildrenVoid()
                                 if (isMemberFieldSet) {
