@@ -627,7 +627,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         importProject()
 
         with(facetSettings) {
-            Assert.assertEquals("tmp.jar", (compilerArguments as K2JVMCompilerArguments).classpath)
+            Assert.assertEquals("tmp.jar", classpathParts.single())
         }
     }
 
@@ -637,7 +637,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
         importProject()
 
         with(facetSettings) {
-            Assert.assertEquals(null, (compilerArguments as K2JVMCompilerArguments).classpath)
+            Assert.assertEquals(null, classpathParts.firstOrNull())
         }
     }
 
@@ -736,7 +736,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertFalse(compilerArguments!!.autoAdvanceLanguageVersion)
             Assert.assertFalse(compilerArguments!!.autoAdvanceApiVersion)
             Assert.assertTrue(targetPlatform.isCommon())
-            Assert.assertEquals("my/classpath", (compilerArguments as K2MetadataCompilerArguments).classpath)
+            Assert.assertEquals("my/classpath", classpathParts.single())
             Assert.assertEquals("my/destination", (compilerArguments as K2MetadataCompilerArguments).destination)
         }
 
@@ -746,7 +746,7 @@ class GradleFacetImportTest : GradleImportingTestCase() {
             Assert.assertFalse(compilerArguments!!.autoAdvanceLanguageVersion)
             Assert.assertFalse(compilerArguments!!.autoAdvanceApiVersion)
             Assert.assertTrue(targetPlatform.isCommon())
-            Assert.assertEquals("my/test/classpath", (compilerArguments as K2MetadataCompilerArguments).classpath)
+            Assert.assertEquals("my/test/classpath", classpathParts.single())
             Assert.assertEquals("my/test/destination", (compilerArguments as K2MetadataCompilerArguments).destination)
         }
 

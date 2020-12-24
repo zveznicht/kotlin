@@ -18,7 +18,10 @@ package org.jetbrains.kotlin.gradle.internal
 
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
-import org.jetbrains.kotlin.cli.common.arguments.*
+import org.jetbrains.kotlin.cli.common.arguments.Argument
+import org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
 import org.jetbrains.kotlin.compilerRunner.ArgumentUtils
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
@@ -32,10 +35,10 @@ interface CompilerArgumentAware<T : CommonToolArguments> {
     val serializedCompilerArgumentsIgnoreClasspathIssues: List<String>
         get() = ArgumentUtils.convertArgumentsToStringList(prepareCompilerArguments(ignoreClasspathResolutionErrors = true))
 
-    val flatCompilerArgumentsBucket: List<Any?>
+    val flatCompilerArgumentsBucket: List<Any>
         get() = calculateFlatArgsBucket()
 
-    val flatCompilerArgumentsBucketIgnoreClasspathIssues: List<Any?>
+    val flatCompilerArgumentsBucketIgnoreClasspathIssues: List<Any>
         get() = calculateFlatArgsBucket(ignoreClasspathResolutionErrors = true)
 
     val defaultSerializedCompilerArguments: List<String>
@@ -53,7 +56,7 @@ interface CompilerArgumentAware<T : CommonToolArguments> {
 internal fun <T : CommonToolArguments> CompilerArgumentAware<T>.prepareCompilerArguments(ignoreClasspathResolutionErrors: Boolean = false) =
     createCompilerArgs().also { setupCompilerArgs(it, ignoreClasspathResolutionErrors = ignoreClasspathResolutionErrors) }
 
-internal fun <T : CommonToolArguments> CompilerArgumentAware<T>.calculateFlatArgsBucket(ignoreClasspathResolutionErrors: Boolean = false): List<Any?> {
+internal fun <T : CommonToolArguments> CompilerArgumentAware<T>.calculateFlatArgsBucket(ignoreClasspathResolutionErrors: Boolean = false): List<Any> {
     val compilerArguments = prepareCompilerArguments(ignoreClasspathResolutionErrors = ignoreClasspathResolutionErrors)
     val propertiesToArgumentAnnotation = compilerArguments::class.java.kotlin.memberProperties
         .filter { it.annotations.any { anno -> anno is Argument } && it != K2JVMCompilerArguments::classpath && it != K2MetadataCompilerArguments::classpath }
@@ -64,24 +67,14 @@ internal fun <T : CommonToolArguments> CompilerArgumentAware<T>.calculateFlatArg
     }
     val flatFlags = flagPropertiesMap.filter { it.first.get(compilerArguments) }.map { it.second.value }
 
-    val singleNullablePropertiesMap =
-        propertiesToArgumentAnnotation.filterKeys { it.returnType.classifier == String::class && it.returnType.isMarkedNullable }
+    val singlePropertiesMap =
+        propertiesToArgumentAnnotation.filterKeys { it.returnType.classifier == String::class }
             .mapNotNull {
                 it.key.safeAs<KProperty1<CommonToolArguments, String?>>()?.let { cs -> cs to it.value }
             }
-    val singleNullableArguments = singleNullablePropertiesMap.mapNotNull {
-        it.first.get(compilerArguments)?.let { arg ->
-            it.second.value to arg
-        }
+    val singleArguments = singlePropertiesMap.mapNotNull {
+        it.first.get(compilerArguments)?.let { arg -> it.second.value to arg }
     }.toMap()
-
-    val singlePropertiesMap =
-        propertiesToArgumentAnnotation.filterKeys { it.returnType.classifier == String::class && !it.returnType.isMarkedNullable }
-            .mapNotNull {
-                it.key.safeAs<KProperty1<CommonToolArguments, String>>()?.let { cs -> cs to it.value }
-            }
-    val singleArguments = singlePropertiesMap.mapNotNull { it.second.value to it.first.get(compilerArguments) }.toMap()
-
 
     val multiplePropsToValues = propertiesToArgumentAnnotation.filterKeys { it.returnType.classifier?.javaClass?.isArray == true }
         .mapNotNull {
@@ -94,14 +87,14 @@ internal fun <T : CommonToolArguments> CompilerArgumentAware<T>.calculateFlatArg
     }.toMap()
 
     val classpathArguments = when (compilerArguments) {
-        is K2MetadataCompilerArguments -> compilerArguments.classpath?.let { "-classpath" to it.split(File.pathSeparator) }
-        is K2JVMCompilerArguments -> compilerArguments.classpath?.let { "-classpath" to it.split(File.pathSeparator) }
+        is K2MetadataCompilerArguments -> compilerArguments.classpath?.split(File.pathSeparator)
+        is K2JVMCompilerArguments -> compilerArguments.classpath?.split(File.pathSeparator)
         else -> null
     }
 
     return listOf(
-        classpathArguments,
-        (singleNullableArguments + singleArguments).toMutableMap(),
+        classpathArguments.orEmpty(),
+        singleArguments.toMutableMap(),
         multipleArguments.toMutableMap(),
         flatFlags.toMutableList(),
         compilerArguments.internalArguments.map { it.stringRepresentation }.toMutableList(),
@@ -116,11 +109,11 @@ interface CompilerArgumentAwareWithInput<T : CommonToolArguments> : CompilerArgu
         get() = super.serializedCompilerArguments
 
     @get:Internal
-    override val flatCompilerArgumentsBucket: List<Any?>
+    override val flatCompilerArgumentsBucket: List<Any>
         get() = super.flatCompilerArgumentsBucket
 
     @get:Internal
-    override val flatCompilerArgumentsBucketIgnoreClasspathIssues: List<Any?>
+    override val flatCompilerArgumentsBucketIgnoreClasspathIssues: List<Any>
         get() = super.flatCompilerArgumentsBucketIgnoreClasspathIssues
 
     @get:Internal

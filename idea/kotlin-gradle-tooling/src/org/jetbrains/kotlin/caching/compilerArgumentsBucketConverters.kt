@@ -27,8 +27,8 @@ class RawToFlatCompilerArgumentsBucketConverter(val classLoader: ClassLoader) :
         val processedArguments = mutableListOf<String>()
 
         val classpathArgumentAnnotation = classpathPropertiesToArgumentAnnotation.values.first()
-        val flattenClasspathParts = classpathArgumentAnnotation.processArgumentWithInfo(from, processedArguments).entries.lastOrNull()
-            ?.let { it.key to it.value.split(File.pathSeparator) }
+        val flattenClasspathParts = classpathArgumentAnnotation.processArgumentWithInfo(from, processedArguments)
+            .entries.lastOrNull()?.value?.split(File.pathSeparator).orEmpty()
 
         val flattenSingleArguments = mutableMapOf<String, String>()
         singlePropertiesToArgumentAnnotation.values.forEach {

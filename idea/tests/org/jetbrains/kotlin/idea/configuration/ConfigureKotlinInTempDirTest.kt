@@ -141,7 +141,6 @@ open class ConfigureKotlinInTempDirTest : AbstractConfigureKotlinInTempDirTest()
         |          <option name="additionalArguments" value="-version -Xallow-kotlin-package -Xskip-metadata-version-check" />
         |        </compilerSettings>
         |        <compilerArgumentsBucket>
-        |          <classpathParts />
         |          <singleArguments>
         |            <singleArgument key="-api-version" value="1.0" />
         |            <singleArgument key="-Xcoroutines" value="default" />

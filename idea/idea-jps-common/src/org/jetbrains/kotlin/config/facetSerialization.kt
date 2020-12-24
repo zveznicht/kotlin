@@ -14,6 +14,7 @@ import org.jdom.Element
 import org.jdom.Text
 import org.jetbrains.kotlin.caching.FlatCompilerArgumentsBucket
 import org.jetbrains.kotlin.cli.common.arguments.*
+import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.load.java.JvmAbi
 import org.jetbrains.kotlin.platform.*
 import org.jetbrains.kotlin.platform.impl.FakeK2NativeCompilerArguments
@@ -187,13 +188,19 @@ private fun readV3Config(element: Element): KotlinFacetSettings = readV2AndLater
         }?.also {
             XmlSerializer.deserializeInto(it, el)
             it.detectVersionAutoAdvance()
+            when (it) {
+                is K2JVMCompilerArguments -> classpathParts = it.classpath?.split(File.pathSeparator).orEmpty()
+                is K2MetadataCompilerArguments -> classpathParts = it.classpath?.split(File.pathSeparator).orEmpty()
+            }
         }
     }
 }
 
 private fun readLatestConfig(element: Element): KotlinFacetSettings = readV2AndLaterConfig(element) {
-    targetPlatform?.let { readCompilerArgumentsBucket(element)?.toCompilerArguments(it) }
+    val args = targetPlatform?.let { readCompilerArgumentsBucket(element)?.toCompilerArguments(it) }
         ?.also { it.detectVersionAutoAdvance() }
+    readElementsList(element, "classpathParts", "part")?.let { classpathParts = it }
+    args
 }
 
 private fun readElementsList(element: Element, rootElementName: String, elementName: String): List<String>? {
@@ -390,7 +397,10 @@ private fun CommonCompilerArguments.writeToV4Facet(element: Element): Element = 
 }
 
 private fun KotlinFacetSettings.writeLatestConfig(element: Element) {
-    writeV3AndLaterConfig(element) { writeToV4Facet(element) }
+    writeV3AndLaterConfig(element) {
+        saveElementsList(element, classpathParts, "classpathParts", "part")
+        writeToV4Facet(element)
+    }
 }
 
 private fun CommonCompilerArguments.writeToV3Facet(element: Element): Element = copyBean(this).let {
@@ -513,9 +523,7 @@ private fun String?.deserializeTargetPlatformByComponentPlatforms(): TargetPlatf
 
 private fun readCompilerArgumentsBucket(element: Element): FlatCompilerArgumentsBucket? {
     element.getChild("compilerArgumentsBucket")?.let { bucketElement ->
-        val classpathKey = bucketElement.getAttributeValue("classpathKey")
-        val classpathPartsList = readElementsList(bucketElement, "classpathParts", "classpathPart")
-        val classpathParts = classpathKey?.takeIf { !classpathPartsList.isNullOrEmpty() }?.let { it to classpathPartsList!! }
+        val classpathParts = readElementsList(bucketElement, "classpathParts", "classpathPart").orEmpty()
         val singleArguments = hashMapOf<String, String>().apply {
             bucketElement.getChild("singleArguments")?.getChildren("singleArgument")?.map {
                 it.getAttributeValue("singleArgumentKey") to it.getAttributeValue("singleArgumentValue")
@@ -551,14 +559,7 @@ private fun FlatCompilerArgumentsBucket.writeCompilerArgumentsBucket(
     autoAdvanceApiVersion: Boolean
 ): Element {
     val bucketElement = Element("compilerArgumentsBucket")
-
-    val classpathPartsElement = Element("classpathParts").also { classpathPartsElement ->
-        classpathParts?.also { partKv ->
-            classpathPartsElement.setAttribute("key", partKv.first)
-            saveElementsList(classpathPartsElement, partKv.second, "parts", "part")
-        }
-    }
-    bucketElement.addContent(classpathPartsElement)
+    saveElementsList(bucketElement, classpathParts, "classpathParts", "classpathPart")
 
     val singleArgumentsElement = Element("singleArguments").also { singleArgsElement ->
         CommonCompilerArguments::languageVersion.calculateArgumentAnnotation()?.takeIf { autoAdvanceLanguageVersion }?.apply {

@@ -8,10 +8,8 @@ package org.jetbrains.kotlin.config
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.cli.common.arguments.Argument
-import org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments
-import org.jetbrains.kotlin.cli.common.arguments.copyBean
-import org.jetbrains.kotlin.cli.common.arguments.parseCommandLineArguments
+import org.jetbrains.kotlin.cli.common.arguments.*
+import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.platform.IdePlatformKind
 import org.jetbrains.kotlin.platform.TargetPlatform
 import org.jetbrains.kotlin.platform.TargetPlatformVersion
@@ -190,34 +188,40 @@ class KotlinFacetSettings {
     var version = CURRENT_VERSION
     var useProjectSettings: Boolean = true
 
-    var mergedCompilerArguments: CommonCompilerArguments? = null
-        private set
+    val mergedCompilerArguments: CommonCompilerArguments?
+        get() {
+            val compilerArguments = compilerArguments
+            val compilerSettings = compilerSettings
 
-    // TODO: Workaround for unwanted facet settings modification on code analysis
-    // To be replaced with proper API for settings update (see BaseKotlinCompilerSettings as an example)
-    fun updateMergedArguments() {
-        val compilerArguments = compilerArguments
-        val compilerSettings = compilerSettings
-
-        mergedCompilerArguments = if (compilerArguments != null) {
-            copyBean(compilerArguments).apply {
-                if (compilerSettings != null) {
-                    parseCommandLineArguments(compilerSettings.additionalArgumentsAsList, this)
+            return compilerArguments?.let {
+                copyBean(it).apply {
+                    when (this) {
+                        is K2JVMCompilerArguments -> classpath = classpathParts.joinToString(File.pathSeparator)
+                        is K2MetadataCompilerArguments -> classpath = classpathParts.joinToString(File.pathSeparator)
+                    }
+                    if (compilerSettings != null) {
+                        parseCommandLineArguments(compilerSettings.additionalArgumentsAsList, this)
+                    }
                 }
             }
-        } else null
-    }
+        }
 
     var compilerArguments: CommonCompilerArguments? = null
         set(value) {
+            // Avoid rewriting facet's classpathParts by assigning from AbstractGradleImportHandlers
+            if (field !== value) {
+                classpathParts = when (value) {
+                    is K2JVMCompilerArguments -> value.classpath?.split(File.pathSeparator).orEmpty().also { value.classpath = null }
+                    is K2MetadataCompilerArguments -> value.classpath?.split(File.pathSeparator).orEmpty().also { value.classpath = null }
+                    else -> emptyList()
+                }
+            }
             field = value?.unfrozen() as CommonCompilerArguments?
-            updateMergedArguments()
         }
 
     var compilerSettings: CompilerSettings? = null
         set(value) {
             field = value?.unfrozen() as CompilerSettings?
-            updateMergedArguments()
         }
 
     /*
@@ -314,6 +318,7 @@ class KotlinFacetSettings {
         }
 
     var pureKotlinSourceFolders: List<String> = emptyList()
+    var classpathParts: List<String> = emptyList()
 }
 
 interface KotlinFacetSettingsProvider {

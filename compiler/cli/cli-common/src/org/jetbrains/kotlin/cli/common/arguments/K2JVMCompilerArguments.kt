@@ -22,7 +22,8 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
         value = "-classpath",
         shortName = "-cp",
         valueDescription = "<path>",
-        description = "List of directories and JAR/ZIP archives to search for user class files")
+        description = "List of directories and JAR/ZIP archives to search for user class files"
+    )
     var classpath: String? by NullableStringFreezableVar(null)
 
     @GradleOption(DefaultValues.BooleanFalseDefault::class)

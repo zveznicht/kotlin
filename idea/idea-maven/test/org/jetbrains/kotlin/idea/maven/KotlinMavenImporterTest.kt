@@ -628,7 +628,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
             Assert.assertEquals(LanguageFeature.State.ENABLED, coroutineSupport)
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
             Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
-            Assert.assertEquals("foobar.jar", (compilerArguments as K2JVMCompilerArguments).classpath)
+            Assert.assertEquals("foobar.jar", classpathParts.single())
             Assert.assertEquals(
                 "-version",
                 compilerSettings!!.additionalArguments
@@ -979,7 +979,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
             Assert.assertEquals(LanguageFeature.State.ENABLED, coroutineSupport)
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
             Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
-            Assert.assertEquals("foobar.jar", (compilerArguments as K2JVMCompilerArguments).classpath)
+            Assert.assertEquals("foobar.jar", classpathParts.single())
             Assert.assertEquals("-version", compilerSettings!!.additionalArguments)
         }
     }
@@ -1024,7 +1024,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
                                 <arg>1.8</arg>
                                 <arg>-Xcoroutines=enable</arg>
                                 <arg>-classpath</arg>
-                                <arg>c:\program files\jdk1.8</arg>
+                                <arg>my/jdk1.8</arg>
                             </args>
                         </configuration>
                     </plugin>
@@ -1040,7 +1040,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
             Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(LanguageFeature.State.ENABLED, coroutineSupport)
-            Assert.assertEquals("c:/program files/jdk1.8", (compilerArguments as K2JVMCompilerArguments).classpath)
+            Assert.assertEquals("my/jdk1.8", classpathParts.single())
         }
     }
 
@@ -1080,7 +1080,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
                         </executions>
                         <configuration>
                             <args>
-                                -jvm-target 1.8 -Xcoroutines=enable -classpath "c:\program files\jdk1.8"
+                                -jvm-target 1.8 -Xcoroutines=enable -classpath "my/jdk1.8"
                             </args>
                         </configuration>
                     </plugin>
@@ -1096,7 +1096,7 @@ class KotlinMavenImporterTest : MavenImportingTestCase() {
             Assert.assertEquals("JVM 1.8", targetPlatform!!.oldFashionedDescription)
             Assert.assertEquals("1.8", (compilerArguments as K2JVMCompilerArguments).jvmTarget)
             Assert.assertEquals(LanguageFeature.State.ENABLED, coroutineSupport)
-            Assert.assertEquals("c:/program files/jdk1.8", (compilerArguments as K2JVMCompilerArguments).classpath)
+            Assert.assertEquals("my/jdk1.8", classpathParts.single())
         }
     }
 

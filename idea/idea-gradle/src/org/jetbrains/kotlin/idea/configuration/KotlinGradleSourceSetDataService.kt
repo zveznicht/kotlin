@@ -60,10 +60,10 @@ import org.jetbrains.kotlin.platform.impl.isCommon
 import org.jetbrains.kotlin.platform.impl.isJavaScript
 import org.jetbrains.kotlin.platform.impl.isJvm
 import org.jetbrains.kotlin.psi.UserDataProperty
+import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import org.jetbrains.plugins.gradle.model.data.BuildScriptClasspathData
 import org.jetbrains.plugins.gradle.model.data.GradleSourceSetData
 import org.jetbrains.plugins.gradle.util.GradleConstants
-import java.io.File
 import java.util.*
 
 var Module.sourceSetName
@@ -316,7 +316,9 @@ fun configureFacetByFlatArgsInfo(
     val currentBucket = flatArgsInfo.currentCompilerArgumentsBucket
     val defaultBucket = flatArgsInfo.defaultCompilerArgumentsBucket
     if (skipCheck || !currentBucket.isEmpty) {
-        parseCompilerArgumentsBucketsToFacet(currentBucket, defaultBucket, kotlinFacet, modelsProvider)
+        currentBucket.cutClasspathPartsAndReturnAfter {
+            parseCompilerArgumentsBucketsToFacet(this, defaultBucket, kotlinFacet, modelsProvider)
+        }.also { kotlinFacet.configuration.settings.classpathParts = it }
     }
     val dependencyClasspath = flatArgsInfo.dependencyClasspath.map { PathUtil.toSystemIndependentName(it) }
     adjustClasspath(kotlinFacet, dependencyClasspath)
@@ -333,11 +335,14 @@ private fun getExplicitOutputPath(moduleNode: DataNode<ModuleData>, platformKind
 
 internal fun adjustClasspath(kotlinFacet: KotlinFacet, dependencyClasspath: List<String>) {
     if (dependencyClasspath.isEmpty()) return
-    val arguments = kotlinFacet.configuration.settings.compilerArguments as? K2JVMCompilerArguments ?: return
-    val fullClasspath = arguments.classpath?.split(File.pathSeparator) ?: emptyList()
-    if (fullClasspath.isEmpty()) return
-    val newClasspath = fullClasspath - dependencyClasspath
-    arguments.classpath = if (newClasspath.isNotEmpty()) newClasspath.joinToString(File.pathSeparator) else null
+    with(kotlinFacet.configuration.settings) {
+        runIf(compilerArguments is K2JVMCompilerArguments) {
+            val fullClasspath = classpathParts
+            if (fullClasspath.isEmpty()) return
+            val newClasspath = fullClasspath - dependencyClasspath
+            classpathParts = if (newClasspath.isNotEmpty()) newClasspath else emptyList()
+        }
+    }
 }
 
 internal fun findKotlinCoroutinesProperty(project: Project): String {

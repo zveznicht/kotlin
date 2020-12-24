@@ -327,7 +327,7 @@ class KotlinFacetEditorGeneralTab(
 
         editor.initialize()
 
-        for (creator in KotlinFacetValidatorCreator.EP_NAME.getExtensions()) {
+        for (creator in KotlinFacetValidatorCreator.EP_NAME.extensions) {
             validatorsManager.registerValidator(creator.create(editor, validatorsManager, editorContext))
         }
 
@@ -431,7 +431,6 @@ class KotlinFacetEditorGeneralTab(
                     }
                 }
                 configuration.settings.targetPlatform = editor.getChosenPlatform()
-                updateMergedArguments()
             }
         }
     }

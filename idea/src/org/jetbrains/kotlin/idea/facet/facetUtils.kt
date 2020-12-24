@@ -30,6 +30,7 @@ import org.jetbrains.kotlin.idea.framework.KotlinSdkType
 import org.jetbrains.kotlin.idea.platform.tooling
 import org.jetbrains.kotlin.idea.util.application.runWriteAction
 import org.jetbrains.kotlin.idea.util.getProjectJdkTableSafe
+import org.jetbrains.kotlin.konan.file.File
 import org.jetbrains.kotlin.platform.*
 import org.jetbrains.kotlin.platform.compat.toNewPlatform
 import org.jetbrains.kotlin.platform.impl.JvmIdePlatformKind
@@ -80,6 +81,11 @@ fun KotlinFacetSettings.initializeIfNeeded(
         compilerArguments = targetPlatform.createArguments {
             targetPlatform.idePlatformKind.tooling.compilerArgumentsForProject(module.project)?.let { mergeBeans(it, this) }
             mergeBeans(commonArguments, this)
+            classpathParts = when (this) {
+                is K2JVMCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().also { classpath = null }
+                is K2MetadataCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().also { classpath = null }
+                else -> emptyList()
+            }
         }
         this.targetPlatform = targetPlatform
     }
@@ -175,6 +181,7 @@ fun KotlinFacet.configureFacet(
         compilerArguments = null
         targetPlatform = null
         compilerSettings = null
+        classpathParts = emptyList()
         isHmppEnabled = hmppEnabled
         dependsOnModuleNames = dependsOnList
         initializeIfNeeded(
@@ -318,6 +325,16 @@ private fun Module.configureSdkIfPossible(compilerArguments: CommonCompilerArgum
 private fun Module.hasNonOverriddenExternalSdkConfiguration(compilerArguments: CommonCompilerArguments): Boolean =
     hasExternalSdkConfiguration && (compilerArguments !is K2JVMCompilerArguments || compilerArguments.jdkHome == null)
 
+fun CommonCompilerArguments.cutClasspathPartsAndReturnAfter(block: CommonCompilerArguments.() -> Unit): List<String> {
+    val parts = when (this) {
+        is K2JVMCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().also { classpath = null }
+        is K2MetadataCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().also { classpath = null }
+        else -> emptyList()
+    }
+    block(this)
+    return parts
+}
+
 fun parseCompilerArgumentsToFacet(
     arguments: List<String>,
     defaultArguments: List<String>,
@@ -329,7 +346,17 @@ fun parseCompilerArgumentsToFacet(
     val defaultArgumentsBean = compilerArgumentsClass.newInstance()
     parseCommandLineArguments(defaultArguments, defaultArgumentsBean)
     parseCommandLineArguments(arguments, currentArgumentsBean)
-    applyCompilerArgumentsToFacet(currentArgumentsBean, defaultArgumentsBean, kotlinFacet, modelsProvider)
+    val classpathParts = currentArgumentsBean.cutClasspathPartsAndReturnAfter {
+        applyCompilerArgumentsToFacet(this, defaultArgumentsBean, kotlinFacet, modelsProvider)
+    }
+    kotlinFacet.configuration.settings.classpathParts = classpathParts
+}
+
+fun FlatCompilerArgumentsBucket.cutClasspathPartsAndReturnAfter(block: FlatCompilerArgumentsBucket.() -> Unit): List<String> {
+    val parts = classpathParts.toList()
+    classpathParts = emptyList()
+    block(this)
+    return parts
 }
 
 fun parseCompilerArgumentsBucketsToFacet(
@@ -403,7 +430,6 @@ fun applyCompilerArgumentsToFacet(
             this.apiLevel = languageLevel
         }
 
-        updateMergedArguments()
     }
 }
 

@@ -10,7 +10,9 @@ import org.jetbrains.jps.model.ex.JpsElementChildRoleBase
 import org.jetbrains.jps.model.java.JpsJavaExtensionService
 import org.jetbrains.jps.model.module.JpsModule
 import org.jetbrains.kotlin.cli.common.arguments.*
-import org.jetbrains.kotlin.config.*
+import org.jetbrains.kotlin.config.CompilerSettings
+import org.jetbrains.kotlin.config.KotlinFacetSettings
+import org.jetbrains.kotlin.config.KotlinModuleKind
 import org.jetbrains.kotlin.platform.TargetPlatform
 
 val JpsModule.kotlinFacet: JpsKotlinFacetModuleExtension?
@@ -94,7 +96,6 @@ private inline fun <reified T : CommonCompilerArguments> JpsModule.getCompilerAr
 
     val facetSettings = kotlinFacet?.settings ?: return projectSettingsCopy
     if (facetSettings.useProjectSettings) return projectSettingsCopy
-    facetSettings.updateMergedArguments()
     return facetSettings.mergedCompilerArguments as? T ?: projectSettingsCopy
 }
 

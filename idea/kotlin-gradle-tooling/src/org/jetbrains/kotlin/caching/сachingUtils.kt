@@ -11,7 +11,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.cast
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.declaredMemberProperties
 
-typealias FlatCompilerArgumentBySourceSet = Map<String, FlatArgsInfo>
+typealias FlatCompilerArgumentBySourceSet = MutableMap<String, FlatArgsInfo>
 
 const val COMMON_TOOL_ARGUMENTS_CLASS = "org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments"
 const val JS_DCE_ARGUMENTS_CLASS = "org.jetbrains.kotlin.cli.common.arguments.K2JSDceArguments"

@@ -11,7 +11,7 @@ typealias ClasspathArgumentsType = List<String>
 typealias RawCompilerArgumentsBucket = List<String>
 
 interface CompilerArgumentsBucket<T> : Serializable {
-    var classpathParts: Pair<T, List<T>>?
+    var classpathParts: List<T>
     val singleArguments: MutableMap<T, T>
     val multipleArguments: MutableMap<T, List<T>>
     val flagArguments: MutableList<T>
@@ -20,7 +20,7 @@ interface CompilerArgumentsBucket<T> : Serializable {
 }
 
 class FlatCompilerArgumentsBucket(
-    override var classpathParts: Pair<String, List<String>>? = null,
+    override var classpathParts: List<String> = emptyList(),
     override val singleArguments: MutableMap<String, String> = mutableMapOf(),
     override val multipleArguments: MutableMap<String, List<String>> = mutableMapOf(),
     override val flagArguments: MutableList<String> = mutableListOf(),
@@ -38,5 +38,14 @@ class FlatCompilerArgumentsBucket(
 }
 
 val FlatCompilerArgumentsBucket.isEmpty: Boolean
-    get() = classpathParts == null && singleArguments.isEmpty() && multipleArguments.isEmpty()
+    get() = classpathParts.isEmpty() && singleArguments.isEmpty() && multipleArguments.isEmpty()
             && flagArguments.isEmpty() && freeArgs.isEmpty() && internalArguments.isEmpty()
+
+fun FlatCompilerArgumentsBucket.clear() {
+    classpathParts = emptyList()
+    singleArguments.clear()
+    multipleArguments.clear()
+    flagArguments.clear()
+    internalArguments.clear()
+    freeArgs.clear()
+}

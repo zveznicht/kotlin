@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.cli.common.arguments.Argument
 import org.jetbrains.kotlin.cli.common.arguments.CommonToolArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2MetadataCompilerArguments
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 import java.io.File
 import kotlin.reflect.KMutableProperty1
@@ -48,13 +49,11 @@ fun CommonToolArguments.toFlatCompilerArguments(): FlatCompilerArgumentsBucket {
     val multipleArguments = multiplePropsToValues.map { multipleProperties[it.key] to it.value }
         .filter { it.first != null && it.second != null }.associate { it.first!!.value to it.second!!.toList() }
 
-    val classpathProperties = allPropertiesToArgumentAnnotationMap.keys.subtract(propertiesToArgumentAnnotationMap.keys)
-        .associateWith { allPropertiesToArgumentAnnotationMap[it] }
-    val classpathPropsToValues = classpathProperties.keys.mapNotNull { it.safeAs<KProperty1<CommonToolArguments, String?>>() }
-        .associateWith { it.get(this) }
-    val classpathArguments = classpathPropsToValues.map { classpathProperties[it.key] to it.value }
-        .singleOrNull { it.second != null }
-        ?.let { it.first!!.value to it.second!!.split(File.pathSeparator) }
+    val classpathArguments = when (this) {
+        is K2JVMCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty()
+        is K2MetadataCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty()
+        else -> emptyList()
+    }
 
     val freeArgs = CommonToolArguments::freeArgs.get(this)
     val internalArguments = CommonToolArguments::internalArguments.get(this).map { it.stringRepresentation }
@@ -109,6 +108,4 @@ fun FlatCompilerArgumentsBucket.extractFlagArgumentValue(
     property: KMutableProperty1<*, Boolean>
 ): Boolean? = extractFlagArgument(property)?.second
 
-fun FlatCompilerArgumentsBucket.extractClasspaths(): List<String>? = classpathParts?.second
-
-fun FlatCompilerArgumentsBucket.extractClasspathJoined(): String? = classpathParts?.second?.joinToString(File.pathSeparator)
+fun FlatCompilerArgumentsBucket.extractClasspathJoined(): String? = classpathParts.ifNotEmpty { joinToString(File.pathSeparator) }
