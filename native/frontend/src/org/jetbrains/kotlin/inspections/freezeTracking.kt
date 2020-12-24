@@ -6,10 +6,7 @@
 package org.jetbrains.kotlin.inspections
 
 import com.intellij.util.containers.MultiMap
-import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.descriptors.ValueDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.inspections.WellKnownNames.ATOMICS
 import org.jetbrains.kotlin.inspections.WellKnownNames.FROZEN_ANNOTATION_FQ_NAME
@@ -25,7 +22,6 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.hasBackingField
 import org.jetbrains.kotlin.resolve.scopes.receivers.ExpressionReceiver
 import org.jetbrains.kotlin.resolve.scopes.receivers.ImplicitReceiver
-import org.jetbrains.kotlin.resolve.scopes.receivers.ReceiverValue
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.typeUtil.supertypes
 import org.jetbrains.kotlin.utils.SmartList
@@ -80,14 +76,14 @@ class FreezableExtensionReceiverRoot(val explicitExtensionReceiver: ExpressionRe
     }
 }
 
-private typealias CapturedValues = Map<KtSimpleNameExpression, ValueDescriptor>
+private typealias CapturedValues = Map<KtExpression, ValueDescriptor>
 private typealias CapturedImplicitReceivers = Map<KtExpression, ImplicitReceiver>
 private typealias CaptureResults = Pair<CapturedValues, CapturedImplicitReceivers>
 
 @OptIn(ExperimentalStdlibApi::class)
 private fun valuesFromFreezableClosure(root: FreezableArgumentRoot, context: BindingContext): CaptureResults {
     val lambdas = mutableSetOf<FunctionDescriptor>()
-    val capturedValues = mutableMapOf<KtSimpleNameExpression, ValueDescriptor>()
+    val capturedValues = mutableMapOf<KtExpression, ValueDescriptor>()
     val capturedImplicitReceivers = mutableMapOf<KtExpression, ImplicitReceiver>()
 
     for (argumentExpression in root.getExpressions()) {
@@ -95,13 +91,25 @@ private fun valuesFromFreezableClosure(root: FreezableArgumentRoot, context: Bin
             // only care about properties that come from outside
             override fun visitSimpleNameExpression(expression: KtSimpleNameExpression) {
                 val referenceTarget = context[BindingContext.REFERENCE_TARGET, expression]
-                if (referenceTarget !is ValueDescriptor)
-                    return
-                val containingDeclarations = generateSequence(referenceTarget, DeclarationDescriptor::getContainingDeclaration)
-                if (containingDeclarations.none { it in lambdas }) {
-                    capturedValues[expression] = referenceTarget
+                if (referenceTarget is ValueDescriptor) {
+                    val containingDeclarations = generateSequence(referenceTarget, DeclarationDescriptor::getContainingDeclaration)
+                    if (containingDeclarations.none { it in lambdas }) {
+                        capturedValues[expression] = referenceTarget
+                    }
                 }
                 super.visitSimpleNameExpression(expression)
+            }
+
+            override fun visitThisExpression(expression: KtThisExpression) {
+                val call = context[BindingContext.CALL, expression]
+                val resolvedCall = context[BindingContext.RESOLVED_CALL, call] ?: return
+                val containingDeclarations =
+                    generateSequence(resolvedCall.candidateDescriptor, DeclarationDescriptor::getContainingDeclaration)
+                if (containingDeclarations.none { it in lambdas }) {
+                    val candidate = resolvedCall.candidateDescriptor
+                    if (candidate is ReceiverParameterDescriptor)
+                        capturedValues[expression] = candidate
+                }
             }
 
             // call's implicit receiver from outside of lambda is captured
@@ -190,7 +198,7 @@ fun findFirstMutableStateOwnerIfAny(
                     cache[type] = it
                 }
             }
-            variable.hasBackingField(context) -> {
+            variable.withBackingField(context) -> {
                 if (variable.type.constructor.declarationDescriptor?.fqNameSafe !in ATOMICS)
                     nextIteration.add(variable.type to variable)
             }
@@ -209,4 +217,16 @@ fun findFirstMutableStateOwnerIfAny(
 
     cache[type] = Stateless
     return Stateless
+}
+
+// monkey patched version from resolve util, source !is KotlinSourceElement for substituted type parameters
+// TODO: investigate if it's possible to improve that method instead (consider original descriptor also mb?)
+private fun PropertyDescriptor.withBackingField(bindingContext: BindingContext): Boolean {
+    return when (true) {
+        kind == CallableMemberDescriptor.Kind.FAKE_OVERRIDE -> overriddenDescriptors.any { it.hasBackingField(bindingContext) }
+        bindingContext[BindingContext.BACKING_FIELD_REQUIRED, this] -> true
+        compileTimeInitializer != null -> true
+        getter != null -> false
+        else -> true
+    }
 }

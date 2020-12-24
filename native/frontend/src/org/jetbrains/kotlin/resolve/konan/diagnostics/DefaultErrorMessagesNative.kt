@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.diagnostics.rendering.DefaultErrorMessages
 import org.jetbrains.kotlin.diagnostics.rendering.DiagnosticFactoryToRendererMap
 import org.jetbrains.kotlin.diagnostics.rendering.Renderer
 import org.jetbrains.kotlin.diagnostics.rendering.Renderers
+
 import org.jetbrains.kotlin.inspections.*
 
 private val DIAGNOSTIC_FACTORY_TO_RENDERER by lazy {
@@ -42,37 +43,13 @@ private val DIAGNOSTIC_FACTORY_TO_RENDERER by lazy {
             "@ThreadLocal is applicable only to property with backing field, to property with delegation or to objects"
         )
         put(ErrorsNative.INAPPLICABLE_THREAD_LOCAL_TOP_LEVEL, "@ThreadLocal is applicable only to top level declarations")
-        put(ErrorsNative.FREEZE_WARNING,
-            """Captured {1} with mutable state might cause unexpected IncorrectMutabilityException at runtime.
-                |Mutable state is accessible via reference chain:
-                |{0}.
-                |Consider avoiding mutable objects from being captured by thread-confined API.
+        put(
+            ErrorsNative.FREEZE_WARNING,
+            """Captured {1} with mutable state might cause unexpected IncorrectMutabilityException at runtime. 
+                |Consider avoiding mutable objects from being captured by thread-confined context.
             """.trimMargin(),
-            Renderer<MutabilityResult> { mutabilityResult ->
-                generateSequence(mutabilityResult) {
-                    if (it is TransitivelyStateful) it.cause else null
-                }.map {
-                    when (it) {
-                        is Stateful -> {
-                            if (it.property == null) {
-                                "mutable type ${it.type}"
-                            } else {
-                                "property '${it.property.name}' with type '${it.property.type}' from type '${it.type}'"
-                            }
-                        }
-                        is TransitivelyStateful -> {
-                            "property '${it.property.name}' with type '${it.property.type}' from type '${it.type}'"
-                        }
-                        else -> error("Sealed")
-                    }
-                }.joinToString(";\n")
-            },
-            Renderer<CapturedCandidate> {
-                when (it) {
-                    is CapturedImplicitReceiver -> "implicit receiver of type '${it.type}'"
-                    is CapturedValue -> "value of type '${it.type}'"
-                }
-            }
+            RenderersNative.MUTABILITY_RESULT,
+            RenderersNative.CAPTURED_MUTABLE,
         )
     }
 }

@@ -25,6 +25,8 @@ import org.jetbrains.kotlin.diagnostics.rendering.*;
 import org.jetbrains.kotlin.idea.KotlinIdeaAnalysisBundle;
 import org.jetbrains.kotlin.js.resolve.diagnostics.ErrorsJs;
 import org.jetbrains.kotlin.js.resolve.diagnostics.JsCallDataHtmlRenderer;
+import org.jetbrains.kotlin.resolve.konan.diagnostics.ErrorsNative;
+import org.jetbrains.kotlin.resolve.konan.diagnostics.RenderersNative;
 
 import java.net.URL;
 
@@ -208,6 +210,8 @@ public class IdeErrorMessages {
                 "html.method.contains.from.concurrenthashmap.may.have.unexpected.semantics.it.calls.containsvalue.instead.of.containskey.br.use.explicit.form.of.the.call.to.containskey.containsvalue.contains.or.cast.the.value.to.kotlin.collections.map.instead.br.see.https.youtrack.jetbrains.com.issue.kt.18053.for.more.details.html");
         MAP.put(CONCURRENT_HASH_MAP_CONTAINS_OPERATOR, MESSAGE_FOR_CONCURRENT_HASH_MAP_CONTAINS);
         MAP.put(CONCURRENT_HASH_MAP_CONTAINS_OPERATOR_ERROR, MESSAGE_FOR_CONCURRENT_HASH_MAP_CONTAINS);
+        MAP.put(ErrorsNative.FREEZE_WARNING, KotlinIdeaAnalysisBundle.htmlMessage("html.native.memory.model.inspection.message"),
+                RenderersNative.MUTABILITY_RESULT_HTML, RenderersNative.CAPTURED_MUTABLE);
 
         MAP.setImmutable();
     }
