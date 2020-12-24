@@ -1,0 +1,36 @@
+package
+
+public fun </*0*/ R> background(/*0*/ @kotlin.native.concurrent.Frozen param: kotlin.Any? = ..., /*1*/ @kotlin.native.concurrent.Frozen block: () -> R): R
+public fun test(): kotlin.Unit
+
+public open class Base {
+    public constructor Base()
+    public open val i: kotlin.Int = 42
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+public final class Immutable : Base {
+    public constructor Immutable()
+    public open override /*1*/ /*fake_override*/ val i: kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+package kotlin {
+
+    package kotlin.native {
+
+        package kotlin.native.concurrent {
+
+            @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.VALUE_PARAMETER}) @kotlin.annotation.Retention(value = AnnotationRetention.BINARY) public final annotation class Frozen : kotlin.Annotation {
+                public constructor Frozen()
+                public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+                public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+                public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+            }
+        }
+    }
+}

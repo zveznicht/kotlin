@@ -1,0 +1,33 @@
+package
+
+public fun </*0*/ R> background(/*0*/ @kotlin.native.concurrent.Frozen param: kotlin.Any? = ..., /*1*/ @kotlin.native.concurrent.Frozen block: () -> R): R
+public inline fun </*0*/ R> run(/*0*/ block: () -> R): R
+public inline fun </*0*/ T, /*1*/ R> with(/*0*/ receiver: T, /*1*/ block: T.() -> R): R
+public inline fun </*0*/ T, /*1*/ R> T.let(/*0*/ block: (T) -> R): R
+public inline fun </*0*/ T, /*1*/ R> T.run(/*0*/ block: T.() -> R): R
+
+public final class Frozen {
+    public constructor Frozen(/*0*/ immutable: kotlin.Int, /*1*/ mutable: kotlin.Int = ...)
+    public final val immutable: kotlin.Int
+    public final var mutable: kotlin.Int
+    public final fun doSomething(): kotlin.Unit
+    public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+    public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+    public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+}
+
+package kotlin {
+
+    package kotlin.native {
+
+        package kotlin.native.concurrent {
+
+            @kotlin.annotation.Target(allowedTargets = {AnnotationTarget.VALUE_PARAMETER}) @kotlin.annotation.Retention(value = AnnotationRetention.BINARY) public final annotation class Frozen : kotlin.Annotation {
+                public constructor Frozen()
+                public open override /*1*/ /*fake_override*/ fun equals(/*0*/ other: kotlin.Any?): kotlin.Boolean
+                public open override /*1*/ /*fake_override*/ fun hashCode(): kotlin.Int
+                public open override /*1*/ /*fake_override*/ fun toString(): kotlin.String
+            }
+        }
+    }
+}

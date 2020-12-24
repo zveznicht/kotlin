@@ -52,4 +52,107 @@ public class DiagnosticsNativeTestGenerated extends AbstractDiagnosticsNativeTes
     public void testTopLevelSingleton() throws Exception {
         runTest("compiler/testData/diagnostics/nativeTests/topLevelSingleton.kt");
     }
+
+    @TestMetadata("compiler/testData/diagnostics/nativeTests/mutabilityInspection")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class MutabilityInspection extends AbstractDiagnosticsNativeTest {
+        private void runTest(String testDataFilePath) throws Exception {
+            KotlinTestUtils.runTest(this::doTest, this, testDataFilePath);
+        }
+
+        public void testAllFilesPresentInMutabilityInspection() throws Exception {
+            KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/nativeTests/mutabilityInspection"), Pattern.compile("^(.+)\\.kt$"), null, true);
+        }
+
+        @TestMetadata("capturedExplicitThis.kt")
+        public void testCapturedExplicitThis() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/capturedExplicitThis.kt");
+        }
+
+        @TestMetadata("capturedVariableWithFunctionalType.kt")
+        public void testCapturedVariableWithFunctionalType() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/capturedVariableWithFunctionalType.kt");
+        }
+
+        @TestMetadata("contextFunctions.kt")
+        public void testContextFunctions() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/contextFunctions.kt");
+        }
+
+        @TestMetadata("convolutedReferenceChain.kt")
+        public void testConvolutedReferenceChain() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/convolutedReferenceChain.kt");
+        }
+
+        @TestMetadata("interfaceAndInheritors.kt")
+        public void testInterfaceAndInheritors() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/interfaceAndInheritors.kt");
+        }
+
+        @TestMetadata("mutableFieldUnderTypeParameter.kt")
+        public void testMutableFieldUnderTypeParameter() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/mutableFieldUnderTypeParameter.kt");
+        }
+
+        @TestMetadata("noDiagnosticForLocalObject.kt")
+        public void testNoDiagnosticForLocalObject() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/noDiagnosticForLocalObject.kt");
+        }
+
+        @TestMetadata("noDiagnosticForPropertyWithoutBackingField.kt")
+        public void testNoDiagnosticForPropertyWithoutBackingField() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/noDiagnosticForPropertyWithoutBackingField.kt");
+        }
+
+        @TestMetadata("noDiagnosticIfReceiverIsNotCaptured.kt")
+        public void testNoDiagnosticIfReceiverIsNotCaptured() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/noDiagnosticIfReceiverIsNotCaptured.kt");
+        }
+
+        @TestMetadata("noDiagnosticOnDifferrentThis.kt")
+        public void testNoDiagnosticOnDifferrentThis() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/noDiagnosticOnDifferrentThis.kt");
+        }
+
+        @TestMetadata("noDiagnosticOnVal.kt")
+        public void testNoDiagnosticOnVal() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/noDiagnosticOnVal.kt");
+        }
+
+        @TestMetadata("overridenVarInSuper.kt")
+        public void testOverridenVarInSuper() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/overridenVarInSuper.kt");
+        }
+
+        @TestMetadata("passDirectlyAsArgument.kt")
+        public void testPassDirectlyAsArgument() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/passDirectlyAsArgument.kt");
+        }
+
+        @TestMetadata("receiverArgument.kt")
+        public void testReceiverArgument() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/receiverArgument.kt");
+        }
+
+        @TestMetadata("referenceChainToMutableState.kt")
+        public void testReferenceChainToMutableState() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/referenceChainToMutableState.kt");
+        }
+
+        @TestMetadata("sealedClasses.kt")
+        public void testSealedClasses() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/sealedClasses.kt");
+        }
+
+        @TestMetadata("simpleCapturedVariable.kt")
+        public void testSimpleCapturedVariable() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/simpleCapturedVariable.kt");
+        }
+
+        @TestMetadata("substitutedMutableGenericProperty.kt")
+        public void testSubstitutedMutableGenericProperty() throws Exception {
+            runTest("compiler/testData/diagnostics/nativeTests/mutabilityInspection/substitutedMutableGenericProperty.kt");
+        }
+    }
 }
