@@ -339,8 +339,8 @@ internal fun adjustClasspath(kotlinFacet: KotlinFacet, dependencyClasspath: List
         runIf(compilerArguments is K2JVMCompilerArguments) {
             val fullClasspath = classpathParts
             if (fullClasspath.isEmpty()) return
-            val newClasspath = fullClasspath - dependencyClasspath
-            classpathParts = if (newClasspath.isNotEmpty()) newClasspath else emptyList()
+            val newClasspath = fullClasspath.toList() - dependencyClasspath
+            classpathParts = if (newClasspath.isNotEmpty()) newClasspath.toTypedArray() else emptyArray()
         }
     }
 }

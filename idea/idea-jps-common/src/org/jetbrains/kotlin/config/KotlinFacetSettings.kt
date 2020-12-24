@@ -211,9 +211,13 @@ class KotlinFacetSettings {
             // Avoid rewriting facet's classpathParts by assigning from AbstractGradleImportHandlers
             if (field !== value) {
                 classpathParts = when (value) {
-                    is K2JVMCompilerArguments -> value.classpath?.split(File.pathSeparator).orEmpty().also { value.classpath = null }
-                    is K2MetadataCompilerArguments -> value.classpath?.split(File.pathSeparator).orEmpty().also { value.classpath = null }
-                    else -> emptyList()
+                    is K2JVMCompilerArguments -> value.classpath?.split(File.pathSeparator).orEmpty().toTypedArray().also {
+                        value.classpath = null
+                    }
+                    is K2MetadataCompilerArguments -> value.classpath?.split(File.pathSeparator).orEmpty().toTypedArray().also {
+                        value.classpath = null
+                    }
+                    else -> emptyArray()
                 }
             }
             field = value?.unfrozen() as CommonCompilerArguments?
@@ -318,7 +322,7 @@ class KotlinFacetSettings {
         }
 
     var pureKotlinSourceFolders: List<String> = emptyList()
-    var classpathParts: List<String> = emptyList()
+    var classpathParts: Array<String> = emptyArray()
 }
 
 interface KotlinFacetSettingsProvider {

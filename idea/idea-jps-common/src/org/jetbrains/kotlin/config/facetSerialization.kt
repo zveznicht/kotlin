@@ -189,8 +189,8 @@ private fun readV3Config(element: Element): KotlinFacetSettings = readV2AndLater
             XmlSerializer.deserializeInto(it, el)
             it.detectVersionAutoAdvance()
             when (it) {
-                is K2JVMCompilerArguments -> classpathParts = it.classpath?.split(File.pathSeparator).orEmpty()
-                is K2MetadataCompilerArguments -> classpathParts = it.classpath?.split(File.pathSeparator).orEmpty()
+                is K2JVMCompilerArguments -> classpathParts = it.classpath?.split(File.pathSeparator).orEmpty().toTypedArray()
+                is K2MetadataCompilerArguments -> classpathParts = it.classpath?.split(File.pathSeparator).orEmpty().toTypedArray()
             }
         }
     }
@@ -199,7 +199,7 @@ private fun readV3Config(element: Element): KotlinFacetSettings = readV2AndLater
 private fun readLatestConfig(element: Element): KotlinFacetSettings = readV2AndLaterConfig(element) {
     val args = targetPlatform?.let { readCompilerArgumentsBucket(element)?.toCompilerArguments(it) }
         ?.also { it.detectVersionAutoAdvance() }
-    readElementsList(element, "classpathParts", "part")?.let { classpathParts = it }
+    readElementsList(element, "classpathParts", "part")?.let { classpathParts = it.toTypedArray() }
     args
 }
 
@@ -398,7 +398,7 @@ private fun CommonCompilerArguments.writeToV4Facet(element: Element): Element = 
 
 private fun KotlinFacetSettings.writeLatestConfig(element: Element) {
     writeV3AndLaterConfig(element) {
-        saveElementsList(element, classpathParts, "classpathParts", "part")
+        saveElementsList(element, classpathParts.toList(), "classpathParts", "part")
         writeToV4Facet(element)
     }
 }

@@ -82,9 +82,9 @@ fun KotlinFacetSettings.initializeIfNeeded(
             targetPlatform.idePlatformKind.tooling.compilerArgumentsForProject(module.project)?.let { mergeBeans(it, this) }
             mergeBeans(commonArguments, this)
             classpathParts = when (this) {
-                is K2JVMCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().also { classpath = null }
-                is K2MetadataCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().also { classpath = null }
-                else -> emptyList()
+                is K2JVMCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().toTypedArray().also { classpath = null }
+                is K2MetadataCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().toTypedArray().also { classpath = null }
+                else -> emptyArray()
             }
         }
         this.targetPlatform = targetPlatform
@@ -181,7 +181,7 @@ fun KotlinFacet.configureFacet(
         compilerArguments = null
         targetPlatform = null
         compilerSettings = null
-        classpathParts = emptyList()
+        classpathParts = emptyArray()
         isHmppEnabled = hmppEnabled
         dependsOnModuleNames = dependsOnList
         initializeIfNeeded(
@@ -325,11 +325,11 @@ private fun Module.configureSdkIfPossible(compilerArguments: CommonCompilerArgum
 private fun Module.hasNonOverriddenExternalSdkConfiguration(compilerArguments: CommonCompilerArguments): Boolean =
     hasExternalSdkConfiguration && (compilerArguments !is K2JVMCompilerArguments || compilerArguments.jdkHome == null)
 
-fun CommonCompilerArguments.cutClasspathPartsAndReturnAfter(block: CommonCompilerArguments.() -> Unit): List<String> {
+fun CommonCompilerArguments.cutClasspathPartsAndReturnAfter(block: CommonCompilerArguments.() -> Unit): Array<String> {
     val parts = when (this) {
-        is K2JVMCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().also { classpath = null }
-        is K2MetadataCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().also { classpath = null }
-        else -> emptyList()
+        is K2JVMCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().toTypedArray().also { classpath = null }
+        is K2MetadataCompilerArguments -> classpath?.split(File.pathSeparator).orEmpty().toTypedArray().also { classpath = null }
+        else -> emptyArray()
     }
     block(this)
     return parts
@@ -352,8 +352,8 @@ fun parseCompilerArgumentsToFacet(
     kotlinFacet.configuration.settings.classpathParts = classpathParts
 }
 
-fun FlatCompilerArgumentsBucket.cutClasspathPartsAndReturnAfter(block: FlatCompilerArgumentsBucket.() -> Unit): List<String> {
-    val parts = classpathParts.toList()
+fun FlatCompilerArgumentsBucket.cutClasspathPartsAndReturnAfter(block: FlatCompilerArgumentsBucket.() -> Unit): Array<String> {
+    val parts = classpathParts.toTypedArray()
     classpathParts = emptyList()
     block(this)
     return parts
