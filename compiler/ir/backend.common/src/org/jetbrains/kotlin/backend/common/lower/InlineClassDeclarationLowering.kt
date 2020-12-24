@@ -16,10 +16,7 @@ import org.jetbrains.kotlin.ir.builders.*
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.transformStatement
-import org.jetbrains.kotlin.ir.util.defaultType
-import org.jetbrains.kotlin.ir.util.irCall
-import org.jetbrains.kotlin.ir.util.isReal
-import org.jetbrains.kotlin.ir.util.parentAsClass
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
 import org.jetbrains.kotlin.name.Name
@@ -77,6 +74,8 @@ class InlineClassLowering(val context: CommonBackendContext) {
             val initFunction = getOrCreateStaticMethod(irConstructor).also {
                 it.returnType = inlineClassType
             }
+            var delegatingCtorCall: IrDelegatingConstructorCall? = null
+            var setMemberField: IrSetField? = null
 
             initFunction.body = context.irFactory.createBlockBody(UNDEFINED_OFFSET, UNDEFINED_OFFSET) {
                 val origParameterSymbol = irConstructor.valueParameters.single().symbol
@@ -87,16 +86,22 @@ class InlineClassLowering(val context: CommonBackendContext) {
                         type = klass.defaultType,
                     )
 
-                    (irConstructor.body as IrBlockBody).statements.forEach { statement ->
+                    (irConstructor.body as IrBlockBody).deepCopyWithSymbols(initFunction).statements.forEach { statement ->
                         +statement.transformStatement(object : IrElementTransformerVoid() {
                             override fun visitDelegatingConstructorCall(expression: IrDelegatingConstructorCall): IrExpression {
+                                delegatingCtorCall = expression.deepCopyWithSymbols()
                                 return builder.irBlock {}  // Removing delegating constructor call
                             }
 
                             override fun visitSetField(expression: IrSetField): IrExpression {
+                                val isMemberFieldSet = expression.symbol.owner.parent == klass
+                                if (isMemberFieldSet) {
+                                    setMemberField = expression.deepCopyWithSymbols()
+                                }
                                 expression.transformChildrenVoid()
-                                if (expression.symbol.owner.parent == klass)
+                                if (isMemberFieldSet) {
                                     return expression.value
+                                }
                                 return expression
                             }
 
@@ -119,6 +124,11 @@ class InlineClassLowering(val context: CommonBackendContext) {
                     }
                     +irReturn(unboxedInlineClassValue())
                 }.statements
+            }
+
+            irConstructor.body = context.irFactory.createBlockBody(UNDEFINED_OFFSET, UNDEFINED_OFFSET) {
+                statements += delegatingCtorCall!!
+                statements += setMemberField!!
             }
 
             return listOf(irConstructor, initFunction)
