@@ -5,12 +5,14 @@
 
 package org.jetbrains.kotlin.idea.fir.low.level.api.element.builder
 
+import org.jetbrains.kotlin.fir.ThreadSafeMutableState
 import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.expressions.FirStatement
 import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.resolve.FirTowerDataContext
 import org.jetbrains.kotlin.psi.KtElement
 
+@ThreadSafeMutableState
 class FirTowerDataContextCollector {
     private val state: MutableMap<KtElement, FirTowerDataContext> = mutableMapOf()
 
