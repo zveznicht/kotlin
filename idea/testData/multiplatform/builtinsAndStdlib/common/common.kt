@@ -1,3 +1,5 @@
+// !DIAGNOSTICS: -UNUSED_VARIABLE
+
 package mpp
 
 import kotlin.reflect.KCallable
@@ -8,7 +10,7 @@ fun some() {
     val callableRef: KCallable<*> = ::commonFun
     callableRef.name
     // should be unresolved
-    callableRef.<error descr="[UNRESOLVED_REFERENCE] Unresolved reference: call" textAttributesKey="WRONG_REFERENCES_ATTRIBUTES">call</error>()
+    callableRef.<!UNRESOLVED_REFERENCE!>call<!>()
 }
 
 fun commonFun() {

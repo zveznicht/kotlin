@@ -1,8 +1,10 @@
+// !DIAGNOSTICS: -UNUSED_PARAMETER -NO_REFLECTION_IN_CLASS_PATH
+
 package mpp
 
 import kotlin.reflect.KAnnotatedElement
 import kotlin.reflect.KCallable
-import java.lang.Cloneable
+import <!PLATFORM_CLASS_MAPPED_TO_KOTLIN!>java.lang.Cloneable<!>
 
 fun foo(x: KAnnotatedElement): Boolean = true
 
@@ -15,7 +17,7 @@ fun jvmFun() {
 
 fun getKCallable(): KCallable<*> = ::jvmFun
 
-fun main() {
+fun <!LINE_MARKER!>main<!>() {
     val ref = ::jvmFun
     val typedRef: KCallable<*> = getKCallable()
     ref.call()
