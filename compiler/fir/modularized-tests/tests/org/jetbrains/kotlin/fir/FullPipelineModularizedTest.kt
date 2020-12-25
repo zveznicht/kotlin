@@ -61,7 +61,9 @@ class FullPipelineModularizedTest : AbstractModularizedTest() {
     override fun afterPass(pass: Int) {
         createReport(finalReport = pass == PASSES - 1)
         require(totalModules.isNotEmpty()) { "No modules were analyzed" }
-        require(okModules.isNotEmpty()) { "All of $totalModules is failed" }
+        require(okModules.size == totalModules.size) {
+            "Some of $totalModules are failed\n" + buildString { appendModuleReport() }
+        }
     }
 
     private fun createReport(finalReport: Boolean) {
@@ -134,40 +136,48 @@ class FullPipelineModularizedTest : AbstractModularizedTest() {
 
         if (finalReport) {
             with(stream) {
-                println()
-                println("SUCCESSFUL MODULES")
-                println("------------------")
-                println()
-                for (okModule in okModules) {
-                    println("${okModule.qualifiedName}: ${okModule.targetInfo}")
-                }
-                println()
-                println("COMPILATION ERRORS")
-                println("------------------")
-                println()
-                for (errorModule in errorModules.filter { it.jvmInternalError == null }) {
-                    println("${errorModule.qualifiedName}: ${errorModule.targetInfo}")
-                    println("        1st error: ${errorModule.compilationError}")
-                }
-                println()
-                println("JVM INTERNAL ERRORS")
-                println("------------------")
-                println()
-                for (errorModule in errorModules.filter { it.jvmInternalError != null }) {
-                    println("${errorModule.qualifiedName}: ${errorModule.targetInfo}")
-                    println("        1st error: ${errorModule.jvmInternalError?.shorten()}")
-                }
-                val crashedModuleGroups = crashedModules.groupBy { it.exceptionMessage.take(60) }
-                for (modules in crashedModuleGroups.values) {
-                    println()
-                    println(modules.first().exceptionMessage)
-                    println("--------------------------------------------------------")
-                    println()
-                    for (module in modules) {
-                        println("${module.qualifiedName}: ${module.targetInfo}")
-                        println("        ${module.exceptionMessage}")
+                println(
+                    buildString {
+                        appendModuleReport()
                     }
-                }
+                )
+            }
+        }
+    }
+
+    private fun StringBuilder.appendModuleReport() {
+        appendLine()
+        appendLine("SUCCESSFUL MODULES")
+        appendLine("------------------")
+        appendLine()
+        for (okModule in okModules) {
+            appendLine("${okModule.qualifiedName}: ${okModule.targetInfo}")
+        }
+        appendLine()
+        appendLine("COMPILATION ERRORS")
+        appendLine("------------------")
+        appendLine()
+        for (errorModule in errorModules.filter { it.jvmInternalError == null }) {
+            appendLine("${errorModule.qualifiedName}: ${errorModule.targetInfo}")
+            appendLine("        1st error: ${errorModule.compilationError}")
+        }
+        appendLine()
+        appendLine("JVM INTERNAL ERRORS")
+        appendLine("------------------")
+        appendLine()
+        for (errorModule in errorModules.filter { it.jvmInternalError != null }) {
+            appendLine("${errorModule.qualifiedName}: ${errorModule.targetInfo}")
+            appendLine("        1st error: ${errorModule.jvmInternalError?.shorten()}")
+        }
+        val crashedModuleGroups = crashedModules.groupBy { it.exceptionMessage.take(60) }
+        for (modules in crashedModuleGroups.values) {
+            appendLine()
+            appendLine(modules.first().exceptionMessage)
+            appendLine("--------------------------------------------------------")
+            appendLine()
+            for (module in modules) {
+                appendLine("${module.qualifiedName}: ${module.targetInfo}")
+                appendLine("        ${module.exceptionMessage}")
             }
         }
     }
