@@ -449,21 +449,34 @@ class EnumEntryCreateGetInstancesFunsLowering(val context: JsCommonBackendContex
 private val IrClass.isInstantiableEnum: Boolean
     get() = isEnumClass && !isExpect && !isEffectivelyExternal()
 
+private val IrDeclaration.parentEnumClassOrNull: IrClass?
+    get() = parents.filterIsInstance<IrClass>().firstOrNull { it.isInstantiableEnum }
+
 class EnumSyntheticFunctionsLowering(val context: JsCommonBackendContext) : DeclarationTransformer {
 
     private val IrEnumEntry.getInstanceFun by context.mapping.enumEntryToGetInstanceFun
     private val IrClass.initEntryInstancesFun: IrSimpleFunction? by context.mapping.enumClassToInitEntryInstancesFun
 
     override fun transformFlat(declaration: IrDeclaration): List<IrDeclaration>? {
+        if (declaration is IrConstructor && declaration.isPrimary) {
+            declaration.parentEnumClassOrNull?.let { enumClass ->
+                if (declaration.parentClassOrNull?.isCompanion == true) {
+                    (declaration.body as? IrBlockBody)?.statements?.addAll(0, context.createIrBuilder(declaration.symbol).irBlockBody {
+                        +irCall(enumClass.initEntryInstancesFun!!)
+                    }.statements)
+                }
+            }
+        }
+
         if (declaration is IrSimpleFunction) {
             (declaration.body as? IrSyntheticBody)?.let { body ->
                 val kind = body.kind
 
-                declaration.parents.filterIsInstance<IrClass>().firstOrNull { it.isInstantiableEnum }?.let { irClass ->
+                declaration.parentEnumClassOrNull?.let { enumClass ->
                     declaration.body = context.irFactory.createBlockBody(UNDEFINED_OFFSET, UNDEFINED_OFFSET) {
                         statements += when (kind) {
-                            IrSyntheticBodyKind.ENUM_VALUES -> createEnumValuesBody(declaration, irClass)
-                            IrSyntheticBodyKind.ENUM_VALUEOF -> createEnumValueOfBody(declaration, irClass)
+                            IrSyntheticBodyKind.ENUM_VALUES -> createEnumValuesBody(declaration, enumClass)
+                            IrSyntheticBodyKind.ENUM_VALUEOF -> createEnumValueOfBody(declaration, enumClass)
                         }.statements
                     }
                 }
