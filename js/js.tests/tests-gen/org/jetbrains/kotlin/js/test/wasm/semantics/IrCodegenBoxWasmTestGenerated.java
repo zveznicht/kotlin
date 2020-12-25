@@ -4651,6 +4651,11 @@ public class IrCodegenBoxWasmTestGenerated extends AbstractIrCodegenBoxWasmTest 
             runTest("compiler/testData/codegen/box/enum/inclassobj.kt");
         }
 
+        @TestMetadata("initEntriesInCompanionObject.kt")
+        public void testInitEntriesInCompanionObject() throws Exception {
+            runTest("compiler/testData/codegen/box/enum/initEntriesInCompanionObject.kt");
+        }
+
         @TestMetadata("initEntriesInValueOf.kt")
         public void testInitEntriesInValueOf() throws Exception {
             runTest("compiler/testData/codegen/box/enum/initEntriesInValueOf.kt");
