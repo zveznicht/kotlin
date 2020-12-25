@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.idea.frontend.api.ValidityToken
 import org.jetbrains.kotlin.idea.frontend.api.components.KtReferenceShortener
 import org.jetbrains.kotlin.idea.frontend.api.components.ShortenCommand
 import org.jetbrains.kotlin.idea.frontend.api.fir.KtFirAnalysisSession
+import org.jetbrains.kotlin.idea.util.addImportToFile
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -197,38 +198,13 @@ private class ShortenCommandImpl(
         ApplicationManager.getApplication().assertWriteAccessAllowed()
 
         for (nameToImport in importsToAdd) {
-            addImport(targetFile.project, targetFile, nameToImport)
+            addImportToFile(targetFile.project, targetFile, nameToImport)
         }
 
         for (typePointer in typesToShorten) {
             val type = typePointer.element ?: continue
             type.deleteQualifier()
         }
-    }
-}
-
-// Copy from org.jetbrains.kotlin.idea.util.ImportInsertHelperImpl.Companion.addImport without sorting
-private fun addImport(project: Project, file: KtFile, fqName: FqName, allUnder: Boolean = false, alias: Name? = null): KtImportDirective {
-    val importPath = ImportPath(fqName, allUnder, alias)
-
-    val psiFactory = KtPsiFactory(project)
-    if (file is KtCodeFragment) {
-        val newDirective = psiFactory.createImportDirective(importPath)
-        file.addImportsFromString(newDirective.text)
-        return newDirective
-    }
-
-    val importList = file.importList
-        ?: error("Trying to insert import $fqName into a file ${file.name} of type ${file::class.java} with no import list.")
-
-    val newDirective = psiFactory.createImportDirective(importPath)
-    val imports = importList.imports
-    return if (imports.isEmpty()) {
-        importList.add(psiFactory.createNewLine())
-        importList.add(newDirective) as KtImportDirective
-    } else {
-        val insertAfter = imports.last()
-        importList.addAfter(newDirective, insertAfter) as KtImportDirective
     }
 }
 

@@ -8,6 +8,7 @@ dependencies {
     compile(project(":idea:idea-frontend-independent"))
     compile(project(":idea:idea-frontend-api"))
     compile(project(":idea:idea-core"))
+    compile(project(":idea:formatter"))
     compile(project(":compiler:fir:fir2ir"))
     compile(project(":compiler:ir.tree"))
     compile(project(":compiler:fir:resolve"))
