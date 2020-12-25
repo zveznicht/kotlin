@@ -183,6 +183,9 @@ internal class KtFirReferenceShortener(
             val positionScopes = findScopesAtPosition(wholeTypeElement, namesToImport) ?: return
 
             for ((classId, typeElement) in allClassIds.zip(allTypeElements)) {
+                // if qualifier is null, then this type have no package and thus cannot be shortened
+                if (typeElement.qualifier == null) return
+
                 val firstFoundClass = findFirstClassifierInScopesByName(positionScopes, classId.shortClassName)?.classId
 
                 if (firstFoundClass == classId) {
