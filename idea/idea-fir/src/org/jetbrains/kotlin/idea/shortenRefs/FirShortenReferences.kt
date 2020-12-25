@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.idea.frontend.api.symbols.KtPackageSymbol
 import org.jetbrains.kotlin.idea.refactoring.fqName.getKotlinFqName
 import org.jetbrains.kotlin.idea.references.KtSimpleNameReference
 import org.jetbrains.kotlin.idea.references.mainReference
-import org.jetbrains.kotlin.idea.util.ImportInsertHelperImpl
+import org.jetbrains.kotlin.idea.util.addImportToFile
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.createSmartPointer
@@ -201,7 +201,7 @@ object FirShortenReferences {
                         command.element?.deleteQualifier()
                     }
                     is AddImport -> {
-                        ImportInsertHelperImpl.addImport(file.project, file, command.nameToImport)
+                        addImportToFile(file.project, file, command.nameToImport)
                     }
                 }
             }

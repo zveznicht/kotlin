@@ -1,0 +1,49 @@
+/*
+ * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
+ */
+
+package org.jetbrains.kotlin.idea.util
+
+import com.intellij.openapi.project.Project
+import org.jetbrains.kotlin.idea.core.formatter.KotlinCodeStyleSettings
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.psi.KtCodeFragment
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.psi.KtPsiFactory
+import org.jetbrains.kotlin.resolve.ImportPath
+
+fun getImportsComparator(project: Project): Comparator<ImportPath> =
+    ImportPathComparator(KotlinCodeStyleSettings.getInstance(project).PACKAGES_IMPORT_LAYOUT)
+
+fun addImportToFile(project: Project, file: KtFile, fqName: FqName, allUnder: Boolean = false, alias: Name? = null): KtImportDirective {
+    val importPath = ImportPath(fqName, allUnder, alias)
+
+    val psiFactory = KtPsiFactory(project)
+    if (file is KtCodeFragment) {
+        val newDirective = psiFactory.createImportDirective(importPath)
+        file.addImportsFromString(newDirective.text)
+        return newDirective
+    }
+
+    val importList = file.importList
+        ?: error("Trying to insert import $fqName into a file ${file.name} of type ${file::class.java} with no import list.")
+
+    val importPathComparator = getImportsComparator(project)
+
+    val newDirective = psiFactory.createImportDirective(importPath)
+    val imports = importList.imports
+    return if (imports.isEmpty()) {
+        importList.add(psiFactory.createNewLine())
+        importList.add(newDirective) as KtImportDirective
+    } else {
+        val insertAfter = imports.lastOrNull {
+            val directivePath = it.importPath
+            directivePath != null && importPathComparator.compare(directivePath, importPath) <= 0
+        }
+
+        importList.addAfter(newDirective, insertAfter) as KtImportDirective
+    }
+}

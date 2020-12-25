@@ -12,7 +12,7 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.diagnostics.Diagnostic
 import org.jetbrains.kotlin.idea.quickfix.KotlinQuickFixAction
 import org.jetbrains.kotlin.idea.quickfix.KotlinSingleIntentionActionFactory
-import org.jetbrains.kotlin.idea.util.ImportInsertHelperImpl
+import org.jetbrains.kotlin.idea.util.addImportToFile
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlinx.serialization.compiler.diagnostic.SerializationErrors
 import org.jetbrains.kotlinx.serialization.compiler.resolve.SerializationAnnotations
@@ -22,7 +22,7 @@ internal class AddKotlinxSerializationTransientImportQuickFix(expression: PsiEle
     override fun invoke(project: Project, editor: Editor?, file: KtFile) {
         // Do not use Helper itself because it does not insert import on conflict;
         // so it will always fail because k.jvm.Transient is always in auto-import
-        ImportInsertHelperImpl.addImport(project, file, SerializationAnnotations.serialTransientFqName, allUnder = false)
+        addImportToFile(project, file, SerializationAnnotations.serialTransientFqName, allUnder = false)
     }
 
     override fun getFamilyName(): String = text

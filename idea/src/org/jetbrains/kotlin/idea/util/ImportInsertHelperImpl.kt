@@ -19,7 +19,6 @@ import org.jetbrains.kotlin.idea.refactoring.fqName.isImported
 import org.jetbrains.kotlin.idea.resolve.getLanguageVersionSettings
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.DescriptorUtils
 import org.jetbrains.kotlin.resolve.ImportPath
@@ -43,7 +42,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
         get() = KotlinCodeStyleSettings.getInstance(project)
 
     override val importSortComparator: Comparator<ImportPath>
-        get() = ImportPathComparator(codeStyleSettings.PACKAGES_IMPORT_LAYOUT)
+        get() = getImportsComparator(project)
 
     override fun isImportedWithDefault(importPath: ImportPath, contextFile: KtFile): Boolean {
         val languageVersionSettings = contextFile.getResolutionFacade().getLanguageVersionSettings()
@@ -384,40 +383,7 @@ class ImportInsertHelperImpl(private val project: Project) : ImportInsertHelper(
             this.getImportableTargets(resolutionFacade.analyze(this, BodyResolveMode.PARTIAL))
 
         private fun addImport(fqName: FqName, allUnder: Boolean): KtImportDirective = actionRunningMode.runAction {
-            addImport(project, file, fqName, allUnder)
-        }
-    }
-
-    companion object {
-        fun addImport(project: Project, file: KtFile, fqName: FqName, allUnder: Boolean = false, alias: Name? = null): KtImportDirective {
-            val importPath = ImportPath(fqName, allUnder, alias)
-
-            val psiFactory = KtPsiFactory(project)
-            if (file is KtCodeFragment) {
-                val newDirective = psiFactory.createImportDirective(importPath)
-                file.addImportsFromString(newDirective.text)
-                return newDirective
-            }
-
-            val importList = file.importList
-            if (importList != null) {
-                val newDirective = psiFactory.createImportDirective(importPath)
-                val imports = importList.imports
-                return if (imports.isEmpty()) { //TODO: strange hack
-                    importList.add(psiFactory.createNewLine())
-                    importList.add(newDirective) as KtImportDirective
-                } else {
-                    val importPathComparator = ImportInsertHelperImpl(project).importSortComparator
-                    val insertAfter = imports
-                        .lastOrNull {
-                            val directivePath = it.importPath
-                            directivePath != null && importPathComparator.compare(directivePath, importPath) <= 0
-                        }
-                    importList.addAfter(newDirective, insertAfter) as KtImportDirective
-                }
-            } else {
-                error("Trying to insert import $fqName into a file ${file.name} of type ${file::class.java} with no import list.")
-            }
+            addImportToFile(project, file, fqName, allUnder)
         }
     }
 }

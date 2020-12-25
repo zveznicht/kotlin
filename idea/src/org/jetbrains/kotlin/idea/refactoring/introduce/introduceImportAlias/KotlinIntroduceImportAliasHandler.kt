@@ -21,16 +21,12 @@ import org.jetbrains.kotlin.idea.core.util.CodeInsightUtils
 import org.jetbrains.kotlin.idea.imports.importableFqName
 import org.jetbrains.kotlin.idea.KotlinBundle
 import org.jetbrains.kotlin.idea.refactoring.selectElement
-import org.jetbrains.kotlin.idea.references.KtReference
 import org.jetbrains.kotlin.idea.references.findPsiDeclarations
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.idea.references.resolveMainReferenceToDescriptors
 import org.jetbrains.kotlin.idea.search.fileScope
 import org.jetbrains.kotlin.idea.search.isImportUsage
-import org.jetbrains.kotlin.idea.util.ImportInsertHelperImpl
-import org.jetbrains.kotlin.idea.util.getAllAccessibleFunctions
-import org.jetbrains.kotlin.idea.util.getAllAccessibleVariables
-import org.jetbrains.kotlin.idea.util.getResolutionScope
+import org.jetbrains.kotlin.idea.util.*
 import org.jetbrains.kotlin.incremental.components.NoLookupLocation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -94,7 +90,7 @@ object KotlinIntroduceImportAliasHandler : RefactoringActionHandler {
         }
         val newName = suggestionsName.first()
         suggestedImportAliasNames = suggestionsName
-        val newDirective = ImportInsertHelperImpl.addImport(project, file, fqName, false, Name.identifier(newName))
+        val newDirective = addImportToFile(project, file, fqName, false, Name.identifier(newName))
 
         replaceUsages(usages, newName)
         cleanImport(file, fqName)
