@@ -148,7 +148,7 @@ class IdeaResolverForProject(
             if (cachedBuiltIns != null) return@compute cachedBuiltIns
 
             module.platform.idePlatformKind.resolution
-                .createBuiltIns(module, projectContextFromSdkResolver, resolverForSdk, sdk) // TODO: resolve stdlib inside
+                .createBuiltIns(module, projectContextFromSdkResolver, resolverForSdk, sdk, stdlib) // TODO: resolve stdlib inside
                 .also {
                     // TODO: MemoizedFunction should be used here instead, but for proper we also need a module (for LV settings) that is not contained in the key
                     cache[key] = it

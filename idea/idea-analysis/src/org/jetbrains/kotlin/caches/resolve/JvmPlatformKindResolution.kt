@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.builtins.jvm.JvmBuiltIns
 import org.jetbrains.kotlin.context.ProjectContext
+import org.jetbrains.kotlin.descriptors.impl.ModuleDescriptorImpl
 import org.jetbrains.kotlin.idea.caches.project.IdeaModuleInfo
 import org.jetbrains.kotlin.idea.caches.project.LibraryInfo
 import org.jetbrains.kotlin.idea.caches.project.SdkInfo
@@ -68,29 +69,44 @@ class JvmPlatformKindResolution : IdePlatformKindResolution {
     override fun createBuiltIns(
         moduleInfo: IdeaModuleInfo,
         projectContext: ProjectContext,
-       resolverForProject: ResolverForProject<IdeaModuleInfo>,
-        sdkDependency: SdkInfo?
-    ,
+        resolverForProject: ResolverForProject<IdeaModuleInfo>,
+        sdkDependency: SdkInfo?,
         stdlibDependency: LibraryInfo?,
     ): KotlinBuiltIns {
         return when {
             sdkDependency == null -> DefaultBuiltIns.Instance
             stdlibDependency == null || moduleInfo is SdkInfo ->
                 JvmBuiltIns(projectContext.storageManager, JvmBuiltIns.Kind.FROM_CLASS_LOADER).apply {
-                setPostponedSettingsComputation {
-                    // SDK should be present, otherwise we wouldn't have created JvmBuiltIns in createBuiltIns
-                    val sdkDescriptor = resolverForProject.descriptorForModule(sdkDependency)
+                    setPostponedSettingsComputation {
+                        // SDK should be present, otherwise we wouldn't have created JvmBuiltIns in createBuiltIns
+                        val sdkDescriptor = resolverForProject.descriptorForModule(sdkDependency)
 
-                    val isAdditionalBuiltInsFeaturesSupported =
-                        moduleInfo.supportsAdditionalBuiltInsMembers(projectContext.project)
-                    JvmBuiltIns.Settings(sdkDescriptor, isAdditionalBuiltInsFeaturesSupported)
+                        val isAdditionalBuiltInsFeaturesSupported =
+                            moduleInfo.supportsAdditionalBuiltInsMembers(projectContext.project)
+                        JvmBuiltIns.Settings(sdkDescriptor, isAdditionalBuiltInsFeaturesSupported)
+                    }
                 }
-            }
             else -> {
                 if (IdeBuiltInsLoadingState.isFromClassLoader) {
                     LOG.error("Incorrect attempt to create built-ins from module dependencies")
                 }
-                JvmBuiltIns(projectContext.storageManager, JvmBuiltIns.Kind.FROM_DEPENDENCIES)
+                JvmBuiltIns(projectContext.storageManager, JvmBuiltIns.Kind.FROM_DEPENDENCIES).apply {
+                    setPostponedBuiltinsModuleComputation {
+                        val stdlibDescriptor = resolverForProject.descriptorForModule(stdlibDependency)
+
+                        @Suppress("unchecked_cast")
+                        stdlibDescriptor as ModuleDescriptorImpl
+                    }
+
+                    setPostponedSettingsComputation {
+                        val sdkDescriptor = resolverForProject.descriptorForModule(sdkDependency)
+
+                        val isAdditionalBuiltInsFeaturesSupported =
+                            moduleInfo.supportsAdditionalBuiltInsMembers(projectContext.project)
+
+                        JvmBuiltIns.Settings(sdkDescriptor, isAdditionalBuiltInsFeaturesSupported)
+                    }
+                }
             }
         }
     }
