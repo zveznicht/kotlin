@@ -33,7 +33,7 @@ fun poll81(): Flow<String> {
 
 fun poll83(): Flow<String> {
     return flow {
-        val inv = ::bar4 <!TYPE_INFERENCE_ONLY_INPUT_TYPES_WARNING!>in<!> setOf(::foo4)
+        val inv = ::bar4 in setOf(::foo4)
         inv
     }
 }
