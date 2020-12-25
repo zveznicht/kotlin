@@ -97,7 +97,7 @@ class FirResolveBench(val withProgress: Boolean) {
 
 
     private val fails = mutableListOf<FailureInfo>()
-    val hasFiles get() = fails.isNotEmpty()
+    val hasFails get() = fails.isNotEmpty()
 
     private val errorTypesReports = mutableMapOf<String, ErrorTypeReport>()
 

@@ -175,7 +175,7 @@ class FirResolveModularizedTotalKotlinTest : AbstractModularizedTest() {
         runAnalysis(moduleData, environment)
 
         Disposer.dispose(disposable)
-        if (bench.hasFiles && FAIL_FAST) return ProcessorAction.STOP
+        if (bench.hasFails && FAIL_FAST) return ProcessorAction.STOP
         return ProcessorAction.NEXT
     }
 
