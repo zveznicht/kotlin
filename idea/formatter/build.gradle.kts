@@ -6,7 +6,7 @@ plugins {
 
 dependencies {
     compile(project(":compiler:util"))
-    compile(project(":compiler:frontend"))
+    compile(project(":compiler:psi"))
     compileOnly(intellijDep())
     compileOnly(intellijPluginDep("java"))
 }
