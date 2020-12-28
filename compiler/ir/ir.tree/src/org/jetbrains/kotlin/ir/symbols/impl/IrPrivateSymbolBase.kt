@@ -76,7 +76,7 @@ class IrFileSymbolImpl() :
     IrBindableSymbolBase<PackageFragmentDescriptor, IrFile>(null),
     IrFileSymbol
 
-class IrExternalPackageFragmentSymbolImpl(descriptor: PackageFragmentDescriptor? = null) :
+class IrExternalPackageFragmentSymbolImpl() :
     IrBindableSymbolBase<PackageFragmentDescriptor, IrExternalPackageFragment>(null),
     IrExternalPackageFragmentSymbol
 

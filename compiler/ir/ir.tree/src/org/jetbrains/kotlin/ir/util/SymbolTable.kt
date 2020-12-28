@@ -335,12 +335,12 @@ class SymbolTable(
         listOf(valueParameterSymbolTable, variableSymbolTable, scopedTypeParameterSymbolTable, localDelegatedPropertySymbolTable)
 
     fun referenceExternalPackageFragment(descriptor: PackageFragmentDescriptor) =
-        externalPackageFragmentTable.referenced(descriptor) { IrExternalPackageFragmentSymbolImpl(descriptor) }
+        externalPackageFragmentTable.referenced(descriptor) { IrExternalPackageFragmentSymbolImpl() }
 
     fun declareExternalPackageFragment(descriptor: PackageFragmentDescriptor): IrExternalPackageFragment {
         return externalPackageFragmentTable.declare(
             descriptor,
-            { IrExternalPackageFragmentSymbolImpl(descriptor) },
+            { IrExternalPackageFragmentSymbolImpl() },
             { IrExternalPackageFragmentImpl(it, descriptor.fqName) }
         )
     }

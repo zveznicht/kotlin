@@ -77,7 +77,7 @@ open class DeepCopySymbolRemapper(
 
     override fun visitExternalPackageFragment(declaration: IrExternalPackageFragment) {
         remapSymbol(externalPackageFragments, declaration) {
-            IrExternalPackageFragmentSymbolImpl(descriptorsRemapper.remapDeclaredExternalPackageFragment(it.descriptor))
+            IrExternalPackageFragmentSymbolImpl()
         }
         declaration.acceptChildrenVoid(this)
     }
