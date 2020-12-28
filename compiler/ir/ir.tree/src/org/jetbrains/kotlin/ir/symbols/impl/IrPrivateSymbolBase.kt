@@ -73,11 +73,11 @@ abstract class IrBindableSymbolBase<out D : DeclarationDescriptor, B : IrSymbolO
 }
 
 class IrFileSymbolImpl(descriptor: PackageFragmentDescriptor? = null) :
-    IrBindableSymbolBase<PackageFragmentDescriptor, IrFile>(descriptor),
+    IrBindableSymbolBase<PackageFragmentDescriptor, IrFile>(null),
     IrFileSymbol
 
 class IrExternalPackageFragmentSymbolImpl(descriptor: PackageFragmentDescriptor? = null) :
-    IrBindableSymbolBase<PackageFragmentDescriptor, IrExternalPackageFragment>(descriptor),
+    IrBindableSymbolBase<PackageFragmentDescriptor, IrExternalPackageFragment>(null),
     IrExternalPackageFragmentSymbol
 
 @OptIn(ObsoleteDescriptorBasedAPI::class)
