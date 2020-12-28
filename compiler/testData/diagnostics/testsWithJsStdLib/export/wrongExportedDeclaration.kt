@@ -18,3 +18,6 @@ enum class <!WRONG_EXPORTED_DECLARATION("enum class")!>EnumClass<!> { ENTRY1, EN
 
 @JsExport
 annotation class <!WRONG_EXPORTED_DECLARATION("annotation class")!>AnnotationClass<!>
+
+@JsExport
+interface <!WRONG_EXPORTED_DECLARATION("interface")!>SomeInterface<!>
