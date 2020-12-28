@@ -178,8 +178,8 @@ internal class KtFirReferenceShortener(
         }
 
         private fun collectTypeIfNeedsToBeShortened(wholeClassifierId: ClassId, wholeTypeElement: KtUserType) {
-            val allClassIds = generateSequence(wholeClassifierId) { it.outerClassId }
-            val allTypeElements = generateSequence(wholeTypeElement) { it.qualifier }
+            val allClassIds = wholeClassifierId.outerClassesWithSelf
+            val allTypeElements = wholeTypeElement.qualifiersWithSelf
 
             val positionScopes = findScopesAtPosition(wholeTypeElement, namesToImport) ?: return
 
@@ -274,8 +274,8 @@ internal class KtFirReferenceShortener(
         private fun collectQualifierIfNeedsToBeShortened(wholeClassQualifier: ClassId, wholeQualifierElement: KtDotQualifiedExpression) {
             val positionScopes = findScopesAtPosition(wholeQualifierElement, namesToImport) ?: return
 
-            val allClassIds = generateSequence(wholeClassQualifier) { it.outerClassId }
-            val allQualifiers = generateSequence(wholeQualifierElement) { it.receiverExpression as? KtDotQualifiedExpression }
+            val allClassIds = wholeClassQualifier.outerClassesWithSelf
+            val allQualifiers = wholeQualifierElement.qualifiersWithSelf
 
             for ((classId, qualifier) in allClassIds.zip(allQualifiers)) {
                 val firstFoundClass = findFirstClassifierInScopesByName(positionScopes, classId.shortClassName)?.classId
@@ -305,6 +305,15 @@ internal class KtFirReferenceShortener(
             callsToShorten.add(element)
         }
     }
+
+    private val ClassId.outerClassesWithSelf: Sequence<ClassId>
+        get() = generateSequence(this) { it.outerClassId }
+
+    private val KtUserType.qualifiersWithSelf: Sequence<KtUserType>
+        get() = generateSequence(this) { it.qualifier }
+
+    private val KtDotQualifiedExpression.qualifiersWithSelf: Sequence<KtDotQualifiedExpression>
+        get() = generateSequence(this) { it.receiverExpression as? KtDotQualifiedExpression }
 }
 
 private class ShortenCommandImpl(
