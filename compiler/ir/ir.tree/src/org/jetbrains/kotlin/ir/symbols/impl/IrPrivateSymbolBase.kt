@@ -72,7 +72,7 @@ abstract class IrBindableSymbolBase<out D : DeclarationDescriptor, B : IrSymbolO
         get() = _owner != null
 }
 
-class IrFileSymbolImpl(descriptor: PackageFragmentDescriptor? = null) :
+class IrFileSymbolImpl() :
     IrBindableSymbolBase<PackageFragmentDescriptor, IrFile>(null),
     IrFileSymbol
 

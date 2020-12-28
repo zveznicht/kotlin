@@ -187,9 +187,7 @@ abstract class KotlinIrLinker(
 
             val fqName = FqName(fileDeserializer.deserializeFqName(fileProto.fqNameList))
 
-            val packageFragmentDescriptor = EmptyPackageFragmentDescriptor(moduleDescriptor, fqName)
-
-            val symbol = IrFileSymbolImpl(packageFragmentDescriptor)
+            val symbol = IrFileSymbolImpl()
             val file = IrFileImpl(fileEntry, symbol, fqName)
 
             fileDeserializer.file = file

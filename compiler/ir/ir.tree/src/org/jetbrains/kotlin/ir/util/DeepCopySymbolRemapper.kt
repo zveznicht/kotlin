@@ -91,7 +91,7 @@ open class DeepCopySymbolRemapper(
 
     override fun visitFile(declaration: IrFile) {
         remapSymbol(files, declaration) {
-            IrFileSymbolImpl(/*descriptorsRemapper.remapDeclaredFilePackageFragment(it.descriptor)*/)
+            IrFileSymbolImpl()
         }
         declaration.acceptChildrenVoid(this)
     }
