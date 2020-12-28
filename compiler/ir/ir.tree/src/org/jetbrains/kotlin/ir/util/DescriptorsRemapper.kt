@@ -12,7 +12,8 @@ interface DescriptorsRemapper {
     fun remapDeclaredScript(descriptor: ScriptDescriptor): ScriptDescriptor? = descriptor
     fun remapDeclaredConstructor(descriptor: ClassConstructorDescriptor): ClassConstructorDescriptor? = descriptor
     fun remapDeclaredEnumEntry(descriptor: ClassDescriptor): ClassDescriptor? = descriptor
-    fun remapDeclaredExternalPackageFragment(descriptor: PackageFragmentDescriptor): PackageFragmentDescriptor = descriptor
+    // TODO remove
+//    fun remapDeclaredExternalPackageFragment(descriptor: PackageFragmentDescriptor): PackageFragmentDescriptor = descriptor
     fun remapDeclaredField(descriptor: PropertyDescriptor): PropertyDescriptor? = descriptor
     // TODO remove
 //    fun remapDeclaredFilePackageFragment(descriptor: PackageFragmentDescriptor): PackageFragmentDescriptor = descriptor
