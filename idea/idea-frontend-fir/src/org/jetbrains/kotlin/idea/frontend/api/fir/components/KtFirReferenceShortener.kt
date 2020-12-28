@@ -235,7 +235,7 @@ internal class KtFirReferenceShortener(
             val singleAvailableProperty = findSinglePropertyInScopesByName(scopes, propertyId.callableName)
 
             if (singleAvailableProperty?.callableId == propertyId) {
-                callsToShorten.add(qualifiedProperty)
+                addElementToShorten(qualifiedProperty)
             }
         }
 
@@ -252,8 +252,12 @@ internal class KtFirReferenceShortener(
             val singleAvailableCallable = findSingleFunctionInScopesByName(scopes, callableId.callableName)
 
             if (singleAvailableCallable?.callableId == callableId) {
-                callsToShorten.add(qualifiedCallExpression)
+                addElementToShorten(qualifiedCallExpression)
             }
+        }
+
+        private fun addElementToShorten(element: KtDotQualifiedExpression) {
+            callsToShorten.add(element)
         }
     }
 }
