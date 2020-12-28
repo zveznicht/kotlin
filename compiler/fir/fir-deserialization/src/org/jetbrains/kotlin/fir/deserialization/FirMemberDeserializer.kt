@@ -204,12 +204,18 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
         val returnTypeRef = proto.returnType(c.typeTable).toTypeRef(local)
 
         val hasGetter = Flags.HAS_GETTER.get(flags)
-        val receiverAnnotations = if (hasGetter && proto.hasReceiver()) {
-            c.annotationDeserializer.loadExtensionReceiverParameterAnnotations(
-                c.containerSource, proto, local.nameResolver, local.typeTable, AbstractAnnotationDeserializer.CallableKind.PROPERTY_GETTER
-            )
-        } else {
-            emptyList()
+        val receiverAnnotationBuilder = {
+            if (hasGetter && proto.hasReceiver()) {
+                c.annotationDeserializer.loadExtensionReceiverParameterAnnotations(
+                    c.containerSource,
+                    proto,
+                    local.nameResolver,
+                    local.typeTable,
+                    AbstractAnnotationDeserializer.CallableKind.PROPERTY_GETTER
+                )
+            } else {
+                emptyList()
+            }
         }
 
         val getter = if (hasGetter) {
@@ -287,9 +293,7 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
             session = c.session
             origin = FirDeclarationOrigin.Library
             this.returnTypeRef = returnTypeRef
-            receiverTypeRef = proto.receiverType(c.typeTable)?.toTypeRef(local).apply {
-                annotations += receiverAnnotations
-            }
+            receiverTypeRef = proto.receiverType(c.typeTable)?.toDeserializedTypeRef(local, receiverAnnotationBuilder)
             name = callableName
             this.isVar = isVar
             this.symbol = symbol
@@ -335,12 +339,14 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
     ): FirSimpleFunction {
         val flags = if (proto.hasFlags()) proto.flags else loadOldFlags(proto.oldFlags)
 
-        val receiverAnnotations = if (proto.hasReceiver()) {
-            c.annotationDeserializer.loadExtensionReceiverParameterAnnotations(
-                c.containerSource, proto, c.nameResolver, c.typeTable, AbstractAnnotationDeserializer.CallableKind.OTHERS
-            )
-        } else {
-            emptyList()
+        val receiverAnnotationBuilder = {
+            if (proto.hasReceiver()) {
+                c.annotationDeserializer.loadExtensionReceiverParameterAnnotations(
+                    c.containerSource, proto, c.nameResolver, c.typeTable, AbstractAnnotationDeserializer.CallableKind.OTHERS
+                )
+            } else {
+                emptyList()
+            }
         }
 
         val callableName = c.nameResolver.getName(proto.name)
@@ -352,9 +358,7 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
             session = c.session
             origin = FirDeclarationOrigin.Library
             returnTypeRef = proto.returnType(local.typeTable).toTypeRef(local)
-            receiverTypeRef = proto.receiverType(local.typeTable)?.toTypeRef(local).apply {
-                annotations += receiverAnnotations
-            }
+            receiverTypeRef = proto.receiverType(local.typeTable)?.toDeserializedTypeRef(local, receiverAnnotationBuilder)
             name = callableName
             status = FirResolvedDeclarationStatusImpl(
                 ProtoEnumFlags.visibility(Flags.VISIBILITY.get(flags)),
@@ -507,6 +511,18 @@ class FirMemberDeserializer(private val c: FirDeserializationContext) {
             annotations += context.annotationDeserializer.loadTypeAnnotations(this@toTypeRef, context.nameResolver)
             val attributes = annotations.computeTypeAttributes()
             type = context.typeDeserializer.type(this@toTypeRef, attributes)
+        }
+    }
+
+    private fun ProtoBuf.Type.toDeserializedTypeRef(
+        context: FirDeserializationContext,
+        receiverAnnotationBuilder: () -> List<FirAnnotationCall>
+    ): FirDeserializedTypeRef {
+        return buildDeserializedTypeRef {
+            annotations += context.annotationDeserializer.loadTypeAnnotations(this@toDeserializedTypeRef, context.nameResolver)
+            additionalAnnotationBuilder = receiverAnnotationBuilder
+            val attributes = annotations.computeTypeAttributes()
+            type = context.typeDeserializer.type(this@toDeserializedTypeRef, attributes)
         }
     }
 }
