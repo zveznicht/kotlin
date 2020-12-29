@@ -224,25 +224,25 @@ class ScopeTowerLevel(
         if (candidateReceiverTypeRef == null == receiverExpected) return
         val dispatchReceiverValue = dispatchReceiverValue(candidate)
         // Pre-check explicit extension receiver for default package top-level members
-        if (scope is FirDefaultStarImportingScope && dispatchReceiverValue == null && extensionReceiver != null) {
-            val extensionReceiverType = extensionReceiver.type
-            if (extensionReceiverType is ConeClassLikeType) {
-                val declarationReceiverType = candidate.fir.receiverTypeRef?.coneType
-                if (declarationReceiverType is ConeClassLikeType) {
-                    if (!AbstractTypeChecker.isSubtypeOf(
-                            session.typeContext,
-                            extensionReceiverType,
-                            declarationReceiverType.lookupTag.constructClassType(
-                                declarationReceiverType.typeArguments.map { ConeStarProjection }.toTypedArray(),
-                                isNullable = true
-                            )
-                        )
-                    ) {
-                        return
-                    }
-                }
-            }
-        }
+//        if (scope is FirDefaultStarImportingScope && dispatchReceiverValue == null && extensionReceiver != null) {
+//            val extensionReceiverType = extensionReceiver.type
+//            if (extensionReceiverType is ConeClassLikeType) {
+//                val declarationReceiverType = candidate.fir.receiverTypeRef?.coneType
+//                if (declarationReceiverType is ConeClassLikeType) {
+//                    if (!AbstractTypeChecker.isSubtypeOf(
+//                            session.typeContext,
+//                            extensionReceiverType,
+//                            declarationReceiverType.lookupTag.constructClassType(
+//                                declarationReceiverType.typeArguments.map { ConeStarProjection }.toTypedArray(),
+//                                isNullable = true
+//                            )
+//                        )
+//                    ) {
+//                        return
+//                    }
+//                }
+//            }
+//        }
         val unwrappedCandidate = candidate.fir.importedFromObjectData?.original?.symbol ?: candidate
         @Suppress("UNCHECKED_CAST")
         processor.consumeCandidate(
