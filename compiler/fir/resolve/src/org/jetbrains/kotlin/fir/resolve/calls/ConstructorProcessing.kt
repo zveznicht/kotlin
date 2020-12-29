@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.fir.scopes.scopeForClass
 import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.Name
-import java.util.*
 
 private operator fun <T> Pair<T, *>?.component1() = this?.first
 private operator fun <T> Pair<*, T>?.component2() = this?.second
@@ -66,13 +65,20 @@ internal fun FirScope.processFunctionsAndConstructorsByName(
     includeInnerConstructors: Boolean,
     processor: (FirCallableSymbol<*>) -> Unit
 ) {
+    val firstIsLow = name.asString().getOrNull(0) in 'a'..'z'
+    if (firstIsLow) {
+        processFunctionsByName(name, processor)
+    }
+
     processConstructorsByName(
         name, session, bodyResolveComponents,
         includeInnerConstructors = includeInnerConstructors,
         processor
     )
 
-    processFunctionsByName(name, processor)
+    if (!firstIsLow) {
+        processFunctionsByName(name, processor)
+    }
 }
 
 private fun FirScope.getFirstClassifierOrNull(name: Name): Pair<FirClassifierSymbol<*>, ConeSubstitutor>? {
