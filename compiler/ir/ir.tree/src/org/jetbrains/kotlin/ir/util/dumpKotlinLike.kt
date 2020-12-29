@@ -145,7 +145,7 @@ private class KotlinLikeDumper(val p: Printer, val options: KotlinLikeDumpOption
         if (options.printFileName) p.println("// FILE: ${declaration.name}")
         if (options.printFilePath) p.println("// path: ${declaration.path}")
         declaration.printlnAnnotations("file")
-        val packageFqName = declaration.packageFragmentDescriptor.fqName
+        val packageFqName = declaration.fqName
         if (!packageFqName.isRoot) {
             p.println("package ${packageFqName.asString()}")
         }
