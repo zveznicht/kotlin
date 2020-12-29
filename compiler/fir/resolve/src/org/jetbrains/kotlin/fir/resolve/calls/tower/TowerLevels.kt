@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
 import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.resolve.calls.tower.CandidateApplicability
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.util.OperatorNameConventions
 
@@ -43,6 +44,8 @@ abstract class TowerScopeLevel {
     abstract fun processObjectsByName(name: Name, processor: TowerScopeLevelProcessor<AbstractFirBasedSymbol<*>>): ProcessorAction
 
     interface TowerScopeLevelProcessor<in T : AbstractFirBasedSymbol<*>> {
+        val currentApplicability: CandidateApplicability
+
         fun consumeCandidate(
             symbol: T,
             dispatchReceiverValue: ReceiverValue?,
@@ -110,7 +113,7 @@ class MemberScopeTowerLevel(
             }
         }
 
-        if (extensionReceiver == null) {
+        if (extensionReceiver == null && output.currentApplicability != CandidateApplicability.RESOLVED) {
             val withSynthetic = FirSyntheticPropertiesScope(session, scope)
             withSynthetic.processScopeMembers { symbol ->
                 empty = false

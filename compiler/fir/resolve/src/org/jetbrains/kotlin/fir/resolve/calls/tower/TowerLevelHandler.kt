@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.fir.scopes.ProcessorAction
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.calls.tasks.ExplicitReceiverKind
+import org.jetbrains.kotlin.resolve.calls.tower.CandidateApplicability
 
 internal class CandidateFactoriesAndCollectors(
     // Common calls
@@ -72,6 +73,9 @@ private class TowerScopeLevelProcessor(
     val candidateFactory: CandidateFactory,
     val group: TowerGroup
 ) : TowerScopeLevel.TowerScopeLevelProcessor<AbstractFirBasedSymbol<*>> {
+    override val currentApplicability: CandidateApplicability
+        get() = resultCollector.currentApplicability
+
     override fun consumeCandidate(
         symbol: AbstractFirBasedSymbol<*>,
         dispatchReceiverValue: ReceiverValue?,
