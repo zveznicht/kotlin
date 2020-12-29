@@ -21,3 +21,6 @@ annotation class <!WRONG_EXPORTED_DECLARATION("annotation class")!>AnnotationCla
 
 @JsExport
 interface <!WRONG_EXPORTED_DECLARATION("interface")!>SomeInterface<!>
+
+@JsExport
+external interface GoodInterface
