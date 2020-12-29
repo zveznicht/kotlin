@@ -23,11 +23,11 @@ import org.jetbrains.kotlin.name.Name
 
 @ThreadSafeMutableState
 open class FirDependenciesSymbolProviderImpl(session: FirSession) : FirSymbolProvider(session) {
-    private val classCache = SymbolProviderCache<ClassId, FirClassLikeSymbol<*>>()
-    private val topLevelCallableCache = SymbolProviderCache<CallableId, List<FirCallableSymbol<*>>>()
-    private val topLevelFunctionCache = SymbolProviderCache<CallableId, List<FirNamedFunctionSymbol>>()
-    private val topLevelPropertyCache = SymbolProviderCache<CallableId, List<FirPropertySymbol>>()
-    private val packageCache = SymbolProviderCache<FqName, FqName>()
+    private val classCache = SymbolProviderCache.createNonThreadSafeCache<ClassId, FirClassLikeSymbol<*>>()
+    private val topLevelCallableCache = SymbolProviderCache.createNonThreadSafeCache<CallableId, List<FirCallableSymbol<*>>>()
+    private val topLevelFunctionCache = SymbolProviderCache.createNonThreadSafeCache<CallableId, List<FirNamedFunctionSymbol>>()
+    private val topLevelPropertyCache = SymbolProviderCache.createNonThreadSafeCache<CallableId, List<FirPropertySymbol>>()
+    private val packageCache = SymbolProviderCache.createNonThreadSafeCache<FqName, FqName>()
 
     protected open val dependencyProviders by lazy {
         val moduleInfo = session.moduleInfo ?: return@lazy emptyList()
