@@ -9,7 +9,9 @@ import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.Project
 import com.intellij.psi.SmartPsiElementPointer
 import com.intellij.util.containers.addIfNotNull
+import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.fir.FirElement
+import org.jetbrains.kotlin.fir.declarations.FirClass
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirResolvedImport
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
@@ -45,6 +47,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.createSmartPointer
+import org.jetbrains.kotlin.psi.psiUtil.getQualifiedExpressionForSelector
 import org.jetbrains.kotlin.resolve.ImportPath
 
 internal class KtFirReferenceShortener(
@@ -228,7 +231,7 @@ internal class KtFirReferenceShortener(
             super.visitResolvedNamedReference(resolvedNamedReference)
 
             val referenceExpression = resolvedNamedReference.psi as? KtNameReferenceExpression
-            val qualifiedProperty = referenceExpression?.parent as? KtDotQualifiedExpression ?: return
+            val qualifiedProperty = referenceExpression?.getDotQualifiedExpressionForSelector() ?: return
 
             val propertyId = (resolvedNamedReference.resolvedSymbol as? FirCallableSymbol<*>)?.callableId ?: return
 
@@ -244,7 +247,7 @@ internal class KtFirReferenceShortener(
             super.visitFunctionCall(functionCall)
 
             val callExpression = functionCall.psi as? KtCallExpression ?: return
-            val qualifiedCallExpression = callExpression.parent as? KtDotQualifiedExpression ?: return
+            val qualifiedCallExpression = callExpression.getDotQualifiedExpressionForSelector() ?: return
 
             val resolvedNamedReference = functionCall.calleeReference as? FirResolvedNamedReference ?: return
             val callableId = (resolvedNamedReference.resolvedSymbol as? FirCallableSymbol<*>)?.callableId ?: return
@@ -264,7 +267,7 @@ internal class KtFirReferenceShortener(
             val wholeClassQualifier = resolvedQualifier.classId ?: return
             val wholeQualifierElement = when (val qualifierPsi = resolvedQualifier.psi) {
                 is KtDotQualifiedExpression -> qualifierPsi
-                is KtNameReferenceExpression -> qualifierPsi.parent as? KtDotQualifiedExpression ?: return
+                is KtNameReferenceExpression -> qualifierPsi.getDotQualifiedExpressionForSelector() ?: return
                 else -> return
             }
 
@@ -341,6 +344,9 @@ private class ShortenCommandImpl(
         }
     }
 }
+
+private fun KtElement.getDotQualifiedExpressionForSelector(): KtDotQualifiedExpression? =
+    getQualifiedExpressionForSelector() as? KtDotQualifiedExpression
 
 private tailrec fun KtTypeElement?.unwrapNullable(): KtTypeElement? =
     if (this is KtNullableType) this.innerType.unwrapNullable() else this
