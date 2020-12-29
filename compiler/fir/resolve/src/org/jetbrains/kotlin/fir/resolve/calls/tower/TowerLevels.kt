@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.FirConstructor
 import org.jetbrains.kotlin.fir.declarations.isInner
 import org.jetbrains.kotlin.fir.dispatchReceiverClassOrNull
-import org.jetbrains.kotlin.fir.expressions.FirResolvedQualifier
 import org.jetbrains.kotlin.fir.expressions.builder.buildResolvedQualifier
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.*
@@ -45,8 +44,6 @@ abstract class TowerScopeLevel {
     abstract fun processObjectsByName(name: Name, processor: TowerScopeLevelProcessor<AbstractFirBasedSymbol<*>>): ProcessorAction
 
     interface TowerScopeLevelProcessor<in T : AbstractFirBasedSymbol<*>> {
-        val callInfo: CallInfo
-
         fun consumeCandidate(
             symbol: T,
             dispatchReceiverValue: ReceiverValue?,
@@ -227,13 +224,9 @@ class ScopeTowerLevel(
         if (candidateReceiverTypeRef == null == receiverExpected) return
         val dispatchReceiverValue = dispatchReceiverValue(candidate)
         // Pre-check explicit extension receiver for default package top-level members
-        if (scope is FirDefaultStarImportingScope &&
-            dispatchReceiverValue == null &&
-            extensionReceiver != null &&
-            processor.callInfo.explicitReceiver !is FirResolvedQualifier
-        ) {
-            val extensionReceiverType = extensionReceiver.type as? ConeClassLikeType
-            if (extensionReceiverType != null) {
+        if (scope is FirDefaultStarImportingScope && dispatchReceiverValue == null && extensionReceiver != null) {
+            val extensionReceiverType = extensionReceiver.type
+            if (extensionReceiverType is ConeClassLikeType) {
                 val declarationReceiverType = candidate.fir.receiverTypeRef?.coneType
                 if (declarationReceiverType is ConeClassLikeType) {
                     if (!AbstractTypeChecker.isSubtypeOf(
