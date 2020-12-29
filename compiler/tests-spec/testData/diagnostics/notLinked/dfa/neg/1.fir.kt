@@ -184,7 +184,7 @@ fun case_13(x: <!UNRESOLVED_REFERENCE!>otherpackage.Case13?<!>) =
         throw Exception()
     } else {
         <!DEBUG_INFO_EXPRESSION_TYPE("ERROR CLASS: Symbol not found, for `otherpackage.Case13?`")!>x<!>
-        <!DEBUG_INFO_EXPRESSION_TYPE("ERROR CLASS: Symbol not found, for `otherpackage.Case13?`")!>x<!>.<!AMBIGUITY!>equals<!>(x)
+        <!DEBUG_INFO_EXPRESSION_TYPE("ERROR CLASS: Symbol not found, for `otherpackage.Case13?`")!>x<!>.<!UNRESOLVED_REFERENCE!>equals<!>(x)
     }<!>
 
 // TESTCASE NUMBER: 14
@@ -256,14 +256,14 @@ fun case_16() {
 
     if (x != null !is Boolean !is Boolean !is Boolean !is Boolean !is Boolean) {
         <!DEBUG_INFO_EXPRESSION_TYPE("TypealiasNullableNothing")!>x<!>
-        <!DEBUG_INFO_EXPRESSION_TYPE("TypealiasNullableNothing")!>x<!>.<!INAPPLICABLE_CANDIDATE!>java<!>
+        <!DEBUG_INFO_EXPRESSION_TYPE("TypealiasNullableNothing")!>x<!>.<!UNRESOLVED_REFERENCE!>java<!>
     }
 }
 
 // TESTCASE NUMBER: 17
 val case_17 = if (nullableIntProperty == null == true == false) 0 else {
     <!DEBUG_INFO_EXPRESSION_TYPE("kotlin.Int?")!>nullableIntProperty<!>
-    <!DEBUG_INFO_EXPRESSION_TYPE("kotlin.Int?")!>nullableIntProperty<!>.java
+    <!DEBUG_INFO_EXPRESSION_TYPE("kotlin.Int?")!>nullableIntProperty<!>.<!UNRESOLVED_REFERENCE!>java<!>
 }
 
 //TESTCASE NUMBER: 18

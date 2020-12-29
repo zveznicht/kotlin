@@ -75,7 +75,7 @@ fun case_6() {
 fun case_7() {
     var x: Class? = Class()
     x!!
-    <!NONE_APPLICABLE!>x<!>(if (true) {x=null;0} else 0)(<!DEBUG_INFO_EXPRESSION_TYPE("Class? & Class?")!>x<!>)
+    <!UNRESOLVED_REFERENCE!><!NONE_APPLICABLE!>x<!>(if (true) {x=null;0} else 0)(<!DEBUG_INFO_EXPRESSION_TYPE("Class? & Class?")!>x<!>)<!>
     <!DEBUG_INFO_EXPRESSION_TYPE("Class? & Class?")!>x<!>.<!INAPPLICABLE_CANDIDATE!>fun_1<!>()
 }
 

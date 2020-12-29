@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.dispatchReceiverClassOrNull
 import org.jetbrains.kotlin.fir.expressions.builder.buildResolvedQualifier
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.*
+import org.jetbrains.kotlin.fir.resolve.inference.inferenceComponents
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.resultType
 import org.jetbrains.kotlin.fir.scopes.FirScope
 import org.jetbrains.kotlin.fir.scopes.ProcessorAction
@@ -19,12 +20,10 @@ import org.jetbrains.kotlin.fir.scopes.impl.FirDefaultStarImportingScope
 import org.jetbrains.kotlin.fir.scopes.impl.importedFromObjectData
 import org.jetbrains.kotlin.fir.scopes.processClassifiersByName
 import org.jetbrains.kotlin.fir.symbols.AbstractFirBasedSymbol
+import org.jetbrains.kotlin.fir.symbols.StandardClassIds
 import org.jetbrains.kotlin.fir.symbols.impl.*
-import org.jetbrains.kotlin.fir.typeContext
 import org.jetbrains.kotlin.fir.types.ConeClassLikeType
-import org.jetbrains.kotlin.fir.types.ConeStarProjection
 import org.jetbrains.kotlin.fir.types.coneType
-import org.jetbrains.kotlin.fir.types.constructClassType
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.util.OperatorNameConventions
@@ -226,16 +225,13 @@ class ScopeTowerLevel(
         // Pre-check explicit extension receiver for default package top-level members
         if (scope is FirDefaultStarImportingScope && dispatchReceiverValue == null && extensionReceiver != null) {
             val extensionReceiverType = extensionReceiver.type
-            if (extensionReceiverType is ConeClassLikeType) {
+            if (extensionReceiverType is ConeClassLikeType && extensionReceiverType.lookupTag.classId != StandardClassIds.Nothing) {
                 val declarationReceiverType = candidate.fir.receiverTypeRef?.coneType
                 if (declarationReceiverType is ConeClassLikeType) {
-                    if (!AbstractTypeChecker.isSubtypeOf(
-                            session.typeContext,
-                            extensionReceiverType,
-                            declarationReceiverType.lookupTag.constructClassType(
-                                declarationReceiverType.typeArguments.map { ConeStarProjection }.toTypedArray(),
-                                isNullable = true
-                            )
+                    if (!AbstractTypeChecker.isSubtypeOfClass(
+                            session.inferenceComponents.ctx,
+                            extensionReceiverType.lookupTag,
+                            declarationReceiverType.fullyExpandedType(session).lookupTag
                         )
                     ) {
                         return

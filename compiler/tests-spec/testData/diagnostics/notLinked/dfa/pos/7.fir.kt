@@ -285,7 +285,7 @@ fun case_16() {
 
     if (x != null || x !== null || x != y) {
         <!DEBUG_INFO_EXPRESSION_TYPE("TypealiasNothing?")!>x<!>
-        <!DEBUG_INFO_EXPRESSION_TYPE("TypealiasNothing?")!>x<!>.hashCode()
+        <!DEBUG_INFO_EXPRESSION_TYPE("TypealiasNothing?")!>x<!>.<!UNRESOLVED_REFERENCE!>hashCode<!>()
     }
 }
 
