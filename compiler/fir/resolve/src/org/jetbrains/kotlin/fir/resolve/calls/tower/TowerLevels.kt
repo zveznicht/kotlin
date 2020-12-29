@@ -226,9 +226,8 @@ class ScopeTowerLevel(
         val receiverExpected = extensionsOnly || extensionReceiver != null
         if (candidateReceiverTypeRef == null == receiverExpected) return
         val dispatchReceiverValue = dispatchReceiverValue(candidate)
-        // Check explicit extension receiver for default package members
+        // Pre-check explicit extension receiver for default package top-level members
         if (scope is FirDefaultStarImportingScope &&
-            candidate is FirNamedFunctionSymbol &&
             dispatchReceiverValue == null &&
             extensionReceiver != null &&
             processor.callInfo.explicitReceiver !is FirResolvedQualifier
