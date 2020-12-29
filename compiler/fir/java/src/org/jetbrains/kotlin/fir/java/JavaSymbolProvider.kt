@@ -98,7 +98,7 @@ open class JavaSymbolProvider(
             ) {
                 null
             } else {
-                FirJavaLazyClassSymbol(
+                FirLazyClassSymbol(
                     classId = classId,
                     createFirClass = { convertJavaClassToFir(it, foundClass) },
                     modifyFirClass = { initializeJavaClass(it as FirJavaClass, foundClass) }
