@@ -12,7 +12,6 @@ import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolD
 import org.jetbrains.kotlin.descriptors.CallableMemberDescriptor
 import org.jetbrains.kotlin.descriptors.DeclarationDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.impl.EmptyPackageFragmentDescriptor
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.builders.TranslationPluginContext
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
@@ -64,6 +63,7 @@ abstract class KotlinIrLinker(
     private val modulesWithReachableTopLevels = mutableSetOf<IrModuleDeserializer>()
 
     protected val deserializersForModules = mutableMapOf<ModuleDescriptor, IrModuleDeserializer>()
+    private val fileToModuleFragment = mutableMapOf<IrFile, IrModuleFragment>()
 
     abstract val fakeOverrideBuilder: FakeOverrideBuilder
 
@@ -192,6 +192,7 @@ abstract class KotlinIrLinker(
 
             fileDeserializer.file = file
             fileToDeserializerMap[file] = fileDeserializer
+            fileToModuleFragment[file] = moduleDeserializer.moduleFragment
 
             val fileSignatureIndex = fileProto.declarationIdList.map { fileDeserializer.deserializeIdSignature(it) to it }
 
@@ -596,15 +597,23 @@ abstract class KotlinIrLinker(
         return symbol.owner as IrDeclaration
     }
 
+    private fun IrFile.getModuleDeserializer(): IrModuleDeserializer? {
+        return fileToModuleFragment[this]?.descriptor?.let { deserializersForModules[it] }
+    }
+
     override fun tryReferencingSimpleFunctionByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrSimpleFunctionSymbol? {
         if (idSignature.isPublic) return null
-        return deserializersForModules[parent.file.packageFragmentDescriptor.containingDeclaration]?.referenceSimpleFunctionByLocalSignature(parent.file, idSignature)
+
+        val file = parent.file
+        return file.getModuleDeserializer()?.referenceSimpleFunctionByLocalSignature(file, idSignature)
             ?: error("No module deserializer for ${parent.render()}")
     }
 
     override fun tryReferencingPropertyByLocalSignature(parent: IrDeclaration, idSignature: IdSignature): IrPropertySymbol? {
         if (idSignature.isPublic) return null
-        return deserializersForModules[parent.file.packageFragmentDescriptor.containingDeclaration]?.referencePropertyByLocalSignature(parent.file, idSignature)
+
+        val file = parent.file
+        return file.getModuleDeserializer()?.referencePropertyByLocalSignature(file, idSignature)
             ?: error("No module deserializer for ${parent.render()}")
     }
 
