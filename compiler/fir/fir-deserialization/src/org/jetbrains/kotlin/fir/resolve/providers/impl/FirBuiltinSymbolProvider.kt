@@ -237,6 +237,14 @@ class FirBuiltinSymbolProvider(session: FirSession, val kotlinScopeProvider: Kot
         }
     }
 
+    override fun getTopLevelCallableNames(packageFqName: FqName): Set<Name> {
+        return allPackageFragments[packageFqName]?.flatMapTo(mutableSetOf()) { builtInsPackageFragment ->
+            val packageProto = builtInsPackageFragment.packageProto
+            val nameResolver = NameResolverImpl(packageProto.strings, packageProto.qualifiedNames)
+            packageProto.`package`.functionList.map { nameResolver.getName(it.name) }
+        } ?: emptySet()
+    }
+
     private class BuiltInsPackageFragment(
         stream: InputStream, val fqName: FqName, val session: FirSession,
         val kotlinScopeProvider: KotlinScopeProvider,

@@ -29,6 +29,8 @@ abstract class FirSymbolProvider(val session: FirSession) : FirSessionComponent 
         return buildList { getTopLevelCallableSymbolsTo(this, packageFqName, name) }
     }
 
+    open fun getTopLevelCallableNames(packageFqName: FqName): Set<Name>? = null
+
     @FirSymbolProviderInternals
     abstract fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name)
 

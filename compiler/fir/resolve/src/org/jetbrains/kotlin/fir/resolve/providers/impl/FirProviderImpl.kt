@@ -64,6 +64,10 @@ class FirProviderImpl(val session: FirSession, val kotlinScopeProvider: KotlinSc
             return (state.callableMap[CallableId(packageFqName, null, name)] ?: emptyList())
         }
 
+        override fun getTopLevelCallableNames(packageFqName: FqName): Set<Name> {
+            return state.callableNamesInPackage[packageFqName] ?: emptySet()
+        }
+
         @FirSymbolProviderInternals
         override fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {
             destination += getTopLevelCallableSymbols(packageFqName, name)
@@ -130,6 +134,9 @@ class FirProviderImpl(val session: FirSession, val kotlinScopeProvider: KotlinSc
             val (state, file) = data
             state.callableMap.merge(callableId, listOf(symbol)) { a, b -> a + b }
             state.callableContainerMap[symbol] = file
+            if (callableId.classId == null) {
+                state.callableNamesInPackage.getOrDefault(callableId.packageName, mutableSetOf()).add(callableId.callableName)
+            }
         }
 
         override fun visitConstructor(constructor: FirConstructor, data: Pair<State, FirFile>) {
@@ -160,6 +167,7 @@ class FirProviderImpl(val session: FirSession, val kotlinScopeProvider: KotlinSc
         val classesInPackage = mutableMapOf<FqName, MutableSet<Name>>()
         val callableMap = mutableMapOf<CallableId, List<FirCallableSymbol<*>>>()
         val callableContainerMap = mutableMapOf<FirCallableSymbol<*>, FirFile>()
+        val callableNamesInPackage = mutableMapOf<FqName, MutableSet<Name>>()
 
         fun setFrom(other: State) {
             fileMap.clear()
@@ -167,6 +175,7 @@ class FirProviderImpl(val session: FirSession, val kotlinScopeProvider: KotlinSc
             classifierContainerFileMap.clear()
             callableMap.clear()
             callableContainerMap.clear()
+            callableNamesInPackage.clear()
 
             fileMap.putAll(other.fileMap)
             classifierMap.putAll(other.classifierMap)
@@ -174,6 +183,7 @@ class FirProviderImpl(val session: FirSession, val kotlinScopeProvider: KotlinSc
             callableMap.putAll(other.callableMap)
             callableContainerMap.putAll(other.callableContainerMap)
             classesInPackage.putAll(other.classesInPackage)
+            callableNamesInPackage.putAll(other.callableNamesInPackage)
         }
     }
 

@@ -73,6 +73,8 @@ class FirCloneableSymbolProvider(session: FirSession, scopeProvider: FirScopePro
     @FirSymbolProviderInternals
     override fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {}
 
+    override fun getTopLevelCallableNames(packageFqName: FqName): Set<Name> = emptySet()
+
     override fun getPackage(fqName: FqName): FqName? {
         return null
     }

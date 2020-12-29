@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
+import org.jetbrains.kotlin.utils.addToStdlib.flatMapToNullable
 
 @NoMutableState
 class FirCompositeSymbolProvider(session: FirSession, val providers: List<FirSymbolProvider>) : FirSymbolProvider(session) {
@@ -26,6 +27,9 @@ class FirCompositeSymbolProvider(session: FirSession, val providers: List<FirSym
     override fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {
         destination += getTopLevelCallableSymbols(packageFqName, name)
     }
+
+    override fun getTopLevelCallableNames(packageFqName: FqName): Set<Name>? =
+        providers.flatMapToNullable(mutableSetOf()) { it.getTopLevelCallableNames(packageFqName) }
 
     override fun getPackage(fqName: FqName): FqName? {
         return providers.firstNotNullResult { it.getPackage(fqName) }

@@ -18,12 +18,15 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.utils.addToStdlib.flatMapToNullable
+import org.jetbrains.kotlin.utils.getOrPutNullable
 
 @ThreadSafeMutableState
 open class FirDependenciesSymbolProviderImpl(session: FirSession) : FirSymbolProvider(session) {
     private val classCache = SymbolProviderCache<ClassId, FirClassLikeSymbol<*>>()
     private val topLevelCallableCache = SymbolProviderCache<CallableId, List<FirCallableSymbol<*>>>()
     private val packageCache = SymbolProviderCache<FqName, FqName>()
+    private val topLevelNames = hashMapOf<FqName, Set<Name>?>()
 
     protected open val dependencyProviders by lazy {
         val moduleInfo = session.moduleInfo ?: return@lazy emptyList()
@@ -38,9 +41,18 @@ open class FirDependenciesSymbolProviderImpl(session: FirSession) : FirSymbolPro
     }
 
     override fun getTopLevelCallableSymbols(packageFqName: FqName, name: Name): List<FirCallableSymbol<*>> {
+        getTopLevelCallableNames(packageFqName)?.let { allNames ->
+            if (name !in allNames) return emptyList()
+        }
         return topLevelCallableCache.lookupCacheOrCalculate(CallableId(packageFqName, null, name)) {
             dependencyProviders.flatMap { provider -> provider.getTopLevelCallableSymbols(packageFqName, name) }
         } ?: emptyList()
+    }
+
+    override fun getTopLevelCallableNames(packageFqName: FqName): Set<Name>? {
+        return topLevelNames.getOrPutNullable(packageFqName) {
+            dependencyProviders.flatMapToNullable(mutableSetOf()) { provider -> provider.getTopLevelCallableNames(packageFqName) }
+        }
     }
 
     override fun getClassLikeSymbolByFqName(classId: ClassId): FirClassLikeSymbol<*>? {

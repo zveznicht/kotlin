@@ -363,24 +363,41 @@ class KotlinDeserializedJvmSymbolsProvider(
         return symbol
     }
 
-    private fun loadFunctionsByName(part: PackagePartsCacheData, name: Name): List<FirCallableSymbol<*>> {
+    private fun loadFunctionsByName(
+        part: PackagePartsCacheData,
+        name: Name,
+        destination: MutableList<FirCallableSymbol<*>>
+    ): List<FirCallableSymbol<*>> {
         val functionIds = part.topLevelFunctionNameIndex[name] ?: return emptyList()
-        return functionIds.map {
+        return functionIds.mapTo(destination) {
             part.context.memberDeserializer.loadFunction(part.proto.getFunction(it)).symbol
         }
     }
 
-    private fun loadPropertiesByName(part: PackagePartsCacheData, name: Name): List<FirCallableSymbol<*>> {
+    private fun loadPropertiesByName(
+        part: PackagePartsCacheData,
+        name: Name,
+        destination: MutableList<FirCallableSymbol<*>>
+    ): List<FirCallableSymbol<*>> {
         val propertyIds = part.topLevelPropertyNameIndex[name] ?: return emptyList()
-        return propertyIds.map {
+        return propertyIds.mapTo(destination) {
             part.context.memberDeserializer.loadProperty(part.proto.getProperty(it)).symbol
         }
     }
 
     @FirSymbolProviderInternals
     override fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {
-        getPackageParts(packageFqName).flatMapTo(destination) { part ->
-            loadFunctionsByName(part, name) + loadPropertiesByName(part, name)
+        getPackageParts(packageFqName).forEach { part ->
+            loadFunctionsByName(part, name, destination)
+            loadPropertiesByName(part, name, destination)
+        }
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override fun getTopLevelCallableNames(packageFqName: FqName): Set<Name> = buildSet {
+        computePackagePartsInfos(packageFqName).forEach {
+            addAll(it.topLevelFunctionNameIndex.keys)
+            addAll(it.topLevelPropertyNameIndex.keys)
         }
     }
 
