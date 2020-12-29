@@ -461,9 +461,15 @@ class EnumSyntheticFunctionsLowering(val context: JsCommonBackendContext) : Decl
         if (declaration is IrConstructor && declaration.isPrimary) {
             declaration.parentEnumClassOrNull?.let { enumClass ->
                 if (declaration.parentClassOrNull?.isCompanion == true) {
-                    (declaration.body as? IrBlockBody)?.statements?.addAll(0, context.createIrBuilder(declaration.symbol).irBlockBody {
-                        +irCall(enumClass.initEntryInstancesFun!!)
-                    }.statements)
+                    (declaration.body as? IrSyntheticBody)?.let { originalBody ->
+                        declaration.parentEnumClassOrNull?.let { enumClass ->
+                            declaration.body = context.irFactory.createBlockBody(UNDEFINED_OFFSET, UNDEFINED_OFFSET) {
+                                statements += context.createIrBuilder(declaration.symbol).irBlockBody {
+                                    +irCall(enumClass.initEntryInstancesFun!!.symbol)
+                                }.statements + originalBody.statements
+                            }
+                        }
+                    }
                 }
             }
         }
