@@ -155,6 +155,17 @@ public class KotlinJavaPsiFacade {
         return emptyModifierList;
     }
 
+    public JavaClass findClass(@NotNull ClassId classId, @NotNull GlobalSearchScope scope) {
+        for (KotlinPsiElementFinderWrapper finder : finders()) {
+            ProgressIndicatorAndCompilationCanceledStatus.checkCanceled();
+            if (finder instanceof CliFinder) {
+                JavaClass aClass = ((CliFinder) finder).findClass(classId, scope);
+                if (aClass != null) return aClass;
+            }
+        }
+        return null;
+    }
+
     public JavaClass findClass(@NotNull JavaClassFinder.Request request, @NotNull GlobalSearchScope scope) {
         if (scope == GlobalSearchScope.EMPTY_SCOPE) return null;
 
@@ -472,6 +483,10 @@ public class KotlinJavaPsiFacade {
         @Override
         public PsiClass findClass(@NotNull String qualifiedName, @NotNull GlobalSearchScope scope) {
             return javaFileManager.findClass(qualifiedName, scope);
+        }
+
+        public JavaClass findClass(@NotNull ClassId classId, @NotNull GlobalSearchScope scope) {
+            return javaFileManager.findClass(classId, scope);
         }
 
         public JavaClass findClass(@NotNull JavaClassFinder.Request request, @NotNull GlobalSearchScope scope) {

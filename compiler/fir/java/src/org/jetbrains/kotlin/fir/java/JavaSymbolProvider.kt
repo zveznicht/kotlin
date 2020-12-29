@@ -65,7 +65,9 @@ class JavaSymbolProvider(
     private fun findClass(
         classId: ClassId,
         content: KotlinClassFinder.Result.ClassFileContent?,
-    ): JavaClass? = facade.findClass(JavaClassFinder.Request(classId, previouslyFoundClassFileContent = content?.content), searchScope)
+    ): JavaClass? =
+        content?.let { facade.findClass(JavaClassFinder.Request(classId, previouslyFoundClassFileContent = it.content), searchScope) }
+            ?: facade.findClass(classId, searchScope)
 
     @FirSymbolProviderInternals
     override fun getTopLevelCallableSymbolsTo(destination: MutableList<FirCallableSymbol<*>>, packageFqName: FqName, name: Name) {
