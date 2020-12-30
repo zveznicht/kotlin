@@ -8343,6 +8343,11 @@ public class DiagnosticsUsingJavacTestGenerated extends AbstractDiagnosticsUsing
                         runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/properties/dp.kt");
                     }
 
+                    @TestMetadata("inferGenericPropertyType.kt")
+                    public void testInferGenericPropertyType() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/properties/inferGenericPropertyType.kt");
+                    }
+
                     @TestMetadata("noBackingField.kt")
                     public void testNoBackingField() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/properties/noBackingField.kt");
