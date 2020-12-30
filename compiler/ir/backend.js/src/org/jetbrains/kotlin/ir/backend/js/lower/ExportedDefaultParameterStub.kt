@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.ir.backend.js.lower
 import org.jetbrains.kotlin.backend.common.DeclarationTransformer
 import org.jetbrains.kotlin.backend.common.ir.copyParameterDeclarationsFrom
 import org.jetbrains.kotlin.backend.common.ir.passTypeArgumentsFrom
+import org.jetbrains.kotlin.backend.common.ir.remapTypeParameters
 import org.jetbrains.kotlin.backend.common.lower.VariableRemapper
 import org.jetbrains.kotlin.backend.common.lower.createIrBuilder
 import org.jetbrains.kotlin.backend.common.lower.irBlockBody
@@ -94,25 +95,25 @@ class ExportedDefaultParameterStub(val context: JsIrBackendContext) : Declaratio
             return listOf(declaration.introduceDefaultResolution())
         }
 
-        val fn = context.irFactory.buildFun {
+        val exportedDefaultStubFun = context.irFactory.buildFun {
             updateFrom(declaration)
             name = declaration.name
-            returnType = declaration.returnType
             origin = JsIrBuilder.SYNTHESIZED_DECLARATION
         }
 
-        fn.parent = declaration.parent
-        fn.copyParameterDeclarationsFrom(declaration)
-        fn.valueParameters.forEach { it.defaultValue = null }
+        exportedDefaultStubFun.returnType = declaration.returnType.remapTypeParameters(declaration, exportedDefaultStubFun)
+        exportedDefaultStubFun.parent = declaration.parent
+        exportedDefaultStubFun.copyParameterDeclarationsFrom(declaration)
+        exportedDefaultStubFun.valueParameters.forEach { it.defaultValue = null }
 
         declaration.origin = JsLoweredDeclarationOrigin.JS_SHADOWED_EXPORT
 
-        val irBuilder = context.createIrBuilder(fn.symbol, fn.startOffset, fn.endOffset)
-        fn.body = irBuilder.irBlockBody(fn) {
+        val irBuilder = context.createIrBuilder(exportedDefaultStubFun.symbol, exportedDefaultStubFun.startOffset, exportedDefaultStubFun.endOffset)
+        exportedDefaultStubFun.body = irBuilder.irBlockBody(exportedDefaultStubFun) {
             +irReturn(irCall(declaration).apply {
                 passTypeArgumentsFrom(declaration)
-                dispatchReceiver = fn.dispatchReceiverParameter?.let { irGet(it) }
-                extensionReceiver = fn.extensionReceiverParameter?.let { irGet(it) }
+                dispatchReceiver = exportedDefaultStubFun.dispatchReceiverParameter?.let { irGet(it) }
+                extensionReceiver = exportedDefaultStubFun.extensionReceiverParameter?.let { irGet(it) }
 
                 declaration.valueParameters.forEachIndexed { index, irValueParameter ->
                     val value = createDefaultResolutionExpression(irValueParameter) ?: irGet(irValueParameter)
@@ -127,9 +128,9 @@ class ExportedDefaultParameterStub(val context: JsIrBackendContext) : Declaratio
             }
 
         declaration.annotations = irrelevantAnnotations
-        fn.annotations = exportAnnotations
+        exportedDefaultStubFun.annotations = exportAnnotations
 
-        return listOf(fn, declaration)
+        return listOf(exportedDefaultStubFun, declaration)
     }
 }
 
