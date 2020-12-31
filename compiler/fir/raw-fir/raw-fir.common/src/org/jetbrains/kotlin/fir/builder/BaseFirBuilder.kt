@@ -1150,4 +1150,12 @@ abstract class BaseFirBuilder<T>(val baseSession: FirSession, val context: Conte
             context.forcedElementSourceKind = currentForced
         }
     }
+
+    protected fun <D: FirCallableDeclaration<*>> D.initContainingClassAttr(): D = apply {
+        if (isInNonLocalDeclaration()) {
+            containingClassAttr = currentDispatchReceiverType()?.lookupTag
+        }
+    }
+
+    private fun isInNonLocalDeclaration() = context.firFunctionTargets.isEmpty()
 }

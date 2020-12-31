@@ -1043,9 +1043,11 @@ class RawFirBuilder(
                 }
                 context.firFunctionTargets.removeLast()
             }.build().also {
-                target.bind(it)
-            }
+               target.bind(it)
+            }.initContainingClassAttr()
         }
+
+        private fun isInNonLocalDeclaration() = context.firFunctionTargets.isEmpty()
 
         private fun KtDeclarationWithBody.obtainContractDescription(): FirContractDescription? {
             return when (val description = contractDescription) {
@@ -1315,7 +1317,7 @@ class RawFirBuilder(
                     }
                 }
                 extractAnnotationsTo(this)
-            }
+            }.initContainingClassAttr()
         }
 
         override fun visitAnonymousInitializer(initializer: KtAnonymousInitializer, data: Unit): FirElement {
