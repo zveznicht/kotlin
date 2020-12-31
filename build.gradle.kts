@@ -408,7 +408,6 @@ allprojects {
         jcenter()
         maven(protobufRepo)
         maven(intellijRepo)
-        maven("https://dl.bintray.com/kotlin/ktor")
         maven("https://kotlin.bintray.com/kotlin-dependencies")
         maven("https://jetbrains.bintray.com/intellij-third-party-dependencies")
         maven("https://dl.google.com/dl/android/maven2")
