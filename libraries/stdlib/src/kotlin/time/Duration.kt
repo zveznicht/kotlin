@@ -540,8 +540,8 @@ public inline operator fun Int.times(duration: Duration): Duration = duration * 
 public inline operator fun Double.times(duration: Duration): Duration = duration * this
 
 
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun Double.normalizeZero(): Double = if (this == 0.0) 0.0 else this
+@kotlin.internal.InlineOnly
+private inline fun Double.normalizeZero(): Double = this + 0.0
 
 internal expect fun formatToExactDecimals(value: Double, decimals: Int): String
 internal expect fun formatUpToDecimals(value: Double, decimals: Int): String
