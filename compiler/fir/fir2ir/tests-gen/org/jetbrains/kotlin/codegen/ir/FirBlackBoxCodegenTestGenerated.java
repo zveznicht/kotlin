@@ -11880,6 +11880,24 @@ public class FirBlackBoxCodegenTestGenerated extends AbstractFirBlackBoxCodegenT
         public void testTopLevelLongTypeInReceiver() throws Exception {
             runTest("compiler/testData/codegen/box/extensionProperties/topLevelLongTypeInReceiver.kt");
         }
+
+        @TestMetadata("compiler/testData/codegen/box/extensionProperties/additionalReceivers")
+        @TestDataPath("$PROJECT_ROOT")
+        @RunWith(JUnit3RunnerWithInners.class)
+        public static class AdditionalReceivers extends AbstractFirBlackBoxCodegenTest {
+            private void runTest(String testDataFilePath) throws Exception {
+                KotlinTestUtils.runTestWithCustomIgnoreDirective(this::doTest, TargetBackend.JVM_IR, testDataFilePath, "// IGNORE_BACKEND_FIR: ");
+            }
+
+            public void testAllFilesPresentInAdditionalReceivers() throws Exception {
+                KotlinTestUtils.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/extensionProperties/additionalReceivers"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
+            }
+
+            @TestMetadata("inferGenericPropertyType.kt")
+            public void testInferGenericPropertyType() throws Exception {
+                runTest("compiler/testData/codegen/box/extensionProperties/additionalReceivers/inferGenericPropertyType.kt");
+            }
+        }
     }
 
     @TestMetadata("compiler/testData/codegen/box/external")

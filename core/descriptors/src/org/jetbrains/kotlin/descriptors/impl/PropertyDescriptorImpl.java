@@ -427,7 +427,7 @@ public class PropertyDescriptorImpl extends VariableDescriptorWithInitializerImp
             substitutedExtensionReceiver = null;
         }
 
-        List<ReceiverParameterDescriptor> substitutedAdditionalReceivers = CollectionsKt.emptyList();
+        List<ReceiverParameterDescriptor> substitutedAdditionalReceivers = new ArrayList<ReceiverParameterDescriptor>();
         for (ReceiverParameterDescriptor additionalReceiverParameter: additionalReceiverParameters) {
             ReceiverParameterDescriptor substitutedAdditionalReceiver = substituteParameterDescriptor(substitutor, substitutedDescriptor,
                                                                                                       additionalReceiverParameter);
