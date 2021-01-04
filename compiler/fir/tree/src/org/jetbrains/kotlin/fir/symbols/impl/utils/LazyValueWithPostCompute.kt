@@ -28,6 +28,12 @@ internal class LazyValueWithPostCompute<V : Any>(calculate: () -> V, postCompute
     @Volatile
     private var value: Any? = null
 
+    /**
+     * We need at least one final field to be written in constructor to guarantee safe initialization of our [LazyValueWithPostCompute]
+     */
+    @Suppress("PrivatePropertyName", "unused")
+    private val BARRIER = Unit
+
     @Suppress("UNCHECKED_CAST")
     fun getValue(): V {
         when (val stateSnapshot = value) {
