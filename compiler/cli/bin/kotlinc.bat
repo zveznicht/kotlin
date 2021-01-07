@@ -51,6 +51,10 @@ if "%_KOTLIN_RUNNER%"=="1" (
   if !_java_major_version! lss 13 (
     set JAVA_OPTS=!JAVA_OPTS! "-noverify"
   )
+  if !_java_major_version! geq 9 (
+    rem Workaround the illegal reflective access warning from ReflectionUtil to ResourceBundle.setParent, see IDEA-248785.
+    set JAVA_OPTS=!JAVA_OPTS! "--add-opens" "java.base/java.util=ALL-UNNAMED"
+  )
 
   if not "%_KOTLIN_TOOL%"=="" (
     set _ADDITIONAL_CLASSPATH=;%_KOTLIN_HOME%\lib\%_KOTLIN_TOOL%
