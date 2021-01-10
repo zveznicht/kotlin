@@ -39,7 +39,12 @@ import org.jetbrains.kotlin.psi2ir.PsiSourceManager
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.CleanableBindingContext
 
-class JvmIrCodegenFactory(private val phaseConfig: PhaseConfig) : CodegenFactory {
+open class JvmIrCodegenFactory(
+    private val phaseConfig: PhaseConfig,
+    private val externalMangler: JvmManglerDesc? = null,
+    private val externalSymbolTable: SymbolTable? = null,
+    private val generatorExtensions: JvmGeneratorExtensions = JvmGeneratorExtensions()
+) : CodegenFactory {
     data class JvmIrBackendInput(
         val state: GenerationState,
         val irModuleFragment: IrModuleFragment,
@@ -57,17 +62,21 @@ class JvmIrCodegenFactory(private val phaseConfig: PhaseConfig) : CodegenFactory
     }
 
     fun convertToIr(state: GenerationState, files: Collection<KtFile>): JvmIrBackendInput {
-        val extensions = JvmGeneratorExtensions()
-        val mangler = JvmManglerDesc(MainFunctionDetector(state.bindingContext, state.languageVersionSettings))
+        val (mangler, symbolTable) =
+            if (externalSymbolTable != null) externalMangler!! to externalSymbolTable
+            else {
+                val mangler = JvmManglerDesc(MainFunctionDetector(state.bindingContext, state.languageVersionSettings))
+                val symbolTable = SymbolTable(JvmIdSignatureDescriptor(mangler), IrFactoryImpl, JvmNameProvider)
+                mangler to symbolTable
+            }
         val psi2ir = Psi2IrTranslator(state.languageVersionSettings, Psi2IrConfiguration())
-        val symbolTable = SymbolTable(JvmIdSignatureDescriptor(mangler), IrFactoryImpl, JvmNameProvider)
-        val psi2irContext = psi2ir.createGeneratorContext(state.module, state.bindingContext, symbolTable, extensions)
+        val psi2irContext = psi2ir.createGeneratorContext(state.module, state.bindingContext, symbolTable, generatorExtensions)
         val pluginExtensions = IrGenerationExtension.getInstances(state.project)
         val functionFactory = IrFunctionFactory(psi2irContext.irBuiltIns, symbolTable)
         psi2irContext.irBuiltIns.functionFactory = functionFactory
 
         val stubGenerator = DeclarationStubGenerator(
-            psi2irContext.moduleDescriptor, symbolTable, psi2irContext.irBuiltIns.languageVersionSettings, extensions
+            psi2irContext.moduleDescriptor, symbolTable, psi2irContext.irBuiltIns.languageVersionSettings, generatorExtensions
         )
         val frontEndContext = object : TranslationPluginContext {
             override val moduleDescriptor: ModuleDescriptor
@@ -139,7 +148,7 @@ class JvmIrCodegenFactory(private val phaseConfig: PhaseConfig) : CodegenFactory
             psi2irContext.sourceManager,
             phaseConfig,
             irProviders,
-            extensions,
+            generatorExtensions,
             JvmBackendExtension.Default,
         )
     }
