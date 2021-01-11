@@ -40,4 +40,8 @@ public abstract class DiagnosticFactoryWithPsiElement<E extends PsiElement, D ex
     public PositioningStrategy<? super E> getPositioningStrategy() {
         return positioningStrategy;
     }
+
+    public D cast(Diagnostic d) {
+        return super.cast(d);
+    }
 }
