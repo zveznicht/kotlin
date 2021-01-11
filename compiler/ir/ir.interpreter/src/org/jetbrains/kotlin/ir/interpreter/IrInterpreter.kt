@@ -14,7 +14,6 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrConstructorCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrErrorExpressionImpl
 import org.jetbrains.kotlin.ir.interpreter.builtins.*
 import org.jetbrains.kotlin.ir.interpreter.exceptions.InterpreterException
-import org.jetbrains.kotlin.ir.interpreter.exceptions.InterpreterMethodNotFoundException
 import org.jetbrains.kotlin.ir.interpreter.exceptions.InterpreterTimeOutException
 import org.jetbrains.kotlin.ir.interpreter.intrinsics.IntrinsicEvaluator
 import org.jetbrains.kotlin.ir.interpreter.stack.StackImpl
@@ -198,28 +197,19 @@ class IrInterpreter(private val irBuiltIns: IrBuiltIns, private val bodyMap: Map
             }
         }
 
-        val signature = CompileTimeFunction(methodName, argsType.map { it.getOnlyName() })
-
         // TODO replace unary, binary, ternary functions with vararg
         val result = when (argsType.size) {
-            1 -> {
-                val function = unaryFunctions[signature]
-                    ?: throw InterpreterMethodNotFoundException("For given function $signature there is no entry in unary map")
-                function.invoke(argsValues.first())
+            1 -> interpretUnaryFunction(methodName, argsType[0].getOnlyName(), argsValues[0])
+            2 -> when (methodName) {
+                "rangeTo" -> return calculateRangeTo(irFunction.returnType)
+                else -> interpretBinaryFunction(
+                    methodName, argsType[0].getOnlyName(), argsType[1].getOnlyName(), argsValues[0], argsValues[1]
+                )
             }
-            2 -> {
-                val function = binaryFunctions[signature]
-                    ?: throw InterpreterMethodNotFoundException("For given function $signature there is no entry in binary map")
-                when (methodName) {
-                    "rangeTo" -> return calculateRangeTo(irFunction.returnType)
-                    else -> function.invoke(argsValues[0], argsValues[1])
-                }
-            }
-            3 -> {
-                val function = ternaryFunctions[signature]
-                    ?: throw InterpreterMethodNotFoundException("For given function $signature there is no entry in ternary map")
-                function.invoke(argsValues[0], argsValues[1], argsValues[2])
-            }
+            3 -> interpretTernaryFunction(
+                methodName, argsType[0].getOnlyName(), argsType[1].getOnlyName(), argsType[2].getOnlyName(),
+                argsValues[0], argsValues[1], argsValues[2]
+            )
             else -> throw InterpreterException("Unsupported number of arguments")
         }
 
