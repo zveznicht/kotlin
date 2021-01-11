@@ -82,6 +82,8 @@ abstract class AbstractLocalVariableTest : AbstractDebugTest() {
         waitUntil { locatableEvent.thread().isSuspended }
         val location = locatableEvent.location()
         if (location.method().isSynthetic) return
+        if (location.sourcePath().startsWith("helpers/")) return
+
         val frame = locatableEvent.thread().frame(0)
         val visibleVars = try {
             frame.visibleVariables().map { variable -> toRecord(frame, variable) }
