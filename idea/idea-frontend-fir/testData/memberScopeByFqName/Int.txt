@@ -1103,16 +1103,6 @@ KtFirFunctionSymbol:
   valueParameters: [KtFirFunctionValueParameterSymbol(other)]
   visibility: PUBLIC
 
-KtFirConstructorSymbol:
-  annotatedType: [] kotlin/Int
-  annotations: []
-  containingClassIdIfNonLocal: kotlin/Int
-  isPrimary: true
-  origin: LIBRARY
-  symbolKind: MEMBER
-  valueParameters: []
-  visibility: PRIVATE
-
 KtFirFunctionSymbol:
   annotatedType: [] kotlin/Boolean
   annotations: []
@@ -1184,3 +1174,13 @@ KtFirClassOrObjectSymbol:
   symbolKind: MEMBER
   typeParameters: []
   visibility: PUBLIC
+
+KtFirConstructorSymbol:
+  annotatedType: [] kotlin/Int
+  annotations: []
+  containingClassIdIfNonLocal: kotlin/Int
+  isPrimary: true
+  origin: LIBRARY
+  symbolKind: MEMBER
+  valueParameters: []
+  visibility: PRIVATE
