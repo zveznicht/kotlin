@@ -5,8 +5,8 @@
 
 package org.jetbrains.kotlin.idea.frontend.api.fir.components
 
+import org.jetbrains.kotlin.fir.resolve.inference.typeCheckerContextFactory
 import org.jetbrains.kotlin.fir.types.ConeKotlinType
-import org.jetbrains.kotlin.fir.types.ConeTypeCheckerContext
 import org.jetbrains.kotlin.idea.frontend.api.fir.KtFirAnalysisSession
 
 internal interface KtFirAnalysisSessionComponent {
@@ -16,9 +16,10 @@ internal interface KtFirAnalysisSessionComponent {
     val firResolveState get() = analysisSession.firResolveState
     fun ConeKotlinType.asKtType() = analysisSession.firSymbolBuilder.buildKtType(this)
 
-    fun createTypeCheckerContext() = ConeTypeCheckerContext(
-        isErrorTypeEqualsToAnything = true,
-        isStubTypeEqualsToAnything = true,
-        analysisSession.firResolveState.rootModuleSession //TODO use correct session here
-    )
+    // TODO use correct session here
+    fun createTypeCheckerContext() =
+        firResolveState.rootModuleSession.typeCheckerContextFactory.createConeTypeCheckerContext(
+            isErrorTypeEqualsToAnything = true,
+            isStubTypeEqualsToAnything = true,
+        )
 }

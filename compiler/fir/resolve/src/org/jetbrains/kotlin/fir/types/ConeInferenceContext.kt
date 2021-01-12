@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.NoSubstitutor
 import org.jetbrains.kotlin.fir.resolve.inference.isBuiltinFunctionalType
 import org.jetbrains.kotlin.fir.resolve.inference.isSuspendFunctionType
+import org.jetbrains.kotlin.fir.resolve.inference.typeCheckerContextFactory
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.substitution.AbstractConeSubstitutor
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
@@ -97,7 +98,7 @@ interface ConeInferenceContext : TypeSystemInferenceExtensionContext, ConeTypeCo
         errorTypesEqualToAnything: Boolean,
         stubTypesEqualToAnything: Boolean
     ): AbstractTypeCheckerContext =
-        ConeTypeCheckerContext(errorTypesEqualToAnything, stubTypesEqualToAnything, session)
+        session.typeCheckerContextFactory.createConeTypeCheckerContext(errorTypesEqualToAnything, stubTypesEqualToAnything)
 
     override fun KotlinTypeMarker.canHaveUndefinedNullability(): Boolean {
         require(this is ConeKotlinType)
