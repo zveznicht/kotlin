@@ -56,7 +56,7 @@ abstract class AbstractFirUseSiteMemberScope(
         val result = mutableListOf<FirNamedFunctionSymbol>()
         val firSimpleFunction = symbol.fir
         superTypesScope.processFunctionsByName(symbol.callableId.callableName) { superSymbol ->
-            superSymbol.ensureResolved(FirResolvePhase.STATUS, session)
+            superSymbol.ensureResolved(FirResolvePhase.TYPES, session)
             if (overrideChecker.isOverriddenFunction(firSimpleFunction, superSymbol.fir)) {
                 result.add(superSymbol)
             }
