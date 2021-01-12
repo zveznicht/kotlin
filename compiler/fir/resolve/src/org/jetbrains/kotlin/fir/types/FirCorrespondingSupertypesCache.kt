@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.fir.FirSessionComponent
 import org.jetbrains.kotlin.fir.ThreadSafeMutableState
 import org.jetbrains.kotlin.fir.declarations.FirClassLikeDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirTypeParameterRefsOwner
+import org.jetbrains.kotlin.fir.resolve.inference.typeCheckerContextFactory
 import org.jetbrains.kotlin.fir.resolve.toSymbol
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
@@ -20,8 +21,11 @@ import org.jetbrains.kotlin.types.model.TypeConstructorMarker
 
 @ThreadSafeMutableState
 class FirCorrespondingSupertypesCache(private val session: FirSession) : FirSessionComponent {
-    private val context = ConeTypeCheckerContext(isErrorTypeEqualsToAnything = false, isStubTypeEqualsToAnything = true, session = session)
     private val cache = HashMap<ConeClassLikeLookupTag, Map<ConeClassLikeLookupTag, List<ConeClassLikeType>>?>(1000, 0.5f)
+    private val context = session.typeCheckerContextFactory.createConeTypeCheckerContext(
+        isErrorTypeEqualsToAnything = false,
+        isStubTypeEqualsToAnything = true
+    )
 
     fun getCorrespondingSupertypes(
         type: ConeKotlinType,
@@ -31,7 +35,6 @@ class FirCorrespondingSupertypesCache(private val session: FirSession) : FirSess
 
         val lookupTag = type.lookupTag
         if (lookupTag == supertypeConstructor) return listOf(captureType(type))
-
         if (lookupTag !in cache) {
             cache[lookupTag] = computeSupertypesMap(lookupTag)
         }
@@ -76,7 +79,7 @@ class FirCorrespondingSupertypesCache(private val session: FirSession) : FirSess
 
     private fun computeSupertypePolicyAndPutInMap(
         supertype: SimpleTypeMarker,
-        resultingMap: MutableMap<ConeClassLikeLookupTag, List<ConeClassLikeType>>
+        resultingMap: MutableMap<ConeClassLikeLookupTag, List<ConeClassLikeType>>,
     ): AbstractTypeCheckerContext.SupertypesPolicy {
         val supertypeLookupTag = (supertype as ConeClassLikeType).lookupTag
         val captured = context.captureFromArguments(supertype, CaptureStatus.FOR_SUBTYPING) as ConeClassLikeType? ?: supertype

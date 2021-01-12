@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.dispatchReceiverClassOrNull
 import org.jetbrains.kotlin.fir.originalForIntersectionOverrideAttr
+import org.jetbrains.kotlin.fir.resolve.inference.typeCheckerContextFactory
 import org.jetbrains.kotlin.fir.resolve.substitution.ConeSubstitutor
 import org.jetbrains.kotlin.fir.scopes.*
 import org.jetbrains.kotlin.fir.symbols.CallableId
@@ -33,7 +34,10 @@ class FirTypeIntersectionScope private constructor(
     private val absentProperties: MutableSet<Name> = mutableSetOf()
     private val absentClassifiers: MutableSet<Name> = mutableSetOf()
 
-    private val typeContext = ConeTypeCheckerContext(isErrorTypeEqualsToAnything = false, isStubTypeEqualsToAnything = false, session)
+    private val typeContext = session.typeCheckerContextFactory.createConeTypeCheckerContext(
+        isErrorTypeEqualsToAnything = false,
+        isStubTypeEqualsToAnything = false
+    )
 
     private val overriddenSymbols: MutableMap<FirCallableSymbol<*>, Collection<MemberWithBaseScope<out FirCallableSymbol<*>>>> =
         mutableMapOf()

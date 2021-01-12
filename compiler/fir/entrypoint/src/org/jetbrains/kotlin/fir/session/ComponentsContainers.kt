@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.ConeCallConflictResolverFactory
 import org.jetbrains.kotlin.fir.resolve.calls.FirSyntheticNamesProvider
 import org.jetbrains.kotlin.fir.resolve.calls.jvm.JvmCallConflictResolverFactory
+import org.jetbrains.kotlin.fir.resolve.inference.FirTypeCheckerContextFactory
 import org.jetbrains.kotlin.fir.resolve.inference.InferenceComponents
 import org.jetbrains.kotlin.fir.resolve.providers.impl.FirQualifierResolverImpl
 import org.jetbrains.kotlin.fir.resolve.providers.impl.FirTypeResolverImpl
@@ -28,6 +29,7 @@ import org.jetbrains.kotlin.fir.types.FirCorrespondingSupertypesCache
 
 @OptIn(SessionConfiguration::class)
 fun FirSession.registerCommonComponents(languageVersionSettings: LanguageVersionSettings) {
+    register(FirTypeCheckerContextFactory::class, FirTypeCheckerContextFactory(this))
     register(FirDeclaredMemberScopeProvider::class, FirDeclaredMemberScopeProvider())
     register(FirCorrespondingSupertypesCache::class, FirCorrespondingSupertypesCache(this))
     register(FirDefaultParametersResolver::class, FirDefaultParametersResolver())
