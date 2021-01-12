@@ -79,8 +79,7 @@ class Context {
         return if (node != null && moduleExportsNode in generateSequence(node) { it.qualifier?.parent }) {
             val path = node.pathFromRoot().drop(2)
             path.fold(currentModule.original) { n, memberName -> n.member(memberName) }
-        }
-        else {
+        } else {
             node
         }
     }
@@ -96,8 +95,7 @@ class Context {
                         nodes[name]?.original?.let { return it }
                     }
                     globalScope.member(expression.ident)
-                }
-                else {
+                } else {
                     extractNodeImpl(qualifier)?.member(expression.ident)
                 }
             }
@@ -127,21 +125,36 @@ class Context {
     }
 
     class Node private constructor(val localName: JsName?, qualifier: Qualifier?) {
-        private val dependenciesImpl = mutableSetOf<Node>()
-        private val expressionsImpl = mutableSetOf<JsExpression>()
-        private val functionsImpl = mutableSetOf<JsFunction>()
+        private var dependenciesImpl: MutableSet<Node>? = null
+        private var expressionsImpl: MutableSet<JsExpression>? = null
+        private var functionsImpl: MutableSet<JsFunction>? = null
         private var hasSideEffectsImpl = false
         private var reachableImpl = false
         private var declarationReachableImpl = false
-        private val membersImpl = mutableMapOf<String, Node>()
-        private val usedByAstNodesImpl = mutableSetOf<JsNode>()
+        private var membersImpl: MutableMap<String, Node>? = null
+        private var usedByAstNodesImpl: MutableSet<JsNode>? = null
         private var rank = 0
 
-        val dependencies: MutableSet<Node> get() = original.dependenciesImpl
+        val dependencies: MutableSet<Node>
+            get() = original.run {
+                dependenciesImpl ?: mutableSetOf<Node>().also {
+                    dependenciesImpl = it
+                }
+            }
 
-        val expressions: MutableSet<JsExpression> get() = original.expressionsImpl
+        val expressions: MutableSet<JsExpression>
+            get() = original.run {
+                expressionsImpl ?: mutableSetOf<JsExpression>().also {
+                    expressionsImpl = it
+                }
+            }
 
-        val functions: MutableSet<JsFunction> get() = original.functionsImpl
+        val functions: MutableSet<JsFunction>
+            get() = original.run {
+                functionsImpl ?: mutableSetOf<JsFunction>().also {
+                    functionsImpl = it
+                }
+            }
 
         var hasSideEffects: Boolean
             get() = original.hasSideEffectsImpl
@@ -165,9 +178,13 @@ class Context {
             get
             private set
 
-        val usedByAstNodes: MutableSet<JsNode> get() = original.usedByAstNodesImpl
+        val usedByAstNodes: MutableSet<JsNode> get() = original.run {
+            usedByAstNodesImpl ?: mutableSetOf<JsNode>().also {
+                usedByAstNodesImpl = it
+            }
+        }
 
-        val memberNames: MutableSet<String> get() = original.membersImpl.keys
+        val memberNames: MutableSet<String> get() = members.keys
 
         constructor(localName: JsName? = null) : this(localName, null)
 
@@ -180,9 +197,13 @@ class Context {
             }
             private set
 
-        val members: Map<String, Node> get() = original.membersImpl
+        val members: MutableMap<String, Node> get() = original.run {
+            membersImpl ?: mutableMapOf<String, Node>().also {
+                membersImpl = it
+            }
+        }
 
-        fun member(name: String): Node = original.membersImpl.getOrPut(name) { Node(null, Qualifier(this, name)) }.original
+        fun member(name: String): Node = members.getOrPut(name) { Node(null, Qualifier(this, name)) }.original
 
         fun alias(other: Node) {
             val a = original
@@ -191,48 +212,47 @@ class Context {
 
             if (a.qualifier == null && b.qualifier == null) {
                 a.merge(b)
-            }
-            else if (a.qualifier == null) {
+            } else if (a.qualifier == null) {
                 if (b.root() == a) a.makeDependencies(b) else b.evacuateFrom(a)
-            }
-            else if (b.qualifier == null) {
+            } else if (b.qualifier == null) {
                 if (a.root() == b) a.makeDependencies(b) else a.evacuateFrom(b)
-            }
-            else {
+            } else {
                 a.makeDependencies(b)
             }
         }
 
         private fun makeDependencies(other: Node) {
-            dependenciesImpl += other
-            other.dependenciesImpl += this
+            dependencies += other
+            other.dependencies += this
         }
 
         private fun evacuateFrom(other: Node) {
-            val (existingMembers, newMembers) = other.members.toList().partition { (name, _) -> name in membersImpl }
+            val thisMembers = members
+
+            val (existingMembers, newMembers) = other.members.toList().partition { (name, _) -> name in thisMembers }
             other.original = this
 
             for ((name, member) in newMembers) {
-                membersImpl[name] = member
+                thisMembers[name] = member
                 member.original.qualifier = Qualifier(this, member.original.qualifier!!.memberName)
             }
             for ((name, member) in existingMembers) {
-                membersImpl[name]!!.original.merge(member.original)
-                membersImpl[name] = member.original
+                thisMembers[name]!!.original.merge(member.original)
+                thisMembers[name] = member.original
                 member.original.qualifier = Qualifier(this, member.original.qualifier!!.memberName)
             }
-            other.membersImpl.clear()
+            other.membersImpl = null
 
             hasSideEffectsImpl = hasSideEffectsImpl || other.hasSideEffectsImpl
-            expressionsImpl += other.expressionsImpl
-            functionsImpl += other.functionsImpl
-            dependenciesImpl += other.dependenciesImpl
-            usedByAstNodesImpl += other.usedByAstNodesImpl
+            other.expressionsImpl?.let { expressions += it }
+            other.functionsImpl?.let { functions += it }
+            other.dependenciesImpl?.let { dependencies += it }
+            other.usedByAstNodesImpl?.let { usedByAstNodes += it }
 
-            other.expressionsImpl.clear()
-            other.functionsImpl.clear()
-            other.dependenciesImpl.clear()
-            other.usedByAstNodesImpl.clear()
+            other.expressionsImpl = null
+            other.functionsImpl = null
+            other.dependenciesImpl = null
+            other.usedByAstNodesImpl = null
         }
 
         private fun merge(other: Node) {
@@ -240,8 +260,7 @@ class Context {
 
             if (rank < other.rank) {
                 other.evacuateFrom(this)
-            }
-            else {
+            } else {
                 evacuateFrom(other)
             }
 
@@ -253,8 +272,8 @@ class Context {
         fun root(): Node = generateSequence(original) { it.qualifier?.parent?.original }.last()
 
         fun pathFromRoot(): List<String> =
-                generateSequence(original) { it.qualifier?.parent?.original }.mapNotNull { it.qualifier?.memberName }
-                        .toList().asReversed()
+            generateSequence(original) { it.qualifier?.parent?.original }.mapNotNull { it.qualifier?.memberName }
+                .toList().asReversed()
 
         override fun toString(): String = (root().localName?.ident ?: "<unknown>") + pathFromRoot().joinToString("") { ".$it" }
     }
