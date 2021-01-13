@@ -532,7 +532,7 @@ interface ConeTypeContext : TypeSystemContext, TypeSystemOptimizationContext, Ty
     }
 }
 
-class ConeTypeCheckerContext(
+class ConeTypeCheckerContext internal constructor(
     override val isErrorTypeEqualsToAnything: Boolean,
     override val isStubTypeEqualsToAnything: Boolean,
     override val session: FirSession
