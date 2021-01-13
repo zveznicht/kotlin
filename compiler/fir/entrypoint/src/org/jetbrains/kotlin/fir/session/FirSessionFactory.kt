@@ -19,6 +19,8 @@ import org.jetbrains.kotlin.fir.analysis.checkers.declaration.DeclarationChecker
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.ExpressionCheckers
 import org.jetbrains.kotlin.fir.analysis.checkersComponent
 import org.jetbrains.kotlin.fir.analysis.extensions.additionalCheckers
+import org.jetbrains.kotlin.fir.caches.FirCachesFactory
+import org.jetbrains.kotlin.fir.caches.FirThreadUnsafeCachesFactory
 import org.jetbrains.kotlin.fir.checkers.registerCommonCheckers
 import org.jetbrains.kotlin.fir.extensions.BunchOfRegisteredExtensions
 import org.jetbrains.kotlin.fir.extensions.extensionService
@@ -90,6 +92,8 @@ object FirSessionFactory {
                 ) as FirSymbolProvider
             )
 
+            register(FirCachesFactory::class, FirThreadUnsafeCachesFactory)
+
             FirSessionConfigurator(this).apply {
                 registerCommonCheckers()
                 init()
@@ -137,6 +141,7 @@ object FirSessionFactory {
                     FirDependenciesSymbolProviderImpl(this)
                 )
             )
+            register(FirCachesFactory::class, FirThreadUnsafeCachesFactory)
             register(FirSymbolProvider::class, symbolProvider)
             register(FirProvider::class, FirLibrarySessionProvider(firSymbolProvider))
         }
