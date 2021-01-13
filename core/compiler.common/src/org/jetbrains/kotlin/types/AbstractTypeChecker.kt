@@ -11,6 +11,8 @@ import org.jetbrains.kotlin.types.model.*
 import org.jetbrains.kotlin.utils.SmartList
 import org.jetbrains.kotlin.utils.SmartSet
 import java.util.*
+import org.jetbrains.kotlin.utils.getValue
+import org.jetbrains.kotlin.utils.setValue
 
 abstract class AbstractTypeCheckerContext : TypeSystemContext {
     abstract fun substitutionSupertypePolicy(type: SimpleTypeMarker): SupertypesPolicy
@@ -29,7 +31,7 @@ abstract class AbstractTypeCheckerContext : TypeSystemContext {
 
     abstract val isStubTypeEqualsToAnything: Boolean
 
-    protected var argumentsDepth = 0
+    protected var argumentsDepth: Int by ThreadLocal.withInitial { 0 }
 
     internal inline fun <T> runWithArgumentsSettings(subArgument: KotlinTypeMarker, f: AbstractTypeCheckerContext.() -> T): T {
         if (argumentsDepth > 100) {
