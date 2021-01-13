@@ -90,7 +90,6 @@ native {
         (".c" to ".$obj") {
             tool(*platformManager.hostPlatform.clang.clangC("").toTypedArray())
             flags(*cflags.toTypedArray(),
-                  "-fPIC",
                   "-c", "-o", ruleOut(), ruleInFirst())
         }
         (".cpp" to ".$obj") {
