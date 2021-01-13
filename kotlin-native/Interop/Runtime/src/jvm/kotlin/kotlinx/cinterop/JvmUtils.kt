@@ -91,11 +91,13 @@ inline fun <reified R : Number> Number.invalidNarrowing(): R {
 
 fun loadKonanLibrary(name: String) {
     try {
+        println("loadKonanLibrary($name)")
         System.loadLibrary(name)
     } catch (e: UnsatisfiedLinkError) {
         val fullLibraryName = System.mapLibraryName(name)
         val dir = "${KonanHomeProvider.determineKonanHome()}/konan/nativelib"
         try {
+            println("loadKonanLibrary($dir/$fullLibraryName)")
             System.load("$dir/$fullLibraryName")
         } catch (e: UnsatisfiedLinkError) {
             val tempDir = Files.createTempDirectory(Paths.get(dir), null).toAbsolutePath().toString()
