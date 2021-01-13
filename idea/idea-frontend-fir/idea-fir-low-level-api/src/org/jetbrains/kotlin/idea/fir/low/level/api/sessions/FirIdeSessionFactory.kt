@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.BuiltinTypes
 import org.jetbrains.kotlin.fir.PrivateSessionConstructor
 import org.jetbrains.kotlin.fir.SessionConfiguration
 import org.jetbrains.kotlin.fir.backend.jvm.FirJvmTypeMapper
+import org.jetbrains.kotlin.fir.caches.FirCachesFactory
 import org.jetbrains.kotlin.fir.checkers.registerCommonCheckers
 import org.jetbrains.kotlin.fir.dependenciesWithoutSelf
 import org.jetbrains.kotlin.fir.java.JavaSymbolProvider
@@ -33,6 +34,7 @@ import org.jetbrains.kotlin.idea.fir.low.level.api.IdeFirPhaseManager
 import org.jetbrains.kotlin.idea.fir.low.level.api.IdeSessionComponents
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.FirFileBuilder
 import org.jetbrains.kotlin.idea.fir.low.level.api.file.builder.ModuleFileCacheImpl
+import org.jetbrains.kotlin.idea.fir.low.level.api.fir.caches.FirThreadSafeCachesFactory
 import org.jetbrains.kotlin.idea.fir.low.level.api.lazy.resolve.FirLazyDeclarationResolver
 import org.jetbrains.kotlin.idea.fir.low.level.api.providers.*
 import org.jetbrains.kotlin.idea.fir.low.level.api.providers.FirIdeBuiltinsAndCloneableSessionProvider
@@ -219,5 +221,6 @@ internal object FirIdeSessionFactory {
 
     private fun FirIdeSession.registerIdeComponents() {
         register(IdeSessionComponents::class, IdeSessionComponents.create(this))
+        register(FirCachesFactory::class, FirThreadSafeCachesFactory)
     }
 }
