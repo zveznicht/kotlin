@@ -8,8 +8,7 @@ package org.jetbrains.kotlin.types
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext.LowerCapturedTypePolicy.*
 import org.jetbrains.kotlin.types.AbstractTypeCheckerContext.SupertypesPolicy
 import org.jetbrains.kotlin.types.model.*
-import org.jetbrains.kotlin.utils.SmartList
-import org.jetbrains.kotlin.utils.SmartSet
+import org.jetbrains.kotlin.utils.*
 import java.util.*
 
 abstract class AbstractTypeCheckerContext : TypeSystemContext {
@@ -29,7 +28,7 @@ abstract class AbstractTypeCheckerContext : TypeSystemContext {
 
     abstract val isStubTypeEqualsToAnything: Boolean
 
-    protected var argumentsDepth = 0
+    protected var argumentsDepth: Int by ThreadLocalWithInitialValue(0)
 
     internal inline fun <T> runWithArgumentsSettings(subArgument: KotlinTypeMarker, f: AbstractTypeCheckerContext.() -> T): T {
         if (argumentsDepth > 100) {
