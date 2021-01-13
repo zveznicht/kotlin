@@ -12,10 +12,7 @@ import org.jetbrains.kotlin.utils.SmartList
 import org.jetbrains.kotlin.utils.SmartSet
 import java.util.*
 
-
 abstract class AbstractTypeCheckerContext : TypeSystemContext {
-
-
     abstract fun substitutionSupertypePolicy(type: SimpleTypeMarker): SupertypesPolicy
 
     override fun prepareType(type: KotlinTypeMarker): KotlinTypeMarker {
@@ -33,7 +30,6 @@ abstract class AbstractTypeCheckerContext : TypeSystemContext {
     abstract val isStubTypeEqualsToAnything: Boolean
 
     protected var argumentsDepth = 0
-
 
     internal inline fun <T> runWithArgumentsSettings(subArgument: KotlinTypeMarker, f: AbstractTypeCheckerContext.() -> T): T {
         if (argumentsDepth > 100) {
@@ -60,33 +56,6 @@ abstract class AbstractTypeCheckerContext : TypeSystemContext {
         SKIP_LOWER
     }
 
-    private var supertypesLocked = false
-
-    var supertypesDeque: ArrayDeque<SimpleTypeMarker>? = null
-        private set
-    var supertypesSet: MutableSet<SimpleTypeMarker>? = null
-        private set
-
-
-    fun initialize() {
-        assert(!supertypesLocked) {
-            "Supertypes were locked for ${this::class}"
-        }
-        supertypesLocked = true
-
-        if (supertypesDeque == null) {
-            supertypesDeque = ArrayDeque(4)
-        }
-        if (supertypesSet == null) {
-            supertypesSet = SmartSet.create()
-        }
-    }
-
-    fun clear() {
-        supertypesDeque!!.clear()
-        supertypesSet!!.clear()
-        supertypesLocked = false
-    }
 
     inline fun anySupertype(
         start: SimpleTypeMarker,
@@ -95,10 +64,8 @@ abstract class AbstractTypeCheckerContext : TypeSystemContext {
     ): Boolean {
         if (predicate(start)) return true
 
-        initialize()
-
-        val deque = supertypesDeque!!
-        val visitedSupertypes = supertypesSet!!
+        val deque = ArrayDeque<SimpleTypeMarker>(4)
+        val visitedSupertypes = SmartSet.create<SimpleTypeMarker>()
 
         deque.push(start)
         while (deque.isNotEmpty()) {
@@ -112,14 +79,12 @@ abstract class AbstractTypeCheckerContext : TypeSystemContext {
             for (supertype in current.typeConstructor().supertypes()) {
                 val newType = policy.transformType(this, supertype)
                 if (predicate(newType)) {
-                    clear()
                     return true
                 }
                 deque.add(newType)
             }
         }
 
-        clear()
         return false
     }
 
