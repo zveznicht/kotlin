@@ -67,7 +67,7 @@ native {
         flags("-shared",
               "-o",ruleOut(), *ruleInAll(),
               "-L${project(":kotlin-native:libclangext").buildDir}",
-              "$hostLibffiDir/lib/libffi.$lib",
+              "$hostLibffiDir/lib/libffi.a",
               "-lclangext")
     }
     tasks["libcallbacks.$solib"].apply {
