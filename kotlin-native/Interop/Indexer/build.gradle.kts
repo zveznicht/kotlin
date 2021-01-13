@@ -71,11 +71,11 @@ val solib = when{
     HostManager.hostIsMac -> "dylib"
     else -> "so"
 }
+val lib = if (HostManager.hostIsMingw) "lib" else "a"
 
 
 native {
     val obj = if (HostManager.hostIsMingw) "obj" else "o"
-    val lib = if (HostManager.hostIsMingw) "lib" else "a"
     val host = rootProject.project(":kotlin-native").extra["hostName"]
     val hostLibffiDir = rootProject.project(":kotlin-native").extra["${host}LibffiDir"]
     suffixes {
