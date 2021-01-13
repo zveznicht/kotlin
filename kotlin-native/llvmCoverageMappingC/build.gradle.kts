@@ -21,53 +21,50 @@ import org.jetbrains.kotlin.konan.target.Family.*
 import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
-  `native`
+    `native`
 }
 
 native {
-  val obj = if (HostManager.hostIsMingw) "obj" else "o"
-  val llvmDir = project.findProperty("llvmDir")
+    val obj = if (HostManager.hostIsMingw) "obj" else "o"
+    val llvmDir = project.findProperty("llvmDir")
 
-  val host = rootProject.project(":kotlin-native").extra["hostName"]
-  val hostLibffiDir = rootProject.project(":kotlin-native").extra["${host}LibffiDir"]
-  suffixes {
-    (".cpp" to ".$obj") {
-      tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
-      when (org.jetbrains.kotlin.konan.target.HostManager.host.family) {
+    val host = rootProject.project(":kotlin-native").extra["hostName"]
+    val hostLibffiDir = rootProject.project(":kotlin-native").extra["${host}LibffiDir"]
+    val cxxflags = mutableListOf(
+        "-std=c++14",
+        "-I${llvmDir}/include",
+        "-Isrc/main/include"
+    )
+    when (org.jetbrains.kotlin.konan.target.HostManager.host.family) {
         LINUX -> {
-          flags("-std=c++14", "-DKONAN_LINUX=1",
-                "-D_GLIBCXX_USE_CXX11_ABI=0",
-                "-I${llvmDir}/include",
-                "-Isrc/main/include",
-                "-fPIC",
-                "-c", "-o", ruleOut(), ruleInFirst())
+            cxxflags.addAll(listOf("-DKONAN_LINUX=1", "-D_GLIBCXX_USE_CXX11_ABI=0"))
         }
         MINGW -> {
-          flags("-std=c++14",
-                "-DKONAN_WINDOWS=1",
-                "-I${llvmDir}/include",
-                "-Isrc/main/include",
-                "-c", "-o", ruleOut(), ruleInFirst())
+            cxxflags += "-DKONAN_WINDOWS=1"
         }
         OSX -> {
-          flags("-std=c++14", "-DKONAN_MACOS=1",
-                "-I${llvmDir}/include", "-Isrc/main/include",
-                "-fPIC",
-                "-c", "-o", ruleOut(), ruleInFirst())
+            cxxflags += "-DKONAN_MACOS=1"
         }
-      }
     }
-
-  }
-  sourceSet {
-    "main" {
-      dir("src/main/cpp")
+    if (!HostManager.hostIsMingw) {
+        cxxflags += "-fPIC"
     }
-  }
-  val objSet = sourceSets["main"]!!.transform(".cpp" to ".$obj")
+    suffixes {
+        (".cpp" to ".$obj") {
+            tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
+            flags(*cxxflags.toTypedArray(), "-c", "-o", ruleOut(), ruleInFirst())
+        }
 
-  target(lib("coverageMapping"), objSet) {
-    tool(*platformManager.hostPlatform.clang.llvmAr("").toTypedArray())
-    flags("-qv", ruleOut(), *ruleInAll())
-  }
+    }
+    sourceSet {
+        "main" {
+            dir("src/main/cpp")
+        }
+    }
+    val objSet = sourceSets["main"]!!.transform(".cpp" to ".$obj")
+
+    target(lib("coverageMapping"), objSet) {
+        tool(*platformManager.hostPlatform.clang.llvmAr("").toTypedArray())
+        flags("-qv", ruleOut(), *ruleInAll())
+    }
 }

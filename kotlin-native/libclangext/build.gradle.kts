@@ -27,28 +27,17 @@ extra["isEnabled"] = org.jetbrains.kotlin.konan.target.HostManager.hostIsMac
 native {
     val isWindows = PlatformInfo.isWindows()
     val obj = if (isWindows) "obj" else "o"
+    val cxxflags = mutableListOf("--std=c++11", "-g",
+                          "-Isrc/main/include",
+                          "-I${project.findProperty("llvmDir")}/include",
+                          "-DLLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING=1")
+    if (!org.jetbrains.kotlin.konan.target.HostManager.hostIsMingw) {
+        cxxflags += "-fPIC"
+    }
     suffixes {
         (".cpp" to ".$obj") {
             tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
-            when (org.jetbrains.kotlin.konan.target.HostManager.host.family) {
-                LINUX -> {
-                    flags("--std=c++11", "-g", "-Isrc/main/include",
-                          "-I${project.findProperty("llvmDir")}/include", "-fPIC",
-                          "-DLLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING=1",
-                           "-c", "-o", ruleOut(), ruleInFirst())
-                }
-                MINGW -> {
-                    flags("--std=c++11", "-g", "-Isrc/main/include",
-                          "-I${project.findProperty("llvmDir")}/include",
-                           "-c", "-o", ruleOut(), ruleInFirst())
-                }
-                OSX -> {
-                    flags("--std=c++11", "-g",
-                          "-Isrc/main/include",
-                          "-DLLVM_DISABLE_ABI_BREAKING_CHECKS_ENFORCING=1",
-                          "-I${project.findProperty("llvmDir")}/include", "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
-                }
-            }
+            flags(*cxxflags.toTypedArray(), "-c", "-o", ruleOut(), ruleInFirst())
         }
     }
     sourceSet {

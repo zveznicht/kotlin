@@ -34,21 +34,15 @@ native {
     val obj = if (isWindows) "obj" else "o"
     val host = rootProject.project(":kotlin-native").extra["hostName"]
     val hostLibffiDir = rootProject.project(":kotlin-native").extra["${host}LibffiDir"]
+    val cflags = mutableListOf("-I$hostLibffiDir/include",
+                               *platformManager.hostPlatform.clang.hostCompilerArgsForJni)
+    if (!HostManager.hostIsMingw) {
+        cflags += "-fPIC"
+    }
     suffixes {
         (".c" to ".$obj") {
             tool(*platformManager.hostPlatform.clang.clangC("").toTypedArray())
-            when (org.jetbrains.kotlin.konan.target.HostManager.host.family) {
-                org.jetbrains.kotlin.konan.target.Family.LINUX -> {
-                    flags("-I$hostLibffiDir/include", *platformManager.hostPlatform.clang.hostCompilerArgsForJni, "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
-                }
-                org.jetbrains.kotlin.konan.target.Family.MINGW -> {
-                    flags("-I$hostLibffiDir/include", *platformManager.hostPlatform.clang.hostCompilerArgsForJni, "-c", "-o", ruleOut(), ruleInFirst())
-                }
-                org.jetbrains.kotlin.konan.target.Family.OSX -> {
-                    flags("-I$hostLibffiDir/include", "-g", *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
-                          "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
-                }
-            }
+            flags( *cflags.toTypedArray(), "-c", "-o", ruleOut(), ruleInFirst())
         }
     }
     sourceSet {
