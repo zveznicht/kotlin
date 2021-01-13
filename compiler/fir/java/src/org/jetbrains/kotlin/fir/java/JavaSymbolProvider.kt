@@ -100,8 +100,10 @@ open class JavaSymbolProvider(
             ) {
                 null
             } else {
-                FirLazyClassSymbol(
+                createClassSymbol(
                     classId = classId,
+                    session = session,
+                    createLazySymbol = true,
                     createFirClass = {
                         foundClass.assertIsValidIfBuiltByPsi()
                         convertJavaClassToFir(it, foundClass)
