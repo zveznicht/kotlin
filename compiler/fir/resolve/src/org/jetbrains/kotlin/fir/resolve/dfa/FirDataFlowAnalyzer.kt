@@ -1111,6 +1111,12 @@ abstract class FirDataFlowAnalyzer<FLOW : Flow>(
         graphBuilder.exitElvis().mergeIncomingFlow()
     }
 
+    // Callable reference
+
+    fun exitCallableReference(callableReferenceAccess: FirCallableReferenceAccess) {
+        graphBuilder.exitCallableReference(callableReferenceAccess).mergeIncomingFlow()
+    }
+
     // ------------------------------------------------------ Utils ------------------------------------------------------
 
     private var CFGNode<*>.flow: FLOW
