@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.*
+import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.builder.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
@@ -43,7 +44,6 @@ import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.resolve.jvm.KotlinJavaPsiFacade
 import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.kotlin.utils.addIfNotNull
-import java.util.concurrent.ConcurrentHashMap
 
 @ThreadSafeMutableState
 open class JavaSymbolProvider(
@@ -55,8 +55,8 @@ open class JavaSymbolProvider(
         internal val VALUE_METHOD_NAME = Name.identifier("value")
     }
 
-    private val classCache = SymbolProviderCache.createThreadSafeCache<ClassId, FirRegularClassSymbol>()
-    private val packageCache = SymbolProviderCache.createThreadSafeCache<FqName, FqName>()
+    private val classCache = session.firCachesFactory.createMapLikeCache<ClassId, FirRegularClassSymbol?>()
+    private val packageCache = session.firCachesFactory.createMapLikeCacheWithFixedCompute(::computePackage)
 
     private val scopeProvider = JavaScopeProvider(::wrapScopeWithJvmMapped, this)
 
@@ -92,7 +92,7 @@ open class JavaSymbolProvider(
 
     fun getFirJavaClass(classId: ClassId, content: KotlinClassFinder.Result.ClassFileContent? = null): FirRegularClassSymbol? {
         if (!hasTopLevelClassOf(classId)) return null
-        return classCache.lookupCacheOrCalculate(classId) {
+        return classCache.getOrCreateValue(classId) {
             val foundClass = findClass(classId, content)
             if (foundClass == null ||
                 foundClass.hasDifferentRelativeClassName(classId) ||
@@ -496,14 +496,16 @@ open class JavaSymbolProvider(
     )
 
     override fun getPackage(fqName: FqName): FqName? {
-        return packageCache.lookupCacheOrCalculate(fqName) {
-            try {
-                val facade = KotlinJavaPsiFacade.getInstance(project)
-                val javaPackage = facade.findPackage(fqName.asString(), searchScope) ?: return@lookupCacheOrCalculate null
-                FqName(javaPackage.qualifiedName)
-            } catch (e: ProcessCanceledException) {
-                return@lookupCacheOrCalculate null
-            }
+        return packageCache.getOrCreateValue(fqName)
+    }
+
+    private fun computePackage(fqName: FqName): FqName? {
+        return try {
+            val facade = KotlinJavaPsiFacade.getInstance(project)
+            val javaPackage = facade.findPackage(fqName.asString(), searchScope) ?: return null
+            FqName(javaPackage.qualifiedName)
+        } catch (e: ProcessCanceledException) {
+            null
         }
     }
 
