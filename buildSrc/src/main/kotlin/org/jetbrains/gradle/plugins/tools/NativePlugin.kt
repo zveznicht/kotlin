@@ -5,25 +5,92 @@
 
 package org.jetbrains.gradle.plugins.tools
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.BasePlugin
-import org.gradle.api.tasks.Delete
+import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.apply
-import org.gradle.kotlin.dsl.get
-import org.gradle.kotlin.dsl.withConvention
 import org.gradle.kotlin.dsl.withType
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.jetbrains.kotlin.konan.target.HostManager.Companion.hostIsMac
 import org.jetbrains.kotlin.konan.target.HostManager.Companion.hostIsMingw
 import java.io.File
+import kotlin.collections.List
+import kotlin.collections.MutableMap
+import kotlin.collections.addAll
+import kotlin.collections.drop
+import kotlin.collections.first
+import kotlin.collections.flatMap
+import kotlin.collections.forEach
+import kotlin.collections.listOf
+import kotlin.collections.map
+import kotlin.collections.mutableListOf
+import kotlin.collections.mutableMapOf
+import kotlin.collections.plusAssign
+import kotlin.collections.set
+import kotlin.collections.toTypedArray
 
 open class NativePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.apply<BasePlugin>()
         project.extensions.create("native", NativeToolsExtension::class.java, project)
+    }
+}
+
+abstract class ToolExecutionTask : DefaultTask() {
+    @get:OutputFile
+    abstract var output: File
+
+    @get:InputFiles
+    abstract var input: List<File>
+
+    @get:Input
+    abstract var cmd: String
+
+    @get:Input
+    abstract var args: List<String>
+
+    @TaskAction
+    fun action() {
+        project.exec {
+            executable(cmd)
+            args(*this@ToolExecutionTask.args.toTypedArray())
+        }
+    }
+}
+
+class ToolPatternImpl(val extension: NativeToolsExtension, val output:String, vararg val input: String):ToolPattern {
+    val tool = mutableListOf<String>()
+    val args = mutableListOf<String>()
+    override fun ruleOut(): String = output
+    override fun ruleInFirst(): String = input.first()
+    override fun ruleInAll(): Array<String> = arrayOf(*input)
+
+    override fun flags(vararg args: String) {
+        this.args.addAll(args)
+    }
+
+    override fun tool(vararg arg: String) {
+        tool.addAll(arg)
+    }
+
+    override fun env(name: String) = emptyArray<String>()
+
+    fun configure(task: ToolExecutionTask, configureDepencies:Boolean) {
+        extension.cleanupfiles += output
+        task.input = input.map {
+            extension.project.file(it)
+        }
+        task.dependsOn(":kotlin-native:dependencies:update")
+        if (configureDepencies)
+            task.input.forEach { task.dependsOn(it.name) }
+        val file = extension.project.file(output)
+        file.parentFile.mkdirs()
+        task.output = file
+        task.cmd = tool.first()
+        task.args = listOf(*tool.drop(1).toTypedArray(), *args.toTypedArray())
     }
 }
 
@@ -40,7 +107,6 @@ open class SourceSet(
     }
 
     fun dir(path: String) {
-        println("initial: $initialDirectory")
         sourceSets.project.fileTree("${initialDirectory.absolutePath}/$path").files.forEach {
             collection = collection.plus(sourceSets.project.files(it))
         }
@@ -56,11 +122,9 @@ open class SourceSet(
         )
     }
 
-    fun implicitTasks(): Array<Task> {
+    fun implicitTasks(): Array<TaskProvider<*>> {
         rule ?: return emptyArray()
-        println("implicitTasks: ${rule}")
         initialSourceSet?.implicitTasks()
-        println("${rule} implicitTasks: ${initialSourceSet!!.collection.files.joinToString { it.name }}")
         return initialSourceSet!!.collection
             .filter { !it.isDirectory() }
             .filter { it.name.endsWith(rule.first) }
@@ -69,41 +133,12 @@ open class SourceSet(
             .map { it to (it.substring(0, it.lastIndexOf(rule.first)) + rule.second) }
             .map {
                 file(it.second)
-                println("second: ${it.second}")
                 sourceSets.project.file("${initialSourceSet.initialDirectory.path}/${it.first}") to sourceSets.project.file("${initialDirectory.path}/${it.second}")
             }.map {
-                println("create task: ${it.second.name}")
-                sourceSets.project.tasks.create(it.second.name) {
-                    sourceSets.extension.cleanupfiles += it.second.path
-                    if (initialSourceSet.rule != null)
-                        dependsOn(it.first.name)
-                    dependsOn(":kotlin-native:dependencies:update")
-                    doLast {
-                        val toolConfiguration = object : ToolPattern {
-                            var tool: Array<String> = emptyArray()
-                            var args: Array<String> = emptyArray()
-                            override fun ruleOut(): String = it.second.path
-                            override fun ruleInFirst(): String = it.first.path
-                            override fun ruleInAll(): Array<String> = arrayOf(it.second.name)
-
-                            override fun flags(vararg args: String) {
-                                this.args = arrayOf(*args)
-                            }
-
-                            override fun tool(vararg arg: String) {
-                                tool = arrayOf(*arg)
-                            }
-
-                            override fun env(name: String): Array<String> = emptyArray()
-
-                        }
-                        sourceSets.extension.toolPatterns[rule]!!.invoke(toolConfiguration)
-                        it.second.parentFile.mkdirs()
-                        sourceSets.project.exec {
-                            executable(toolConfiguration.tool.first())
-                            args(*toolConfiguration.tool.drop(1).toTypedArray(), *toolConfiguration.args)
-                        }
-                    }
+                sourceSets.project.tasks.register<ToolExecutionTask>(it.second.name, ToolExecutionTask::class.java) {
+                    val toolConfiguration = ToolPatternImpl(sourceSets.extension, it.second.path, it.first.path)
+                    sourceSets.extension.toolPatterns[rule]!!.invoke(toolConfiguration)
+                    toolConfiguration.configure(this, initialSourceSet.rule != null)
                 }
             }.toTypedArray()
     }
@@ -167,41 +202,19 @@ open class NativeToolsExtension(val project: Project) {
                 delete(*this@NativeToolsExtension.cleanupfiles.toTypedArray())
             }
         }
-        project.tasks.create(name) {
-            val targetFileName = "${project.buildDir.path}/$name"
-            sourceSets.extension.cleanupfiles += targetFileName
+
+        sourceSets.project.tasks.create<ToolExecutionTask>(name, ToolExecutionTask::class.java) {
             objSet.forEach {
                 dependsOn(it.implicitTasks())
             }
             val deps = objSet.flatMap { it.collection.files }.map { it.path }
-            val toolConfiguration = object : ToolPattern {
-                var tool = emptyArray<String>()
-                var args = emptyArray<String>()
-                override fun ruleOut(): String = targetFileName
-                override fun ruleInFirst(): String = deps.first()
-                override fun ruleInAll(): Array<String> = deps.toTypedArray()
-
-                override fun flags(vararg args: String) {
-                    this.args = arrayOf(*args)
-                }
-
-                override fun tool(vararg arg: String) {
-                    tool = arrayOf(*arg)
-                }
-
-                override fun env(name: String): Array<String> = emptyArray()
-            }
+            val toolConfiguration = ToolPatternImpl(sourceSets.extension, "${project.buildDir.path}/$name", *deps.toTypedArray())
             toolConfiguration.configuration()
-            doLast {
-                project.file(toolConfiguration.ruleOut()).parentFile.mkdirs()
-                sourceSets.project.exec {
-                    executable(toolConfiguration.tool.first())
-                    args(*toolConfiguration.tool.drop(1).toTypedArray(), *toolConfiguration.args)
-                }
-            }
+            toolConfiguration.configure(this, false )
         }
     }
 }
+
 
 fun solib(name: String) = when {
     hostIsMingw -> "$name.dll"

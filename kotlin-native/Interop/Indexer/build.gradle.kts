@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.*
 import org.jetbrains.kotlin.konan.target.*
 import org.jetbrains.kotlin.konan.target.ClangArgs
 import org.jetbrains.kotlin.konan.target.Family.*
+import org.jetbrains.kotlin.konan.target.HostManager.Companion.hostIsMac
 
 plugins {
     `kotlin`
@@ -43,7 +44,11 @@ val libclang =
     }
 
 val cflags = mutableListOf( "-I$llvmDir/include",
-        "-I${project(":kotlin-native:libclangext").projectDir.absolutePath}/src/main/include")
+        "-I${project(":kotlin-native:libclangext").projectDir.absolutePath}/src/main/include",
+                            *platformManager.hostPlatform.clang.hostCompilerArgsForJni)
+if (!HostManager.hostIsMingw) {
+    cflags += "-fPIC"
+}
 
 val ldflags = mutableListOf("$llvmDir/$libclang", "-L${libclangextDir.absolutePath}", "-lclangext")
 
@@ -81,48 +86,16 @@ native {
     val obj = if (HostManager.hostIsMingw) "obj" else "o"
     val host = rootProject.project(":kotlin-native").extra["hostName"]
     val hostLibffiDir = rootProject.project(":kotlin-native").extra["${host}LibffiDir"]
+    val cxxflags = listOf("-std=c++11", *cflags.toTypedArray())
     suffixes {
         (".c" to ".$obj") {
             tool(*platformManager.hostPlatform.clang.clangC("").toTypedArray())
-            when (HostManager.host.family) {
-                LINUX -> {
-                    flags(*cflags.toTypedArray(),
-                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
-                          "-fPIC",
-                          "-c", "-o", ruleOut(), ruleInFirst())
-                }
-                MINGW -> {
-                    flags(*cflags.toTypedArray(),
-                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
-                          "-c", "-o", ruleOut(), ruleInFirst())
-                }
-                OSX -> {
-                    flags(*cflags.toTypedArray(),
-                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
-                          "-fPIC",
-                          "-c", "-o", ruleOut(), ruleInFirst())
-                }
-            }
+            flags(*cflags.toTypedArray(),
+                  "-c", "-o", ruleOut(), ruleInFirst())
         }
         (".cpp" to ".$obj") {
             tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
-            when (HostManager.host.family) {
-                LINUX -> {
-                    flags("-std=c++11",
-                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
-                          "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
-                }
-                MINGW -> {
-                    flags("-std=c++11",
-                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
-                          "-c", "-o", ruleOut(), ruleInFirst())
-                }
-                OSX -> {
-                    flags("-std=c++11",
-                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
-                          "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
-                }
-            }
+            flags(*cxxflags.toTypedArray(), "-c", "-o", ruleOut(), ruleInFirst())
         }
 
     }
