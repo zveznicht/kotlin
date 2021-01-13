@@ -9,6 +9,8 @@ import org.gradle.api.tasks.Delete
 import org.gradle.kotlin.dsl.apply
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.withConvention
+import org.gradle.kotlin.dsl.withType
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import java.io.File
 
 open class NativePlugin : Plugin<Project> {
@@ -153,7 +155,7 @@ open class NativeToolsExtension(val project: Project) {
     fun suffixes(configuration: ToolConfigurationPatterns.() -> Unit) = toolPatterns.configuration()
 
     fun target(name: String, vararg objSet: SourceSet, configuration: ToolPatternConfiguration) {
-        project.tasks.withType(Delete::class.java).getByName("clean").apply {
+        project.tasks.withType<Delete>().named(LifecycleBasePlugin.CLEAN_TASK_NAME).configure {
             doLast {
                 delete(*this@NativeToolsExtension.cleanupfiles.toTypedArray())
             }
