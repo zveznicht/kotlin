@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -30,24 +30,9 @@ public class CheckLocalVariablesTableTestGenerated extends AbstractCheckLocalVar
         KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/checkLocalVariablesTable"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
     }
 
-    @TestMetadata("copyFunction.kt")
-    public void testCopyFunction() throws Exception {
-        runTest("compiler/testData/checkLocalVariablesTable/copyFunction.kt");
-    }
-
-    @TestMetadata("destructuringInFor.kt")
-    public void testDestructuringInFor() throws Exception {
-        runTest("compiler/testData/checkLocalVariablesTable/destructuringInFor.kt");
-    }
-
     @TestMetadata("destructuringInLambdas.kt")
     public void testDestructuringInLambdas() throws Exception {
         runTest("compiler/testData/checkLocalVariablesTable/destructuringInLambdas.kt");
-    }
-
-    @TestMetadata("destructuringInlineLambda.kt")
-    public void testDestructuringInlineLambda() throws Exception {
-        runTest("compiler/testData/checkLocalVariablesTable/destructuringInlineLambda.kt");
     }
 
     @TestMetadata("inlineLambdaWithItParam.kt")
@@ -90,11 +75,6 @@ public class CheckLocalVariablesTableTestGenerated extends AbstractCheckLocalVar
         runTest("compiler/testData/checkLocalVariablesTable/lambdaAsVar.kt");
     }
 
-    @TestMetadata("localFun.kt")
-    public void testLocalFun() throws Exception {
-        runTest("compiler/testData/checkLocalVariablesTable/localFun.kt");
-    }
-
     @TestMetadata("objectInLocalPropertyDelegate.kt")
     public void testObjectInLocalPropertyDelegate() throws Exception {
         runTest("compiler/testData/checkLocalVariablesTable/objectInLocalPropertyDelegate.kt");
@@ -103,49 +83,6 @@ public class CheckLocalVariablesTableTestGenerated extends AbstractCheckLocalVar
     @TestMetadata("underscoreNames.kt")
     public void testUnderscoreNames() throws Exception {
         runTest("compiler/testData/checkLocalVariablesTable/underscoreNames.kt");
-    }
-
-    @TestMetadata("compiler/testData/checkLocalVariablesTable/completionInSuspendFunction")
-    @TestDataPath("$PROJECT_ROOT")
-    @RunWith(JUnit3RunnerWithInners.class)
-    public static class CompletionInSuspendFunction extends AbstractCheckLocalVariablesTableTest {
-        private void runTest(String testDataFilePath) throws Exception {
-            KotlinTestUtils.runTest(this::doTest, TargetBackend.JVM, testDataFilePath);
-        }
-
-        public void testAllFilesPresentInCompletionInSuspendFunction() throws Exception {
-            KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/checkLocalVariablesTable/completionInSuspendFunction"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM, true);
-        }
-
-        @TestMetadata("nonStaticSimple.kt")
-        public void testNonStaticSimple() throws Exception {
-            runTest("compiler/testData/checkLocalVariablesTable/completionInSuspendFunction/nonStaticSimple.kt");
-        }
-
-        @TestMetadata("nonStaticStateMachine.kt")
-        public void testNonStaticStateMachine() throws Exception {
-            runTest("compiler/testData/checkLocalVariablesTable/completionInSuspendFunction/nonStaticStateMachine.kt");
-        }
-
-        @TestMetadata("staticSimple.kt")
-        public void testStaticSimple() throws Exception {
-            runTest("compiler/testData/checkLocalVariablesTable/completionInSuspendFunction/staticSimple.kt");
-        }
-
-        @TestMetadata("staticSimpleReceiver.kt")
-        public void testStaticSimpleReceiver() throws Exception {
-            runTest("compiler/testData/checkLocalVariablesTable/completionInSuspendFunction/staticSimpleReceiver.kt");
-        }
-
-        @TestMetadata("staticStateMachine.kt")
-        public void testStaticStateMachine() throws Exception {
-            runTest("compiler/testData/checkLocalVariablesTable/completionInSuspendFunction/staticStateMachine.kt");
-        }
-
-        @TestMetadata("staticStateMachineReceiver.kt")
-        public void testStaticStateMachineReceiver() throws Exception {
-            runTest("compiler/testData/checkLocalVariablesTable/completionInSuspendFunction/staticStateMachineReceiver.kt");
-        }
     }
 
     @TestMetadata("compiler/testData/checkLocalVariablesTable/parametersInSuspendLambda")

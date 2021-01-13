@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -1441,6 +1441,11 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
         @TestMetadata("effectivelyInlineOnly.kt")
         public void testEffectivelyInlineOnly() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/coroutines/effectivelyInlineOnly.kt");
+        }
+
+        @TestMetadata("internalInlineSuspend.kt")
+        public void testInternalInlineSuspend() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeText/coroutines/internalInlineSuspend.kt");
         }
 
         @TestMetadata("mergeLvt.kt")
@@ -4984,11 +4989,6 @@ public class BytecodeTextTestGenerated extends AbstractBytecodeTextTest {
         @TestMetadata("kt14802.kt")
         public void testKt14802() throws Exception {
             runTest("compiler/testData/codegen/bytecodeText/whenEnumOptimization/kt14802.kt");
-        }
-
-        @TestMetadata("kt15806.kt")
-        public void testKt15806() throws Exception {
-            runTest("compiler/testData/codegen/bytecodeText/whenEnumOptimization/kt15806.kt");
         }
 
         @TestMetadata("manyWhensWithinClass.kt")

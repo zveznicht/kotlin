@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -264,6 +264,12 @@ public class SteppingTestGenerated extends AbstractSteppingTest {
     @TestMetadata("localFunction.kt")
     public void testLocalFunction() throws Exception {
         runTest("compiler/testData/debug/stepping/localFunction.kt");
+    }
+
+    @Test
+    @TestMetadata("localFunctionWIthOnelineExpressionBody.kt")
+    public void testLocalFunctionWIthOnelineExpressionBody() throws Exception {
+        runTest("compiler/testData/debug/stepping/localFunctionWIthOnelineExpressionBody.kt");
     }
 
     @Test

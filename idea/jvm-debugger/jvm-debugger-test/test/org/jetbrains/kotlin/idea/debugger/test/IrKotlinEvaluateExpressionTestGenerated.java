@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -335,6 +335,11 @@ public class IrKotlinEvaluateExpressionTestGenerated extends AbstractIrKotlinEva
         @TestMetadata("localClass.kt")
         public void testLocalClass() throws Exception {
             runTest("idea/jvm-debugger/jvm-debugger-test/testData/evaluation/singleBreakpoint/localClass.kt");
+        }
+
+        @TestMetadata("localFunctionCapturedLocalVariable.kt")
+        public void testLocalFunctionCapturedLocalVariable() throws Exception {
+            runTest("idea/jvm-debugger/jvm-debugger-test/testData/evaluation/singleBreakpoint/localFunctionCapturedLocalVariable.kt");
         }
 
         @TestMetadata("localFunctionsWithReceivers.kt")

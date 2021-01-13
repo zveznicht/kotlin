@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -132,6 +132,11 @@ public class UltraLightClassLoadingTestGenerated extends AbstractUltraLightClass
     @TestMetadata("jvmOverloads.kt")
     public void testJvmOverloads() throws Exception {
         runTest("compiler/testData/asJava/ultraLightClasses/jvmOverloads.kt");
+    }
+
+    @TestMetadata("jvmRecord.kt")
+    public void testJvmRecord() throws Exception {
+        runTest("compiler/testData/asJava/ultraLightClasses/jvmRecord.kt");
     }
 
     @TestMetadata("jvmSynthetic.kt")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -90,6 +90,16 @@ public class IrBytecodeListingTestGenerated extends AbstractIrBytecodeListingTes
         runTest("compiler/testData/codegen/bytecodeListing/extension.kt");
     }
 
+    @TestMetadata("fileClassWithPrivateDeclarationsOnly_after.kt")
+    public void testFileClassWithPrivateDeclarationsOnly_after() throws Exception {
+        runTest("compiler/testData/codegen/bytecodeListing/fileClassWithPrivateDeclarationsOnly_after.kt");
+    }
+
+    @TestMetadata("fileClassWithPrivateDeclarationsOnly_before.kt")
+    public void testFileClassWithPrivateDeclarationsOnly_before() throws Exception {
+        runTest("compiler/testData/codegen/bytecodeListing/fileClassWithPrivateDeclarationsOnly_before.kt");
+    }
+
     @TestMetadata("immutableCollection.kt")
     public void testImmutableCollection() throws Exception {
         runTest("compiler/testData/codegen/bytecodeListing/immutableCollection.kt");
@@ -153,6 +163,11 @@ public class IrBytecodeListingTestGenerated extends AbstractIrBytecodeListingTes
     @TestMetadata("kt43519.kt")
     public void testKt43519() throws Exception {
         runTest("compiler/testData/codegen/bytecodeListing/kt43519.kt");
+    }
+
+    @TestMetadata("localFunction.kt")
+    public void testLocalFunction() throws Exception {
+        runTest("compiler/testData/codegen/bytecodeListing/localFunction.kt");
     }
 
     @TestMetadata("localFunctionInInitBlock.kt")
@@ -408,6 +423,11 @@ public class IrBytecodeListingTestGenerated extends AbstractIrBytecodeListingTes
         @TestMetadata("inheritingFromAbstractMutableList.kt")
         public void testInheritingFromAbstractMutableList() throws Exception {
             runTest("compiler/testData/codegen/bytecodeListing/collectionStubs/inheritingFromAbstractMutableList.kt");
+        }
+
+        @TestMetadata("kt44233.kt")
+        public void testKt44233() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/collectionStubs/kt44233.kt");
         }
 
         @TestMetadata("mapOfPrimitivesFullJdk.kt")
@@ -906,9 +926,24 @@ public class IrBytecodeListingTestGenerated extends AbstractIrBytecodeListingTes
             runTest("compiler/testData/codegen/bytecodeListing/inline/InlineReifiedPropertyMultifile.kt");
         }
 
+        @TestMetadata("inlineReifiedPropertyVisibility.kt")
+        public void testInlineReifiedPropertyVisibility() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/inline/inlineReifiedPropertyVisibility.kt");
+        }
+
+        @TestMetadata("inlineReifiedVisibility.kt")
+        public void testInlineReifiedVisibility() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/inline/inlineReifiedVisibility.kt");
+        }
+
         @TestMetadata("simpleNamed.kt")
         public void testSimpleNamed() throws Exception {
             runTest("compiler/testData/codegen/bytecodeListing/inline/simpleNamed.kt");
+        }
+
+        @TestMetadata("suspendInlineReified.kt")
+        public void testSuspendInlineReified() throws Exception {
+            runTest("compiler/testData/codegen/bytecodeListing/inline/suspendInlineReified.kt");
         }
 
         @TestMetadata("compiler/testData/codegen/bytecodeListing/inline/enclosingInfo")

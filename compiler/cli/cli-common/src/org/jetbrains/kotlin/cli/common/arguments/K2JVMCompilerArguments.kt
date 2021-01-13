@@ -85,14 +85,9 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
     @Argument(value = "-Xuse-ir", description = "Use the IR backend")
     var useIR: Boolean by FreezableVar(false)
 
-    @Argument(value = "-Xno-use-ir", description = "Do not use the IR backend. Useful for a custom-built compiler where IR backend is enabled by default")
-    var noUseIR: Boolean by FreezableVar(false)
-
-    @Argument(
-        value = "-Xir-check-local-names",
-        description = "Check that names of local classes and anonymous objects are the same in the IR backend as in the old backend"
-    )
-    var irCheckLocalNames: Boolean by FreezableVar(false)
+    @GradleOption(DefaultValues.BooleanFalseDefault::class)
+    @Argument(value = "-Xuse-old-backend", description = "Use the old JVM backend")
+    var useOldBackend: Boolean by FreezableVar(false)
 
     @Argument(
         value = "-Xallow-unstable-dependencies",
@@ -314,6 +309,13 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
     )
     var jvmDefault: String by FreezableVar(JvmDefaultMode.DEFAULT.description)
 
+    @Argument(
+        value = "-Xdefault-script-extension",
+        valueDescription = "<script filename extension>",
+        description = "Compile expressions and unrecognized scripts passed with the -script argument as scripts with given filename extension"
+    )
+    var defaultScriptExtension: String? by FreezableVar(null)
+
     @Argument(value = "-Xdisable-standard-script", description = "Disable standard kotlin script support")
     var disableStandardScript: Boolean by FreezableVar(false)
 
@@ -446,7 +448,6 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
         result[JvmAnalysisFlags.inheritMultifileParts] = inheritMultifileParts
         result[JvmAnalysisFlags.sanitizeParentheses] = sanitizeParentheses
         result[JvmAnalysisFlags.suppressMissingBuiltinsError] = suppressMissingBuiltinsError
-        result[JvmAnalysisFlags.irCheckLocalNames] = irCheckLocalNames
         result[JvmAnalysisFlags.enableJvmPreview] = enableJvmPreview
         result[AnalysisFlags.allowUnstableDependencies] = allowUnstableDependencies || useFir
         result[JvmAnalysisFlags.disableUltraLightClasses] = disableUltraLightClasses
@@ -462,7 +463,7 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
     }
 
     override fun checkIrSupport(languageVersionSettings: LanguageVersionSettings, collector: MessageCollector) {
-        if (!useIR) return
+        if (!useIR || useOldBackend) return
 
         if (languageVersionSettings.languageVersion < LanguageVersion.KOTLIN_1_3
             || languageVersionSettings.apiVersion < ApiVersion.KOTLIN_1_3

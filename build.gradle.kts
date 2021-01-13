@@ -195,6 +195,7 @@ val intellijUltimateEnabled by extra(project.kotlinBuildProperties.intellijUltim
 val effectSystemEnabled by extra(project.getBooleanProperty("kotlin.compiler.effectSystemEnabled") ?: false)
 val newInferenceEnabled by extra(project.getBooleanProperty("kotlin.compiler.newInferenceEnabled") ?: false)
 val useJvmIrBackend by extra(project.kotlinBuildProperties.useIR)
+val useJvmFir by extra(project.kotlinBuildProperties.useFir)
 
 val intellijSeparateSdks = project.getBooleanProperty("intellijSeparateSdks") ?: false
 
@@ -445,7 +446,10 @@ allprojects {
 
             if (useJvmIrBackend) {
                 useIR = true
-                freeCompilerArgs += "-Xir-binary-with-stable-abi"
+            }
+
+            if (useJvmFir) {
+                freeCompilerArgs += "-Xuse-fir"
             }
         }
     }

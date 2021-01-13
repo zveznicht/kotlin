@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -99,6 +99,11 @@ public class CliTestGenerated extends AbstractCliTest {
         @TestMetadata("argumentPassedMultipleTimes.args")
         public void testArgumentPassedMultipleTimes() throws Exception {
             runTest("compiler/testData/cli/jvm/argumentPassedMultipleTimes.args");
+        }
+
+        @TestMetadata("bothJvmIrAndOldBackend.args")
+        public void testBothJvmIrAndOldBackend() throws Exception {
+            runTest("compiler/testData/cli/jvm/bothJvmIrAndOldBackend.args");
         }
 
         @TestMetadata("classAndFileClassClash.args")
@@ -539,6 +544,16 @@ public class CliTestGenerated extends AbstractCliTest {
         @TestMetadata("jvmDefaultAll.args")
         public void testJvmDefaultAll() throws Exception {
             runTest("compiler/testData/cli/jvm/jvmDefaultAll.args");
+        }
+
+        @TestMetadata("jvmIrByDefault1_4.args")
+        public void testJvmIrByDefault1_4() throws Exception {
+            runTest("compiler/testData/cli/jvm/jvmIrByDefault1_4.args");
+        }
+
+        @TestMetadata("jvmIrByDefault1_5.args")
+        public void testJvmIrByDefault1_5() throws Exception {
+            runTest("compiler/testData/cli/jvm/jvmIrByDefault1_5.args");
         }
 
         @TestMetadata("jvmRecordOk.args")

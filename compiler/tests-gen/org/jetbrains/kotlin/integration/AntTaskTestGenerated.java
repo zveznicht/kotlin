@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
@@ -44,6 +44,16 @@ public class AntTaskTestGenerated extends AbstractAntTaskTest {
         runTest("compiler/testData/integration/ant/jvm/failOnErrorByDefault/");
     }
 
+    @TestMetadata("fork")
+    public void testFork() throws Exception {
+        runTest("compiler/testData/integration/ant/jvm/fork/");
+    }
+
+    @TestMetadata("forkOnError")
+    public void testForkOnError() throws Exception {
+        runTest("compiler/testData/integration/ant/jvm/forkOnError/");
+    }
+
     @TestMetadata("helloWorld")
     public void testHelloWorld() throws Exception {
         runTest("compiler/testData/integration/ant/jvm/helloWorld/");
@@ -72,6 +82,11 @@ public class AntTaskTestGenerated extends AbstractAntTaskTest {
     @TestMetadata("mainInFiles")
     public void testMainInFiles() throws Exception {
         runTest("compiler/testData/integration/ant/jvm/mainInFiles/");
+    }
+
+    @TestMetadata("manySourceRoots")
+    public void testManySourceRoots() throws Exception {
+        runTest("compiler/testData/integration/ant/jvm/manySourceRoots/");
     }
 
     @TestMetadata("moduleName")
