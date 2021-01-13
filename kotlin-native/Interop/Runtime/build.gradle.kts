@@ -13,29 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.jetbrains.gradle.plugins.tools.lib
+import org.jetbrains.gradle.plugins.tools.solib
 import org.jetbrains.kotlin.*
 import org.jetbrains.kotlin.konan.target.HostManager
 import java.io.ByteArrayOutputStream
 
 val kotlinVersion = project.bootstrapKotlinVersion
 plugins {
-   `native`
+    `native`
     `kotlin`
 }
 //apply plugin: 'c'
 
 
 
-val solib = when {
-    org.jetbrains.kotlin.konan.target.HostManager.hostIsMingw -> "dll"
-    org.jetbrains.kotlin.konan.target.HostManager.hostIsMac -> "dylib"
-    else -> "so"
-}
 
 native {
     val isWindows = PlatformInfo.isWindows()
     val obj = if (isWindows) "obj" else "o"
-    val lib = if (isWindows) "lib" else "a"
     val host = rootProject.project(":kotlin-native").extra["hostName"]
     val hostLibffiDir = rootProject.project(":kotlin-native").extra["${host}LibffiDir"]
     suffixes {
@@ -62,7 +58,7 @@ native {
     }
     val objSet = sourceSets["callbacks"]!!.transform(".c" to ".$obj")
 
-    target("libcallbacks.$solib", objSet) {
+    target(solib("callbacks"), objSet) {
         tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
         flags("-shared",
               "-o",ruleOut(), *ruleInAll(),
@@ -70,44 +66,10 @@ native {
               "$hostLibffiDir/lib/libffi.a",
               "-lclangext")
     }
-    tasks["libcallbacks.$solib"].apply {
-        dependsOn(":kotlin-native:libclangext:libclangext.$lib")
+    tasks.named(solib("callbacks")).configure {
+        dependsOn(":kotlin-native:libclangext:${lib("clangext")}")
     }
 }
-
-/*
-model {
-    tasks.compileCallbacksSharedLibraryCallbacksC {
-        UtilsKt.configureNativePluginTask(project, delegate)
-    }
-    components {
-        callbacks(NativeLibrarySpec) {
-            sources.c.source {
-                srcDir 'src/callbacks/c'
-                include '** / *.c'
-            }
-            binaries.all {
-                def host = rootProject.project(":kotlin-native").ext.hostName
-
-                def hostLibffiDir = rootProject.project(":kotlin-native").ext.get("${host}LibffiDir")
-
-                cCompiler.args hostPlatform.clang.hostCompilerArgsForJni
-                cCompiler.args "-I$hostLibffiDir/include"
-
-                linker.args "$hostLibffiDir/lib/libffi.a"
-            }
-        }
-   }
-
-   toolChains {
-     clang(Clang) {
-         path UtilsKt.getClangPath(project)
-         eachPlatform {
-             cCompiler.withArguments(ClangArgs.&filterGradleNativeSoftwareFlags)
-         }
-     }
-   }
-}*/
 
 dependencies {
     implementation(project(":kotlin-native:utilities:basic-utils"))
@@ -129,10 +91,8 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 
 
 val nativelibs = project.tasks.create<Copy>("nativelibs") {
-    dependsOn("libcallbacks.$solib")
+    dependsOn(solib("callbacks"))
 
     from("$buildDir/")
     into("$buildDir/nativelibs/")
 }
-
-//classes.dependsOn(nativelibs)

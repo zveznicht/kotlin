@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
+import org.jetbrains.gradle.plugins.tools.lib
+import org.jetbrains.gradle.plugins.tools.solib
 import org.jetbrains.kotlin.*
 import org.jetbrains.kotlin.konan.target.*
 import org.jetbrains.kotlin.konan.target.ClangArgs
+import org.jetbrains.kotlin.konan.target.Family.*
 
 plugins {
     `kotlin`
@@ -28,7 +31,7 @@ plugins {
 val libclangextProject = project(":kotlin-native:libclangext")
 val libclangextTask = libclangextProject.path + ":build"
 val libclangextDir = libclangextProject.buildDir
-val libclangextIsEnabled = false //libclangextProject.isEnabled
+val libclangextIsEnabled = libclangextProject.findProperty("isEnabled")!! as Boolean
 val llvmDir = project.findProperty("llvmDir")
 
 
@@ -81,30 +84,42 @@ native {
     suffixes {
         (".c" to ".$obj") {
             tool(*platformManager.hostPlatform.clang.clangC("").toTypedArray())
-            when (org.jetbrains.kotlin.konan.target.HostManager.host.family) {
-                org.jetbrains.kotlin.konan.target.Family.LINUX -> {
-                    flags(*cflags.toTypedArray(),  *platformManager.hostPlatform.clang.hostCompilerArgsForJni, "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
+            when (HostManager.host.family) {
+                LINUX -> {
+                    flags(*cflags.toTypedArray(),
+                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
+                          "-fPIC",
+                          "-c", "-o", ruleOut(), ruleInFirst())
                 }
-                org.jetbrains.kotlin.konan.target.Family.MINGW -> {
-                    flags(*cflags.toTypedArray(),  *platformManager.hostPlatform.clang.hostCompilerArgsForJni, "-c", "-o", ruleOut(), ruleInFirst())
+                MINGW -> {
+                    flags(*cflags.toTypedArray(),
+                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
+                          "-c", "-o", ruleOut(), ruleInFirst())
                 }
-                org.jetbrains.kotlin.konan.target.Family.OSX -> {
-                    flags(*cflags.toTypedArray(), "-g", *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
-                          "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
+                OSX -> {
+                    flags(*cflags.toTypedArray(),
+                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
+                          "-fPIC",
+                          "-c", "-o", ruleOut(), ruleInFirst())
                 }
             }
         }
         (".cpp" to ".$obj") {
             tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
-            when (org.jetbrains.kotlin.konan.target.HostManager.host.family) {
-                org.jetbrains.kotlin.konan.target.Family.LINUX -> {
-                    flags("-std=c++11",  *platformManager.hostPlatform.clang.hostCompilerArgsForJni, "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
+            when (HostManager.host.family) {
+                LINUX -> {
+                    flags("-std=c++11",
+                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
+                          "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
                 }
-                org.jetbrains.kotlin.konan.target.Family.MINGW -> {
-                    flags("-std=c++11",  *platformManager.hostPlatform.clang.hostCompilerArgsForJni, "-c", "-o", ruleOut(), ruleInFirst())
+                MINGW -> {
+                    flags("-std=c++11",
+                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
+                          "-c", "-o", ruleOut(), ruleInFirst())
                 }
-                org.jetbrains.kotlin.konan.target.Family.OSX -> {
-                    flags("-std=c++11", "-g", *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
+                OSX -> {
+                    flags("-std=c++11",
+                          *platformManager.hostPlatform.clang.hostCompilerArgsForJni,
                           "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
                 }
             }
@@ -122,7 +137,7 @@ native {
     val objSet = arrayOf(sourceSets["main-c"]!!.transform(".c" to ".$obj"),
                          sourceSets["main-cpp"]!!.transform(".cpp" to ".$obj"))
 
-    target("libclangstubs.$solib", *objSet) {
+    target(solib("clangstubs"), *objSet) {
         tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
         flags(
             "-shared",
@@ -131,46 +146,9 @@ native {
     }
 }
 
-tasks["libclangstubs.$solib"].apply {
-    dependsOn(":kotlin-native:libclangext:libclangext.$lib")
+tasks.named(solib("clangstubs")).configure {
+    dependsOn(":kotlin-native:libclangext:${lib("clangext")}")
 }
-/*
-model {
-    tasks.compileClangstubsSharedLibraryClangstubsC {
-        UtilsKt.configureNativePluginTask(project, delegate)
-    }
-    tasks.compileClangstubsSharedLibraryClangstubsCpp {
-        UtilsKt.configureNativePluginTask(project, delegate)
-    }
-    components {
-        clangstubs(NativeLibrarySpec) {
-            sources {
-                c.source.srcDir 'prebuilt/nativeInteropStubs/c'
-                cpp.source.srcDir 'src/nativeInteropStubs/cpp'
-            }
-
-            binaries.all {
-                cCompiler.args hostPlatform.clang.hostCompilerArgsForJni
-                cCompiler.args.addAll(cflags)
-                cppCompiler.args.add("-std=c++11")
-            }
-
-            binaries.withType(SharedLibraryBinarySpec) {
-                linker.args.addAll(ldflags)
-            }
-        }
-   }
-
-  toolChains {
-    clang(Clang) {
-        path UtilsKt.getClangPath(project)
-        eachPlatform {
-            cppCompiler.withArguments(ClangArgs.&filterGradleNativeSoftwareFlags)
-            cCompiler.withArguments(ClangArgs.&filterGradleNativeSoftwareFlags)
-        }
-    }
-  }
-}*/
 
 sourceSets {
     "main" {
@@ -193,13 +171,11 @@ dependencies {
 }
 
 val nativelibs = project.tasks.create<Copy>("nativelibs") {
-    dependsOn("libclangstubs.$solib")
+    dependsOn(solib("clangstubs"))
 
     from("$buildDir/")
     into("$buildDir/nativelibs/")
 }
-
-//classes.dependsOn nativelibs
 
 kotlinNativeInterop {
     this.create("clang") {

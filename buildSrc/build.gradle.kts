@@ -252,7 +252,7 @@ gradlePlugin {
 
         create("native") {
             id = "native"
-            implementationClass = "org.jetbrains.gradle.plugins.native.tools.NativePlugin"
+            implementationClass = "org.jetbrains.gradle.plugins.tools.NativePlugin"
         }
 
         create("native-interop-plugin") {

@@ -1,4 +1,9 @@
-package org.jetbrains.gradle.plugins.native.tools
+/*
+ * Copyright 2010-2021 JetBrains s.r.o. and Kotlin Programming Language contributors.
+ * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
+ */
+
+package org.jetbrains.gradle.plugins.tools
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -11,6 +16,8 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.withConvention
 import org.gradle.kotlin.dsl.withType
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.jetbrains.kotlin.konan.target.HostManager.Companion.hostIsMac
+import org.jetbrains.kotlin.konan.target.HostManager.Companion.hostIsMingw
 import java.io.File
 
 open class NativePlugin : Plugin<Project> {
@@ -194,4 +201,15 @@ open class NativeToolsExtension(val project: Project) {
             }
         }
     }
+}
+
+fun solib(name: String) = when {
+    hostIsMingw -> "$name.dll"
+    hostIsMac -> "lib$name.dylib"
+    else -> "lib$name.so"
+}
+
+fun lib(name:String) = when {
+    hostIsMingw -> "$name.lib"
+    else -> "lib$name.a"
 }
