@@ -66,7 +66,7 @@ object DslMarkerUtils {
 }
 
 
-private fun Annotations.extractDslMarkerFqNames() =
+fun Annotations.extractDslMarkerFqNames() =
     filter(AnnotationDescriptor::isDslMarker).mapNotNull { it.fqName }
 
 private fun AnnotationDescriptor.isDslMarker(): Boolean {

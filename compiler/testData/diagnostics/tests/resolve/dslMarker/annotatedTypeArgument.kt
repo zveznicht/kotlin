@@ -1,26 +1,43 @@
 // !DIAGNOSTICS: -UNUSED_PARAMETER
+interface F
 @DslMarker
-@Target(AnnotationTarget.TYPE)
-annotation class Ann
-
-class A {
-    fun a() = 1
+annotation class CheckAnnotation
+@CheckAnnotation
+interface A {
+    val fieldOfA: F
 }
-
-class B {
-    fun b() = 2
+@CheckAnnotation
+interface B
+fun withA(h: A.() -> Unit): Unit = TODO("")
+fun A.useAWithAReceiver(h: A.() -> Unit): Unit = TODO("")
+fun A.useBWithAReceiver(h: B.() -> Unit): Unit = TODO("")
+fun test1() {
+    withA {
+        useBWithAReceiver {
+            // should not compile
+            <!DSL_SCOPE_VIOLATION!>fieldOfA<!>
+            // should not compile
+            <!DSL_SCOPE_VIOLATION!>useBWithAReceiver<!> {
+            }
+        }
+    }
 }
-
-fun <T> foo(x: T.() -> Unit) {}
-fun <E> bar(x: E.() -> Unit) {}
-
-fun test() {
-    foo<@Ann A> {
-        a()
-        bar<@Ann B> {
-            <!DSL_SCOPE_VIOLATION!>a<!>()
-            this@foo.a()
-            b()
+class Test2(): A {
+    override val fieldOfA: F = TODO("")
+    private val privateField: Any
+    init {
+        useAWithAReceiver {
+            // should compile
+            privateField
+        }
+        useBWithAReceiver {
+            // should compile
+            privateField
+            // should not compile
+            <!DSL_SCOPE_VIOLATION!>fieldOfA<!>
+            // should not compile
+            <!DSL_SCOPE_VIOLATION!>useBWithAReceiver<!> {
+            }
         }
     }
 }
