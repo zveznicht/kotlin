@@ -13,30 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.jetbrains.gradle.plugins.tools.lib
 import org.jetbrains.kotlin.*
 import org.jetbrains.kotlin.konan.target.Family.*
 import java.io.ByteArrayOutputStream
 
-//buildscript {
-//    extra["rootBuildDirectory"] = file("..")
-//
-//    apply (from = "${project.extra["rootBuildDirectory"]}/gradle/kotlinGradlePlugin.gradle")
-//
-//    dependencies {
-//        classpath("org.jetbrains.kotlin:kotlin-stdlib:${project.bootstrapKotlinVersion}")
-//    }
-//}
 plugins{
     `native`
 }
-import org.jetbrains.kotlin.konan.target.ClangArgs
-import org.jetbrains.kotlin.PlatformInfo
-project.extra["isEnabled"] = PlatformInfo.isMac()
+
+extra["isEnabled"] = org.jetbrains.kotlin.konan.target.HostManager.hostIsMac
 
 native {
     val isWindows = PlatformInfo.isWindows()
     val obj = if (isWindows) "obj" else "o"
-    val lib = if (isWindows) "lib" else "a"
     suffixes {
         (".cpp" to ".$obj") {
             tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
@@ -67,56 +57,8 @@ native {
         }
     }
     val objSet = sourceSets["main"]!!.transform(".cpp" to ".$obj")
-    target("libclangext.$lib", objSet) {
+    target(lib("clangext"), objSet) {
         tool(*platformManager.hostPlatform.clang.llvmAr("").toTypedArray())
         flags("-qv", ruleOut(), *ruleInAll())
     }
 }
-/*
-model {
-    tasks.assemble {
-        UtilsKt.configureNativePluginTask(project, delegate)
-    }
-    tasks.compileClangextStaticLibraryClangextCpp {
-        println(">compileClangextStaticLibraryClangextCpp: this:${this.class}, delegate: ${delegate.class} owner: ${owner.class}")
-        UtilsKt.configureNativePluginTask(project, delegate)
-    }
-    //"name" {
-    //    println(">model: this:${this.class}, delegate: ${delegate.class} owner: ${owner.class}")
-    //}
-    components {
-        clangext(NativeLibrarySpec) {
-            println(">components: this:${this.class}, delegate: ${delegate.class} owner: ${owner.class}")
-            sources {
-                cpp {
-                    source.srcDirs "src/main/cpp"
-                    exportedHeaders.srcDirs "src/main/include"
-                }
-            }
-            binaries.withType(StaticLibraryBinarySpec) { binary ->
-                if (!project.parent.convention.plugins.platformInfo.isWindows())
-                    cppCompiler.args "-fPIC"
-                cppCompiler.args "--std=c++11", "-g", "-I${llvmDir}/include"
-                if (isEnabled) {
-                    cppCompiler.args '-DLIBCLANGEXT_ENABLE=1'
-                }
-            }
-            binaries.withType(SharedLibraryBinarySpec) { binary ->
-                buildable = false
-            }
-        }
-    }
-
-  toolChains {
-      println(">toolchain: this:${this.class}, delegate: ${delegate.class} owner: ${owner.class}")
-      //UtilsKt.configureToolchain(project, delegate)
-      konanClang(Clang) {
-          println(">Clang: this:${this.class}, delegate: ${delegate.class} owner: ${owner.class}")
-          path UtilsKt.getClangPath(project)
-          eachPlatform {
-              cppCompiler.withArguments(ClangArgs.&filterGradleNativeSoftwareFlags)
-          }
-      }
-  }
-}
- */

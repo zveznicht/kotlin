@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
+import org.jetbrains.gradle.plugins.tools.lib
 import org.jetbrains.kotlin.*
 import org.jetbrains.kotlin.konan.target.ClangArgs
+import org.jetbrains.kotlin.konan.target.Family.*
 import org.jetbrains.kotlin.konan.target.HostManager
 
 plugins {
@@ -24,7 +26,6 @@ plugins {
 
 native {
   val obj = if (HostManager.hostIsMingw) "obj" else "o"
-  val lib = if (HostManager.hostIsMingw) "lib" else "a"
   val llvmDir = project.findProperty("llvmDir")
 
   val host = rootProject.project(":kotlin-native").extra["hostName"]
@@ -33,15 +34,26 @@ native {
     (".cpp" to ".$obj") {
       tool(*platformManager.hostPlatform.clang.clangCXX("").toTypedArray())
       when (org.jetbrains.kotlin.konan.target.HostManager.host.family) {
-        org.jetbrains.kotlin.konan.target.Family.LINUX -> {
-          flags("-std=c++14", "-DKONAN_LINUX=1", "-D_GLIBCXX_USE_CXX11_ABI=0", "-I${llvmDir}/include", "-Isrc/main/include", "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
+        LINUX -> {
+          flags("-std=c++14", "-DKONAN_LINUX=1",
+                "-D_GLIBCXX_USE_CXX11_ABI=0",
+                "-I${llvmDir}/include",
+                "-Isrc/main/include",
+                "-fPIC",
+                "-c", "-o", ruleOut(), ruleInFirst())
         }
-        org.jetbrains.kotlin.konan.target.Family.MINGW -> {
-          flags("-std=c++14", "-DKONAN_WINDOWS=1", "-I${llvmDir}/include", "-Isrc/main/include", "-c", "-o", ruleOut(), ruleInFirst())
+        MINGW -> {
+          flags("-std=c++14",
+                "-DKONAN_WINDOWS=1",
+                "-I${llvmDir}/include",
+                "-Isrc/main/include",
+                "-c", "-o", ruleOut(), ruleInFirst())
         }
-        org.jetbrains.kotlin.konan.target.Family.OSX -> {
-          flags("-std=c++14", "-DKONAN_MACOS=1", "-I${llvmDir}/include", "-Isrc/main/include",
-                "-fPIC", "-c", "-o", ruleOut(), ruleInFirst())
+        OSX -> {
+          flags("-std=c++14", "-DKONAN_MACOS=1",
+                "-I${llvmDir}/include", "-Isrc/main/include",
+                "-fPIC",
+                "-c", "-o", ruleOut(), ruleInFirst())
         }
       }
     }
@@ -54,7 +66,7 @@ native {
   }
   val objSet = sourceSets["main"]!!.transform(".cpp" to ".$obj")
 
-  target("libcoverageMapping.$lib", objSet) {
+  target(lib("coverageMapping"), objSet) {
     tool(*platformManager.hostPlatform.clang.llvmAr("").toTypedArray())
     flags("-qv", ruleOut(), *ruleInAll())
   }
