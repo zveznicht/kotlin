@@ -5,13 +5,13 @@
 
 package org.jetbrains.kotlin.fir.caches
 
-interface FirMapLikeCache<KEY: Any, VALUE> {
-    fun getOrCompute(key: KEY, createValue: (KEY) -> VALUE): VALUE
+interface FirMapLikeCache<KEY : Any, VALUE> {
+    fun getOrCreateValue(key: KEY, createValue: (KEY) -> VALUE): VALUE
 }
 
-internal class FirThreadUnsafeMapLikeCache<KEY : Any, VALUE>: FirMapLikeCache<KEY, VALUE> {
-    private val map = mutableMapOf<KEY,VALUE>()
+internal class FirThreadUnsafeMapLikeCache<KEY : Any, VALUE> : FirMapLikeCache<KEY, VALUE> {
+    private val map = mutableMapOf<KEY, VALUE>()
 
-    override fun getOrCompute(key: KEY, createValue: (KEY) -> VALUE): VALUE  =
+    override fun getOrCreateValue(key: KEY, createValue: (KEY) -> VALUE): VALUE =
         map.computeIfAbsent(key, createValue)
 }

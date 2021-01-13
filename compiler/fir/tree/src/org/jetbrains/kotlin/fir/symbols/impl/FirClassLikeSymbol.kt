@@ -5,10 +5,11 @@
 
 package org.jetbrains.kotlin.fir.symbols.impl
 
+import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSymbolOwner
+import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
-import org.jetbrains.kotlin.fir.symbols.impl.utils.LazyValueWithPostCompute
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
@@ -29,12 +30,13 @@ sealed class FirClassSymbol<C : FirClass<C>>(classId: ClassId) : FirClassLikeSym
 
 open class FirRegularClassSymbol(classId: ClassId) : FirClassSymbol<FirRegularClass>(classId)
 
-class FirLazyClassSymbol(
+private class FirLazyClassSymbol(
     classId: ClassId,
+    session: FirSession,
     createFirClass: (FirRegularClassSymbol) -> FirRegularClass,
     modifyFirClass: (FirRegularClass) -> Unit
 ) : FirRegularClassSymbol(classId) {
-    private val lazy = LazyValueWithPostCompute({ createFirClass(this) }, modifyFirClass)
+    private val lazy = session.firCachesFactory.createValueWithPostCompute({ createFirClass(this) }, modifyFirClass)
     override var fir: FirRegularClass
         get() = lazy.getValue()
         set(_) {}
@@ -43,10 +45,11 @@ class FirLazyClassSymbol(
 fun createClassSymbol(
     classId: ClassId,
     createLazySymbol: Boolean,
+    session: FirSession,
     createFirClass: (FirRegularClassSymbol) -> FirRegularClass,
     modifyFirClass: (FirRegularClass) -> Unit
 ): FirRegularClassSymbol = if (createLazySymbol) {
-    FirLazyClassSymbol(classId, createFirClass, modifyFirClass)
+    FirLazyClassSymbol(classId, session, createFirClass, modifyFirClass)
 } else {
     FirRegularClassSymbol(classId).also { symbol ->
         val firClass = createFirClass(symbol)

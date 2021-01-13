@@ -93,6 +93,7 @@ fun deserializeClassToSymbol(
     return createClassSymbol(
         classId,
         createLazySymbol,
+        session,
         createFirClass = {
             createFirClass(
                 it,
