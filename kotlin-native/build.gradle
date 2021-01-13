@@ -98,7 +98,6 @@ allprojects {
             maven {
                 url 'https://cache-redirector.jetbrains.com/jcenter'
             }
-            jcenter()
         }
     }
     if (path != ":kotlin-native:dependencies") {
