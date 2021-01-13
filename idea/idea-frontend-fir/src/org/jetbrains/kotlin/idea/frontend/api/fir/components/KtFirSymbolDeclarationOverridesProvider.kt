@@ -83,10 +83,10 @@ internal class KtFirSymbolDeclarationOverridesProvider(
         require(this is FirCallableSymbol<*>) {
             "Required FirCallableSymbol but ${this::class} found"
         }
-        return when (val unwrapped = unwrapFakeOverrides()) {
-            is FirIntersectionOverrideFunctionSymbol -> unwrapped.intersections
-            is FirIntersectionOverridePropertySymbol -> unwrapped.intersections
-            else -> return listOf(unwrapped)
+        return when (this) {
+            is FirIntersectionOverrideFunctionSymbol -> intersections
+            is FirIntersectionOverridePropertySymbol -> intersections
+            else -> listOf(this)
         }
     }
 }
