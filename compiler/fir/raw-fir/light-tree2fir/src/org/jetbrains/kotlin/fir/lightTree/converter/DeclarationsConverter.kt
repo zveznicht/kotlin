@@ -1725,8 +1725,11 @@ class DeclarationsConverter(
             }
         }
 
-        if (identifier == null)
-            return buildErrorTypeRef { diagnostic = ConeSimpleDiagnostic("Incomplete user type", DiagnosticKind.Syntax) }
+        if (identifier == null) {
+            return simpleFirUserType ?: buildErrorTypeRef {
+                diagnostic = ConeSimpleDiagnostic("Incomplete user type", DiagnosticKind.Syntax)
+            }
+        }
 
         // Note: we take TYPE_REFERENCE, not USER_TYPE, as the source (to be consistent with RawFirBuilder)
         val theSource = tree.getParent(userType)!!.toFirSourceElement()
