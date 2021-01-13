@@ -75,6 +75,7 @@ val solib = when{
 
 native {
     val obj = if (HostManager.hostIsMingw) "obj" else "o"
+    val lib = if (HostManager.hostIsMingw) "lib" else "a"
     val host = rootProject.project(":kotlin-native").extra["hostName"]
     val hostLibffiDir = rootProject.project(":kotlin-native").extra["${host}LibffiDir"]
     suffixes {
@@ -131,7 +132,7 @@ native {
 }
 
 tasks["libclangstubs.$solib"].apply {
-    dependsOn(":kotlin-native:libclangext:libclangext.a")
+    dependsOn(":kotlin-native:libclangext:libclangext.$lib")
 }
 /*
 model {
