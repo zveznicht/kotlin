@@ -142,28 +142,25 @@ class NativePlatformLibsIT : BaseGradleIT() {
 
         deleteInstalledCompilers()
 
-        fun Project.buildPlatformLibrariesWithoutAndWithCaches(targetName: String) {
-            // Build libraries without caches.
-            buildWithLightDist("tasks") {
-                assertSuccessful()
-                assertContains("Generate platform libraries for $targetName")
-            }
+        fun buildPlatformLibrariesWithoutAndWithCaches(target: KonanTarget) {
+            with(platformLibrariesProject(target.presetName)) {
+                val targetName = target.name
+                // Build libraries without caches.
+                buildWithLightDist("tasks") {
+                    assertSuccessful()
+                    assertContains("Generate platform libraries for $targetName")
+                }
 
-            // Change cache kind and check that platform libraries generator was executed.
-            buildWithLightDist("tasks", "-Pkotlin.native.cacheKind.$targetName=static") {
-                assertSuccessful()
-                assertContains("Precompile platform libraries for $targetName (precompilation: static)")
+                // Change cache kind and check that platform libraries generator was executed.
+                buildWithLightDist("tasks", "-Pkotlin.native.cacheKind.$targetName=static") {
+                    assertSuccessful()
+                    assertContains("Precompile platform libraries for $targetName (precompilation: static)")
+                }
             }
         }
         when {
-            HostManager.hostIsMac -> {
-                platformLibrariesProject("iosX64")
-                    .buildPlatformLibrariesWithoutAndWithCaches("ios_x64")
-            }
-            HostManager.hostIsLinux -> {
-                platformLibrariesProject("linuxX64")
-                    .buildPlatformLibrariesWithoutAndWithCaches("linux_x64")
-            }
+            HostManager.hostIsMac -> buildPlatformLibrariesWithoutAndWithCaches(KonanTarget.IOS_X64)
+            HostManager.hostIsLinux -> buildPlatformLibrariesWithoutAndWithCaches(KonanTarget.LINUX_X64)
         }
     }
 
