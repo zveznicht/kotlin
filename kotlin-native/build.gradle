@@ -108,7 +108,6 @@ allprojects {
         maven {
             url 'https://cache-redirector.jetbrains.com/maven-central'
         }
-        mavenCentral()
         maven {
             url project.bootstrapKotlinRepo
         }
