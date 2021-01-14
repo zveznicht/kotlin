@@ -28,6 +28,20 @@ import org.junit.runner.RunWith
 import java.io.File
 import kotlin.system.measureNanoTime
 
+private fun File.iterateKtFiles(): Sequence<File> {
+    return walkTopDown()
+        .onEnter { file ->
+            val name = file.name.toLowerCase()
+            if (name == "testdata" || name == "resources") return@onEnter false
+
+            val path = file.path.replace('\\', '/')
+            "api/js" !in path
+        }
+        .filter {
+            it.isFile && it.extension == "kt"
+        }
+}
+
 @TestDataPath("\$PROJECT_ROOT")
 @RunWith(JUnit3RunnerWithInners::class)
 class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
@@ -50,11 +64,8 @@ class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
         var ktDeclarations = 0
         var ktReferences = 0
         println("BASE PATH: $testDataPath")
-        for (file in root.walkTopDown()) {
-            if (file.isDirectory) continue
-            val path = file.path
-            if ("testData" in path || "resources" in path || "api/js" in path.replace('\\', '/')) continue
-            if (file.extension != "kt") continue
+
+        root.iterateKtFiles().forEach { file ->
             try {
                 val ktFile = createKtFile(file.toRelativeString(root))
                 val firFile: FirFile
@@ -133,7 +144,6 @@ class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
                         return null
                     }
                 })
-
             } catch (e: Exception) {
                 if (counter > 0) {
                     println("TIME PER FILE: ${(time / counter) * 1e-6} ms, COUNTER: $counter")
@@ -142,6 +152,7 @@ class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
                 throw e
             }
         }
+
         println("SUCCESS!")
         println("TOTAL LENGTH: $totalLength")
         println("TIME PER FILE: ${(time / counter) * 1e-6} ms, COUNTER: $counter")
@@ -174,11 +185,7 @@ class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
 
     private fun testConsistency(checkConsistency: FirFile.() -> Unit) {
         val root = File(testDataPath)
-        for (file in root.walkTopDown()) {
-            if (file.isDirectory) continue
-            val path = file.path
-            if ("testData" in path || "resources" in path || "api/js" in path.replace('\\', '/')) continue
-            if (file.extension != "kt") continue
+        root.iterateKtFiles().forEach { file ->
             val ktFile = createKtFile(file.toRelativeString(root))
             val firFile = ktFile.toFirFile()
             try {
@@ -201,11 +208,7 @@ class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
     fun testPsiConsistency() {
         val root = File(testDataPath)
         var counter = 0
-        for (file in root.walkTopDown()) {
-            if (file.isDirectory) continue
-            val path = file.path
-            if ("testData" in path || "testdata" in path || "resources" in path || "api/js" in path.replace('\\', '/')) continue
-            if (file.extension != "kt") continue
+        root.iterateKtFiles().forEach { file ->
             val ktFile = createKtFile(file.toRelativeString(root))
             val firFile: FirFile = ktFile.toFirFile()
             val psiSetViaFir = mutableSetOf<KtElement>()
@@ -265,8 +268,8 @@ class RawFirBuilderTotalKotlinTestCase : AbstractRawFirBuilderTestCase() {
                         it.getStrictParentOfType<KtImportDirective>() != null ||
                         (it is KtPropertyAccessor && !it.hasBody()) ||
                         it is KtConstantExpression && it.parent.let { parent ->
-                            parent is KtPrefixExpression && (parent.operationToken == KtTokens.MINUS || parent.operationToken == KtTokens.PLUS)
-                        }
+                    parent is KtPrefixExpression && (parent.operationToken == KtTokens.MINUS || parent.operationToken == KtTokens.PLUS)
+                }
             }
             if (psiSetDirect.isNotEmpty()) {
                 println("Total of $counter files processed successfully")
