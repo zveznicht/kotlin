@@ -111,7 +111,7 @@ class IncrementalJsCompilerRunner(
         val libs = (args.libraries ?: "").split(File.pathSeparator).map { File(it) }
         //TODO check for JS
         val classpathChanges = getClasspathChanges(libs, changedFiles, lastBuildInfo, modulesApiHistory, reporter,
-                                                   mapOf(), false)
+                                                   mapOf(), false, caches.platformCache)
 
         @Suppress("UNUSED_VARIABLE") // for sealed when
         val unused = when (classpathChanges) {

@@ -199,7 +199,7 @@ class IncrementalJvmCompilerRunner(
 
         val classpathChanges = reporter.measure(BuildTime.IC_ANALYZE_CHANGES_IN_DEPENDENCIES) {
             getClasspathChanges(args.classpathAsList, changedFiles, lastBuildInfo, modulesApiHistory, reporter,
-                                jarSnapshots, withSnapshot)
+                                jarSnapshots, withSnapshot, caches.platformCache)
         }
 
         @Suppress("UNUSED_VARIABLE") // for sealed when

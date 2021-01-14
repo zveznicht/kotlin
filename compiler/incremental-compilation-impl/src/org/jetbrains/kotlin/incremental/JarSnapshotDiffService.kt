@@ -6,14 +6,10 @@
 package org.jetbrains.kotlin.incremental
 
 import org.jetbrains.kotlin.incremental.ChangesCollector.Companion.getNonPrivateMemberNames
-import org.jetbrains.kotlin.incremental.ChangesCollector.Companion.getNonPrivateNames
-import org.jetbrains.kotlin.metadata.ProtoBuf
-import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility
 import org.jetbrains.kotlin.metadata.ProtoBuf.Visibility.PRIVATE
 import org.jetbrains.kotlin.metadata.deserialization.Flags
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.resolve.sam.SAM_LOOKUP_NAME
-import org.jetbrains.kotlin.serialization.deserialization.getClassId
 
 //TODO Should be in gradle daemon so move it. Only for test here
 class JarSnapshotDiffService() {
@@ -24,15 +20,16 @@ class JarSnapshotDiffService() {
 
         //TODO for test only
         fun compareJarsInternal(
-            snapshotJar: JarSnapshot, newJar: JarSnapshot
+            snapshotJar: JarSnapshot, newJar: JarSnapshot,
+            caches: IncrementalCacheCommon
         ) = diffCache.computeIfAbsent(Pair(snapshotJar, newJar)) { (snapshot, actual) ->
-            val fqNames = mutableListOf<FqName>()
+            val dirtyFqNames = mutableListOf<FqName>()
             val symbols = mutableListOf<LookupSymbol>()
 
             for ((fqName, protoData) in snapshot.protos) {
                 val newProtoData = actual.protos[fqName]
                 if (newProtoData == null) {
-                    addProtoInfo(protoData, fqNames, fqName, symbols)
+                    addProtoInfo(protoData, dirtyFqNames, fqName, symbols)
                 } else {
                     if (protoData is ClassProtoData && newProtoData is ClassProtoData) {
                         ProtoCompareGenerated(
@@ -44,7 +41,7 @@ class JarSnapshotDiffService() {
                         if (diff.isClassAffected) {
                             //TODO get cache to mark dirty all subtypes if subclass affected
 //                            val fqNames = if (!diff.areSubclassesAffected) listOf(fqName) else withSubtypes(fqName, caches)
-                            fqNames.add(fqName)
+                            dirtyFqNames.add(fqName)
                             assert(!fqName.isRoot) { "$fqName is root" }
 
                             val scope = fqName.parent().asString()
@@ -53,8 +50,13 @@ class JarSnapshotDiffService() {
                         }
                         for (member in diff.changedMembersNames) {
                             //TODO mark dirty symbols for subclasses
+                            val fqNames = withSubtypes(fqName, listOf(caches))
+                            dirtyFqNames.addAll(fqNames)
+
+                            for (fqName in fqNames) {
                                 symbols.add(LookupSymbol(member, fqName.asString()))
-                            symbols.add(LookupSymbol(SAM_LOOKUP_NAME.asString(), fqName.asString()))
+                                symbols.add(LookupSymbol(SAM_LOOKUP_NAME.asString(), fqName.asString()))
+                            }
                         }
 
                     } else if (protoData is PackagePartProtoData && newProtoData is PackagePartProtoData) {
@@ -67,7 +69,7 @@ class JarSnapshotDiffService() {
             }
 //                fqNames.addAll(snapshot.protos.keys.removeAll(actual.protos.keys))
 
-            DirtyData(symbols, fqNames)
+            DirtyData(symbols, dirtyFqNames)
         }
 
         //TODO change to return type

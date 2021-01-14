@@ -49,7 +49,7 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
                     mutableMap[fqName] = ClassProtoData(classProto, nameResolver)
                 } else {
                     val fqName = FqName(fqNameString)
-                    val packageFqName = FqName(fqNameString)
+                    val packageFqName = FqName(readUTF())
                     val bytes = readStringArray()
                     val strings = readStringArray()
                     val (nameResolver, proto) = JvmProtoBufUtil.readPackageDataFrom(bytes, strings)
@@ -74,39 +74,49 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
                     is ClassProtoData -> {
                         writeBoolean(true) //TODO until PackageProto doesn't work
                         val nameResolver = protoData.nameResolver
-
-                            when (nameResolver) {
-                                is NameResolverImpl -> {
-                                    //TODO check string mapping
-                                    val writeData = JvmProtoBufUtil.writeData(protoData.proto, JvmStringTable())
-                                    writeStringArray(writeData)
-                                    val size = nameResolver.strings.getStringCount()
-                                    writeInt(size)
-                                    repeat(size) {
-                                        val string = nameResolver.getString(it)
-                                        writeUTF(string)
-                                    }
+                        when (nameResolver) {
+                            is NameResolverImpl -> {
+                                //TODO check string mapping
+                                val stringTable = JvmStringTable()
+                                repeat(nameResolver.strings.getStringCount()) {
+                                    stringTable.getStringIndex(nameResolver.getString(it))
                                 }
-                                is JvmNameResolver -> {
-                                    val writeData = JvmProtoBufUtil.writeData(protoData.proto, JvmStringTable(nameResolver))
-                                    writeStringArray(writeData)
-                                    writeStringArray(nameResolver.strings)
-
+                                repeat(nameResolver.qualifiedNames.qualifiedNameCount) {
+                                    stringTable.getQualifiedClassNameIndex(
+                                        nameResolver.getQualifiedClassName(it),
+                                        nameResolver.isLocalClassName(it)
+                                    )
                                 }
-                                else -> throw IllegalStateException("Can't store name resolver")
+                                val writeData = JvmProtoBufUtil.writeData(protoData.proto, stringTable)
+                                writeStringArray(writeData)
+                                val size = nameResolver.strings.getStringCount()
+                                writeInt(size)
+                                repeat(size) {
+                                    val string = nameResolver.getString(it)
+                                    writeUTF(string)
+                                }
                             }
+                            is JvmNameResolver -> {
+                                val writeData = JvmProtoBufUtil.writeData(protoData.proto, JvmStringTable(nameResolver))
+                                writeStringArray(writeData)
+                                writeStringArray(nameResolver.strings)
+
+                            }
+                            else -> throw IllegalStateException("Can't store name resolver for class proto")
+                        }
                     }
                     is PackagePartProtoData -> {
                         writeBoolean(false)
                         writeUTF(protoData.packageFqName.asString())
-                        write(protoData.proto.toByteArray())
 
                         val nameResolver = protoData.nameResolver
                         when (nameResolver) {
                             is JvmNameResolver -> {
+                                val writeData = JvmProtoBufUtil.writeData(protoData.proto, JvmStringTable(nameResolver))
+                                writeStringArray(writeData)
                                 writeStringArray(nameResolver.strings)
                             }
-                            else -> throw IllegalStateException("Can't store name resolver")
+                            else -> throw IllegalStateException("Can't store name resolver for package proto")
                         }
 
                     }
