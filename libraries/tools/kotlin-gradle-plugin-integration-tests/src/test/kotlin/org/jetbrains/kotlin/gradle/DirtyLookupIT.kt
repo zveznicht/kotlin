@@ -81,14 +81,14 @@ public class DirtyLookupIT : BaseGradleIT() {
             assertSuccessful()
         }
 
-        project.projectDir.resolve("app/src/kotlin/foo/AA")
-            .replace writeText(
-                "package test\n" +
-                        "class FooExtended {}"
-            )
+//        project.projectDir.resolve("app/src/kotlin/foo/AA")
+//            .replace writeText(
+//                "package test\n" +
+//                        "class FooExtended {}"
+//            )
 
         project.build("app:build") {
-            assertSuccess()
+            assertSuccessful()
         }
 
     }
