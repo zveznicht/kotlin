@@ -534,15 +534,24 @@ class FirCallCompletionResultsWriterTransformer(
         syntheticCall: D,
         data: ExpectedArgumentType?,
     ): CompositeTransformResult<FirStatement> where D : FirResolvable, D : FirExpression {
-        val calleeReference = syntheticCall.calleeReference as? FirNamedReferenceWithCandidate ?: return syntheticCall.compose()
+        val dataForChildren = data?.getExpectedType(syntheticCall)?.toExpectedType() ?: syntheticCall.typeRef.coneType.toExpectedType()
 
-        val declaration = calleeReference.candidate.symbol.fir as? FirSimpleFunction ?: return syntheticCall.compose()
+        val calleeReference = syntheticCall.calleeReference as? FirNamedReferenceWithCandidate
+        val declaration = calleeReference?.candidate?.symbol?.fir as? FirSimpleFunction
+
+        if (calleeReference == null || declaration == null) {
+            syntheticCall.transformChildren(
+                this,
+                data = dataForChildren
+            )
+            return syntheticCall.compose()
+        }
 
         val typeRef = typeCalculator.tryCalculateReturnType(declaration)
         syntheticCall.replaceTypeRefWithSubstituted(calleeReference, typeRef)
         syntheticCall.transformChildren(
             this,
-            data = data?.getExpectedType(syntheticCall)?.toExpectedType() ?: syntheticCall.typeRef.coneType.toExpectedType()
+            data = dataForChildren
         )
 
         return (syntheticCall.transformCalleeReference(
