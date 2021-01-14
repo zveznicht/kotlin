@@ -29,10 +29,33 @@ import java.io.File
 import kotlin.system.measureNanoTime
 
 private fun File.iterateKtFiles(): Sequence<File> {
+    val excludeDirs = setOf(
+        ".DS_Store",
+        ".idea",
+        "dist",
+        "local",
+        "out",
+        "testdata",
+        "resources",
+        "node_modules"
+    )
     return walkTopDown()
         .onEnter { file ->
             val name = file.name.toLowerCase()
-            if (name == "testdata" || name == "resources") return@onEnter false
+            if (name in excludeDirs) {
+                return@onEnter false
+            }
+
+            if (name == "build" &&
+                (File(file.parentFile, "build.gradle.kts").exists() || File(file.parentFile, "build.gradle").exists())) {
+                // Probably Gradle Build Dir
+                return@onEnter false
+            }
+
+            if (name == "target" && File(file.parentFile, "pom.xml").exists()) {
+                // Probably Maven Build Dir
+                return@onEnter false
+            }
 
             val path = file.path.replace('\\', '/')
             "api/js" !in path
