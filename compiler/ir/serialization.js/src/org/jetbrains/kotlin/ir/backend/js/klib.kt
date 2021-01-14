@@ -607,6 +607,7 @@ private fun KlibMetadataIncrementalSerializer(configuration: CompilerConfigurati
     languageVersionSettings = configuration.languageVersionSettings,
     metadataVersion = configuration.metadataVersion,
     project = project,
+    exportKDoc = false,
     skipExpects = !configuration.expectActualLinker,
     allowErrorTypes = allowErrors
 )

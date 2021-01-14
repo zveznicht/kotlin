@@ -29,7 +29,8 @@ class KlibMetadataSerializerExtension(
     private val languageVersionSettings: LanguageVersionSettings,
     override val metadataVersion: BinaryVersion,
     override val stringTable: StringTableImpl,
-    private val allowErrorTypes: Boolean
+    private val allowErrorTypes: Boolean,
+    private val exportKDoc: Boolean
 ) : KotlinSerializerExtensionBase(KlibMetadataSerializerProtocol) {
     override fun shouldUseTypeTable(): Boolean = true
 
@@ -53,7 +54,7 @@ class KlibMetadataSerializerExtension(
         childSerializer: DescriptorSerializer
     ) {
         descriptorFileId(descriptor)?.let { proto.setExtension(KlibMetadataProtoBuf.classFile, it) }
-        descriptor.findKDoc()?.let { proto.setExtension(KlibMetadataProtoBuf.classKdoc, it.render()) }
+        if (exportKDoc) descriptor.findKDoc()?.let { proto.setExtension(KlibMetadataProtoBuf.classKdoc, it.render()) }
         super.serializeClass(descriptor, proto, versionRequirementTable, childSerializer)
         childSerializer.typeTable.serialize()?.let { proto.mergeTypeTable(it) }
     }
@@ -63,7 +64,7 @@ class KlibMetadataSerializerExtension(
         proto: ProtoBuf.Constructor.Builder,
         childSerializer: DescriptorSerializer
     ) {
-        descriptor.findKDoc()?.let { proto.setExtension(KlibMetadataProtoBuf.constructorKdoc, it.render()) }
+        if (exportKDoc) descriptor.findKDoc()?.let { proto.setExtension(KlibMetadataProtoBuf.constructorKdoc, it.render()) }
         super.serializeConstructor(descriptor, proto, childSerializer)
     }
 
@@ -74,7 +75,7 @@ class KlibMetadataSerializerExtension(
         childSerializer: DescriptorSerializer
     ) {
         descriptorFileId(descriptor)?.let { proto.setExtension(KlibMetadataProtoBuf.propertyFile, it) }
-        descriptor.findKDoc()?.let { proto.setExtension(KlibMetadataProtoBuf.propertyKdoc, it.render()) }
+        if (exportKDoc) descriptor.findKDoc()?.let { proto.setExtension(KlibMetadataProtoBuf.propertyKdoc, it.render()) }
         super.serializeProperty(descriptor, proto, versionRequirementTable, childSerializer)
     }
 
@@ -85,7 +86,7 @@ class KlibMetadataSerializerExtension(
         childSerializer: DescriptorSerializer
     ) {
         descriptorFileId(descriptor)?.let { proto.setExtension(KlibMetadataProtoBuf.functionFile, it) }
-        descriptor.findKDoc()?.let { proto.setExtension(KlibMetadataProtoBuf.functionKdoc, it.render()) }
+        if (exportKDoc) descriptor.findKDoc()?.let { proto.setExtension(KlibMetadataProtoBuf.functionKdoc, it.render()) }
         super.serializeFunction(descriptor, proto, versionRequirementTable, childSerializer)
     }
 

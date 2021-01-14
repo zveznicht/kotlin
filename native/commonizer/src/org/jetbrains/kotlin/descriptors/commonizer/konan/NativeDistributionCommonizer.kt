@@ -189,6 +189,7 @@ class NativeDistributionCommonizer(
                 val serializer = KlibMetadataMonolithicSerializer(
                     languageVersionSettings = LanguageVersionSettingsImpl.DEFAULT,
                     metadataVersion = KlibMetadataVersion.INSTANCE,
+                    exportKDoc = false,
                     skipExpects = false,
                     project = null
                 )
