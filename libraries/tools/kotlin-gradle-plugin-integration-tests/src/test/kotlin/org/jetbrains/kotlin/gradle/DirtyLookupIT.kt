@@ -74,6 +74,22 @@ public class DirtyLookupIT : BaseGradleIT() {
 
     @Test //https://youtrack.jetbrains.com/issue/KT-13677
     fun changeMemberVisibility() {
+        val project = Project("incrementalMultiproject")
+        project.setupWorkingDir()
+
+        project.build("build") {
+            assertSuccessful()
+        }
+
+        project.projectDir.resolve("app/src/kotlin/foo/AA")
+            .replace writeText(
+                "package test\n" +
+                        "class FooExtended {}"
+            )
+
+        project.build("app:build") {
+            assertSuccess()
+        }
 
     }
 }

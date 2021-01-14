@@ -7,18 +7,19 @@ package org.jetbrains.kotlin.gradle.plugin
 
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.jetbrains.kotlin.build.report.BuildReporter
 import org.jetbrains.kotlin.incremental.*
 import java.io.File
 
 abstract class JarSnapshotDiffService() : BuildService<JarSnapshotDiffService.Parameters> {
     abstract class Parameters : BuildServiceParameters {
         abstract val caches: IncrementalCachesManager<*>
-        abstract val reporter: ICReporter
+        abstract val reporter: BuildReporter
         abstract val sourceFilesExtensions: List<String>
     }
 
     val caches: IncrementalCachesManager<*> = parameters.caches
-    val reporter: ICReporter = parameters.reporter
+    val reporter: BuildReporter = parameters.reporter
     val sourceFilesExtensions: List<String> = parameters.sourceFilesExtensions
 
     companion object {

@@ -188,10 +188,10 @@ abstract class IncrementalCompilerRunner<
 
     private fun calculateSourcesToCompile(
         caches: CacheManager, changedFiles: ChangedFiles.Known, args: Args, messageCollector: MessageCollector,
-        jarSnapshots: MutableMap<String, JarSnapshot>
+        jarSnapshots: Map<String, JarSnapshot>
     ): CompilationMode =
         reporter.measure(BuildTime.IC_CALCULATE_INITIAL_DIRTY_SET) {
-            calculateSourcesToCompileImpl(caches, changedFiles, args, messageCollector, jarSnapshot)
+            calculateSourcesToCompileImpl(caches, changedFiles, args, messageCollector, jarSnapshots)
         }
 
     protected abstract fun calculateSourcesToCompileImpl(
@@ -438,12 +438,6 @@ abstract class IncrementalCompilerRunner<
         } else {
             val emptyDirtyData = DirtyData()
             BuildDifference(currentBuildInfo.startTS, false, emptyDirtyData)
-        }
-
-        val prevDiffs = if (!buildHistoryFeature) {
-            BuildDiffsStorage.readFromFile(buildHistoryFile, reporter)?.buildDiffs ?: emptyList()
-        } else {
-            emptyList()
         }
 
         //TODO old history build should be restored in case of build fail

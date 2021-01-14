@@ -5,4 +5,8 @@
 
 package foo
 
-class AAA : AA()
+class AAA : AA() {
+    override fun method() {
+        //override
+    }
+}
