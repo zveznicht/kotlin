@@ -5,19 +5,11 @@
 
 package org.jetbrains.kotlin.incremental
 
-import org.jetbrains.kotlin.incremental.JarSnapshot.Companion.readJarSnapshot
-import org.jetbrains.kotlin.incremental.JavaClassProtoMapValueExternalizer.readBytesWithSize
-import org.jetbrains.kotlin.incremental.JavaClassProtoMapValueExternalizer.writeBytesWithSize
-import org.jetbrains.kotlin.metadata.ProtoBuf
 import org.jetbrains.kotlin.metadata.deserialization.NameResolverImpl
-import org.jetbrains.kotlin.metadata.jvm.JvmProtoBuf
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmNameResolver
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
+import org.jetbrains.kotlin.metadata.jvm.serialization.JvmStringTable
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.protobuf.CodedOutputStream
-import org.jetbrains.kotlin.renderer.DescriptorRenderer
-import org.jetbrains.kotlin.serialization.DescriptorSerializer
-import org.jetbrains.kotlin.serialization.StringTableImpl
 import java.io.*
 
 class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
@@ -25,12 +17,12 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
     companion object {
         fun ObjectInputStream.readStringArray(): Array<String> {
             val size = readInt()
-            val stringArray = arrayOf<String>()
+            val stringArray = arrayOfNulls<String>(size)
             repeat(size) {
                 stringArray[it] = readUTF()
             }
 
-            return stringArray
+            return stringArray.requireNoNulls()
         }
 
 
@@ -41,7 +33,7 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
             //   fqName
             //   isClassProtoData
             //   *for packageClassData - packageFqName
-            //   byte array with size
+            //   protodata via JvmProtoBufUtil
             //   string array with size
             // }
             val size = readInt()
@@ -51,14 +43,14 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
                 val isClassProtoData = readBoolean()
                 if (isClassProtoData) {
                     val fqName = FqName(fqNameString)
-                    val bytes = readBytesWithSize()
+                    val bytes = readStringArray()
                     val strings = readStringArray()
                     val (nameResolver, classProto) = JvmProtoBufUtil.readClassDataFrom(bytes, strings)
                     mutableMap[fqName] = ClassProtoData(classProto, nameResolver)
                 } else {
                     val fqName = FqName(fqNameString)
                     val packageFqName = FqName(fqNameString)
-                    val bytes = readBytesWithSize()
+                    val bytes = readStringArray()
                     val strings = readStringArray()
                     val (nameResolver, proto) = JvmProtoBufUtil.readPackageDataFrom(bytes, strings)
                     mutableMap[fqName] = PackagePartProtoData(proto, nameResolver, packageFqName)
@@ -84,41 +76,22 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
                         val nameResolver = protoData.nameResolver
 
                             when (nameResolver) {
-//                                is NameResolverImpl -> {
-//                                    JavaClassProtoMapValueExternalizer.save(
-//                                        this,
-//                                        SerializedJavaClass(protoData.proto, nameResolver.strings, nameResolver.qualifiedNames)
-//                                    )
-//                                }
+                                is NameResolverImpl -> {
+                                    //TODO check string mapping
+                                    val writeData = JvmProtoBufUtil.writeData(protoData.proto, JvmStringTable())
+                                    writeStringArray(writeData)
+                                    val size = nameResolver.strings.getStringCount()
+                                    writeInt(size)
+                                    repeat(size) {
+                                        val string = nameResolver.getString(it)
+                                        writeUTF(string)
+                                    }
+                                }
                                 is JvmNameResolver -> {
-
-                                    write(protoData.proto.toByteArray())
+                                    val writeData = JvmProtoBufUtil.writeData(protoData.proto, JvmStringTable(nameResolver))
+                                    writeStringArray(writeData)
                                     writeStringArray(nameResolver.strings)
 
-//                                    val stringTable = StringTableImpl()
-                                    //TODO dirty hack
-//                                    repeat(nameResolver.strings.size) {
-//                                        val string = nameResolver.getString(it)
-//                                        stringTable.getStringIndex(string)
-////                                        stringTable.getQualifiedClassNameIndex(string, nameResolver.isLocalClassName(it))
-//                                    }
-//                                    repeat(nameResolver.strings.size) {
-//                                        val string = nameResolver.getString(it)
-////                                        intern qualified class name caused intern into strings and ruin the order
-//                                        stringTable.getQualifiedClassNameIndex(string, nameResolver.isLocalClassName(it))
-//                                    }
-
-//                                    val fqNameIndex = protoData.proto.fqName
-//                                    val string = nameResolver.getString(fqNameIndex)
-//                                    val newFqName = stringTable.getQualifiedClassNameIndex(string, nameResolver.isLocalClassName(fqNameIndex))
-//                                    val (stringsTable, qualifiedNameTable) = stringTable.buildProto()
-//
-//                                    //TODO cause qualified indexes was updated protoData should be updated as well
-//                                    val updatedProtoData = protoData.proto.toBuilder().setFqName(newFqName).build()
-//                                    JavaClassProtoMapValueExternalizer.save(
-//                                        this,
-//                                        SerializedJavaClass(updatedProtoData, stringsTable, qualifiedNameTable)
-//                                    )
                                 }
                                 else -> throw IllegalStateException("Can't store name resolver")
                             }
