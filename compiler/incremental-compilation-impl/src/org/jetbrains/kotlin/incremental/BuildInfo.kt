@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.incremental.JarSnapshot.Companion.readJarSnapshot
 import org.jetbrains.kotlin.incremental.JarSnapshot.Companion.writeJarSnapshot
 import java.io.*
 
-//TODO store jar snapshot to check if its upToDate
 data class BuildInfo(val startTS: Long, val dependencyToJarSnapshot: Map<String, JarSnapshot> = mapOf()) : Serializable {
     companion object {
         private fun ObjectInputStream.readBuildInfo() : BuildInfo {
