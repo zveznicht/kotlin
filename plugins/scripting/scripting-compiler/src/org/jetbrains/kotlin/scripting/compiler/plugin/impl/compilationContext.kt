@@ -140,7 +140,7 @@ internal fun createInitialConfigurations(
         createInitialCompilerConfiguration(
             scriptCompilationConfiguration, hostConfiguration, messageCollector, ignoredOptionsReportingState
         )
-
+    kotlinCompilerConfiguration.put(JVMConfigurationKeys.IR, false)
     val initialScriptCompilationConfiguration =
         scriptCompilationConfiguration.withUpdatesFromCompilerConfiguration(kotlinCompilerConfiguration)
 
