@@ -1,0 +1,8 @@
+FILE: AnnotationConstructorCaller.kt
+    public final fun R|kotlin/Any?|.foo(): R|kotlin/Unit| {
+        lval result: R|kotlin/Array<kotlin/Nothing>| = (this@R|/foo| as R|kotlin/Array<kotlin/reflect/KClass<*>>|).<Inapplicable(INAPPLICABLE): kotlin/collections/map>#<R|kotlin/reflect/KClass<*>|, R|kotlin/Nothing|>(Q|kotlin/reflect/KClass|::<Unresolved reference: java>#).R|kotlin/collections/toTypedArray|<R|kotlin/Nothing|>()
+        lval withLambda: R|kotlin/Array<java/lang/Class<out kotlin/Any>>| = (this@R|/foo| as R|kotlin/Array<kotlin/reflect/KClass<*>>|).R|kotlin/collections/map|<R|kotlin/reflect/KClass<*>|, R|java/lang/Class<out kotlin/Any>|>(<L> = map@fun <anonymous>(it: R|kotlin/reflect/KClass<*>|): R|java/lang/Class<out kotlin/Any>| <kind=UNKNOWN>  {
+            ^ R|<local>/it|.R|kotlin/jvm/java|<R|kotlin/Any|>
+        }
+        ).R|kotlin/collections/toTypedArray|<R|java/lang/Class<out kotlin/Any>|>()
+    }
