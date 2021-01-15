@@ -30,10 +30,10 @@ sealed class FirClassSymbol<C : FirClass<C>>(classId: ClassId) : FirClassLikeSym
 
 open class FirRegularClassSymbol(classId: ClassId) : FirClassSymbol<FirRegularClass>(classId)
 
-private class FirJavaLazyClassSymbol(
+private class FirLazyClassSymbol(
     classId: ClassId,
     session: FirSession,
-    createFirClass: (FirJavaLazyClassSymbol) -> FirRegularClass,
+    createFirClass: (FirRegularClassSymbol) -> FirRegularClass,
     modifyFirClass: (FirRegularClass) -> Unit
 ) : FirRegularClassSymbol(classId) {
     private val lazy = session.firCachesFactory.createValueWithPostCompute({ createFirClass(this) }, modifyFirClass)
