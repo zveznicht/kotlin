@@ -102,7 +102,7 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
                                 writeStringArray(nameResolver.strings)
 
                             }
-                            else -> throw IllegalStateException("Can't store name resolver for class proto")
+                            else -> throw IllegalStateException("Can't store name resolver for class proto: ${nameResolver.javaClass}")
                         }
                     }
                     is PackagePartProtoData -> {
@@ -116,7 +116,7 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
                                 writeStringArray(writeData)
                                 writeStringArray(nameResolver.strings)
                             }
-                            else -> throw IllegalStateException("Can't store name resolver for package proto")
+                            else -> throw IllegalStateException("Can't store name resolver for package proto: ${nameResolver.javaClass}")
                         }
 
                     }
