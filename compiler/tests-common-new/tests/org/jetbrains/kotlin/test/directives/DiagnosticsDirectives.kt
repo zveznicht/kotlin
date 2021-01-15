@@ -7,6 +7,9 @@ package org.jetbrains.kotlin.test.directives
 
 import org.jetbrains.kotlin.test.backend.handlers.JvmBackendDiagnosticsHandler
 import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives.USE_JAVAC
+import org.jetbrains.kotlin.test.directives.model.DirectiveApplicability
+import org.jetbrains.kotlin.test.directives.model.DirectiveApplicability.Any
+import org.jetbrains.kotlin.test.directives.model.DirectiveApplicability.Global
 import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
 
 object DiagnosticsDirectives : SimpleDirectivesContainer() {
@@ -27,7 +30,8 @@ object DiagnosticsDirectives : SimpleDirectivesContainer() {
     )
 
     val SKIP_TXT by directive(
-        description = "Disables handler which dumps declarations to testName.txt"
+        description = "Disables handler which dumps declarations to testName.txt",
+        applicability = Any
     )
 
     val NI_EXPECTED_FILE by directive(
