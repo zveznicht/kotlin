@@ -139,8 +139,8 @@ abstract class FirDataFlowAnalyzer<FLOW : Flow>(
         return result.takeIf { it.isNotEmpty() }
     }
 
-    fun returnExpressionsOfAnonymousFunction(function: FirAnonymousFunction, onlyExplicitReturns: Boolean = false): Collection<FirStatement> {
-        return graphBuilder.returnExpressionsOfAnonymousFunction(function, onlyExplicitReturns)
+    fun returnExpressionsOfAnonymousFunction(function: FirAnonymousFunction): Collection<FirStatement> {
+        return graphBuilder.returnExpressionsOfAnonymousFunction(function)
     }
 
     fun dropSubgraphFromCall(call: FirFunctionCall) {

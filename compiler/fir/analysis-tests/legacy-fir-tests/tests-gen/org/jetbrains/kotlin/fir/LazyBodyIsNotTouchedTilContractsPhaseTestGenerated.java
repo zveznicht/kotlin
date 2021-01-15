@@ -2213,11 +2213,6 @@ public class LazyBodyIsNotTouchedTilContractsPhaseTestGenerated extends Abstract
             runTest("compiler/fir/analysis-tests/testData/resolve/inference/lambdaInElvis.kt");
         }
 
-        @TestMetadata("lambdasReturns.kt")
-        public void testLambdasReturns() throws Exception {
-            runTest("compiler/fir/analysis-tests/testData/resolve/inference/lambdasReturns.kt");
-        }
-
         @TestMetadata("nestedExtensionFunctionType.kt")
         public void testNestedExtensionFunctionType() throws Exception {
             runTest("compiler/fir/analysis-tests/testData/resolve/inference/nestedExtensionFunctionType.kt");

@@ -83,8 +83,7 @@ class FirCallCompleter(
                     val completedCall = call.transformSingle(
                         FirCallCompletionResultsWriterTransformer(
                             session, finalSubstitutor, components.returnTypeCalculator,
-                            session.inferenceComponents.approximator,
-                            components.dataFlowAnalyzer,
+                            session.inferenceComponents.approximator
                         ),
                         null
                     )
@@ -154,7 +153,6 @@ class FirCallCompleter(
         return FirCallCompletionResultsWriterTransformer(
             session, substitutor, components.returnTypeCalculator,
             session.inferenceComponents.approximator,
-            components.dataFlowAnalyzer,
             mode
         )
     }
