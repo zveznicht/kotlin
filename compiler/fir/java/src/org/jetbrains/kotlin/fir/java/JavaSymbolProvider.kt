@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.*
+import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.builder.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
@@ -53,8 +54,9 @@ class JavaSymbolProvider(
         internal val VALUE_METHOD_NAME = Name.identifier("value")
     }
 
-    private val classCache = SymbolProviderCache<ClassId, FirRegularClassSymbol>()
-    private val packageCache = SymbolProviderCache<FqName, FqName>()
+    private val classCache = session.firCachesFactory.createMapLikeCache<ClassId, FirRegularClassSymbol?>()
+    private val packageCache = session.firCachesFactory.createMapLikeCache<FqName, FqName?>()
+    private val knownClassNamesInPackage = session.firCachesFactory.createMapLikeCache<FqName, Set<String>?>()
 
     private val scopeProvider = JavaScopeProvider(::wrapScopeWithJvmMapped, this)
 
@@ -137,7 +139,7 @@ class JavaSymbolProvider(
 
     fun getFirJavaClass(classId: ClassId, content: KotlinClassFinder.Result.ClassFileContent? = null): FirRegularClassSymbol? {
         if (!hasTopLevelClassOf(classId)) return null
-        return classCache.lookupCacheOrCalculate(classId) {
+        return classCache.getOrCreateValue(classId) {
             val foundClass = findClass(classId, content)
             if (foundClass == null ||
                 foundClass.hasDifferentRelativeClassName(classId) ||
@@ -520,21 +522,20 @@ class JavaSymbolProvider(
     )
 
     override fun getPackage(fqName: FqName): FqName? {
-        return packageCache.lookupCacheOrCalculate(fqName) {
+        return packageCache.getOrCreateValue(fqName) {
             try {
                 val facade = KotlinJavaPsiFacade.getInstance(project)
-                val javaPackage = facade.findPackage(fqName.asString(), searchScope) ?: return@lookupCacheOrCalculate null
+                val javaPackage = facade.findPackage(fqName.asString(), searchScope) ?: return@getOrCreateValue null
                 FqName(javaPackage.qualifiedName)
             } catch (e: ProcessCanceledException) {
-                return@lookupCacheOrCalculate null
+                return@getOrCreateValue null
             }
         }
     }
 
-    private val knownClassNamesInPackage = mutableMapOf<FqName, Set<String>?>()
 
     private fun hasTopLevelClassOf(classId: ClassId): Boolean {
-        val knownNames = knownClassNamesInPackage.getOrPut(classId.packageFqName) {
+        val knownNames = knownClassNamesInPackage.getOrCreateValue(classId.packageFqName) {
             facade.knownClassNamesInPackage(classId.packageFqName, searchScope)
         } ?: return true
         return classId.relativeClassName.topLevelName() in knownNames
