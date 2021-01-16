@@ -137,21 +137,22 @@ class JavaSymbolProvider(
 
     fun getFirJavaClass(classId: ClassId, content: KotlinClassFinder.Result.ClassFileContent? = null): FirRegularClassSymbol? {
         if (!hasTopLevelClassOf(classId)) return null
-        return classCache.lookupCacheOrCalculateWithPostCompute(
-            classId,
-            {
-                val foundClass = findClass(classId, content)
-                if (foundClass == null ||
-                    foundClass.hasDifferentRelativeClassName(classId) ||
-                    foundClass.hasMetadataAnnotation()
-                ) {
-                    null to null
-                } else {
-                    FirRegularClassSymbol(classId) to foundClass
-                }
-            },
-        ) { firSymbol, foundClass ->
-            convertJavaClassToFir(firSymbol, foundClass)
+        return classCache.lookupCacheOrCalculate(classId) {
+            val foundClass = findClass(classId, content)
+            if (foundClass == null ||
+                foundClass.hasDifferentRelativeClassName(classId) ||
+                foundClass.hasMetadataAnnotation()
+            ) {
+                null
+            } else {
+                createClassSymbol(
+                    classId,
+                    createLazySymbol = true,
+                    session,
+                    createFirClass = { symbol -> convertJavaClassToFir(symbol, foundClass) },
+                    modifyFirClass = { firClass -> (firClass as FirJavaClass).postComputeFirClass(foundClass) }
+                )
+            }
         }
     }
 
@@ -170,26 +171,31 @@ class JavaSymbolProvider(
         var valueParameterForValue: FirJavaValueParameter? = null
     }
 
-    private fun convertJavaClassToFir(classSymbol: FirRegularClassSymbol, javaClass: JavaClass?): FirJavaClass? {
-        if (javaClass == null) return null
+    private fun convertJavaClassToFir(classSymbol: FirRegularClassSymbol, javaClass: JavaClass): FirJavaClass {
         val classId = classSymbol.classId
         val outerClassId = classId.outerClassId
         val parentClassSymbol = if (outerClassId != null) {
             getClassLikeSymbolByFqName(outerClassId)
         } else null
 
-        parentClassTypeParameterStackCache.withCachedValue(classSymbol, parentClassSymbol) { javaTypeParameterStack ->
-            val firClass = createFirJavaClass(javaClass, classSymbol, outerClassId, parentClassSymbol, classId, javaTypeParameterStack)
-            firClass.replaceSuperTypeRefs(
-                javaClass.supertypes.map { supertype ->
-                    supertype.toFirResolvedTypeRef(
-                        this@JavaSymbolProvider.session, javaTypeParameterStack, isForSupertypes = true, forTypeParameterBounds = false
-                    )
-                }
-            )
-            firClass.addAnnotationsFrom(this@JavaSymbolProvider.session, javaClass, javaTypeParameterStack)
-            return firClass
+        return parentClassTypeParameterStackCache.withCachedValue(classSymbol, parentClassSymbol) { javaTypeParameterStack ->
+            createFirJavaClass(javaClass, classSymbol, outerClassId, parentClassSymbol, classId, javaTypeParameterStack)
         }
+    }
+
+    private fun FirJavaClass.postComputeFirClass(javaClass: JavaClass) {
+        convertSuperTypes(javaClass)
+        addAnnotationsFrom(this@JavaSymbolProvider.session, javaClass, javaTypeParameterStack)
+    }
+
+    private fun FirJavaClass.convertSuperTypes(javaClass: JavaClass) {
+        replaceSuperTypeRefs(
+            javaClass.supertypes.map { supertype ->
+                supertype.toFirResolvedTypeRef(
+                    this@JavaSymbolProvider.session, javaTypeParameterStack, isForSupertypes = true, forTypeParameterBounds = false
+                )
+            }
+        )
     }
 
     private fun createFirJavaClass(
