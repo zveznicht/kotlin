@@ -178,7 +178,7 @@ class JavaSymbolProvider(
             getClassLikeSymbolByFqName(outerClassId)
         } else null
 
-        parentClassTypeParameterStackCache.withCachedValue(parentClassSymbol) { javaTypeParameterStack ->
+        parentClassTypeParameterStackCache.withCachedValue(classSymbol, parentClassSymbol) { javaTypeParameterStack ->
             val firClass = createFirJavaClass(javaClass, classSymbol, outerClassId, parentClassSymbol, classId, javaTypeParameterStack)
             firClass.replaceSuperTypeRefs(
                 javaClass.supertypes.map { supertype ->
@@ -550,6 +550,7 @@ private inline class JavaTypeParameterStackCache constructor(
 ) {
 
     inline fun <R> withCachedValue(
+        classSymbol: FirRegularClassSymbol,
         parentClassSymbol: FirRegularClassSymbol?,
         action: (JavaTypeParameterStack) -> R
     ): R {
@@ -558,6 +559,7 @@ private inline class JavaTypeParameterStackCache constructor(
         try {
             val parentStack = parentClassSymbol?.getStack(cacheEntry)
             val stack = JavaTypeParameterStack.create(parentStack)
+            cacheEntry.cache.put(classSymbol, stack)
             return action(stack)
         } finally {
             cacheEntry.deep--
