@@ -59,8 +59,7 @@ class JavaSymbolProvider(
     private val scopeProvider = JavaScopeProvider(::wrapScopeWithJvmMapped, this)
 
     private val facade: KotlinJavaPsiFacade get() = KotlinJavaPsiFacade.getInstance(project)
-    private val parentClassTypeParameterStackCache: SymbolProviderCache<FirRegularClassSymbol, JavaTypeParameterStack> =
-        SymbolProviderCache()
+    private val parentClassTypeParameterStackCache = JavaTypeParameterStackCache()
 
     private fun findClass(
         classId: ClassId,
@@ -174,30 +173,23 @@ class JavaSymbolProvider(
     private fun convertJavaClassToFir(classSymbol: FirRegularClassSymbol, javaClass: JavaClass?): FirJavaClass? {
         if (javaClass == null) return null
         val classId = classSymbol.classId
-        val javaTypeParameterStack = JavaTypeParameterStack()
         val outerClassId = classId.outerClassId
         val parentClassSymbol = if (outerClassId != null) {
             getClassLikeSymbolByFqName(outerClassId)
         } else null
-        if (parentClassSymbol != null) {
-            val parentStack = parentClassTypeParameterStackCache[parentClassSymbol]
-                ?: (parentClassSymbol.fir as? FirJavaClass)?.javaTypeParameterStack
-            if (parentStack != null) {
-                javaTypeParameterStack.addStack(parentStack)
-            }
+
+        parentClassTypeParameterStackCache.withCachedValue(parentClassSymbol) { javaTypeParameterStack ->
+            val firClass = createFirJavaClass(javaClass, classSymbol, outerClassId, parentClassSymbol, classId, javaTypeParameterStack)
+            firClass.replaceSuperTypeRefs(
+                javaClass.supertypes.map { supertype ->
+                    supertype.toFirResolvedTypeRef(
+                        this@JavaSymbolProvider.session, javaTypeParameterStack, isForSupertypes = true, forTypeParameterBounds = false
+                    )
+                }
+            )
+            firClass.addAnnotationsFrom(this@JavaSymbolProvider.session, javaClass, javaTypeParameterStack)
+            return firClass
         }
-        parentClassTypeParameterStackCache[classSymbol] = javaTypeParameterStack
-        val firJavaClass = createFirJavaClass(javaClass, classSymbol, outerClassId, parentClassSymbol, classId, javaTypeParameterStack)
-        parentClassTypeParameterStackCache.remove(classSymbol)
-        firJavaClass.replaceSuperTypeRefs(
-            javaClass.supertypes.map { supertype ->
-                supertype.toFirResolvedTypeRef(
-                    this@JavaSymbolProvider.session, javaTypeParameterStack, isForSupertypes = true, forTypeParameterBounds = false
-                )
-            }
-        )
-        firJavaClass.addAnnotationsFrom(this@JavaSymbolProvider.session, javaClass, javaTypeParameterStack)
-        return firJavaClass
     }
 
     private fun createFirJavaClass(
@@ -545,3 +537,43 @@ class JavaSymbolProvider(
 
 fun FqName.topLevelName() =
     asString().substringBefore(".")
+
+/**
+ * Holds [JavaTypeParameterStack] of parent classes when converting nested class hierarchy
+ * The caching is needed as we cannot directly use `parentClassSymbol.fir.javaTypeParameterStack`
+ * as `parentClassSymbol.fir` is not yet initialized during nested class conversion
+ */
+@Suppress("EXPERIMENTAL_FEATURE_WARNING")
+private inline class JavaTypeParameterStackCache constructor(
+    private val parentClassTypeParameterStackCache: ThreadLocal<ParentTypeParameterClassCacheEntry> =
+        ThreadLocal.withInitial { ParentTypeParameterClassCacheEntry() }
+) {
+
+    inline fun <R> withCachedValue(
+        parentClassSymbol: FirRegularClassSymbol?,
+        action: (JavaTypeParameterStack) -> R
+    ): R {
+        val cacheEntry = parentClassTypeParameterStackCache.get()
+        cacheEntry.deep++
+        try {
+            val parentStack = parentClassSymbol?.getStack(cacheEntry)
+            val stack = JavaTypeParameterStack.create(parentStack)
+            return action(stack)
+        } finally {
+            cacheEntry.deep--
+            if (cacheEntry.deep == 0) {
+                // when we finished handling current class with all nested stuff
+                // clear cache to avoid memory leaks via thread locals
+                parentClassTypeParameterStackCache.remove()
+            }
+        }
+    }
+
+    private fun FirRegularClassSymbol.getStack(cacheEntry: ParentTypeParameterClassCacheEntry): JavaTypeParameterStack? =
+        cacheEntry.cache[this] ?: (fir as? FirJavaClass)?.javaTypeParameterStack
+
+    private class ParentTypeParameterClassCacheEntry {
+        val cache: MutableMap<FirRegularClassSymbol, JavaTypeParameterStack> = hashMapOf()
+        var deep: Int = 0
+    }
+}

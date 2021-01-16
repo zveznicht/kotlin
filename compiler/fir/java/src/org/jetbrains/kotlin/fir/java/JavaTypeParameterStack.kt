@@ -8,16 +8,12 @@ package org.jetbrains.kotlin.fir.java
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
 import org.jetbrains.kotlin.load.java.structure.JavaTypeParameter
 
-internal class JavaTypeParameterStack {
-
-    private val typeParameterMap = mutableMapOf<JavaTypeParameter, FirTypeParameterSymbol>()
+internal class JavaTypeParameterStack private constructor(
+    private val typeParameterMap: MutableMap<JavaTypeParameter, FirTypeParameterSymbol>
+) {
 
     fun addParameter(javaTypeParameter: JavaTypeParameter, symbol: FirTypeParameterSymbol) {
         typeParameterMap[javaTypeParameter] = symbol
-    }
-
-    fun addStack(javaTypeParameterStack: JavaTypeParameterStack) {
-        typeParameterMap += javaTypeParameterStack.typeParameterMap
     }
 
     operator fun get(javaTypeParameter: JavaTypeParameter): FirTypeParameterSymbol {
@@ -28,6 +24,12 @@ internal class JavaTypeParameterStack {
     fun safeGet(javaTypeParameter: JavaTypeParameter) = typeParameterMap[javaTypeParameter]
 
     companion object {
-        val EMPTY: JavaTypeParameterStack = JavaTypeParameterStack()
+        val EMPTY: JavaTypeParameterStack = JavaTypeParameterStack(mutableMapOf())
+
+        fun create(parentStack: JavaTypeParameterStack?): JavaTypeParameterStack {
+            val map = hashMapOf<JavaTypeParameter, FirTypeParameterSymbol>()
+            parentStack?.let { map.putAll(it.typeParameterMap) }
+            return JavaTypeParameterStack(map)
+        }
     }
 }
