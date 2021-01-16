@@ -534,6 +534,7 @@ private inline class JavaTypeParameterStackCache constructor(
     }
 }
 
+// M
 
 fun FqName.topLevelName() =
     asString().substringBefore(".")
