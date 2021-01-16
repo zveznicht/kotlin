@@ -6,3 +6,4 @@
 package org.jetbrains.kotlin.fir.caches
 
 internal object NonComputedLazyValueMarker
+internal object NullValue

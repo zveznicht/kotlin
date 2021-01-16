@@ -5,8 +5,6 @@
 
 package org.jetbrains.kotlin.idea.fir.low.level.api.fir.caches
 
-import org.jetbrains.kotlin.fir.caches.FirValueWithPostCompute
-
 /**
  * Lazily calculated value which runs postCompute in the same thread,
  * assuming that postCompute may try to read that value inside current thread,
@@ -14,12 +12,16 @@ import org.jetbrains.kotlin.fir.caches.FirValueWithPostCompute
  * only thread that initiated the calculating may see the value,
  * other threads will have to wait wait until that value is calculated
  */
-internal class FirLazyThreadSafeValueWithPostCompute<VALUE>(
-    calculate: () -> VALUE,
-    postCompute: (VALUE) -> Unit,
-) : FirValueWithPostCompute<VALUE> {
-    private var _calculate: (() -> VALUE)? = calculate
-    private var _postCompute: ((VALUE) -> Unit)? = postCompute
+internal class ValueWithPostCompute<KEY, VALUE>(
+    /**
+     * We need at least one final field to be written in constructor to guarantee safe initialization of our [ValueWithPostCompute]
+     */
+    private val key: KEY,
+    calculate: (KEY) -> VALUE,
+    postCompute: (KEY, VALUE) -> Unit,
+) {
+    private var _calculate: ((KEY) -> VALUE)? = calculate
+    private var _postCompute: ((KEY, VALUE) -> Unit)? = postCompute
 
     /**
      * can be in one of the following three states:
@@ -34,14 +36,8 @@ internal class FirLazyThreadSafeValueWithPostCompute<VALUE>(
     @Volatile
     private var value: Any? = ValueIsNotComputed
 
-    /**
-     * We need at least one final field to be written in constructor to guarantee safe initialization of our [FirLazyThreadSafeValueWithPostCompute]
-     */
-    @Suppress("PrivatePropertyName", "unused")
-    private val BARRIER = Unit
-
     @Suppress("UNCHECKED_CAST")
-    override fun getValue(): VALUE {
+    fun getValue(): VALUE {
         when (val stateSnapshot = value) {
             is ValueIsPostComputingNow -> {
                 if (stateSnapshot.threadId == Thread.currentThread().id) {
@@ -60,9 +56,9 @@ internal class FirLazyThreadSafeValueWithPostCompute<VALUE>(
                     return value as VALUE
                 }
                 val calculatedValue = try {
-                    val calculated = _calculate!!()
+                    val calculated = _calculate!!(key)
                     value = ValueIsPostComputingNow(calculated, Thread.currentThread().id) // only current thread may see the value
-                    _postCompute!!(calculated)
+                    _postCompute!!(key, calculated)
                     calculated
                 } catch (e: Throwable) {
                     value = ExceptionWasThrownDuringValueComputation(e)

@@ -5,21 +5,15 @@
 
 package org.jetbrains.kotlin.idea.fir.low.level.api.fir.caches
 
-import org.jetbrains.kotlin.fir.caches.FirCachesFactory
-import org.jetbrains.kotlin.fir.caches.FirMapLikeCache
-import org.jetbrains.kotlin.fir.caches.FirMapLikeCacheWithFixedValueCreator
-import org.jetbrains.kotlin.fir.caches.FirValueWithPostCompute
+import org.jetbrains.kotlin.fir.caches.*
 
-object FirThreadSafeCachesFactory: FirCachesFactory() {
-    override fun <KEY : Any, VALUE> createMapLikeCacheWithFixedCompute(createValue: (KEY) -> VALUE): FirMapLikeCacheWithFixedValueCreator<KEY, VALUE>  =
-        FirThreadSafeMapLikeCacheWithFixedValueCreator(createValue)
+object FirThreadSafeCachesFactory : FirCachesFactory() {
+    override fun <KEY : Any, VALUE, CONTEXT> createCacheWithPostCompute(
+        createValue: (KEY) -> FirCacheWithPostCompute.ValueWithData<VALUE, CONTEXT>,
+        postCompute: (KEY, FirCacheWithPostCompute.ValueWithData<VALUE, CONTEXT>) -> Unit
+    ): FirCacheWithPostCompute<KEY, VALUE, CONTEXT> =
+        FirThreadUnsafeCacheWithPostCompute(createValue, postCompute)
 
     override fun <KEY : Any, VALUE> createMapLikeCache(): FirMapLikeCache<KEY, VALUE> =
         FirThreadSafeMapLikeCache()
-
-    override fun <VALUE> createValueWithPostCompute(
-        createValue: () -> VALUE,
-        postCompute: (VALUE) -> Unit
-    ): FirValueWithPostCompute<VALUE> =
-        FirLazyThreadSafeValueWithPostCompute(createValue, postCompute)
 }
