@@ -5,7 +5,9 @@
 
 package org.jetbrains.kotlin.fir.symbols.impl
 
+import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSymbolOwner
+import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
 import org.jetbrains.kotlin.name.ClassId
@@ -26,8 +28,35 @@ sealed class FirClassSymbol<C : FirClass<C>>(classId: ClassId) : FirClassLikeSym
     override fun toLookupTag(): ConeClassLikeLookupTag = lookupTag
 }
 
-class FirRegularClassSymbol(classId: ClassId) : FirClassSymbol<FirRegularClass>(classId)
 
+open class FirRegularClassSymbol(classId: ClassId) : FirClassSymbol<FirRegularClass>(classId)
+
+private class FirLazyClassSymbol(
+    classId: ClassId,
+    session: FirSession,
+    createFirClass: (FirRegularClassSymbol) -> FirRegularClass,
+    modifyFirClass: (FirRegularClass) -> Unit
+) : FirRegularClassSymbol(classId) {
+    private val lazy = session.firCachesFactory.createValueWithPostCompute({ createFirClass(this) }, modifyFirClass)
+    override var fir: FirRegularClass
+        get() = lazy.getValue()
+        set(_) {}
+}
+
+fun createClassSymbol(
+    classId: ClassId,
+    createLazySymbol: Boolean,
+    session: FirSession,
+    createFirClass: (FirRegularClassSymbol) -> FirRegularClass,
+    modifyFirClass: (FirRegularClass) -> Unit
+): FirRegularClassSymbol = if (createLazySymbol) {
+    FirLazyClassSymbol(classId, session, createFirClass, modifyFirClass)
+} else {
+    FirRegularClassSymbol(classId).also { symbol ->
+        val firClass = createFirClass(symbol)
+        modifyFirClass(firClass)
+    }
+}
 val ANONYMOUS_CLASS_ID = ClassId(FqName.ROOT, FqName.topLevel(Name.special("<anonymous>")), true)
 
 class FirAnonymousObjectSymbol : FirClassSymbol<FirAnonymousObject>(ANONYMOUS_CLASS_ID)
