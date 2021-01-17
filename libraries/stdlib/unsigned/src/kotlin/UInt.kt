@@ -134,10 +134,27 @@ public inline class UInt @PublishedApi internal constructor(@PublishedApi intern
     @kotlin.internal.InlineOnly
     public inline operator fun rem(other: ULong): ULong = this.toULong().rem(other)
 
-    /** Increments this value. */
+    /**
+     * Returns this value plus 1.
+     *
+     * The returned value will be assigned to the variable on which the `++` operation was used.
+     * If the prefix version of the `++` operation was used (e.g. `++a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a++`), the expression will result to this value.
+     * 
+     * @sample samples.misc.Builtins.inc
+     */
     @kotlin.internal.InlineOnly
     public inline operator fun inc(): UInt = UInt(data.inc())
-    /** Decrements this value. */
+
+    /**
+     * Returns this value minus 1.
+     *
+     * The returned value will be assigned to the variable on which the `--` operation was used.
+     * If the prefix version of the `--` operation was used (e.g. `--a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a--`), the expression will result to this value.
+     * 
+     * @sample samples.misc.Builtins.dec
+     */
     @kotlin.internal.InlineOnly
     public inline operator fun dec(): UInt = UInt(data.dec())
 

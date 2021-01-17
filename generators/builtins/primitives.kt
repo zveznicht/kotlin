@@ -18,9 +18,7 @@ class GeneratePrimitives(out: PrintWriter) : BuiltInsSourceGenerator(out) {
             "div" to "Divides this value by the other value.",
             "rem" to "Calculates the remainder of dividing this value by the other value."
         )
-        internal val unaryOperators: Map<String, String> = mapOf(
-            "inc" to "Increments this value.",
-            "dec" to "Decrements this value.",
+        internal val unaryPlusMinusOperators: Map<String, String> = mapOf(
             "unaryPlus" to "Returns this value.",
             "unaryMinus" to "Returns the negative of this value.")
         internal val shiftOperators: Map<String, String> = mapOf(
@@ -42,6 +40,22 @@ class GeneratePrimitives(out: PrintWriter) : BuiltInsSourceGenerator(out) {
             return """ 
                 * Note that only the $bitsUsed lowest-order bits of the [bitCount] are used as the shift distance.
                 * The shift distance actually used is therefore always in the range `0..${kind.bitSize - 1}`.
+                """
+        }
+
+        internal fun incDecOperatorsDoc(name: String): String {
+            val (diff, operator) = if (name == "inc") Pair("plus", "++") else Pair("minus", "--")
+
+            return """
+                /**
+                 * Returns this value $diff 1.
+                 *
+                 * The returned value will be assigned to the variable on which the `$operator` operation was used.
+                 * If the prefix version of the `$operator` operation was used (e.g. `${operator}a`), the expression will result to the value this function returns.
+                 * If the postfix version was used (e.g. `a$operator`), the expression will result to this value.
+                 * 
+                 * @sample samples.misc.Builtins.$name
+                 */
                 """
         }
     }
@@ -206,9 +220,14 @@ class GeneratePrimitives(out: PrintWriter) : BuiltInsSourceGenerator(out) {
     }
 
     private fun generateUnaryOperators(kind: PrimitiveType) {
-        for ((name, doc) in unaryOperators) {
-            val returnType = if (kind in listOf(PrimitiveType.SHORT, PrimitiveType.BYTE, PrimitiveType.CHAR) &&
-                                 name in listOf("unaryPlus", "unaryMinus")) "Int" else kind.capitalized
+        for (name in listOf("inc", "dec")) {
+            out.println(incDecOperatorsDoc(name).replaceIndent("    "))
+            out.println("    public operator fun $name(): ${kind.capitalized}")
+            out.println()
+        }
+
+        for ((name, doc) in unaryPlusMinusOperators) {
+            val returnType = if (kind in listOf(PrimitiveType.SHORT, PrimitiveType.BYTE, PrimitiveType.CHAR)) "Int" else kind.capitalized
             out.println("    /** $doc */")
             out.println("    public operator fun $name(): $returnType")
         }

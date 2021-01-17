@@ -38,9 +38,26 @@ public class Char private constructor() : Comparable<Char> {
     /** Subtracts the other Int value from this value resulting a Char. */
     public operator fun minus(other: Int): Char
 
-    /** Increments this value. */
+    /**
+     * Returns this value plus 1.
+     *
+     * The returned value will be assigned to the variable on which the `++` operation was used.
+     * If the prefix version of the `++` operation was used (e.g. `++a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a++`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.inc
+     */
     public operator fun inc(): Char
-    /** Decrements this value. */
+
+    /**
+     * Returns this value minus 1.
+     *
+     * The returned value will be assigned to the variable on which the `--` operation was used.
+     * If the prefix version of the `--` operation was used (e.g. `--a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a--`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.dec
+     */
     public operator fun dec(): Char
 
     /** Creates a range from this value to the specified [other] value. */

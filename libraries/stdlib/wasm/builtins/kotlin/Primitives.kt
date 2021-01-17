@@ -209,11 +209,27 @@ public class Byte private constructor(public val value: Byte) : Number(), Compar
     public inline operator fun rem(other: Double): Double =
         this.toDouble() % other
 
-    /** Increments this value. */
+    /**
+     * Returns this value plus 1.
+     *
+     * The returned value will be assigned to the variable on which the `++` operation was used.
+     * If the prefix version of the `++` operation was used (e.g. `++a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a++`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.inc
+     */
     public inline operator fun inc(): Byte =
         (this + 1).toByte()
 
-    /** Decrements this value. */
+    /**
+     * Returns this value minus 1.
+     *
+     * The returned value will be assigned to the variable on which the `--` operation was used.
+     * If the prefix version of the `--` operation was used (e.g. `--a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a--`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.dec
+     */
     public inline operator fun dec(): Byte =
         (this - 1).toByte()
 
@@ -545,11 +561,27 @@ public class Short private constructor(public val value: Short) : Number(), Comp
     public inline operator fun rem(other: Double): Double =
         this.toDouble() % other
 
-    /** Increments this value. */
+    /**
+     * Returns this value plus 1.
+     *
+     * The returned value will be assigned to the variable on which the `++` operation was used.
+     * If the prefix version of the `++` operation was used (e.g. `++a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a++`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.inc
+     */
     public inline operator fun inc(): Short =
         (this + 1).toShort()
 
-    /** Decrements this value. */
+    /**
+     * Returns this value minus 1.
+     *
+     * The returned value will be assigned to the variable on which the `--` operation was used.
+     * If the prefix version of the `--` operation was used (e.g. `--a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a--`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.dec
+     */
     public inline operator fun dec(): Short =
         (this - 1).toShort()
 
@@ -885,11 +917,27 @@ public class Int private constructor(val value: Int) : Number(), Comparable<Int>
     public inline operator fun rem(other: Double): Double =
         this.toDouble() % other
 
-    /** Increments this value. */
+    /**
+     * Returns this value plus 1.
+     *
+     * The returned value will be assigned to the variable on which the `++` operation was used.
+     * If the prefix version of the `++` operation was used (e.g. `++a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a++`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.inc
+     */
     public inline operator fun inc(): Int =
         this + 1
 
-    /** Decrements this value. */
+    /**
+     * Returns this value minus 1.
+     *
+     * The returned value will be assigned to the variable on which the `--` operation was used.
+     * If the prefix version of the `--` operation was used (e.g. `--a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a--`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.dec
+     */
     // TODO: Fix test compiler/testData/codegen/box/functions/invoke/invoke.kt with inline dec
     public operator fun dec(): Int =
         this - 1
@@ -1275,11 +1323,27 @@ public class Long private constructor(val value: Long) : Number(), Comparable<Lo
     public inline operator fun rem(other: Double): Double =
         this.toDouble() % other
 
-    /** Increments this value. */
+    /**
+     * Returns this value plus 1.
+     *
+     * The returned value will be assigned to the variable on which the `++` operation was used.
+     * If the prefix version of the `++` operation was used (e.g. `++a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a++`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.inc
+     */
     public inline operator fun inc(): Long =
         this + 1L
 
-    /** Decrements this value. */
+    /**
+     * Returns this value minus 1.
+     *
+     * The returned value will be assigned to the variable on which the `--` operation was used.
+     * If the prefix version of the `--` operation was used (e.g. `--a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a--`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.dec
+     */
     public inline operator fun dec(): Long =
         this - 1L
 
@@ -1651,11 +1715,27 @@ public class Float private constructor(public val value: Float) : Number(), Comp
     public inline operator fun rem(other: Double): Double =
         this.toDouble() % other
 
-    /** Increments this value. */
+    /**
+     * Returns this value plus 1.
+     *
+     * The returned value will be assigned to the variable on which the `++` operation was used.
+     * If the prefix version of the `++` operation was used (e.g. `++a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a++`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.inc
+     */
     public inline operator fun inc(): Float =
         this + 1.0f
 
-    /** Decrements this value. */
+    /**
+     * Returns this value minus 1.
+     *
+     * The returned value will be assigned to the variable on which the `--` operation was used.
+     * If the prefix version of the `--` operation was used (e.g. `--a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a--`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.dec
+     */
     public inline operator fun dec(): Float =
         this - 1.0f
 
@@ -1957,11 +2037,27 @@ public class Double private constructor(public val value: Double) : Number(), Co
     public operator fun rem(other: Double): Double =
         this - (wasm_f64_nearest(this / other) * other)
 
-    /** Increments this value. */
+    /**
+     * Returns this value plus 1.
+     *
+     * The returned value will be assigned to the variable on which the `++` operation was used.
+     * If the prefix version of the `++` operation was used (e.g. `++a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a++`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.inc
+     */
     public inline operator fun inc(): Double =
         this + 1.0
 
-    /** Decrements this value. */
+    /**
+     * Returns this value minus 1.
+     *
+     * The returned value will be assigned to the variable on which the `--` operation was used.
+     * If the prefix version of the `--` operation was used (e.g. `--a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a--`), the expression will result to this value.
+     *
+     * @sample samples.misc.Builtins.dec
+     */
     public inline operator fun dec(): Double =
         this - 1.0
 

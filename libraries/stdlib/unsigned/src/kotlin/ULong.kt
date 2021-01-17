@@ -134,10 +134,27 @@ public inline class ULong @PublishedApi internal constructor(@PublishedApi inter
     @kotlin.internal.InlineOnly
     public inline operator fun rem(other: ULong): ULong = ulongRemainder(this, other)
 
-    /** Increments this value. */
+    /**
+     * Returns this value plus 1.
+     *
+     * The returned value will be assigned to the variable on which the `++` operation was used.
+     * If the prefix version of the `++` operation was used (e.g. `++a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a++`), the expression will result to this value.
+     * 
+     * @sample samples.misc.Builtins.inc
+     */
     @kotlin.internal.InlineOnly
     public inline operator fun inc(): ULong = ULong(data.inc())
-    /** Decrements this value. */
+
+    /**
+     * Returns this value minus 1.
+     *
+     * The returned value will be assigned to the variable on which the `--` operation was used.
+     * If the prefix version of the `--` operation was used (e.g. `--a`), the expression will result to the value this function returns.
+     * If the postfix version was used (e.g. `a--`), the expression will result to this value.
+     * 
+     * @sample samples.misc.Builtins.dec
+     */
     @kotlin.internal.InlineOnly
     public inline operator fun dec(): ULong = ULong(data.dec())
 
