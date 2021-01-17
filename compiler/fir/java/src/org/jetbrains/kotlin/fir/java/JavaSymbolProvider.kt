@@ -61,8 +61,8 @@ class JavaSymbolProvider(
                 convertJavaClassToFir(classSymbol, javaClass)
             }
         )
-    private val packageCache = session.firCachesFactory.createMapLikeCache<FqName, FqName?>()
-    private val knownClassNamesInPackage = session.firCachesFactory.createMapLikeCache<FqName, Set<String>?>()
+    private val packageCache = session.firCachesFactory.createCache(::findPackage)
+    private val knownClassNamesInPackage = session.firCachesFactory.createCache<FqName, Set<String>?>(::getKnownClassNames)
 
     private val scopeProvider = JavaScopeProvider(::wrapScopeWithJvmMapped, this)
 
@@ -526,24 +526,26 @@ class JavaSymbolProvider(
     )
 
     override fun getPackage(fqName: FqName): FqName? {
-        return packageCache.getOrCreateValue(fqName) {
-            try {
-                val facade = KotlinJavaPsiFacade.getInstance(project)
-                val javaPackage = facade.findPackage(fqName.asString(), searchScope) ?: return@getOrCreateValue null
-                FqName(javaPackage.qualifiedName)
-            } catch (e: ProcessCanceledException) {
-                return@getOrCreateValue null
-            }
+        return packageCache.getValue(fqName)
+    }
+
+    private fun findPackage(fqName: FqName): FqName? {
+        return try {
+            val facade = KotlinJavaPsiFacade.getInstance(project)
+            val javaPackage = facade.findPackage(fqName.asString(), searchScope) ?: return null
+            FqName(javaPackage.qualifiedName)
+        } catch (e: ProcessCanceledException) {
+            return null
         }
     }
 
-
     private fun hasTopLevelClassOf(classId: ClassId): Boolean {
-        val knownNames = knownClassNamesInPackage.getOrCreateValue(classId.packageFqName) {
-            facade.knownClassNamesInPackage(classId.packageFqName, searchScope)
-        } ?: return true
+        val knownNames = knownClassNamesInPackage.getValue(classId.packageFqName) ?: return true
         return classId.relativeClassName.topLevelName() in knownNames
     }
+
+    private fun getKnownClassNames(packageFqName: FqName): MutableSet<String>? =
+        facade.knownClassNamesInPackage(packageFqName, searchScope)
 }
 
 fun FqName.topLevelName() =

@@ -9,6 +9,8 @@ import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.FirSessionComponent
 
 abstract class FirCachesFactory : FirSessionComponent {
+    abstract fun <KEY : Any, VALUE> createCache(createValue: (KEY) -> VALUE): FirCache<KEY, VALUE>
+
     abstract fun <KEY : Any, VALUE, CONTEXT> createCacheWithPostCompute(
         createValue: (KEY, CONTEXT) -> VALUE,
         postCompute: (KEY, VALUE) -> Unit
@@ -20,6 +22,9 @@ abstract class FirCachesFactory : FirSessionComponent {
 val FirSession.firCachesFactory: FirCachesFactory by FirSession.sessionComponentAccessor()
 
 object FirThreadUnsafeCachesFactory : FirCachesFactory() {
+    override fun <KEY : Any, VALUE> createCache(createValue: (KEY) -> VALUE): FirCache<KEY, VALUE> =
+        FirThreadUnsafeCache(createValue)
+
     override fun <KEY : Any, VALUE, CONTEXT> createCacheWithPostCompute(
         createValue: (KEY, CONTEXT) -> VALUE,
         postCompute: (KEY, VALUE) -> Unit
