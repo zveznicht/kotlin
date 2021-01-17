@@ -199,7 +199,7 @@ abstract class IncrementalCompilerRunner<
         changedFiles: ChangedFiles.Known,
         args: Args,
         messageCollector: MessageCollector,
-        jarSnapshots: Map<String, JarSnapshot>
+        classpathJarSnapshots: Map<String, JarSnapshot>
     ): CompilationMode
 
     protected open fun setupJarDependencies(args: Args, withSnapshot: Boolean): Map<String, JarSnapshot> = mapOf()

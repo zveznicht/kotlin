@@ -221,7 +221,8 @@ internal open class GradleCompilerRunner(protected val taskProvider: GradleCompi
                         project.path,
                         compilation.ownModuleName,
                         project.buildDir,
-                        taskData.buildHistoryFile
+                        taskData.buildHistoryFile,
+                        taskData.jarSnapshotFile
                     )
                     dirToModule[taskData.destinationDir.get()] = module
 

@@ -125,8 +125,8 @@ class ModulesApiHistoryJvm(modulesInfo: IncrementalModuleInfo) : ModulesApiHisto
     }
 
     override fun jarSnapshot(jar: File): File? {
-        //TODO replace with proper search or move to modulesInfo
-        return modulesInfo.jarToClassListFile[jar]?.parentFile?.resolve("compileKotlin/${JAR_SNAPSHOT_FILE_NAME}")
+        //TODO check it
+        return modulesInfo.jarToModule[jar]?.jarSnapshot
     }
 }
 
@@ -141,7 +141,7 @@ class ModulesApiHistoryJs(modulesInfo: IncrementalModuleInfo) : ModulesApiHistor
     }
 
     override fun jarSnapshot(jar: File): File? {
-        TODO("Unsupported")
+        return modulesInfo.jarToModule[jar]?.jarSnapshot
     }
 }
 
@@ -160,11 +160,17 @@ class ModulesApiHistoryAndroid(modulesInfo: IncrementalModuleInfo) : ModulesApiH
         if (!projectRootPath.isParentOf(jar)) return Either.Error("Non-project jar is modified $jar")
 
         val jarPath = Paths.get(jar.absolutePath)
-        return getHistoryForModuleNames(jarPath, getPossibleModuleNamesFromJar(jarPath))
+        return getHistoryForModuleNames(jarPath, getPossibleModuleNamesFromJar(jarPath), IncrementalModuleEntry::buildHistoryFile)
     }
 
     override fun jarSnapshot(jar: File): File? {
-        TODO("Unsupported")
+        val jarPath = Paths.get(jar.absolutePath)
+        //TODO support fail behaviour
+        val result = getHistoryForModuleNames(jarPath, getPossibleModuleNamesFromJar(jarPath), IncrementalModuleEntry::jarSnapshot)
+        return when (result) {
+            is Either.Success -> result.value.firstOrNull()
+            else -> null
+        }
     }
 
     override fun getBuildHistoryForDir(file: File): Either<Set<File>> {
@@ -181,7 +187,7 @@ class ModulesApiHistoryAndroid(modulesInfo: IncrementalModuleInfo) : ModulesApiH
             }
         }
 
-        return getHistoryForModuleNames(file.toPath(), moduleNames)
+        return getHistoryForModuleNames(file.toPath(), moduleNames, IncrementalModuleEntry::buildHistoryFile)
     }
 
     private fun getPossibleModuleNamesFromJar(path: Path): Collection<String> {
@@ -211,13 +217,13 @@ class ModulesApiHistoryAndroid(modulesInfo: IncrementalModuleInfo) : ModulesApiH
         return path.listFiles().filter { it.name.endsWith(".kotlin_module", ignoreCase = true) }.map { it.nameWithoutExtension }
     }
 
-    private fun getHistoryForModuleNames(path: Path, moduleNames: Iterable<String>): Either<Set<File>> {
+    private fun getHistoryForModuleNames(path: Path, moduleNames: Iterable<String>, fileLocation: (IncrementalModuleEntry) -> File): Either<Set<File>> {
         val possibleModules =
             moduleNames.flatMapTo(HashSet()) { modulesInfo.nameToModules[it] ?: emptySet() }
         val modules = possibleModules.filter { Paths.get(it.buildDir.absolutePath).isParentOf(path) }
         if (modules.isEmpty()) return Either.Error("Unknown module for $path (candidates: ${possibleModules.joinToString()})")
 
-        val result = modules.mapTo(HashSet()) { it.buildHistoryFile }
+        val result = modules.mapTo(HashSet()) { fileLocation(it) }
         return Either.Success(result)
     }
 }

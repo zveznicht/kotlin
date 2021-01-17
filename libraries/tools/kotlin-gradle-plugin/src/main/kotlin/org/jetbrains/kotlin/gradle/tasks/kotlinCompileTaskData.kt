@@ -31,6 +31,10 @@ internal open class KotlinCompileTaskData(
         File(taskBuildDirectory, "build-history.bin")
     }
 
+    val jarSnapshotFile: File by project.provider {
+        File(taskBuildDirectory, "jar-snapshot.bin")
+    }
+
     var javaOutputDir: File? = null
 
     companion object {

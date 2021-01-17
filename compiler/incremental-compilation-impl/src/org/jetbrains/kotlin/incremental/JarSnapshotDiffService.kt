@@ -60,7 +60,10 @@ class JarSnapshotDiffService() {
                         }
 
                     } else if (protoData is PackagePartProtoData && newProtoData is PackagePartProtoData) {
-                        //TODO update it
+                        val diff = DifferenceCalculatorForPackageFacade(protoData, newProtoData).difference()
+                        for (member in diff.changedMembersNames) {
+                            symbols.add(LookupSymbol(member, fqName.asString()))
+                        }
                     } else {
                         //TODO is it a valid case
                         throw IllegalStateException("package proto and class proto have the same fqName: $fqName")

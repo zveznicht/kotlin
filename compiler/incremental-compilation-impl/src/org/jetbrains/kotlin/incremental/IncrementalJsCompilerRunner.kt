@@ -100,7 +100,7 @@ class IncrementalJsCompilerRunner(
         changedFiles: ChangedFiles.Known,
         args: K2JSCompilerArguments,
         messageCollector: MessageCollector,
-        jarSnapshots: Map<String, JarSnapshot> //Ignore for now
+        classpathJarSnapshots: Map<String, JarSnapshot> //Ignore for now
     ): CompilationMode {
         val lastBuildInfo = BuildInfo.read(lastBuildInfoFile)
             ?: return CompilationMode.Rebuild(BuildAttribute.NO_BUILD_HISTORY)
