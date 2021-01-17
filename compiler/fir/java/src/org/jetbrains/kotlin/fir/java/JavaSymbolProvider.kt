@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.descriptors.ClassKind
 import org.jetbrains.kotlin.descriptors.Modality
 import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.*
+import org.jetbrains.kotlin.fir.caches.firCachesFactory
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.builder.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirResolvedDeclarationStatusImpl
@@ -22,7 +23,6 @@ import org.jetbrains.kotlin.fir.resolve.constructType
 import org.jetbrains.kotlin.fir.resolve.defaultType
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProviderInternals
-import org.jetbrains.kotlin.fir.resolve.providers.SymbolProviderCache
 import org.jetbrains.kotlin.fir.resolve.scopes.wrapScopeWithJvmMapped
 import org.jetbrains.kotlin.fir.symbols.CallableId
 import org.jetbrains.kotlin.fir.symbols.impl.*
@@ -53,8 +53,16 @@ class JavaSymbolProvider(
         internal val VALUE_METHOD_NAME = Name.identifier("value")
     }
 
-    private val classCache = SymbolProviderCache<ClassId, FirRegularClassSymbol>()
-    private val packageCache = SymbolProviderCache<FqName, FqName>()
+    private val classCache =
+        session.firCachesFactory.createCacheWithPostCompute(
+            createValue = ::findAndConvertJavaClass,
+            postCompute = { _, classWithJavaClass ->
+                val (classSymbol, javaClass) = classWithJavaClass ?: return@createCacheWithPostCompute
+                convertJavaClassToFir(classSymbol, javaClass)
+            }
+        )
+    private val packageCache = session.firCachesFactory.createMapLikeCache<FqName, FqName?>()
+    private val knownClassNamesInPackage = session.firCachesFactory.createMapLikeCache<FqName, Set<String>?>()
 
     private val scopeProvider = JavaScopeProvider(::wrapScopeWithJvmMapped, this)
 
@@ -137,23 +145,22 @@ class JavaSymbolProvider(
 
     fun getFirJavaClass(classId: ClassId, content: KotlinClassFinder.Result.ClassFileContent? = null): FirRegularClassSymbol? {
         if (!hasTopLevelClassOf(classId)) return null
-        return classCache.lookupCacheOrCalculateWithPostCompute(
-            classId,
-            {
-                val foundClass = findClass(classId, content)
-                if (foundClass == null ||
-                    foundClass.hasDifferentRelativeClassName(classId) ||
-                    foundClass.hasMetadataAnnotation()
-                ) {
-                    null to null
-                } else {
-                    FirRegularClassSymbol(classId) to foundClass
-                }
-            },
-        ) { firSymbol, foundClass ->
-            convertJavaClassToFir(firSymbol, foundClass)
+        return classCache.getValue(classId, content)?.firClassSymbol
+    }
+
+    private fun findAndConvertJavaClass(classId: ClassId, content: KotlinClassFinder.Result.ClassFileContent?): FirClassWithJavaClass? {
+        val foundClass = findClass(classId, content)
+        return if (foundClass == null ||
+            foundClass.hasDifferentRelativeClassName(classId) ||
+            foundClass.hasMetadataAnnotation()
+        ) {
+            null
+        } else {
+            val symbol = FirRegularClassSymbol(classId)
+            FirClassWithJavaClass(symbol, foundClass)
         }
     }
+
 
     /**
      * We do not check the package because we can look for the class in the same package by class name without package specified.
@@ -170,26 +177,31 @@ class JavaSymbolProvider(
         var valueParameterForValue: FirJavaValueParameter? = null
     }
 
-    private fun convertJavaClassToFir(classSymbol: FirRegularClassSymbol, javaClass: JavaClass?): FirJavaClass? {
-        if (javaClass == null) return null
+    private fun convertJavaClassToFir(classSymbol: FirRegularClassSymbol, javaClass: JavaClass): FirJavaClass {
         val classId = classSymbol.classId
         val outerClassId = classId.outerClassId
         val parentClassSymbol = if (outerClassId != null) {
             getClassLikeSymbolByFqName(outerClassId)
         } else null
 
-        parentClassTypeParameterStackCache.withCachedValue(classSymbol, parentClassSymbol) { javaTypeParameterStack ->
-            val firClass = createFirJavaClass(javaClass, classSymbol, outerClassId, parentClassSymbol, classId, javaTypeParameterStack)
-            firClass.replaceSuperTypeRefs(
-                javaClass.supertypes.map { supertype ->
-                    supertype.toFirResolvedTypeRef(
-                        this@JavaSymbolProvider.session, javaTypeParameterStack, isForSupertypes = true, forTypeParameterBounds = false
-                    )
-                }
-            )
-            firClass.addAnnotationsFrom(this@JavaSymbolProvider.session, javaClass, javaTypeParameterStack)
-            return firClass
+        return parentClassTypeParameterStackCache.withCachedValue(classSymbol, parentClassSymbol) { javaTypeParameterStack ->
+            createFirJavaClass(javaClass, classSymbol, outerClassId, parentClassSymbol, classId, javaTypeParameterStack)
+        }.apply {
+            convertSuperTypes(javaClass)
+            addAnnotationsFrom(this@JavaSymbolProvider.session, javaClass, javaTypeParameterStack)
         }
+    }
+
+
+
+    private fun FirJavaClass.convertSuperTypes(javaClass: JavaClass) {
+        replaceSuperTypeRefs(
+            javaClass.supertypes.map { supertype ->
+                supertype.toFirResolvedTypeRef(
+                    this@JavaSymbolProvider.session, javaTypeParameterStack, isForSupertypes = true, forTypeParameterBounds = false
+                )
+            }
+        )
     }
 
     private fun createFirJavaClass(
@@ -514,21 +526,20 @@ class JavaSymbolProvider(
     )
 
     override fun getPackage(fqName: FqName): FqName? {
-        return packageCache.lookupCacheOrCalculate(fqName) {
+        return packageCache.getOrCreateValue(fqName) {
             try {
                 val facade = KotlinJavaPsiFacade.getInstance(project)
-                val javaPackage = facade.findPackage(fqName.asString(), searchScope) ?: return@lookupCacheOrCalculate null
+                val javaPackage = facade.findPackage(fqName.asString(), searchScope) ?: return@getOrCreateValue null
                 FqName(javaPackage.qualifiedName)
             } catch (e: ProcessCanceledException) {
-                return@lookupCacheOrCalculate null
+                return@getOrCreateValue null
             }
         }
     }
 
-    private val knownClassNamesInPackage = mutableMapOf<FqName, Set<String>?>()
 
     private fun hasTopLevelClassOf(classId: ClassId): Boolean {
-        val knownNames = knownClassNamesInPackage.getOrPut(classId.packageFqName) {
+        val knownNames = knownClassNamesInPackage.getOrCreateValue(classId.packageFqName) {
             facade.knownClassNamesInPackage(classId.packageFqName, searchScope)
         } ?: return true
         return classId.relativeClassName.topLevelName() in knownNames
@@ -579,3 +590,5 @@ private inline class JavaTypeParameterStackCache constructor(
         var deep: Int = 0
     }
 }
+
+private data class FirClassWithJavaClass(val firClassSymbol: FirRegularClassSymbol, val javaClass: JavaClass)
