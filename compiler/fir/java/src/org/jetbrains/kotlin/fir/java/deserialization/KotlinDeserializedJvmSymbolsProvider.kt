@@ -54,7 +54,7 @@ class KotlinDeserializedJvmSymbolsProvider(
         knownNameInPackageCache
     )
 
-    private val typeAliasCache = SymbolProviderCache<ClassId, FirTypeAliasSymbol>()
+    private val typeAliasCache = session.firCachesFactory.createCache(::findAndDeserializeTypeAlias)
     private val packagePartsCache = SymbolProviderCache<FqName, Collection<PackagePartsCacheData>>()
 
     private class PackagePartsCacheData(
@@ -121,21 +121,21 @@ class KotlinDeserializedJvmSymbolsProvider(
         get() = classHeader.isPreRelease
 
     override fun getClassLikeSymbolByFqName(classId: ClassId): FirClassLikeSymbol<*>? {
-        return classCache.getFirClass(classId) ?: findAndDeserializeTypeAlias(classId)
+        return classCache.getFirClass(classId) ?: getTypeAlias(classId)
     }
 
-    private fun findAndDeserializeTypeAlias(
+    private fun getTypeAlias(
         classId: ClassId,
     ): FirTypeAliasSymbol? {
         if (!classId.relativeClassName.isOneSegmentFQN()) return null
-        return typeAliasCache.lookupCacheOrCalculate(classId) {
-            getPackageParts(classId.packageFqName).firstNotNullResult { part ->
-                val ids = part.typeAliasNameIndex[classId.shortClassName]
-                if (ids == null || ids.isEmpty()) return@firstNotNullResult null
-                val aliasProto = ids.map { part.proto.getTypeAlias(it) }.single()
-                part.context.memberDeserializer.loadTypeAlias(aliasProto).symbol
-            }
-        }
+        return typeAliasCache.getValue(classId)
+    }
+
+    private fun findAndDeserializeTypeAlias(classId: ClassId) = getPackageParts(classId.packageFqName).firstNotNullResult { part ->
+        val ids = part.typeAliasNameIndex[classId.shortClassName]
+        if (ids == null || ids.isEmpty()) return@firstNotNullResult null
+        val aliasProto = ids.map { part.proto.getTypeAlias(it) }.single()
+        part.context.memberDeserializer.loadTypeAlias(aliasProto).symbol
     }
 
     private fun loadFunctionsByName(part: PackagePartsCacheData, name: Name): List<FirNamedFunctionSymbol> {
@@ -201,7 +201,7 @@ private class KnownNameInPackageCache(session: FirSession, private val javaClass
     }
 }
 
-private class KotlinDeserializedJvmSymbolsProviderCache(
+private class KotlinDeserializedJvmSymbolsProviderClassCache(
     private val session: FirSession,
     private val kotlinClassFinder: KotlinClassFinder,
     private val kotlinScopeProvider: KotlinScopeProvider,
