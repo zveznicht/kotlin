@@ -47,7 +47,7 @@ class KotlinDeserializedJvmSymbolsProvider(
 ) : FirSymbolProvider(session) {
     private val knownNameInPackageCache = KnownNameInPackageCache(session, javaClassFinder)
 
-    private val classCache = KotlinDeserializedJvmSymbolsProviderClassCache(
+    private val classCache = KotlinDeserializedJvmSymbolsProviderCache(
         session,
         kotlinClassFinder,
         kotlinScopeProvider,
