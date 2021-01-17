@@ -56,9 +56,10 @@ class JavaSymbolProvider(
     private val classCache =
         session.firCachesFactory.createCacheWithPostCompute(
             createValue = ::findAndConvertJavaClass,
-            postCompute = { _, classWithJavaClass ->
-                val (classSymbol, javaClass) = classWithJavaClass ?: return@createCacheWithPostCompute
-                convertJavaClassToFir(classSymbol, javaClass)
+            postCompute = { _, classSymbol, javaClass, ->
+                if (classSymbol != null && javaClass != null) {
+                    convertJavaClassToFir(classSymbol, javaClass)
+                }
             }
         )
     private val packageCache = session.firCachesFactory.createCache(::findPackage)
@@ -145,19 +146,19 @@ class JavaSymbolProvider(
 
     fun getFirJavaClass(classId: ClassId, content: KotlinClassFinder.Result.ClassFileContent? = null): FirRegularClassSymbol? {
         if (!hasTopLevelClassOf(classId)) return null
-        return classCache.getValue(classId, content)?.firClassSymbol
+        return classCache.getValue(classId, content)
     }
 
-    private fun findAndConvertJavaClass(classId: ClassId, content: KotlinClassFinder.Result.ClassFileContent?): FirClassWithJavaClass? {
+    private fun findAndConvertJavaClass(classId: ClassId, content: KotlinClassFinder.Result.ClassFileContent?): Pair<FirRegularClassSymbol?, JavaClass?> {
         val foundClass = findClass(classId, content)
         return if (foundClass == null ||
             foundClass.hasDifferentRelativeClassName(classId) ||
             foundClass.hasMetadataAnnotation()
         ) {
-            null
+            null to null
         } else {
             val symbol = FirRegularClassSymbol(classId)
-            FirClassWithJavaClass(symbol, foundClass)
+            symbol to foundClass
         }
     }
 
@@ -592,5 +593,3 @@ private inline class JavaTypeParameterStackCache constructor(
         var deep: Int = 0
     }
 }
-
-private data class FirClassWithJavaClass(val firClassSymbol: FirRegularClassSymbol, val javaClass: JavaClass)

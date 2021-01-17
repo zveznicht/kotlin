@@ -11,10 +11,10 @@ import org.jetbrains.kotlin.fir.FirSessionComponent
 abstract class FirCachesFactory : FirSessionComponent {
     abstract fun <KEY : Any, VALUE> createCache(createValue: (KEY) -> VALUE): FirCache<KEY, VALUE>
 
-    abstract fun <KEY : Any, VALUE, CONTEXT> createCacheWithPostCompute(
-        createValue: (KEY, CONTEXT) -> VALUE,
-        postCompute: (KEY, VALUE) -> Unit
-    ): FirCacheWithPostCompute<KEY, VALUE, CONTEXT>
+    abstract fun <KEY : Any, VALUE, CONTEXT, DATA> createCacheWithPostCompute(
+        createValue: (KEY, CONTEXT) -> Pair<VALUE, DATA>,
+        postCompute: (KEY, VALUE, DATA) -> Unit
+    ): FirCacheWithPostCompute<KEY, VALUE, CONTEXT, DATA>
 
     abstract fun <KEY : Any, VALUE> createMapLikeCache(): FirMapLikeCache<KEY, VALUE>
 }
@@ -25,10 +25,10 @@ object FirThreadUnsafeCachesFactory : FirCachesFactory() {
     override fun <KEY : Any, VALUE> createCache(createValue: (KEY) -> VALUE): FirCache<KEY, VALUE> =
         FirThreadUnsafeCache(createValue)
 
-    override fun <KEY : Any, VALUE, CONTEXT> createCacheWithPostCompute(
-        createValue: (KEY, CONTEXT) -> VALUE,
-        postCompute: (KEY, VALUE) -> Unit
-    ): FirCacheWithPostCompute<KEY, VALUE, CONTEXT> =
+    override fun <KEY : Any, VALUE, CONTEXT, DATA> createCacheWithPostCompute(
+        createValue: (KEY, CONTEXT) -> Pair<VALUE, DATA>,
+        postCompute: (KEY, VALUE, DATA) -> Unit
+    ): FirCacheWithPostCompute<KEY, VALUE, CONTEXT, DATA> =
         FirThreadUnsafeCacheWithPostCompute(createValue, postCompute)
 
 

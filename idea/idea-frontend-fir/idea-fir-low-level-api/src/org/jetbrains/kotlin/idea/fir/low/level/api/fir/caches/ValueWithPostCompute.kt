@@ -12,16 +12,16 @@ package org.jetbrains.kotlin.idea.fir.low.level.api.fir.caches
  * only thread that initiated the calculating may see the value,
  * other threads will have to wait wait until that value is calculated
  */
-internal class ValueWithPostCompute<KEY, VALUE>(
+internal class ValueWithPostCompute<KEY, VALUE, DATA>(
     /**
      * We need at least one final field to be written in constructor to guarantee safe initialization of our [ValueWithPostCompute]
      */
     private val key: KEY,
-    calculate: (KEY) -> VALUE,
-    postCompute: (KEY, VALUE) -> Unit,
+    calculate: (KEY) -> Pair<VALUE, DATA>,
+    postCompute: (KEY, VALUE, DATA) -> Unit,
 ) {
-    private var _calculate: ((KEY) -> VALUE)? = calculate
-    private var _postCompute: ((KEY, VALUE) -> Unit)? = postCompute
+    private var _calculate: ((KEY) -> Pair<VALUE, DATA>)? = calculate
+    private var _postCompute: ((KEY, VALUE, DATA) -> Unit)? = postCompute
 
     /**
      * can be in one of the following three states:
@@ -56,9 +56,9 @@ internal class ValueWithPostCompute<KEY, VALUE>(
                     return value as VALUE
                 }
                 val calculatedValue = try {
-                    val calculated = _calculate!!(key)
+                    val (calculated, data) = _calculate!!(key)
                     value = ValueIsPostComputingNow(calculated, Thread.currentThread().id) // only current thread may see the value
-                    _postCompute!!(key, calculated)
+                    _postCompute!!(key, calculated, data)
                     calculated
                 } catch (e: Throwable) {
                     value = ExceptionWasThrownDuringValueComputation(e)
@@ -76,6 +76,14 @@ internal class ValueWithPostCompute<KEY, VALUE>(
                 return value as VALUE
             }
         }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun getValueIfComputed(): VALUE? = when (val snapshot = value) {
+        ValueIsNotComputed -> null
+        is ValueIsPostComputingNow -> null
+        is ExceptionWasThrownDuringValueComputation -> throw snapshot.error
+        else -> value as VALUE
     }
 
     private class ValueIsPostComputingNow(val value: Any?, val threadId: Long)
