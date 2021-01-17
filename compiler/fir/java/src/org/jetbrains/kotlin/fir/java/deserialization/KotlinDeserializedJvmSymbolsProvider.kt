@@ -55,7 +55,7 @@ class KotlinDeserializedJvmSymbolsProvider(
     )
 
     private val typeAliasCache = session.firCachesFactory.createCache(::findAndDeserializeTypeAlias)
-    private val packagePartsCache = SymbolProviderCache<FqName, Collection<PackagePartsCacheData>>()
+    private val packagePartsCache = session.firCachesFactory.createCache(::tryComputePackagePartInfos)
 
     private class PackagePartsCacheData(
         val proto: ProtoBuf.Package,
@@ -174,13 +174,13 @@ class KotlinDeserializedJvmSymbolsProvider(
     }
 
     private fun getPackageParts(packageFqName: FqName): Collection<PackagePartsCacheData> {
-        return packagePartsCache.lookupCacheOrCalculate(packageFqName) {
-            try {
-                computePackagePartsInfos(packageFqName)
-            } catch (e: ProcessCanceledException) {
-                emptyList()
-            }
-        }!!
+        return packagePartsCache.getValue(packageFqName)
+    }
+
+    private fun tryComputePackagePartInfos(packageFqName: FqName): List<PackagePartsCacheData> = try {
+        computePackagePartsInfos(packageFqName)
+    } catch (e: ProcessCanceledException) {
+        emptyList()
     }
 
     override fun getPackage(fqName: FqName): FqName? = null
