@@ -1,5 +1,4 @@
 // FILE: Derived.kt
-// IR_FILE: jvmInstanceFieldReference.txt
 class Derived: Base() {
     init {
         value = 0

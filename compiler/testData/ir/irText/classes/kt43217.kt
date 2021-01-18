@@ -1,3 +1,4 @@
+// IGNORE_JAVA_ERRORS
 // FILE: kt43217.kt
 class A {
     private val b =

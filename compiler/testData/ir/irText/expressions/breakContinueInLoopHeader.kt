@@ -35,3 +35,6 @@ fun test5() {
         if (i == 3) break
     }
 }
+
+// javaSyntheticGenericPropertyAccess.txt
+// javaSyntheticGenericPropretyAccess.txt

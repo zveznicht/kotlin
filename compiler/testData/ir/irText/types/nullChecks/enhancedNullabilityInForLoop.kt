@@ -1,5 +1,6 @@
-// FILE: enhancedNullabilityInForLoop.kt
+// IGNORE_JAVA_ERRORS
 // WITH_JDK
+// FILE: enhancedNullabilityInForLoop.kt
 
 fun use(s: P) {}
 

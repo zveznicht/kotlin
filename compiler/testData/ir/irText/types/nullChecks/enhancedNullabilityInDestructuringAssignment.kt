@@ -1,5 +1,6 @@
-// FILE: enhancedNullabilityInDestructuringAssignment.kt
 // WITH_RUNTIME
+// IGNORE_JAVA_ERRORS
+// FILE: enhancedNullabilityInDestructuringAssignment.kt
 
 fun use(x: Any, y: Any) {}
 
