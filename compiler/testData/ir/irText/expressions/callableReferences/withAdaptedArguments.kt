@@ -1,3 +1,4 @@
+// IGNORE_ERRORS
 // !LANGUAGE: +NewInference, +FunctionReferenceWithDefaultValueAsOtherType
 import Host.importedObjectMemberWithVarargs
 
