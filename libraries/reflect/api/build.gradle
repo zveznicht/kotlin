@@ -48,7 +48,7 @@ compileKotlin {
                             "-Xnormalize-constructor-calls=enable",
                             "-Xno-optimized-callable-references",
                             "-Xno-kotlin-nothing-value-exception",
-                            "-Xopt-in=kotlin.RequiresOptIn"] + (useFir ? ["-Xuse-fir"] : [])
+                            "-Xopt-in=kotlin.RequiresOptIn"] + (useFir ? ["-Xallow-unstable-dependencies"] : [])
         moduleName = "kotlin-reflection"
     }
 }
