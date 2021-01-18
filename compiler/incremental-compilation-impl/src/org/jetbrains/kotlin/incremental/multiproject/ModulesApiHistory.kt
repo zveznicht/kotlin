@@ -125,8 +125,8 @@ class ModulesApiHistoryJvm(modulesInfo: IncrementalModuleInfo) : ModulesApiHisto
     }
 
     override fun jarSnapshot(jar: File): File? {
-        //TODO check it
-        return modulesInfo.jarToModule[jar]?.jarSnapshot
+        val jarSnapshot = modulesInfo.jarToModule[jar]?.jarSnapshot
+        return jarSnapshot ?: modulesInfo.jarToClassListFile[jar]?.parentFile?.resolve("compileKotlin/jar-snapshot.bin")
     }
 }
 
