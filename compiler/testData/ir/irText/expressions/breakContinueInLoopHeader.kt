@@ -1,3 +1,5 @@
+// IGNORE_ERRORS
+
 fun test1(c: Boolean?) {
     L@ while (true) {
         L2@while (c ?: break)
