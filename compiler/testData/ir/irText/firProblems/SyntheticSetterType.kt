@@ -1,4 +1,5 @@
 // WITH_RUNTIME
+// IGNORE_JAVA_ERRORS
 // FILE: PropertyDescriptorImpl.java
 
 import org.jetbrains.annotations.NotNull;
