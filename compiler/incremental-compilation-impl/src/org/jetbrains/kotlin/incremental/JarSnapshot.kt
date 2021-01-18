@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmNameResolver
 import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
 import org.jetbrains.kotlin.metadata.jvm.serialization.JvmStringTable
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.protobuf.MessageLite
 import java.io.*
 
 class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
@@ -76,31 +77,10 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
                         val nameResolver = protoData.nameResolver
                         when (nameResolver) {
                             is NameResolverImpl -> {
-                                //TODO check string mapping
-                                val stringTable = JvmStringTable()
-                                repeat(nameResolver.strings.getStringCount()) {
-                                    stringTable.getStringIndex(nameResolver.getString(it))
-                                }
-                                repeat(nameResolver.qualifiedNames.qualifiedNameCount) {
-                                    stringTable.getQualifiedClassNameIndex(
-                                        nameResolver.getQualifiedClassName(it),
-                                        nameResolver.isLocalClassName(it)
-                                    )
-                                }
-                                val writeData = JvmProtoBufUtil.writeData(protoData.proto, stringTable)
-                                writeStringArray(writeData)
-                                val size = nameResolver.strings.getStringCount()
-                                writeInt(size)
-                                repeat(size) {
-                                    val string = nameResolver.getString(it)
-                                    writeUTF(string)
-                                }
+                                writeMessageWithNameResolverImpl(protoData.proto, nameResolver)
                             }
                             is JvmNameResolver -> {
-                                val writeData = JvmProtoBufUtil.writeData(protoData.proto, JvmStringTable(nameResolver))
-                                writeStringArray(writeData)
-                                writeStringArray(nameResolver.strings)
-
+                                writeMessageWithJvmNameResolver(protoData.proto, nameResolver)
                             }
                             else -> throw IllegalStateException("Can't store name resolver for class proto: ${nameResolver.javaClass}")
                         }
@@ -112,9 +92,10 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
                         val nameResolver = protoData.nameResolver
                         when (nameResolver) {
                             is JvmNameResolver -> {
-                                val writeData = JvmProtoBufUtil.writeData(protoData.proto, JvmStringTable(nameResolver))
-                                writeStringArray(writeData)
-                                writeStringArray(nameResolver.strings)
+                                writeMessageWithJvmNameResolver(protoData.proto, nameResolver)
+                            }
+                            is NameResolverImpl -> {
+                                writeMessageWithNameResolverImpl(protoData.proto, nameResolver)
                             }
                             else -> throw IllegalStateException("Can't store name resolver for package proto: ${nameResolver.javaClass}")
                         }
@@ -122,6 +103,39 @@ class JarSnapshot(val protos: MutableMap<FqName, ProtoData>) {
                     }
                 }
             }
+        }
+
+        private fun ObjectOutputStream.writeMessageWithNameResolverImpl(
+            message: MessageLite,
+            nameResolver: NameResolverImpl
+        ) {
+            val stringTable = JvmStringTable()
+            repeat(nameResolver.strings.getStringCount()) {
+                stringTable.getStringIndex(nameResolver.getString(it))
+            }
+            repeat(nameResolver.qualifiedNames.qualifiedNameCount) {
+                stringTable.getQualifiedClassNameIndex(
+                    nameResolver.getQualifiedClassName(it),
+                    nameResolver.isLocalClassName(it)
+                )
+            }
+            val writeData = JvmProtoBufUtil.writeData(message, stringTable)
+            writeStringArray(writeData)
+            val size = nameResolver.strings.getStringCount()
+            writeInt(size)
+            repeat(size) {
+                val string = nameResolver.getString(it)
+                writeUTF(string)
+            }
+        }
+
+        private fun ObjectOutputStream.writeMessageWithJvmNameResolver(
+            message: MessageLite,
+            nameResolver: JvmNameResolver
+        ) {
+            val writeData = JvmProtoBufUtil.writeData(message, JvmStringTable(nameResolver))
+            writeStringArray(writeData)
+            writeStringArray(nameResolver.strings)
         }
 
         fun write(buildInfo: JarSnapshot, file: File) {
