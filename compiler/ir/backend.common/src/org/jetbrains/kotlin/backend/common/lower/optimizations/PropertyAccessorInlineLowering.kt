@@ -90,11 +90,11 @@ class PropertyAccessorInlineLowering(private val context: CommonBackendContext) 
                 IrGetFieldImpl(startOffset, endOffset, backingField.symbol, backingField.type, call.dispatchReceiver, origin)
             }
 
-            return if (backingField.type != call.type) {
-                return builder.irImplicitCast(getField, call.type)
-            } else {
+            // Preserve call types when backingField have different type. This usually happens with generic field types.
+            return if (backingField.type != call.type)
+                builder.irImplicitCast(getField, call.type)
+            else
                 getField
-            }
         }
 
         private fun isSimpleGetter(callee: IrSimpleFunction, backingField: IrField): Boolean {
