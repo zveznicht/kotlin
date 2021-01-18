@@ -29,7 +29,6 @@ import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.remapArguments
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.resultType
 import org.jetbrains.kotlin.fir.resolve.transformers.body.resolve.writeResultType
 import org.jetbrains.kotlin.fir.scopes.impl.FirIntegerOperatorCall
-import org.jetbrains.kotlin.fir.symbols.impl.FirAnonymousFunctionSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.types.builder.buildErrorTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
@@ -482,8 +481,10 @@ class FirCallCompletionResultsWriterTransformer(
             )
         }
 
-        for (expression in dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(anonymousFunction, onlyExplicitReturns = false)) {
-            expression.transform<FirElement, ExpectedArgumentType?>(this, null)
+        if (dataFlowAnalyzer.isAnalyzedAnonymousFunction(anonymousFunction)) {
+            for (expression in dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(anonymousFunction, onlyExplicitReturns = false)) {
+                expression.transform<FirElement, ExpectedArgumentType?>(this, null)
+            }
         }
 
         return result
@@ -494,7 +495,7 @@ class FirCallCompletionResultsWriterTransformer(
         data: ExpectedArgumentType?
     ): CompositeTransformResult<FirStatement> {
         val labeledElement = returnExpression.target.labeledElement
-        if (labeledElement.symbol is FirAnonymousFunctionSymbol)  {
+        if (labeledElement is FirAnonymousFunction && dataFlowAnalyzer.isAnalyzedAnonymousFunction(labeledElement)) {
             return returnExpression.compose()
         }
 
