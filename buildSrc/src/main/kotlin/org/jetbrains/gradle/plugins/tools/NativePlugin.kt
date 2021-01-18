@@ -115,7 +115,7 @@ open class SourceSet(
     fun transform(suffixes: Pair<String, String>): SourceSet {
         return SourceSet(
             sourceSets,
-            "${name}",
+            name,
             sourceSets.project.file("${sourceSets.project.buildDir}/$name/${suffixes.first}_${suffixes.second}/"),
             this,
             suffixes
