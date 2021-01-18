@@ -756,6 +756,7 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
             // Otherwise, the tooling might be upset after trying to provide some support for a target which actually
             // doesn't exist in this project (e.g. after trying to draw gutters, while test tasks do not exist)
             sourceSet.actualPlatforms.addSimplePlatforms(projectPlatforms)
+            return
         }
 
         if (shouldCoerceToCommon(sourceSet)) {
