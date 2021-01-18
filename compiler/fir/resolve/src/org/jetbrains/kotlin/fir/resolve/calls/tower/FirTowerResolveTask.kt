@@ -49,6 +49,9 @@ internal class TowerDataElementsForName(
             towerDataElement.implicitReceiver?.let { receiver -> IndexedValue(index, receiver) }
         }
     }
+
+    val emptyScopes = mutableSetOf<FirScope>()
+    val implicitReceiverValuesWithEmptyScopes = mutableSetOf<ImplicitReceiverValue<*>>()
 }
 
 internal abstract class FirBaseTowerResolveTask(
@@ -139,8 +142,7 @@ internal abstract class FirBaseTowerResolveTask(
             towerLevel
         )
         if (collector.isSuccess()) onSuccessfulLevel(finalGroup)
-        return result == ProcessorAction.NONE
-
+        return result == ProcessResult.SCOPE_EMPTY
     }
 }
 
