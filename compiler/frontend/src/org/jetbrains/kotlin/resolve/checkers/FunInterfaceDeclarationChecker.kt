@@ -62,7 +62,8 @@ class FunInterfaceDeclarationChecker : DeclarationChecker {
         val ktFunction = abstractMember.source.getPsi() as? KtNamedFunction
 
         if (abstractMember.isSuspend &&
-            !context.languageVersionSettings.supportsFeature(LanguageFeature.SuspendFunctionsInFunInterfaces)
+            !(context.languageVersionSettings.supportsFeature(LanguageFeature.SuspendFunctionsInFunInterfaces) &&
+                    context.languageVersionSettings.supportsFeature(LanguageFeature.JvmIrEnabledByDefault))
         ) {
             val reportOn = ktFunction?.modifierList?.getModifier(KtTokens.SUSPEND_KEYWORD) ?: funInterfaceKeyword
             context.trace.report(Errors.FUN_INTERFACE_WITH_SUSPEND_FUNCTION.on(reportOn))
