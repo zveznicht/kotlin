@@ -751,6 +751,10 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
     }
 
     private fun MultiplatformModelImportingContext.computeSourceSetPlatforms(sourceSet: KotlinSourceSetImpl) {
+        require(!sourceSet.actualPlatforms.arePlatformsInitialized) {
+            "Attempt to re-initialize platforms for source set ${sourceSet}. Already present platforms: ${sourceSet.actualPlatforms}"
+        }
+
         if (isOrphanSourceSet(sourceSet)) {
             // Explicitly set platform of orphan source-sets to only used platforms, not all supported platforms
             // Otherwise, the tooling might be upset after trying to provide some support for a target which actually
