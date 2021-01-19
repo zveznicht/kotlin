@@ -17,7 +17,6 @@ import org.jetbrains.kotlin.fir.deserialization.FirDeserializationContext
 import org.jetbrains.kotlin.fir.deserialization.deserializeClassToSymbol
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
-import org.jetbrains.kotlin.fir.java.JavaSymbolProvider
 import org.jetbrains.kotlin.fir.java.topLevelName
 import org.jetbrains.kotlin.fir.resolve.providers.*
 import org.jetbrains.kotlin.fir.scopes.KotlinScopeProvider
@@ -44,7 +43,6 @@ class KotlinDeserializedJvmSymbolsProvider(
     session: FirSession,
     val project: Project,
     private val packagePartProvider: PackagePartProvider,
-    private val javaSymbolProvider: JavaSymbolProvider,
     private val kotlinClassFinder: KotlinClassFinder,
     private val javaClassFinder: JavaClassFinder,
     private val kotlinScopeProvider: KotlinScopeProvider,
@@ -55,12 +53,12 @@ class KotlinDeserializedJvmSymbolsProvider(
 
     private val classCache =
         session.firCachesFactory.createCacheWithPostCompute<ClassId, FirRegularClassSymbol?, FirDeserializationContext?, KotlinClassFinder.Result.KotlinClass?>(
-            createValue = { classId, context -> findAndDeserializeClassNoCache(classId, context) },
+            createValue = { classId, context -> findAndDeserializeClass(classId, context) },
             postCompute = { _, symbol, result ->
                 if (result != null && symbol != null) {
                     postCompute(result.kotlinJvmBinaryClass, result.byteContent, symbol)
                 }
-            },
+            }
         )
 
 
@@ -131,7 +129,7 @@ class KotlinDeserializedJvmSymbolsProvider(
         get() = classHeader.isPreRelease
 
     override fun getClassLikeSymbolByFqName(classId: ClassId): FirClassLikeSymbol<*>? {
-        return findAndDeserializeClassCached(classId) ?: findAndDeserializeTypeAlias(classId)
+        return getClass(classId) ?: findAndDeserializeTypeAlias(classId)
     }
 
     private fun findAndDeserializeTypeAlias(
@@ -157,11 +155,11 @@ class KotlinDeserializedJvmSymbolsProvider(
 
     private fun findAndDeserializeClassViaParent(classId: ClassId): FirRegularClassSymbol? {
         val outerClassId = classId.outerClassId ?: return null
-        findAndDeserializeClassCached(outerClassId) ?: return null
+        getClass(outerClassId) ?: return null
         return classCache.getValueIfComputed(classId)
     }
 
-    private fun findAndDeserializeClassCached(
+    private fun getClass(
         classId: ClassId,
         parentContext: FirDeserializationContext? = null
     ): FirRegularClassSymbol? {
@@ -169,12 +167,10 @@ class KotlinDeserializedJvmSymbolsProvider(
         return classCache.getValue(classId, parentContext)
     }
 
-
-    private fun findAndDeserializeClassNoCache(
+    private fun findAndDeserializeClass(
         classId: ClassId,
         parentContext: FirDeserializationContext? = null
     ): Pair<FirRegularClassSymbol?, KotlinClassFinder.Result.KotlinClass?> {
-
         val result = try {
             kotlinClassFinder.findKotlinClassOrContent(classId)
         } catch (e: ProcessCanceledException) {
@@ -200,7 +196,7 @@ class KotlinDeserializedJvmSymbolsProvider(
             JvmBinaryAnnotationDeserializer(session, kotlinClass.kotlinJvmBinaryClass, kotlinClass.byteContent),
             kotlinScopeProvider,
             parentContext, KotlinJvmBinarySourceElement(kotlinClass.kotlinJvmBinaryClass),
-            this::findAndDeserializeClassCached
+            this::getClass
         )
 
         return symbol to kotlinClass
