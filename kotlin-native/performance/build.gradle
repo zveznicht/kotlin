@@ -1,26 +1,31 @@
-import org.jetbrains.kotlin.RegressionsReporter
-import org.jetbrains.kotlin.RegressionsSummaryReporter
-import org.jetbrains.kotlin.BuildRegister
-import org.jetbrains.kotlin.MPPTools
 
 buildscript {
-    ext.rootBuildDirectory = file('..')
+    ext.rootBuildDirectory = file('../..')
+    //def bootstrapKotlinRepo = BootstrapKt.getBootstrapKotlinRepo(project)
+    def cacheRedirectorEnabled = findProperty("cacheRedirectorEnabled") == "true"
 
-    apply from: "$rootBuildDirectory/gradle/loadRootProperties.gradle"
-    apply from: "$rootBuildDirectory/gradle/kotlinGradlePlugin.gradle"
+    MiscKt.kotlinInit(project, cacheRedirectorEnabled)
+
+    //apply from: "$rootBuildDirectory/kotlin-native/gradle/loadRootProperties.gradle"
+    //apply from: "$rootBuildDirectory/kotlin-native/gradle/kotlinGradlePlugin.gradle"
+    //dependencies {
+    //    classpath(project("kotlin-native-build-tools"))
+    //}
     repositories {
         maven { url 'https://cache-redirector.jetbrains.com/jcenter'}
         maven { url 'https://cache-redirector.jetbrains.com/maven-central' }
-        maven { url buildKotlinCompilerRepo }
-        maven { url kotlinCompilerRepo }
+        //maven { url buildKotlinCompilerRepo }
+        //maven { url kotlinCompilerRepo }
         maven { url "https://cache-redirector.jetbrains.com/dl.kotlin.bintray.com/kotlinx" }
         maven { url "https://dl.bintray.com/kotlin/kotlin-dev" }
     }
 
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-native-build-tools:$konanVersion"
-    }
 }
+
+import org.jetbrains.kotlin.RegressionsReporter
+import org.jetbrains.kotlin.RegressionsSummaryReporter
+import org.jetbrains.kotlin.BuildRegister
+import org.jetbrains.kotlin.MPPTools
 
 def rootBuildDirectory = projectDir.parentFile
 
@@ -238,11 +243,15 @@ task mergeJvmReports {
 }
 
 subprojects.each {
-    it.afterEvaluate {
-        it.jvmJsonReport.finalizedBy mergeJvmReports
-        it.konanJsonReport.finalizedBy mergeNativeReports
-    }
+    it.ext["bootstrapKotlinRepo"] = project.ext["bootstrapKotlinRepo"]
 }
+//subprojects.each {
+//    it.afterEvaluate {
+//        println("it:$it this:${this.name}, delegate:${delegate.name}")
+//        it.jvmJsonReport.finalizedBy mergeJvmReports
+//        it.konanJsonReport.finalizedBy mergeNativeReports
+//    }
+//}
 
 task teamCityStat(type:Exec) {
     def analyzer = findAnalyzerBinary()

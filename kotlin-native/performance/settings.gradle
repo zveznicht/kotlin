@@ -19,5 +19,7 @@ if (System.getProperty("os.name") == "Mac OS X") {
     }
 }
 
-includeBuild '../build-tools'
+//rootProject.name = "performance"
+//includeBuild '../build-tools'
+
 

@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="kotlin-native-benchmarking-jvm">
+    <output-path>$PROJECT_DIR$/buildSrc/kotlin-native-benchmarking/build/libs</output-path>
+    <root id="archive" name="kotlin-native-benchmarking-jvm.jar">
+      <element id="module-output" name="kotlin.buildSrc.kotlin-native-benchmarking.jvmMain" />
+    </root>
+  </artifact>
+</component>

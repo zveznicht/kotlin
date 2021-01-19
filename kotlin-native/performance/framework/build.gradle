@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.RunJvmTask
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 buildscript {
-    apply from: "$rootProject.projectDir/../gradle/kotlinGradlePlugin.gradle"
+    //apply from: "$rootProject.projectDir/../gradle/kotlinGradlePlugin.gradle"
 
     repositories {
         maven {
@@ -18,12 +18,6 @@ apply plugin: 'kotlin-multiplatform'
 repositories {
     maven {
         url 'https://cache-redirector.jetbrains.com/jcenter'
-    }
-    maven {
-        url kotlinCompilerRepo
-    }
-    maven {
-        url buildKotlinCompilerRepo
     }
 }
 
