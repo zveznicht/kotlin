@@ -437,6 +437,11 @@ public class JvmOldAgainstIrBoxTestGenerated extends AbstractJvmOldAgainstIrBoxT
             runTest("compiler/testData/compileKotlinAgainstKotlin/fir/ExistingSymbolInFakeOverride.kt");
         }
 
+        @TestMetadata("ExtensionAlias.kt")
+        public void testExtensionAlias() throws Exception {
+            runTest("compiler/testData/compileKotlinAgainstKotlin/fir/ExtensionAlias.kt");
+        }
+
         @TestMetadata("IncrementalCompilerRunner.kt")
         public void testIncrementalCompilerRunner() throws Exception {
             runTest("compiler/testData/compileKotlinAgainstKotlin/fir/IncrementalCompilerRunner.kt");
