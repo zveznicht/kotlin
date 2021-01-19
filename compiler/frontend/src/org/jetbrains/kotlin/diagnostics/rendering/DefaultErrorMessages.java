@@ -1051,6 +1051,7 @@ public class DefaultErrorMessages {
         MAP.put(CONTRACT_NOT_ALLOWED, "{0}", TO_STRING);
 
         MAP.put(NO_ADDITIONAL_RECEIVER, "No required additional receiver found: {0}", TO_STRING);
+        MAP.put(SUBTYPING_BETWEEN_ADDITIONAL_RECEIVERS, "Subtyping between additional receivers is prohibited: {0} is subtype of {1}", RENDER_TYPE, RENDER_TYPE);
 
         MAP.setImmutable();
 
