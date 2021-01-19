@@ -300,7 +300,10 @@ private fun findReceiverByLabelOrGetDefault(
     bindingContext: BindingContext,
     labelName: String? = null
 ): ReceiverParameterDescriptor {
-    val receiverToLabelMap = bindingContext.get(BindingContext.DESCRIPTOR_TO_NAMED_RECEIVERS, descriptorOfThisReceiver)
+    val receiverToLabelMap = bindingContext.get(
+        BindingContext.DESCRIPTOR_TO_NAMED_RECEIVERS,
+        if (descriptorOfThisReceiver is PropertyAccessorDescriptor) descriptorOfThisReceiver.correspondingProperty else descriptorOfThisReceiver
+    )
     return receiverToLabelMap?.entries?.find {
         it.value == labelName
     }?.key ?: default ?: error("'This' refers to the callable member without a receiver parameter: $descriptorOfThisReceiver")

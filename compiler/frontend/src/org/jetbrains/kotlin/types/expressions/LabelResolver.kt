@@ -17,10 +17,7 @@
 package org.jetbrains.kotlin.types.expressions
 
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.descriptors.FunctionDescriptor
-import org.jetbrains.kotlin.descriptors.PropertyDescriptor
-import org.jetbrains.kotlin.descriptors.ReceiverParameterDescriptor
+import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.diagnostics.Errors.LABEL_NAME_CLASH
 import org.jetbrains.kotlin.diagnostics.Errors.UNRESOLVED_REFERENCE
 import org.jetbrains.kotlin.name.Name
@@ -181,7 +178,8 @@ object LabelResolver {
                 val element = resolveNamedLabel(labelName, targetLabel, context.trace, expression is KtThisExpression)
                 val declarationDescriptor = context.trace.bindingContext[DECLARATION_TO_DESCRIPTOR, element]
                 if (declarationDescriptor is FunctionDescriptor) {
-                    val receiverToLabelMap = context.trace.bindingContext[DESCRIPTOR_TO_NAMED_RECEIVERS, declarationDescriptor]
+                    val receiverToLabelMap =
+                        context.trace.bindingContext[DESCRIPTOR_TO_NAMED_RECEIVERS, if (declarationDescriptor is PropertyAccessorDescriptor) declarationDescriptor.correspondingProperty else declarationDescriptor]
                     val thisReceiver = receiverToLabelMap?.entries?.find {
                         it.value == labelName.identifier
                     }?.key ?: declarationDescriptor.extensionReceiverParameter

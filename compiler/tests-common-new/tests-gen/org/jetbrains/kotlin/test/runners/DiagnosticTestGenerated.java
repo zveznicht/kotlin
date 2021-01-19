@@ -9468,6 +9468,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                     }
 
                     @Test
+                    @TestMetadata("multiple.kt")
+                    public void testMultiple() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/classes/multiple.kt");
+                    }
+
+                    @Test
                     @TestMetadata("outerClass.kt")
                     public void testOuterClass() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/extensions/additionalReceivers/classes/outerClass.kt");
