@@ -1,3 +1,5 @@
+// IGNORE_BACKEND: WASM, JS_IR
+// IGNORE_BACKEND_FIR: JVM_IR
 // FILE: result.kt
 
 package kotlin
