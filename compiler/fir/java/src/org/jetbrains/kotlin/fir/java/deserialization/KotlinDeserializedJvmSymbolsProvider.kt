@@ -261,16 +261,14 @@ class KotlinDeserializedJvmSymbolsProvider(
 }
 
 private class KnownNameInPackageCache(session: FirSession, private val javaClassFinder: JavaClassFinder) {
-    private val knownClassNamesInPackage = session.firCachesFactory.createMapLikeCache<FqName, Set<String>?>()
+    private val knownClassNamesInPackage = session.firCachesFactory.createCache(javaClassFinder::knownClassNamesInPackage)
 
     /**
      * This function returns true if we are sure that no top-level class with this id is available
      * If it returns false, it means we can say nothing about this id
      */
     fun hasNoTopLevelClassOf(classId: ClassId): Boolean {
-        val knownNames = knownClassNamesInPackage.getOrCreateValue(classId.packageFqName) {
-            javaClassFinder.knownClassNamesInPackage(classId.packageFqName)
-        } ?: return false
+        val knownNames = knownClassNamesInPackage.getValue(classId.packageFqName) ?: return false
         return classId.relativeClassName.topLevelName() !in knownNames
     }
 }
