@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.ir.util.IdSignatureComposer
 import org.jetbrains.kotlin.ir.util.KotlinMangler
+import org.jetbrains.kotlin.utils.threadLocal
 
 open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMangler) : IdSignatureComposer {
 
@@ -105,15 +106,17 @@ open class IdSignatureDescriptor(private val mangler: KotlinMangler.DescriptorMa
             reportUnexpectedDescriptor(descriptor)
     }
 
+    private val composer by threadLocal { createSignatureBuilder() }
+
     override fun composeSignature(descriptor: DeclarationDescriptor): IdSignature? {
         return if (mangler.run { descriptor.isExported() }) {
-            createSignatureBuilder().buildSignature(descriptor)
+            composer.buildSignature(descriptor)
         } else null
     }
 
     override fun composeEnumEntrySignature(descriptor: ClassDescriptor): IdSignature? {
         return if (mangler.run { descriptor.isExportEnumEntry() }) {
-            createSignatureBuilder().buildSignature(descriptor)
+            composer.buildSignature(descriptor)
         } else null
     }
 }
