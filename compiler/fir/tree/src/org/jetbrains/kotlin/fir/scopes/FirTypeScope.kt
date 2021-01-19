@@ -80,8 +80,6 @@ abstract class FirTypeScope : FirScope(), FirContainingNamesAwareScope {
     }
 }
 
-typealias ProcessOverriddenWithBaseScope<D> = FirTypeScope.(D, (D, FirTypeScope) -> ProcessorAction) -> ProcessorAction
-
 fun FirTypeScope.processOverriddenFunctions(
     functionSymbol: FirNamedFunctionSymbol,
     processor: (FirNamedFunctionSymbol) -> ProcessorAction

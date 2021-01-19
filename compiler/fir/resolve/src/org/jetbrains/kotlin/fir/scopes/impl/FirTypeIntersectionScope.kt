@@ -511,3 +511,6 @@ private class MemberWithBaseScope<D : FirCallableSymbol<*>>(val member: D, val b
 }
 
 private fun <D : FirCallableSymbol<*>> D.withScope(baseScope: FirTypeScope) = MemberWithBaseScope(this, baseScope)
+
+private typealias ProcessOverriddenWithBaseScope<D> = FirTypeScope.(D, (D, FirTypeScope) -> ProcessorAction) -> ProcessorAction
+
