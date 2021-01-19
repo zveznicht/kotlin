@@ -69,9 +69,10 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
 
         val coroutinesState = getCoroutinesState(project)
         val kotlinNativeHome = KotlinNativeHomeEvaluator.getKotlinNativeHome(project) ?: NO_KOTLIN_NATIVE_HOME
+        val sourceSets = filterOrphanSourceSets(importingContext)
         importingContext.kotlinImportingReports.logReports()
         return KotlinMPPGradleModelImpl(
-            filterOrphanSourceSets(importingContext),
+            sourceSets,
             importingContext.targets,
             ExtraFeaturesImpl(
                 coroutinesState,
@@ -87,14 +88,14 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
     private fun filterOrphanSourceSets(
         importingContext: MultiplatformModelImportingContext
     ): Map<String, KotlinSourceSetImpl> {
-        if (importingContext.getProperty(IMPORT_ORPHAN_SOURCE_SETS)) return importingContext.sourceSetsByNames
-
         val (orphanSourceSets, nonOrphanSourceSets) = importingContext.sourceSets.partition { importingContext.isOrphanSourceSet(it) }
 
         orphanSourceSets.forEach {
             importingContext.kotlinImportingReports += OrphanSourceSetsImportingReport(it.name)
         }
-        return nonOrphanSourceSets.associateBy { it.name }
+
+        return if (importingContext.getProperty(IMPORT_ORPHAN_SOURCE_SETS)) importingContext.sourceSetsByNames
+        else nonOrphanSourceSets.associateBy { it.name }
     }
 
     private fun getCoroutinesState(project: Project): String? {

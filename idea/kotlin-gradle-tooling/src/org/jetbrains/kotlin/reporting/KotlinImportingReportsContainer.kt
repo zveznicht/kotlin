@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.gradle.org.jetbrains.kotlin.reporting
 import org.jetbrains.kotlin.gradle.KotlinImportingReport
 
 class KotlinImportingReportsContainer {
-    val reports = mutableListOf<KotlinImportingReport>()
+    val reports = mutableSetOf<KotlinImportingReport>()
 
     operator fun plusAssign(report: KotlinImportingReport) {
         reports += report
