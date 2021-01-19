@@ -178,6 +178,7 @@ internal object FirIdeSessionFactory {
                                     this@apply,
                                     project,
                                     packagePartProvider,
+                                    javaSymbolProvider,
                                     kotlinClassFinder,
                                     javaClassFinder,
                                     kotlinScopeProvider
