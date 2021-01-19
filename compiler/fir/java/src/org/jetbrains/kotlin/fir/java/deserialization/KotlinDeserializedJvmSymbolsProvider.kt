@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.fir.deserialization.FirDeserializationContext
 import org.jetbrains.kotlin.fir.deserialization.deserializeClassToSymbol
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.builder.*
+import org.jetbrains.kotlin.fir.java.JavaSymbolProvider
 import org.jetbrains.kotlin.fir.java.topLevelName
 import org.jetbrains.kotlin.fir.resolve.providers.*
 import org.jetbrains.kotlin.fir.scopes.KotlinScopeProvider
@@ -43,6 +44,7 @@ class KotlinDeserializedJvmSymbolsProvider(
     session: FirSession,
     val project: Project,
     private val packagePartProvider: PackagePartProvider,
+    private val javaSymbolProvider: JavaSymbolProvider,
     private val kotlinClassFinder: KotlinClassFinder,
     private val javaClassFinder: JavaClassFinder,
     private val kotlinScopeProvider: KotlinScopeProvider,
@@ -165,7 +167,6 @@ class KotlinDeserializedJvmSymbolsProvider(
         classId: ClassId,
         parentContext: FirDeserializationContext? = null
     ): FirRegularClassSymbol? {
-        if (knownNameInPackageCache.hasNoTopLevelClassOf(classId)) return null
         return classCache.getValue(classId, parentContext)
     }
 
@@ -173,6 +174,7 @@ class KotlinDeserializedJvmSymbolsProvider(
         classId: ClassId,
         parentContext: FirDeserializationContext? = null
     ): Pair<FirRegularClassSymbol?, KotlinClassFinder.Result.KotlinClass?> {
+        if (knownNameInPackageCache.hasNoTopLevelClassOf(classId)) return null to null
         val result = try {
             kotlinClassFinder.findKotlinClassOrContent(classId)
         } catch (e: ProcessCanceledException) {
@@ -181,7 +183,7 @@ class KotlinDeserializedJvmSymbolsProvider(
         val kotlinClass = when (result) {
             is KotlinClassFinder.Result.KotlinClass -> result
             is KotlinClassFinder.Result.ClassFileContent -> {
-                return null to null
+                return javaSymbolProvider.getFirJavaClass(classId, result) to null
             }
             null -> return findAndDeserializeClassViaParent(classId) to null
         }
