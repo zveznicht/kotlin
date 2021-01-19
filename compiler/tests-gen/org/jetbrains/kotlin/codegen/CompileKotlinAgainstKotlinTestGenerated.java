@@ -455,6 +455,11 @@ public class CompileKotlinAgainstKotlinTestGenerated extends AbstractCompileKotl
         public void testLibraryProperty() throws Exception {
             runTest("compiler/testData/compileKotlinAgainstKotlin/fir/LibraryProperty.kt");
         }
+
+        @TestMetadata("SimpleTypeMarker.kt")
+        public void testSimpleTypeMarker() throws Exception {
+            runTest("compiler/testData/compileKotlinAgainstKotlin/fir/SimpleTypeMarker.kt");
+        }
     }
 
     @TestMetadata("compiler/testData/compileKotlinAgainstKotlin/jvm8")
