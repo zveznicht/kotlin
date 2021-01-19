@@ -11,15 +11,17 @@ import org.jetbrains.kotlin.gradle.ErroneousImportingReport
 import org.jetbrains.kotlin.gradle.KotlinImportingReport
 import org.jetbrains.kotlin.gradle.OrphanSourceSetsImportingReport
 
-interface KotlinImportingReportsVisitor<T: KotlinImportingReport> {
-    fun visit(report: T)
+interface KotlinImportingReportsVisitor<T> {
+    fun visit(visited: T)
 }
 
+interface SingleKotlinImportingReportVisitor<T: KotlinImportingReport> :  KotlinImportingReportsVisitor<T>
+
 abstract class GradleLogImportingReportVisitor<T : KotlinImportingReport>(protected val logger: Logger) :
-    KotlinImportingReportsVisitor<T> {
+    SingleKotlinImportingReportVisitor<T> {
     protected open val logLevel = LogLevel.INFO
     abstract fun logReport(report: T)
-    override fun visit(report: T) = logReport(report)
+    override fun visit(visited: T) = logReport(visited)
 }
 
 class GradleLogOrphanSourceSetReportVisitor(logger: Logger) : GradleLogImportingReportVisitor<OrphanSourceSetsImportingReport>(logger) {
