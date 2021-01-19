@@ -10,8 +10,18 @@ interface FirCache<KEY : Any, VALUE> {
 }
 
 internal class FirThreadUnsafeCache<KEY : Any, VALUE>(private val createValue: (KEY) -> VALUE) : FirCache<KEY, VALUE> {
-    private val map = mutableMapOf<KEY, VALUE>()
+    private val map = HashMap<KEY, Any>()
 
-    override fun getValue(key: KEY): VALUE =
-        map.computeIfAbsent(key, createValue)
+    @Suppress("UNCHECKED_CAST")
+    override fun getValue(key: KEY): VALUE {
+        return when (val value = map[key]) {
+            null -> {
+                val calculated = createValue(key)
+                map[key] = calculated ?: NullValue
+                calculated
+            }
+            NullValue -> null
+            else -> value
+        } as VALUE
+    }
 }
