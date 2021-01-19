@@ -199,7 +199,7 @@ private class KnownNameInPackageCache(session: FirSession, private val javaClass
     }
 }
 
-private class KotlinDeserializedJvmSymbolsProviderCache(
+private class KotlinDeserializedJvmSymbolsProviderClassCache(
     private val session: FirSession,
     private val kotlinClassFinder: KotlinClassFinder,
     private val kotlinScopeProvider: KotlinScopeProvider,
