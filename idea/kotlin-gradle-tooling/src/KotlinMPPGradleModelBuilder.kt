@@ -338,7 +338,7 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
 
         val gradleCompilations = getCompilations(gradleTarget) ?: return null
         val compilations = gradleCompilations.mapNotNull {
-            buildCompilation(importingContext, it, disambiguationClassifier, dependencyResolver, dependencyMapper)
+            buildCompilation(importingContext, it, platform, disambiguationClassifier, dependencyResolver, dependencyMapper)
         }
         val jar = buildTargetJar(gradleTarget, importingContext.project)
         val testRunTasks = buildTestRunTasks(importingContext.project, gradleTarget)
