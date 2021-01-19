@@ -243,9 +243,9 @@ data class KotlinMPPGradleModelImpl(
     override val targets: Collection<KotlinTarget>,
     override val extraFeatures: ExtraFeatures,
     override val kotlinNativeHome: String,
-    override val dependencyMap: Map<KotlinDependencyId, KotlinDependency>
+    override val dependencyMap: Map<KotlinDependencyId, KotlinDependency>,
+    override val kotlinImportingReports: Collection<KotlinImportingReport>
 ) : KotlinMPPGradleModel {
-
     constructor(mppModel: KotlinMPPGradleModel, cloningCache: MutableMap<Any, Any>) : this(
         mppModel.sourceSets.mapValues { initialSourceSet ->
             (cloningCache[initialSourceSet] as? KotlinSourceSet) ?: KotlinSourceSetImpl(
@@ -264,7 +264,8 @@ data class KotlinMPPGradleModelImpl(
             mppModel.extraFeatures.isNativeDependencyPropagationEnabled
         ),
         mppModel.kotlinNativeHome,
-        mppModel.dependencyMap.map { it.key to it.value.deepCopy(cloningCache) }.toMap()
+        mppModel.dependencyMap.map { it.key to it.value.deepCopy(cloningCache) }.toMap(),
+        mppModel.kotlinImportingReports.toList()
     )
 }
 

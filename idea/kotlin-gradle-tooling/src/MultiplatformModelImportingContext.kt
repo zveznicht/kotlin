@@ -7,7 +7,7 @@ package org.jetbrains.kotlin.gradle
 
 import org.gradle.api.Project
 import org.gradle.api.logging.Logging
-import org.jetbrains.kotlin.gradle.GradleImportProperties.*
+import org.jetbrains.kotlin.gradle.org.jetbrains.kotlin.reporting.KotlinImportingReportsContainer
 import java.lang.Exception
 
 private val logger = Logging.getLogger(KotlinMPPGradleModelBuilder::class.java)
@@ -24,6 +24,11 @@ internal interface MultiplatformModelImportingContext {
      */
     val sourceSets: Collection<KotlinSourceSetImpl>
     val sourceSetsByNames: Map<String, KotlinSourceSetImpl>
+
+    /**
+     * Collect reports about anomalies in project during import.
+     */
+    val kotlinImportingReports: KotlinImportingReportsContainer
 
     fun sourceSetByName(name: String): KotlinSourceSet?
     fun compilationsBySourceSet(sourceSet: KotlinSourceSet): Collection<KotlinCompilation>?
@@ -69,6 +74,7 @@ internal class MultiplatformModelImportingContextImpl(override val project: Proj
     override val sourceSets: Collection<KotlinSourceSetImpl>
         get() = sourceSetsByNames.values
 
+    override val kotlinImportingReports: KotlinImportingReportsContainer = KotlinImportingReportsContainer()
 
     /** see [initializeCompilations] */
     override lateinit var compilations: Collection<KotlinCompilation>

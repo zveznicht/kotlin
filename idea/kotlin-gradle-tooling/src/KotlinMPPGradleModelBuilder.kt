@@ -23,6 +23,9 @@ import org.jetbrains.kotlin.gradle.GradleImportProperties.*
 import org.jetbrains.kotlin.gradle.KotlinMPPGradleModel.Companion.NO_KOTLIN_NATIVE_HOME
 import org.jetbrains.kotlin.gradle.KotlinSourceSet.Companion.COMMON_MAIN_SOURCE_SET_NAME
 import org.jetbrains.kotlin.gradle.KotlinSourceSet.Companion.COMMON_TEST_SOURCE_SET_NAME
+import org.jetbrains.kotlin.gradle.org.jetbrains.kotlin.reporting.GradleLogErroneousImportingReportVisitor
+import org.jetbrains.kotlin.gradle.org.jetbrains.kotlin.reporting.GradleLogOrphanSourceSetReportVisitor
+import org.jetbrains.kotlin.gradle.org.jetbrains.kotlin.reporting.KotlinImportingReportsContainer
 import org.jetbrains.plugins.gradle.DefaultExternalDependencyId
 import org.jetbrains.plugins.gradle.model.*
 import org.jetbrains.plugins.gradle.tooling.ErrorMessageBuilder
@@ -66,6 +69,7 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
 
         val coroutinesState = getCoroutinesState(project)
         val kotlinNativeHome = KotlinNativeHomeEvaluator.getKotlinNativeHome(project) ?: NO_KOTLIN_NATIVE_HOME
+        importingContext.kotlinImportingReports.logReports()
         return KotlinMPPGradleModelImpl(
             filterOrphanSourceSets(importingContext),
             importingContext.targets,
@@ -75,7 +79,8 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
                 importingContext.getProperty(ENABLE_NATIVE_DEPENDENCY_PROPAGATION)
             ),
             kotlinNativeHome,
-            dependencyMapper.toDependencyMap()
+            dependencyMapper.toDependencyMap(),
+            importingContext.kotlinImportingReports[OrphanSourceSetsImportingReport::class.java]
         )
     }
 
@@ -87,7 +92,7 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         val (orphanSourceSets, nonOrphanSourceSets) = importingContext.sourceSets.partition { importingContext.isOrphanSourceSet(it) }
 
         orphanSourceSets.forEach {
-            logger.warn("[sync warning] Source set \"${it.name}\" is not compiled with any compilation. This source set is not imported in the IDE.")
+            importingContext.kotlinImportingReports += OrphanSourceSetsImportingReport(it.name)
         }
         return nonOrphanSourceSets.associateBy { it.name }
     }
@@ -140,7 +145,7 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
                 @Suppress("UNCHECKED_CAST")
                 return getAndroidSourceSetDependencies?.let { it(resolver, importingContext.project) } as Map<String, List<Any>>?
             } catch (e: Exception) {
-                logger.info("Unexpected exception", e)
+                importingContext.kotlinImportingReports += ErroneousImportingReport("Unexpected exception", e)
             }
         }
         return null
@@ -510,7 +515,7 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
         val kotlinSourceSets = kotlinGradleSourceSets.mapNotNull { importingContext.sourceSetByName(it.name) }
         val compileKotlinTask = getCompileKotlinTaskName(importingContext.project, gradleCompilation) ?: return null
         val output = buildCompilationOutput(gradleCompilation, compileKotlinTask) ?: return null
-        val arguments = buildCompilationArguments(compileKotlinTask)
+        val arguments = buildCompilationArguments(importingContext, compileKotlinTask)
         val dependencyClasspath = buildDependencyClasspath(compileKotlinTask)
         val dependencies =
             buildCompilationDependencies(importingContext, gradleCompilation, classifier, dependencyResolver, dependencyMapper)
@@ -683,19 +688,22 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun safelyGetArguments(compileKotlinTask: Task, accessor: Method?) = try {
+    private fun safelyGetArguments(importingContext: MultiplatformModelImportingContext, compileKotlinTask: Task, accessor: Method?) = try {
         accessor?.invoke(compileKotlinTask) as? List<String>
     } catch (e: Exception) {
-        logger.info(e.message ?: "Unexpected exception: $e", e)
+        importingContext.kotlinImportingReports += ErroneousImportingReport(e.message ?: "Unexpected exception: $e", e)
         null
     } ?: emptyList()
 
-    private fun buildCompilationArguments(compileKotlinTask: Task): KotlinCompilationArguments {
+    private fun buildCompilationArguments(
+        importingContext: MultiplatformModelImportingContext,
+        compileKotlinTask: Task
+    ): KotlinCompilationArguments {
         val compileTaskClass = compileKotlinTask.javaClass
         val getCurrentArguments = compileTaskClass.getMethodOrNull("getSerializedCompilerArguments")
         val getDefaultArguments = compileTaskClass.getMethodOrNull("getDefaultSerializedCompilerArguments")
-        val currentArguments = safelyGetArguments(compileKotlinTask, getCurrentArguments)
-        val defaultArguments = safelyGetArguments(compileKotlinTask, getDefaultArguments)
+        val currentArguments = safelyGetArguments(importingContext, compileKotlinTask, getCurrentArguments)
+        val defaultArguments = safelyGetArguments(importingContext, compileKotlinTask, getDefaultArguments)
         return KotlinCompilationArgumentsImpl(defaultArguments.toTypedArray(), currentArguments.toTypedArray())
     }
 
@@ -905,6 +913,13 @@ class KotlinMPPGradleModelBuilder : ModelBuilderService {
 
     companion object {
         private val logger = Logging.getLogger(KotlinMPPGradleModelBuilder::class.java)
+
+        private fun KotlinImportingReportsContainer.logReports() {
+            val orphanSourceSetReportVisitor = GradleLogOrphanSourceSetReportVisitor(logger)
+            val erroneousImportingReportVisitor = GradleLogErroneousImportingReportVisitor(logger)
+            this[OrphanSourceSetsImportingReport::class.java].forEach { orphanSourceSetReportVisitor.visit(it) }
+            this[ErroneousImportingReport::class.java].forEach { erroneousImportingReportVisitor.visit(it) }
+        }
 
         fun Project.getTargets(): Collection<Named>? {
             val kotlinExt = project.extensions.findByName("kotlin") ?: return null

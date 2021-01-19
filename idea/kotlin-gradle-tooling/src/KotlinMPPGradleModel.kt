@@ -180,6 +180,7 @@ interface KotlinMPPGradleModel : Serializable {
     val targets: Collection<KotlinTarget>
     val extraFeatures: ExtraFeatures
     val kotlinNativeHome: String
+    val kotlinImportingReports: Collection<KotlinImportingReport>
 
     companion object {
         const val NO_KOTLIN_NATIVE_HOME = ""
