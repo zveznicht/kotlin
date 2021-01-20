@@ -178,7 +178,7 @@ internal fun getIdForStableIdentifier(
 
         is KtThisExpression -> {
             val declarationDescriptor = bindingContext.get(BindingContext.REFERENCE_TARGET, expression.instanceReference)
-            getIdForThisReceiver(declarationDescriptor, bindingContext, expression.getLabelName())
+            getIdForThisReceiver(declarationDescriptor, bindingContext, null, expression.getLabelName())
         }
 
         is KtPostfixExpression -> {
@@ -257,7 +257,7 @@ private fun getIdForImplicitReceiver(receiverValue: ReceiverValue?, expression: 
     when (receiverValue) {
         is ExpressionImplicitReceiver -> IdentifierInfo.NO
 
-        is ImplicitReceiver -> getIdForThisReceiver(receiverValue.declarationDescriptor, bindingContext)
+        is ImplicitReceiver -> getIdForThisReceiver(receiverValue.declarationDescriptor, bindingContext, receiverValue, null)
 
         is TransientReceiver ->
             throw AssertionError("Transient receiver is implicit for an explicit expression: $expression. Receiver: $receiverValue")
@@ -268,25 +268,28 @@ private fun getIdForImplicitReceiver(receiverValue: ReceiverValue?, expression: 
 private fun getIdForThisReceiver(
     descriptorOfThisReceiver: DeclarationDescriptor?,
     bindingContext: BindingContext,
-    labelName: String? = null
+    receiverValue: ReceiverValue?,
+    labelName: String?
 ) =
     when (descriptorOfThisReceiver) {
         is CallableDescriptor -> {
-            val receiverParameter = findReceiverByLabelOrGetDefault(
+            val receiverParameter = findReceiverByValueOrLabelOrGetDefault(
                 descriptorOfThisReceiver,
-                descriptorOfThisReceiver.extensionReceiverParameter,
                 bindingContext,
-                labelName
+                receiverValue,
+                labelName,
+                descriptorOfThisReceiver.extensionReceiverParameter
             )
             IdentifierInfo.Receiver(receiverParameter.value)
         }
 
         is ClassDescriptor -> {
-            val receiverParameter = findReceiverByLabelOrGetDefault(
+            val receiverParameter = findReceiverByValueOrLabelOrGetDefault(
                 descriptorOfThisReceiver,
-                descriptorOfThisReceiver.thisAsReceiverParameter,
                 bindingContext,
-                labelName
+                receiverValue,
+                labelName,
+                descriptorOfThisReceiver.thisAsReceiverParameter
             )
             IdentifierInfo.Receiver(receiverParameter.value)
         }
@@ -294,19 +297,23 @@ private fun getIdForThisReceiver(
         else -> IdentifierInfo.NO
     }
 
-private fun findReceiverByLabelOrGetDefault(
+private fun findReceiverByValueOrLabelOrGetDefault(
     descriptorOfThisReceiver: DeclarationDescriptor,
-    default: ReceiverParameterDescriptor?,
     bindingContext: BindingContext,
-    labelName: String? = null
+    receiverValue: ReceiverValue?,
+    labelName: String?,
+    default: ReceiverParameterDescriptor?
 ): ReceiverParameterDescriptor {
-    val receiverToLabelMap = bindingContext.get(
-        BindingContext.DESCRIPTOR_TO_NAMED_RECEIVERS,
+    val receiverLabelStorage = bindingContext.get(
+        BindingContext.DESCRIPTOR_TO_RECEIVER_LABEL_STORAGE,
         if (descriptorOfThisReceiver is PropertyAccessorDescriptor) descriptorOfThisReceiver.correspondingProperty else descriptorOfThisReceiver
     )
-    return receiverToLabelMap?.entries?.find {
-        it.value == labelName
-    }?.key ?: default ?: error("'This' refers to the callable member without a receiver parameter: $descriptorOfThisReceiver")
+    return when {
+        receiverValue != null -> receiverLabelStorage?.findReceiver { it.value == receiverValue }
+        labelName != null -> receiverLabelStorage?.get(labelName)
+        else -> null
+    } ?: default
+    ?: error("'This' refers to the callable member without a receiver parameter: $descriptorOfThisReceiver")
 }
 
 
