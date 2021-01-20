@@ -37,6 +37,7 @@ import org.jetbrains.kotlin.fir.types.builder.buildImplicitTypeRef
 import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
 import org.jetbrains.kotlin.fir.visitors.*
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
 
 open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransformer) : FirPartialBodyResolveTransformer(transformer) {
@@ -442,7 +443,21 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
 
             val body = result.body
             if (result.returnTypeRef is FirImplicitTypeRef && body != null) {
-                result.transformReturnTypeRef(transformer, withExpectedType(body.resultType))
+                val returnType =
+                    dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(result)
+                        .firstNotNullResult { (it as? FirExpression)?.resultType?.coneTypeSafe() }
+
+                if (returnType != null) {
+                    result.transformReturnTypeRef(transformer, withExpectedType(returnType))
+                } else {
+                    result.transformReturnTypeRef(
+                        transformer,
+                        withExpectedType(buildErrorTypeRef {
+                            diagnostic =
+                                ConeSimpleDiagnostic("Unresolved lambda return type", DiagnosticKind.InferenceError)
+                        })
+                    )
+                }
             }
             return result
         }
@@ -506,11 +521,12 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
         val body = result.body
         if (result.returnTypeRef is FirImplicitTypeRef) {
             val simpleFunction = function as? FirSimpleFunction
-            if (body != null) {
+            val returnExpression = (body?.statements?.single() as? FirReturnExpression)?.result
+            if (returnExpression != null && returnExpression.typeRef is FirResolvedTypeRef) {
                 result.transformReturnTypeRef(
                     transformer,
                     withExpectedType(
-                        body.resultType.approximatedIfNeededOrSelf(
+                        returnExpression.resultType.approximatedIfNeededOrSelf(
                             inferenceComponents.approximator, simpleFunction?.visibility, simpleFunction?.isInline == true
                         )
                     )
@@ -762,12 +778,10 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
                     dataFlowAnalyzer,
                 )
                 lambda.transformSingle(writer, expectedTypeRef.coneTypeSafe<ConeKotlinType>()?.toExpectedType())
-                val returnTypes = dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(lambda)
+                dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(lambda)
                     .mapNotNull { (it as? FirExpression)?.resultType?.coneType }
                 lambda.replaceReturnTypeRef(
-                    lambda.returnTypeRef.resolvedTypeFromPrototype(
-                        inferenceComponents.ctx.commonSuperTypeOrNull(returnTypes) ?: session.builtinTypes.unitType.type
-                    )
+                    lambda.returnTypeRef.resolvedTypeFromPrototype(lambda.computeReturnType() ?: session.builtinTypes.unitType.type)
                 )
                 lambda.replaceTypeRef(
                     lambda.constructFunctionalTypeRef(
@@ -780,6 +794,13 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
                 throw AssertionError("Should not be here in WithStatus mode")
             }
         }
+    }
+
+    private fun FirAnonymousFunction.computeReturnType(): ConeKotlinType? {
+        val returnTypes = dataFlowAnalyzer.returnExpressionsOfAnonymousFunction(this)
+            .mapNotNull { (it as? FirExpression)?.resultType?.coneTypeSafe() }
+
+        return inferenceComponents.ctx.commonSuperTypeOrNull(returnTypes)
     }
 
     private fun FirAnonymousFunction.addReturn(): FirAnonymousFunction {
@@ -942,7 +963,10 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
                     variable.transformReturnTypeRef(
                         transformer,
                         withExpectedType(
-                            expectedType.approximatedIfNeededOrSelf(inferenceComponents.approximator, (variable as? FirProperty)?.visibility)
+                            expectedType.approximatedIfNeededOrSelf(
+                                inferenceComponents.approximator,
+                                (variable as? FirProperty)?.visibility
+                            )
                         )
                     )
                 }
@@ -966,7 +990,10 @@ open class FirDeclarationsResolveTransformer(transformer: FirBodyResolveTransfor
                     variable.transformReturnTypeRef(
                         transformer,
                         withExpectedType(
-                            expectedType?.approximatedIfNeededOrSelf(inferenceComponents.approximator, (variable as? FirProperty)?.visibility)
+                            expectedType?.approximatedIfNeededOrSelf(
+                                inferenceComponents.approximator,
+                                (variable as? FirProperty)?.visibility
+                            )
                         )
                     )
                 }

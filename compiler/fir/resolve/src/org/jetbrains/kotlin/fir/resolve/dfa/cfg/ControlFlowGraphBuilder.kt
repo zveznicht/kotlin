@@ -124,18 +124,18 @@ class ControlFlowGraphBuilder {
         function.controlFlowGraphReference?.controlFlowGraph?.exitNode != null ||
                 exitsOfAnonymousFunctions.containsKey(function.symbol)
 
-    fun returnExpressionsOfAnonymousFunction(function: FirAnonymousFunction, onlyExplicitReturns: Boolean = false): Collection<FirStatement> {
-        fun FirElement.extractArgument(onlyExplicitReturns: Boolean): FirElement? = when {
+    fun returnExpressionsOfAnonymousFunction(function: FirAnonymousFunction): Collection<FirStatement> {
+        fun FirElement.extractArgument(): FirElement? = when {
             this is FirReturnExpression && target.labeledElement.symbol == function.symbol ->
-                result.extractArgument(onlyExplicitReturns = false)
-            else -> this.takeUnless { onlyExplicitReturns }
+                result.extractArgument()
+            else -> this
         }
 
         fun CFGNode<*>.extractArgument(): FirElement? = when (this) {
             is FunctionEnterNode, is TryMainBlockEnterNode, is CatchClauseEnterNode -> null
             is ExitSafeCallNode -> lastPreviousNode.extractArgument()
             is StubNode, is BlockExitNode -> firstPreviousNode.extractArgument()
-            else -> fir.extractArgument(onlyExplicitReturns)
+            else -> fir.extractArgument()
         }
 
         val exitNode = function.controlFlowGraphReference?.controlFlowGraph?.exitNode
