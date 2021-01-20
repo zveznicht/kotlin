@@ -52,7 +52,7 @@ object IdeSealedClassInheritorsProvider : SealedClassInheritorsProvider() {
     }
 
     private fun getPackageViaDirectoryService(ktClass: KtClass): PsiPackage? {
-        if (ktClass.containingFile.containingDirectory == null) return null
-        return JavaDirectoryService.getInstance().getPackage(ktClass.containingFile.containingDirectory)
+        val directory = ktClass.containingFile.containingDirectory ?: return null
+        return JavaDirectoryService.getInstance().getPackage(directory)
     }
 }
