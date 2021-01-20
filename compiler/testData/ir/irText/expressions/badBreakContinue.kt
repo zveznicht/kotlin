@@ -1,3 +1,4 @@
+// IGNORE_FIR_DIAGNOSTICS
 // !IGNORE_ERRORS
 
 fun test1() {

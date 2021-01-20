@@ -1,3 +1,4 @@
+// IGNORE_FIR_DIAGNOSTICS
 // !IGNORE_ERRORS
 
 val test1 = unresolved

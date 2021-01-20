@@ -1,3 +1,4 @@
+// IGNORE_BACKEND_FIR: JVM_IR
 open class L<LL>(val ll: LL)
 
 class Rec<T>(val rt: T)

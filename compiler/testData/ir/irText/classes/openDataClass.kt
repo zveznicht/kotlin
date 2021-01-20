@@ -1,3 +1,4 @@
+// IGNORE_FIR_DIAGNOSTICS
 // This test emulates 'allopen' compiler plugin.
 
 @Suppress("INCOMPATIBLE_MODIFIERS")

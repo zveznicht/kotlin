@@ -1,3 +1,4 @@
+// IGNORE_FIR_DIAGNOSTICS
 // !LANGUAGE: +MultiPlatformProjects
 
 expect abstract class A protected constructor() {

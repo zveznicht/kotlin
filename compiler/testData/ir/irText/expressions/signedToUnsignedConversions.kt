@@ -1,4 +1,5 @@
 // WITH_RUNTIME
+// IGNORE_BACKEND_FIR: JVM_IR
 
 // FILE: signedToUnsignedConversions_annotation.kt
 
