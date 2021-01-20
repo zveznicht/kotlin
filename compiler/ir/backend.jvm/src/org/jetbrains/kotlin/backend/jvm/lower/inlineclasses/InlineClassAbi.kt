@@ -12,6 +12,8 @@ import org.jetbrains.kotlin.codegen.state.collectFunctionSignatureForManglingSuf
 import org.jetbrains.kotlin.codegen.state.md5base64
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.expressions.IrStatementOriginImpl
+import org.jetbrains.kotlin.ir.symbols.IrClassSymbol
+import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.load.java.JvmAbi
@@ -151,7 +153,13 @@ internal val IrFunction.fullValueParameterList: List<IrValueParameter>
 
 internal val IrFunction.hasMangledParameters: Boolean
     get() = dispatchReceiverParameter != null && parentAsClass.isInline ||
-            fullValueParameterList.any { it.type.requiresMangling } ||
+            fullValueParameterList.any {
+                val classifierOrNull = it.type.classifierOrNull
+                if (classifierOrNull !is IrClassSymbol && classifierOrNull !is IrTypeParameterSymbol) {
+                    throw AssertionError("Incorrect classifier $classifierOrNull for value parameter ${it.render()} of function ${this.name}")
+                }
+                it.type.requiresMangling
+            } ||
             (this is IrConstructor && constructedClass.isInline)
 
 internal val IrFunction.hasMangledReturnType: Boolean
