@@ -7,10 +7,8 @@ package org.jetbrains.kotlin.test.runners.ir
 
 import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.TargetBackend
-import org.jetbrains.kotlin.test.backend.handlers.IrPrettyKotlinDumpHandler
-import org.jetbrains.kotlin.test.backend.handlers.IrTextDumpHandler
-import org.jetbrains.kotlin.test.backend.handlers.NoCompilationErrorsHandler
-import org.jetbrains.kotlin.test.backend.handlers.NoFirCompilationErrorsHandler
+import org.jetbrains.kotlin.test.backend.BlackBoxCodegenSuppressor
+import org.jetbrains.kotlin.test.backend.handlers.*
 import org.jetbrains.kotlin.test.backend.ir.JvmIrBackendFacade
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.DUMP_IR
@@ -80,3 +78,15 @@ abstract class AbstractIrTextTestBase(
 }
 
 open class AbstractIrTextTest : AbstractIrTextTestBase(FrontendKinds.ClassicFrontend)
+
+open class AbstractFir2IrTextTest : AbstractIrTextTestBase(FrontendKinds.FIR) {
+    override fun configure(builder: TestConfigurationBuilder) {
+        super.configure(builder)
+        with(builder) {
+            useAfterAnalysisCheckers(
+                ::FirIrDumpIdenticalChecker,
+                ::BlackBoxCodegenSuppressor
+            )
+        }
+    }
+}
