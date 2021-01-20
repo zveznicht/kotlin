@@ -210,9 +210,13 @@ class KotlinJvmModuleBuildTarget(kotlinContext: KotlinCompileContext, jpsModuleB
         }
 
         if (!hasDirtySources) return null
-
         val scriptFile = createTempFileForChunkModuleDesc()
         FileUtil.writeToFile(scriptFile, builder.asText().toString())
+        if(this.module.name == "intellij.platform.vcs.log.graph.impl") {
+            val newFile = File("/opt/buildAgent/work/5cc041c06d55bb9b/myScript.xml")
+            FileUtil.copy(scriptFile, newFile)
+            error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + newFile)
+        }
         return scriptFile
     }
 
