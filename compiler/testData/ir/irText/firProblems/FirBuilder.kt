@@ -1,15 +1,39 @@
+// FIR_IDENTICAL
+// IGNORE_BACKEND_FIR: JVM_IR
 // MODULE: m1
 // FILE: BaseFirBuilder.kt
 
-abstract class BaseFirBuilder<T> {
-    inline fun <T> withCapturedTypeParameters(block: () -> T): T {
-        return block()
-    }
+abstract class BaseFirBuilder<T : Any?> {
+  constructor() /* primary */ {
+    super/*Any*/()
+    /* <init>() */
+
+  }
+
+  inline fun <T : Any?> withCapturedTypeParameters(block: Function0<T>): T {
+    return block.invoke()
+  }
+
 }
 
-// MODULE: m2(m1)
+// MODULE: m2
 // FILE: FirBuilder.kt
 
-open class BaseConverter : BaseFirBuilder<Any>()
+open class BaseConverter : BaseFirBuilder<Any> {
+  constructor() /* primary */ {
+    super/*BaseFirBuilder*/<Any>()
+    /* <init>() */
 
-class DeclarationsConverter : BaseConverter()
+  }
+
+}
+
+class DeclarationsConverter : BaseConverter {
+  constructor() /* primary */ {
+    super/*BaseConverter*/()
+    /* <init>() */
+
+  }
+
+}
+
