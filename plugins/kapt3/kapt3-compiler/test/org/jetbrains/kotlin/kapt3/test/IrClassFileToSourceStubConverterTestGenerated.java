@@ -460,6 +460,11 @@ public class IrClassFileToSourceStubConverterTestGenerated extends AbstractIrCla
         runTest("plugins/kapt3/kapt3-compiler/testData/converter/topLevel.kt");
     }
 
+    @TestMetadata("unresolvedReference.kt")
+    public void testUnresolvedReference() throws Exception {
+        runTest("plugins/kapt3/kapt3-compiler/testData/converter/unresolvedReference.kt");
+    }
+
     @TestMetadata("unsafePropertyInitializers.kt")
     public void testUnsafePropertyInitializers() throws Exception {
         runTest("plugins/kapt3/kapt3-compiler/testData/converter/unsafePropertyInitializers.kt");

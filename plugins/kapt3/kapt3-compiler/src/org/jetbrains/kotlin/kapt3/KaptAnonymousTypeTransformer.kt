@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.resolve.DescriptorUtils.*
 import org.jetbrains.kotlin.resolve.jvm.extensions.PartialAnalysisHandlerExtension
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlin.types.TypeProjectionImpl
+import org.jetbrains.kotlin.types.isError
 import org.jetbrains.kotlin.types.replace
 import org.jetbrains.kotlin.types.typeUtil.builtIns
 
@@ -35,6 +36,8 @@ class KaptAnonymousTypeTransformer(
 
 internal fun convertPossiblyAnonymousType(type: KotlinType): KotlinType {
     val declaration = type.constructor.declarationDescriptor as? ClassDescriptor ?: return type
+
+    if (type.isError) return type
 
     if (KotlinBuiltIns.isArray(type)) {
         val elementTypeProjection = type.arguments.singleOrNull()

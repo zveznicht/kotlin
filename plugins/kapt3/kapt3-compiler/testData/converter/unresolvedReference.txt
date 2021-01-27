@@ -1,0 +1,16 @@
+import java.lang.System;
+
+@kotlin.Suppress(names = {"UNRESOLVED_REFERENCE"})
+@kotlin.Metadata()
+public final class Test {
+    private final error.NonExistentClass foo = null;
+
+    public Test() {
+        super();
+    }
+
+    @org.jetbrains.annotations.NotNull()
+    public final error.NonExistentClass broken() {
+        return null;
+    }
+}
